@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
-import { ArticleApiError, listArticles } from '~/containers/Articles/api'
+import { ArticleApiError, listArticles, listArticlesByTag } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { EDITORIAL_TAGS } from '~/containers/Articles/editorialTags'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
 import { ResearchCollections } from '~/containers/Articles/landing/ResearchCollections'
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
@@ -17,45 +17,73 @@ import { ResearchSpotlight } from '~/containers/Articles/landing/ResearchSpotlig
 import { ResearchTrustedByCarousel } from '~/containers/Articles/landing/ResearchTrustedByCarousel'
 import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/landing/ResearchWidgetWithScrollbar'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
-import { RESEARCH_LANDING_LIMITS } from '~/containers/Articles/landing/utils'
+import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
-
-const EMPTY_ARTICLES: ArticleDocument[] = []
 
 function ArticlesLandingInner() {
 	const { authorizedFetch } = useAuthContext()
 
-	const {
-		data: response,
-		isLoading,
-		error
-	} = useQuery({
-		queryKey: ['research-landing-articles'],
-		queryFn: () => listArticles({ sort: 'newest', limit: 80 }, authorizedFetch),
-		retry: false
+	const landingQuery = useQuery({
+		queryKey: ['research-landing'],
+		retry: false,
+		queryFn: async () => {
+			const settled = await Promise.allSettled([
+				listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.latest, authorizedFetch),
+				listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest, authorizedFetch),
+				listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight, authorizedFetch),
+				listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }, authorizedFetch),
+				listArticlesByTag(
+					EDITORIAL_TAGS['report-highlight'].slug,
+					RESEARCH_LANDING_SECTION_LIMITS.reportHighlight,
+					authorizedFetch
+				),
+				listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights, authorizedFetch),
+				listArticles(
+					{
+						section: 'report',
+						sort: 'newest',
+						limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports
+					},
+					authorizedFetch
+				),
+				listArticles(
+					{
+						section: 'introducing',
+						sort: 'newest',
+						limit: RESEARCH_LANDING_SECTION_LIMITS.introducing
+					},
+					authorizedFetch
+				),
+				listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections }, authorizedFetch)
+			])
+
+			const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
+
+			const data = {
+				heroReports: itemsOrEmpty(0),
+				latest: itemsOrEmpty(1),
+				spotlight: itemsOrEmpty(2),
+				interviews: itemsOrEmpty(3),
+				highlight: itemsOrEmpty(4),
+				insights: itemsOrEmpty(5),
+				moreReports: itemsOrEmpty(6),
+				introducingColumn: itemsOrEmpty(7),
+				collections: itemsOrEmpty(8)
+			}
+
+			if (settled.every((r) => r.status === 'rejected')) {
+				const firstRejected = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected')
+				throw firstRejected?.reason ?? new Error('Failed to load research')
+			}
+
+			return data
+		}
 	})
 
-	const articles = response?.items ?? EMPTY_ARTICLES
-
-	// TODO: fetch correct sections
-	const slices = useMemo(() => {
-		const L = RESEARCH_LANDING_LIMITS
-		return {
-			heroReports: articles.slice(0, L.heroReports),
-			latest: articles.slice(0, L.latest),
-			spotlight: articles.slice(0, L.spotlight),
-			interviews: articles.slice(0, L.interviews),
-			highlight: articles[0] ?? null,
-			insights: articles.slice(0, L.insights),
-			introducingGrid: articles.slice(0, L.introducingGrid),
-			introducingColumn: articles.slice(L.introducingGrid, L.introducingGrid + L.introducingColumn),
-			moreReports: articles.slice(0, L.moreReports),
-			collections: articles.slice(0, L.collections)
-		}
-	}, [articles])
+	const isLoading = landingQuery.isLoading
+	const error = landingQuery.error
 
 	if (isLoading) {
 		return <ResearchLoader />
@@ -75,7 +103,7 @@ function ArticlesLandingInner() {
 		<>
 			<ResearchHero
 				introTitle="In-depth research reports, intelligence and custom content <br />to take your brand to the next level"
-				reports={slices.heroReports}
+				reports={landingQuery.data?.heroReports ?? []}
 			/>
 
 			<div className="relative overflow-hidden">
@@ -113,19 +141,23 @@ function ArticlesLandingInner() {
 				></div>
 
 				<div className="mx-auto w-full max-w-7xl space-y-[30px] px-4 sm:px-6 lg:space-y-[70px] lg:px-8">
-					<ResearchLatest articles={slices.latest} />
+					<ResearchLatest articles={landingQuery.data?.latest ?? []} />
 
-					<ResearchSpotlight title="In the spotlight" articles={slices.spotlight} />
+					<ResearchSpotlight title="In the spotlight" articles={landingQuery.data?.spotlight ?? []} />
 
-					<ResearchInterviews title="Interviews" articles={slices.interviews} />
+					<ResearchInterviews title="Interviews" articles={landingQuery.data?.interviews ?? []} />
 
 					<div id="reports">
-						{slices.highlight ? (
+						{(landingQuery.data?.highlight ?? []).length > 0 ? (
 							<ResearchSectionWithSharedHeightProvider>
 								<div className="grid grid-cols-1 gap-[36px] lg:grid-cols-[725fr_403fr]">
-									<ResearchReportHighlightWithHeight highlight={slices.highlight} />
+									<ResearchReportHighlightWithHeight highlight={(landingQuery.data?.highlight ?? [])[0]} />
 									<div className="flex flex-col gap-y-[64px]">
-										<ResearchWidgetWithScrollbarWithHeight id="insights" title="Insights" articles={slices.insights} />
+										<ResearchWidgetWithScrollbarWithHeight
+											id="insights"
+											title="Insights"
+											articles={landingQuery.data?.insights ?? []}
+										/>
 									</div>
 								</div>
 							</ResearchSectionWithSharedHeightProvider>
@@ -150,17 +182,20 @@ function ArticlesLandingInner() {
 								<ResearchGridWithScrollbar
 									id="more-reports"
 									title="More reports"
-									articles={slices.moreReports}
+									articles={landingQuery.data?.moreReports ?? []}
 									pageWidget="DL Research More Reports widget"
 								/>
 							</div>
 							<div className="flex flex-col gap-y-[64px]">
-								<ResearchIntroducingWithHeight title="Introducing" articles={slices.introducingColumn} />
+								<ResearchIntroducingWithHeight
+									title="Introducing"
+									articles={landingQuery.data?.introducingColumn ?? []}
+								/>
 							</div>
 						</div>
 					</ResearchSectionWithSharedHeightProvider>
 
-					<ResearchCollections title="Collections" articles={slices.collections} />
+					<ResearchCollections title="Collections" articles={landingQuery.data?.collections ?? []} />
 				</div>
 			</div>
 		</>
