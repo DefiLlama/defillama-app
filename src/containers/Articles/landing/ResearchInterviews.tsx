@@ -69,7 +69,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 				{isFirst && <InViewAnalytics eventParams={[article, 'widget_impression', pageWidget]} />}
 				<div
 					className={clsx(
-						'text-blue-[#0c2956] line-clamp-3 leading-[120%] font-semibold transition-all duration-500 ease-out group-hover:text-[#0c2956] group-hover:opacity-70 dark:text-white dark:group-hover:text-white/70',
+						'line-clamp-3 leading-[120%] font-semibold text-[#0c2956] transition-all duration-500 ease-out group-hover:text-[#0c2956] group-hover:opacity-70 dark:text-white dark:group-hover:text-white/70',
 						isBig ? 'text-[16px] lg:text-[24px]' : 'text-[16px] lg:text-[18px]'
 					)}
 				>
@@ -113,7 +113,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 									href={articleHref(article)}
 									onClick={() => pushResearchAnalyticsEvent(article, 'widget_click', pageWidget)}
 								>
-									<span className="text-blue-[#0c2956] line-clamp-2 min-w-0 flex-1 text-[16px] leading-snug font-medium transition-colors group-hover:text-[#0c2956] lg:text-[18px] lg:font-semibold dark:text-white dark:group-hover:text-white/70">
+									<span className="line-clamp-2 min-w-0 flex-1 text-[16px] leading-snug font-medium text-[#0c2956] transition-colors group-hover:text-[#0c2956] lg:text-[18px] lg:font-semibold dark:text-white dark:group-hover:text-white/70">
 										{article.title}
 									</span>
 									{article.coverImage?.url ? (

@@ -44,17 +44,20 @@ interface PageAnalyticsProps {
 	article: ArticleDocument | null
 }
 
-/** Optional: fires once per pathname change; extend if you need richer virtual page views. */
+/** Optional: fires when the route or article id changes; extend if you need richer virtual page views. */
 export const PageAnalytics: React.FC<PageAnalyticsProps> = ({ article }) => {
 	const router = useRouter()
 	const asPath = router.asPath
+	const articleId = article?.id
+	const articleRef = useRef(article)
+	articleRef.current = article
 
 	useEffect(() => {
 		trackUmamiEvent('research_page_view', {
 			path: asPath,
-			...umamiPayloadFromArticle(article)
+			...umamiPayloadFromArticle(articleRef.current)
 		})
-	}, [asPath, article])
+	}, [asPath, articleId])
 
 	return null
 }

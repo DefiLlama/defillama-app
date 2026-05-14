@@ -64,7 +64,9 @@ function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, c
 	const label = direction === 'prev' ? 'Previous slide' : 'Next slide'
 
 	return (
-		<div
+		<button
+			type="button"
+			disabled={disabled}
 			onClick={onClick}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
@@ -78,7 +80,7 @@ function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, c
 			<svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={path} />
 			</svg>
-		</div>
+		</button>
 	)
 }
 
