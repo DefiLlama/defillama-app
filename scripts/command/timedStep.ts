@@ -30,6 +30,19 @@ type TimedStepOptions = {
 	prefix?: string
 }
 
+function getErrorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error)
+}
+
+function logFailureDetails(logger: LogLike | undefined, prefix: string, name: string, error: unknown): void {
+	const message = getErrorMessage(error).trim()
+	if (!message) return
+
+	for (const line of message.split(/\r?\n/)) {
+		logger?.log(`${prefix} ${name} error: ${line}`)
+	}
+}
+
 export function getErrorExitCode(error: unknown): number {
 	return error instanceof CommandExitError ? error.exitCode : 1
 }
@@ -50,6 +63,7 @@ export async function timedStep<T>(
 	} catch (error) {
 		const durationMs = now() - startedAt
 		logger?.log(`${prefix} ${name} failed with exit code ${getErrorExitCode(error)}`)
+		logFailureDetails(logger, prefix, name, error)
 		return { durationMs, error, name, status: 'failure' }
 	}
 }

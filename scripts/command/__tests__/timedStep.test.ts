@@ -26,5 +26,23 @@ describe('timedStep', () => {
 
 		expect(result.status).toBe('failure')
 		expect(logger.log).toHaveBeenCalledWith('[dev:prepare] Example failed with exit code 7')
+		expect(logger.log).toHaveBeenCalledWith('[dev:prepare] Example error: failed')
+	})
+
+	it('logs multiline failure details so upstream URLs are visible', async () => {
+		const logger = { log: vi.fn() }
+
+		await timedStep(
+			'Dataset cache',
+			async () => {
+				throw new Error('Skipped dataset domains:\nyields: /yields/pools returned html page')
+			},
+			{ logger, now: vi.fn().mockReturnValueOnce(0).mockReturnValueOnce(1), prefix: '[build:prepare]' }
+		)
+
+		expect(logger.log).toHaveBeenCalledWith('[build:prepare] Dataset cache error: Skipped dataset domains:')
+		expect(logger.log).toHaveBeenCalledWith(
+			'[build:prepare] Dataset cache error: yields: /yields/pools returned html page'
+		)
 	})
 })
