@@ -248,11 +248,13 @@ export function AgenticSidebar({
 	const [nowMs] = useState(() => Date.now())
 	const trimmedSearchQuery = searchQuery.trim()
 
+	const nonProjectSessions = useMemo(() => sessions.filter((s) => !s.projectId), [sessions])
+	const hasNonProjectSessions = nonProjectSessions.length > 0
+
 	const filteredSessions = useMemo(() => {
-		const nonProjectSessions = sessions.filter((s) => !s.projectId)
 		if (!trimmedSearchQuery) return nonProjectSessions
 		return nonProjectSessions.filter((s) => s.title.toLowerCase().includes(trimmedSearchQuery.toLowerCase()))
-	}, [sessions, trimmedSearchQuery])
+	}, [nonProjectSessions, trimmedSearchQuery])
 
 	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
 		const pinned = filteredSessions
@@ -378,10 +380,10 @@ export function AgenticSidebar({
 		>
 			<header className="flex flex-col gap-2 p-4 pb-2">
 				<div className="flex h-6 items-center">
-					{isLoading || sessions.length > 0 ? (
+					{isLoading || hasNonProjectSessions ? (
 						<button
 							onClick={selectMode ? exitSelectMode : () => setSelectMode(true)}
-							disabled={isLoading && sessions.length === 0}
+							disabled={isLoading && !hasNonProjectSessions}
 							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors disabled:invisible ${
 								selectMode
 									? 'bg-(--old-blue)/12 text-(--old-blue)'
@@ -438,7 +440,7 @@ export function AgenticSidebar({
 					<span>New Chat</span>
 				</button>
 
-				{isLoading || sessions.length > 0 ? (
+				{isLoading || hasNonProjectSessions ? (
 					<div className="group/search relative flex items-center rounded-md bg-[#f5f5f5] transition-colors focus-within:bg-[#ebebeb] dark:bg-[#1a1a1b] dark:focus-within:bg-[#222324]">
 						<Icon
 							name="search"
@@ -451,7 +453,7 @@ export function AgenticSidebar({
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							placeholder="Search"
-							disabled={isLoading && sessions.length === 0}
+							disabled={isLoading && !hasNonProjectSessions}
 							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none disabled:cursor-default dark:placeholder:text-[#555]"
 						/>
 						{isSearching ? (
@@ -483,7 +485,7 @@ export function AgenticSidebar({
 						<p className="rounded-sm border border-dashed border-red-300 bg-red-50 p-4 text-center text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
 							{loadError}
 						</p>
-					) : sessions.length === 0 ? (
+					) : nonProjectSessions.length === 0 ? (
 						<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 							You don't have any chats yet
 						</p>

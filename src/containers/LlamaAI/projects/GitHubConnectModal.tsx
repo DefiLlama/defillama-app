@@ -10,6 +10,20 @@ interface GitHubConnectModalProps {
 	projectId: string
 }
 
+const TRUSTED_GITHUB_INSTALL_HOSTS = new Set(['github.com', 'www.github.com'])
+
+function getSafeGithubInstallUrl(value: string): string | null {
+	try {
+		const url = new URL(value)
+		if (url.protocol !== 'https:') return null
+		if (!TRUSTED_GITHUB_INSTALL_HOSTS.has(url.hostname.toLowerCase())) return null
+		if (!url.pathname.startsWith('/apps/') && !url.pathname.startsWith('/settings/installations')) return null
+		return url.toString()
+	} catch {
+		return null
+	}
+}
+
 export function GitHubConnectModal({ dialogStore, projectId }: GitHubConnectModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 
@@ -73,7 +87,14 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 			setInstalling(true)
 			const returnTo = `/ai/projects/${projectId}?tab=sources&connectGithub=1`
 			const { install_url } = await startInstall(returnTo)
-			window.location.href = install_url
+			const safeInstallUrl = getSafeGithubInstallUrl(install_url)
+			if (!safeInstallUrl) {
+				console.error('Rejected unsafe GitHub install URL', install_url)
+				toast.error('Could not start GitHub install')
+				setInstalling(false)
+				return
+			}
+			window.location.href = safeInstallUrl
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Could not start GitHub install')
 			setInstalling(false)
@@ -103,6 +124,17 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 				{installs.isLoading ? (
 					<div className="flex items-center gap-2 text-xs text-[#666] dark:text-[#919296]">
 						<LoadingSpinner size={12} /> Loading installations…
+					</div>
+				) : installs.isError ? (
+					<div className="flex flex-col gap-3 rounded-md border border-red-200 bg-red-50 p-4 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+						<p>{installs.error instanceof Error ? installs.error.message : 'Failed to load GitHub installations.'}</p>
+						<button
+							type="button"
+							onClick={() => void installs.refetch()}
+							className="self-start rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-900/50"
+						>
+							Retry
+						</button>
 					</div>
 				) : !hasInstalls ? (
 					<div className="flex flex-col gap-3 rounded-md border border-dashed border-[#e6e6e6] p-4 text-xs text-[#666] dark:border-[#2a2b2c] dark:text-[#919296]">
@@ -143,6 +175,17 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 							{repos.isLoading ? (
 								<div className="flex items-center gap-2 text-xs text-[#666] dark:text-[#919296]">
 									<LoadingSpinner size={12} /> Loading repositories…
+								</div>
+							) : repos.isError ? (
+								<div className="flex flex-col gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+									<p>{repos.error instanceof Error ? repos.error.message : 'Failed to load repositories.'}</p>
+									<button
+										type="button"
+										onClick={() => void repos.refetch()}
+										className="self-start rounded-md border border-red-300 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-900/50"
+									>
+										Retry
+									</button>
 								</div>
 							) : (
 								<Ariakit.ComboboxProvider

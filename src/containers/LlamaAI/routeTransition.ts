@@ -12,7 +12,6 @@ export function isSameAgenticRouteTransition(a: AgenticRouteTransition, b: Agent
 	}
 	if (a.kind === 'project-list' && b.kind === 'project-list') return true
 	if (a.kind === 'project' && b.kind === 'project') return a.projectId === b.projectId
-	return false
 }
 
 export function shouldSkipCurrentSessionRouteRestore(
@@ -22,9 +21,8 @@ export function shouldSkipCurrentSessionRouteRestore(
 ) {
 	if (routeTransition.sessionId !== currentSessionId) return false
 	if (routeTransition.aroundMessageId) return false
-	return !(
-		previousTransition?.kind === 'session' &&
-		previousTransition.sessionId === routeTransition.sessionId &&
-		previousTransition.aroundMessageId
-	)
+	if (previousTransition?.kind !== 'session') return false
+	if (previousTransition.sessionId !== routeTransition.sessionId) return false
+	if (previousTransition.aroundMessageId) return false
+	return true
 }

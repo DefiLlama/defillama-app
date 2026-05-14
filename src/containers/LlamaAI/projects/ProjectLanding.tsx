@@ -121,6 +121,8 @@ export function ProjectLanding({
 	const projectBytesUsed = project.data.total_bytes ?? 0
 	const projectFileCount = project.data.file_count ?? 0
 	const sessions = projectSessions.data ?? []
+	const connectGithubQuery = router.query.connectGithub
+	const connectGithubValue = Array.isArray(connectGithubQuery) ? connectGithubQuery[0] : connectGithubQuery
 
 	return (
 		<div className="thin-scrollbar h-full w-full overflow-y-auto overscroll-contain px-6 pt-6 pb-16">
@@ -283,7 +285,7 @@ export function ProjectLanding({
 							<ProjectInstructionsEditor projectId={projectId} value={project.data.custom_instructions} />
 							<ProjectFilesPanel
 								projectId={projectId}
-								autoOpenGitHub={router.query.connectGithub === '1'}
+								autoOpenGitHub={connectGithubValue === '1'}
 								projectBytesUsed={projectBytesUsed}
 								projectBytesLimit={projectBytesLimit}
 								projectFileCount={projectFileCount}

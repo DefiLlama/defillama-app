@@ -91,12 +91,20 @@ export function useSessionMutations() {
 
 	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string; projectId?: string | null }) => {
+		mutationFn: async ({
+			sessionId,
+			title,
+			projectId
+		}: {
+			sessionId: string
+			title?: string
+			projectId?: string | null
+		}) => {
 			try {
 				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, title })
+					body: JSON.stringify({ sessionId, title, projectId })
 				})
 					.then((res) => assertResponse(res, 'Failed to create session'))
 					.then(handleSimpleFetchResponse)
