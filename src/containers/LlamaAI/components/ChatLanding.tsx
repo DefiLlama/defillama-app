@@ -99,7 +99,7 @@ export function ChatLanding({
 	}
 
 	return (
-		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden">
+		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden px-2.5">
 			<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 lg:mt-[100px] lg:flex-none lg:justify-start">
 				<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 				{greetingTip && greetingTip.cta.kind !== 'none' ? (

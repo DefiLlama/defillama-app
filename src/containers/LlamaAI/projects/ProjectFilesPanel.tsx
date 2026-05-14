@@ -104,9 +104,9 @@ export function ProjectFilesPanel({
 	return (
 		<section className="flex flex-1 flex-col gap-3">
 			<header className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-(--text-primary)">Files</h3>
+				<h3 className="text-[13px] font-semibold text-(--text-primary)">Files</h3>
 				<Ariakit.MenuProvider placement="bottom-end">
-					<Ariakit.MenuButton className="flex items-center gap-1.5 rounded-md border border-(--old-blue) bg-(--old-blue)/12 px-2.5 py-1 text-xs font-medium text-(--old-blue) hover:bg-(--old-blue) hover:text-white">
+					<Ariakit.MenuButton className="flex items-center gap-1.5 rounded-md border border-(--old-blue) bg-(--old-blue)/12 px-2 py-1 text-xs font-medium text-(--old-blue) hover:bg-(--old-blue) hover:text-white">
 						<Icon name="plus" height={12} width={12} />
 						Add
 					</Ariakit.MenuButton>
@@ -151,7 +151,7 @@ export function ProjectFilesPanel({
 			</header>
 
 			<div className="flex flex-col gap-1">
-				<div className="flex items-baseline justify-between gap-2 text-[10px] text-[#666] dark:text-[#919296]">
+				<div className="flex items-baseline justify-between gap-2 text-[11px] text-[#666] dark:text-[#919296]">
 					<span>
 						{projectBytesLimit
 							? `${formatBytes(projectBytesUsed)} / ${formatBytes(projectBytesLimit)} used`
@@ -223,9 +223,9 @@ export function ProjectFilesPanel({
 					</div>
 				) : files.length === 0 ? (
 					<div className="flex h-full flex-col items-center justify-center gap-1.5 p-6 text-center text-xs text-[#666] dark:text-[#919296]">
-						<Icon name="file-plus" height={20} width={20} className="text-[#999] dark:text-[#555]" />
+						<Icon name="file-plus" height={16} width={16} className="text-[#999] dark:text-[#555]" />
 						<p>Drop files here or use the Add menu.</p>
-						<p className="text-[10px]">Markdown, text, code, JSON, CSV. Up to 30 MB per file.</p>
+						<p className="text-[11px]">Markdown, text, code, JSON, CSV. Up to 30 MB per file.</p>
 					</div>
 				) : (
 					<ul className="flex flex-col">

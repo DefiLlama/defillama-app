@@ -178,6 +178,8 @@ export function AgenticSidebar({
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const projectsSectionRef = useRef<HTMLDivElement>(null)
+	const [projectsSectionHeight, setProjectsSectionHeight] = useState(0)
 	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
 	const [selectMode, setSelectMode] = useState(false)
@@ -337,9 +339,20 @@ export function AgenticSidebar({
 			return 32
 		},
 		overscan: 5,
+		scrollMargin: projectsSectionHeight,
 		onChange: handleVirtualizerChange
 	})
 	const virtualizedItems = virtualizer.getVirtualItems()
+
+	useEffect(() => {
+		const el = projectsSectionRef.current
+		if (!el) return
+		const updateHeight = () => setProjectsSectionHeight(el.offsetHeight)
+		updateHeight()
+		const observer = new ResizeObserver(updateHeight)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [])
 
 	const onClickOutside = useEffectEvent((event: MouseEvent) => {
 		if (
@@ -456,92 +469,90 @@ export function AgenticSidebar({
 				) : null}
 			</header>
 
-			<div className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
-				<ProjectsSidebarSection currentProjectId={currentProjectId} currentSessionId={currentSessionId} />
-			</div>
+			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto overscroll-contain">
+				<div ref={projectsSectionRef} className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
+					<ProjectsSidebarSection currentProjectId={currentProjectId} currentSessionId={currentSessionId} />
+				</div>
 
-			<nav
-				ref={scrollContainerRef}
-				className="thin-scrollbar flex-1 overflow-auto overscroll-contain p-4 pt-3 pr-1"
-				aria-label="Chat history"
-			>
-				{isLoading ? (
-					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						<LoadingSpinner size={12} />
-					</div>
-				) : loadError ? (
-					<p className="rounded-sm border border-dashed border-red-300 bg-red-50 p-4 text-center text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-						{loadError}
-					</p>
-				) : sessions.length === 0 ? (
-					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						You don't have any chats yet
-					</p>
-				) : trimmedSearchQuery && (searchResults.length > 0 || isSearching) ? (
-					<SearchResults
-						results={searchResults}
-						isSearching={isSearching}
-						query={searchQuery}
-						onMatchClick={(sessionId, messageId) => {
-							clearSearch()
-							onSearchMatchClick?.(sessionId, messageId)
-						}}
-						onSessionClick={(sessionId) => {
-							clearSearch()
-							onSessionSelect(sessionId)
-						}}
-					/>
-				) : filteredSessions.length === 0 && trimmedSearchQuery && !isSearching && searchResults.length === 0 ? (
-					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						No chats matching &ldquo;{searchQuery}&rdquo;
-					</p>
-				) : (
-					<div
-						style={{
-							height: `${virtualizer.getTotalSize()}px`,
-							width: '100%',
-							position: 'relative'
-						}}
-					>
-						{virtualizedItems.map((virtualItem) => {
-							const item = virtualItems[virtualItem.index]
-							const itemStyle: CSSProperties = {
-								position: 'absolute',
-								top: 0,
-								left: 0,
+				<nav className="p-4 pt-3 pr-1" aria-label="Chat history">
+					{isLoading ? (
+						<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+							<LoadingSpinner size={12} />
+						</div>
+					) : loadError ? (
+						<p className="rounded-sm border border-dashed border-red-300 bg-red-50 p-4 text-center text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+							{loadError}
+						</p>
+					) : sessions.length === 0 ? (
+						<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+							You don't have any chats yet
+						</p>
+					) : trimmedSearchQuery && (searchResults.length > 0 || isSearching) ? (
+						<SearchResults
+							results={searchResults}
+							isSearching={isSearching}
+							query={searchQuery}
+							onMatchClick={(sessionId, messageId) => {
+								clearSearch()
+								onSearchMatchClick?.(sessionId, messageId)
+							}}
+							onSessionClick={(sessionId) => {
+								clearSearch()
+								onSessionSelect(sessionId)
+							}}
+						/>
+					) : filteredSessions.length === 0 && trimmedSearchQuery && !isSearching && searchResults.length === 0 ? (
+						<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+							No chats matching &ldquo;{searchQuery}&rdquo;
+						</p>
+					) : (
+						<div
+							style={{
+								height: `${virtualizer.getTotalSize()}px`,
 								width: '100%',
-								height: `${virtualItem.size}px`,
-								transform: `translateY(${virtualItem.start}px)`
-							}
+								position: 'relative'
+							}}
+						>
+							{virtualizedItems.map((virtualItem) => {
+								const item = virtualItems[virtualItem.index]
+								const itemStyle: CSSProperties = {
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%',
+									height: `${virtualItem.size}px`,
+									transform: `translateY(${virtualItem.start - projectsSectionHeight}px)`
+								}
 
-							return (
-								<VirtualizedSidebarItem
-									key={
-										item.type === 'header'
-											? `header-${item.groupName}`
-											: item.type === 'loader'
-												? 'session-loader'
-												: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
-									}
-									item={item}
-									itemStyle={itemStyle}
-									currentSessionId={currentSessionId}
-									restoringSessionId={restoringSessionId}
-									deletingSessionId={deletingSessionId}
-									updatingTitleSessionId={updatingTitleSessionId}
-									onSessionSelect={onSessionSelect}
-									onDelete={handleDelete}
-									onUpdateTitle={handleUpdateTitle}
-									selectMode={selectMode}
-									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
-									onToggleSelect={toggleSelect}
-									onPinSession={onPinSession}
-								/>
-							)
-						})}
-					</div>
-				)}
-			</nav>
+								return (
+									<VirtualizedSidebarItem
+										key={
+											item.type === 'header'
+												? `header-${item.groupName}`
+												: item.type === 'loader'
+													? 'session-loader'
+													: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
+										}
+										item={item}
+										itemStyle={itemStyle}
+										currentSessionId={currentSessionId}
+										restoringSessionId={restoringSessionId}
+										deletingSessionId={deletingSessionId}
+										updatingTitleSessionId={updatingTitleSessionId}
+										onSessionSelect={onSessionSelect}
+										onDelete={handleDelete}
+										onUpdateTitle={handleUpdateTitle}
+										selectMode={selectMode}
+										isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
+										onToggleSelect={toggleSelect}
+										onPinSession={onPinSession}
+									/>
+								)
+							})}
+						</div>
+					)}
+				</nav>
+			</div>
 
 			{balance ? (
 				<Tooltip

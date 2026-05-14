@@ -1,6 +1,7 @@
 export type AgenticRouteTransition =
 	| { kind: 'new-chat' }
 	| { kind: 'session'; sessionId: string; aroundMessageId?: string }
+	| { kind: 'project-list' }
 	| { kind: 'project'; projectId: string }
 
 export function isSameAgenticRouteTransition(a: AgenticRouteTransition, b: AgenticRouteTransition) {
@@ -9,6 +10,7 @@ export function isSameAgenticRouteTransition(a: AgenticRouteTransition, b: Agent
 	if (a.kind === 'session' && b.kind === 'session') {
 		return a.sessionId === b.sessionId && a.aroundMessageId === b.aroundMessageId
 	}
+	if (a.kind === 'project-list' && b.kind === 'project-list') return true
 	if (a.kind === 'project' && b.kind === 'project') return a.projectId === b.projectId
 	return false
 }

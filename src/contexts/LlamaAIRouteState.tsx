@@ -4,6 +4,7 @@ import { createContext, type PropsWithChildren, useContext, useMemo } from 'reac
 export type LlamaAIRouteState =
 	| { kind: 'chat-new' }
 	| { kind: 'chat-session'; sessionId: string; aroundMessageId?: string; initialPrompt?: string; shareToken?: string }
+	| { kind: 'project-list' }
 	| { kind: 'project'; projectId: string; initialTab: 'chats' | 'sources' }
 	| { kind: 'unknown' }
 
@@ -41,6 +42,10 @@ export function useLlamaAIRouteState(): LlamaAIRouteState {
 				initialPrompt: firstString(router.query.prompt),
 				shareToken: firstString(router.query.shareToken)
 			}
+		}
+
+		if (router.pathname === '/ai/projects') {
+			return { kind: 'project-list' }
 		}
 
 		if (router.pathname === '/ai/projects/[id]') {

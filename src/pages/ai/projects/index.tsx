@@ -3,19 +3,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { LoadingDots } from '~/components/Loaders'
-import { ProjectsGrid } from '~/containers/LlamaAI/projects/ProjectsGrid'
+import { LlamaAIShell } from '~/containers/LlamaAI/LlamaAIShell'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
-import Layout from '~/layout'
-
-const SEO = {
-	title: 'Projects - LlamaAI',
-	description: 'Manage knowledge projects for LlamaAI chats',
-	canonicalUrl: null,
-	noIndex: true
-} as const
 
 export default function ProjectsIndexPage() {
 	const isClient = useIsClient()
@@ -35,21 +26,12 @@ export default function ProjectsIndexPage() {
 	}, [router, queryClient])
 
 	if (!isClient || loaders.userLoading) {
-		return (
-			<Layout {...SEO}>
-				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<p className="flex items-center gap-1 text-center">
-						Loading
-						<LoadingDots />
-					</p>
-				</div>
-			</Layout>
-		)
+		return null
 	}
 
 	if (!user) {
 		return (
-			<Layout {...SEO}>
+			<>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
 						Please{' '}
@@ -60,15 +42,11 @@ export default function ProjectsIndexPage() {
 					</p>
 				</div>
 				<SignInModal store={signInDialogStore} hideWhenAuthenticated={false} />
-			</Layout>
+			</>
 		)
 	}
 
-	return (
-		<Layout {...SEO} hideDesktopSearchLlamaAiButton>
-			<div className="flex flex-1 flex-col overflow-auto">
-				<ProjectsGrid />
-			</div>
-		</Layout>
-	)
+	return null
 }
+
+ProjectsIndexPage.getLayout = LlamaAIShell.getLayout

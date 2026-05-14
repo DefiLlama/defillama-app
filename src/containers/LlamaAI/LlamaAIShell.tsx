@@ -1,4 +1,4 @@
-import { useEffect, type ReactElement, type ReactNode } from 'react'
+import { type ReactElement, type ReactNode } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { AgenticChat } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -22,7 +22,15 @@ const PROJECT_SEO = {
 	noIndex: true
 } as const
 
+const PROJECTS_SEO = {
+	title: 'Projects - LlamaAI',
+	description: 'Manage knowledge projects for LlamaAI chats',
+	canonicalUrl: null,
+	noIndex: true
+} as const
+
 function seoFromRoute(route: LlamaAIRouteState) {
+	if (route.kind === 'project-list') return PROJECTS_SEO
 	return route.kind === 'project' ? PROJECT_SEO : CHAT_SEO
 }
 
@@ -42,17 +50,6 @@ export function LlamaAIShell({ children }: { children: ReactNode }) {
 	const { user, loaders } = useAuthContext()
 	const userId = user?.id ?? null
 	const shouldMountChat = !!user && !loaders.userLoading && route.kind !== 'unknown'
-
-	useEffect(() => {
-		if (route.kind !== 'project') return
-		const root = document.documentElement
-		const attr = 'data-llamaai-fullscreen'
-		const had = root.getAttribute(attr) === 'true'
-		root.setAttribute(attr, 'true')
-		return () => {
-			if (!had) root.removeAttribute(attr)
-		}
-	}, [route.kind])
 
 	return (
 		<Layout {...seoFromRoute(route)} hideDesktopSearchLlamaAiButton>

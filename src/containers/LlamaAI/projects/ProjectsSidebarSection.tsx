@@ -50,11 +50,11 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 	return (
 		<div className="flex flex-col gap-1 px-4">
 			<div className="flex items-center justify-between pt-1 pb-0.5">
-				<h2 className="text-xs font-semibold tracking-wider text-[#666] uppercase dark:text-[#919296]">Projects</h2>
+				<h2 className="text-xs font-normal tracking-normal text-[#666] normal-case dark:text-[#919296]">Projects</h2>
 				<button
 					type="button"
 					onClick={() => goTo('/ai/projects')}
-					className="text-[10px] text-[#999] hover:text-(--old-blue) dark:text-[#555]"
+					className="text-[11px] text-[#999] hover:text-(--old-blue) dark:text-[#555]"
 				>
 					View all
 				</button>
@@ -79,8 +79,10 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 						onClick={createStore.show}
 						className="flex items-center gap-1.5 rounded-md px-2 py-1 text-left text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					>
-						<Icon name="folder-plus" height={13} width={13} className="text-(--old-blue)" />
-						New project
+						<span className="inline-flex w-3 shrink-0 justify-center font-medium text-(--old-blue)" aria-hidden>
+							+
+						</span>
+						<span>New project</span>
 					</button>
 
 					{isLoading ? (
@@ -110,7 +112,6 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 													: 'text-[#666] hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white'
 											}`}
 										>
-											<Icon name="folder-plus" height={12} width={12} className="shrink-0 opacity-60" />
 											<span className="min-w-0 flex-1 truncate">{p.name}</span>
 										</button>
 										{isActive && nestedSessions.length > 0 ? (
@@ -156,7 +157,7 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 						<button
 							type="button"
 							onClick={() => goTo('/ai/projects')}
-							className="rounded-md px-2 py-1 text-left text-[11px] text-(--old-blue) hover:underline"
+							className="rounded-md px-2 py-1 text-left text-xs text-(--old-blue) hover:underline"
 						>
 							All projects ({projects.length}) →
 						</button>

@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import {
 	lazy,
 	memo,
@@ -63,6 +63,7 @@ import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisib
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
 import { ProjectLanding } from '~/containers/LlamaAI/projects/ProjectLanding'
+import { ProjectsGrid } from '~/containers/LlamaAI/projects/ProjectsGrid'
 import { getProjectTier } from '~/containers/LlamaAI/projects/tier'
 import {
 	buildAssistantMessage,
@@ -1864,6 +1865,7 @@ export function AgenticChat({
 				aroundMessageId: route.aroundMessageId
 			}
 		}
+		if (route.kind === 'project-list') return { kind: 'project-list' }
 		if (route.kind === 'project') return { kind: 'project', projectId: route.projectId }
 		return null
 	}, [readOnly, sharedSession, route, resolveSessionAlias])
@@ -1912,6 +1914,11 @@ export function AgenticChat({
 					nextSessionId,
 					routeTransition.aroundMessageId ? { around: routeTransition.aroundMessageId } : undefined
 				)
+				return
+			}
+
+			if (routeTransition.kind === 'project-list') {
+				await clearConversationState()
 				return
 			}
 
@@ -2628,21 +2635,22 @@ export function AgenticChat({
 	)
 
 	const landingOverride =
-		route.kind === 'project'
-			? (api: LandingOverrideApi) => (
-					<ProjectLanding
-						projectId={route.projectId}
-						tier={projectTier}
-						initialTab={route.initialTab}
-						onSubmit={api.handleSubmit}
-						isStreaming={api.isStreaming}
-						onPickSession={(nextSessionId) => {
-							void navigate.toSession(nextSessionId)
-						}}
-					/>
-				)
-			: null
-
+		route.kind === 'project-list'
+			? () => <ProjectsGrid />
+			: route.kind === 'project'
+				? (api: LandingOverrideApi) => (
+						<ProjectLanding
+							projectId={route.projectId}
+							tier={projectTier}
+							initialTab={route.initialTab}
+							onSubmit={api.handleSubmit}
+							isStreaming={api.isStreaming}
+							onPickSession={(nextSessionId) => {
+								void navigate.toSession(nextSessionId)
+							}}
+						/>
+					)
+				: null
 	if (!user && !readOnly && !sharedSession) {
 		return (
 			<>
@@ -2711,7 +2719,7 @@ export function AgenticChat({
 					) : null}
 
 					<div
-						className={`llamaai-chat-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+						className={`llamaai-chat-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 					>
 						{!readOnly && !sidebarVisible ? (
 							<ChatControls

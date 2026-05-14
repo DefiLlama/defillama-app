@@ -41,11 +41,11 @@ export function ProjectInstructionsEditor({ projectId, value }: ProjectInstructi
 	return (
 		<section className="flex flex-col gap-2">
 			<header className="flex items-center justify-between">
-				<h3 className="text-sm font-semibold text-(--text-primary)">Instructions</h3>
+				<h3 className="text-[13px] font-semibold text-(--text-primary)">Instructions</h3>
 				{update.isPending ? (
 					<LoadingSpinner size={12} />
 				) : dirty ? (
-					<span className="text-[10px] text-[#999]">Unsaved</span>
+					<span className="text-[11px] text-[#999]">Unsaved</span>
 				) : null}
 			</header>
 			<textarea
@@ -58,9 +58,9 @@ export function ProjectInstructionsEditor({ projectId, value }: ProjectInstructi
 				maxLength={MAX_LENGTH}
 				rows={6}
 				placeholder="System-level guidance for chats in this project. Appended after your global instructions."
-				className="resize-y rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-2 text-xs text-inherit placeholder:text-[#999] focus:border-(--old-blue) focus:outline-none dark:border-[#2a2b2c] dark:placeholder:text-[#555]"
+				className="resize-y rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-2 text-xs leading-5 text-inherit placeholder:text-[#999] focus:border-(--old-blue) focus:outline-none dark:border-[#2a2b2c] dark:placeholder:text-[#555]"
 			/>
-			<p className="text-[10px] text-[#999] dark:text-[#555]">
+			<p className="text-[11px] text-[#999] dark:text-[#555]">
 				{draft.length}/{MAX_LENGTH} chars · saved automatically
 			</p>
 		</section>
