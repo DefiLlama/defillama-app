@@ -22,9 +22,9 @@ function buildJsonLd(article: LocalArticleDocument): Record<string, unknown> {
 	const author = brandByline
 		? {
 				'@type': 'Organization',
-				'@id': `${SITE_ORIGIN}/research/authors`,
+				'@id': `${SITE_ORIGIN}/research`,
 				name: 'DefiLlama Research',
-				url: `${SITE_ORIGIN}/research/authors`,
+				url: `${SITE_ORIGIN}/research`,
 				sameAs: ['https://x.com/DefiLlama', 'https://www.linkedin.com/company/defillama/']
 			}
 		: article.authorProfile
@@ -42,7 +42,7 @@ function buildJsonLd(article: LocalArticleDocument): Record<string, unknown> {
 			: {
 					'@type': 'Organization',
 					name: 'DefiLlama Research',
-					url: `${SITE_ORIGIN}/research/authors`
+					url: `${SITE_ORIGIN}/research`
 				}
 
 	const ld: Record<string, unknown> = {

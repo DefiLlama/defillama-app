@@ -24,7 +24,7 @@ function umamiPayloadFromArticle(article: ArticleDocument | null) {
 	return {
 		article_id: article.id,
 		article_title: article.title,
-		author: article.authorProfile?.displayName ?? '',
+		author: article.brandByline ? 'DefiLlama Research' : (article.authorProfile?.displayName ?? ''),
 		publish_date: article.publishedAt ?? '',
 		topics: (article.tags ?? []).join(',')
 	}

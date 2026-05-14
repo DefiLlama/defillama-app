@@ -95,7 +95,10 @@ function AuthorContent({ slug }: { slug: string }) {
 		retry: false
 	})
 
-	const articles = data?.articles ?? EMPTY_ARTICLES
+	const articles = useMemo(
+		() => (data?.articles ?? EMPTY_ARTICLES).filter((article) => article.brandByline !== true),
+		[data?.articles]
+	)
 	const rest = useMemo(() => articles.slice(1), [articles])
 	const sectionCounts = useMemo(() => {
 		const counts = new Map<ArticleSection, number>()
