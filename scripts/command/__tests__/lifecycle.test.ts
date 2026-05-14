@@ -11,4 +11,21 @@ describe('command lifecycle', () => {
 		expect(child.kill).toHaveBeenCalledWith('SIGTERM')
 		expect(activeChildren.size).toBe(0)
 	})
+
+	it('keeps cleaning up when one child kill throws', () => {
+		const brokenChild = {
+			kill: vi.fn(() => {
+				throw new Error('already exited')
+			}),
+			killed: false
+		}
+		const child = { kill: vi.fn(() => true), killed: false }
+		const activeChildren = new Set([brokenChild, child])
+
+		killActiveChildren(activeChildren)
+
+		expect(brokenChild.kill).toHaveBeenCalledWith('SIGTERM')
+		expect(child.kill).toHaveBeenCalledWith('SIGTERM')
+		expect(activeChildren.size).toBe(0)
+	})
 })

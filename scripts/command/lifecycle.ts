@@ -2,12 +2,19 @@ import type { CommandLogger } from './logger'
 import type { ActiveChildren } from './runChild'
 
 export function killActiveChildren(activeChildren: ActiveChildren, signal: NodeJS.Signals = 'SIGTERM'): void {
-	for (const child of activeChildren) {
-		if (!child.killed) {
-			child.kill(signal)
+	try {
+		for (const child of activeChildren) {
+			if (!child.killed) {
+				try {
+					child.kill(signal)
+				} catch {
+					// Child may have exited between tracking and cleanup.
+				}
+			}
 		}
+	} finally {
+		activeChildren.clear()
 	}
-	activeChildren.clear()
 }
 
 type InstallProcessLifecycleOptions = {

@@ -37,6 +37,8 @@ export async function syncBuildArtifacts({
 	const configPath = path.join('scripts', 'rclone.conf')
 	const staticPath = path.join('.', '.next', 'static')
 	const remotePath = 'artifacts:defillama-app-artifacts'
+	// Intentionally upload and then download .next/static so each deploy shares
+	// the multi-node artifact set; both directions are checked before success.
 	const upload = await runCommand('rclone', ['--config', configPath, 'copy', staticPath, remotePath], {
 		activeChildren,
 		cwd: projectDir,

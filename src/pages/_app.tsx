@@ -59,6 +59,7 @@ function App({ Component, pageProps }: AppProps) {
 
 		const handleRouteChangeComplete = () => {
 			reloadInProgressRef.current = false
+			sessionStorage.removeItem(CHUNK_LOAD_ERROR_KEY)
 		}
 
 		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {

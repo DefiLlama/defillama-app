@@ -20,6 +20,12 @@ type TeeLoggerOptions = {
 	stdout?: NodeJS.WriteStream
 }
 
+function createFileOperationError(operation: string, target: string, error: unknown): Error {
+	return new Error(`Failed to ${operation} for ${target}: ${error instanceof Error ? error.message : String(error)}`, {
+		cause: error
+	})
+}
+
 export function createTeeLogger({
 	logPath,
 	redactor = createSecretRedactor(),
@@ -27,12 +33,21 @@ export function createTeeLogger({
 	stdout = process.stdout
 }: TeeLoggerOptions): CommandLogger {
 	fs.mkdirSync(path.dirname(logPath), { recursive: true })
-	const fd = fs.openSync(logPath, 'w')
+	let fd: number
+	try {
+		fd = fs.openSync(logPath, 'w')
+	} catch (error) {
+		throw createFileOperationError('open build log', logPath, error)
+	}
 	let closed = false
 
 	const writeFile = (chunk: string) => {
 		if (!closed) {
-			fs.writeSync(fd, chunk)
+			try {
+				fs.writeSync(fd, chunk)
+			} catch (error) {
+				throw createFileOperationError('write build log', logPath, error)
+			}
 		}
 	}
 	const redactChunk = (chunk: Buffer | string) => redactor(typeof chunk === 'string' ? chunk : chunk.toString('utf8'))
@@ -40,13 +55,22 @@ export function createTeeLogger({
 	return {
 		close() {
 			if (!closed) {
-				fs.closeSync(fd)
-				closed = true
+				try {
+					fs.closeSync(fd)
+				} catch (error) {
+					throw createFileOperationError('close build log', `fd ${fd} (${logPath})`, error)
+				} finally {
+					closed = true
+				}
 			}
 		},
 		flush() {
 			if (!closed) {
-				fs.fsyncSync(fd)
+				try {
+					fs.fsyncSync(fd)
+				} catch (error) {
+					throw createFileOperationError('flush build log', `fd ${fd} (${logPath})`, error)
+				}
 			}
 		},
 		log(...args) {

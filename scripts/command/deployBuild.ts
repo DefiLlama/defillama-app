@@ -34,12 +34,16 @@ function createDefaultNextBuildRunner({
 	projectDir: string
 }): (logger: CommandLogger) => Promise<RunChildResult> {
 	return (logger) =>
-		runChild('node', ['./node_modules/next/dist/bin/next', 'build'], {
-			activeChildren,
-			cwd: projectDir,
-			env,
-			logger
-		})
+		runChild(
+			path.join(projectDir, 'node_modules', '.bin', process.platform === 'win32' ? 'next.cmd' : 'next'),
+			['build'],
+			{
+				activeChildren,
+				cwd: projectDir,
+				env,
+				logger
+			}
+		)
 }
 
 function formatNextBuildFailure(result: RunChildResult): string {

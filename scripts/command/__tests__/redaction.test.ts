@@ -27,6 +27,14 @@ describe('secret redaction', () => {
 		)
 	})
 
+	it('ignores inherited env values while collecting secrets', () => {
+		const env = Object.create({ API_KEY: 'inherited-secret' }) as NodeJS.ProcessEnv
+		env.LOGGER_API_KEY = 'own-secret'
+		const redactor = createSecretRedactor(env)
+
+		expect(redactor('own-secret inherited-secret')).toBe('[REDACTED] inherited-secret')
+	})
+
 	it('redacts terminal and file output from the tee logger', async () => {
 		const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'redaction-test-'))
 		tempDirs.push(projectDir)
@@ -52,6 +60,15 @@ describe('secret redaction', () => {
 		const buildLog = await fs.readFile(path.join(projectDir, 'build.log'), 'utf8')
 		expect(output.join('')).toBe('parent [REDACTED]\nchild [REDACTED]error [REDACTED]')
 		expect(buildLog).toBe('parent [REDACTED]\nchild [REDACTED]error [REDACTED]')
+	})
+
+	it('adds context to build log open failures', async () => {
+		const projectDir = await fs.mkdtemp(path.join(os.tmpdir(), 'logger-open-test-'))
+		tempDirs.push(projectDir)
+		const logPath = path.join(projectDir, 'build.log')
+		await fs.mkdir(logPath)
+
+		expect(() => createTeeLogger({ logPath })).toThrow(`Failed to open build log for ${logPath}:`)
 	})
 
 	it('redacts notification logger output after build log capture closes', () => {

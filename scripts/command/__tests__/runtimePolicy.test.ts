@@ -24,7 +24,7 @@ describe('runtime policy', () => {
 				{ content: 'bun --bun next dev', filePath: 'package.json' },
 				{ content: 'bun server.js', filePath: 'Dockerfile' },
 				{ content: 'next start', filePath: 'standalone.sh' },
-				{ content: 'node ./node_modules/next/dist/bin/next dev', filePath: 'safe.json' }
+				{ content: 'next dev', filePath: 'safe.json' }
 			])
 		).toEqual([
 			{

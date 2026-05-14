@@ -16,7 +16,7 @@ Use Bun as the package manager and script launcher. Use Node 24 as the runtime f
 
 Do not run Next.js with `bun --bun next`. Runtime policy tests own that forbidden invocation list so exceptions require an explicit code review change.
 
-Package scripts invoke Next's bin through `node ./node_modules/next/dist/bin/next` intentionally. That path is explicit enough to avoid Bun runtime dispatch while still keeping the public `bun run dev`, `bun run build`, and `bun run analyze` commands stable for contributors.
+Package scripts use cross-platform Node launchers for prepared `next dev` and `next build` runs. The launcher sets `NODE_ENV`, runs the TypeScript preparation command through Node, then invokes the documented `next` package binary so contributors keep using `bun run dev`, `bun run build`, and `bun run analyze` without dispatching Next through Bun's runtime.
 
 Keep `jiti` for command TypeScript execution for now. Node 24 has TypeScript stripping support, but `jiti` is stable today for this codebase's command needs, including `~/*` alias resolution and JSX-capable TypeScript loading near Next configuration and script imports.
 

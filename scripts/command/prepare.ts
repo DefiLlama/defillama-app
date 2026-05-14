@@ -23,7 +23,6 @@ type PreparationResult = {
 }
 
 function createStepLogger(logger: LogLike, prefix: string): LogLike {
-	if (prefix === '[dev:prepare]') return logger
 	return {
 		log(...args) {
 			const [firstArg, ...rest] = args
