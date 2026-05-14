@@ -21,3 +21,9 @@ Metadata artifacts are statically imported and refreshed in memory. Local/CI met
 ## Runtime Domain Modules
 
 Runtime domain modules choose between a dataset cache adapter and a network adapter. Pages and API routes should call these modules instead of checking `DATASET_CACHE_DISABLE` or dynamically importing cache readers directly.
+
+## Command Layer
+
+The command layer is the set of local and deploy commands that prepare generated artifacts, run Next.js builds, sync deploy artifacts, send build notifications, and run post-start hooks. Shell files in `scripts/` are compatibility wrappers; command policy lives in TypeScript Modules under `scripts/command`.
+
+Preparation is the command layer path that refreshes metadata artifacts, publishes the dataset cache, and writes `public/robots.txt` before Next.js starts. Deploy build orchestration adds the Next.js production build, `.next/static` artifact sync, build-log capture, and notification adapters. The post-start hook runs after the server process starts and currently owns the Cloudflare cache purge adapter.

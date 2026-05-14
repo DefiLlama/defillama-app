@@ -14,12 +14,12 @@ import { ImageUploadButton } from '~/containers/Articles/upload/ImageUploadButto
 import { PdfUploadButton } from '~/containers/Articles/upload/PdfUploadButton'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
-function formatSize(bytes: number | undefined | null): string {
-	if (!bytes || !Number.isFinite(bytes) || bytes <= 0) return '—'
-	if (bytes < 1024) return `${bytes} B`
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-	return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-}
+// function formatSize(bytes: number | undefined | null): string {
+// 	if (!bytes || !Number.isFinite(bytes) || bytes <= 0) return '—'
+// 	if (bytes < 1024) return `${bytes} B`
+// 	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+// 	return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+// }
 
 function articleEditHref(article: ArticleDocument): string {
 	return `/research/edit/${encodeURIComponent(article.id)}`
@@ -66,13 +66,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 
 	useEffect(() => {
 		setState(rowStateFromArticle(article))
-	}, [
-		article.id,
-		article.reportPdf?.id,
-		article.carouselImage?.url,
-		article.sponsorLogo?.url,
-		article.reportDescription
-	])
+	}, [article])
 
 	const dirty = isRowDirty(state, article)
 	const isPublished = article.status === 'published'
