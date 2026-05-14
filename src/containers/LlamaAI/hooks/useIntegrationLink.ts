@@ -139,9 +139,11 @@ export function useIntegrationLink(opts: Options = {}) {
 	const disconnect = useCallback(async () => {
 		try {
 			await unlinkTelegram(authorizedFetch)
-		} catch {}
-		cacheTelegramStatus({ link: { state: 'unlinked' }, pending: null })
-		setState({ status: 'idle' })
+			cacheTelegramStatus({ link: { state: 'unlinked' }, pending: null })
+			setState({ status: 'idle' })
+		} catch (e: any) {
+			setState({ status: 'error', message: e?.message || 'Failed to unlink Telegram' })
+		}
 	}, [authorizedFetch, cacheTelegramStatus])
 
 	useEffect(() => {

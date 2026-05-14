@@ -31,6 +31,11 @@ async function req<T>(
 		e.body = err
 		throw e
 	}
+	const contentLength = res.headers.get('content-length')
+	const contentType = res.headers.get('content-type') ?? ''
+	if (res.status === 204 || contentLength === '0' || !/(^|[/+])json($|;)/i.test(contentType)) {
+		return null as T
+	}
 	return res.json()
 }
 

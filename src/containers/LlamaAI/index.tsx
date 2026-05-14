@@ -940,6 +940,13 @@ export function AgenticChat({
 		if (!router.isReady) return
 		const modal = typeof router.query.modal === 'string' ? router.query.modal : null
 		if (modal !== 'settings') return
+		const tglogin =
+			typeof router.query.tglogin === 'string'
+				? router.query.tglogin
+				: Array.isArray(router.query.tglogin)
+					? router.query.tglogin[0]
+					: null
+		if (tglogin) return
 
 		const requestedTab = typeof router.query.tab === 'string' ? router.query.tab : null
 		const tab =
@@ -965,7 +972,7 @@ export function AgenticChat({
 
 		if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
 		settingsModalStore.show()
-	}, [router.isReady, router.query.modal, router.query.tab, user, router, settingsModalStore])
+	}, [router.isReady, router.query.modal, router.query.tab, router.query.tglogin, user, router, settingsModalStore])
 
 	useEffect(() => {
 		if (!user) return

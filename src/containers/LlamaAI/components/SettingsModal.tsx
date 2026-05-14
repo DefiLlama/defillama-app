@@ -16,8 +16,14 @@ const MAX_LENGTH = 500
 
 type ModalStatus = 'closed' | 'open_clean' | 'open_dirty' | 'committing'
 
-export type SettingsTabId = 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab'
+const SETTINGS_TAB_IDS = ['persona', 'app', 'capabilities', 'integrations', 'lab'] as const
+
+export type SettingsTabId = (typeof SETTINGS_TAB_IDS)[number]
 type TabId = SettingsTabId
+
+function isSettingsTabId(tab: unknown): tab is TabId {
+	return typeof tab === 'string' && SETTINGS_TAB_IDS.includes(tab as TabId)
+}
 
 function isEffortAvailableForModel(effort: string, model: string) {
 	const isClaude = model === '' || model.startsWith('anthropic/')
@@ -109,9 +115,9 @@ export const SettingsModal = memo(function SettingsModal({
 
 	useEffect(() => {
 		if (!isOpen) return
-		if (initialState?.tab) setActiveTab(initialState.tab)
+		if (isSettingsTabId(initialState?.tab) && initialState.tab !== activeTab) setActiveTab(initialState.tab)
 		if (initialState && !initialState.tgloginToken && onInitialStateConsumed) onInitialStateConsumed()
-	}, [isOpen, initialState, onInitialStateConsumed])
+	}, [activeTab, isOpen, initialState, onInitialStateConsumed])
 
 	const syncDirtyState = useCallback(() => {
 		draftValueRef.current = textareaRef.current?.value ?? draftValueRef.current
