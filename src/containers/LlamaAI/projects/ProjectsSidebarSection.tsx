@@ -1,9 +1,10 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { CreateProjectModal } from './CreateProjectModal'
 import { useProjectList, useProjectSessions } from './hooks'
 import { getProjectTier } from './tier'
@@ -11,6 +12,7 @@ import type { ProjectWithStats } from './types'
 
 const VISIBLE_LIMIT = 10
 const NESTED_SESSIONS_LIMIT = 5
+const LAST_SELECTED_PROJECT_KEY_PREFIX = 'llamaai:last-selected-project-id'
 
 interface ProjectsSidebarSectionProps {
 	currentProjectId?: string | null
@@ -19,11 +21,14 @@ interface ProjectsSidebarSectionProps {
 
 export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: ProjectsSidebarSectionProps) {
 	const { user, hasActiveSubscription, isTrial } = useAuthContext()
+	const storageKey = `${LAST_SELECTED_PROJECT_KEY_PREFIX}:${user?.id ?? 'anonymous'}`
+	const storedProjectId = useStorageItem(storageKey, null)
 	const tier = getProjectTier(user, hasActiveSubscription, isTrial)
 	const isLocked = tier === 'free'
 	const createStore = Ariakit.useDialogStore()
 	const { data, isLoading } = useProjectList(!isLocked)
-	const projectSessions = useProjectSessions(isLocked ? null : currentProjectId)
+	const selectedProjectId = currentProjectId ?? storedProjectId
+	const projectSessions = useProjectSessions(isLocked ? null : selectedProjectId)
 	const projects = useMemo<ProjectWithStats[]>(() => data ?? [], [data])
 	const visible = projects.slice(0, VISIBLE_LIMIT)
 	const hasOverflow = projects.length > VISIBLE_LIMIT
@@ -31,11 +36,16 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 
 	const navigate = useLlamaAINavigate()
 
+	useEffect(() => {
+		if (currentProjectId) setStorageItem(storageKey, currentProjectId)
+	}, [currentProjectId, storageKey])
+
 	const goTo = (path: string) => {
 		void Router.push(path)
 	}
 
 	const goToProject = (projectId: string) => {
+		setStorageItem(storageKey, projectId)
 		void navigate.toProject(projectId)
 	}
 
@@ -44,6 +54,7 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 	}
 
 	const onCreated = (project: { id: string }) => {
+		setStorageItem(storageKey, project.id)
 		goToProject(project.id)
 	}
 
@@ -99,7 +110,7 @@ export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: P
 					) : (
 						<ul className="flex flex-col">
 							{visible.map((p) => {
-								const isActive = p.id === currentProjectId
+								const isActive = p.id === selectedProjectId
 								const nestedSessions = isActive ? activeProjectSessions : []
 								return (
 									<li key={p.id} className="flex flex-col">
