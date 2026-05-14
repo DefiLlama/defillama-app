@@ -48,7 +48,7 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 			<div className="col-span-full grid grid-cols-1 gap-2 xl:grid-cols-2">
 				<div className="col-span-1 flex flex-col gap-2">
 					<ProtocolInfo {...props} />
-					<Articles {...props} />
+					{/* <Articles {...props} /> */}
 					<Yields {...props} />
 					<Users {...props} />
 				</div>
@@ -62,7 +62,7 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="col-span-full grid grid-cols-1 gap-2 min-[1536px]:grid-cols-3 min-[1792px]:grid-cols-3 xl:grid-cols-2">
 			<ProtocolInfo {...props} />
-			<Articles {...props} />
+			{/* <Articles {...props} /> */}
 			<Methodology {...props} />
 			<Yields {...props} />
 			<Users {...props} />
@@ -72,50 +72,50 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 	)
 }
 
-const Articles = (props: IProtocolOverviewPageData) => {
-	if (!props.articles?.length) return null
+// const Articles = (props: IProtocolOverviewPageData) => {
+// 	if (!props.articles?.length) return null
 
-	return (
-		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-			<div className="flex items-center justify-between">
-				<SectionHeader id="dl-news">Latest from DL News</SectionHeader>
-				<a href="https://www.dlnews.com">
-					<svg width={72} height={18}>
-						<use href={`/assets/dlnews.svg#dlnews-logo`} />
-					</svg>
-					<span className="sr-only">Visit DL News</span>
-				</a>
-			</div>
+// 	return (
+// 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+// 			<div className="flex items-center justify-between">
+// 				<SectionHeader id="dl-news">Latest from DL News</SectionHeader>
+// 				<a href="https://www.dlnews.com">
+// 					<svg width={72} height={18}>
+// 						<use href={`/assets/dlnews.svg#dlnews-logo`} />
+// 					</svg>
+// 					<span className="sr-only">Visit DL News</span>
+// 				</a>
+// 			</div>
 
-			{props.articles.map((article) => (
-				<a
-					key={`news_card_${article.href}`}
-					href={article.href}
-					target="_blank"
-					rel="noreferrer noopener"
-					className="flex flex-col gap-3 rounded-md bg-(--btn2-bg) p-2 hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-				>
-					{article.imgSrc ? (
-						<img
-							className="h-[100px] w-full shrink-0 rounded-sm object-cover"
-							src={article.imgSrc}
-							alt={article.headline}
-						/>
-					) : null}
-					<div className="flex flex-col justify-between gap-3">
-						<p className="text-sm font-medium break-keep whitespace-pre-wrap">{article.headline}</p>
-						<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-							<p className="text-xs">{dayjs.utc(article.date).format('MMMM D, YYYY')}</p>
-							<p className="flex flex-nowrap items-center justify-between rounded-md font-semibold">
-								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
-							</p>
-						</div>
-					</div>
-				</a>
-			))}
-		</div>
-	)
-}
+// 			{props.articles.map((article) => (
+// 				<a
+// 					key={`news_card_${article.href}`}
+// 					href={article.href}
+// 					target="_blank"
+// 					rel="noreferrer noopener"
+// 					className="flex flex-col gap-3 rounded-md bg-(--btn2-bg) p-2 hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+// 				>
+// 					{article.imgSrc ? (
+// 						<img
+// 							className="h-[100px] w-full shrink-0 rounded-sm object-cover"
+// 							src={article.imgSrc}
+// 							alt={article.headline}
+// 						/>
+// 					) : null}
+// 					<div className="flex flex-col justify-between gap-3">
+// 						<p className="text-sm font-medium break-keep whitespace-pre-wrap">{article.headline}</p>
+// 						<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+// 							<p className="text-xs">{dayjs.utc(article.date).format('MMMM D, YYYY')}</p>
+// 							<p className="flex flex-nowrap items-center justify-between rounded-md font-semibold">
+// 								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
+// 							</p>
+// 						</div>
+// 					</div>
+// 				</a>
+// 			))}
+// 		</div>
+// 	)
+// }
 
 function Users(props: IProtocolOverviewPageData) {
 	const users = props.users

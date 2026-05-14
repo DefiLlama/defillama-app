@@ -144,6 +144,20 @@ function flourishEmbedUrl(url: URL): string | null {
 	return `${url.origin}${trimmed}/embed${url.search}`
 }
 
+function datawrapperEmbedUrl(url: URL): string | null {
+	const host = url.hostname.toLowerCase()
+	if (host === 'datawrapper.dwcdn.net' || host.endsWith('.dwcdn.net')) {
+		if (!/^\/[A-Za-z0-9]+\/?/.test(url.pathname)) return null
+		return url.toString()
+	}
+	if (host === 'datawrapper.de' || host === 'www.datawrapper.de') {
+		const match = url.pathname.match(/^\/(?:_\/)?([A-Za-z0-9]+)\/?/)
+		if (!match) return null
+		return `https://datawrapper.dwcdn.net/${match[1]}/`
+	}
+	return null
+}
+
 function githubUrl(url: URL): string | null {
 	const host = url.hostname.toLowerCase()
 	if (host === 'gist.github.com') {
@@ -160,7 +174,6 @@ function githubUrl(url: URL): string | null {
 export function detectEmbed(rawUrl: string): EmbedDetection | null {
 	const url = safeUrl(rawUrl)
 	if (!url) return null
-	const host = url.hostname.toLowerCase()
 
 	const tid = tweetId(url)
 	if (tid) {
@@ -242,10 +255,11 @@ export function detectEmbed(rawUrl: string): EmbedDetection | null {
 		}
 	}
 
-	if (isEmbedHostAllowed(host)) {
+	const datawrapper = datawrapperEmbedUrl(url)
+	if (datawrapper) {
 		return {
 			provider: 'iframe',
-			url: url.toString(),
+			url: datawrapper,
 			sourceUrl: url.toString(),
 			aspectRatio: '16/9'
 		}

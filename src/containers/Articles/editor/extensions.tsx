@@ -23,6 +23,7 @@ import { ArticleEmbed } from './EmbedNode'
 import { ArticleEntitySuggestion } from './entitySuggestion'
 import { ArticleImage, type ArticleImageOptions } from './nodes/ArticleImage'
 import { ArticlePeoplePanel } from './nodes/ArticlePeoplePanel'
+import { QABlockNodes } from './nodes/QABlock'
 import { ArticleSlashCommand } from './slashCommand'
 
 const lowlight = createLowlight(common)
@@ -568,6 +569,7 @@ export function createArticleEditorExtensions(imageOptions?: Partial<ArticleImag
 		Placeholder.configure({
 			placeholder: ({ node }) => {
 				if (node.type.name === 'heading') return 'Section heading'
+				if (node.type.name === 'qaQuestion') return 'Ask the next question…'
 				return "Write research, cite sources, link data, or insert a chart. Press '/' for commands."
 			}
 		}),
@@ -583,6 +585,7 @@ export function createArticleEditorExtensions(imageOptions?: Partial<ArticleImag
 		}),
 		ArticlePeoplePanel,
 		Callout,
-		Citation
+		Citation,
+		...QABlockNodes
 	]
 }

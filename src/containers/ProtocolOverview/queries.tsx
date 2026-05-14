@@ -29,7 +29,7 @@ import { resolveProtocolCategory } from './category'
 import { normalizeChartPointsToMs } from './chartSeries.utils'
 import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
 import { formatAdapterData } from './formatAdapterData'
-import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
+import type { IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 
 interface IProtocolDataExtended extends IProtocolMetricsV2 {
@@ -150,7 +150,6 @@ export const getProtocolOverviewPageData = async ({
 		optionsNotionalVolumeData,
 		treasury,
 		yieldsData,
-		articles,
 		incentives,
 		adjustedSupply,
 		activeUsers,
@@ -186,7 +185,6 @@ export const getProtocolOverviewPageData = async ({
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		IProtocolOverviewPageData['treasury'],
 		IYieldsDataResult,
-		IArticle[],
 		IProtocolOverviewPageData['incentives'],
 		number | null,
 		number | null,
@@ -347,14 +345,6 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.yields
 			? fetchJson<IYieldsDataResult>(YIELD_POOLS_API, { timeout: getSlowJsonTimeoutMs() })
 			: null,
-		fetchArticles({ tags: slug(currentProtocolMetadata.displayName) }).catch((err) => {
-			console.log(
-				'[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',
-				slug(currentProtocolMetadata.displayName),
-				err instanceof Error ? err.message : ''
-			)
-			return []
-		}),
 		currentProtocolMetadata?.incentives && protocolId
 			? getProtocolIncentivesFromAggregatedEmissions({
 					protocolId,
@@ -820,7 +810,7 @@ export const getProtocolOverviewPageData = async ({
 		unlocks: null,
 		governance: null,
 		yields,
-		articles,
+		articles: [],
 		incentives,
 		users:
 			activeUsers || newUsers || transactions || gasUsd
@@ -897,29 +887,6 @@ export const getProtocolOverviewPageData = async ({
 		oracleTvs,
 		llamaswapChains
 	}
-}
-
-const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes = await fetchJson<IArticlesResponse>(`https://api.llama.fi/news/articles`, {
-		timeout: getFastJsonTimeoutMs()
-	}).catch((err) => {
-		console.log(err)
-		return { type: '', version: '', content_elements: [] }
-	})
-
-	const target = tags.toLowerCase()
-
-	const articles: IArticle[] =
-		articlesRes?.content_elements
-			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.slug.toLowerCase() === target))
-			.map((element) => ({
-				headline: element.headlines.basic,
-				date: element.display_date,
-				href: `https://dlnews.com${element.canonical_url}`,
-				imgSrc: element.promo_items?.basic?.url ?? null
-			})) ?? []
-
-	return articles.slice(0, size)
 }
 
 function getTokenCGData(

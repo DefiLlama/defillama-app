@@ -1,6 +1,7 @@
 import { common, createLowlight } from 'lowlight'
 import Link from 'next/link'
-import { createElement, useEffect, useState, type ReactNode } from 'react'
+import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Icon } from '~/components/Icon'
 import { validateArticleChartConfig } from '../chartAdapters'
 import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
@@ -14,10 +15,14 @@ import type {
 	TiptapJson,
 	TiptapMark
 } from '../types'
+import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '../types'
 import { ArticleChartBlock } from './ArticleChartBlock'
 import { ArticleEmbedBlock } from './ArticleEmbedBlock'
+import { ArticleImageBanner } from './ArticleImageBanner'
+import { ArticleImageBannerHorizontal } from './ArticleImageBannerHorizontal'
 import { ArticleImageBlock } from './ArticleImageBlock'
 import { ArticlePeoplePanelBlock } from './ArticlePeoplePanelBlock'
+import { ArticleQAAnswer, ArticleQABlock, ArticleQAQuestion } from './ArticleQABlock'
 import { EntityPreviewLink } from './EntityPreviewLink'
 
 const lowlight = createLowlight(common)
@@ -55,6 +60,16 @@ function headingSlug(text: string) {
 			.replace(/-+/g, '-')
 			.replace(/^-|-$/g, '') || 'section'
 	)
+}
+
+function horizontalBannerSlot(articleId: string, blockCount: number): number {
+	if (blockCount < 2) return blockCount
+	let hash = 0
+	for (let i = 0; i < articleId.length; i++) {
+		hash = ((hash << 5) - hash + articleId.charCodeAt(i)) | 0
+	}
+	const maxSlot = Math.min(3, blockCount)
+	return (Math.abs(hash) % maxSlot) + 1
 }
 
 type HastNode =
@@ -314,6 +329,22 @@ function renderNode(node: TiptapJson, key: string, ctx: RenderContext): ReactNod
 		if (!config) return null
 		return <ArticlePeoplePanelBlock key={key} config={config} />
 	}
+	if (node.type === 'qa') {
+		const questionNode = (node.content ?? []).find((child) => child?.type === 'qaQuestion')
+		const questionText = questionNode ? getTiptapNodeText(questionNode).trim() : ''
+		const qaId = questionText ? `qa-${headingSlug(questionText)}` : undefined
+		return (
+			<ArticleQABlock key={key} id={qaId}>
+				{renderChildren(node, key, ctx)}
+			</ArticleQABlock>
+		)
+	}
+	if (node.type === 'qaQuestion') {
+		return <ArticleQAQuestion key={key}>{renderChildren(node, key, ctx)}</ArticleQAQuestion>
+	}
+	if (node.type === 'qaAnswer') {
+		return <ArticleQAAnswer key={key}>{renderChildren(node, key, ctx)}</ArticleQAAnswer>
+	}
 	if (node.type === 'table') return renderTable(node, key, ctx)
 	if (node.type === 'tableRow') return renderTableRow(node, key, ctx)
 	if (node.type === 'tableHeader') {
@@ -376,10 +407,42 @@ function formatHeaderDate(iso: string | null | undefined) {
 	if (!iso) return null
 	const date = new Date(iso)
 	if (Number.isNaN(date.getTime())) return null
-	return date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+	const day = date.getDate()
+	const month = date.toLocaleString(undefined, { month: 'long' })
+	const year = date.getFullYear()
+	let hours = date.getHours()
+	const ampm = hours >= 12 ? 'PM' : 'AM'
+	hours = hours % 12 || 12
+	const hh = hours.toString().padStart(2, '0')
+	const mm = date.getMinutes().toString().padStart(2, '0')
+	return `${day} ${month} ${year} at ${hh}:${mm} ${ampm}`
+}
+
+function MetaChip({ children }: { children: ReactNode }) {
+	return (
+		<span className="inline-flex items-center rounded-[3px] bg-(--link-text) px-2 py-[3px] text-[10px] leading-none font-semibold tracking-tight whitespace-nowrap text-white">
+			{children}
+		</span>
+	)
 }
 
 type TocEntry = { id: string; text: string; level: number }
+type TocGroup = { id: string; text: string; children: TocEntry[] }
+
+function groupToc(toc: TocEntry[]): TocGroup[] {
+	const groups: TocGroup[] = []
+	let current: TocGroup | null = null
+	for (const entry of toc) {
+		if (entry.level === 2) {
+			current = { id: entry.id, text: entry.text, children: [] }
+			groups.push(current)
+		} else if (entry.level === 3) {
+			if (current) current.children.push(entry)
+			else groups.push({ id: entry.id, text: entry.text, children: [] })
+		}
+	}
+	return groups
+}
 
 function collectToc(node: TiptapJson | null | undefined, out: TocEntry[]) {
 	if (!node) return
@@ -390,12 +453,16 @@ function collectToc(node: TiptapJson | null | undefined, out: TocEntry[]) {
 			if (text) out.push({ id: headingSlug(text), text, level })
 		}
 	}
+	if (node.type === 'qa') {
+		const questionNode = (node.content ?? []).find((child) => child?.type === 'qaQuestion')
+		const text = questionNode ? getTiptapNodeText(questionNode).trim() : ''
+		if (text) {
+			const qIndex = out.filter((entry) => entry.id.startsWith('qa-')).length + 1
+			out.push({ id: `qa-${headingSlug(text)}`, text: `Q${qIndex}. ${text}`, level: 3 })
+		}
+		return
+	}
 	for (const child of node.content ?? []) collectToc(child, out)
-}
-
-function readingMinutes(plainText: string) {
-	const words = plainText.trim() ? plainText.trim().split(/\s+/).length : 0
-	return Math.max(1, Math.ceil(words / 220))
 }
 
 function useActiveHeading(toc: TocEntry[]): [string | null, (id: string) => void] {
@@ -439,168 +506,543 @@ function useActiveHeading(toc: TocEntry[]): [string | null, (id: string) => void
 	return [active, setActive]
 }
 
-function ArticleToc({ toc }: { toc: TocEntry[] }) {
-	const [active, setActive] = useActiveHeading(toc)
+function ActivePill() {
 	return (
-		<aside className="hidden lg:block">
-			<nav className="sticky top-24 grid gap-3">
-				<div className="font-jetbrains text-[10px] font-medium tracking-[0.22em] text-(--text-tertiary) uppercase">
+		<span
+			aria-hidden
+			className="pointer-events-none absolute top-1/2 right-0 h-5 w-1 -translate-y-1/2 rounded-[2px] bg-(--text-tertiary)"
+		/>
+	)
+}
+
+function useReadingProgress() {
+	const [progress, setProgress] = useState(0)
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		let raf = 0
+		const update = () => {
+			const doc = document.documentElement
+			const max = doc.scrollHeight - window.innerHeight
+			const next = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+			setProgress(next)
+		}
+		const onScroll = () => {
+			cancelAnimationFrame(raf)
+			raf = requestAnimationFrame(update)
+		}
+		update()
+		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener('resize', onScroll)
+		return () => {
+			cancelAnimationFrame(raf)
+			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener('resize', onScroll)
+		}
+	}, [])
+	return progress
+}
+
+function CompactTocBar({ toc, groups, active }: { toc: TocEntry[]; groups: TocGroup[]; active: string | null }) {
+	const progress = useReadingProgress()
+	const currentGroupIndex = useMemo(() => {
+		if (!active) return 0
+		const idx = groups.findIndex((g) => g.id === active || g.children.some((c) => c.id === active))
+		return idx < 0 ? 0 : idx
+	}, [active, groups])
+	const currentEntry = useMemo(() => {
+		if (!active) return groups[0] ?? toc[0] ?? null
+		return toc.find((t) => t.id === active) ?? groups[currentGroupIndex] ?? toc[0] ?? null
+	}, [active, toc, groups, currentGroupIndex])
+	const totalGroups = Math.max(groups.length, 1)
+	const displayNumber = String(Math.min(currentGroupIndex + 1, totalGroups)).padStart(2, '0')
+	const displayTotal = String(totalGroups).padStart(2, '0')
+	const pct = Math.round(progress * 100)
+
+	const onJumpToTop = () => {
+		if (typeof window === 'undefined') return
+		window.scrollTo({ top: 0, behavior: 'smooth' })
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={onJumpToTop}
+			aria-label={`Currently reading: ${currentEntry?.text ?? 'article'}. Return to top of article.`}
+			className="group relative flex w-full flex-col gap-3 border-y border-(--cards-border) py-3.5 text-left transition-colors hover:bg-(--cards-bg)/40 focus-visible:ring-1 focus-visible:ring-(--link-text)/60 focus-visible:outline-none"
+		>
+			<div className="flex items-center justify-between gap-3">
+				<span className="text-[10px] leading-none font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
 					On this page
-				</div>
-				<ul className="grid gap-0.5 border-l border-(--cards-border)">
-					{toc.map((entry) => {
-						const isActive = active === entry.id
-						const isSub = entry.level === 3
-						return (
-							<li key={entry.id} className="relative">
+				</span>
+				<span className="flex items-center gap-1 text-[10px] leading-none font-medium tracking-[0.12em] text-(--text-tertiary) uppercase transition-colors group-hover:text-(--link-text)">
+					<span>Top</span>
+					<Icon name="arrow-up" className="h-3 w-3" />
+				</span>
+			</div>
+			<div className="flex items-baseline gap-3">
+				<span className="font-jetbrains text-[11px] leading-none tracking-tight text-(--text-tertiary) tabular-nums">
+					{displayNumber}
+					<span className="text-(--text-tertiary)/50">/{displayTotal}</span>
+				</span>
+				<span className="min-w-0 flex-1 truncate text-[15px] leading-6 font-bold text-(--text-primary)">
+					{currentEntry?.text ?? '—'}
+				</span>
+			</div>
+			<div className="relative h-px w-full bg-(--cards-border)">
+				<span
+					aria-hidden
+					className="absolute inset-y-0 left-0 bg-(--link-text) transition-[width] duration-300 ease-out"
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+		</button>
+	)
+}
+
+function ArticleToc({ toc, compactMode = false }: { toc: TocEntry[]; compactMode?: boolean }) {
+	const [active, setActive] = useActiveHeading(toc)
+	const groups = useMemo(() => groupToc(toc), [toc])
+	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(groups.map((g) => g.id)))
+	const prevCompactRef = useRef(compactMode)
+
+	useEffect(() => {
+		if (prevCompactRef.current && !compactMode) {
+			setCollapsed(new Set(groups.map((g) => g.id)))
+		}
+		prevCompactRef.current = compactMode
+	}, [compactMode, groups])
+
+	if (compactMode) {
+		return <CompactTocBar toc={toc} groups={groups} active={active} />
+	}
+
+	const toggle = (id: string) => {
+		setCollapsed((prev) => {
+			const next = new Set(prev)
+			if (next.has(id)) next.delete(id)
+			else next.add(id)
+			return next
+		})
+	}
+
+	return (
+		<nav aria-label="On this page" className="grid">
+			<ol className="m-0 grid list-none gap-px p-0">
+				{groups.map((group) => {
+					const isCollapsed = collapsed.has(group.id)
+					const hasChildren = group.children.length > 0
+					const isParentActive = active === group.id
+					return (
+						<li key={group.id} className="relative">
+							{hasChildren ? (
+								<button
+									type="button"
+									onClick={() => toggle(group.id)}
+									className="flex w-full items-center justify-between gap-2 px-5 py-1.5 text-left text-[15px] leading-6 font-bold text-(--text-primary) hover:text-(--link-text)"
+								>
+									<a
+										href={`#${group.id}`}
+										onClick={(event) => {
+											event.stopPropagation()
+											setActive(group.id)
+										}}
+										className={`min-w-0 flex-1 truncate ${isParentActive ? 'underline' : ''}`}
+									>
+										{group.text}
+									</a>
+									<Icon
+										name={isCollapsed ? 'chevron-right' : 'chevron-down'}
+										className="h-3 w-3 shrink-0 text-(--text-secondary)"
+									/>
+								</button>
+							) : (
 								<a
-									href={`#${entry.id}`}
-									onClick={() => setActive(entry.id)}
-									className={`block truncate py-1.5 pr-2 transition-colors ${
-										isSub ? 'pl-7 text-[13px]' : 'pl-4 text-[13.5px]'
-									} ${
-										isActive
-											? 'font-medium text-(--text-primary)'
-											: 'text-(--text-secondary) hover:text-(--text-primary)'
+									href={`#${group.id}`}
+									onClick={() => setActive(group.id)}
+									className={`flex items-center px-5 py-1.5 text-[15px] leading-6 font-bold text-(--text-primary) hover:text-(--link-text) ${
+										isParentActive ? 'underline' : ''
 									}`}
 								>
-									{entry.text}
+									<span className="truncate">{group.text}</span>
 								</a>
-								{isActive ? (
-									<span
-										aria-hidden
-										className={`absolute top-1/2 -ml-px h-5 w-0.5 -translate-y-1/2 rounded-full bg-(--link-text) ${
-											isSub ? 'left-0' : 'left-0'
-										}`}
-									/>
-								) : null}
-							</li>
-						)
-					})}
-				</ul>
-			</nav>
-		</aside>
+							)}
+							{isParentActive ? <ActivePill /> : null}
+							{!isCollapsed && hasChildren ? (
+								<ol className="m-0 grid list-none gap-px p-0">
+									{group.children.map((child) => {
+										const isActive = active === child.id
+										return (
+											<li key={child.id} className="relative">
+												<a
+													href={`#${child.id}`}
+													onClick={() => setActive(child.id)}
+													className={`block truncate py-1.5 pr-3 pl-10 text-[15px] leading-6 transition-colors ${
+														isActive
+															? 'font-semibold text-(--text-primary) underline'
+															: 'text-(--text-secondary) hover:text-(--text-primary)'
+													}`}
+												>
+													{child.text}
+												</a>
+												{isActive ? <ActivePill /> : null}
+											</li>
+										)
+									})}
+								</ol>
+							) : null}
+						</li>
+					)
+				})}
+			</ol>
+		</nav>
+	)
+}
+
+function LinkedInIcon({ className }: { className?: string }) {
+	return (
+		<svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+			<path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.37V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.21 0 22.23 0z" />
+		</svg>
+	)
+}
+
+function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; size?: 'sm' | 'md' }) {
+	const [copied, setCopied] = useState(false)
+	const tweetUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`
+	const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+	const onCopy = async () => {
+		if (typeof navigator === 'undefined' || !navigator.clipboard) return
+		try {
+			await navigator.clipboard.writeText(url)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 1500)
+		} catch {}
+	}
+	const dim = size === 'sm' ? 'h-9 w-9' : 'h-11 w-11'
+	const iconDim = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
+	const buttonClass = `flex ${dim} items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-(--text-primary) transition-colors hover:border-(--link-text)/50 hover:text-(--link-text)`
+	return (
+		<div className="flex items-center gap-1.5">
+			<a
+				href={tweetUrl}
+				target="_blank"
+				rel="noreferrer noopener"
+				aria-label="Share on Twitter"
+				className={buttonClass}
+			>
+				<Icon name="twitter" className={iconDim} />
+			</a>
+			<a
+				href={linkedInUrl}
+				target="_blank"
+				rel="noreferrer noopener"
+				aria-label="Share on LinkedIn"
+				className={buttonClass}
+			>
+				<LinkedInIcon className={iconDim} />
+			</a>
+			<button type="button" onClick={onCopy} aria-label="Copy link" className={buttonClass}>
+				<Icon name={copied ? 'check-circle' : 'link'} className={iconDim} />
+			</button>
+		</div>
+	)
+}
+
+function ShareBlock({ url, title }: { url: string; title: string }) {
+	return (
+		<div className="grid gap-8">
+			<div role="separator" className="h-px bg-(--cards-border)" />
+			<div className="flex flex-col items-center gap-5">
+				<div className="flex items-center gap-1.5">
+					<span className="text-[18px] leading-none font-semibold tracking-wide text-(--text-primary)">SHARE</span>
+					<Icon name="share" className="h-4 w-4 text-(--text-primary)" />
+				</div>
+				<ShareIcons url={url} title={title} />
+			</div>
+			<div role="separator" className="h-px bg-(--cards-border)" />
+		</div>
 	)
 }
 
 export function ArticleRenderer({ article }: { article: LocalArticleDocument }) {
-	const publishedLabel =
-		article.status === 'published' && article.publishedAt
-			? formatHeaderDate(article.publishedAt)
-			: (formatHeaderDate(article.updatedAt) ?? 'Draft')
+	const visibleDateIso =
+		article.displayDate ??
+		(article.status === 'published' ? (article.publishedAt ?? article.lastPublishedAt ?? null) : article.updatedAt)
+	const publishedLabel = visibleDateIso
+		? formatHeaderDate(visibleDateIso)
+		: article.status === 'published'
+			? null
+			: 'Draft'
 	const ctx: RenderContext = { figureCount: { value: 0 } }
 
 	const toc: TocEntry[] = []
 	collectToc(article.contentJson, toc)
-	const minutes = readingMinutes(article.plainText || '')
+
+	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
+	const brandByline = article.brandByline === true
+	const tagChips = (article.tags ?? []).filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
+
+	const sectionPath = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}` : null
+	const [shareUrl, setShareUrl] = useState<string>(sectionPath ?? `/research/${article.slug}`)
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			setShareUrl(window.location.href)
+		}
+	}, [article.slug, article.section])
+
+	const sentinelRef = useRef<HTMLDivElement>(null)
+	const [pastHeader, setPastHeader] = useState(false)
+	useEffect(() => {
+		const el = sentinelRef.current
+		if (!el || typeof window === 'undefined') return
+		let raf = 0
+		const update = () => {
+			const top = el.getBoundingClientRect().top
+			setPastHeader(top < 24)
+		}
+		const onScroll = () => {
+			cancelAnimationFrame(raf)
+			raf = requestAnimationFrame(update)
+		}
+		update()
+		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener('resize', onScroll)
+		return () => {
+			cancelAnimationFrame(raf)
+			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener('resize', onScroll)
+		}
+	}, [])
+
+	const cover = article.coverImage ?? null
+	const coverHeadline = cover ? (cover.headline ?? '').trim() : ''
+	const coverCaption = cover ? (cover.caption ?? '').trim() : ''
+	const coverCredit = cover ? (cover.credit ?? '').trim() : ''
+	const coverCopyright = cover ? (cover.copyright ?? '').trim() : ''
+	const coverMetaParts = cover
+		? [coverCredit ? `Credit: ${coverCredit}` : '', coverCopyright ? `© ${coverCopyright}` : ''].filter(Boolean)
+		: []
+	const hasCoverMeta = !!cover && (coverHeadline || coverCaption || coverMetaParts.length > 0)
+
+	const isInterview = article.section === 'interview'
+	const bylineLabel = isInterview ? 'Interviewer' : 'By'
+	const bylineNode = brandByline ? (
+		<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
+			<span className="font-normal">{bylineLabel}</span>
+			<Link href="/research/authors" className="font-semibold text-(--text-primary) hover:text-(--link-text)">
+				DefiLlama Research
+			</Link>
+		</span>
+	) : article.author ? (
+		(() => {
+			const ownerLink = article.authorProfile ? (
+				<Link
+					key={article.authorProfile.id}
+					href={`/research/authors/${article.authorProfile.slug}`}
+					className="font-semibold text-(--text-primary) hover:text-(--link-text)"
+				>
+					{article.author}
+				</Link>
+			) : (
+				<span key="owner" className="font-semibold text-(--text-primary)">
+					{article.author}
+				</span>
+			)
+			const coAuthorLinks = (article.coAuthors ?? []).map((profile) => (
+				<Link
+					key={profile.id}
+					href={`/research/authors/${profile.slug}`}
+					className="font-semibold text-(--text-primary) hover:text-(--link-text)"
+				>
+					{profile.displayName}
+				</Link>
+			))
+			const links = [ownerLink, ...coAuthorLinks]
+			return (
+				<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
+					<span className="font-normal">{bylineLabel}</span>
+					{links.map((node, index) => (
+						<span key={index} className="flex items-center gap-1">
+							{node}
+							{index < links.length - 2 ? <span>,</span> : null}
+							{index === links.length - 2 ? <span>and</span> : null}
+						</span>
+					))}
+				</span>
+			)
+		})()
+	) : null
+
+	const intervieweesList = isInterview ? (article.interviewees ?? []).filter((p) => p?.name?.trim()) : []
+	const intervieweeNode =
+		intervieweesList.length > 0 ? (
+			<span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-(--text-secondary)">
+				<span className="font-normal">Interviewee{intervieweesList.length > 1 ? 's' : ''}</span>
+				{intervieweesList.map((person, index) => {
+					const labelNode = (
+						<span className="inline-flex items-center gap-1.5">
+							{person.avatarUrl ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={person.avatarUrl}
+									alt=""
+									className="h-5 w-5 shrink-0 rounded-full border border-(--cards-border) object-cover"
+								/>
+							) : null}
+							<span className="font-semibold text-(--text-primary)">{person.name}</span>
+							{person.role ? <span className="text-(--text-tertiary)">· {person.role}</span> : null}
+						</span>
+					)
+					const href = person.authorSlug
+						? `/research/authors/${person.authorSlug}`
+						: person.externalUrl
+							? person.externalUrl
+							: null
+					const linked = href ? (
+						person.authorSlug ? (
+							<Link href={href} className="hover:text-(--link-text)">
+								{labelNode}
+							</Link>
+						) : (
+							<a href={href} target="_blank" rel="noreferrer noopener" className="hover:text-(--link-text)">
+								{labelNode}
+							</a>
+						)
+					) : (
+						labelNode
+					)
+					return (
+						<span key={index} className="flex items-center gap-1">
+							{linked}
+							{index < intervieweesList.length - 2 ? <span>,</span> : null}
+							{index === intervieweesList.length - 2 ? <span>and</span> : null}
+						</span>
+					)
+				})}
+			</span>
+		) : null
 
 	return (
-		<div className="article-page mx-auto grid w-full max-w-[1180px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,760px)_220px]">
+		<div className="article-page mx-auto grid w-full max-w-[1300px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,700px)_401px] lg:gap-[125px]">
 			<article className="article-published min-w-0">
-				<header className="grid gap-4 pt-10 pb-8">
-					<div className="flex flex-wrap items-center gap-2 text-xs text-(--text-tertiary)">
-						<span>{publishedLabel}</span>
-						<span aria-hidden>·</span>
-						<span className="capitalize">{article.status}</span>
-						<span aria-hidden>·</span>
-						<span>{minutes} min read</span>
-					</div>
-					<h1 className="text-4xl leading-[1.05] font-semibold tracking-tight text-(--text-primary) md:text-5xl">
+				<header className="grid gap-4 pt-6 sm:pt-10 lg:gap-5">
+					<h1 className="text-[26px] leading-[1.2] font-bold tracking-tight text-(--text-primary) sm:text-3xl sm:leading-[1.15] md:text-[36px] md:leading-[1.32]">
 						{article.title}
 					</h1>
-					{article.subtitle ? <p className="text-lg leading-snug text-(--text-secondary)">{article.subtitle}</p> : null}
-					{article.author
-						? (() => {
-								const ownerLink = article.authorProfile ? (
-									<Link
-										key={article.authorProfile.id}
-										href={`/research/authors/${article.authorProfile.slug}`}
-										className="text-sm text-(--text-primary) hover:text-(--link-text)"
-									>
-										{article.author}
-									</Link>
-								) : (
-									<span key="owner" className="text-sm text-(--text-primary)">
-										{article.author}
-									</span>
-								)
-								const coAuthorLinks = (article.coAuthors ?? []).map((profile) => (
-									<Link
-										key={profile.id}
-										href={`/research/authors/${profile.slug}`}
-										className="text-sm text-(--text-primary) hover:text-(--link-text)"
-									>
-										{profile.displayName}
-									</Link>
-								))
-								const links = [ownerLink, ...coAuthorLinks]
-								const avatars = [
-									{ key: 'owner', label: article.author },
-									...(article.coAuthors ?? []).map((p) => ({ key: p.id, label: p.displayName }))
-								]
-								return (
-									<div className="mt-2 flex flex-wrap items-center gap-2 border-t border-(--cards-border) pt-3 text-xs text-(--text-tertiary)">
-										<div className="flex -space-x-2">
-											{avatars.map((entry) => (
-												<span
-													key={entry.key}
-													className="flex h-7 w-7 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-[10px] font-medium text-(--text-secondary)"
-													title={entry.label}
-												>
-													{entry.label.slice(0, 2).toUpperCase()}
-												</span>
-											))}
-										</div>
-										<span className="flex flex-wrap items-center gap-1">
-											<span>By</span>
-											{links.map((node, index) => (
-												<span key={index} className="flex items-center gap-1">
-													{node}
-													{index < links.length - 2 ? <span>,</span> : null}
-													{index === links.length - 2 ? <span>and</span> : null}
-												</span>
-											))}
-										</span>
-									</div>
-								)
-							})()
-						: null}
+					{article.subtitle ? (
+						<p className="text-base leading-snug text-(--text-secondary) md:text-lg">{article.subtitle}</p>
+					) : null}
 				</header>
 
-				{article.coverImage
-					? (() => {
-							const cover = article.coverImage
-							const headline = (cover.headline ?? '').trim()
-							const caption = (cover.caption ?? '').trim()
-							const credit = (cover.credit ?? '').trim()
-							const copyright = (cover.copyright ?? '').trim()
-							const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(Boolean)
-							const hasMeta = headline || caption || metaParts.length > 0
-							return (
-								<figure className="mb-10 overflow-hidden rounded-md border border-(--cards-border)">
-									<img src={cover.url} alt={cover.alt || ''} className="max-h-[440px] w-full object-cover" />
-									{hasMeta ? (
-										<figcaption className="grid gap-1 border-t border-(--cards-border) bg-(--cards-bg) px-4 py-2 text-xs text-(--text-tertiary)">
-											{headline ? <span className="font-medium text-(--text-secondary)">{headline}</span> : null}
-											{caption ? <span>{caption}</span> : null}
-											{metaParts.length > 0 ? (
-												<span className="text-(--text-tertiary)/80">{metaParts.join(' · ')}</span>
-											) : null}
-										</figcaption>
-									) : null}
-								</figure>
-							)
-						})()
-					: null}
+				{cover ? (
+					<figure className="mt-5 grid gap-2">
+						<div className="aspect-[700/400] w-full overflow-hidden">
+							<img src={cover.url} alt={cover.alt || ''} className="block h-full w-full object-cover" />
+						</div>
+						{hasCoverMeta ? (
+							<figcaption className="grid gap-1 text-xs text-(--text-tertiary)">
+								{coverHeadline ? <span className="font-medium text-(--text-secondary)">{coverHeadline}</span> : null}
+								{coverCaption ? <span>{coverCaption}</span> : null}
+								{coverMetaParts.length > 0 ? (
+									<span className="text-(--text-tertiary)/80">{coverMetaParts.join(' · ')}</span>
+								) : null}
+							</figcaption>
+						) : null}
+					</figure>
+				) : null}
+
+				<div className={`hidden flex-wrap items-center justify-between gap-3 lg:flex ${cover ? 'mt-5' : 'mt-6'} pb-8`}>
+					<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+						<div className="grid gap-1">
+							{bylineNode}
+							{intervieweeNode}
+						</div>
+						{(sectionLabel || tagChips.length > 0) && (
+							<div className="flex flex-wrap items-center gap-1.5">
+								{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
+								{tagChips.map((tag) => (
+									<MetaChip key={tag}>{tag}</MetaChip>
+								))}
+							</div>
+						)}
+					</div>
+					{publishedLabel ? (
+						<span className="text-xs whitespace-nowrap text-(--text-secondary)">{publishedLabel}</span>
+					) : null}
+				</div>
+
+				<div className={`grid gap-3 lg:hidden ${cover ? 'mt-5' : 'mt-6'} pb-6`}>
+					<div className="flex flex-wrap items-center justify-between gap-3">
+						<div className="grid gap-1">
+							{bylineNode}
+							{intervieweeNode}
+						</div>
+						{publishedLabel ? (
+							<span className="text-xs whitespace-nowrap text-(--text-secondary)">{publishedLabel}</span>
+						) : null}
+					</div>
+					{(sectionLabel || tagChips.length > 0) && (
+						<div className="flex flex-wrap items-center gap-1.5">
+							{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
+							{tagChips.map((tag) => (
+								<MetaChip key={tag}>{tag}</MetaChip>
+							))}
+						</div>
+					)}
+					<div className="flex items-center gap-2">
+						<span className="text-[13px] leading-none font-semibold tracking-wide text-(--text-primary)">SHARE</span>
+						<Icon name="share" className="h-3.5 w-3.5 text-(--text-primary)" />
+						<div className="ml-1">
+							<ShareIcons url={shareUrl} title={article.title} size="sm" />
+						</div>
+					</div>
+				</div>
+
+				{toc.length > 1 ? (
+					<div className="grid gap-6 pb-2 lg:hidden">
+						<div role="separator" className="h-px bg-(--cards-border)" />
+						<ArticleToc toc={toc} />
+						<div role="separator" className="h-px bg-(--cards-border)" />
+					</div>
+				) : null}
+
+				<div ref={sentinelRef} aria-hidden className="h-0 w-full" />
 
 				<div className="article-prose [overflow-wrap:anywhere] break-words">
-					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-2xl prose-h3:mt-7 prose-h3:mb-2 prose-h3:text-lg prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-li:my-1 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_li>p]:my-0 [&_li>p]:leading-[1.55]">
-						{renderNode(article.contentJson, 'article-root', ctx)}
+					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h1:mt-8 prose-h1:mb-3 prose-h2:mt-6 prose-h2:mb-2 prose-h2:text-2xl prose-h3:mt-5 prose-h3:mb-1.5 prose-h3:text-lg prose-h4:mt-4 prose-h4:mb-1.5 prose-h4:text-base prose-h5:mt-3 prose-h5:mb-1 prose-h5:text-sm prose-h6:mt-3 prose-h6:mb-1 prose-h6:text-sm prose-p:my-3 prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:my-4 prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-figure:my-4 prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:my-4 prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-ol:my-3 prose-ul:my-3 prose-li:my-1 prose-img:my-4 prose-hr:my-6 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_:where(h1,h2,h3,h4,h5,h6):first-child]:mt-0 [&_li>p]:my-0 [&_li>p]:leading-[1.55]">
+						{(() => {
+							const docContent = article.contentJson?.content ?? []
+							const nodes = docContent.map((child, idx) => renderNode(child, `article-root-${idx}`, ctx))
+							if (docContent.length === 0) return nodes
+							const slot = horizontalBannerSlot(article.id ?? '', docContent.length)
+							const banner = (
+								<ArticleImageBannerHorizontal
+									key="article-mobile-banner"
+									articleId={article.id ?? ''}
+									section={article.section ?? null}
+								/>
+							)
+							return [...nodes.slice(0, slot), banner, ...nodes.slice(slot)]
+						})()}
 					</div>
 				</div>
 			</article>
 
-			{toc.length > 1 ? <ArticleToc toc={toc} /> : null}
+			<aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
+				<div className="flex flex-col gap-8 border-l border-(--cards-border) pt-10 pr-1 pb-6 pl-5">
+					{toc.length > 1 ? (
+						<div className="pr-2">
+							<ArticleToc toc={toc} compactMode={pastHeader} />
+						</div>
+					) : null}
+					<div className="pr-2">
+						<ShareBlock url={shareUrl} title={article.title} />
+					</div>
+					<div className="pr-2">
+						<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
+					</div>
+				</div>
+			</aside>
 		</div>
 	)
 }

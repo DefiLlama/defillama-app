@@ -1710,3 +1710,73 @@
 	cursor: ew-resize;
 	cursor: col-resize;
 }
+
+.article-prose,
+.ProseMirror {
+	counter-reset: qa-counter;
+}
+
+.article-qa,
+.ProseMirror dl[data-article-qa] {
+	counter-increment: qa-counter;
+	display: block;
+	margin: 3.25rem 0;
+	padding-top: 2rem;
+	border-top: 1px solid var(--cards-border);
+	break-inside: avoid;
+	position: relative;
+}
+
+.article-qa::before,
+.ProseMirror dl[data-article-qa]::before {
+	content: 'Q · ' counter(qa-counter, decimal-leading-zero);
+	display: block;
+	margin-bottom: 1.125rem;
+	font-family: var(--font-jetbrains, ui-monospace, monospace);
+	font-size: 0.6875rem;
+	font-weight: 600;
+	letter-spacing: 0.22em;
+	color: var(--link-text);
+	text-transform: uppercase;
+}
+
+.article-qa:first-child,
+.ProseMirror dl[data-article-qa]:first-child {
+	margin-top: 0.5rem;
+}
+
+.article-qa-question,
+.ProseMirror dt[data-article-qa-question] {
+	margin: 0 0 1rem 0;
+	font-size: clamp(1.1875rem, 0.4vw + 1.125rem, 1.3125rem);
+	line-height: 1.32;
+	font-weight: 600;
+	color: var(--text-primary);
+	letter-spacing: -0.014em;
+	text-wrap: balance;
+}
+
+.article-qa-answer,
+.ProseMirror dd[data-article-qa-answer] {
+	margin: 0;
+	color: var(--text-secondary);
+	font-size: 1rem;
+	line-height: 1.72;
+}
+
+.article-qa-answer > p,
+.ProseMirror dd[data-article-qa-answer] > p {
+	margin: 0 0 0.875rem 0;
+}
+.article-qa-answer > p:last-child,
+.ProseMirror dd[data-article-qa-answer] > p:last-child {
+	margin: 0;
+}
+
+.article-qa-answer > p:first-child:not(.is-empty)::before,
+.ProseMirror dd[data-article-qa-answer] > p:first-child:not(.is-empty)::before {
+	content: '— ';
+	color: color-mix(in oklch, var(--link-text) 70%, transparent);
+	font-weight: 500;
+	margin-right: 0.05em;
+}

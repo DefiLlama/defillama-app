@@ -1,12 +1,27 @@
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useMemo, useState } from 'react'
 import { ArticleApiError, getAuthorBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import {
+	ARTICLE_SECTION_LABELS,
+	ARTICLE_SECTION_SLUGS,
+	type ArticleDocument,
+	type ArticleSection
+} from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+
+type ArchiveFilter = ArticleSection | 'all'
+
+function articleHref(article: ArticleDocument) {
+	if (article.section) {
+		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
+	}
+	return '/research'
+}
 
 function formatDate(value: string | null) {
 	if (!value) return ''
@@ -119,6 +134,28 @@ function AuthorContent({ slug }: { slug: string }) {
 
 	const socialEntries = author.socials ? Object.entries(author.socials).filter(([, value]) => Boolean(value)) : []
 
+	const sectionCounts = useMemo(() => {
+		const counts = new Map<ArticleSection, number>()
+		for (const article of rest) {
+			if (!article.section) continue
+			counts.set(article.section, (counts.get(article.section) ?? 0) + 1)
+		}
+		return counts
+	}, [rest])
+
+	const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>('all')
+
+	const filteredArchive = useMemo(() => {
+		if (archiveFilter === 'all') return rest
+		return rest.filter((article) => article.section === archiveFilter)
+	}, [rest, archiveFilter])
+
+	const archiveTabs: ArchiveFilter[] = useMemo(() => {
+		const tabs: ArchiveFilter[] = ['all']
+		for (const [section] of sectionCounts) tabs.push(section)
+		return tabs
+	}, [sectionCounts])
+
 	return (
 		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">
 			<div className="flex items-center justify-between gap-3">
@@ -194,7 +231,7 @@ function AuthorContent({ slug }: { slug: string }) {
 					{lead ? (
 						<section>
 							<Link
-								href={`/research/${lead.slug}`}
+								href={articleHref(lead)}
 								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)]"
 							>
 								<div className="order-2 grid content-start gap-3 p-6 md:order-1 md:p-8">
@@ -232,11 +269,35 @@ function AuthorContent({ slug }: { slug: string }) {
 							<div className="flex items-baseline justify-between gap-2 border-b border-(--cards-border) pb-3">
 								<h2 className="text-sm font-semibold tracking-[0.16em] text-(--text-tertiary) uppercase">Archive</h2>
 								<p className="font-jetbrains text-xs text-(--text-tertiary)">
-									{rest.length} {rest.length === 1 ? 'note' : 'notes'}
+									{filteredArchive.length} {filteredArchive.length === 1 ? 'note' : 'notes'}
 								</p>
 							</div>
+							{archiveTabs.length > 1 ? (
+								<div className="flex flex-wrap gap-1.5">
+									{archiveTabs.map((tab) => {
+										const label = tab === 'all' ? 'All' : ARTICLE_SECTION_LABELS[tab]
+										const count = tab === 'all' ? rest.length : (sectionCounts.get(tab) ?? 0)
+										const isActive = archiveFilter === tab
+										return (
+											<button
+												key={tab}
+												type="button"
+												onClick={() => setArchiveFilter(tab)}
+												className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-jetbrains text-[10px] tracking-[0.16em] uppercase transition-colors ${
+													isActive
+														? 'border-(--link-text)/60 bg-(--link-button) text-(--link-text)'
+														: 'border-(--cards-border) bg-transparent text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--link-text)'
+												}`}
+											>
+												<span>{label}</span>
+												<span className="tabular-nums">{count}</span>
+											</button>
+										)
+									})}
+								</div>
+							) : null}
 							<ul className="grid">
-								{rest.map((article) => (
+								{filteredArchive.map((article) => (
 									<li
 										key={article.id}
 										className="grid grid-cols-[64px_72px_minmax(0,1fr)] items-start gap-4 border-b border-(--cards-border) py-5 last:border-b-0 sm:grid-cols-[88px_96px_minmax(0,1fr)] sm:gap-6"
@@ -245,7 +306,7 @@ function AuthorContent({ slug }: { slug: string }) {
 											{formatShort(article.publishedAt)}
 										</div>
 										{article.coverImage?.url ? (
-											<Link href={`/research/${article.slug}`} className="block">
+											<Link href={articleHref(article)} className="block">
 												<img
 													src={article.coverImage.url}
 													alt=""
@@ -260,7 +321,7 @@ function AuthorContent({ slug }: { slug: string }) {
 												aria-hidden
 											/>
 										)}
-										<Link href={`/research/${article.slug}`} className="group grid gap-1.5">
+										<Link href={articleHref(article)} className="group grid gap-1.5">
 											<h3 className="text-base leading-tight font-semibold text-(--text-primary) transition-colors group-hover:text-(--link-text) md:text-lg">
 												{article.title}
 											</h3>

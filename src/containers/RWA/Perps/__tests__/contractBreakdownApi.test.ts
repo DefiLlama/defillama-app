@@ -14,7 +14,7 @@ describe('parseContractBreakdownRequest', () => {
 		})
 	})
 
-	it('accepts venue and asset-group targets', () => {
+	it('accepts venue, asset-group, asset-class, and asset-class exclusion targets', () => {
 		expect(
 			parseContractBreakdownRequest({
 				query: {
@@ -38,6 +38,30 @@ describe('parseContractBreakdownRequest', () => {
 			assetGroup: 'US Equities',
 			key: 'volume24h'
 		})
+
+		expect(
+			parseContractBreakdownRequest({
+				query: {
+					assetClass: 'Forex Perps',
+					key: 'markets'
+				}
+			})
+		).toEqual({
+			assetClass: 'Forex Perps',
+			key: 'markets'
+		})
+
+		expect(
+			parseContractBreakdownRequest({
+				query: {
+					excludeAssetClass: 'Forex Perps',
+					key: 'markets'
+				}
+			})
+		).toEqual({
+			excludeAssetClass: 'Forex Perps',
+			key: 'markets'
+		})
 	})
 
 	it('rejects invalid query params', () => {
@@ -46,6 +70,26 @@ describe('parseContractBreakdownRequest', () => {
 				query: {
 					venue: ['xyz'],
 					key: 'openInterest'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseContractBreakdownRequest({
+				query: {
+					assetClass: 'Forex Perps',
+					excludeAssetClass: 'Forex Perps',
+					key: 'markets'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseContractBreakdownRequest({
+				query: {
+					venue: 'xyz',
+					assetClass: 'Forex Perps',
+					key: 'markets'
 				}
 			})
 		).toBeNull()

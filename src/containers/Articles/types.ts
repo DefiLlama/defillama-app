@@ -1,6 +1,45 @@
 export type ArticleVersion = 1
 
 export type ArticleStatus = 'draft' | 'published'
+export type ArticleSection = 'interview' | 'report' | 'introducing' | 'opinion' | 'roundtables' | 'press_release'
+
+export const ARTICLE_SECTIONS: ArticleSection[] = [
+	'interview',
+	'report',
+	'introducing',
+	'opinion',
+	'roundtables',
+	'press_release'
+]
+
+export const ARTICLE_SECTION_LABELS: Record<ArticleSection, string> = {
+	interview: 'Interview',
+	report: 'Report',
+	introducing: 'Introducing',
+	opinion: 'Opinion',
+	roundtables: 'Roundtables',
+	press_release: 'Press Release'
+}
+
+export const ARTICLE_SECTION_SLUGS: Record<ArticleSection, string> = {
+	interview: 'interview',
+	report: 'report',
+	introducing: 'introducing',
+	opinion: 'opinion',
+	roundtables: 'roundtables',
+	press_release: 'press-release'
+}
+
+export const ARTICLE_SECTION_FROM_SLUG: Record<string, ArticleSection> = {
+	interview: 'interview',
+	report: 'report',
+	introducing: 'introducing',
+	opinion: 'opinion',
+	roundtables: 'roundtables',
+	'press-release': 'press_release',
+	press_release: 'press_release'
+}
+
 export type ArticleEntityType = 'protocol' | 'chain' | 'stablecoin' | 'metric' | 'hack' | 'category' | 'cex' | 'bridge'
 export type ArticleChartEntityType = 'protocol' | 'chain'
 export type ArticleCalloutTone = 'note' | 'warning' | 'data' | 'pullquote'
@@ -106,6 +145,15 @@ export type ArticleAuthorProfile = {
 	updatedAt: string
 }
 
+export type ArticleInterviewee = {
+	name: string
+	avatarUrl?: string | null
+	bio?: string | null
+	role?: string | null
+	authorSlug?: string | null
+	externalUrl?: string | null
+}
+
 export type ArticleViewerRole = 'owner' | 'collaborator'
 
 export type ArticleCollaborator = {
@@ -144,12 +192,19 @@ export type LocalArticleDocument = {
 	citations: ArticleCitation[]
 	embeds: ArticleEmbedConfig[]
 	tags: string[]
+	editorialTags?: string[]
+	interviewees?: ArticleInterviewee[]
+	section?: ArticleSection | null
+	displayDate?: string | null
+	brandByline?: boolean
 	featuredRank?: number | null
 	featuredUntil?: string | null
 
 	createdAt: string
 	updatedAt: string
 	publishedAt: string | null
+	firstPublishedAt?: string | null
+	lastPublishedAt?: string | null
 
 	pending?: ArticleSnapshotPayload | null
 	pendingUpdatedAt?: string | null
@@ -197,3 +252,65 @@ export type ArticleRevisionListResponse = {
 }
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: string }
+
+export type BannerScope = 'landing' | 'section' | 'article'
+
+export const BANNER_SCOPES: BannerScope[] = ['landing', 'section', 'article']
+
+export const BANNER_SCOPE_LABELS: Record<BannerScope, string> = {
+	landing: 'Research landing page',
+	section: 'Section',
+	article: 'Specific article'
+}
+
+export type BannerKind = 'text' | 'image' | 'image-horizontal'
+
+export const BANNER_KINDS: BannerKind[] = ['text', 'image', 'image-horizontal']
+
+export const BANNER_KIND_LABELS: Record<BannerKind, string> = {
+	text: 'Text strip',
+	image: 'Right-rail image',
+	'image-horizontal': 'Mobile inline image'
+}
+
+export const BANNER_KIND_DESCRIPTIONS: Record<BannerKind, string> = {
+	text: 'Full-width dismissible strip at the top of the page',
+	image: 'Image in the article right rail, under SHARE (desktop only)',
+	'image-horizontal': 'Wide image placed near the top of the article body (mobile only)'
+}
+
+export type Banner = {
+	id: string
+	type: BannerKind
+	scope: BannerScope
+	section: ArticleSection | null
+	articleId: string | null
+	text: string | null
+	linkUrl: string | null
+	linkLabel: string | null
+	imageUrl: string | null
+	imageAlt: string | null
+	enabled: boolean
+	createdByPbUserId: string
+	createdAt: string
+	updatedAt: string
+}
+
+export type BannerPayload = {
+	type?: BannerKind
+	scope: BannerScope
+	section?: ArticleSection | null
+	articleId?: string | null
+	text?: string | null
+	linkUrl?: string | null
+	linkLabel?: string | null
+	imageUrl?: string | null
+	imageAlt?: string | null
+	enabled?: boolean
+}
+
+export type BannerLookupResult = {
+	text: Banner | null
+	image: Banner | null
+	imageHorizontal: Banner | null
+}

@@ -20,6 +20,7 @@ export default function ChainCoreChart({
 	chartOptions,
 	height,
 	unlockTokenSymbol = '',
+	gasUsedValueSymbol,
 	isThemeDark,
 	groupBy,
 	hideDataZoom = false,
@@ -30,6 +31,10 @@ export default function ChainCoreChart({
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
+	const seriesValueSymbols = useMemo(
+		() => (gasUsedValueSymbol ? { 'Gas Used': gasUsedValueSymbol } : undefined),
+		[gasUsedValueSymbol]
+	)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -40,6 +45,7 @@ export default function ChainCoreChart({
 		tooltipSort: false,
 		hideLegend: true,
 		unlockTokenSymbol,
+		seriesValueSymbols,
 		isThemeDark,
 		groupBy: tooltipGroupBy
 	})
@@ -153,7 +159,8 @@ export default function ChainCoreChart({
 			baseYAxis: yAxis,
 			chartColors: chainOverviewChartColors,
 			chartsInSeries,
-			isThemeDark
+			isThemeDark,
+			gasUsedValueSymbol: gasUsedValueSymbol ?? valueSymbol
 		})
 
 		instance.setOption(
@@ -175,7 +182,7 @@ export default function ChainCoreChart({
 			},
 			{ notMerge: true, lazyUpdate: true }
 		)
-	}, [defaultChartSettings, series, chartOptions, allYAxis, isThemeDark, hideDataZoom])
+	}, [defaultChartSettings, series, chartOptions, allYAxis, isThemeDark, hideDataZoom, gasUsedValueSymbol, valueSymbol])
 
 	return (
 		<div

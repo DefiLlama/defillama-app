@@ -5,6 +5,7 @@ import { buildRWAPerpsTimeSeriesCharts, RWAPerpsDashboard } from '../Dashboard'
 
 let routerQuery: Record<string, string> = {}
 let lastTableWithSearchProps: any = null
+let lastUseQueryOptions: any = null
 
 vi.mock('next/router', () => ({
 	useRouter: () => ({
@@ -20,7 +21,18 @@ let queryState: { data: any; isLoading: boolean; error: any } = {
 }
 
 vi.mock('@tanstack/react-query', () => ({
-	useQuery: () => queryState
+	useQuery: (options: any) => {
+		lastUseQueryOptions = options
+		return queryState
+	}
+}))
+
+const { fetchJson } = vi.hoisted(() => ({
+	fetchJson: vi.fn()
+}))
+
+vi.mock('~/utils/async', () => ({
+	fetchJson
 }))
 
 vi.mock('~/components/Select/Select', () => ({
@@ -158,6 +170,9 @@ describe('RWAPerpsDashboard treemap controls', () => {
 	beforeEach(() => {
 		routerQuery = {}
 		lastTableWithSearchProps = null
+		lastUseQueryOptions = null
+		fetchJson.mockReset()
+		fetchJson.mockResolvedValue({ source: [], dimensions: ['timestamp'] })
 		queryState = {
 			data: null,
 			isLoading: false,
@@ -181,6 +196,126 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('Asset Group')
 		expect(html).not.toContain('Nested by:')
 		expect(html).not.toContain('reset')
+	})
+
+	it('requests no-Forex overview time-series data by default', async () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(lastUseQueryOptions.queryKey).toEqual([
+			'rwa-perps-chart',
+			'overview',
+			'openInterest',
+			'assetGroup',
+			'all',
+			undefined,
+			'Forex Perps'
+		])
+
+		await lastUseQueryOptions.queryFn()
+
+		expect(fetchJson).toHaveBeenCalledWith(
+			'/api/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest&excludeAssetClass=Forex+Perps'
+		)
+	})
+
+	it('requests all-market overview time-series data when Forex is included', async () => {
+		routerQuery = { includeForex: 'true' }
+		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(lastUseQueryOptions.queryKey).toEqual([
+			'rwa-perps-chart',
+			'overview',
+			'openInterest',
+			'assetGroup',
+			'all',
+			undefined,
+			undefined
+		])
+
+		await lastUseQueryOptions.queryFn()
+
+		expect(fetchJson).toHaveBeenCalledWith('/api/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest')
+	})
+
+	it('fetches all-market default time-series data when the include-Forex toggle overrides the preloaded no-Forex dataset', () => {
+		routerQuery = { includeForex: 'true' }
+		renderToStaticMarkup(
+			<RWAPerpsDashboard
+				mode="overview"
+				data={{
+					...overviewData,
+					initialChartDataset: {
+						source: [
+							{ timestamp: 1774483200000, Equities: 100 },
+							{ timestamp: 1774569600000, Equities: 120 }
+						],
+						dimensions: ['timestamp', 'Equities']
+					}
+				}}
+			/>
+		)
+
+		expect(lastUseQueryOptions.enabled).toBe(true)
+	})
+
+	it('requests asset-class-filtered overview time-series data when the dashboard is filtered', async () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} assetClassFilter="Forex Perps" />)
+
+		expect(lastUseQueryOptions.queryKey).toEqual([
+			'rwa-perps-chart',
+			'overview',
+			'openInterest',
+			'assetGroup',
+			'all',
+			'Forex Perps',
+			undefined
+		])
+
+		await lastUseQueryOptions.queryFn()
+
+		expect(fetchJson).toHaveBeenCalledWith(
+			'/api/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest&assetClass=Forex+Perps'
+		)
+	})
+
+	it('defaults the Forex overview time series to base asset when configured', async () => {
+		const html = renderToStaticMarkup(
+			<RWAPerpsDashboard
+				mode="overview"
+				data={overviewData}
+				assetClassFilter="Forex Perps"
+				defaultTimeSeriesBreakdown="baseAsset"
+			/>
+		)
+
+		expect(html).toContain('Base Asset')
+		expect(lastUseQueryOptions.queryKey).toEqual([
+			'rwa-perps-chart',
+			'overview',
+			'openInterest',
+			'baseAsset',
+			'all',
+			'Forex Perps',
+			undefined
+		])
+
+		await lastUseQueryOptions.queryFn()
+
+		expect(fetchJson).toHaveBeenCalledWith(
+			'/api/rwa/perps/overview-breakdown?breakdown=baseAsset&key=openInterest&assetClass=Forex+Perps'
+		)
+	})
+
+	it('requests asset-class-filtered contract time-series data when contract breakdown is selected', async () => {
+		routerQuery = {
+			chartView: 'timeSeries',
+			timeSeriesChartBreakdown: 'contract'
+		}
+		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} assetClassFilter="Forex Perps" />)
+
+		await lastUseQueryOptions.queryFn()
+
+		expect(fetchJson).toHaveBeenCalledWith('/api/rwa/perps/contract-breakdown?key=openInterest&assetClass=Forex+Perps')
 	})
 
 	it('hides the treemap nested-grouping selector when parent grouping is Contract', () => {

@@ -183,6 +183,15 @@ const ALL_ITEMS: SlashCommandItem[] = [
 		}
 	},
 	{
+		id: 'qa',
+		title: 'Q&A pair',
+		description: 'A question and answer block for interviews',
+		icon: 'Q&A',
+		group: 'Custom',
+		keywords: ['qa', 'q&a', 'question', 'answer', 'interview', 'transcript', 'conversation'],
+		action: (editor, range) => editor.chain().focus().deleteRange(range).insertQAPair().run()
+	},
+	{
 		id: 'callout-note',
 		title: 'Callout · Note',
 		description: 'Neutral aside',

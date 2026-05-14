@@ -23,14 +23,17 @@ export function DesktopNav({
 	oldMetricLinks: Array<TOldNavLink>
 	asPath: string
 }) {
+	const isResearch = asPath.startsWith('/research')
 	return (
 		<span className="desktop-nav-shell col-span-1 max-lg:hidden">
 			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
-				<BasicLink href="/" className="mb-4 w-fit shrink-0">
-					<span className="sr-only">Navigate to DeFi Dashboard</span>
+				<BasicLink href={isResearch ? '/research' : '/'} className="mb-4 w-fit shrink-0">
+					<span className="sr-only">
+						{isResearch ? 'Navigate to DefiLlama Research' : 'Navigate to DeFi Dashboard'}
+					</span>
 					<span className="relative block h-[53px] w-[155px]">
 						<img
-							src="/assets/defillama.webp"
+							src={isResearch ? '/assets/research_logo_dark.webp' : '/assets/defillama.webp'}
 							height={53}
 							width={155}
 							className="invisible absolute inset-0 object-contain object-left dark:visible"
@@ -40,7 +43,7 @@ export function DesktopNav({
 							decoding="sync"
 						/>
 						<img
-							src="/assets/defillama-dark.webp"
+							src={isResearch ? '/assets/research_logo.webp' : '/assets/defillama-dark.webp'}
 							height={53}
 							width={155}
 							className="visible absolute inset-0 object-contain object-left dark:invisible"
