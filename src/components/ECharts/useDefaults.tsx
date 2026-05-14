@@ -42,10 +42,10 @@ const getSeriesSymbol = (
 	seriesValueSymbols: Record<string, string> | undefined
 ): string => {
 	if (seriesName === 'Unlocks') return unlockTokenSymbol
+	if (seriesValueSymbols?.[seriesName]) return seriesValueSymbols[seriesName]
 	if (seriesName.includes('Users')) return 'Addresses'
 	if (seriesName.includes('Addresses')) return ''
 	if (seriesName.includes('Transactions')) return 'TXs'
-	if (seriesValueSymbols?.[seriesName]) return seriesValueSymbols[seriesName]
 	if (seriesName === 'TVL' && valueSymbol !== '$') return valueSymbol
 	if (seriesName in CHART_SYMBOLS) return CHART_SYMBOLS[seriesName]
 	return valueSymbol
