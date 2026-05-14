@@ -114,9 +114,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 					<div className="flex flex-wrap items-center gap-2">
 						<span
 							className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-jetbrains text-[9px] tracking-[0.18em] uppercase ${
-								isPublished
-									? 'bg-emerald-500/10 text-emerald-500'
-									: 'bg-(--text-tertiary)/10 text-(--text-tertiary)'
+								isPublished ? 'bg-emerald-500/10 text-emerald-500' : 'bg-(--text-tertiary)/10 text-(--text-tertiary)'
 							}`}
 						>
 							<span aria-hidden className="h-1 w-1 rounded-full bg-current" />
@@ -241,9 +239,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 				</span>
 				<textarea
 					value={state.reportDescription}
-					onChange={(event) =>
-						setState((prev) => ({ ...prev, reportDescription: event.target.value.slice(0, 600) }))
-					}
+					onChange={(event) => setState((prev) => ({ ...prev, reportDescription: event.target.value.slice(0, 600) }))}
 					placeholder="Shown on hover over the report card on /research."
 					rows={3}
 					maxLength={600}

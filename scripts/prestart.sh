@@ -1,22 +1,9 @@
 #!/bin/sh
 
-# source .env if it exists
-set -a
-[ -f .env ] && . .env
-set +a
+set -eu
 
-# sleep for 2 seconds to wait for the server to start
-sleep 2
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
 
-# if CF_ZONE or CF_PURGE_CACHE_AUTH is not set, skip purge cache
-if [ -z "$CF_ZONE" ] || [ -z "$CF_PURGE_CACHE_AUTH" ]; then
-  echo "CF_ZONE or CF_PURGE_CACHE_AUTH is not set, skipping purge cache"
-  exit 0
-fi
-
-echo "Purging cache for zone $CF_ZONE"
-
-curl -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
-  -H "Authorization: Bearer $CF_PURGE_CACHE_AUTH" \
-  -H "Content-Type: application/json" \
-  --data '{"purge_everything":true}'
+JITI_ALIAS="$(printf '{"~/public":"%s/public","~/public/*":"%s/public/*","~":"%s/src","~/*":"%s/src/*"}' "$REPO_ROOT" "$REPO_ROOT" "$REPO_ROOT" "$REPO_ROOT")"
+JITI_JSX=1 JITI_ALIAS="$JITI_ALIAS" exec node ./node_modules/jiti/lib/jiti-cli.mjs scripts/command/postStartHookCli.ts
