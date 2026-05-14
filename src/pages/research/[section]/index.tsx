@@ -126,11 +126,7 @@ function GenericCard({ article }: { article: ArticleDocument }) {
 
 function SectionLandingContent({ section }: { section: ArticleSection }) {
 	const { authorizedFetch } = useAuthContext()
-	const {
-		data,
-		isLoading,
-		error
-	} = useQuery({
+	const { data, isLoading, error } = useQuery({
 		queryKey: ['research', 'section-index', section],
 		queryFn: () => listArticles({ section, sort: 'newest', limit: 60 }, authorizedFetch),
 		retry: false
@@ -189,7 +185,11 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 				) : (
 					<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 						{items.map((article) =>
-							isInterview ? <InterviewCard key={article.id} article={article} /> : <GenericCard key={article.id} article={article} />
+							isInterview ? (
+								<InterviewCard key={article.id} article={article} />
+							) : (
+								<GenericCard key={article.id} article={article} />
+							)
 						)}
 					</div>
 				)}
