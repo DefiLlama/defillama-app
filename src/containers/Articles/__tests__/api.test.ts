@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ArticleApiError, listArticles } from '../api'
+import { ArticleApiError, listArticles, listArticlesByTag } from '../api'
+import { EDITORIAL_TAGS } from '../editorialTags'
 
 const createFetchMock = (response: Response) => vi.fn(async (_url: string, _options?: RequestInit) => response.clone())
 
@@ -9,13 +10,26 @@ describe('articles api client', () => {
 			new Response(JSON.stringify({ items: [], page: 1, perPage: 20, totalItems: 0, totalPages: 1 }))
 		)
 
-		await listArticles({ query: 'stablecoins', tags: ['lending'], sort: 'newest' }, fetchFn)
+		await listArticles({ query: 'stablecoins', tags: ['lending'], sort: 'newest', section: 'report' }, fetchFn)
 
 		const url = new URL(fetchFn.mock.calls[0][0])
 		expect(url.pathname).toBe('/articles')
 		expect(url.searchParams.get('query')).toBe('stablecoins')
 		expect(url.searchParams.get('tags')).toBe('lending')
 		expect(url.searchParams.get('sort')).toBe('newest')
+		expect(url.searchParams.get('section')).toBe('report')
+	})
+
+	it('requests articles by editorial tag path and limit', async () => {
+		const fetchFn = createFetchMock(
+			new Response(JSON.stringify({ items: [], page: 1, perPage: 20, totalItems: 0, totalPages: 1 }))
+		)
+
+		await listArticlesByTag(EDITORIAL_TAGS['report-highlight'].slug, 1, fetchFn)
+
+		const url = new URL(fetchFn.mock.calls[0][0])
+		expect(url.pathname).toBe('/articles/by-tag/report-highlight')
+		expect(url.searchParams.get('limit')).toBe('1')
 	})
 
 	it('surfaces server errors', async () => {
