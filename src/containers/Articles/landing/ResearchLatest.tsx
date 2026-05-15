@@ -62,7 +62,7 @@ type NormalizedItem = {
 }
 
 function normalizeItem(article: ArticleDocument, index: number): NormalizedItem | null {
-	const label = article.tags?.[0]?.replace(/-/g, ' ') ?? 'Research'
+	const label = article.section?.replace(/-/g, ' ') ?? 'Research'
 	return {
 		_key: `${article.id}-${index}`,
 		label: label.toUpperCase(),
