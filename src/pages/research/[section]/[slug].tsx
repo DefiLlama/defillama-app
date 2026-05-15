@@ -1,12 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
+import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { ArticleApiError, getArticleBySlug } from '~/containers/Articles/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import {
+	ArticleApiError,
+	getAllArticlesBanner,
+	getArticleBanner,
+	getArticleBySlug,
+	getSectionBanner,
+	listArticlePaths,
+	type ArticlePathItem
+} from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { ArticlesAccessGate, canEditResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
+import { canEditResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
 import { ArticleSeo } from '~/containers/Articles/ArticleSeo'
-import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
+import {
+	ArticleBannerStrip,
+	type ArticleBannerStripInitialData
+} from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -14,6 +27,111 @@ import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_SLUGS } from '~/containers/A
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
+
+type ArticleRouteParams = {
+	section: string
+	slug: string
+}
+
+type SectionArticlePageProps = {
+	initialArticle: ArticleDocument
+	initialBanners: ArticleBannerStripInitialData
+}
+
+async function loadArticleBannerData(article: ArticleDocument): Promise<ArticleBannerStripInitialData> {
+	const [articleBanner, sectionBanner, allArticlesBanner] = await Promise.all([
+		getArticleBanner(article.id).catch(() => null),
+		article.section ? getSectionBanner(article.section).catch(() => null) : Promise.resolve(null),
+		getAllArticlesBanner().catch(() => null)
+	])
+	return {
+		article: articleBanner,
+		section: sectionBanner,
+		allArticles: allArticlesBanner
+	}
+}
+
+export const getStaticPaths: GetStaticPaths<ArticleRouteParams> = async () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const { items } = await listArticlePaths()
+	const paths = articlePathsToStaticPaths(items)
+
+	return {
+		paths,
+		fallback: 'blocking'
+	}
+}
+
+export function articlePathsToStaticPaths(items: ArticlePathItem[]) {
+	return items.flatMap((item) => {
+		const sectionSlug = ARTICLE_SECTION_SLUGS[item.section]
+		if (!sectionSlug) return []
+		return [
+			{
+				params: {
+					section: sectionSlug,
+					slug: item.slug
+				}
+			}
+		]
+	})
+}
+
+export const getStaticProps = withPerformanceLogging<SectionArticlePageProps, ArticleRouteParams>(
+	'research/[section]/[slug]',
+	async ({ params }: GetStaticPropsContext<ArticleRouteParams>) => {
+		const sectionSlug = params?.section
+		const slug = params?.slug
+		if (!sectionSlug || !slug) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
+		const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
+		if (!expectedSection) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
+		const article = await getArticleBySlug(slug)
+		if (!article || !article.section) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
+		const canonicalSectionSlug = ARTICLE_SECTION_SLUGS[article.section]
+		if (article.slug !== slug || article.section !== expectedSection) {
+			return {
+				redirect: {
+					destination: `/research/${canonicalSectionSlug}/${article.slug}`,
+					permanent: false
+				}
+			}
+		}
+
+		return {
+			props: {
+				initialArticle: article,
+				initialBanners: await loadArticleBannerData(article)
+			},
+			revalidate: maxAgeForNext([22])
+		}
+	}
+)
 
 function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
@@ -43,9 +161,18 @@ function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	)
 }
 
-function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlug: string }) {
+function SectionArticleContent({
+	slug,
+	sectionSlug,
+	initialArticle,
+	initialBanners
+}: {
+	slug: string
+	sectionSlug: string
+	initialArticle?: ArticleDocument | null
+	initialBanners?: ArticleBannerStripInitialData | null
+}) {
 	const router = useRouter()
-	const { authorizedFetch } = useAuthContext()
 	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
 	const {
 		data: article = null,
@@ -53,8 +180,10 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 		error
 	} = useQuery({
 		queryKey: ['research', 'article', slug],
-		queryFn: () => getArticleBySlug(slug, authorizedFetch),
+		queryFn: () => getArticleBySlug(slug),
 		enabled: !!slug && !!expectedSection,
+		initialData: initialArticle?.slug === slug ? initialArticle : undefined,
+		staleTime: 60_000,
 		retry: false
 	})
 
@@ -113,19 +242,13 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 	return (
 		<>
 			<ArticleSeo article={article} />
-			<ArticleBannerStrip scope="article" articleId={article.id} section={article.section ?? null} />
+			<ArticleBannerStrip
+				scope="article"
+				articleId={article.id}
+				section={article.section ?? null}
+				initialData={initialBanners}
+			/>
 			<AppMetadataProvider>
-				{article.status === 'draft' ? (
-					<div className="mx-auto mt-4 flex w-full max-w-[1180px] items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-sm text-amber-600 sm:px-6">
-						<span className="flex items-center gap-2">
-							<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-							Draft preview · only visible to authors
-						</span>
-						<Link href={`/research/edit/${article.id}`} className="font-medium text-amber-600 hover:underline">
-							Edit
-						</Link>
-					</div>
-				) : null}
 				<ArticleRenderer article={article} />
 				<OwnerEditChip article={article} />
 			</AppMetadataProvider>
@@ -133,26 +256,38 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 	)
 }
 
-export default function SectionArticlePage() {
+export default function SectionArticlePage({
+	initialArticle,
+	initialBanners
+}: InferGetStaticPropsType<typeof getStaticProps>) {
 	const router = useRouter()
-	const slug = typeof router.query.slug === 'string' ? router.query.slug : ''
-	const sectionSlug = typeof router.query.section === 'string' ? router.query.section : ''
+	const initialSectionSlug = initialArticle?.section ? ARTICLE_SECTION_SLUGS[initialArticle.section] : ''
+	const slug = typeof router.query.slug === 'string' ? router.query.slug : (initialArticle?.slug ?? '')
+	const sectionSlug = typeof router.query.section === 'string' ? router.query.section : initialSectionSlug
 	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-	const canonical = expectedSection ? `/research/${sectionSlug}/${slug}` : '/research'
+	const canonical =
+		initialArticle?.section && initialArticle.slug
+			? `/research/${ARTICLE_SECTION_SLUGS[initialArticle.section]}/${initialArticle.slug}`
+			: expectedSection
+				? `/research/${sectionSlug}/${slug}`
+				: '/research'
 	const noIndex = !expectedSection
+	const title = initialArticle?.seoTitle || initialArticle?.title || 'Research - DefiLlama'
+	const description = initialArticle?.seoDescription || initialArticle?.excerpt || 'DefiLlama research.'
 
 	return (
-		<Layout
-			title="Research - DefiLlama"
-			description="DefiLlama research."
-			canonicalUrl={canonical}
-			noIndex={noIndex}
-			hideDesktopSearch
-		>
+		<Layout title={title} description={description} canonicalUrl={canonical} noIndex={noIndex} hideDesktopSearch>
 			<ArticleProxyAuthProvider>
-				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
-					{slug && sectionSlug ? <SectionArticleContent slug={slug} sectionSlug={sectionSlug} /> : <ResearchLoader />}
-				</ArticlesAccessGate>
+				{slug && sectionSlug ? (
+					<SectionArticleContent
+						slug={slug}
+						sectionSlug={sectionSlug}
+						initialArticle={initialArticle}
+						initialBanners={initialBanners}
+					/>
+				) : (
+					<ResearchLoader />
+				)}
 			</ArticleProxyAuthProvider>
 		</Layout>
 	)

@@ -4,12 +4,19 @@ import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { getAllArticlesBanner, getArticleBanner, getLandingBanner, getSectionBanner } from '~/containers/Articles/api'
 import type { ArticleSection, Banner, BannerLookupResult } from '~/containers/Articles/types'
-import { useAuthContext } from '~/containers/Subscription/auth'
 
 type Props = {
 	scope: 'landing' | 'section' | 'article'
 	section?: ArticleSection | null
 	articleId?: string | null
+	initialData?: ArticleBannerStripInitialData | null
+}
+
+export type ArticleBannerStripInitialData = {
+	article?: BannerLookupResult | null
+	section?: BannerLookupResult | null
+	allArticles?: BannerLookupResult | null
+	landing?: BannerLookupResult | null
 }
 
 const DISMISSED_KEY_PREFIX = 'research-banner-dismissed:'
@@ -18,13 +25,12 @@ function isExternalUrl(url: string) {
 	return /^https?:\/\//i.test(url)
 }
 
-export function ArticleBannerStrip({ scope, section, articleId }: Props) {
-	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
-
+export function ArticleBannerStrip({ scope, section, articleId, initialData }: Props) {
 	const articleBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'article', articleId],
-		queryFn: () => getArticleBanner(articleId as string, authorizedFetch),
-		enabled: scope === 'article' && !!articleId && isAuthenticated && !loaders.userLoading,
+		queryFn: () => getArticleBanner(articleId as string),
+		enabled: scope === 'article' && !!articleId,
+		initialData: scope === 'article' ? (initialData?.article ?? undefined) : undefined,
 		retry: false,
 		staleTime: 60_000
 	})
@@ -39,8 +45,9 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 
 	const sectionBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'section', sectionSlug],
-		queryFn: () => getSectionBanner(sectionSlug as ArticleSection, authorizedFetch),
-		enabled: sectionEnabled && isAuthenticated && !loaders.userLoading,
+		queryFn: () => getSectionBanner(sectionSlug as ArticleSection),
+		enabled: sectionEnabled,
+		initialData: sectionSlug ? (initialData?.section ?? undefined) : undefined,
 		retry: false,
 		staleTime: 60_000
 	})
@@ -48,8 +55,6 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 	const allArticlesEnabled =
 		scope === 'article' &&
 		!!articleId &&
-		isAuthenticated &&
-		!loaders.userLoading &&
 		!articleBannerQuery.isLoading &&
 		!articleBannerQuery.data?.text &&
 		!sectionBannerQuery.isLoading &&
@@ -57,16 +62,18 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 
 	const allArticlesBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'all-articles'],
-		queryFn: () => getAllArticlesBanner(authorizedFetch),
+		queryFn: () => getAllArticlesBanner(),
 		enabled: allArticlesEnabled,
+		initialData: scope === 'article' ? (initialData?.allArticles ?? undefined) : undefined,
 		retry: false,
 		staleTime: 60_000
 	})
 
 	const landingBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'landing'],
-		queryFn: () => getLandingBanner(authorizedFetch),
-		enabled: scope === 'landing' && isAuthenticated && !loaders.userLoading,
+		queryFn: () => getLandingBanner(),
+		enabled: scope === 'landing',
+		initialData: scope === 'landing' ? (initialData?.landing ?? undefined) : undefined,
 		retry: false,
 		staleTime: 60_000
 	})

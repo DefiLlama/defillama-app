@@ -1,14 +1,18 @@
+import { useRouter } from 'next/router'
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import type { AuthModel } from '~/utils/pocketbase'
 import type { ArticleDocument } from './types'
+
+export const RESEARCH_ACCESS_REDIRECT_PATH = '/research'
 
 export function isResearcher(user: AuthModel | null | undefined): boolean {
 	return user?.flags?.is_researcher === true
 }
 
 export function hasResearchAccess(user: AuthModel | null | undefined): boolean {
-	return user?.flags?.is_llama === true || isResearcher(user)
+	return isResearcher(user)
 }
 
 export function canManageResearchArticle(article: { viewerRole?: ArticleDocument['viewerRole'] }): boolean {
@@ -16,7 +20,7 @@ export function canManageResearchArticle(article: { viewerRole?: ArticleDocument
 }
 
 export function canEditResearchArticle({
-	article,
+	article: _article,
 	isAuthenticated,
 	user
 }: {
@@ -24,12 +28,7 @@ export function canEditResearchArticle({
 	isAuthenticated: boolean
 	user: AuthModel | null | undefined
 }): boolean {
-	return (
-		canManageResearchArticle(article) ||
-		article.viewerRole === 'collaborator' ||
-		(isAuthenticated && isResearcher(user)) ||
-		(isAuthenticated && !!user?.id && !!article.authorProfile?.pbUserId && user.id === article.authorProfile.pbUserId)
-	)
+	return isAuthenticated && isResearcher(user)
 }
 
 export function useHasArticlesAccess() {
@@ -49,6 +48,13 @@ export function ArticlesAccessGate({
 	loadingFallback?: ReactNode
 }) {
 	const { isLoading, hasAccess } = useHasArticlesAccess()
+	const router = useRouter()
+
+	useEffect(() => {
+		if (isLoading || hasAccess) return
+		void router.replace(RESEARCH_ACCESS_REDIRECT_PATH)
+	}, [hasAccess, isLoading, router])
+
 	if (isLoading) return <>{loadingFallback}</>
 	if (!hasAccess) return null
 	return <>{children}</>

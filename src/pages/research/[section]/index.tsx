@@ -3,12 +3,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { ArticleApiError, listArticles } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 
 function formatDate(value: string | null) {
@@ -130,10 +128,9 @@ function GenericCard({ article }: { article: ArticleDocument }) {
 }
 
 function SectionLandingContent({ section }: { section: ArticleSection }) {
-	const { authorizedFetch } = useAuthContext()
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['research', 'section-index', section],
-		queryFn: () => listArticles({ section, sort: 'newest', limit: 60 }, authorizedFetch),
+		queryFn: () => listArticles({ section, sort: 'newest', limit: 60 }),
 		retry: false
 	})
 
@@ -221,18 +218,16 @@ export default function SectionLandingPage() {
 			hideDesktopSearch
 		>
 			<ArticleProxyAuthProvider>
-				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
-					{section ? (
-						<SectionLandingContent section={section} />
-					) : (
-						<div className="mx-auto grid max-w-xl gap-3 px-4 py-10">
-							<h1 className="text-xl font-semibold text-(--text-primary)">Section not found</h1>
-							<Link href="/research" className="text-sm text-(--link-text) hover:underline">
-								Browse all research →
-							</Link>
-						</div>
-					)}
-				</ArticlesAccessGate>
+				{section ? (
+					<SectionLandingContent section={section} />
+				) : (
+					<div className="mx-auto grid max-w-xl gap-3 px-4 py-10">
+						<h1 className="text-xl font-semibold text-(--text-primary)">Section not found</h1>
+						<Link href="/research" className="text-sm text-(--link-text) hover:underline">
+							Browse all research →
+						</Link>
+					</div>
+				)}
 			</ArticleProxyAuthProvider>
 		</Layout>
 	)

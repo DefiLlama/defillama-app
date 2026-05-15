@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	ArticleApiError,
 	getAllArticlesBanner,
+	listArticlePaths,
 	listArticles,
 	listArticlesByTag,
 	updateEditorialTagMetadata,
@@ -37,6 +38,15 @@ describe('articles api client', () => {
 		const url = new URL(fetchFn.mock.calls[0][0])
 		expect(url.pathname).toBe('/articles/by-tag/report-highlight')
 		expect(url.searchParams.get('limit')).toBe('1')
+	})
+
+	it('requests public article path metadata', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ items: [] })))
+
+		await listArticlePaths(fetchFn)
+
+		const url = new URL(fetchFn.mock.calls[0][0])
+		expect(url.pathname).toBe('/articles/paths')
 	})
 
 	it('patches editorial tag metadata', async () => {

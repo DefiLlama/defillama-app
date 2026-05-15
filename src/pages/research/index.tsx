@@ -1,91 +1,116 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArticleApiError, listArticles, listArticlesByTag } from '~/containers/Articles/api'
+import type { InferGetStaticPropsType } from 'next'
+import { ArticleApiError, getLandingBanner, listArticles, listArticlesByTag } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { EDITORIAL_TAGS } from '~/containers/Articles/editorialTags'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
 import { ResearchCollections } from '~/containers/Articles/landing/ResearchCollections'
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
 import { ResearchHero } from '~/containers/Articles/landing/ResearchHero'
 import { ResearchInterviews } from '~/containers/Articles/landing/ResearchInterviews'
-import { ResearchSpotlightColumnWithHeight } from '~/containers/Articles/landing/ResearchSpotlightColumn'
 import { ResearchLatest } from '~/containers/Articles/landing/ResearchLatest'
 import { ResearchReportHighlightWithHeight } from '~/containers/Articles/landing/ResearchReportHighlight'
 import ResearchSearch from '~/containers/Articles/landing/ResearchSearch'
 import { ResearchSectionWithSharedHeightProvider } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { ResearchSocialMediaMentions } from '~/containers/Articles/landing/ResearchSocialMediaMentions'
 import { ResearchSpotlight } from '~/containers/Articles/landing/ResearchSpotlight'
+import { ResearchSpotlightColumnWithHeight } from '~/containers/Articles/landing/ResearchSpotlightColumn'
 import { ResearchTrustedByCarousel } from '~/containers/Articles/landing/ResearchTrustedByCarousel'
 import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/landing/ResearchWidgetWithScrollbar'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { useResearchSearchParams } from '~/containers/Articles/landing/useResearchSearchParams'
 import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import { useAuthContext } from '~/containers/Subscription/auth'
+import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
 
-function ArticlesLandingInner() {
-	const { authorizedFetch } = useAuthContext()
+export type ResearchLandingData = {
+	heroReports: ArticleDocument[]
+	latest: ArticleDocument[]
+	spotlight: ArticleDocument[]
+	interviews: ArticleDocument[]
+	highlight: ArticleDocument[]
+	insights: ArticleDocument[]
+	moreReports: ArticleDocument[]
+	spotlightColumn: ArticleDocument[]
+	collections: ArticleDocument[]
+}
 
+type ArticlesPageProps = {
+	landingData: ResearchLandingData
+	landingBanner: BannerLookupResult | null
+}
+
+export async function loadResearchLandingData(): Promise<ResearchLandingData> {
+	const settled = await Promise.allSettled([
+		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportsHero),
+		listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest),
+		listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight),
+		listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }),
+		listArticlesByTag(EDITORIAL_TAGS['report-highlight'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportHighlight),
+		listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights),
+		listArticles({
+			section: 'report',
+			sort: 'newest',
+			limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports
+		}),
+		listArticles({
+			section: 'spotlight',
+			sort: 'newest',
+			limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
+		}),
+		listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections })
+	])
+
+	const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
+
+	if (settled.every((r) => r.status === 'rejected')) {
+		const firstRejected = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected')
+		throw firstRejected?.reason ?? new Error('Failed to load research')
+	}
+
+	return {
+		heroReports: itemsOrEmpty(0),
+		latest: itemsOrEmpty(1),
+		spotlight: itemsOrEmpty(2),
+		interviews: itemsOrEmpty(3),
+		highlight: itemsOrEmpty(4),
+		insights: itemsOrEmpty(5),
+		moreReports: itemsOrEmpty(6),
+		spotlightColumn: itemsOrEmpty(7),
+		collections: itemsOrEmpty(8)
+	}
+}
+
+export const getStaticProps = withPerformanceLogging<ArticlesPageProps>('research', async () => {
+	const [landingData, landingBanner] = await Promise.all([
+		loadResearchLandingData(),
+		getLandingBanner().catch(() => null)
+	])
+	return {
+		props: {
+			landingData,
+			landingBanner
+		},
+		revalidate: maxAgeForNext([22])
+	}
+})
+
+function ArticlesLandingInner({
+	initialData,
+	initialBanner
+}: {
+	initialData: ResearchLandingData
+	initialBanner: BannerLookupResult | null
+}) {
 	const landingQuery = useQuery({
 		queryKey: ['research-landing'],
 		retry: false,
-		queryFn: async () => {
-			const settled = await Promise.allSettled([
-				listArticlesByTag(
-					EDITORIAL_TAGS['reports-hero'].slug,
-					RESEARCH_LANDING_SECTION_LIMITS.reportsHero,
-					authorizedFetch
-				),
-				listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest, authorizedFetch),
-				listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight, authorizedFetch),
-				listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }, authorizedFetch),
-				listArticlesByTag(
-					EDITORIAL_TAGS['report-highlight'].slug,
-					RESEARCH_LANDING_SECTION_LIMITS.reportHighlight,
-					authorizedFetch
-				),
-				listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights, authorizedFetch),
-				listArticles(
-					{
-						section: 'report',
-						sort: 'newest',
-						limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports
-					},
-					authorizedFetch
-				),
-				listArticles(
-					{
-						section: 'spotlight',
-						sort: 'newest',
-						limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
-					},
-					authorizedFetch
-				),
-				listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections }, authorizedFetch)
-			])
-
-			const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
-
-			const data = {
-				heroReports: itemsOrEmpty(0),
-				latest: itemsOrEmpty(1),
-				spotlight: itemsOrEmpty(2),
-				interviews: itemsOrEmpty(3),
-				highlight: itemsOrEmpty(4),
-				insights: itemsOrEmpty(5),
-				moreReports: itemsOrEmpty(6),
-				spotlightColumn: itemsOrEmpty(7),
-				collections: itemsOrEmpty(8)
-			}
-
-			if (settled.every((r) => r.status === 'rejected')) {
-				const firstRejected = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected')
-				throw firstRejected?.reason ?? new Error('Failed to load research')
-			}
-
-			return data
-		}
+		queryFn: loadResearchLandingData,
+		initialData,
+		staleTime: 60_000
 	})
 
 	const isLoading = landingQuery.isLoading
@@ -174,7 +199,7 @@ function ArticlesLandingInner() {
 						) : null}
 					</div>
 
-					<ResearchBanner />
+					<ResearchBanner initialData={initialBanner} />
 
 					<div id="clients">
 						<TitleLine title="Trusted by" />
@@ -212,7 +237,7 @@ function ArticlesLandingInner() {
 	)
 }
 
-export default function ArticlesPage() {
+export default function ArticlesPage({ landingData, landingBanner }: InferGetStaticPropsType<typeof getStaticProps>) {
 	const { showSearch } = useResearchSearchParams()
 
 	return (
@@ -224,11 +249,13 @@ export default function ArticlesPage() {
 		>
 			<style>{`main{padding:0}#__next{gap:0;}`}</style>
 			<ArticleProxyAuthProvider>
-				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
-					<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">
-						{showSearch ? <ResearchSearch /> : <ArticlesLandingInner />}
-					</div>
-				</ArticlesAccessGate>
+				<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">
+					{showSearch ? (
+						<ResearchSearch />
+					) : (
+						<ArticlesLandingInner initialData={landingData} initialBanner={landingBanner} />
+					)}
+				</div>
 			</ArticleProxyAuthProvider>
 		</Layout>
 	)

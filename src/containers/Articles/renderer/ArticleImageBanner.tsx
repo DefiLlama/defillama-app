@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { getAllArticlesBanner, getArticleBanner, getSectionBanner } from '~/containers/Articles/api'
 import type { ArticleSection, Banner, BannerLookupResult } from '~/containers/Articles/types'
-import { useAuthContext } from '~/containers/Subscription/auth'
 
 type Props = {
 	articleId: string
@@ -14,37 +13,27 @@ function isExternalUrl(url: string) {
 }
 
 export function ArticleImageBanner({ articleId, section }: Props) {
-	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
-
 	const articleBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'article', articleId],
-		queryFn: () => getArticleBanner(articleId, authorizedFetch),
-		enabled: !!articleId && isAuthenticated && !loaders.userLoading,
+		queryFn: () => getArticleBanner(articleId),
+		enabled: !!articleId,
 		retry: false,
 		staleTime: 60_000
 	})
 
 	const sectionBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'section', section],
-		queryFn: () => getSectionBanner(section as ArticleSection, authorizedFetch),
-		enabled:
-			!!section &&
-			!!articleId &&
-			isAuthenticated &&
-			!loaders.userLoading &&
-			!articleBannerQuery.isLoading &&
-			!articleBannerQuery.data?.image,
+		queryFn: () => getSectionBanner(section as ArticleSection),
+		enabled: !!section && !!articleId && !articleBannerQuery.isLoading && !articleBannerQuery.data?.image,
 		retry: false,
 		staleTime: 60_000
 	})
 
 	const allArticlesBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'all-articles'],
-		queryFn: () => getAllArticlesBanner(authorizedFetch),
+		queryFn: () => getAllArticlesBanner(),
 		enabled:
 			!!articleId &&
-			isAuthenticated &&
-			!loaders.userLoading &&
 			!articleBannerQuery.isLoading &&
 			!articleBannerQuery.data?.image &&
 			!sectionBannerQuery.isLoading &&

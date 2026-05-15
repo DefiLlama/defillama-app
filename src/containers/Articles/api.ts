@@ -47,6 +47,16 @@ export type ArticleAuthorResponse = {
 	articles: ArticleDocument[]
 }
 
+export type ArticlePathItem = {
+	slug: string
+	section: ArticleSection
+	updatedAt: string
+}
+
+export type ArticlePathsResponse = {
+	items: ArticlePathItem[]
+}
+
 function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
@@ -156,6 +166,10 @@ export async function listArticlesByTag(
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'limit', limit)
 	return parseResponse(await fetchFn(articleUrl(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
+}
+
+export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<ArticlePathsResponse> {
+	return parseResponse(await fetchFn(articleUrl('/articles/paths')))
 }
 
 export async function setEditorialTag(
@@ -530,36 +544,29 @@ export async function deleteBanner(id: string, authorizedFetch: AuthorizedFetch)
 
 const EMPTY_BANNER_LOOKUP: BannerLookupResult = { text: null, image: null, imageHorizontal: null }
 
-export async function getLandingBanner(authorizedFetch: AuthorizedFetch): Promise<BannerLookupResult> {
-	const data = await parseResponse<BannerLookupResult | null>(
-		await authorizedFetch(articleUrl('/banners/lookup/landing'))
-	)
+export async function getLandingBanner(fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
+	const data = await parseResponse<BannerLookupResult | null>(await fetchFn(articleUrl('/banners/lookup/landing')))
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
-export async function getAllArticlesBanner(authorizedFetch: AuthorizedFetch): Promise<BannerLookupResult> {
-	const data = await parseResponse<BannerLookupResult | null>(
-		await authorizedFetch(articleUrl('/banners/lookup/all-articles'))
-	)
+export async function getAllArticlesBanner(fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
+	const data = await parseResponse<BannerLookupResult | null>(await fetchFn(articleUrl('/banners/lookup/all-articles')))
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
 export async function getSectionBanner(
 	section: ArticleSection,
-	authorizedFetch: AuthorizedFetch
+	fetchFn: FetchLike = fetch
 ): Promise<BannerLookupResult> {
 	const data = await parseResponse<BannerLookupResult | null>(
-		await authorizedFetch(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
+		await fetchFn(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
 	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
-export async function getArticleBanner(
-	articleId: string,
-	authorizedFetch: AuthorizedFetch
-): Promise<BannerLookupResult> {
+export async function getArticleBanner(articleId: string, fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
 	const data = await parseResponse<BannerLookupResult | null>(
-		await authorizedFetch(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
+		await fetchFn(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
 	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }

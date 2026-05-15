@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 import { ArticleApiError, getAuthorBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { isResearcher } from '~/containers/Articles/ArticlesAccessGate'
 import {
 	ARTICLE_SECTION_LABELS,
 	ARTICLE_SECTION_SLUGS,
@@ -62,7 +62,7 @@ function SocialLink({ kind, value }: { kind: string; value: string }) {
 
 function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 	const { user, isAuthenticated } = useAuthContext()
-	const isMine = isAuthenticated && !!user?.id && user.id === authorPbUserId
+	const isMine = isAuthenticated && isResearcher(user) && !!user?.id && user.id === authorPbUserId
 	if (!isMine) return null
 	return (
 		<>
@@ -83,14 +83,13 @@ function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 }
 
 function AuthorContent({ slug }: { slug: string }) {
-	const { authorizedFetch } = useAuthContext()
 	const {
 		data = null,
 		isLoading,
 		error
 	} = useQuery({
 		queryKey: ['research', 'author', slug],
-		queryFn: () => getAuthorBySlug(slug, authorizedFetch),
+		queryFn: () => getAuthorBySlug(slug),
 		enabled: !!slug,
 		retry: false
 	})
@@ -366,9 +365,7 @@ export default function ArticleAuthorPage() {
 			noIndex
 			hideDesktopSearch
 		>
-			<ArticleProxyAuthProvider>
-				<ArticlesAccessGate>{slug ? <AuthorContent slug={slug} /> : null}</ArticlesAccessGate>
-			</ArticleProxyAuthProvider>
+			<ArticleProxyAuthProvider>{slug ? <AuthorContent slug={slug} /> : null}</ArticleProxyAuthProvider>
 		</Layout>
 	)
 }
