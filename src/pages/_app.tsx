@@ -3,9 +3,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import Router from 'next/router'
+import Script from 'next/script'
 import '@rainbow-me/rainbowkit/styles.css'
 import '~/tailwind.css'
-import Script from 'next/script'
+import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
 import { RouteProgressIndicator } from '~/components/RouteProgressIndicator'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
@@ -14,6 +15,14 @@ import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useReferrer } from '~/hooks/useReferrer'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
+
+type NextPageWithLayout = AppProps['Component'] & {
+	getLayout?: (page: ReactElement) => ReactElement
+}
+
+type AppPropsWithLayout = AppProps & {
+	Component: NextPageWithLayout
+}
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
 
@@ -31,7 +40,7 @@ const isChunkLoadError = (error: unknown) => {
 
 const client = new QueryClient()
 
-function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppPropsWithLayout) {
 	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {
@@ -105,6 +114,7 @@ function App({ Component, pageProps }: AppProps) {
 	useParentAuthTracker()
 	useUmamiIdentityTracker()
 	useReferrer()
+	const getLayout = Component.getLayout ?? ((page: ReactElement) => page)
 
 	return (
 		<>
@@ -123,12 +133,12 @@ function App({ Component, pageProps }: AppProps) {
 			/>
 
 			<RouteProgressIndicator />
-			<Component {...pageProps} />
+			{getLayout(<Component {...pageProps} />)}
 		</>
 	)
 }
 
-const AppWrapper = (props: AppProps) => {
+const AppWrapper = (props: AppPropsWithLayout) => {
 	return (
 		<>
 			<QueryClientProvider client={client}>

@@ -268,6 +268,7 @@ interface FetchAgenticResponseParams {
 	effort?: string
 	shareToken?: string
 	editMessageId?: string
+	projectId?: string | null
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -471,6 +472,7 @@ export async function fetchAgenticResponse({
 	effort,
 	shareToken,
 	editMessageId,
+	projectId,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -495,6 +497,7 @@ export async function fetchAgenticResponse({
 		effort?: string
 		shareToken?: string
 		editMessageId?: string
+		projectId?: string
 	} = {
 		message,
 		stream: true,
@@ -553,6 +556,10 @@ export async function fetchAgenticResponse({
 
 	if (shareToken) {
 		requestBody.shareToken = shareToken
+	}
+
+	if (projectId) {
+		requestBody.projectId = projectId
 	}
 
 	if (editMessageId) {

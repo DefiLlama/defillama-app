@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
-import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef } from 'react'
+import { type Dispatch, type RefObject, type SetStateAction, useCallback, useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
@@ -66,6 +66,11 @@ export function ChatLanding({
 	const greetingTip = !readOnly && !isSharedView && hasSeenWelcome && tip?.placement === 'greeting' ? tip : null
 	const showBanner = !readOnly && !isSharedView && hasSeenWelcome && !greetingTip
 
+	useEffect(() => {
+		if (readOnly || isSharedView || !hasSeenWelcome) return
+		promptInputRef.current?.focus()
+	}, [readOnly, isSharedView, hasSeenWelcome, promptInputRef])
+
 	const onGreetingCta = () => {
 		if (!greetingTip || greetingTip.cta.kind === 'none') return
 		void clickTip(greetingTip, greetingTip.cta.kind === 'link' ? 'link' : greetingTip.cta.action)
@@ -94,7 +99,7 @@ export function ChatLanding({
 	}
 
 	return (
-		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden">
+		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden px-2.5">
 			<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 lg:mt-[100px] lg:flex-none lg:justify-start">
 				<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 				{greetingTip && greetingTip.cta.kind !== 'none' ? (

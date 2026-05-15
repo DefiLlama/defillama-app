@@ -9,6 +9,7 @@ import {
 	type SessionListInfiniteData,
 	updateSessionInInfiniteData
 } from '~/containers/LlamaAI/hooks/sessionListCache'
+import { isProjectSessionsQueryKey, projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -80,14 +81,30 @@ export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
 
+	const invalidateProjectSessions = (projectId?: string | null) => {
+		if (projectId) {
+			void queryClient.invalidateQueries({ queryKey: projectSessionsKey(projectId) })
+			return
+		}
+		void queryClient.invalidateQueries({ predicate: (query) => isProjectSessionsQueryKey(query.queryKey) })
+	}
+
 	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
+		mutationFn: async ({
+			sessionId,
+			title,
+			projectId
+		}: {
+			sessionId: string
+			title?: string
+			projectId?: string | null
+		}) => {
 			try {
 				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, title })
+					body: JSON.stringify({ sessionId, title, projectId })
 				})
 					.then((res) => assertResponse(res, 'Failed to create session'))
 					.then(handleSimpleFetchResponse)
@@ -99,8 +116,9 @@ export function useSessionMutations() {
 				throw new Error(`Failed to create session: ${getErrorMessage(error)}`)
 			}
 		},
-		onSuccess: () => {
+		onSuccess: (_data, variables) => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		}
 	})
 
@@ -164,7 +182,7 @@ export function useSessionMutations() {
 
 	// Delete from both the backend and the optimistic sidebar/session cache.
 	const deleteSessionMutation = useMutation({
-		mutationFn: async (sessionId: string) => {
+		mutationFn: async ({ sessionId }: { sessionId: string; projectId?: string | null }) => {
 			try {
 				await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
@@ -176,7 +194,7 @@ export function useSessionMutations() {
 				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
 			}
 		},
-		onMutate: async (sessionId) => {
+		onMutate: async ({ sessionId }) => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
 
@@ -196,9 +214,10 @@ export function useSessionMutations() {
 				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
 			}
 		},
-		onSettled: () => {
+		onSettled: (_data, _error, variables) => {
 			// Always invalidate after mutation settles (success or error)
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		}
 	})
 
@@ -228,12 +247,13 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			invalidateProjectSessions()
 		}
 	})
 
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
+		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string; projectId?: string | null }) => {
 			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/title`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
@@ -252,7 +272,7 @@ export function useSessionMutations() {
 			// Snapshot previous value for rollback
 			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
-			// Optimistically update
+			// Optimistically update the global session cache
 			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
 				updateSessionInInfiniteData(old, sessionId, (session) => ({ ...session, title }))
 			)
@@ -265,9 +285,9 @@ export function useSessionMutations() {
 				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
 			}
 		},
-		onSettled: () => {
-			// Always invalidate after mutation settles (success or error)
+		onSettled: (_data, _error, variables) => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		}
 	})
 
@@ -305,27 +325,31 @@ export function useSessionMutations() {
 	})
 
 	// Insert a temporary session into the cache so first-message submits have a stable local target.
-	const createFakeSession = useCallback(() => {
-		const sessionId = crypto.randomUUID()
-		const title = 'New Chat'
+	const createFakeSession = useCallback(
+		(projectId?: string | null) => {
+			const sessionId = crypto.randomUUID()
+			const title = 'New Chat'
 
-		if (user) {
-			const fakeSession: ChatSession = {
-				sessionId,
-				title,
-				createdAt: new Date().toISOString(),
-				lastActivity: new Date().toISOString(),
-				isActive: true,
-				isOptimistic: true
+			if (user) {
+				const fakeSession: ChatSession = {
+					sessionId,
+					title,
+					createdAt: new Date().toISOString(),
+					lastActivity: new Date().toISOString(),
+					isActive: true,
+					isOptimistic: true,
+					projectId: projectId ?? null
+				}
+
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					prependSessionToInfiniteData(old, fakeSession)
+				)
 			}
 
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
-				prependSessionToInfiniteData(old, fakeSession)
-			)
-		}
-
-		return sessionId
-	}, [user, queryClient])
+			return sessionId
+		},
+		[user, queryClient]
+	)
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
@@ -346,7 +370,8 @@ export function useSessionMutations() {
 						hasNewer: result.hasNewer ?? false,
 						newerCursor: result.newerCursor
 					},
-					streaming: result.streaming
+					streaming: result.streaming,
+					projectId: result.projectId ?? null
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
@@ -397,6 +422,11 @@ export function useSessionMutations() {
 		[restoreSessionMutation]
 	)
 
+	const deleteSession = useCallback(
+		(sessionId: string, projectId?: string | null) => deleteSessionMutation.mutateAsync({ sessionId, projectId }),
+		[deleteSessionMutation]
+	)
+
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
@@ -404,7 +434,7 @@ export function useSessionMutations() {
 		loadMoreMessages,
 		loadNewerMessages,
 		switchActiveLeaf: switchActiveLeafMutation.mutateAsync,
-		deleteSession: deleteSessionMutation.mutateAsync,
+		deleteSession,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
