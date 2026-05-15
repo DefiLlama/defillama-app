@@ -1073,6 +1073,11 @@
       "route": "https://investors.defillama.com",
       "icon": "trending-up",
       "isNew": true
+    },
+    {
+      "name": "DefiLlama Research",
+      "route": "/research",
+      "requireLlama": true
     }
   ],
   "Premium": [

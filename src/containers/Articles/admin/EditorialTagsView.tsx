@@ -224,14 +224,14 @@ function ReportHighlightControls({
 				<label className="grid gap-1.5">
 					<span className="flex items-baseline justify-between gap-2 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 						<span>Highlight text</span>
-						<span>{highlightText.length}/600</span>
+						<span>{highlightText.length}/2000</span>
 					</span>
 					<textarea
 						value={highlightText}
-						onChange={(event) => setHighlightText(event.target.value.slice(0, 600))}
+						onChange={(event) => setHighlightText(event.target.value.slice(0, 2000))}
 						placeholder="Custom text shown on the right side of the Report highlight block."
 						rows={4}
-						maxLength={600}
+						maxLength={2000}
 						className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 					/>
 					<div className="flex flex-wrap items-center gap-2">

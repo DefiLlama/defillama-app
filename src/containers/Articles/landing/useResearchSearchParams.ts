@@ -5,10 +5,17 @@ function getQueryParam(value: string | string[] | undefined) {
 	return (Array.isArray(value) ? value[0] : value) ?? ''
 }
 
+function getPageParam(value: string | string[] | undefined): number {
+	const raw = Array.isArray(value) ? value[0] : value
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1
+}
+
 export type ResearchSearchQuery = {
 	query: string
 	tag: string
 	section: string
+	page: number
 }
 
 export function useResearchSearchParams() {
@@ -18,9 +25,10 @@ export function useResearchSearchParams() {
 		(): ResearchSearchQuery => ({
 			query: getQueryParam(router.query.q).trim(),
 			tag: getQueryParam(router.query.tag).trim(),
-			section: getQueryParam(router.query.section).trim()
+			section: getQueryParam(router.query.section).trim(),
+			page: getPageParam(router.query.page)
 		}),
-		[router.query.q, router.query.tag, router.query.section]
+		[router.query.q, router.query.tag, router.query.section, router.query.page]
 	)
 
 	const showSearch = router.isReady && Boolean(searchQuery.query || searchQuery.tag || searchQuery.section)

@@ -67,14 +67,14 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 
 					<div className="flex flex-col items-center gap-[36px] lg:flex-row">
 						<div className="flex space-x-[12px]">
-							<Link
+							<a
 								href="mailto:research@defillama.com"
 								className="flex items-center rounded-full bg-white px-[14px] py-[12px] text-[16px] leading-[50%] text-[#237BFF] md:px-[24px] md:py-[14px]"
 							>
 								Contact us
-							</Link>
+							</a>
 							<Link
-								href="https://twitter.com/defillama"
+								href="https://t.me/defillama_res"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="flex items-center space-x-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
@@ -95,7 +95,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								<TwitterIcon />
 							</Link>
 							<Link
-								href="https://t.me/dl_research"
+								href="https://t.me/defillama_res"
 								aria-label="Follow us on Telegram"
 								rel="noopener noreferrer"
 								target="_blank"
