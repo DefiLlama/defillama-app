@@ -1076,8 +1076,7 @@
     },
     {
       "name": "DefiLlama Research",
-      "route": "/research",
-      "requireLlama": true
+      "route": "/research"
     }
   ],
   "Premium": [
