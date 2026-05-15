@@ -57,7 +57,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 		<div className="pt-[32px] text-white lg:pt-[45px]">
 			<div>
 				<div className="flex flex-col items-center">
-					<img src="/assets/research_logo_white.webp" alt="DefiLlama" width={229} height={99} />
+					<img src="/assets/research_logo_dark.webp" alt="DefiLlama" width={229} height={72} />
 					<h1 className="mt-[35px] mb-[12px] text-center text-[22px] leading-[130%] font-semibold lg:mb-[16px] lg:text-[32px]">
 						{title}
 					</h1>
