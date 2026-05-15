@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
+import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
@@ -79,6 +80,9 @@ export function ResearchSpotlightColumn({ title, articles, sharedHeight }: Resea
 									</Link>
 								))}
 							</div>
+						</div>
+						<div className="mt-auto shrink-0 pt-[18px] text-right">
+							<ReadMoreLink url="/research?section=spotlight" title="View all spotlight" />
 						</div>
 					</div>
 				</div>

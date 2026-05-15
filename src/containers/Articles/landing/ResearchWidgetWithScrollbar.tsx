@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
+import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
@@ -28,6 +29,9 @@ export function ResearchWidgetWithScrollbar({ id, title, articles, onHeightChang
 			<div className="flex flex-col gap-y-[64px]">
 				<div>
 					<ResearchWidgetWithScrollbarScroller articles={articles} onHeightChange={onHeightChange} />
+					<div className="mt-auto shrink-0 pt-[18px] text-right">
+						<ReadMoreLink url="/research#collections" title="Explore more" />
+					</div>
 				</div>
 			</div>
 		</div>

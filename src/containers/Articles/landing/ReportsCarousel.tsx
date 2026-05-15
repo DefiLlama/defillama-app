@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -95,6 +96,7 @@ interface CarouselArticleSlideProps {
 
 /** Carousel card: mirrors DL HoverReport layout for `ArticleDocument`. */
 function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: CarouselArticleSlideProps) {
+	const router = useRouter()
 	const href = articleHref(article)
 	const imgUrl = article.carouselImage?.url ?? article.coverImage?.url
 	const blurb = (article.reportDescription || article.excerpt || article.subtitle || '').trim()
@@ -207,9 +209,16 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 			className={clsx('group relative overflow-hidden bg-white transition-all duration-200 ease-out', 'rounded-[12px]')}
 		>
 			{addOverlayLink ? (
-				<Link href={href} className="block h-full w-full cursor-pointer">
+				<div
+					role="button"
+					tabIndex={0}
+					onClick={() => {
+						void router.push(href)
+					}}
+					className="block h-full w-full cursor-pointer"
+				>
 					{inner}
-				</Link>
+				</div>
 			) : (
 				inner
 			)}
