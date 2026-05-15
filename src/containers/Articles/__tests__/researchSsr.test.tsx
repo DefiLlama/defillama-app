@@ -11,6 +11,7 @@ import {
 	listArticles,
 	listArticlesByTag
 } from '~/containers/Articles/api'
+import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import ArticlesPage, { getStaticProps as getResearchStaticProps } from '~/pages/research'
 import SectionArticlePage, {
@@ -182,6 +183,25 @@ describe('research ISR data loading', () => {
 
 		const html = renderWithQueryClient(<ArticlesPage {...result.props} />)
 		expect(html).toContain('Canonical Research')
+	})
+
+	it('server-renders the reports carousel centered before client measurement', () => {
+		const html = renderToStaticMarkup(
+			<ReportsCarousel
+				showButtons={false}
+				reports={Array.from({ length: 5 }, (_, index) =>
+					article({
+						id: `article-${index}`,
+						slug: `article-${index}`,
+						title: `Article ${index}`
+					})
+				)}
+			/>
+		)
+
+		expect(html).toContain('left:50%')
+		expect(html).toContain('translateX(calc(-50% + 0px)) scale(1)')
+		expect(html).not.toContain('translate(calc(0px + -147px))')
 	})
 
 	it('maps public article path metadata into static paths', () => {
