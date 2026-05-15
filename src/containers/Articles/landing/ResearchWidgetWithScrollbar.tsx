@@ -4,12 +4,12 @@ import { useEffect } from 'react'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchWidgetWithScrollbarProps {
 	id: string
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	onHeightChange?: (height: number) => void
 }
 
@@ -35,7 +35,7 @@ export function ResearchWidgetWithScrollbar({ id, title, articles, onHeightChang
 }
 
 interface ResearchWidgetWithScrollbarScrollerProps {
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	onHeightChange?: (height: number) => void
 }
 
@@ -82,7 +82,7 @@ function ResearchWidgetWithScrollbarScroller({ articles, onHeightChange }: Resea
 interface ResearchWidgetWithScrollbarWithHeightProps {
 	id: string
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 }
 
 export function ResearchWidgetWithScrollbarWithHeight({

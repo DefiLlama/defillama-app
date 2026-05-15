@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import React from 'react'
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchHeroProps {
 	title: React.ReactNode
 	subtitle: React.ReactNode
-	reports: ArticleDocument[]
+	reports: LightweightArticleDocument[]
 }
 
 export const TwitterIcon = () => (

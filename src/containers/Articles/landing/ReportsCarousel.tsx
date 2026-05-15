@@ -1,8 +1,9 @@
 import clsx from 'clsx'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
 
 const MOBILE_QUERY = '(max-width: 767px)'
@@ -32,10 +33,10 @@ const prepareIds = (count: number, activeIndex: number) => {
 	)
 }
 
-const reorganizeByPriority = (reportsInput: ArticleDocument[]) => {
+const reorganizeByPriority = (reportsInput: LightweightArticleDocument[]) => {
 	if (reportsInput.length <= 1) return reportsInput
 
-	const reorganized: ArticleDocument[] = [reportsInput[0]]
+	const reorganized: LightweightArticleDocument[] = [reportsInput[0]]
 	let addToStart = false
 
 	for (let i = 1; i < reportsInput.length; i++) {
@@ -87,14 +88,14 @@ function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, c
 type EdgeFade = 'left' | 'right'
 
 interface CarouselArticleSlideProps {
-	article: ArticleDocument
+	article: LightweightArticleDocument
 	isMobile: boolean
 	edgeFade?: EdgeFade
 	addOverlayLink?: boolean
 }
 
-/** Carousel card: mirrors DL HoverReport layout for `ArticleDocument`. */
 function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: CarouselArticleSlideProps) {
+	const router = useRouter()
 	const href = articleHref(article)
 	const imgUrl = article.carouselImage?.url ?? article.coverImage?.url
 	const blurb = (article.reportDescription || article.excerpt || article.subtitle || '').trim()
@@ -207,9 +208,16 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 			className={clsx('group relative overflow-hidden bg-white transition-all duration-200 ease-out', 'rounded-[12px]')}
 		>
 			{addOverlayLink ? (
-				<Link href={href} className="block h-full w-full cursor-pointer">
+				<div
+					role="button"
+					tabIndex={0}
+					onClick={() => {
+						void router.push(href)
+					}}
+					className="block h-full w-full cursor-pointer"
+				>
 					{inner}
-				</Link>
+				</div>
 			) : (
 				inner
 			)}
@@ -218,7 +226,7 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 }
 
 interface ReportsCarouselProps {
-	reports: ArticleDocument[]
+	reports: LightweightArticleDocument[]
 	showButtons?: boolean
 }
 
@@ -482,7 +490,7 @@ export const ReportsCarousel: React.FC<ReportsCarouselProps> = (props) => {
 					onMouseEnter={() => setIsHovered(true)}
 					onMouseLeave={() => setIsHovered(false)}
 				>
-					{reports.map((article: ArticleDocument, reportIndex: number) => {
+					{reports.map((article: LightweightArticleDocument, reportIndex: number) => {
 						const position = positionByReportIndex.get(reportIndex) ?? 0
 						const distFromCenter = Math.abs(position - CENTER)
 						const styles = getSlideStyles(position, distFromCenter)

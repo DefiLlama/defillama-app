@@ -3,12 +3,12 @@ import React, { useMemo, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import { ARTICLE_SECTION_LABELS, type ArticleDocument } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS, type LightweightArticleDocument } from '~/containers/Articles/types'
 import { useScrollerHeightFromFirstItem } from '~/hooks/useScrollerHeightFromFirstItem'
 
 interface ResearchCollectionsProps {
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 }
 
 const pageWidget = 'DefiLlama Research Collections widget'

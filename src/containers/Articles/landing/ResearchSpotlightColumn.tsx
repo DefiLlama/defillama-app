@@ -4,11 +4,11 @@ import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articl
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchSpotlightColumnProps {
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	sharedHeight?: number
 }
 
@@ -89,7 +89,7 @@ export function ResearchSpotlightColumn({ title, articles, sharedHeight }: Resea
 
 interface ResearchSpotlightColumnWithHeightProps {
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 }
 
 export function ResearchSpotlightColumnWithHeight({ title, articles }: ResearchSpotlightColumnWithHeightProps) {

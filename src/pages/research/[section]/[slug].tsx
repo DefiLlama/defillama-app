@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
+import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
 import { ArticleApiError, getArticleBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate, canEditResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
@@ -9,11 +8,14 @@ import { ArticleSeo } from '~/containers/Articles/ArticleSeo'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
+import { getArticlesFetchFromRequest } from '~/containers/Articles/server/auth'
+import { fetchPublishedArticleBySlug } from '~/containers/Articles/server/queries'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
@@ -43,46 +45,37 @@ function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	)
 }
 
-function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlug: string }) {
-	const router = useRouter()
-	const { authorizedFetch } = useAuthContext()
-	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-	const {
-		data: article = null,
-		isLoading,
-		error
-	} = useQuery({
+function SectionArticle({
+	initialArticle,
+	slug,
+	sectionSlug
+}: {
+	initialArticle: ArticleDocument | null
+	slug: string
+	sectionSlug: string
+}) {
+	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const needsClientFetch = initialArticle === null
+
+	const articleQuery = useQuery({
 		queryKey: ['research', 'article', slug],
-		queryFn: () => getArticleBySlug(slug, authorizedFetch),
-		enabled: !!slug && !!expectedSection,
-		retry: false
+		queryFn: async () => {
+			const article = await getArticleBySlug(slug, authorizedFetch)
+			if (!article || article.status !== 'published') return null
+			return article
+		},
+		enabled: needsClientFetch && isAuthenticated && !loaders.userLoading && !!slug,
+		retry: false,
+		initialData: initialArticle ?? undefined
 	})
 
-	useEffect(() => {
-		if (!article) return
-		const sectionMismatch = !!article.section && article.section !== expectedSection
-		const slugMismatch = article.slug !== slug
-		if (!sectionMismatch && !slugMismatch) return
-		const canonicalSectionSlug = article.section ? ARTICLE_SECTION_SLUGS[article.section] : sectionSlug
-		void router.replace(`/research/${canonicalSectionSlug}/${article.slug}`)
-	}, [article, expectedSection, slug, sectionSlug, router])
-
-	if (!expectedSection) {
-		return (
-			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Section not found</h1>
-				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
-					Browse all research →
-				</Link>
-			</div>
-		)
-	}
-
-	if (isLoading) {
+	if (needsClientFetch && (loaders.userLoading || articleQuery.isLoading)) {
 		return <ResearchLoader />
 	}
 
-	if (!article && !error) {
+	const article = articleQuery.data ?? null
+
+	if (!article && !articleQuery.error) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Research not found</h1>
@@ -93,20 +86,19 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 		)
 	}
 
-	if (error || !article) {
-		const message = error instanceof ArticleApiError ? error.message : 'Failed to load research'
+	if (articleQuery.error || !article) {
+		const message =
+			articleQuery.error instanceof ArticleApiError ? articleQuery.error.message : 'Failed to load research'
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load research</h1>
+				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn&apos;t load research</h1>
 				<p className="text-sm text-(--text-secondary)">{message}</p>
 			</div>
 		)
 	}
 
-	const sectionMismatch = article.section ? article.section !== expectedSection : false
-	const slugMismatch = article.slug !== slug
-
-	if ((sectionMismatch || slugMismatch) && article.status === 'published') {
+	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
+	if (article.section && expectedSection && article.section !== expectedSection) {
 		return <ResearchLoader />
 	}
 
@@ -115,17 +107,6 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 			<ArticleSeo article={article} />
 			<ArticleBannerStrip scope="article" articleId={article.id} section={article.section ?? null} />
 			<AppMetadataProvider>
-				{article.status === 'draft' ? (
-					<div className="mx-auto mt-4 flex w-full max-w-[1180px] items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-sm text-amber-600 sm:px-6">
-						<span className="flex items-center gap-2">
-							<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-							Draft preview · only visible to authors
-						</span>
-						<Link href={`/research/edit/${article.id}`} className="font-medium text-amber-600 hover:underline">
-							Edit
-						</Link>
-					</div>
-				) : null}
 				<ArticleRenderer article={article} />
 				<OwnerEditChip article={article} />
 			</AppMetadataProvider>
@@ -133,25 +114,61 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 	)
 }
 
-export default function SectionArticlePage() {
-	const router = useRouter()
-	const slug = typeof router.query.slug === 'string' ? router.query.slug : ''
-	const sectionSlug = typeof router.query.section === 'string' ? router.query.section : ''
+type SectionArticlePageProps = {
+	article: ArticleDocument | null
+	sectionSlug: string
+	slug: string
+}
+
+const getServerSidePropsHandler: GetServerSideProps<SectionArticlePageProps> = async (context) => {
+	context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+
+	const sectionSlug = typeof context.params?.section === 'string' ? context.params.section : ''
+	const slug = typeof context.params?.slug === 'string' ? context.params.slug : ''
 	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-	const canonical = expectedSection ? `/research/${sectionSlug}/${slug}` : '/research'
-	const noIndex = !expectedSection
+
+	if (!expectedSection || !slug) {
+		return { notFound: true }
+	}
+
+	const fetchFn = getArticlesFetchFromRequest(context.req)
+	if (!fetchFn) {
+		return { props: { article: null, sectionSlug, slug } }
+	}
+
+	try {
+		const article = await fetchPublishedArticleBySlug(slug, fetchFn)
+		if (!article) {
+			return { notFound: true }
+		}
+
+		if (article.section && ARTICLE_SECTION_SLUGS[article.section] !== sectionSlug) {
+			return {
+				redirect: {
+					destination: `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`,
+					permanent: true
+				}
+			}
+		}
+
+		return { props: { article, sectionSlug, slug } }
+	} catch {
+		return { props: { article: null, sectionSlug, slug } }
+	}
+}
+
+export const getServerSideProps = withServerSidePropsTelemetry('/research/[section]/[slug]', getServerSidePropsHandler)
+
+export default function SectionArticlePage({ article, sectionSlug, slug }: SectionArticlePageProps) {
+	const layoutTitle = article?.seoTitle || article?.title || 'Research - DefiLlama'
+	const layoutDescription = article?.seoDescription || article?.excerpt || article?.subtitle || 'DefiLlama research.'
+	const canonical = `/research/${sectionSlug}/${slug}`
 
 	return (
-		<Layout
-			title="Research - DefiLlama"
-			description="DefiLlama research."
-			canonicalUrl={canonical}
-			noIndex={noIndex}
-			hideDesktopSearch
-		>
+		<Layout title={layoutTitle} description={layoutDescription} canonicalUrl={canonical} hideDesktopSearch>
 			<ArticleProxyAuthProvider>
 				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
-					{slug && sectionSlug ? <SectionArticleContent slug={slug} sectionSlug={sectionSlug} /> : <ResearchLoader />}
+					<SectionArticle initialArticle={article} slug={slug} sectionSlug={sectionSlug} />
 				</ArticlesAccessGate>
 			</ArticleProxyAuthProvider>
 		</Layout>

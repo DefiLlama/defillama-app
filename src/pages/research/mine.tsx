@@ -106,10 +106,8 @@ function MyArticlesContent() {
 	}, [allArticles])
 
 	const filtered = useMemo(() => {
-		const byStatus =
-			statusFilter === 'all' ? allArticles : allArticles.filter((a) => a.status === statusFilter)
-		const bySection =
-			sectionFilter === 'all' ? byStatus : byStatus.filter((a) => a.section === sectionFilter)
+		const byStatus = statusFilter === 'all' ? allArticles : allArticles.filter((a) => a.status === statusFilter)
+		const bySection = sectionFilter === 'all' ? byStatus : byStatus.filter((a) => a.section === sectionFilter)
 		const bySearch = search
 			? bySection.filter(
 					(a) =>
@@ -135,10 +133,7 @@ function MyArticlesContent() {
 
 	const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
 	const safePage = Math.min(page, totalPages)
-	const paged = useMemo(
-		() => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-		[filtered, safePage]
-	)
+	const paged = useMemo(() => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE), [filtered, safePage])
 	const rangeStart = filtered.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1
 	const rangeEnd = Math.min(safePage * PAGE_SIZE, filtered.length)
 
@@ -157,15 +152,13 @@ function MyArticlesContent() {
 						<span className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
 							Research · Workspace
 						</span>
-						<h1 className="text-4xl font-semibold tracking-tight text-(--text-primary) sm:text-5xl">
-							My research
-						</h1>
+						<h1 className="text-4xl font-semibold tracking-tight text-(--text-primary) sm:text-5xl">My research</h1>
 						{!showLoading ? (
 							<p className="text-sm text-(--text-secondary)">
-								<span className="tabular-nums text-(--text-primary)">{draftCount}</span>{' '}
-								draft{draftCount === 1 ? '' : 's'}
+								<span className="text-(--text-primary) tabular-nums">{draftCount}</span> draft
+								{draftCount === 1 ? '' : 's'}
 								<span className="mx-2 text-(--text-tertiary)">·</span>
-								<span className="tabular-nums text-(--text-primary)">{publishedCount}</span> published
+								<span className="text-(--text-primary) tabular-nums">{publishedCount}</span> published
 								{capped ? (
 									<>
 										<span className="mx-2 text-(--text-tertiary)">·</span>
@@ -355,8 +348,7 @@ function MyArticlesContent() {
 							const updated = formatRelative(article.updatedAt)
 							const words = wordCount(article.plainText) || wordCount(article.excerpt)
 							const minutes = words > 0 ? Math.max(1, Math.ceil(words / 220)) : 0
-							const isDeleting =
-								deleteArticleMutation.variables === article.id && deleteArticleMutation.isPending
+							const isDeleting = deleteArticleMutation.variables === article.id && deleteArticleMutation.isPending
 							return (
 								<li
 									key={article.id}
@@ -386,7 +378,9 @@ function MyArticlesContent() {
 											) : null}
 										</div>
 										<div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-(--text-tertiary)">
-											<span>{article.status === 'draft' ? 'Saved' : 'Updated'} {updated}</span>
+											<span>
+												{article.status === 'draft' ? 'Saved' : 'Updated'} {updated}
+											</span>
 											<span aria-hidden>·</span>
 											<span className="truncate font-jetbrains text-[11px]">/{article.slug}</span>
 											{words > 0 ? (

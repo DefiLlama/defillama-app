@@ -151,8 +151,7 @@ function SectionsPills({ searchQuery, pathname }: { searchQuery: ResearchSearchQ
 			section: sectionSlug && sectionSlug !== activeSection ? sectionSlug : undefined
 		})
 
-	const linkBase =
-		'inline-flex items-center font-jetbrains text-[11px] tracking-[0.18em] uppercase transition-colors'
+	const linkBase = 'inline-flex items-center font-jetbrains text-[11px] tracking-[0.18em] uppercase transition-colors'
 	const inactive = 'text-[#0c2956]/55 hover:text-[#237BFF] dark:text-white/55 dark:hover:text-white'
 	const active = 'text-[#237BFF] dark:text-white'
 
@@ -203,13 +202,24 @@ function ResultCard({ article }: { article: ArticleDocument }) {
 						/>
 					) : (
 						<div className="grid h-full w-full place-items-center text-[#0c2956]/20 dark:text-white/20">
-							<svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+							<svg
+								viewBox="0 0 32 32"
+								className="h-6 w-6"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								aria-hidden
+							>
 								<path d="M4 10h24v18H4z" />
 								<path d="M9 6h14v4" />
 							</svg>
 						</div>
 					)}
-					{sectionLabel ? <span className="absolute top-[10px] left-[10px] z-[1]"><ResultBadge>{sectionLabel}</ResultBadge></span> : null}
+					{sectionLabel ? (
+						<span className="absolute top-[10px] left-[10px] z-[1]">
+							<ResultBadge>{sectionLabel}</ResultBadge>
+						</span>
+					) : null}
 				</div>
 				<div className="grid content-start gap-[10px]">
 					<h3 className="text-[19px] leading-[130%] font-semibold tracking-tight text-[#0c2956] transition-colors group-hover:text-[#237BFF] sm:text-[22px] dark:text-white dark:group-hover:text-[#9ec5ff]">
@@ -304,7 +314,14 @@ function EmptyState({ query, tag, section }: { query: string; tag: string; secti
 	return (
 		<div className="grid place-items-center px-4 py-20 text-center">
 			<div className="grid max-w-md gap-3">
-				<svg viewBox="0 0 64 64" className="mx-auto h-12 w-12 text-[#0c2956]/25 dark:text-white/25" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+				<svg
+					viewBox="0 0 64 64"
+					className="mx-auto h-12 w-12 text-[#0c2956]/25 dark:text-white/25"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					aria-hidden
+				>
 					<circle cx="28" cy="28" r="18" />
 					<line x1="42" y1="42" x2="56" y2="56" strokeLinecap="round" />
 					<line x1="18" y1="28" x2="38" y2="28" strokeLinecap="round" />
@@ -323,8 +340,7 @@ function EmptyState({ query, tag, section }: { query: string; tag: string; secti
 }
 
 function ResultsTitle({ query, tag }: { query: string; tag: string }) {
-	const cls =
-		'text-[clamp(22px,2.6vw,30px)] leading-[120%] font-medium tracking-tight text-[#0c2956] dark:text-white'
+	const cls = 'text-[clamp(22px,2.6vw,30px)] leading-[120%] font-medium tracking-tight text-[#0c2956] dark:text-white'
 	if (query) {
 		return (
 			<h1 className={cls}>
@@ -405,14 +421,16 @@ export default function ResearchSearch() {
 						aria-label="Close search"
 					>
 						<span className="hidden sm:inline">← Back</span>
-						<span className="sm:hidden" aria-hidden>×</span>
+						<span className="sm:hidden" aria-hidden>
+							×
+						</span>
 					</button>
 				</div>
 
 				<ResultsTitle query={query} tag={tag} />
 
 				<div className="flex items-center gap-x-[12px] text-[#0c2956]/55 dark:text-white/55">
-					<span className="font-jetbrains text-[10px] tracking-[0.18em] tabular-nums uppercase">
+					<span className="font-jetbrains text-[10px] tracking-[0.18em] uppercase tabular-nums">
 						{resultsLoading ? 'Loading…' : `${totalItems.toLocaleString()} ${totalItems === 1 ? 'result' : 'results'}`}
 					</span>
 					<div className="grow border-t border-[#0c2956]/15 dark:border-white/15" />

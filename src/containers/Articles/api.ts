@@ -14,7 +14,7 @@ import type {
 } from './types'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
-type FetchLike = (url: string, options?: RequestInit) => Promise<Response>
+export type FetchLike = (url: string, options?: RequestInit) => Promise<Response>
 
 export type ArticleApiValidationError = {
 	field: string

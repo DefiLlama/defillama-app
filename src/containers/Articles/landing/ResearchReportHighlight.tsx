@@ -3,15 +3,15 @@ import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchReportHighlightProps {
-	highlight: ArticleDocument
+	highlight: LightweightArticleDocument
 	sharedHeight?: number
 }
 
 interface ResearchReportHighlightWithHeightProps {
-	highlight: ArticleDocument
+	highlight: LightweightArticleDocument
 }
 
 export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = ({ highlight, sharedHeight }) => {

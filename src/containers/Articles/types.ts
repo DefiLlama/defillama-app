@@ -233,6 +233,21 @@ export type ArticleDocument = LocalArticleDocument & {
 	authorProfile: ArticleAuthorProfile
 }
 
+/** List/card article shape; heavy fields are stripped before SSR serialization (see lightweight.ts). */
+export type LightweightArticleDocument = Omit<
+	ArticleDocument,
+	| 'contentJson'
+	| 'plainText'
+	| 'entities'
+	| 'charts'
+	| 'citations'
+	| 'embeds'
+	| 'tags'
+	| 'editorialTags'
+	| 'seoTitle'
+	| 'seoDescription'
+>
+
 export type ArticleSnapshotPayload = Omit<
 	LocalArticleDocument,
 	| 'id'
