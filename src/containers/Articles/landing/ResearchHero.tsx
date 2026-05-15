@@ -74,7 +74,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								Contact us
 							</a>
 							<Link
-								href="https://t.me/defillama_res"
+								href="https://calendly.com/research-defillama/30min"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="flex items-center space-x-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
