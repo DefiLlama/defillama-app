@@ -28,6 +28,34 @@ export default function ResearchAdminHubPage() {
 
 						<div className="grid gap-4 sm:grid-cols-2">
 							<Link
+								href="/research/new"
+								className="group grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 transition-colors hover:border-(--link-text)/40"
+							>
+								<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+									Authoring
+								</span>
+								<span className="text-lg font-semibold text-(--text-primary) group-hover:text-(--link-text)">
+									Write new article
+								</span>
+								<span className="text-sm text-(--text-secondary)">
+									Start a fresh draft in the research editor.
+								</span>
+							</Link>
+							<Link
+								href="/research/mine"
+								className="group grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 transition-colors hover:border-(--link-text)/40"
+							>
+								<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+									Authoring
+								</span>
+								<span className="text-lg font-semibold text-(--text-primary) group-hover:text-(--link-text)">
+									My articles
+								</span>
+								<span className="text-sm text-(--text-secondary)">
+									Review and edit drafts and published articles you authored.
+								</span>
+							</Link>
+							<Link
 								href="/research/admin/curation"
 								className="group grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 transition-colors hover:border-(--link-text)/40"
 							>

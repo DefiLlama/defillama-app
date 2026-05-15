@@ -749,7 +749,18 @@ function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; s
 	)
 }
 
-function ShareBlock({ url, title }: { url: string; title: string }) {
+function ShareBlock({ url, title, compactMode = false }: { url: string; title: string; compactMode?: boolean }) {
+	if (compactMode) {
+		return (
+			<div className="flex items-center justify-between gap-3 border-y border-(--cards-border) py-3.5">
+				<span className="flex items-center gap-1.5 text-[10px] leading-none font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
+					Share
+					<Icon name="share" className="h-3 w-3" />
+				</span>
+				<ShareIcons url={url} title={title} size="sm" />
+			</div>
+		)
+	}
 	return (
 		<div className="grid gap-8">
 			<div role="separator" className="h-px bg-(--cards-border)" />
@@ -1035,7 +1046,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 						</div>
 					) : null}
 					<div className="pr-2">
-						<ShareBlock url={shareUrl} title={article.title} />
+						<ShareBlock url={shareUrl} title={article.title} compactMode={pastHeader} />
 					</div>
 					<div className="pr-2">
 						<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
