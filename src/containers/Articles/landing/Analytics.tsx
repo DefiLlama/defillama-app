@@ -1,17 +1,17 @@
 import { useRouter } from 'next/router'
 import React, { useEffect, useRef } from 'react'
 import { useIntersectionObserver } from '~/containers/Articles/landing/useIntersectionObserver'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 export type ResearchAnalyticsEventParams = [
-	article: ArticleDocument | null,
+	article: LightweightArticleDocument | null,
 	eventName: string,
 	widgetLabel: string,
 	triggeredOn?: string
 ]
 
-function umamiPayloadFromArticle(article: ArticleDocument | null) {
+function umamiPayloadFromArticle(article: LightweightArticleDocument | null) {
 	if (!article) {
 		return {
 			article_id: '',
@@ -26,7 +26,7 @@ function umamiPayloadFromArticle(article: ArticleDocument | null) {
 		article_title: article.title,
 		author: article.brandByline ? 'DefiLlama Research' : (article.authorProfile?.displayName ?? ''),
 		publish_date: article.publishedAt ?? '',
-		topics: (article.tags ?? []).join(',')
+		topics: article.section ?? ''
 	}
 }
 
@@ -41,7 +41,7 @@ export function pushResearchAnalyticsEvent(...args: ResearchAnalyticsEventParams
 }
 
 interface PageAnalyticsProps {
-	article: ArticleDocument | null
+	article: LightweightArticleDocument | null
 }
 
 /** Optional: fires when the route or article id changes; extend if you need richer virtual page views. */

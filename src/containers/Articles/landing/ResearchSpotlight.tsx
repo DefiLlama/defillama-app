@@ -4,7 +4,7 @@ import React from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 
 const SpotlightIcon = ({ fill }: { fill: string }) => (
 	<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -37,14 +37,14 @@ function getSpotlightGridCols(itemsCount: number) {
 	return 'sm:grid-cols-4'
 }
 
-function SnapshotImage({ article }: Readonly<{ article: ArticleDocument }>) {
+function SnapshotImage({ article }: Readonly<{ article: LightweightArticleDocument }>) {
 	const url = article.coverImage?.url
 	if (!url) return null
 	return <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
 }
 
 interface ResearchSpotlightProps {
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	title: string
 }
 

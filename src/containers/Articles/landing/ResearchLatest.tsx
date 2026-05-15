@@ -2,7 +2,7 @@ import Link from 'next/link'
 import React from 'react'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS, type LightweightArticleDocument } from '~/containers/Articles/types'
 
 const NAV_ITEMS: Array<{ id: string; label: string; anchor: string }> = [
 	{ id: 'spotlight', label: 'Spotlight', anchor: '#spotlight' },
@@ -61,8 +61,8 @@ type NormalizedItem = {
 	href: string
 }
 
-function normalizeItem(article: ArticleDocument, index: number): NormalizedItem | null {
-	const label = article.tags?.[0]?.replace(/-/g, ' ') ?? 'Research'
+function normalizeItem(article: LightweightArticleDocument, index: number): NormalizedItem | null {
+	const label = (article.section && ARTICLE_SECTION_LABELS[article.section]) ?? 'Research'
 	return {
 		_key: `${article.id}-${index}`,
 		label: label.toUpperCase(),
@@ -105,7 +105,7 @@ const ContentCard = ({
 )
 
 interface ResearchLatestProps {
-	articles?: ArticleDocument[]
+	articles?: LightweightArticleDocument[]
 }
 
 export const ResearchLatest: React.FC<ResearchLatestProps> = ({ articles = [] }) => {

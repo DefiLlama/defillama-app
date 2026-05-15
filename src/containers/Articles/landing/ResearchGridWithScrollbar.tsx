@@ -4,13 +4,13 @@ import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articl
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 import { useScrollerHeightFromFirstItem } from '~/hooks/useScrollerHeightFromFirstItem'
 
 interface ResearchGridWithScrollbarProps {
 	id: string
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	pageWidget: string
 }
 
@@ -33,7 +33,7 @@ export function ResearchGridWithScrollbar({ id, title, articles, pageWidget }: R
 }
 
 interface ResearchGridScrollerProps {
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	pageWidget: string
 	onHeightChange?: (height: number) => void
 }

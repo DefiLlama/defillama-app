@@ -1,33 +1,36 @@
 import { useQuery } from '@tanstack/react-query'
+import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { ArticleApiError, listArticles } from '~/containers/Articles/api'
+import { ArticleApiError } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
+import { getArticlesFetchFromRequest } from '~/containers/Articles/server/auth'
+import { fetchResearchSectionIndex } from '~/containers/Articles/server/queries'
+import type { ArticleSection, LightweightArticleDocument } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 function formatDate(value: string | null) {
 	if (!value) return 'Draft'
 	return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
 }
 
-function readingMinutes(article: ArticleDocument) {
-	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
+function readingMinutes(article: LightweightArticleDocument) {
+	const text = article.excerpt?.trim() || article.subtitle?.trim() || ''
 	const words = text ? text.split(/\s+/).length : 0
 	return Math.max(1, Math.ceil(words / 220))
 }
 
-function articleHref(article: ArticleDocument) {
+function articleHref(article: LightweightArticleDocument) {
 	if (article.section) return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
 	return '/research'
 }
 
-function intervieweeLabel(article: ArticleDocument): string | null {
+function intervieweeLabel(article: LightweightArticleDocument): string | null {
 	const list = (article.interviewees ?? []).filter((p) => p?.name?.trim()).map((p) => p.name)
 	if (list.length === 0) return null
 	if (list.length === 1) return list[0]
@@ -35,7 +38,7 @@ function intervieweeLabel(article: ArticleDocument): string | null {
 	return `${list[0]}, ${list[1]} +${list.length - 2}`
 }
 
-function InterviewCard({ article }: { article: ArticleDocument }) {
+function InterviewCard({ article }: { article: LightweightArticleDocument }) {
 	const cover = article.coverImage?.url || null
 	const interviewee = intervieweeLabel(article)
 	const firstInterviewee = (article.interviewees ?? []).find((p) => p?.name?.trim())
@@ -86,16 +89,16 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 	)
 }
 
-function GenericCard({ article }: { article: ArticleDocument }) {
+function GenericCard({ article, section }: { article: LightweightArticleDocument; section: ArticleSection }) {
 	const cover = article.coverImage?.url || null
-	const primaryTag = article.tags?.[0]
+	const sectionLabel = ARTICLE_SECTION_LABELS[section]
 	return (
 		<Link
 			href={articleHref(article)}
 			className="group grid content-start gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)/40 p-4 transition-colors hover:border-(--link-text)/40"
 		>
 			<div className="flex items-center justify-between gap-3 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-				<span>{primaryTag?.replace(/-/g, ' ') || 'Story'}</span>
+				<span>{sectionLabel}</span>
 				<span className="tabular-nums">{readingMinutes(article)} min</span>
 			</div>
 			{cover ? (
@@ -129,28 +132,15 @@ function GenericCard({ article }: { article: ArticleDocument }) {
 	)
 }
 
-function SectionLandingContent({ section }: { section: ArticleSection }) {
-	const { authorizedFetch } = useAuthContext()
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['research', 'section-index', section],
-		queryFn: () => listArticles({ section, sort: 'newest', limit: 60 }, authorizedFetch),
-		retry: false
-	})
-
-	if (isLoading) return <ResearchLoader />
-
-	if (error) {
-		const message = error instanceof ArticleApiError ? error.message : 'Failed to load research'
-		return (
-			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load this section</h1>
-				<p className="text-sm text-(--text-secondary)">{message}</p>
-			</div>
-		)
-	}
-
-	const items = data?.items ?? []
-	const total = data?.totalItems ?? items.length
+function SectionLandingContent({
+	section,
+	items,
+	totalItems
+}: {
+	section: ArticleSection
+	items: LightweightArticleDocument[]
+	totalItems: number
+}) {
 	const sectionLabel = ARTICLE_SECTION_LABELS[section]
 	const isInterview = section === 'interview'
 
@@ -167,7 +157,7 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 							← All research
 						</Link>
 						<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
-							{total} {total === 1 ? 'story' : 'stories'}
+							{totalItems} {totalItems === 1 ? 'story' : 'stories'}
 						</span>
 					</div>
 					<h1 className="text-3xl leading-tight font-bold tracking-tight text-(--text-primary) sm:text-4xl">
@@ -193,7 +183,7 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 							isInterview ? (
 								<InterviewCard key={article.id} article={article} />
 							) : (
-								<GenericCard key={article.id} article={article} />
+								<GenericCard key={article.id} article={article} section={section} />
 							)
 						)}
 					</div>
@@ -203,15 +193,87 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 	)
 }
 
-export default function SectionLandingPage() {
-	const router = useRouter()
-	const sectionSlug = typeof router.query.section === 'string' ? router.query.section : ''
+function SectionLanding({
+	section,
+	initialItems,
+	initialTotalItems
+}: {
+	section: ArticleSection
+	initialItems: LightweightArticleDocument[] | null
+	initialTotalItems: number | null
+}) {
+	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const needsClientFetch = initialItems === null
+
+	const sectionQuery = useQuery({
+		queryKey: ['research', 'section-index', section],
+		queryFn: () => fetchResearchSectionIndex(section, authorizedFetch),
+		enabled: needsClientFetch && isAuthenticated && !loaders.userLoading,
+		retry: false,
+		initialData:
+			initialItems !== null && initialTotalItems !== null
+				? { items: initialItems, totalItems: initialTotalItems }
+				: undefined
+	})
+
+	if (needsClientFetch && (loaders.userLoading || sectionQuery.isLoading)) {
+		return <ResearchLoader />
+	}
+
+	if (needsClientFetch && sectionQuery.error) {
+		const message =
+			sectionQuery.error instanceof ArticleApiError ? sectionQuery.error.message : 'Failed to load research'
+		return (
+			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
+				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn&apos;t load this section</h1>
+				<p className="text-sm text-(--text-secondary)">{message}</p>
+			</div>
+		)
+	}
+
+	const items = sectionQuery.data?.items ?? []
+	const totalItems = sectionQuery.data?.totalItems ?? items.length
+
+	return <SectionLandingContent section={section} items={items} totalItems={totalItems} />
+}
+
+type SectionLandingPageProps = {
+	section: ArticleSection
+	items: LightweightArticleDocument[] | null
+	totalItems: number | null
+}
+
+const getServerSidePropsHandler: GetServerSideProps<SectionLandingPageProps> = async (context) => {
+	context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+
+	const sectionSlug = typeof context.params?.section === 'string' ? context.params.section : ''
 	const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-	const canonical = section ? `/research/${ARTICLE_SECTION_SLUGS[section]}` : '/research'
+
+	if (!section) {
+		return { notFound: true }
+	}
+
+	const fetchFn = getArticlesFetchFromRequest(context.req)
+	if (!fetchFn) {
+		return { props: { section, items: null, totalItems: null } }
+	}
+
+	try {
+		const { items, totalItems } = await fetchResearchSectionIndex(section, fetchFn)
+		return { props: { section, items, totalItems } }
+	} catch {
+		return { props: { section, items: null, totalItems: null } }
+	}
+}
+
+export const getServerSideProps = withServerSidePropsTelemetry('/research/[section]', getServerSidePropsHandler)
+
+export default function SectionLandingPage({ section, items, totalItems }: SectionLandingPageProps) {
+	const canonical = `/research/${ARTICLE_SECTION_SLUGS[section]}`
 
 	return (
 		<Layout
-			title={section ? `${ARTICLE_SECTION_LABELS[section]} — DefiLlama Research` : 'Research — DefiLlama'}
+			title={`${ARTICLE_SECTION_LABELS[section]} — DefiLlama Research`}
 			description={
 				section === 'interview'
 					? 'Interviews with the people building, funding, and using DeFi — by DefiLlama Research.'
@@ -222,16 +284,7 @@ export default function SectionLandingPage() {
 		>
 			<ArticleProxyAuthProvider>
 				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
-					{section ? (
-						<SectionLandingContent section={section} />
-					) : (
-						<div className="mx-auto grid max-w-xl gap-3 px-4 py-10">
-							<h1 className="text-xl font-semibold text-(--text-primary)">Section not found</h1>
-							<Link href="/research" className="text-sm text-(--link-text) hover:underline">
-								Browse all research →
-							</Link>
-						</div>
-					)}
+					<SectionLanding section={section} initialItems={items} initialTotalItems={totalItems} />
 				</ArticlesAccessGate>
 			</ArticleProxyAuthProvider>
 		</Layout>

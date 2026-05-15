@@ -8,16 +8,16 @@ import { ResearchSectionWithSharedHeightProvider } from '~/containers/Articles/l
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { LightweightArticleDocument } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
 
 interface Props {
 	title: string
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 }
 
 interface ResearchInterviewsContentProps {
-	articles: ArticleDocument[]
+	articles: LightweightArticleDocument[]
 	pageWidget: string
 }
 
@@ -47,7 +47,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 	const visibleRightCount = Math.min(rightArticles.length, 5)
 	const rightColumnHeightMobile = visibleRightCount > 0 ? 75 * visibleRightCount + 12 * (visibleRightCount - 1) : 0
 
-	const cardLink = (article: ArticleDocument, isFirst: boolean, isBig: boolean) => (
+	const cardLink = (article: LightweightArticleDocument, isFirst: boolean, isBig: boolean) => (
 		<Link
 			key={article.id}
 			className="group block"

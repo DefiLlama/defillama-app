@@ -42,7 +42,7 @@ export const RESEARCH_LANDING_SECTION_LIMITS = {
 	reportsHero: 9,
 	latest: 6,
 	spotlight: 4,
-	interviews: 17,
+	interviews: 15,
 	reportHighlight: 1,
 	insights: 8,
 	moreReports: 10,

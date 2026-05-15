@@ -1,116 +1,39 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArticleApiError, listArticles, listArticlesByTag } from '~/containers/Articles/api'
+import type { GetServerSideProps } from 'next'
+import { ArticleApiError } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
-import { EDITORIAL_TAGS } from '~/containers/Articles/editorialTags'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
 import { ResearchCollections } from '~/containers/Articles/landing/ResearchCollections'
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
 import { ResearchHero } from '~/containers/Articles/landing/ResearchHero'
 import { ResearchInterviews } from '~/containers/Articles/landing/ResearchInterviews'
-import { ResearchSpotlightColumnWithHeight } from '~/containers/Articles/landing/ResearchSpotlightColumn'
 import { ResearchLatest } from '~/containers/Articles/landing/ResearchLatest'
 import { ResearchReportHighlightWithHeight } from '~/containers/Articles/landing/ResearchReportHighlight'
 import ResearchSearch from '~/containers/Articles/landing/ResearchSearch'
 import { ResearchSectionWithSharedHeightProvider } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { ResearchSocialMediaMentions } from '~/containers/Articles/landing/ResearchSocialMediaMentions'
 import { ResearchSpotlight } from '~/containers/Articles/landing/ResearchSpotlight'
+import { ResearchSpotlightColumnWithHeight } from '~/containers/Articles/landing/ResearchSpotlightColumn'
 import { ResearchTrustedByCarousel } from '~/containers/Articles/landing/ResearchTrustedByCarousel'
 import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/landing/ResearchWidgetWithScrollbar'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { useResearchSearchParams } from '~/containers/Articles/landing/useResearchSearchParams'
-import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
+import { getArticlesFetchFromRequest } from '~/containers/Articles/server/auth'
+import type { ResearchLandingData } from '~/containers/Articles/server/queries'
+import { fetchResearchLandingData } from '~/containers/Articles/server/queries'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-function ArticlesLandingInner() {
-	const { authorizedFetch } = useAuthContext()
-
-	const landingQuery = useQuery({
-		queryKey: ['research-landing'],
-		retry: false,
-		queryFn: async () => {
-			const settled = await Promise.allSettled([
-				listArticlesByTag(
-					EDITORIAL_TAGS['reports-hero'].slug,
-					RESEARCH_LANDING_SECTION_LIMITS.reportsHero,
-					authorizedFetch
-				),
-				listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest, authorizedFetch),
-				listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight, authorizedFetch),
-				listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }, authorizedFetch),
-				listArticlesByTag(
-					EDITORIAL_TAGS['report-highlight'].slug,
-					RESEARCH_LANDING_SECTION_LIMITS.reportHighlight,
-					authorizedFetch
-				),
-				listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights, authorizedFetch),
-				listArticles(
-					{
-						section: 'report',
-						sort: 'newest',
-						limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports
-					},
-					authorizedFetch
-				),
-				listArticles(
-					{
-						section: 'spotlight',
-						sort: 'newest',
-						limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
-					},
-					authorizedFetch
-				),
-				listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections }, authorizedFetch)
-			])
-
-			const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
-
-			const data = {
-				heroReports: itemsOrEmpty(0),
-				latest: itemsOrEmpty(1),
-				spotlight: itemsOrEmpty(2),
-				interviews: itemsOrEmpty(3),
-				highlight: itemsOrEmpty(4),
-				insights: itemsOrEmpty(5),
-				moreReports: itemsOrEmpty(6),
-				spotlightColumn: itemsOrEmpty(7),
-				collections: itemsOrEmpty(8)
-			}
-
-			if (settled.every((r) => r.status === 'rejected')) {
-				const firstRejected = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected')
-				throw firstRejected?.reason ?? new Error('Failed to load research')
-			}
-
-			return data
-		}
-	})
-
-	const isLoading = landingQuery.isLoading
-	const error = landingQuery.error
-
-	if (isLoading) {
-		return <ResearchLoader />
-	}
-
-	if (error) {
-		const message = error instanceof ArticleApiError ? error.message : 'Failed to load articles'
-		return (
-			<div className="mx-auto grid w-full max-w-3xl gap-3 border border-red-500/30 bg-red-500/5 p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn&apos;t load research</h1>
-				<p className="text-sm text-red-500">{message}</p>
-			</div>
-		)
-	}
-
+function ArticlesLandingInner({ landing }: { landing: ResearchLandingData }) {
 	return (
 		<div className="bg-top-center bg-[url(/assets/research/dotted-bg.webp)] bg-no-repeat">
 			<ResearchHero
 				title="Bespoke Digital Asset Research and Market Intelligence"
 				subtitle="Independent and trusted in-depth analysis of digital asset markets for institutional strategy and decision-making."
-				reports={landingQuery.data?.heroReports ?? []}
+				reports={landing.heroReports}
 			/>
 
 			<div className="relative overflow-hidden">
@@ -124,8 +47,7 @@ function ArticlesLandingInner() {
 						top: '1000px',
 						zIndex: 0
 					}}
-				></div>
-
+				/>
 				<div
 					style={{
 						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)',
@@ -136,8 +58,7 @@ function ArticlesLandingInner() {
 						top: '2300px',
 						zIndex: 0
 					}}
-				></div>
-
+				/>
 				<div
 					style={{
 						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)',
@@ -148,26 +69,22 @@ function ArticlesLandingInner() {
 						top: '2900px',
 						zIndex: 0
 					}}
-				></div>
+				/>
 
 				<div className="relative z-1 mx-auto w-full max-w-7xl space-y-[30px] px-4 sm:px-6 lg:space-y-[70px] lg:px-8">
-					<ResearchLatest articles={landingQuery.data?.latest ?? []} />
+					<ResearchLatest articles={landing.latest} />
 
-					<ResearchSpotlight title="In the spotlight" articles={landingQuery.data?.spotlight ?? []} />
+					<ResearchSpotlight title="In the spotlight" articles={landing.spotlight} />
 
-					<ResearchInterviews title="Interviews" articles={landingQuery.data?.interviews ?? []} />
+					<ResearchInterviews title="Interviews" articles={landing.interviews} />
 
 					<div id="reports">
-						{(landingQuery.data?.highlight ?? []).length > 0 ? (
+						{landing.highlight.length > 0 ? (
 							<ResearchSectionWithSharedHeightProvider>
 								<div className="grid grid-cols-1 gap-[36px] lg:grid-cols-[725fr_403fr]">
-									<ResearchReportHighlightWithHeight highlight={(landingQuery.data?.highlight ?? [])[0]} />
+									<ResearchReportHighlightWithHeight highlight={landing.highlight[0]} />
 									<div className="flex flex-col gap-y-[64px]">
-										<ResearchWidgetWithScrollbarWithHeight
-											id="insights"
-											title="Insights"
-											articles={landingQuery.data?.insights ?? []}
-										/>
+										<ResearchWidgetWithScrollbarWithHeight id="insights" title="Insights" articles={landing.insights} />
 									</div>
 								</div>
 							</ResearchSectionWithSharedHeightProvider>
@@ -192,27 +109,79 @@ function ArticlesLandingInner() {
 								<ResearchGridWithScrollbar
 									id="more-reports"
 									title="More reports"
-									articles={landingQuery.data?.moreReports ?? []}
+									articles={landing.moreReports}
 									pageWidget="DL Research More Reports widget"
 								/>
 							</div>
 							<div className="flex flex-col gap-y-[64px]">
-								<ResearchSpotlightColumnWithHeight
-									title="Explore Spotlights"
-									articles={landingQuery.data?.spotlightColumn ?? []}
-								/>
+								<ResearchSpotlightColumnWithHeight title="Explore Spotlights" articles={landing.spotlightColumn} />
 							</div>
 						</div>
 					</ResearchSectionWithSharedHeightProvider>
 
-					<ResearchCollections title="Collections" articles={landingQuery.data?.collections ?? []} />
+					<ResearchCollections title="Collections" articles={landing.collections} />
 				</div>
 			</div>
 		</div>
 	)
 }
 
-export default function ArticlesPage() {
+function ArticlesLanding({ initialLanding }: { initialLanding: ResearchLandingData | null }) {
+	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const needsClientFetch = initialLanding === null
+
+	const landingQuery = useQuery({
+		queryKey: ['research-landing'],
+		queryFn: () => fetchResearchLandingData(authorizedFetch),
+		enabled: needsClientFetch && isAuthenticated && !loaders.userLoading,
+		retry: false,
+		initialData: initialLanding ?? undefined
+	})
+
+	if (needsClientFetch && (loaders.userLoading || landingQuery.isLoading)) {
+		return <ResearchLoader />
+	}
+
+	if (needsClientFetch && landingQuery.error) {
+		const message =
+			landingQuery.error instanceof ArticleApiError ? landingQuery.error.message : 'Failed to load articles'
+		return (
+			<div className="mx-auto grid w-full max-w-3xl gap-3 border border-red-500/30 bg-red-500/5 p-6">
+				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn&apos;t load research</h1>
+				<p className="text-sm text-red-500">{message}</p>
+			</div>
+		)
+	}
+
+	const landing = landingQuery.data
+	if (!landing) return <ResearchLoader />
+
+	return <ArticlesLandingInner landing={landing} />
+}
+
+type ArticlesPageProps = {
+	landing: ResearchLandingData | null
+}
+
+const getServerSidePropsHandler: GetServerSideProps<ArticlesPageProps> = async (context) => {
+	context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+
+	const fetchFn = getArticlesFetchFromRequest(context.req)
+	if (!fetchFn) {
+		return { props: { landing: null } }
+	}
+
+	try {
+		const landing = await fetchResearchLandingData(fetchFn)
+		return { props: { landing } }
+	} catch {
+		return { props: { landing: null } }
+	}
+}
+
+export const getServerSideProps = withServerSidePropsTelemetry('/research', getServerSidePropsHandler)
+
+export default function ArticlesPage({ landing }: ArticlesPageProps) {
 	const { showSearch } = useResearchSearchParams()
 
 	return (
@@ -226,7 +195,7 @@ export default function ArticlesPage() {
 			<ArticleProxyAuthProvider>
 				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
 					<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">
-						{showSearch ? <ResearchSearch /> : <ArticlesLandingInner />}
+						{showSearch ? <ResearchSearch /> : <ArticlesLanding initialLanding={landing} />}
 					</div>
 				</ArticlesAccessGate>
 			</ArticleProxyAuthProvider>

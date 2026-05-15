@@ -37,9 +37,7 @@ export default function ResearchAdminHubPage() {
 								<span className="text-lg font-semibold text-(--text-primary) group-hover:text-(--link-text)">
 									Write new article
 								</span>
-								<span className="text-sm text-(--text-secondary)">
-									Start a fresh draft in the research editor.
-								</span>
+								<span className="text-sm text-(--text-secondary)">Start a fresh draft in the research editor.</span>
 							</Link>
 							<Link
 								href="/research/mine"
