@@ -87,7 +87,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 
 						<div className="flex space-x-[7px]">
 							<Link
-								href="https://x.com/dl_research?lang=en"
+								href="https://x.com/defillama_res"
 								aria-label="Follow us on X"
 								rel="noopener noreferrer"
 								target="_blank"

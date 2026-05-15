@@ -1,4 +1,25 @@
-import { ARTICLE_SECTION_SLUGS, type ArticleSection } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_SLUGS, type ArticleSection, type LocalArticleDocument } from '~/containers/Articles/types'
+
+export type ArticleBylineAuthorEntry = {
+	name: string
+	href: string | null
+}
+
+export function getArticleBylineAuthorEntries(article: LocalArticleDocument): ArticleBylineAuthorEntry[] | null {
+	if (article.brandByline === true) {
+		return [{ name: 'DefiLlama Research', href: '/research' }]
+	}
+	if (!article.author) return null
+	const owner: ArticleBylineAuthorEntry = {
+		name: article.author,
+		href: article.authorProfile ? `/research/authors/${article.authorProfile.slug}` : null
+	}
+	const coAuthors = (article.coAuthors ?? []).map((profile) => ({
+		name: profile.displayName,
+		href: `/research/authors/${profile.slug}`
+	}))
+	return [owner, ...coAuthors]
+}
 
 export function formatDate(value: string | null) {
 	if (!value) return ''
