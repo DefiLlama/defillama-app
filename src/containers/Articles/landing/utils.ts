@@ -2,7 +2,7 @@ import { ARTICLE_SECTION_SLUGS, type ArticleSection, type LocalArticleDocument }
 
 export type ArticleBylineAuthorEntry = {
 	name: string
-	href: string
+	href: string | null
 }
 
 export function getArticleBylineAuthorEntries(article: LocalArticleDocument): ArticleBylineAuthorEntry[] | null {
