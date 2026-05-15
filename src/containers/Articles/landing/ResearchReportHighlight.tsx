@@ -16,7 +16,12 @@ interface ResearchReportHighlightWithHeightProps {
 
 export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = ({ highlight, sharedHeight }) => {
 	const coverUrl = highlight.coverImage?.url
-	const excerpt = highlight.reportDescription?.trim() || highlight.excerpt?.trim() || highlight.subtitle?.trim() || ''
+	const excerpt =
+		highlight.editorialTagMetadata?.highlightText?.trim() ||
+		highlight.reportDescription?.trim() ||
+		highlight.excerpt?.trim() ||
+		highlight.subtitle?.trim() ||
+		''
 	const sponsorLogoUrl = highlight.sponsorLogo?.url
 	const pdfUrl = highlight.reportPdf?.url ?? null
 

@@ -87,6 +87,10 @@ export type ArticlePdf = {
 	pageCount?: number
 }
 
+export type ArticleEditorialTagMetadata = {
+	highlightText?: string | null
+}
+
 export type ArticleEntityRef = {
 	entityType: ArticleEntityType
 	slug: string
@@ -205,6 +209,7 @@ export type LocalArticleDocument = {
 	embeds: ArticleEmbedConfig[]
 	tags: string[]
 	editorialTags?: string[]
+	editorialTagMetadata?: ArticleEditorialTagMetadata | null
 	interviewees?: ArticleInterviewee[]
 	section?: ArticleSection | null
 	displayDate?: string | null
@@ -230,7 +235,14 @@ export type ArticleDocument = LocalArticleDocument & {
 
 export type ArticleSnapshotPayload = Omit<
 	LocalArticleDocument,
-	'id' | 'authorProfile' | 'coAuthors' | 'viewerRole' | 'pending' | 'pendingUpdatedAt' | 'pendingActorPbUserId'
+	| 'id'
+	| 'authorProfile'
+	| 'coAuthors'
+	| 'viewerRole'
+	| 'editorialTagMetadata'
+	| 'pending'
+	| 'pendingUpdatedAt'
+	| 'pendingActorPbUserId'
 > & {
 	id?: string
 }

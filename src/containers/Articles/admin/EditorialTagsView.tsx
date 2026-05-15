@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
 import {
@@ -7,11 +8,14 @@ import {
 	listArticlesByTag,
 	setEditorialTag,
 	unsetEditorialTag,
+	updateEditorialTagMetadata,
+	updateReportHighlightSponsorLogo,
 	type ArticleByTagResponse
 } from '~/containers/Articles/api'
 import { EDITORIAL_TAG_LIST, type EditorialTagDefinition } from '~/containers/Articles/editorialTags'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { ArticleDocument, ArticleImage } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
+import { ImageUploadButton } from '~/containers/Articles/upload/ImageUploadButton'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
 export function EditorialTagsView() {
@@ -53,6 +57,7 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 	const invalidate = () => {
 		queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'editorial-tag', definition.slug] })
 		queryClient.invalidateQueries({ queryKey: ['research', 'by-tag', definition.slug] })
+		queryClient.invalidateQueries({ queryKey: ['research-landing'] })
 	}
 
 	const setMutation = useMutation({
@@ -145,7 +150,160 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 					))}
 				</ul>
 			)}
+
+			{definition.slug === 'report-highlight' && items[0] ? (
+				<ReportHighlightControls article={items[0]} pending={pending} invalidate={invalidate} />
+			) : null}
 		</section>
+	)
+}
+
+function ReportHighlightControls({
+	article,
+	pending,
+	invalidate
+}: {
+	article: ArticleDocument
+	pending: boolean
+	invalidate: () => void
+}) {
+	const { authorizedFetch } = useAuthContext()
+	const queryClient = useQueryClient()
+	const currentText = article.editorialTagMetadata?.highlightText ?? ''
+	const [highlightText, setHighlightText] = useState(currentText)
+	const [sponsorLogo, setSponsorLogo] = useState<ArticleImage | null>(article.sponsorLogo ?? null)
+
+	useEffect(() => {
+		setHighlightText(article.editorialTagMetadata?.highlightText ?? '')
+		setSponsorLogo(article.sponsorLogo ?? null)
+	}, [article.id, article.editorialTagMetadata?.highlightText, article.sponsorLogo])
+
+	const textDirty = highlightText.trim() !== currentText.trim()
+	const previewText =
+		highlightText.trim() ||
+		article.reportDescription?.trim() ||
+		article.excerpt?.trim() ||
+		article.subtitle?.trim() ||
+		''
+
+	const metadataMutation = useMutation({
+		mutationFn: (nextText: string) =>
+			updateEditorialTagMetadata(
+				article.id,
+				'report-highlight',
+				{ highlightText: nextText.trim() || null },
+				authorizedFetch
+			),
+		onSuccess: (result) => {
+			setHighlightText(result.metadata.highlightText ?? '')
+			invalidate()
+			toast.success('Highlight text saved')
+		},
+		onError: (err) => {
+			toast.error(err instanceof ArticleApiError ? err.message : 'Failed to save highlight text')
+		}
+	})
+
+	const logoMutation = useMutation({
+		mutationFn: (nextLogo: ArticleImage | null) =>
+			updateReportHighlightSponsorLogo(article.id, nextLogo, authorizedFetch),
+		onSuccess: (updated) => {
+			setSponsorLogo(updated.sponsorLogo ?? null)
+			invalidate()
+			queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'reports'] })
+			toast.success('Sponsor logo updated')
+		},
+		onError: (err) => {
+			toast.error(err instanceof ArticleApiError ? err.message : 'Failed to update sponsor logo')
+		}
+	})
+
+	return (
+		<div className="grid gap-4 border-t border-(--cards-border) pt-4">
+			<div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+				<label className="grid gap-1.5">
+					<span className="flex items-baseline justify-between gap-2 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+						<span>Highlight text</span>
+						<span>{highlightText.length}/600</span>
+					</span>
+					<textarea
+						value={highlightText}
+						onChange={(event) => setHighlightText(event.target.value.slice(0, 600))}
+						placeholder="Custom text shown on the right side of the Report highlight block."
+						rows={4}
+						maxLength={600}
+						className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+					/>
+					<div className="flex flex-wrap items-center gap-2">
+						<button
+							type="button"
+							disabled={!textDirty || pending || metadataMutation.isPending}
+							onClick={() => metadataMutation.mutate(highlightText)}
+							className="rounded-md border border-(--cards-border) px-3 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{metadataMutation.isPending ? 'Saving…' : 'Save highlight text'}
+						</button>
+						{currentText ? (
+							<button
+								type="button"
+								disabled={pending || metadataMutation.isPending}
+								onClick={() => {
+									setHighlightText('')
+									metadataMutation.mutate('')
+								}}
+								className="rounded-md px-2.5 py-1.5 text-xs text-(--text-tertiary) transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								Clear override
+							</button>
+						) : null}
+					</div>
+				</label>
+
+				<div className="grid content-start gap-1.5">
+					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+						Sponsor logo
+					</span>
+					<ImageUploadButton
+						scope="report-sponsor-logo"
+						articleId={article.id}
+						currentUrl={sponsorLogo?.url ?? null}
+						label="sponsor logo"
+						previewShape="square"
+						helperText={
+							logoMutation.isPending ? 'Updating highlighted report…' : 'Updates the live highlighted report.'
+						}
+						onUploaded={(result) =>
+							logoMutation.mutate({
+								url: result.url,
+								width: result.width,
+								height: result.height
+							})
+						}
+						onCleared={() => logoMutation.mutate(null)}
+					/>
+				</div>
+			</div>
+
+			<div className="grid gap-2 bg-(--app-bg)/40 p-3">
+				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+					Current highlight
+				</span>
+				<div className="grid gap-3 sm:grid-cols-[minmax(0,14rem)_1fr] sm:items-start">
+					<div className="grid gap-2">
+						{sponsorLogo?.url ? (
+							<div className="flex items-center gap-2">
+								<span className="text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">Sponsored by</span>
+								<img src={sponsorLogo.url} alt="" className="h-5 max-w-24 object-contain" />
+							</div>
+						) : null}
+						<span className="text-sm font-semibold text-(--text-primary)">{article.title}</span>
+					</div>
+					<p className="line-clamp-4 text-sm leading-relaxed text-(--text-secondary)">
+						{previewText || 'No highlight text, report description, excerpt, or subtitle set.'}
+					</p>
+				</div>
+			</div>
+		</div>
 	)
 }
 

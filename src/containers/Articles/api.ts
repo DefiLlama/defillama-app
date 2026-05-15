@@ -3,6 +3,7 @@ import type {
 	ArticleAuthorProfile,
 	ArticleCollaborator,
 	ArticleDocument,
+	ArticleEditorialTagMetadata,
 	ArticleRevision,
 	ArticleRevisionListResponse,
 	ArticleSection,
@@ -170,6 +171,24 @@ export async function setEditorialTag(
 	)
 }
 
+export async function updateEditorialTagMetadata(
+	articleId: string,
+	tag: string,
+	metadata: ArticleEditorialTagMetadata,
+	authorizedFetch: AuthorizedFetch
+): Promise<{ articleId: string; tag: string; metadata: ArticleEditorialTagMetadata }> {
+	return parseResponse(
+		await authorizedFetch(
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
+			{
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ metadata })
+			}
+		)
+	)
+}
+
 export async function unsetEditorialTag(
 	articleId: string,
 	tag: string,
@@ -249,6 +268,21 @@ export async function updateArticleReportFields(
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(patch)
+		})
+	)
+	return data.article
+}
+
+export async function updateReportHighlightSponsorLogo(
+	id: string,
+	sponsorLogo: LocalArticleDocument['sponsorLogo'],
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleDocument> {
+	const data = await parseResponse<{ article: ArticleDocument }>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/report-highlight/sponsor-logo`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ sponsorLogo })
 		})
 	)
 	return data.article
