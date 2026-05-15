@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import React, { useMemo, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
+import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
 import { ARTICLE_SECTION_LABELS, type ArticleDocument } from '~/containers/Articles/types'
@@ -88,6 +89,9 @@ export const ResearchCollections: React.FC<ResearchCollectionsProps> = ({ title,
 						))}
 					</div>
 				</div>
+			</div>
+			<div className="mt-auto shrink-0 pt-[18px] text-right">
+				<ReadMoreLink url="/research?section=all" title="View all collection" />
 			</div>
 		</div>
 	)

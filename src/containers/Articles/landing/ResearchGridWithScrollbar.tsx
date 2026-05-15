@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { useLayoutEffect, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
+import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
@@ -27,6 +28,10 @@ export function ResearchGridWithScrollbar({ id, title, articles, pageWidget }: R
 					<TitleLine title={title} />
 				</div>
 				<ResearchGridWithScrollbarScroller articles={articles} pageWidget={pageWidget} onHeightChange={setHeight} />
+
+				<div className="mt-auto shrink-0 pt-[18px] text-right">
+					<ReadMoreLink url="/research?section=report" title="View all reports" />
+				</div>
 			</div>
 		</div>
 	)

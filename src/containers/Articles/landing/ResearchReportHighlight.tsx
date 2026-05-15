@@ -26,11 +26,11 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 	const pdfUrl = highlight.reportPdf?.url ?? null
 
 	return (
-		<div>
+		<div className="flex flex-col">
 			<div className="pb-[15px] lg:pb-[26px]">
 				<TitleLine title="Report highlight" />
 			</div>
-			<div className="grid grid-cols-1 gap-[32px] lg:grid-cols-[397fr_719fr] lg:gap-[48px]">
+			<div className="grid grow grid-cols-1 gap-[32px] lg:grid-cols-[397fr_719fr] lg:gap-[48px]">
 				<div className="flex flex-col gap-[24px]">
 					{sponsorLogoUrl ? (
 						<div className="space-y-2">
@@ -56,13 +56,13 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 
 				<div className="flex flex-col">
 					<div
-						className="max-h-[270px] flex-1 overflow-y-auto lg:min-h-[var(--min-height)]"
+						className="thin-scrollbar max-h-[270px] flex-1 overflow-y-auto lg:min-h-[var(--min-height)]"
 						style={sharedHeight ? ({ '--min-height': `${sharedHeight}px` } as CSSProperties) : undefined}
 					>
 						<div className="flex flex-col justify-between gap-[24px]">
 							{excerpt ? (
 								<div className="text-[14px] leading-[150%] text-[#1D1D1D]/90 dark:text-white">
-									<p className="mb-2 last:mb-0">{excerpt}</p>
+									<p className="mb-2 whitespace-break-spaces last:mb-0">{excerpt}</p>
 								</div>
 							) : null}
 						</div>
@@ -79,7 +79,7 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 								Download PDF
 							</a>
 						) : null}
-						<ReadMoreLink url={articleHref(highlight)} title="Explore more" />
+						<ReadMoreLink url={articleHref(highlight)} title="Read this report" />
 					</div>
 				</div>
 			</div>
