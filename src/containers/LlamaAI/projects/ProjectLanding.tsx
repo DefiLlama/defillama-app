@@ -137,17 +137,6 @@ export function ProjectLanding({
 						All projects
 					</button>
 					<div className="flex items-center gap-1">
-						<button
-							type="button"
-							onClick={() => {
-								const url = `${window.location.origin}/ai/projects/${projectId}`
-								void navigator.clipboard.writeText(url).then(() => toast.success('Link copied'))
-							}}
-							className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium text-[#444] transition-colors hover:bg-[#f0f0f0] dark:text-[#c5c5c5] dark:hover:bg-[#1c1d1e]"
-						>
-							<Icon name="external-link" height={13} width={13} />
-							Share
-						</button>
 						<Ariakit.MenuProvider placement="bottom-end">
 							<Ariakit.MenuButton className="rounded-md p-1.5 text-[#666] transition-colors hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#1c1d1e]">
 								<Icon name="ellipsis" height={16} width={16} />
