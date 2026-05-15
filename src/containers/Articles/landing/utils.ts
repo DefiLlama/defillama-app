@@ -46,6 +46,6 @@ export const RESEARCH_LANDING_SECTION_LIMITS = {
 	reportHighlight: 1,
 	insights: 8,
 	moreReports: 10,
-	introducing: 20,
+	spotlightColumn: 20,
 	collections: 15
 } as const

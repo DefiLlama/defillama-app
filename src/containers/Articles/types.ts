@@ -1,12 +1,12 @@
 export type ArticleVersion = 1
 
 export type ArticleStatus = 'draft' | 'published'
-export type ArticleSection = 'interview' | 'report' | 'introducing' | 'opinion' | 'roundtables' | 'press_release'
+export type ArticleSection = 'interview' | 'report' | 'spotlight' | 'opinion' | 'roundtables' | 'press_release'
 
 export const ARTICLE_SECTIONS: ArticleSection[] = [
 	'interview',
 	'report',
-	'introducing',
+	'spotlight',
 	'opinion',
 	'roundtables',
 	'press_release'
@@ -15,7 +15,7 @@ export const ARTICLE_SECTIONS: ArticleSection[] = [
 export const ARTICLE_SECTION_LABELS: Record<ArticleSection, string> = {
 	interview: 'Interview',
 	report: 'Report',
-	introducing: 'Introducing',
+	spotlight: 'Spotlight',
 	opinion: 'Opinion',
 	roundtables: 'Roundtables',
 	press_release: 'Press Release'
@@ -24,7 +24,7 @@ export const ARTICLE_SECTION_LABELS: Record<ArticleSection, string> = {
 export const ARTICLE_SECTION_SLUGS: Record<ArticleSection, string> = {
 	interview: 'interview',
 	report: 'report',
-	introducing: 'introducing',
+	spotlight: 'spotlight',
 	opinion: 'opinion',
 	roundtables: 'roundtables',
 	press_release: 'press-release'
@@ -33,7 +33,7 @@ export const ARTICLE_SECTION_SLUGS: Record<ArticleSection, string> = {
 export const ARTICLE_SECTION_FROM_SLUG: Record<string, ArticleSection> = {
 	interview: 'interview',
 	report: 'report',
-	introducing: 'introducing',
+	spotlight: 'spotlight',
 	opinion: 'opinion',
 	roundtables: 'roundtables',
 	'press-release': 'press_release',

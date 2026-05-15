@@ -6,7 +6,7 @@ import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
-interface ResearchIntroducingProps {
+interface ResearchSpotlightColumnProps {
 	title: string
 	articles: ArticleDocument[]
 	sharedHeight?: number
@@ -15,7 +15,7 @@ interface ResearchIntroducingProps {
 const DEFAULT_CONTAINER_HEIGHT = 'h-[calc(105px_*_4_+_12px_*_3)]'
 const DEFAULT_DESKTOP_HEIGHT = 'lg:h-[calc(93px_*_5_+_24px_*_4)]'
 
-export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchIntroducingProps) {
+export function ResearchSpotlightColumn({ title, articles, sharedHeight }: ResearchSpotlightColumnProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -31,7 +31,7 @@ export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchI
 	if (articles.length === 0) return null
 
 	return (
-		<div id="introducing">
+		<div id="spotlight">
 			<div>
 				<div className="mb-[26px]">
 					<TitleLine title={title} />
@@ -46,7 +46,7 @@ export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchI
 										className="group relative top-0 flex gap-[16px]"
 										href={articleHref(article)}
 										onClick={() =>
-											pushResearchAnalyticsEvent(article, 'widget_click', 'DefiLlama Research Introducing column')
+											pushResearchAnalyticsEvent(article, 'widget_click', 'DefiLlama Research Spotlight column')
 										}
 									>
 										<div className="relative aspect-[160/96] w-[105px] min-w-[105px] overflow-hidden rounded-lg group-hover:brightness-[0.8] lg:min-w-[160px]">
@@ -67,7 +67,7 @@ export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchI
 											>
 												{i === 0 && (
 													<InViewAnalytics
-														eventParams={[article, 'widget_impression', 'DefiLlama Research Introducing column']}
+														eventParams={[article, 'widget_impression', 'DefiLlama Research Spotlight column']}
 													/>
 												)}
 												{article.title}
@@ -87,14 +87,14 @@ export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchI
 	)
 }
 
-interface ResearchIntroducingWithHeightProps {
+interface ResearchSpotlightColumnWithHeightProps {
 	title: string
 	articles: ArticleDocument[]
 }
 
-export function ResearchIntroducingWithHeight({ title, articles }: ResearchIntroducingWithHeightProps) {
+export function ResearchSpotlightColumnWithHeight({ title, articles }: ResearchSpotlightColumnWithHeightProps) {
 	const context = useSharedHeight()
 	const height = context?.height
 
-	return <ResearchIntroducing title={title} articles={articles} sharedHeight={height} />
+	return <ResearchSpotlightColumn title={title} articles={articles} sharedHeight={height} />
 }

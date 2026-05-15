@@ -8,7 +8,7 @@ import { ResearchCollections } from '~/containers/Articles/landing/ResearchColle
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
 import { ResearchHero } from '~/containers/Articles/landing/ResearchHero'
 import { ResearchInterviews } from '~/containers/Articles/landing/ResearchInterviews'
-import { ResearchIntroducingWithHeight } from '~/containers/Articles/landing/ResearchIntroducing'
+import { ResearchSpotlightColumnWithHeight } from '~/containers/Articles/landing/ResearchSpotlightColumn'
 import { ResearchLatest } from '~/containers/Articles/landing/ResearchLatest'
 import { ResearchReportHighlightWithHeight } from '~/containers/Articles/landing/ResearchReportHighlight'
 import ResearchSearch from '~/containers/Articles/landing/ResearchSearch'
@@ -56,9 +56,9 @@ function ArticlesLandingInner() {
 				),
 				listArticles(
 					{
-						section: 'introducing',
+						section: 'spotlight',
 						sort: 'newest',
-						limit: RESEARCH_LANDING_SECTION_LIMITS.introducing
+						limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
 					},
 					authorizedFetch
 				),
@@ -75,7 +75,7 @@ function ArticlesLandingInner() {
 				highlight: itemsOrEmpty(4),
 				insights: itemsOrEmpty(5),
 				moreReports: itemsOrEmpty(6),
-				introducingColumn: itemsOrEmpty(7),
+				spotlightColumn: itemsOrEmpty(7),
 				collections: itemsOrEmpty(8)
 			}
 
@@ -197,9 +197,9 @@ function ArticlesLandingInner() {
 								/>
 							</div>
 							<div className="flex flex-col gap-y-[64px]">
-								<ResearchIntroducingWithHeight
-									title="Introducing"
-									articles={landingQuery.data?.introducingColumn ?? []}
+								<ResearchSpotlightColumnWithHeight
+									title="Explore Spotlights"
+									articles={landingQuery.data?.spotlightColumn ?? []}
 								/>
 							</div>
 						</div>
