@@ -806,7 +806,7 @@ describe('tokenOverview helpers', () => {
 })
 
 describe('TokenPageHero component', () => {
-	it('renders the token identity, price breakdown, and buy action in the page hero', () => {
+	it('renders the token identity and price breakdown in the page hero', () => {
 		const html = renderToStaticMarkup(
 			<TokenPageHero overview={overviewFixture} logo="https://metadata.example.com/btc.png" />
 		)
@@ -816,7 +816,6 @@ describe('TokenPageHero component', () => {
 		expect(html).toContain('Token Price')
 		expect(html).toContain('All Time High')
 		expect(html).toContain('All Time Low')
-		expect(html).toContain('Buy Now')
 	})
 })
 
@@ -830,8 +829,6 @@ describe('TokenOverviewSection component', () => {
 
 		expect(html).toContain('Bitcoin')
 		expect(html).toContain('(BTC)')
-		expect(html).toContain('Buy Now')
-		expect((html.match(/Buy Now/g) || []).length).toBe(1)
 		expect((html.match(/\(BTC\)/g) || []).length).toBe(1)
 		expect((html.match(/id="token-key-metrics"/g) || []).length).toBe(1)
 		expect(html).toContain('Overview')

@@ -16,7 +16,9 @@
 		"format:check": "oxfmt --check",
 		"format": "oxfmt --write",
 		"lint": "oxlint",
-		"ts": "tsc --noEmit"
+		"ts": "tsc --noEmit",
+		"knip": "knip",
+		"knip:files": "knip --include files"
 	},
 	"dependencies": {
 		"@ariakit/react": "0.4.26",
@@ -83,6 +85,7 @@
 		"@types/react": "19.2.14",
 		"babel-plugin-react-compiler": "1.0.0",
 		"jiti": "2.6.1",
+		"knip": "^6.12.2",
 		"oxfmt": "0.48.0",
 		"oxlint": "1.63.0",
 		"oxlint-tsgolint": "0.22.1",
