@@ -16,12 +16,14 @@ export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap'
 
 const IMAGE_EXPORT_WIDTH = 1280
 const IMAGE_EXPORT_HEIGHT = 720
-const TREEMAP_EXPORT_PORTRAIT_WIDTH = 720
-const TREEMAP_EXPORT_PORTRAIT_HEIGHT = 1280
 const EXPORT_FONT_SIZE = 24
 const LEGEND_ITEM_GAP = 20
 const LEGEND_ITEM_WIDTH = 48
 const BASE_TOP_PADDING = 16
+const TREEMAP_EXPORT_SIDE_PADDING = 16
+const TREEMAP_EXPORT_BOTTOM_PADDING = 16
+const TREEMAP_EXPORT_LABEL_Z = 10000
+const EXPORT_TITLE_Z = 10002
 
 // --- Small utilities ---
 
@@ -46,6 +48,16 @@ const hasSeriesType = (options: Record<string, any>, type: string) =>
 	Array.isArray(options.series) &&
 	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
 
+type Rect = { x: number; y: number; width: number; height: number }
+
+type TreemapViewportExportState =
+	| {
+			actionType: 'treemapZoomToNode' | 'treemapRootToNode'
+			targetNodeId?: string
+			targetNodePath?: string[]
+	  }
+	| { rootRect: Rect; sourceLayout: { width: number; height: number } }
+
 const formatTreemapCurrency = (rawValue?: number) => {
 	const value = typeof rawValue === 'number' && Number.isFinite(rawValue) ? rawValue : 0
 	const absValue = Math.abs(value)
@@ -53,6 +65,121 @@ const formatTreemapCurrency = (rawValue?: number) => {
 	if (absValue >= 1e6) return '$' + (value / 1e6).toFixed(1) + 'M'
 	if (absValue >= 1e3) return '$' + (value / 1e3).toFixed(0) + 'K'
 	return '$' + value.toFixed(0)
+}
+
+function getTreemapNumericValue(rawValue: any): number {
+	const value = Array.isArray(rawValue) ? rawValue[0] : rawValue
+	const numeric = typeof value === 'number' ? value : Number(value ?? 0)
+	return Number.isFinite(numeric) ? numeric : 0
+}
+
+function formatTreemapExportLabel(params: any, total: number, sourceFormatter: any): string {
+	if (typeof sourceFormatter === 'function') {
+		const label = sourceFormatter(params)
+		if (label != null && label !== '') return String(label)
+	}
+
+	const rawValue = getTreemapNumericValue(params?.value)
+	const pct = total > 0 ? ((rawValue / total) * 100).toFixed(1) : '0'
+	return `{name|${String(params?.name ?? '')}}\n{value|${formatTreemapCurrency(rawValue)} (${pct}%)}`
+}
+
+function applyTreemapDataExportLabels(data: any[], label: any, upperLabel: any): any[] {
+	return data.map((item) => {
+		if (!item || typeof item !== 'object' || Array.isArray(item)) return item
+		const itemLabel = item.label ?? {}
+		const itemUpperLabel = item.upperLabel ?? {}
+		return {
+			...item,
+			label: {
+				...label,
+				...itemLabel,
+				show: true,
+				formatter: typeof itemLabel.formatter === 'function' ? itemLabel.formatter : label.formatter
+			},
+			upperLabel: {
+				...upperLabel,
+				...itemUpperLabel,
+				show: itemUpperLabel.show ?? upperLabel.show,
+				formatter: typeof itemUpperLabel.formatter === 'function' ? itemUpperLabel.formatter : upperLabel.formatter
+			},
+			...(Array.isArray(item.children)
+				? { children: applyTreemapDataExportLabels(item.children, label, upperLabel) }
+				: {})
+		}
+	})
+}
+
+function stripRichText(value: string): string {
+	return value.replace(/\{[^|{}]+\|([^{}]*)\}/g, '$1')
+}
+
+function findTreemapDataNodeByPath(data: any[], path: string[], seriesName: string | undefined): any | null {
+	if (path.length === 0) return null
+	const startIndex = seriesName && path[0] === seriesName ? 1 : 0
+	let nodes = data
+	let match: any | null = null
+
+	for (let i = startIndex; i < path.length; i++) {
+		match = null
+		for (const node of nodes) {
+			if (node && typeof node === 'object' && !Array.isArray(node) && node.name === path[i]) {
+				match = node
+				break
+			}
+		}
+		if (!match) return null
+		nodes = Array.isArray(match.children) ? match.children : []
+	}
+
+	return match
+}
+
+function getTreemapTargetDataRoot(series: any, state: TreemapViewportExportState | null) {
+	if (!state || !('actionType' in state) || !state.targetNodePath || state.targetNodePath.length === 0) return null
+	if (!Array.isArray(series.data)) return null
+
+	const target = findTreemapDataNodeByPath(series.data, state.targetNodePath, series.name)
+	if (!target || typeof target !== 'object' || Array.isArray(target)) return null
+
+	return {
+		name: typeof target.name === 'string' && target.name ? target.name : series.name,
+		data:
+			Array.isArray(target.children) && target.children.length > 0
+				? target.children
+				: [{ ...target, children: undefined }]
+	}
+}
+
+function getTreemapNodePath(node: any): string[] {
+	const ancestors = node?.getAncestors?.(true)
+	if (!Array.isArray(ancestors)) return []
+	const path: string[] = []
+	for (const ancestor of ancestors) {
+		const name = ancestor?.name
+		if (typeof name === 'string' && name) path.push(name)
+	}
+	return path
+}
+
+function getStashedTreemapTarget(chart: echarts.ECharts): TreemapViewportExportState | null {
+	const target = (chart as any).__llamaTreemapFocusNode
+	if (target && typeof target === 'object') {
+		const targetNodeId = typeof target.id === 'string' && target.id ? target.id : undefined
+		const targetNodePath = Array.isArray(target.path) ? target.path.filter((item: any) => typeof item === 'string') : []
+		if (targetNodeId || targetNodePath.length > 0) {
+			return {
+				actionType: 'treemapZoomToNode',
+				...(targetNodeId ? { targetNodeId } : {}),
+				...(targetNodePath.length > 0 ? { targetNodePath } : {})
+			}
+		}
+	}
+
+	const legacyTargetNodeId = (chart as any).__llamaTreemapFocusNodeId
+	return typeof legacyTargetNodeId === 'string' && legacyTargetNodeId
+		? { actionType: 'treemapZoomToNode', targetNodeId: legacyTargetNodeId }
+		: null
 }
 
 // --- Series flags ---
@@ -76,6 +203,220 @@ function detectSeriesFlags(options: Record<string, any>): SeriesFlags {
 		isHorizontalBarChart: hasSeriesType(options, 'bar') && yAxisConfig?.type === 'category',
 		yAxisConfig
 	}
+}
+
+function getTreemapSeriesModel(chart: echarts.ECharts): any {
+	const model = (chart as any).getModel?.()
+	const series = model?.getSeriesByType?.('treemap')
+	return Array.isArray(series) ? series[0] : undefined
+}
+
+function resolveTreemapTargetNodeId(seriesModel: any, state: TreemapViewportExportState): string | null {
+	if (!('actionType' in state)) return null
+
+	const root = seriesModel?.getData?.()?.tree?.root
+	if (!root) return state.targetNodeId ?? null
+
+	if (state.targetNodeId && root.getNodeById?.(state.targetNodeId)) return state.targetNodeId
+
+	if (!state.targetNodePath || state.targetNodePath.length === 0) return null
+
+	let resolvedId: string | null = null
+	root.eachNode?.((node: any) => {
+		const path = getTreemapNodePath(node)
+		if (path.length !== state.targetNodePath?.length) return
+		for (let i = 0; i < path.length; i++) {
+			if (path[i] !== state.targetNodePath[i]) return
+		}
+		const id = node.getId?.()
+		if (typeof id === 'string' && id) resolvedId = id
+		return true
+	})
+
+	return resolvedId
+}
+
+function getFiniteRect(value: any): Rect | null {
+	const x = Number(value?.x ?? 0)
+	const y = Number(value?.y ?? 0)
+	const width = Number(value?.width)
+	const height = Number(value?.height)
+	if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(width) || !Number.isFinite(height)) return null
+	if (width <= 0 || height <= 0) return null
+	return { x, y, width, height }
+}
+
+function readTreemapViewportExportState(chart: echarts.ECharts): TreemapViewportExportState | null {
+	// Treemap export goals:
+	// 1. Always export from the fixed 1280x720 clone so PNG size/aspect do not depend on browser width.
+	// 2. Preserve the user's current zoom/drill target by transferring treemap state, not by screenshotting the live canvas.
+	// 3. Keep the root/default view as the standard full treemap export.
+	// 4. Keep labels visible in the exported PNG; normalized sizing is not useful if labels disappear.
+	// 5. Reserve export gutters/title space and mask zoom overflow, because ECharts treemap does not clip to its box.
+	const seriesModel = getTreemapSeriesModel(chart)
+	if (!seriesModel) return null
+
+	const clickedNode = getStashedTreemapTarget(chart)
+	if (clickedNode) return clickedNode
+
+	const viewRoot = seriesModel.getViewRoot?.()
+	const rawRoot = seriesModel.getData?.()?.tree?.root
+	const viewRootId = viewRoot && viewRoot !== rawRoot ? viewRoot.getId?.() : undefined
+	const viewRootPath = viewRoot && viewRoot !== rawRoot ? getTreemapNodePath(viewRoot) : []
+	if (typeof viewRootId === 'string' && viewRootId) {
+		return {
+			actionType: 'treemapRootToNode',
+			targetNodeId: viewRootId,
+			...(viewRootPath.length > 0 ? { targetNodePath: viewRootPath } : {})
+		}
+	}
+
+	const layoutInfo = seriesModel?.layoutInfo
+	const sourceWidth = Number(layoutInfo?.width)
+	const sourceHeight = Number(layoutInfo?.height)
+	if (!Number.isFinite(sourceWidth) || !Number.isFinite(sourceHeight) || sourceWidth <= 0 || sourceHeight <= 0) {
+		return null
+	}
+
+	const root = seriesModel?.getData?.()?.tree?.root
+	const rootRect = getFiniteRect(root?.getLayout?.())
+	if (!rootRect) return null
+
+	const isDefaultView =
+		Math.abs(rootRect.x) <= 1 &&
+		Math.abs(rootRect.y) <= 1 &&
+		Math.abs(rootRect.width - sourceWidth) <= 1 &&
+		Math.abs(rootRect.height - sourceHeight) <= 1
+	if (isDefaultView) return null
+
+	return {
+		rootRect,
+		sourceLayout: { width: sourceWidth, height: sourceHeight }
+	}
+}
+
+function applyTreemapViewportExportState(chart: echarts.ECharts, state: TreemapViewportExportState): boolean {
+	const seriesModel = getTreemapSeriesModel(chart)
+	if (!seriesModel) return false
+
+	if ('actionType' in state) {
+		const targetNodeId = resolveTreemapTargetNodeId(seriesModel, state)
+		if (!targetNodeId) return false
+		chart.dispatchAction({
+			type: state.actionType,
+			seriesId: seriesModel.id,
+			targetNodeId
+		} as any)
+		return true
+	}
+
+	const layoutInfo = seriesModel.layoutInfo
+	const width = Number(layoutInfo?.width)
+	const height = Number(layoutInfo?.height)
+	if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return false
+
+	const scaleX = width / state.sourceLayout.width
+	const scaleY = height / state.sourceLayout.height
+	chart.dispatchAction({
+		type: 'treemapRender',
+		seriesId: seriesModel.id,
+		rootRect: {
+			x: state.rootRect.x * scaleX,
+			y: state.rootRect.y * scaleY,
+			width: state.rootRect.width * scaleX,
+			height: state.rootRect.height * scaleY
+		}
+	} as any)
+	return true
+}
+
+function getGraphicArray(graphic: any): any[] {
+	if (!graphic) return []
+	return Array.isArray(graphic) ? graphic : [graphic]
+}
+
+function buildTreemapExportLabelGraphics(chart: echarts.ECharts, isDark: boolean): any[] {
+	const seriesModel = getTreemapSeriesModel(chart)
+	const viewRoot = seriesModel?.getViewRoot?.()
+	const layoutInfo = seriesModel?.layoutInfo
+	if (!seriesModel || !viewRoot || !layoutInfo) return []
+
+	const graphics: any[] = []
+	const baseX = Number(layoutInfo.x ?? 0)
+	const baseY = Number(layoutInfo.y ?? 0)
+	const labelFill = '#fff'
+	const labelStroke = isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.45)'
+
+	const getNodeLabel = (node: any, includeValue: boolean) => {
+		const formatted = stripRichText(String(seriesModel.getFormattedLabel?.(node.dataIndex, 'normal') ?? '')).trim()
+		if (formatted) return formatted
+		const name = typeof node.name === 'string' ? node.name : ''
+		if (!includeValue) return name
+		const value = getTreemapNumericValue(node.getValue?.())
+		return value > 0 ? `${name}\n${formatTreemapCurrency(value)}` : name
+	}
+
+	const addText = (node: any, x: number, y: number, width: number, height: number, includeValue: boolean) => {
+		const text = getNodeLabel(node, includeValue)
+		if (!text || width < 32 || height < 14) return
+		graphics.push({
+			id: `treemap-export-label-${graphics.length}`,
+			type: 'text',
+			left: x,
+			top: y,
+			z: TREEMAP_EXPORT_LABEL_Z,
+			silent: true,
+			style: {
+				text,
+				fill: labelFill,
+				stroke: labelStroke,
+				lineWidth: 3,
+				fontSize: includeValue ? 12 : 13,
+				fontWeight: includeValue ? 500 : 600,
+				lineHeight: includeValue ? 16 : 15,
+				width: Math.max(width, 0),
+				height: Math.max(height, 0),
+				overflow: 'truncate',
+				lineOverflow: 'truncate'
+			}
+		})
+	}
+
+	const visit = (node: any, parentX: number, parentY: number, isRoot: boolean) => {
+		const layout = node?.getLayout?.()
+		if (!layout?.isInView) return
+
+		const x = parentX + Number(layout.x ?? 0)
+		const y = parentY + Number(layout.y ?? 0)
+		const width = Number(layout.width ?? 0)
+		const height = Number(layout.height ?? 0)
+		const borderWidth = Number(layout.borderWidth ?? 0)
+		const upperLabelHeight = Number(layout.upperLabelHeight ?? 0)
+		const children = Array.isArray(node.viewChildren) ? node.viewChildren : []
+		const isParent = children.length > 0
+
+		if (!isRoot) {
+			if (isParent && upperLabelHeight > 0) {
+				addText(node, x + borderWidth + 4, y + 2, width - borderWidth * 2 - 8, upperLabelHeight - 4, false)
+			} else {
+				addText(
+					node,
+					x + borderWidth + 6,
+					y + borderWidth + 4,
+					width - borderWidth * 2 - 12,
+					height - borderWidth * 2 - 8,
+					true
+				)
+			}
+		}
+
+		for (const child of children) {
+			visit(child, x, y, false)
+		}
+	}
+
+	visit(viewRoot, baseX, baseY, true)
+	return graphics
 }
 
 // --- PNG rasterization ---
@@ -277,6 +618,70 @@ async function composeLogoOverlay(opts: {
 			const text = truncateToWidth(ctx, logosData.categories[i], EXPORT_HBAR_LABEL_MAX_WIDTH)
 			ctx.fillText(text, textX, y)
 		}
+	}
+
+	return canvas.toDataURL('image/png')
+}
+
+async function composeTreemapExportFrame(opts: {
+	baseDataURL: string
+	title: string | undefined
+	iconBase64: string | null
+	isDark: boolean
+	topInset: number
+	exportHeight: number
+}): Promise<string> {
+	const { baseDataURL, title, iconBase64, isDark, topInset, exportHeight } = opts
+
+	const chartImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => resolve(img)
+		img.onerror = reject
+		img.src = baseDataURL
+	})
+
+	const dpr = chartImg.width / IMAGE_EXPORT_WIDTH
+	const canvas = document.createElement('canvas')
+	canvas.width = chartImg.width
+	canvas.height = chartImg.height
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return baseDataURL
+
+	ctx.drawImage(chartImg, 0, 0)
+	ctx.scale(dpr, dpr)
+
+	const backgroundColor = isDark ? '#0b1214' : '#ffffff'
+	ctx.fillStyle = backgroundColor
+	ctx.fillRect(0, 0, IMAGE_EXPORT_WIDTH, Math.max(0, topInset))
+	ctx.fillRect(0, topInset, TREEMAP_EXPORT_SIDE_PADDING, exportHeight - topInset)
+	ctx.fillRect(
+		IMAGE_EXPORT_WIDTH - TREEMAP_EXPORT_SIDE_PADDING,
+		topInset,
+		TREEMAP_EXPORT_SIDE_PADDING,
+		exportHeight - topInset
+	)
+	ctx.fillRect(0, exportHeight - TREEMAP_EXPORT_BOTTOM_PADDING, IMAGE_EXPORT_WIDTH, TREEMAP_EXPORT_BOTTOM_PADDING)
+
+	if (title) {
+		let textX = 14
+		if (iconBase64) {
+			try {
+				const icon = await new Promise<HTMLImageElement>((resolve, reject) => {
+					const img = new Image()
+					img.onload = () => resolve(img)
+					img.onerror = reject
+					img.src = iconBase64
+				})
+				ctx.drawImage(icon, textX, BASE_TOP_PADDING, 32, 32)
+				textX += 40
+			} catch {
+				// Ignore icon failures; the title is still the important export label.
+			}
+		}
+		ctx.font = '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+		ctx.textBaseline = 'top'
+		ctx.fillStyle = isDark ? '#ffffff' : '#000000'
+		ctx.fillText(title, textX, BASE_TOP_PADDING)
 	}
 
 	return canvas.toDataURL('image/png')
@@ -505,8 +910,9 @@ function adjustSeriesForExport(opts: {
 	expandLegend: boolean | undefined
 	pngProfile?: PngExportProfile
 	exportHeight?: number
+	treemapViewportState?: TreemapViewportExportState | null
 }): any[] {
-	const { flags, layout, isDark, title, expandLegend, pngProfile, exportHeight } = opts
+	const { flags, layout, isDark, title, expandLegend, exportHeight, treemapViewportState } = opts
 	let series = [...opts.series]
 
 	// Scatter: strip image:// symbols and scale labels for export
@@ -640,53 +1046,85 @@ function adjustSeriesForExport(opts: {
 	if (flags.isTreemapChart) {
 		series = series.map((s) => {
 			if (s?.type !== 'treemap') return s
+			// The cloned export must declare labels at both series and level scope.
+			// ECharts treemap levels can override series labels, which previously produced normalized PNGs with no text.
 			const total = Array.isArray(s.data)
 				? s.data.reduce((sum: number, item: any) => {
-						const value =
-							typeof item?.value === 'number'
-								? item.value
-								: Array.isArray(item?.value)
-									? Number(item.value[0] ?? 0)
-									: Number(item?.value ?? 0)
-						return Number.isFinite(value) ? sum + value : sum
+						return sum + getTreemapNumericValue(item?.value)
 					}, 0)
 				: 0
+			const sourceLabel = s.label ?? {}
+			const exportLabelFormatter = (params: any) => formatTreemapExportLabel(params, total, sourceLabel.formatter)
+			const exportLabel = {
+				...sourceLabel,
+				show: true,
+				position: sourceLabel.position ?? 'insideTopLeft',
+				padding: sourceLabel.padding ?? [4, 6],
+				formatter: exportLabelFormatter,
+				rich: {
+					name: {
+						fontSize: 16,
+						fontWeight: 600,
+						color: '#fff',
+						lineHeight: 22
+					},
+					value: {
+						fontSize: 13,
+						color: 'rgba(255,255,255,0.85)',
+						lineHeight: 18
+					},
+					...(sourceLabel.rich ?? {})
+				}
+			}
+			const sourceUpperLabel = s.upperLabel ?? {}
+			const exportUpperLabel = {
+				...sourceUpperLabel,
+				show: sourceUpperLabel.show !== false,
+				color: sourceUpperLabel.color ?? (isDark ? '#fff' : '#111'),
+				formatter:
+					typeof sourceUpperLabel.formatter === 'function'
+						? sourceUpperLabel.formatter
+						: (params: any) => String(params?.name ?? '')
+			}
+			const targetDataRoot = getTreemapTargetDataRoot(s, treemapViewportState ?? null)
+			const exportData = targetDataRoot?.data ?? s.data
 			return {
 				...s,
+				...(targetDataRoot ? { name: targetDataRoot.name } : {}),
 				top: layout.gridTop,
-				left: 16,
-				right: 16,
-				bottom: 16,
+				left: TREEMAP_EXPORT_SIDE_PADDING,
+				right: TREEMAP_EXPORT_SIDE_PADDING,
+				bottom: TREEMAP_EXPORT_BOTTOM_PADDING,
 				breadcrumb: { ...(s?.breadcrumb ?? {}), show: false },
-				...(pngProfile === 'treemapNormalized'
-					? {
-							label: {
-								...(s.label ?? {}),
-								show: true,
-								position: 'insideTopLeft',
-								padding: [4, 6],
-								formatter(params: any) {
-									const rawValue = typeof params?.value === 'number' ? params.value : Number(params?.value ?? 0)
-									const pct = total > 0 ? ((rawValue / total) * 100).toFixed(1) : '0'
-									return `{name|${params.name}}\n{value|${formatTreemapCurrency(rawValue)} (${pct}%)}`
+				data: Array.isArray(exportData)
+					? applyTreemapDataExportLabels(exportData, exportLabel, exportUpperLabel)
+					: exportData,
+				label: exportLabel,
+				upperLabel: exportUpperLabel,
+				levels: Array.isArray(s.levels)
+					? s.levels.map((level: any) => {
+							const levelLabel = level?.label ?? {}
+							const levelUpperLabel = level?.upperLabel ?? {}
+							return {
+								...level,
+								label: {
+									...exportLabel,
+									...levelLabel,
+									show: true,
+									formatter: typeof levelLabel.formatter === 'function' ? levelLabel.formatter : exportLabelFormatter
 								},
-								rich: {
-									name: {
-										fontSize: 16,
-										fontWeight: 600,
-										color: '#fff',
-										lineHeight: 22
-									},
-									value: {
-										fontSize: 13,
-										color: 'rgba(255,255,255,0.85)',
-										lineHeight: 18
-									}
+								upperLabel: {
+									...exportUpperLabel,
+									...levelUpperLabel,
+									show: levelUpperLabel.show ?? exportUpperLabel.show,
+									formatter:
+										typeof levelUpperLabel.formatter === 'function'
+											? levelUpperLabel.formatter
+											: exportUpperLabel.formatter
 								}
-							},
-							upperLabel: { ...(s.upperLabel ?? {}), show: false }
-						}
-					: {})
+							}
+						})
+					: s.levels
 			}
 		})
 	}
@@ -720,7 +1158,8 @@ function buildExportTitle(opts: {
 				: undefined
 		},
 		left: 14,
-		top: BASE_TOP_PADDING
+		top: BASE_TOP_PADDING,
+		z: EXPORT_TITLE_Z
 	}
 }
 
@@ -742,72 +1181,6 @@ function waitForChartRender(chart: echarts.ECharts, timeoutMs = 1500): Promise<v
 	})
 }
 
-// --- Treemap direct export (preserves zoom/drill-down state) ---
-
-async function exportTreemapWithZoom(
-	chart: echarts.ECharts,
-	title: string | undefined,
-	isDark: boolean
-): Promise<string | null> {
-	try {
-		const chartDataURL = await getChartPngDataURL(chart, {
-			pixelRatio: 4,
-			backgroundColor: isDark ? '#0b1214' : '#ffffff',
-			excludeComponents: ['toolbox']
-		})
-
-		const chartImg = new Image()
-		await new Promise<void>((resolve, reject) => {
-			chartImg.onload = () => resolve()
-			chartImg.onerror = reject
-			chartImg.src = chartDataURL
-		})
-
-		const imageAspect = chartImg.width / Math.max(1, chartImg.height)
-		const isPortraitCapture = imageAspect < 1
-		const exportWidth = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_WIDTH : IMAGE_EXPORT_WIDTH
-		const exportHeight = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : IMAGE_EXPORT_HEIGHT
-
-		const titleText = title || ''
-		const chartTop = titleText ? 52 : 12
-
-		const chartAreaW = exportWidth - 24
-		const dpr = 2
-		const canvas = document.createElement('canvas')
-		canvas.width = exportWidth * dpr
-		canvas.height = exportHeight * dpr
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return null
-
-		ctx.scale(dpr, dpr)
-
-		ctx.fillStyle = isDark ? '#0b1214' : '#ffffff'
-		ctx.fillRect(0, 0, exportWidth, exportHeight)
-
-		if (titleText) {
-			ctx.font = '600 28px sans-serif'
-			ctx.fillStyle = isDark ? '#ffffff' : '#000000'
-			ctx.fillText(titleText, 14, 36)
-		}
-
-		const chartAreaH = exportHeight - chartTop - 12
-		const imgAspect = chartImg.width / chartImg.height
-		let drawW = chartAreaW
-		let drawH = drawW / imgAspect
-		if (drawH > chartAreaH) {
-			drawH = chartAreaH
-			drawW = drawH * imgAspect
-		}
-		const drawX = 12 + (chartAreaW - drawW) / 2
-		ctx.drawImage(chartImg, drawX, chartTop, drawW, drawH)
-
-		return canvas.toDataURL('image/png')
-	} catch (error) {
-		console.log('Treemap direct export failed:', error)
-		return null
-	}
-}
-
 // --- Clone export orchestrator ---
 
 async function renderClonedChartExport(
@@ -824,6 +1197,7 @@ async function renderClonedChartExport(
 
 	const flags = detectSeriesFlags(currentOptions)
 	const stashedLogos = readStashedChartLogos(originalChart)
+	const treemapViewportState = flags.isTreemapChart ? readTreemapViewportExportState(originalChart) : null
 	let exportHeight = IMAGE_EXPORT_HEIGHT
 	if (pngProfile === 'hbar' && flags.isHorizontalBarChart) {
 		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
@@ -877,7 +1251,8 @@ async function renderClonedChartExport(
 			title,
 			expandLegend,
 			pngProfile,
-			exportHeight
+			exportHeight,
+			treemapViewportState
 		})
 
 		currentOptions.title = buildExportTitle({ title, iconBase64, isDark })
@@ -932,20 +1307,42 @@ async function renderClonedChartExport(
 		}
 
 		await waitForChartRender(tempChart)
+		if (treemapViewportState && applyTreemapViewportExportState(tempChart, treemapViewportState)) {
+			await waitForChartRender(tempChart)
+		}
+
+		if (flags.isTreemapChart) {
+			const labelGraphics = buildTreemapExportLabelGraphics(tempChart, isDark)
+			if (labelGraphics.length > 0) {
+				currentOptions.graphic = [...getGraphicArray(currentOptions.graphic), ...labelGraphics]
+				tempChart.setOption({ graphic: currentOptions.graphic })
+				await waitForChartRender(tempChart)
+			}
+		}
 
 		const baseDataURL = await getChartPngDataURL(tempChart, {
 			pixelRatio: 2,
 			backgroundColor: isDark ? '#0b1214' : '#ffffff',
 			excludeComponents: ['toolbox', 'dataZoom']
 		})
+		const exportDataURL = flags.isTreemapChart
+			? await composeTreemapExportFrame({
+					baseDataURL,
+					title,
+					iconBase64,
+					isDark,
+					topInset: layout.gridTop,
+					exportHeight
+				})
+			: baseDataURL
 
 		if (!stashedLogos) {
-			return baseDataURL
+			return exportDataURL
 		}
 
 		try {
 			return await composeLogoOverlay({
-				baseDataURL,
+				baseDataURL: exportDataURL,
 				tempChart,
 				logosData: stashedLogos,
 				isDark,
@@ -955,7 +1352,7 @@ async function renderClonedChartExport(
 			})
 		} catch (error) {
 			console.log('Failed to compose logo overlay:', error)
-			return baseDataURL
+			return exportDataURL
 		}
 	} finally {
 		tempChart.dispose()
@@ -1005,20 +1402,8 @@ export function ChartPngExportButton({
 		}
 		setIsLoading(true)
 
-		const hasTreemapSeries = hasSeriesType(_chartInstance.getOption(), 'treemap')
-		const useDirectTreemapExport =
-			pngProfile === 'treemap' || pngProfile === 'treemapNormalized' || (pngProfile === 'default' && hasTreemapSeries)
-
-		if (useDirectTreemapExport) {
-			return await exportTreemapWithZoom(_chartInstance, title, isDark)
-		}
-
 		const tempContainer = document.createElement('div')
-		tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
-		tempContainer.style.height = `${IMAGE_EXPORT_HEIGHT}px`
-		tempContainer.style.position = 'absolute'
-		tempContainer.style.left = '-99999px'
-		tempContainer.style.top = '0'
+		tempContainer.style.cssText = `width:${IMAGE_EXPORT_WIDTH}px;height:${IMAGE_EXPORT_HEIGHT}px;position:absolute;left:-99999px;top:0;`
 		document.body.appendChild(tempContainer)
 
 		try {
