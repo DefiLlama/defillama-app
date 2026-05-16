@@ -145,7 +145,11 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 		}
 	}
 
-	protocols.sort((a, b) => a.name.localeCompare(b.name))
+	protocols.sort((a, b) => {
+  const aRev = a.holdersRevenue24h ?? -1
+  const bRev = b.holdersRevenue24h ?? -1
+  return bRev - aRev
+})
 	reportSkippedTokenRightsEntries(skippedEntries)
 	if (skippedEntries.length > 0) {
 		await flushTelemetry({ timeoutMs: 2000, runtime: 'build' })
@@ -431,7 +435,7 @@ function countSkippedTokenRightsReasons(skippedEntries: SkippedTokenRightsEntry[
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 	const [activeFilters, setActiveFilters] = useState<TokenRightsFilter[]>([])
 	const [searchValue, setSearchValue] = useState('')
-	const [sorting, setSorting] = useState<SortingState>([])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'holdersRevenue24h', desc: true }])
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const filteredProtocols = useMemo(
