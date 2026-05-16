@@ -181,7 +181,20 @@ export function VirtualTable<T extends RowData>({
 		initialOffset: 0,
 		initialRect: initialVirtualizerRect,
 		overscan: 5,
-		scrollMargin: scrollMargin ?? containerOffset
+		scrollMargin: scrollMargin ?? containerOffset,
+		// Sync the virtualizer's internal scrollOffset to the real window position
+		// during effect setup, *before* its mount-time _scrollToOffset fires. Otherwise
+		// the virtualizer would scroll the window to its stale initialOffset (0) and
+		// clobber any hash-based scroll the browser had just applied. Keeping
+		// initialOffset at 0 also preserves SSR/CSR render parity (no hydration mismatch).
+		observeElementOffset: (instance, cb) => {
+			const target = instance.scrollElement as (Window & typeof globalThis) | null
+			if (!target) return
+			cb(target.scrollY, false)
+			const onScroll = () => cb(target.scrollY, true)
+			target.addEventListener('scroll', onScroll, { passive: true })
+			return () => target.removeEventListener('scroll', onScroll)
+		}
 	})
 	useEffect(() => {
 		rowVirtualizer.measure()

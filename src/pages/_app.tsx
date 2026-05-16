@@ -94,22 +94,6 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 		}
 	}, [])
 
-	// Scroll restoration for complete route changes (not shallow)
-	useEffect(() => {
-		const handleRouteChange = (url: string, { shallow }: { shallow: boolean }) => {
-			// Only restore scroll for complete route changes, not shallow ones
-			if (!shallow && typeof window !== 'undefined' && !url.includes('#')) {
-				window.scrollTo({ top: 0, behavior: 'smooth' })
-			}
-		}
-
-		Router.events.on('routeChangeComplete', handleRouteChange)
-
-		return () => {
-			Router.events.off('routeChangeComplete', handleRouteChange)
-		}
-	}, [])
-
 	useAuthBridge()
 	useParentAuthTracker()
 	useUmamiIdentityTracker()

@@ -1,13 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
-import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	type SortingState,
+	createColumnHelper,
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table'
 import dayjs from 'dayjs'
-import { type KeyboardEvent, useMemo, useReducer, useRef } from 'react'
+import { type KeyboardEvent, useEffect, useMemo, useReducer, useRef } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
-import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { fetchTokenMarkets } from './api'
+import { DEFAULT_TABLE_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
 import type {
 	TokenMarketCategory,
 	TokenMarketCategoryTotals,
@@ -15,6 +27,8 @@ import type {
 	TokenMarketsResponse,
 	TokenMarketVenue
 } from './tokenMarkets.types'
+
+const DEFAULT_SORTING: SortingState = [{ id: 'volume_24h', desc: true }]
 
 const TOKEN_MARKETS_SECTION_ID = 'token-markets'
 
@@ -317,6 +331,31 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 	const isPerpCategory = selectedCategoryTab !== 'spot'
 	const columns = isPerpCategory ? PERP_COLUMNS : SPOT_COLUMNS
 
+	const table = useReactTable({
+		data: rows,
+		columns,
+		initialState: {
+			sorting: DEFAULT_SORTING,
+			pagination: { pageIndex: 0, pageSize: DEFAULT_TABLE_PAGE_SIZE }
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
+	})
+
+	// Reset sort + search whenever the user switches venue or category, matching the prior
+	// remount-on-key behavior. Pagination auto-resets when the `data` reference changes via
+	// TanStack's default autoResetPageIndex.
+	useEffect(() => {
+		table.resetSorting()
+		table.resetColumnFilters()
+	}, [selectedVenueTab, selectedCategoryTab, table])
+
 	const lastUpdated = useMemo(() => {
 		if (!data?.last_updated) return null
 		const parsed = dayjs(data.last_updated)
@@ -379,26 +418,43 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 
 				<HeaderStrip totals={totals} showOi={isPerpCategory} />
 
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<TableWithSearch
-						key={`${selectedVenueTab}-${selectedCategoryTab}`}
-						data={rows}
-						columns={columns}
-						leadingControls={
-							<Tabs
-								tabs={visibleCategoryTabs}
-								activeTab={selectedCategoryTab}
-								onChange={(id) => setCategoryTab(id)}
-								ariaLabel="Market category"
-							/>
+				<div className="flex w-full flex-wrap items-center justify-end gap-3">
+					<div className="mr-auto flex items-center overflow-x-auto">
+						<Tabs
+							tabs={visibleCategoryTabs}
+							activeTab={selectedCategoryTab}
+							onChange={(id) => setCategoryTab(id)}
+							ariaLabel="Market category"
+						/>
+					</div>
+					<label className="relative w-full max-w-full sm:max-w-[280px]">
+						<span className="sr-only">Search exchanges</span>
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+						/>
+						<input
+							value={(table.getColumn('exchange')?.getFilterValue() as string | undefined) ?? ''}
+							onChange={(event) =>
+								table.getColumn('exchange')?.setFilterValue(event.currentTarget.value || undefined)
+							}
+							placeholder="Search exchanges..."
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
+						/>
+					</label>
+					<CSVDownloadButton
+						prepareCsv={() =>
+							prepareTableCsv({
+								instance: table,
+								filename: `token-markets-${tokenSymbol}-${selectedVenueTab}-${selectedCategoryTab}`
+							})
 						}
-						columnToSearch="exchange"
-						placeholder="Search exchanges..."
-						csvFileName={`token-markets-${tokenSymbol}-${selectedVenueTab}-${selectedCategoryTab}`}
-						embedded
-						sortingState={[{ id: 'volume_24h', desc: true }]}
+						smol
 					/>
 				</div>
+				<PaginatedTable table={table} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
 			</div>
 		</section>
 	)

@@ -74,15 +74,15 @@ export function TokenRightsByProtocol({
 
 	return (
 		<div
-			className={isEmbedded ? 'rounded-md border border-(--cards-border) bg-(--cards-bg)' : 'grid grid-cols-1 gap-2'}
+			id={isEmbedded ? EMBEDDED_TOKEN_RIGHTS_SECTION_ID : undefined}
+			className={
+				isEmbedded ? 'scroll-mt-24 rounded-md border border-(--cards-border) bg-(--cards-bg)' : 'grid grid-cols-1 gap-2'
+			}
 		>
 			{showHeader ? (
 				headerVariant === 'embedded' ? (
 					<div className="flex items-center gap-2 border-b border-(--cards-border) p-3">
-						<h2
-							className="group relative flex scroll-mt-24 items-center gap-1 text-xl font-bold"
-							id={EMBEDDED_TOKEN_RIGHTS_SECTION_ID}
-						>
+						<h2 className="group relative flex items-center gap-1 text-xl font-bold">
 							Token Rights and Value Accrual
 							<a
 								aria-hidden="true"
