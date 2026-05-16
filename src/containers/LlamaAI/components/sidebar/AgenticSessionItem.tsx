@@ -7,6 +7,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AI_SERVER } from '~/constants'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { type SessionListInfiniteData, updateSessionInInfiniteData } from '~/containers/LlamaAI/hooks/sessionListCache'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import { MoveToProjectMenuItem } from '~/containers/LlamaAI/projects/MoveToProjectMenu'
@@ -20,7 +21,7 @@ interface AgenticSessionItemProps {
 	isActive: boolean
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<void>
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
@@ -46,7 +47,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	onToggleSelect,
 	onPinSession
 }: AgenticSessionItemProps) {
-	const { authorizedFetch } = useAuthContext()
+	const { authorizedFetch, user } = useAuthContext()
 	const { hideSidebar } = useLlamaAIChrome()
 	const queryClient = useQueryClient()
 
@@ -78,6 +79,11 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
 		trackUmamiEvent('llamaai-session-click')
+		if (session.hasUnseenCompletion && user) {
+			queryClient.setQueryData<SessionListInfiniteData | undefined>([SESSIONS_QUERY_KEY, user.id], (old) =>
+				updateSessionInInfiniteData(old, sessionId, (s) => ({ ...s, hasUnseenCompletion: false }))
+			)
+		}
 		onSessionSelect(sessionId)
 		if (document.documentElement.clientWidth < 1024) {
 			hideSidebar()
@@ -90,7 +96,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
 			try {
-				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim() })
+				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim(), projectId: session.projectId })
 				setIsEditing(false)
 			} catch (err) {
 				console.error('Failed to update title:', err)
@@ -203,6 +209,11 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 				className="flex flex-1 items-center gap-1 overflow-hidden p-1.5 text-left aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.isPinned ? <Icon name="pin" height={10} width={10} className="shrink-0 opacity-40" /> : null}
+				{session.hasUnseenCompletion ? (
+					<Tooltip content="New response ready">
+						<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--old-blue)" aria-label="Unseen completion" />
+					</Tooltip>
+				) : null}
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
 			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
@@ -294,7 +305,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							)}
 							{session.isPublic ? 'Make Private' : 'Make Public'}
 						</Ariakit.MenuItem>
-						<MoveToProjectMenuItem sessionId={session.sessionId} />
+						<MoveToProjectMenuItem sessionId={session.sessionId} currentProjectId={session.projectId ?? null} />
 						<Ariakit.MenuItem
 							onClick={() => {
 								void handleDelete()

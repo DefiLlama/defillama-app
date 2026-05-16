@@ -2645,6 +2645,7 @@ export function AgenticChat({
 							initialTab={route.initialTab}
 							onSubmit={api.handleSubmit}
 							isStreaming={api.isStreaming}
+							enterToSend={settings.enterToSend}
 							onPickSession={(nextSessionId) => {
 								void navigate.toSession(nextSessionId)
 							}}

@@ -2,7 +2,29 @@ export const SETTINGS_TAB_IDS = ['persona', 'app', 'capabilities', 'integrations
 
 export type SettingsTabId = (typeof SETTINGS_TAB_IDS)[number]
 
-export type SettingsInitialState = { tab?: SettingsTabId; tgloginToken?: string | null }
+export const SLACK_RESULT_VALUES = [
+	'connected',
+	'link_expired',
+	'slack_failed',
+	'approval_pending',
+	'enterprise_not_supported',
+	'invalid_request',
+	'internal_error'
+] as const
+
+export type SlackResult = (typeof SLACK_RESULT_VALUES)[number]
+
+export type SettingsInitialState = {
+	tab?: SettingsTabId
+	tgloginToken?: string | null
+	slackResult?: SlackResult | null
+	slackTeamName?: string | null
+	slackErrorDetail?: string | null
+}
+
+export function isSlackResult(value: unknown): value is SlackResult {
+	return typeof value === 'string' && SLACK_RESULT_VALUES.includes(value as SlackResult)
+}
 
 type RouterQuery = Record<string, string | string[] | undefined>
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
@@ -35,6 +57,20 @@ export function getSettingsIntentFromQuery(query: RouterQuery): {
 		return {
 			initialState: { tab: 'integrations', tgloginToken },
 			nextQuery: withoutQueryKeys(query, ['tglogin', 'modal', 'tab'])
+		}
+	}
+
+	const slackResultRaw = firstQueryValue(query.slack)
+	if (slackResultRaw && isSlackResult(slackResultRaw)) {
+		return {
+			initialState: {
+				tab: 'integrations',
+				tgloginToken: null,
+				slackResult: slackResultRaw,
+				slackTeamName: firstQueryValue(query.team) ?? null,
+				slackErrorDetail: firstQueryValue(query.detail) ?? null
+			},
+			nextQuery: withoutQueryKeys(query, ['slack', 'team', 'detail', 'modal', 'tab'])
 		}
 	}
 

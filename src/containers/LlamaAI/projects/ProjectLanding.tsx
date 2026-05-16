@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
-import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { AddSourcesMenu } from './AddSourcesMenu'
@@ -34,6 +33,7 @@ interface ProjectLandingProps {
 	onSubmit: (prompt: string) => void
 	isStreaming: boolean
 	onPickSession: (sessionId: string) => void
+	enterToSend: boolean
 }
 
 export function ProjectLanding({
@@ -42,7 +42,8 @@ export function ProjectLanding({
 	initialTab = 'chats',
 	onSubmit,
 	isStreaming,
-	onPickSession
+	onPickSession,
+	enterToSend
 }: ProjectLandingProps) {
 	const router = useRouter()
 	const usage = useProjectUsage()
@@ -99,7 +100,7 @@ export function ProjectLanding({
 	}
 
 	const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === 'Enter' && e.shiftKey !== enterToSend && !e.nativeEvent.isComposing) {
 			e.preventDefault()
 			handleSubmit()
 		}

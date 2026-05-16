@@ -35,7 +35,7 @@ interface AgenticSidebarProps {
 	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<void>
 	isDeletingSession: boolean
 	isUpdatingTitle: boolean
 	shouldAnimate?: boolean
@@ -93,7 +93,7 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	updatingTitleSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<void>
 	selectMode: boolean
 	isSelected: boolean
 	onToggleSelect: (sessionId: string) => void
@@ -238,7 +238,7 @@ export function AgenticSidebar({
 	)
 
 	const handleUpdateTitle = useCallback(
-		(args: { sessionId: string; title: string }) => {
+		(args: { sessionId: string; title: string; projectId?: string | null }) => {
 			setUpdatingTitleSessionId(args.sessionId)
 			return onUpdateTitle(args).finally(() => {
 				setUpdatingTitleSessionId(null)
@@ -479,6 +479,13 @@ export function AgenticSidebar({
 						currentProjectId={currentProjectId}
 						currentSessionProjectId={currentSessionProjectId}
 						currentSessionId={currentSessionId}
+						restoringSessionId={restoringSessionId}
+						deletingSessionId={deletingSessionId}
+						updatingTitleSessionId={updatingTitleSessionId}
+						onSessionSelect={onSessionSelect}
+						onDelete={handleDelete}
+						onUpdateTitle={handleUpdateTitle}
+						onPinSession={onPinSession}
 					/>
 				</div>
 

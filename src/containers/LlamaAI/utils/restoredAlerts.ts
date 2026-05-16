@@ -7,7 +7,11 @@ export type PersistedAlertIntent = {
 	dayOfWeek?: number
 	dataQuery?: string
 	title?: string
-	deliveryChannel?: 'email' | 'telegram'
+	deliveryChannel?: 'email' | 'telegram' | 'slack'
+	slackTeamId?: string | null
+	slackTeamName?: string | null
+	slackChannelId?: string | null
+	slackChannelName?: string | null
 }
 
 export type RestoredAlertMetadata = {
@@ -15,7 +19,7 @@ export type RestoredAlertMetadata = {
 	savedAlertId?: string
 	savedAlertIds?: string[]
 	saveableAlertIds?: string[]
-	deliveryChannel?: 'email' | 'telegram'
+	deliveryChannel?: 'email' | 'telegram' | 'slack'
 }
 
 function getFirstAlertMarkerId(content?: string) {
@@ -43,6 +47,7 @@ export function buildRestoredAlerts({
 		metadata.savedAlertId ||
 		`restored_${messageId}`
 
+	const restoredDeliveryChannel = metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
 	return [
 		{
 			alertId: persistedAlertId,
@@ -52,7 +57,15 @@ export function buildRestoredAlerts({
 				hour: metadata.alertIntent.hour ?? 9,
 				timezone: metadata.alertIntent.timezone || 'UTC',
 				dayOfWeek: metadata.alertIntent.dayOfWeek,
-				deliveryChannel: metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
+				deliveryChannel: restoredDeliveryChannel,
+				...(restoredDeliveryChannel === 'slack'
+					? {
+							slackTeamId: metadata.alertIntent.slackTeamId ?? null,
+							slackTeamName: metadata.alertIntent.slackTeamName ?? null,
+							slackChannelId: metadata.alertIntent.slackChannelId ?? null,
+							slackChannelName: metadata.alertIntent.slackChannelName ?? null
+						}
+					: {})
 			},
 			schedule_expression: '',
 			next_run_at: ''

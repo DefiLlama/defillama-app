@@ -321,6 +321,7 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			invalidateProjectSessions()
 		}
 	})
 

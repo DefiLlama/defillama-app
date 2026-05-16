@@ -1,7 +1,9 @@
-import { useMutation } from '@tanstack/react-query'
-import { memo, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AI_SERVER } from '~/constants'
+import { useSlackChannels } from '~/containers/LlamaAI/hooks/useSlackChannels'
+import { useSlackWorkspaces } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
 import type { AlertIntent } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -64,9 +66,43 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [timezone] = useState(alertIntent.timezone)
 	const [savedDbId, setSavedDbId] = useState<string | null>(savedAlertIds?.includes(alertId) ? alertId : null)
 	const [hasRetriedTest, setHasRetriedTest] = useState(false)
+	const [testSent, setTestSent] = useState(false)
 
 	const deliveryChannel = alertIntent.deliveryChannel || 'email'
+	const isSlack = deliveryChannel === 'slack'
+	const [slackTeamId, setSlackTeamId] = useState<string>(alertIntent.slackTeamId ?? '')
+	const [slackChannelId, setSlackChannelId] = useState<string>(alertIntent.slackChannelId ?? '')
+	const slackWorkspacesQuery = useSlackWorkspaces()
+	const slackChannelsQuery = useSlackChannels(isSlack && slackTeamId ? slackTeamId : null)
+	const activeWorkspaces = (slackWorkspacesQuery.data?.workspaces ?? []).filter((w) => !w.revoked)
+	const selectedWorkspace = activeWorkspaces.find((w) => w.team_id === slackTeamId) ?? null
+	const selectedChannel = (slackChannelsQuery.data?.channels ?? []).find((c) => c.id === slackChannelId) ?? null
+	const slackTeamName = selectedWorkspace?.team_name ?? alertIntent.slackTeamName ?? null
+	const slackChannelName = selectedChannel?.name ?? alertIntent.slackChannelName ?? null
 	const isSaved = savedDbId !== null
+
+	useEffect(() => {
+		if (!isSlack || slackTeamId || activeWorkspaces.length !== 1) return
+		setSlackTeamId(activeWorkspaces[0].team_id)
+		if (!slackChannelId && activeWorkspaces[0].default_channel_id) {
+			setSlackChannelId(activeWorkspaces[0].default_channel_id)
+		}
+	}, [isSlack, slackTeamId, slackChannelId, activeWorkspaces])
+
+	const alertDetailQuery = useQuery<{ alert?: { test_sent?: boolean } }>({
+		queryKey: ['llamaai-alert-detail', savedDbId],
+		queryFn: async () => {
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${savedDbId}`)
+			if (!res?.ok) throw new Error('Failed to load alert')
+			return res.json()
+		},
+		enabled: !!savedDbId,
+		staleTime: 30_000
+	})
+
+	useEffect(() => {
+		if (alertDetailQuery.data?.alert?.test_sent === true) setTestSent(true)
+	}, [alertDetailQuery.data?.alert?.test_sent])
 
 	const {
 		mutate: saveAlert,
@@ -78,7 +114,10 @@ export const AlertArtifact = memo(function AlertArtifact({
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: 'email' | 'telegram'
+			delivery_channel: 'email' | 'telegram' | 'slack'
+			slack_team_id?: string | null
+			slack_channel_id?: string | null
+			slack_channel_name?: string | null
 		}) => {
 			const response = await authorizedFetch(`${AI_SERVER}/alerts`, {
 				method: 'POST',
@@ -93,28 +132,42 @@ export const AlertArtifact = memo(function AlertArtifact({
 		}
 	})
 
-	const testMutation = useMutation({
+	const testMutation = useMutation<{ alreadySent: boolean }, Error, string>({
 		mutationFn: async (dbId: string) => {
 			const res = await authorizedFetch(`${AI_SERVER}/alerts/${dbId}/test`, { method: 'POST' })
-			assertResponse(res, 'Test failed')
-			const data: { success: boolean; error?: string } = await res!.json()
+			if (!res) throw new Error('Not authenticated')
+			if (res.status === 429) return { alreadySent: true }
+			if (!res.ok) throw new Error(`Test failed: ${res.status}`)
+			const data: { success: boolean; error?: string } = await res.json()
 			if (!data.success) throw new Error(data.error ?? 'Test failed')
+			return { alreadySent: false }
+		},
+		onSuccess: () => {
+			setTestSent(true)
 		}
 	})
 
 	const handleSave = () => {
 		if (!messageId) return
+		if (isSlack && (!slackTeamId || !slackChannelId)) return
 		saveAlert({
 			messageId,
 			alertId,
 			title: title.trim(),
 			alertConfig: { frequency, hour, dayOfWeek, timezone },
-			delivery_channel: deliveryChannel
+			delivery_channel: deliveryChannel,
+			...(isSlack
+				? {
+						slack_team_id: slackTeamId,
+						slack_channel_id: slackChannelId,
+						slack_channel_name: slackChannelName
+					}
+				: {})
 		})
 	}
 
 	const handleTest = () => {
-		if (!savedDbId) return
+		if (!savedDbId || testSent) return
 		if (testMutation.isError) setHasRetriedTest(true)
 		testMutation.mutate(savedDbId)
 	}
@@ -162,9 +215,15 @@ export const AlertArtifact = memo(function AlertArtifact({
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<h3 className="m-0 text-sm font-medium text-(--text1)">Schedule Alert</h3>
 					<p className="m-0 text-xs text-(--text3)">
-						{deliveryChannel === 'telegram'
-							? 'Get this data delivered to Telegram'
-							: 'Get this data delivered to your inbox'}
+						{deliveryChannel === 'slack'
+							? slackChannelName && slackTeamName
+								? `Deliver to Slack — #${slackChannelName} · ${slackTeamName}`
+								: slackChannelName
+									? `Deliver to Slack — #${slackChannelName}`
+									: 'Deliver to Slack'
+							: deliveryChannel === 'telegram'
+								? 'Get this data delivered to Telegram'
+								: 'Get this data delivered to your inbox'}
 					</p>
 				</div>
 			</div>
@@ -221,6 +280,67 @@ export const AlertArtifact = memo(function AlertArtifact({
 				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
 			</div>
 
+			{isSlack ? (
+				<div className="flex flex-wrap items-center gap-2">
+					<span className="text-sm text-(--text3)">Send to</span>
+					{slackWorkspacesQuery.isLoading ? (
+						<span className="text-xs text-(--text3)">Loading workspaces…</span>
+					) : activeWorkspaces.length === 0 ? (
+						<span className="text-xs text-amber-600 dark:text-amber-400">No Slack workspaces connected.</span>
+					) : (
+						<select
+							value={slackTeamId}
+							disabled={isSaved}
+							onChange={(e) => {
+								const nextTeamId = e.target.value
+								setSlackTeamId(nextTeamId)
+								const nextWorkspace = activeWorkspaces.find((w) => w.team_id === nextTeamId)
+								setSlackChannelId(nextWorkspace?.default_channel_id ?? '')
+							}}
+							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324] dark:bg-[#222]"
+						>
+							<option value="" disabled>
+								Pick workspace
+							</option>
+							{activeWorkspaces.map((w) => (
+								<option key={w.team_id} value={w.team_id}>
+									{w.team_name}
+								</option>
+							))}
+						</select>
+					)}
+
+					{slackTeamId ? (
+						slackChannelsQuery.isLoading ? (
+							<span className="text-xs text-(--text3)">Loading channels…</span>
+						) : slackChannelsQuery.isError ? (
+							<span className="text-xs text-red-500">Failed to load channels</span>
+						) : (
+							<select
+								value={slackChannelId}
+								disabled={isSaved}
+								onChange={(e) => setSlackChannelId(e.target.value)}
+								className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324] dark:bg-[#222]"
+							>
+								<option value="" disabled>
+									Pick channel
+								</option>
+								{(slackChannelsQuery.data?.channels ?? [])
+									.filter((c) => !c.is_archived)
+									.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
+									.map((c) => (
+										<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
+											{c.is_private ? '🔒 ' : '# '}
+											{c.name}
+											{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
+										</option>
+									))}
+							</select>
+						)
+					) : null}
+				</div>
+			) : null}
+
 			{!isSaved ? (
 				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
 					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
@@ -230,7 +350,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 			<button
 				onClick={handleSave}
-				disabled={!messageId || isSaving || isSaved || !title.trim()}
+				disabled={!messageId || isSaving || isSaved || !title.trim() || (isSlack && (!slackTeamId || !slackChannelId))}
 				className={`flex w-full items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
 					isSaved
 						? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -253,14 +373,22 @@ export const AlertArtifact = memo(function AlertArtifact({
 			</button>
 			{saveError ? <p className="text-center text-xs text-(--error)">{saveError.message}</p> : null}
 
-			{isSaved && testMutation.isIdle ? (
+			{isSaved && testMutation.isIdle && !testSent ? (
 				<button
 					onClick={handleTest}
-					className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 dark:border-[#222324] dark:hover:bg-[#222324]"
+					disabled={alertDetailQuery.isLoading}
+					className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-[#222324] dark:hover:bg-[#222324]"
 				>
 					<Icon name="mail" className="h-4 w-4" />
 					<span>Send test alert</span>
 				</button>
+			) : null}
+
+			{isSaved && testSent && !testMutation.isPending ? (
+				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
+					<Icon name="check" className="h-3.5 w-3.5" />
+					Test already sent for this alert
+				</p>
 			) : null}
 
 			{testMutation.isPending ? (
@@ -271,10 +399,23 @@ export const AlertArtifact = memo(function AlertArtifact({
 			) : null}
 
 			{testMutation.isSuccess ? (
-				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-					<Icon name="check" className="h-3.5 w-3.5" />
-					{deliveryChannel === 'telegram' ? 'Test sent! Check your Telegram' : 'Test sent! Check your inbox'}
-				</p>
+				testMutation.data?.alreadySent ? (
+					<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
+						<Icon name="check" className="h-3.5 w-3.5" />
+						Test already sent for this alert
+					</p>
+				) : (
+					<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+						<Icon name="check" className="h-3.5 w-3.5" />
+						{deliveryChannel === 'slack'
+							? slackChannelName
+								? `Test sent! Check #${slackChannelName} in Slack`
+								: 'Test sent! Check your Slack channel'
+							: deliveryChannel === 'telegram'
+								? 'Test sent! Check your Telegram'
+								: 'Test sent! Check your inbox'}
+					</p>
+				)
 			) : null}
 
 			{testMutation.isError && !hasRetriedTest ? (

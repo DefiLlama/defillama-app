@@ -1,6 +1,7 @@
 import {
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 	type Dispatch,
@@ -112,7 +113,8 @@ function ConversationMessageItem({
 	isBranchSwitching,
 	onTableFullscreenOpen,
 	anchorId,
-	anchorRef
+	anchorRef,
+	enterToSend
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -128,6 +130,7 @@ function ConversationMessageItem({
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
+	enterToSend: boolean
 }) {
 	return (
 		<MessageBubble
@@ -146,6 +149,7 @@ function ConversationMessageItem({
 			anchorId={anchorId}
 			anchorRef={anchorRef}
 			anchorClassName={anchorId ? 'message-anchor' : undefined}
+			enterToSend={enterToSend}
 		/>
 	)
 }
@@ -328,6 +332,81 @@ export function ConversationView({
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
 	const [activeExchangeMinHeight, setActiveExchangeMinHeight] = useState<number | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+	const userMessageAnchorIds = useMemo(
+		() =>
+			messages
+				.map((message) => (message.role === 'user' ? getMessageAnchorId(message.id) : undefined))
+				.filter((anchorId): anchorId is string => Boolean(anchorId)),
+		[messages]
+	)
+
+	const highlightAnchorNode = (node: HTMLElement) => {
+		node.classList.remove('anchor-highlight')
+		void node.offsetWidth
+		node.classList.add('anchor-highlight')
+		if (highlightTimeoutRef.current !== null) {
+			window.clearTimeout(highlightTimeoutRef.current)
+		}
+		highlightTimeoutRef.current = window.setTimeout(() => {
+			node.classList.remove('anchor-highlight')
+			highlightTimeoutRef.current = null
+		}, 2000)
+	}
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (
+				!event.shiftKey ||
+				event.altKey ||
+				event.ctrlKey ||
+				event.metaKey ||
+				(event.key !== 'ArrowUp' && event.key !== 'ArrowDown') ||
+				userMessageAnchorIds.length === 0
+			) {
+				return
+			}
+
+			const target = event.target instanceof HTMLElement ? event.target : null
+			const isPromptTextarea = target instanceof HTMLTextAreaElement && target.name === 'prompt'
+			const isInsideConversation = !!target && !!scrollContainerRef.current?.contains(target)
+			const isPageShortcut = target === document.body || isPromptTextarea || isInsideConversation
+			if (!isPageShortcut) return
+
+			const container = scrollContainerRef.current
+			if (!container) return
+
+			const containerTop = container.getBoundingClientRect().top
+			const upThreshold = containerTop + 40
+			const downThreshold = containerTop + 96
+			const anchoredUserMessages = userMessageAnchorIds
+				.map((anchorId) => {
+					const node = document.getElementById(anchorId)
+					return node ? { anchorId, node, top: node.getBoundingClientRect().top } : null
+				})
+				.filter((item): item is { anchorId: string; node: HTMLElement; top: number } => item != null)
+			if (anchoredUserMessages.length === 0) return
+
+			event.preventDefault()
+			if (event.key === 'ArrowDown') {
+				const nextMessage = anchoredUserMessages.find((item) => item.top > downThreshold)
+				if (!nextMessage) {
+					scrollToBottom()
+					return
+				}
+				nextMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+				highlightAnchorNode(nextMessage.node)
+				return
+			}
+
+			const previousMessage =
+				anchoredUserMessages.filter((item) => item.top < upThreshold).at(-1) ?? anchoredUserMessages[0]
+			previousMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+			highlightAnchorNode(previousMessage.node)
+		}
+
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [scrollContainerRef, scrollToBottom, userMessageAnchorIds])
 
 	useEffect(() => {
 		return () => {
@@ -357,16 +436,7 @@ export function ConversationView({
 					}
 					container?.removeEventListener('scrollend', applyHighlight)
 					pendingScrollHighlightRef.current = null
-					node.classList.remove('anchor-highlight')
-					void node.offsetWidth
-					node.classList.add('anchor-highlight')
-					if (highlightTimeoutRef.current !== null) {
-						window.clearTimeout(highlightTimeoutRef.current)
-					}
-					highlightTimeoutRef.current = window.setTimeout(() => {
-						node.classList.remove('anchor-highlight')
-						highlightTimeoutRef.current = null
-					}, 2000)
+					highlightAnchorNode(node)
 				}
 
 				pendingScrollHighlightRef.current?.()
@@ -489,6 +559,7 @@ export function ConversationView({
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+											enterToSend={enterToSend}
 										/>
 									)
 								})}
@@ -524,6 +595,7 @@ export function ConversationView({
 												onTableFullscreenOpen={onTableFullscreenOpen}
 												anchorId={getMessageAnchorId(message.id)}
 												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+												enterToSend={enterToSend}
 											/>
 										))}
 

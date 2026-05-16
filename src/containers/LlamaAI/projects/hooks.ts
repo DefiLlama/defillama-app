@@ -179,11 +179,17 @@ export function useMoveSessionToProject() {
 	const { authorizedFetch } = useAuthContext()
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: (args: { sessionId: string; projectId: string | null }) =>
+		mutationFn: (args: { sessionId: string; projectId: string | null; previousProjectId?: string | null }) =>
 			moveSessionToProject(authorizedFetch, args.sessionId, args.projectId),
-		onSuccess: () => {
+		onSuccess: (_data, variables) => {
 			void qc.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
+			if (variables.previousProjectId) {
+				void qc.invalidateQueries({ queryKey: projectSessionsKey(variables.previousProjectId) })
+			}
+			if (variables.projectId) {
+				void qc.invalidateQueries({ queryKey: projectSessionsKey(variables.projectId) })
+			}
 		}
 	})
 }
