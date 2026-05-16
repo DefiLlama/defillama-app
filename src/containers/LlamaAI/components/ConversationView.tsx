@@ -17,11 +17,15 @@ import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWar
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
-import { SpawnProgressCard, ToolProgressIndicator } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import {
+	SpawnProgressCard,
+	TodoChecklistPanel,
+	ToolProgressIndicator
+} from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
-import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
 
 interface ConversationViewProps {
 	readOnly: boolean
@@ -33,6 +37,8 @@ interface ConversationViewProps {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -159,6 +165,8 @@ function ConversationLiveStatus({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -179,6 +187,8 @@ function ConversationLiveStatus({
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -195,8 +205,14 @@ function ConversationLiveStatus({
 	isLlama: boolean
 	onTableFullscreenOpen?: () => void
 }) {
+	const hasTodos = todos.length > 0
 	return (
 		<>
+			{hasTodos ? (
+				<div style={{ overflowAnchor: 'none' }}>
+					<TodoChecklistPanel todos={todos} startTime={todosStartTime} isLive />
+				</div>
+			) : null}
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -205,6 +221,7 @@ function ConversationLiveStatus({
 						isResearchMode
 						recovery={recovery}
 						onReconnect={onReconnectNow}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				) : (
 					<ToolProgressIndicator
@@ -222,6 +239,7 @@ function ConversationLiveStatus({
 							!hasStreamingCharts(streamingDraft?.charts)
 						}
 						executionStartedAt={executionStartedAt}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				)}
 			</div>
@@ -287,6 +305,8 @@ export function ConversationView({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -605,6 +625,8 @@ export function ConversationView({
 												activeToolCalls={activeToolCalls}
 												spawnProgress={spawnProgress}
 												spawnStartTime={spawnStartTime}
+												todos={todos}
+												todosStartTime={todosStartTime}
 												executionStartedAt={executionStartedAt}
 												spawnIsResearchMode={spawnIsResearchMode}
 												streamingThinking={streamingThinking}
@@ -629,6 +651,8 @@ export function ConversationView({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={todos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										streamingThinking={streamingThinking}
 										spawnIsResearchMode={spawnIsResearchMode}

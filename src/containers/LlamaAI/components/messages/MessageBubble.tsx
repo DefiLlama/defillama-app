@@ -13,8 +13,10 @@ import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/Markdown
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
+	deriveTodosFromToolExecutions,
 	getToolLabel,
 	ThinkingPanel,
+	TodoChecklistPanel,
 	TOOL_ICONS,
 	useHackerMode
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
@@ -582,10 +584,19 @@ function InlineContent({
 			) : null}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
-				<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
+				<>
+					<FrozenTodoChecklist toolExecutions={toolExecutions} />
+					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
+				</>
 			) : null}
 		</div>
 	)
+}
+
+function FrozenTodoChecklist({ toolExecutions }: { toolExecutions: ToolExecution[] }) {
+	const todos = useMemo(() => deriveTodosFromToolExecutions(toolExecutions), [toolExecutions])
+	if (todos.length === 0) return null
+	return <TodoChecklistPanel todos={todos} />
 }
 
 const formatStepDuration = (ms: number): string => {

@@ -287,6 +287,12 @@ export interface SpawnAgentStatus {
 	findingsPreview?: string
 }
 
+export interface TodoItem {
+	id: string
+	content: string
+	status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+}
+
 export interface SearchMatch {
 	message_id: string | null
 	source_type: 'session_title' | 'user_message' | 'assistant_chunk'

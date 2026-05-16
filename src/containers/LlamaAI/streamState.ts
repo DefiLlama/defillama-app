@@ -8,6 +8,7 @@ import type {
 	Message,
 	MessageMetadata,
 	SpawnAgentStatus,
+	TodoItem,
 	ToolCall,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
@@ -55,6 +56,8 @@ export interface StreamState {
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
 	spawnIsResearchMode: boolean
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	recovery: RecoveryState
 	messageMetadata?: MessageMetadata
@@ -106,6 +109,7 @@ export type StreamAction =
 	| { type: 'SET_SPAWN_RESEARCH_MODE'; value: boolean }
 	| { type: 'SET_EXECUTION_STARTED_AT'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
+	| { type: 'SET_TODOS'; value: TodoItem[] }
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
@@ -129,6 +133,8 @@ const createEmptyRuntimeState = () => ({
 	spawnProgress: new Map<string, SpawnAgentStatus>(),
 	spawnStartTime: 0,
 	spawnIsResearchMode: false,
+	todos: [] as TodoItem[],
+	todosStartTime: 0,
 	executionStartedAt: 0,
 	recovery: {
 		status: 'idle',
@@ -237,7 +243,9 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 				...state,
 				activeToolCalls: [],
 				spawnProgress: new Map<string, SpawnAgentStatus>(),
-				spawnStartTime: 0
+				spawnStartTime: 0,
+				todos: [],
+				todosStartTime: 0
 			}
 		case 'SET_SPAWN_START_TIME':
 			return { ...state, spawnStartTime: action.value }
@@ -253,6 +261,10 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 				...action.value
 			})
 			return { ...state, spawnProgress: next }
+		}
+		case 'SET_TODOS': {
+			const todosStartTime = state.todosStartTime || Date.now()
+			return { ...state, todos: action.value, todosStartTime }
 		}
 		case 'START_RECOVERY':
 			return {

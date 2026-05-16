@@ -82,6 +82,7 @@ import type {
 	DashboardArtifact,
 	DashboardItem,
 	Message,
+	TodoItem,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
@@ -642,6 +643,12 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.toolExecutions.push(data)
 			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
+			if (data.name === 'todo' && data.success) {
+				const todos = (data.toolData as { todos?: TodoItem[] } | undefined)?.todos
+				if (Array.isArray(todos)) {
+					dispatch({ type: 'SET_TODOS', value: todos })
+				}
+			}
 		},
 		onMessageMetadata: (data) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -921,6 +928,8 @@ export function AgenticChat({
 		spawnProgress,
 		spawnStartTime,
 		spawnIsResearchMode,
+		todos: streamingTodos,
+		todosStartTime,
 		executionStartedAt,
 		recovery,
 		error,
@@ -2790,6 +2799,8 @@ export function AgenticChat({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={streamingTodos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										spawnIsResearchMode={spawnIsResearchMode}
 										streamingThinking={streamingThinking}
@@ -2860,6 +2871,8 @@ export function AgenticChat({
 								activeToolCalls={activeToolCalls}
 								spawnProgress={spawnProgress}
 								spawnStartTime={spawnStartTime}
+								todos={streamingTodos}
+								todosStartTime={todosStartTime}
 								executionStartedAt={executionStartedAt}
 								streamingThinking={streamingThinking}
 								spawnIsResearchMode={spawnIsResearchMode}
