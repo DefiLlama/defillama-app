@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -95,6 +96,7 @@ interface CarouselArticleSlideProps {
 
 /** Carousel card: mirrors DL HoverReport layout for `ArticleDocument`. */
 function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: CarouselArticleSlideProps) {
+	const router = useRouter()
 	const href = articleHref(article)
 	const imgUrl = article.carouselImage?.url ?? article.coverImage?.url
 	const blurb = (article.reportDescription || article.excerpt || article.subtitle || '').trim()
@@ -207,9 +209,16 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 			className={clsx('group relative overflow-hidden bg-white transition-all duration-200 ease-out', 'rounded-[12px]')}
 		>
 			{addOverlayLink ? (
-				<Link href={href} className="block h-full w-full cursor-pointer">
+				<div
+					role="button"
+					tabIndex={0}
+					onClick={() => {
+						void router.push(href)
+					}}
+					className="block h-full w-full cursor-pointer"
+				>
 					{inner}
-				</Link>
+				</div>
 			) : (
 				inner
 			)}
@@ -232,18 +241,15 @@ export const ReportsCarousel: React.FC<ReportsCarouselProps> = (props) => {
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const [current, setCurrent] = useState(0)
-	const [isTransitioning, setIsTransitioning] = useState(false)
-	const [containerWidth, setContainerWidth] = useState(0)
-	const [isHovered, setIsHovered] = useState(false)
-
 	const TOTAL_COUNT = reports.length
 	const CENTER = Math.floor(TOTAL_COUNT / 2)
 	const isMobile = useMedia(MOBILE_QUERY)
 
-	useEffect(() => {
-		setCurrent(CENTER)
-	}, [CENTER])
+	const [currentOverride, setCurrentOverride] = useState<number | null>(null)
+	const [isTransitioning, setIsTransitioning] = useState(false)
+	const [containerWidth, setContainerWidth] = useState(0)
+	const [isHovered, setIsHovered] = useState(false)
+	const current = TOTAL_COUNT > 0 ? Math.min(currentOverride ?? CENTER, TOTAL_COUNT - 1) : 0
 
 	const checkContainerWidth = useCallback(() => {
 		if (containerRef.current) {
@@ -351,23 +357,25 @@ export const ReportsCarousel: React.FC<ReportsCarouselProps> = (props) => {
 	const responsiveConfig = useMemo(
 		() => ({
 			planeWidth: isMobile ? MOBILE_PLANE_WIDTH : PLANE_WIDTH,
-			distPerPlane: isMobile ? MOBILE_DIST_PER_PLANE : DIST_PER_PLANE,
-			centerOffset: isMobile ? 0 : containerWidth / 2 - PLANE_WIDTH / 2
+			distPerPlane: isMobile ? MOBILE_DIST_PER_PLANE : DIST_PER_PLANE
 		}),
-		[isMobile, containerWidth]
+		[isMobile]
 	)
 
-	const transitionTo = useCallback((updater: (prev: number) => number) => {
-		setIsTransitioning((isLocked) => {
-			if (isLocked) return isLocked
+	const transitionTo = useCallback(
+		(updater: (prev: number) => number) => {
+			setIsTransitioning((isLocked) => {
+				if (isLocked) return isLocked
 
-			setCurrent(updater)
-			window.setTimeout(() => {
-				setIsTransitioning(false)
-			}, TRANSITION_MS)
-			return true
-		})
-	}, [])
+				setCurrentOverride(() => updater(current))
+				window.setTimeout(() => {
+					setIsTransitioning(false)
+				}, TRANSITION_MS)
+				return true
+			})
+		},
+		[current]
+	)
 
 	const handleSlideClick = useCallback(
 		(clickedIndex: number) => {
@@ -436,7 +444,8 @@ export const ReportsCarousel: React.FC<ReportsCarouselProps> = (props) => {
 		const zIndex = TOTAL_COUNT - dist
 
 		return {
-			transform: `translate(calc(${offset}px + ${responsiveConfig.centerOffset}px)) scale(${scale})`,
+			left: '50%',
+			transform: `translateX(calc(-50% + ${offset}px)) scale(${scale})`,
 			zIndex,
 			display: 'block'
 		}

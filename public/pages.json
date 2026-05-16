@@ -510,9 +510,6 @@
       "route": "/rwa",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs)",
-      "tags": [
-        "New"
-      ],
       "searchKeywords": [
         "rwa",
         "rwas",
@@ -558,9 +555,6 @@
       "route": "/rwa/perps",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs) perps",
-      "tags": [
-        "New"
-      ],
       "searchKeywords": [
         "rwa perps",
         "rwa perp",
@@ -838,10 +832,7 @@
       "name": "Dashboard Builder",
       "route": "/pro",
       "category": "Combined Metrics",
-      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics",
-      "tags": [
-        "New"
-      ]
+      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics"
     },
     {
       "name": "Correlations Matrix by Coin",
@@ -1045,7 +1036,6 @@
       "name": "RWA",
       "route": "/rwa",
       "icon": "banknote",
-      "isNew": true,
       "searchKeywords": [
         "rwa",
         "rwas",
@@ -1072,6 +1062,11 @@
       "name": "Investor Relations",
       "route": "https://investors.defillama.com",
       "icon": "trending-up",
+      "isNew": true
+    },
+    {
+      "name": "DefiLlama Research",
+      "route": "/research",
       "isNew": true
     }
   ],

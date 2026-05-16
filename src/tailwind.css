@@ -1349,146 +1349,60 @@
 
 /* Articles surface */
 
-.article-loader-shell {
+.research-loader {
 	display: grid;
 	place-items: center;
 	min-height: clamp(480px, 72vh, 800px);
 	padding: 4rem 1.5rem;
 }
 
-.article-loader-stack {
-	display: grid;
-	justify-items: center;
-	gap: 1.75rem;
-}
-
-.article-loader-title {
-	font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem);
-	font-weight: 600;
-	letter-spacing: -0.015em;
-	line-height: 1.1;
-	margin: 0;
-}
-
-.article-loader-title__defillama {
-	color: var(--text-primary);
-}
-
-.article-loader-title__research {
-	color: var(--link-text);
-}
-
-.article-loader-scan {
-	--scan-size: clamp(120px, 12vw, 144px);
-	--scan-color: var(--link-text);
+.rl {
+	--rl-size: clamp(200px, 22vw, 280px);
 	position: relative;
-	width: var(--scan-size);
-	aspect-ratio: 1;
-	overflow: visible;
-	filter: drop-shadow(0 14px 28px color-mix(in oklch, var(--text-primary) 22%, transparent))
-		drop-shadow(0 4px 10px color-mix(in oklch, var(--link-text) 28%, transparent));
+	width: var(--rl-size);
+	aspect-ratio: 620 / 196;
+	isolation: isolate;
+	display: block;
 }
 
-.article-loader-scan__base {
+.rl__layer {
 	position: absolute;
 	inset: 0;
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center;
+	will-change: transform, filter;
+	animation: rl-soft 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+.rl__layer--light {
+	background-image: url('/assets/research_logo.webp');
+}
+.rl__layer--dark {
+	background-image: url('/assets/research_logo_dark.webp');
+	display: none;
+}
+html.dark .rl__layer--light {
+	display: none;
+}
+html.dark .rl__layer--dark {
+	display: block;
 }
 
-.article-loader-scan__line {
-	position: absolute;
-	left: 0;
-	right: 0;
-	height: 1px;
-	background: linear-gradient(90deg, transparent, var(--scan-color) 50%, transparent);
-	box-shadow: 0 0 6px color-mix(in oklch, var(--scan-color) 45%, transparent);
-	top: -2px;
-	pointer-events: none;
-	animation: article-scan-down 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-
-@keyframes article-scan-down {
+@keyframes rl-soft {
 	0% {
-		top: -4px;
+		filter: drop-shadow(0 0 5px color-mix(in oklch, var(--link-text) 40%, transparent))
+			drop-shadow(0 0 17px color-mix(in oklch, var(--link-text) 18%, transparent));
+		transform: scale(1);
 	}
 	100% {
-		top: 100%;
+		filter: drop-shadow(0 0 17px color-mix(in oklch, var(--link-text) 85%, transparent))
+			drop-shadow(0 0 41px color-mix(in oklch, var(--link-text) 55%, transparent));
+		transform: scale(1.018);
 	}
-}
-
-.article-loader-scan__crop {
-	--crop-len: 9px;
-	--crop-thickness: 1px;
-	--crop-color: color-mix(in oklch, var(--text-primary) 65%, transparent);
-	--crop-gap: 6px;
-	position: absolute;
-	width: var(--crop-len);
-	height: var(--crop-len);
-	pointer-events: none;
-	z-index: 2;
-}
-
-.article-loader-scan__crop::before,
-.article-loader-scan__crop::after {
-	content: '';
-	position: absolute;
-	background: var(--crop-color);
-}
-
-.article-loader-scan__crop::before {
-	width: 100%;
-	height: var(--crop-thickness);
-}
-
-.article-loader-scan__crop::after {
-	height: 100%;
-	width: var(--crop-thickness);
-}
-
-.article-loader-scan__crop--tl {
-	top: calc(-1 * var(--crop-gap));
-	left: calc(-1 * var(--crop-gap));
-}
-.article-loader-scan__crop--tl::before,
-.article-loader-scan__crop--tl::after {
-	top: 0;
-	left: 0;
-}
-
-.article-loader-scan__crop--tr {
-	top: calc(-1 * var(--crop-gap));
-	right: calc(-1 * var(--crop-gap));
-}
-.article-loader-scan__crop--tr::before,
-.article-loader-scan__crop--tr::after {
-	top: 0;
-	right: 0;
-}
-
-.article-loader-scan__crop--bl {
-	bottom: calc(-1 * var(--crop-gap));
-	left: calc(-1 * var(--crop-gap));
-}
-.article-loader-scan__crop--bl::before,
-.article-loader-scan__crop--bl::after {
-	bottom: 0;
-	left: 0;
-}
-
-.article-loader-scan__crop--br {
-	bottom: calc(-1 * var(--crop-gap));
-	right: calc(-1 * var(--crop-gap));
-}
-.article-loader-scan__crop--br::before,
-.article-loader-scan__crop--br::after {
-	bottom: 0;
-	right: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.article-loader-scan__line {
+	.rl__layer {
 		animation: none;
 	}
 }

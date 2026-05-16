@@ -135,7 +135,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 					</ul>
 				</div>
 				<div className="mt-auto shrink-0 pt-[18px] text-right">
-					<ReadMoreLink url="/research" title="View all interviews" />
+					<ReadMoreLink url="/research?section=interview" title="View all interviews" />
 				</div>
 			</div>
 		</div>

@@ -57,7 +57,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 		<div className="pt-[32px] text-white lg:pt-[45px]">
 			<div>
 				<div className="flex flex-col items-center">
-					<img src="/assets/research_logo_white.webp" alt="DefiLlama" width={229} height={99} />
+					<img src="/assets/research_logo_dark.webp" alt="DefiLlama" width={229} height={72} />
 					<h1 className="mt-[35px] mb-[12px] text-center text-[22px] leading-[130%] font-semibold lg:mb-[16px] lg:text-[32px]">
 						{title}
 					</h1>
@@ -67,14 +67,14 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 
 					<div className="flex flex-col items-center gap-[36px] lg:flex-row">
 						<div className="flex space-x-[12px]">
-							<Link
+							<a
 								href="mailto:research@defillama.com"
 								className="flex items-center rounded-full bg-white px-[14px] py-[12px] text-[16px] leading-[50%] text-[#237BFF] md:px-[24px] md:py-[14px]"
 							>
 								Contact us
-							</Link>
+							</a>
 							<Link
-								href="https://twitter.com/defillama"
+								href="https://calendly.com/research-defillama/30min"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="flex items-center space-x-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
@@ -87,7 +87,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 
 						<div className="flex space-x-[7px]">
 							<Link
-								href="https://x.com/dl_research?lang=en"
+								href="https://x.com/defillama_res"
 								aria-label="Follow us on X"
 								rel="noopener noreferrer"
 								target="_blank"
@@ -95,7 +95,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								<TwitterIcon />
 							</Link>
 							<Link
-								href="https://t.me/dl_research"
+								href="https://t.me/defillama_res"
 								aria-label="Follow us on Telegram"
 								rel="noopener noreferrer"
 								target="_blank"

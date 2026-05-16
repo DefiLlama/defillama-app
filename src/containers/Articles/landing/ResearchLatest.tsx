@@ -5,7 +5,7 @@ import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 const NAV_ITEMS: Array<{ id: string; label: string; anchor: string }> = [
-	{ id: 'introducing', label: 'Introducing', anchor: '#introducing' },
+	{ id: 'spotlight', label: 'Spotlight', anchor: '#spotlight' },
 	{ id: 'interviews', label: 'Interviews', anchor: '#interviews' },
 	{ id: 'reports', label: 'Reports', anchor: '#reports' },
 	{ id: 'insights', label: 'Insights', anchor: '#insights' },
@@ -62,7 +62,7 @@ type NormalizedItem = {
 }
 
 function normalizeItem(article: ArticleDocument, index: number): NormalizedItem | null {
-	const label = article.tags?.[0]?.replace(/-/g, ' ') ?? 'Research'
+	const label = article.section?.replace(/-/g, ' ') ?? 'Research'
 	return {
 		_key: `${article.id}-${index}`,
 		label: label.toUpperCase(),

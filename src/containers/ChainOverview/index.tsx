@@ -72,6 +72,17 @@ export function ChainOverview(props: IChainOverviewData) {
 
 const linksToOtherLlamaApps = [
 	{
+		name: '',
+		description: '',
+		href: '/research',
+		icon: (
+			<svg aria-label="DefiLlama Research" role="img" height={44} width={128} className="z-10 object-contain">
+				<use href="/assets/defillama-research.svg#defillama-research-logo" />
+			</svg>
+		),
+		background: <span className="llama-app-background" />
+	},
+	{
 		name: 'LlamaSearch',
 		description: 'Find official links to projects',
 		href: 'https://search.defillama.com',
@@ -97,15 +108,6 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
-		name: 'LlamaFeed',
-		description: 'The ultimate crypto feed',
-		href: 'https://llamafeed.io/',
-		icon: (
-			<img src="/assets/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
-		),
-		background: <span className="llama-app-background" />
-	},
-	{
 		name: 'DefiLlama API',
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
@@ -115,13 +117,11 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
-		name: '',
-		description: '',
-		href: '/reports',
+		name: 'LlamaFeed',
+		description: 'The ultimate crypto feed',
+		href: 'https://llamafeed.io/',
 		icon: (
-			<svg aria-label="DefiLlama Research" role="img" height={44} width={128} className="z-10 object-contain">
-				<use href="/assets/defillama-research.svg#defillama-research-logo" />
-			</svg>
+			<img src="/assets/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	}

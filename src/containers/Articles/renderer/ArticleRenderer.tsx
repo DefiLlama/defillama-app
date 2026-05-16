@@ -7,6 +7,7 @@ import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from '../entityLinks'
 import { getTiptapNodeText } from '../extractors'
+import { getArticleBylineAuthorEntries } from '../landing/utils'
 import type {
 	ArticleCalloutTone,
 	ArticleCitation,
@@ -748,7 +749,18 @@ function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; s
 	)
 }
 
-function ShareBlock({ url, title }: { url: string; title: string }) {
+function ShareBlock({ url, title, compactMode = false }: { url: string; title: string; compactMode?: boolean }) {
+	if (compactMode) {
+		return (
+			<div className="flex items-center justify-between gap-3 border-y border-(--cards-border) py-3.5">
+				<span className="flex items-center gap-1.5 text-[10px] leading-none font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
+					Share
+					<Icon name="share" className="h-3 w-3" />
+				</span>
+				<ShareIcons url={url} title={title} size="sm" />
+			</div>
+		)
+	}
 	return (
 		<div className="grid gap-8">
 			<div role="separator" className="h-px bg-(--cards-border)" />
@@ -779,7 +791,6 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 	collectToc(article.contentJson, toc)
 
 	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
-	const brandByline = article.brandByline === true
 	const tagChips = (article.tags ?? []).filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
 
 	const sectionPath = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}` : null
@@ -826,51 +837,24 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 
 	const isInterview = article.section === 'interview'
 	const bylineLabel = isInterview ? 'Interviewer' : 'By'
-	const bylineNode = brandByline ? (
+	const bylineAuthorEntries = getArticleBylineAuthorEntries(article)
+	const bylineNode = bylineAuthorEntries ? (
 		<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
 			<span className="font-normal">{bylineLabel}</span>
-			<Link href="/research" className="font-semibold text-(--text-primary) hover:text-(--link-text)">
-				DefiLlama Research
-			</Link>
+			{bylineAuthorEntries.map((entry, index) => (
+				<span key={`${entry.name}-${index}`} className="flex items-center gap-1">
+					{entry.href ? (
+						<Link href={entry.href} className="font-semibold text-(--text-primary) hover:text-(--link-text)">
+							{entry.name}
+						</Link>
+					) : (
+						<span className="font-semibold text-(--text-primary)">{entry.name}</span>
+					)}
+					{index < bylineAuthorEntries.length - 2 ? <span>,</span> : null}
+					{index === bylineAuthorEntries.length - 2 ? <span>and</span> : null}
+				</span>
+			))}
 		</span>
-	) : article.author ? (
-		(() => {
-			const ownerLink = article.authorProfile ? (
-				<Link
-					key={article.authorProfile.id}
-					href={`/research/authors/${article.authorProfile.slug}`}
-					className="font-semibold text-(--text-primary) hover:text-(--link-text)"
-				>
-					{article.author}
-				</Link>
-			) : (
-				<span key="owner" className="font-semibold text-(--text-primary)">
-					{article.author}
-				</span>
-			)
-			const coAuthorLinks = (article.coAuthors ?? []).map((profile) => (
-				<Link
-					key={profile.id}
-					href={`/research/authors/${profile.slug}`}
-					className="font-semibold text-(--text-primary) hover:text-(--link-text)"
-				>
-					{profile.displayName}
-				</Link>
-			))
-			const links = [ownerLink, ...coAuthorLinks]
-			return (
-				<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
-					<span className="font-normal">{bylineLabel}</span>
-					{links.map((node, index) => (
-						<span key={index} className="flex items-center gap-1">
-							{node}
-							{index < links.length - 2 ? <span>,</span> : null}
-							{index === links.length - 2 ? <span>and</span> : null}
-						</span>
-					))}
-				</span>
-			)
-		})()
 	) : null
 
 	const intervieweesList = isInterview ? (article.interviewees ?? []).filter((p) => p?.name?.trim()) : []
@@ -1062,7 +1046,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 						</div>
 					) : null}
 					<div className="pr-2">
-						<ShareBlock url={shareUrl} title={article.title} />
+						<ShareBlock url={shareUrl} title={article.title} compactMode={pastHeader} />
 					</div>
 					<div className="pr-2">
 						<ArticleImageBanner articleId={article.id} section={article.section ?? null} />

@@ -83,6 +83,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [publishErrors, setPublishErrors] = useState<Record<string, string>>({})
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
+	const autoRedirectingRef = useRef(false)
 	const hydratedArticleIdRef = useRef<string | null>(null)
 	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
 	const articleIdRef = useRef<string | undefined>(article.id)
@@ -158,6 +159,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const createArticleMutation = useMutation({
 		mutationFn: () => createArticle(createEmptyLocalArticle(), authorizedFetch),
 		onSuccess: (saved) => {
+			autoRedirectingRef.current = true
 			void router.replace(`/research/edit/${saved.id}`)
 		},
 		onError: (error) => {
@@ -391,6 +393,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		const hasInflight = () => isSaving || createArticleMutation.isPending
 		const handler = (nextUrl: string) => {
 			if (nextUrl === router.asPath) return
+			if (autoRedirectingRef.current) {
+				autoRedirectingRef.current = false
+				return
+			}
 			if (debounceRef.current) {
 				clearTimeout(debounceRef.current)
 				debounceRef.current = null

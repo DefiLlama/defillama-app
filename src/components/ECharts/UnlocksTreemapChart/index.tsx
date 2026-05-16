@@ -46,6 +46,7 @@ type YearDataMap = {
 
 const TIME_VIEWS = ['Month', 'Current Year', 'All Years'] as const
 type TimeView = (typeof TIME_VIEWS)[number]
+const TREEMAP_CHART_INSET_PX = 12
 
 export default function UnlocksTreemapChart({ unlocksData, height = '600px', filterYear }: UnlocksTreemapProps) {
 	const id = useId()
@@ -451,7 +452,9 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				/>
 			</div>
 
-			<div id={id} style={{ width: '100%', height: height }} />
+			<div className="w-full overflow-hidden" style={{ height, padding: TREEMAP_CHART_INSET_PX }}>
+				<div id={id} className="h-full w-full" />
+			</div>
 		</div>
 	)
 }
