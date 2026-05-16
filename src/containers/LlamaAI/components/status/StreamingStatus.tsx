@@ -166,7 +166,7 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	skill_manage: { icon: 'graduation-cap', color: '#34d399' },
 	skills_list: { icon: 'graduation-cap', color: '#34d399' },
 	skill_view: { icon: 'graduation-cap', color: '#34d399' },
-	todo: { icon: 'check-square', color: '#34d399' },
+	todo: { icon: 'check-circle', color: '#34d399' },
 	manage_user_memory: { icon: 'bookmark', color: '#34d399' },
 	flag_capability_gap: { icon: 'flag', color: '#f43f5e' },
 	x_advanced_search: { icon: 'twitter', color: '#94a3b8' },
