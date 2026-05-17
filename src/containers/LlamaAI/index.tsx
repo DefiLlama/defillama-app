@@ -1775,15 +1775,47 @@ export function AgenticChat({
 		setPaginationState({ hasMore: false, cursor: null })
 	}, [abortActiveRequest, attach, clearConversationRuntimeState])
 
-	// Start a brand-new chat, or route away from a session page back to the base chat route.
+	// Start a brand-new chat, keeping project-owned sessions inside their project.
 	const handleNewChat = useCallback(async () => {
+		const projectIdForNewChat = route.kind === 'project' ? route.projectId : currentSessionProjectId
+		if (projectIdForNewChat && !sharedSession) {
+			await clearConversationState()
+			const nextSessionId = createFakeSession(projectIdForNewChat)
+			setSessionId(nextSessionId)
+			setSessionTitle('New Chat')
+			setCurrentSessionProjectId(projectIdForNewChat)
+			restoredSessionIdRef.current = nextSessionId
+			isFirstMessageRef.current = false
+			const persistSession = createSession({
+				sessionId: nextSessionId,
+				title: 'New Chat',
+				projectId: projectIdForNewChat
+			}).catch((createSessionError) => {
+				console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+			})
+			if (route.kind !== 'project') {
+				await persistSession
+				void navigate.toSession(nextSessionId)
+			}
+			promptInputRef.current?.focus()
+			return
+		}
+
 		if (route.kind !== 'chat-new' || sharedSession) {
 			void navigate.toNewChat()
 			return
 		}
 		await clearConversationState()
 		promptInputRef.current?.focus()
-	}, [clearConversationState, navigate, route.kind, sharedSession])
+	}, [
+		clearConversationState,
+		createFakeSession,
+		createSession,
+		currentSessionProjectId,
+		navigate,
+		route,
+		sharedSession
+	])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
