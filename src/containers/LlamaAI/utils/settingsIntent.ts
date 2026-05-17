@@ -31,6 +31,9 @@ type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 const PENDING_TGLOGIN_KEY = 'pending_tglogin'
 const PENDING_SETTINGS_TAB_KEY = 'pending_settings_tab'
+const PENDING_SLACK_RESULT_KEY = 'pending_slack_result'
+const PENDING_SLACK_TEAM_KEY = 'pending_slack_team'
+const PENDING_SLACK_ERROR_KEY = 'pending_slack_error'
 
 export function isSettingsTabId(tab: unknown): tab is SettingsTabId {
 	return typeof tab === 'string' && SETTINGS_TAB_IDS.includes(tab as SettingsTabId)
@@ -88,17 +91,40 @@ export function stashSettingsIntent(storage: StorageLike, initialState: Settings
 		return
 	}
 	if (initialState.tab) storage.setItem(PENDING_SETTINGS_TAB_KEY, initialState.tab)
+	if (initialState.slackResult) storage.setItem(PENDING_SLACK_RESULT_KEY, initialState.slackResult)
+	if (initialState.slackTeamName) storage.setItem(PENDING_SLACK_TEAM_KEY, initialState.slackTeamName)
+	if (initialState.slackErrorDetail) storage.setItem(PENDING_SLACK_ERROR_KEY, initialState.slackErrorDetail)
 }
 
 export function readPendingSettingsIntent(storage: StorageLike): SettingsInitialState | null {
 	const tgloginToken = storage.getItem(PENDING_TGLOGIN_KEY)
 	if (tgloginToken) {
 		storage.removeItem(PENDING_TGLOGIN_KEY)
+		storage.removeItem(PENDING_SLACK_RESULT_KEY)
+		storage.removeItem(PENDING_SLACK_TEAM_KEY)
+		storage.removeItem(PENDING_SLACK_ERROR_KEY)
 		return { tab: 'integrations', tgloginToken }
 	}
 
 	const tab = storage.getItem(PENDING_SETTINGS_TAB_KEY)
-	if (!isSettingsTabId(tab)) return null
 	storage.removeItem(PENDING_SETTINGS_TAB_KEY)
+	const slackResult = storage.getItem(PENDING_SLACK_RESULT_KEY)
+	const slackTeamName = storage.getItem(PENDING_SLACK_TEAM_KEY)
+	const slackErrorDetail = storage.getItem(PENDING_SLACK_ERROR_KEY)
+	storage.removeItem(PENDING_SLACK_RESULT_KEY)
+	storage.removeItem(PENDING_SLACK_TEAM_KEY)
+	storage.removeItem(PENDING_SLACK_ERROR_KEY)
+
+	if (isSlackResult(slackResult)) {
+		return {
+			tab: isSettingsTabId(tab) ? tab : 'integrations',
+			tgloginToken: null,
+			slackResult,
+			slackTeamName: slackTeamName || null,
+			slackErrorDetail: slackErrorDetail || null
+		}
+	}
+
+	if (!isSettingsTabId(tab)) return null
 	return { tab, tgloginToken: null }
 }

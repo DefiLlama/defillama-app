@@ -84,6 +84,7 @@ function WorkspaceRow({
 			<div className="flex shrink-0 gap-2">
 				{workspace.revoked ? (
 					<button
+						type="button"
 						onClick={onReconnect}
 						className="rounded-lg bg-[#4A154B] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white hover:bg-[#3a1140]"
 					>
@@ -91,6 +92,7 @@ function WorkspaceRow({
 					</button>
 				) : (
 					<button
+						type="button"
 						onClick={onDisconnect}
 						disabled={isDisconnecting}
 						className="rounded-lg border border-black/[0.08] px-3 py-1.5 text-xs whitespace-nowrap hover:bg-black/[0.04] disabled:opacity-50 dark:border-white/[0.08] dark:hover:bg-white/[0.04]"

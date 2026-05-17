@@ -58,8 +58,16 @@ async function req<T>(
 	}
 	const contentLength = res.headers.get('content-length')
 	const contentType = res.headers.get('content-type') ?? ''
-	if (res.status === 204 || contentLength === '0' || !/(^|[/+])json($|;)/i.test(contentType)) {
+	if (res.status === 204 || contentLength === '0') {
 		return null as T
+	}
+	if (!/(^|[/+])json($|;)/i.test(contentType)) {
+		const body = await res.text().catch(() => '')
+		throw new Error(
+			`Unexpected Slack API response content type: status=${res.status}, content-type=${contentType || 'missing'}${
+				body ? `, body=${body.slice(0, 200)}` : ''
+			}`
+		)
 	}
 	return res.json()
 }

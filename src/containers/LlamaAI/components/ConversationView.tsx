@@ -387,9 +387,15 @@ export function ConversationView({
 			}
 
 			const target = event.target instanceof HTMLElement ? event.target : null
-			const isPromptTextarea = target instanceof HTMLTextAreaElement && target.name === 'prompt'
+			const editableTarget =
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				target instanceof HTMLSelectElement ||
+				target instanceof HTMLButtonElement ||
+				target?.isContentEditable ||
+				!!target?.closest('input, textarea, select, button, [contenteditable]:not([contenteditable="false"])')
 			const isInsideConversation = !!target && !!scrollContainerRef.current?.contains(target)
-			const isPageShortcut = target === document.body || isPromptTextarea || isInsideConversation
+			const isPageShortcut = target === document.body || (isInsideConversation && !editableTarget)
 			if (!isPageShortcut) return
 
 			const container = scrollContainerRef.current

@@ -88,6 +88,7 @@ export interface ProjectChatSession {
 	pinnedAt: string | null
 	isPublic: boolean
 	shareToken: string | null
+	hasUnseenCompletion?: boolean
 }
 
 export type ProjectTier = 'free' | 'trial' | 'paid' | 'llama'

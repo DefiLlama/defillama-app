@@ -102,6 +102,7 @@ export function ProjectsSidebarSection({
 		pinnedAt: session.pinnedAt ?? undefined,
 		isPublic: session.isPublic,
 		shareToken: session.shareToken ?? undefined,
+		hasUnseenCompletion: session.hasUnseenCompletion,
 		projectId
 	})
 

@@ -37,6 +37,7 @@ interface AlertArtifactProps {
 }
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+type TestSentState = 'sent' | 'already' | null
 
 const getTimezoneLabel = (timezone: string): string => {
 	if (timezone === 'UTC') return 'UTC'
@@ -66,7 +67,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [timezone] = useState(alertIntent.timezone)
 	const [savedDbId, setSavedDbId] = useState<string | null>(savedAlertIds?.includes(alertId) ? alertId : null)
 	const [hasRetriedTest, setHasRetriedTest] = useState(false)
-	const [testSent, setTestSent] = useState(false)
+	const [testSent, setTestSent] = useState<TestSentState>(null)
 
 	const deliveryChannel = alertIntent.deliveryChannel || 'email'
 	const isSlack = deliveryChannel === 'slack'
@@ -101,7 +102,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	})
 
 	useEffect(() => {
-		if (alertDetailQuery.data?.alert?.test_sent === true) setTestSent(true)
+		if (alertDetailQuery.data?.alert?.test_sent === true) setTestSent('already')
 	}, [alertDetailQuery.data?.alert?.test_sent])
 
 	const {
@@ -142,8 +143,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 			if (!data.success) throw new Error(data.error ?? 'Test failed')
 			return { alreadySent: false }
 		},
-		onSuccess: () => {
-			setTestSent(true)
+		onSuccess: (data) => {
+			setTestSent(data.alreadySent ? 'already' : 'sent')
 		}
 	})
 
@@ -384,10 +385,23 @@ export const AlertArtifact = memo(function AlertArtifact({
 				</button>
 			) : null}
 
-			{isSaved && testSent && !testMutation.isPending ? (
+			{isSaved && testSent === 'already' && !testMutation.isPending ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
 					<Icon name="check" className="h-3.5 w-3.5" />
 					Test already sent for this alert
+				</p>
+			) : null}
+
+			{isSaved && testSent === 'sent' && !testMutation.isPending ? (
+				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+					<Icon name="check" className="h-3.5 w-3.5" />
+					{deliveryChannel === 'slack'
+						? slackChannelName
+							? `Test sent! Check #${slackChannelName} in Slack`
+							: 'Test sent! Check your Slack channel'
+						: deliveryChannel === 'telegram'
+							? 'Test sent! Check your Telegram'
+							: 'Test sent! Check your inbox'}
 				</p>
 			) : null}
 
@@ -396,26 +410,6 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 					Sending test alert...
 				</p>
-			) : null}
-
-			{testMutation.isSuccess ? (
-				testMutation.data?.alreadySent ? (
-					<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
-						<Icon name="check" className="h-3.5 w-3.5" />
-						Test already sent for this alert
-					</p>
-				) : (
-					<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-						<Icon name="check" className="h-3.5 w-3.5" />
-						{deliveryChannel === 'slack'
-							? slackChannelName
-								? `Test sent! Check #${slackChannelName} in Slack`
-								: 'Test sent! Check your Slack channel'
-							: deliveryChannel === 'telegram'
-								? 'Test sent! Check your Telegram'
-								: 'Test sent! Check your inbox'}
-					</p>
-				)
 			) : null}
 
 			{testMutation.isError && !hasRetriedTest ? (

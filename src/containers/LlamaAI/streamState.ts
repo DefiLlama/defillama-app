@@ -263,7 +263,10 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, spawnProgress: next }
 		}
 		case 'SET_TODOS': {
-			const todosStartTime = state.todosStartTime || Date.now()
+			const todosStartTime =
+				Array.isArray(action.value) && action.value.length > 0
+					? state.todosStartTime || Date.now()
+					: state.todosStartTime
 			return { ...state, todos: action.value, todosStartTime }
 		}
 		case 'START_RECOVERY':

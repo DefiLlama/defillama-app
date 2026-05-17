@@ -11,6 +11,8 @@ import { type SessionListInfiniteData, updateSessionInInfiniteData } from '~/con
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import { MoveToProjectMenuItem } from '~/containers/LlamaAI/projects/MoveToProjectMenu'
+import { projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
+import type { ProjectChatSession } from '~/containers/LlamaAI/projects/types'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -83,6 +85,11 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 			queryClient.setQueryData<SessionListInfiniteData | undefined>([SESSIONS_QUERY_KEY, user.id], (old) =>
 				updateSessionInInfiniteData(old, sessionId, (s) => ({ ...s, hasUnseenCompletion: false }))
 			)
+			if (session.projectId) {
+				queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(session.projectId), (old) =>
+					old?.map((s) => (s.sessionId === sessionId ? { ...s, hasUnseenCompletion: false } : s))
+				)
+			}
 		}
 		onSessionSelect(sessionId)
 		if (document.documentElement.clientWidth < 1024) {
