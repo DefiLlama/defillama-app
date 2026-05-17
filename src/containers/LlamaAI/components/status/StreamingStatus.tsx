@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExterna
 import { Icon } from '~/components/Icon'
 import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
-import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type { SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export const TOOL_LABELS: Record<string, string> = {
@@ -27,16 +27,30 @@ export const TOOL_LABELS: Record<string, string> = {
 	get_kg_enrichment: 'Enriching knowledge graph',
 	get_feed_enrichment: 'Enriching feed data',
 	get_docs: 'Reading documentation',
+	read_session_artifacts: 'Reading session artifacts',
+	reattach_artifacts: 'Reattaching artifacts',
 	list_alerts: 'Listing alerts',
 	manage_alert: 'Managing alert',
 	search_adapters: 'Searching adapters',
+	search_dune: 'Searching Dune',
 	get_adapter_code: 'Reading adapter code',
 	query_logs: 'Querying logs',
 	call_contract: 'Calling contract',
 	get_contract: 'Fetching contract',
+	etherscan_contract_creation: 'Fetching contract deployment',
+	etherscan_address_txs: 'Fetching address transactions',
+	etherscan_tx_status: 'Checking transaction status',
+	etherscan_gas_oracle: 'Fetching gas prices',
+	etherscan_block_info: 'Fetching block info',
+	etherscan_l2_bridge_txs: 'Fetching L2 bridge transactions',
 	get_monte_carlo_forecast: 'Running Monte Carlo forecast',
 	get_tsmom: 'Computing momentum signal',
 	get_governance_data: 'Fetching governance data',
+	memory: 'Updating memory',
+	skill_manage: 'Managing skill',
+	skills_list: 'Listing skills',
+	skill_view: 'Reading skill',
+	todo: 'Updating task list',
 	manage_user_memory: 'Updating memory',
 	flag_capability_gap: 'Flagging capability gap',
 	x_advanced_search: 'Searching X/Twitter',
@@ -46,6 +60,8 @@ export const TOOL_LABELS: Record<string, string> = {
 	x_get_tweets: 'Fetching tweets',
 	x_get_tweet: 'Fetching tweet',
 	x_get_user_tweets: 'Fetching user tweets',
+	x_get_mentions: 'Fetching mentions',
+	x_get_thread: 'Fetching thread',
 	x_search_users: 'Searching X users',
 	x_get_followers: 'Fetching X followers',
 	x_get_following: 'Fetching X following',
@@ -68,6 +84,8 @@ export const TOOL_LABELS: Record<string, string> = {
 	generate_dashboard: 'Generating dashboard',
 	dashboard_generation_history: 'Loading dashboard history',
 	load_dashboard: 'Loading dashboard',
+	validate_dashboard_entities: 'Validating dashboard entities',
+	list_dashboards: 'Listing dashboards',
 	fetch_ohlcv: 'Fetching price data',
 	fetch_exchange_data: 'Fetching exchange data',
 	get_balance_history: 'Fetching balance history',
@@ -89,7 +107,11 @@ export const TOOL_LABELS: Record<string, string> = {
 	nansen_pm_top_holders: 'Fetching top holders',
 	nansen_pm_trades: 'Fetching market trades',
 	nansen_pm_pnl: 'Fetching market PnL',
-	nansen_pm_ohlcv: 'Fetching market OHLCV'
+	nansen_pm_ohlcv: 'Fetching market OHLCV',
+	ls: 'Listing workspace files',
+	cat: 'Reading workspace file',
+	grep: 'Searching workspace files',
+	search_messages: 'Searching messages'
 }
 
 export const getToolLabel = (name: string): string =>
@@ -121,16 +143,30 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	get_kg_enrichment: { icon: 'layers', color: '#6366f1' },
 	get_feed_enrichment: { icon: 'layers', color: '#8b5cf6' },
 	get_docs: { icon: 'file-text', color: '#22d3ee' },
+	read_session_artifacts: { icon: 'file-text', color: '#94a3b8' },
+	reattach_artifacts: { icon: 'file-text', color: '#60a5fa' },
 	list_alerts: { icon: 'sparkles', color: '#fbbf24' },
 	manage_alert: { icon: 'sparkles', color: '#fbbf24' },
 	search_adapters: { icon: 'search', color: '#a78bfa' },
+	search_dune: { icon: 'search', color: '#f59e0b' },
 	get_adapter_code: { icon: 'code', color: '#a78bfa' },
 	query_logs: { icon: 'file-text', color: '#94a3b8' },
 	call_contract: { icon: 'plug', color: '#6366f1' },
 	get_contract: { icon: 'plug', color: '#6366f1' },
+	etherscan_contract_creation: { icon: 'plug', color: '#6366f1' },
+	etherscan_address_txs: { icon: 'repeat', color: '#14b8a6' },
+	etherscan_tx_status: { icon: 'activity', color: '#14b8a6' },
+	etherscan_gas_oracle: { icon: 'activity', color: '#f59e0b' },
+	etherscan_block_info: { icon: 'layers', color: '#6366f1' },
+	etherscan_l2_bridge_txs: { icon: 'repeat', color: '#14b8a6' },
 	get_monte_carlo_forecast: { icon: 'trending-up', color: '#f472b6' },
 	get_tsmom: { icon: 'trending-up', color: '#f59e0b' },
 	get_governance_data: { icon: 'users', color: '#8b5cf6' },
+	memory: { icon: 'bookmark', color: '#34d399' },
+	skill_manage: { icon: 'graduation-cap', color: '#34d399' },
+	skills_list: { icon: 'graduation-cap', color: '#34d399' },
+	skill_view: { icon: 'graduation-cap', color: '#34d399' },
+	todo: { icon: 'check-circle', color: '#34d399' },
 	manage_user_memory: { icon: 'bookmark', color: '#34d399' },
 	flag_capability_gap: { icon: 'flag', color: '#f43f5e' },
 	x_advanced_search: { icon: 'twitter', color: '#94a3b8' },
@@ -140,6 +176,8 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	x_get_tweets: { icon: 'twitter', color: '#94a3b8' },
 	x_get_tweet: { icon: 'twitter', color: '#94a3b8' },
 	x_get_user_tweets: { icon: 'twitter', color: '#94a3b8' },
+	x_get_mentions: { icon: 'twitter', color: '#94a3b8' },
+	x_get_thread: { icon: 'twitter', color: '#94a3b8' },
 	x_search_users: { icon: 'twitter', color: '#94a3b8' },
 	x_get_followers: { icon: 'twitter', color: '#94a3b8' },
 	x_get_following: { icon: 'twitter', color: '#94a3b8' },
@@ -162,6 +200,8 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	generate_dashboard: { icon: 'layout-grid', color: '#2563eb' },
 	dashboard_generation_history: { icon: 'layout-grid', color: '#6366f1' },
 	load_dashboard: { icon: 'layout-grid', color: '#6366f1' },
+	validate_dashboard_entities: { icon: 'layout-grid', color: '#8b5cf6' },
+	list_dashboards: { icon: 'layout-grid', color: '#6366f1' },
 	fetch_ohlcv: { icon: 'bar-chart-2', color: '#f59e0b' },
 	fetch_exchange_data: { icon: 'bar-chart-2', color: '#f97316' },
 	get_balance_history: { icon: 'wallet', color: '#f97316' },
@@ -183,7 +223,11 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	nansen_pm_top_holders: { icon: 'users', color: '#ec4899' },
 	nansen_pm_trades: { icon: 'repeat', color: '#ec4899' },
 	nansen_pm_pnl: { icon: 'trending-up', color: '#ec4899' },
-	nansen_pm_ohlcv: { icon: 'bar-chart-2', color: '#ec4899' }
+	nansen_pm_ohlcv: { icon: 'bar-chart-2', color: '#ec4899' },
+	ls: { icon: 'file-text', color: '#94a3b8' },
+	cat: { icon: 'file-text', color: '#94a3b8' },
+	grep: { icon: 'search', color: '#94a3b8' },
+	search_messages: { icon: 'search', color: '#94a3b8' }
 }
 
 let currentSecondSnapshot = Math.floor(Date.now() / 1000)
@@ -337,7 +381,8 @@ export function ToolProgressIndicator({
 	isCompacting,
 	spawnProgress,
 	isWaiting,
-	executionStartedAt
+	executionStartedAt,
+	indentForActiveTodo
 }: {
 	toolCalls: ToolCall[]
 	thinking?: string
@@ -345,6 +390,7 @@ export function ToolProgressIndicator({
 	spawnProgress?: Map<string, SpawnAgentStatus>
 	isWaiting?: boolean
 	executionStartedAt?: number
+	indentForActiveTodo?: boolean
 }) {
 	const hasSpawn = spawnProgress && spawnProgress.size > 0
 	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting
@@ -353,7 +399,10 @@ export function ToolProgressIndicator({
 	if (!hasActivity) return null
 
 	return (
-		<section className="flex gap-3 py-1.5" aria-label="LlamaAI progress">
+		<section
+			className={`flex gap-3 py-1.5 ${indentForActiveTodo ? 'border-l-2 border-[#e6e6e6] pl-4 dark:border-[#222324]' : ''}`}
+			aria-label="LlamaAI progress"
+		>
 			<img
 				src={hackerMode ? '/assets/llamaai/hackerllama.webp' : '/assets/llamaai/llamaai_animation.webp'}
 				alt=""
@@ -448,13 +497,15 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 	startTime,
 	isResearchMode,
 	recovery,
-	onReconnect
+	onReconnect,
+	indentForActiveTodo
 }: {
 	agents: Map<string, SpawnAgentStatus>
 	startTime: number
 	isResearchMode?: boolean
 	recovery?: RecoveryState
 	onReconnect?: () => void
+	indentForActiveTodo?: boolean
 }) {
 	const currentSecond = useCurrentSecond()
 	const elapsed = startTime ? Math.max(0, currentSecond - Math.floor(startTime / 1000)) : 0
@@ -466,7 +517,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 
 	return (
 		<section
-			className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]"
+			className={`flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324] ${indentForActiveTodo ? 'ml-4 border-l-2' : ''}`}
 			aria-label={isResearchMode ? 'Parallel research progress' : 'Herd work progress'}
 		>
 			<button
@@ -601,3 +652,150 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 		</section>
 	)
 })
+
+const TODO_STATUS_ORDER: Record<TodoItem['status'], number> = {
+	in_progress: 0,
+	pending: 1,
+	completed: 2,
+	cancelled: 3
+}
+
+function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
+	if (status === 'completed') {
+		return (
+			<span
+				aria-hidden="true"
+				className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-green-500 bg-green-500 text-[10px] font-bold text-white"
+			>
+				✓
+			</span>
+		)
+	}
+	if (status === 'in_progress') {
+		return (
+			<span
+				aria-hidden="true"
+				className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-(--old-blue)"
+			>
+				<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-(--old-blue)" />
+			</span>
+		)
+	}
+	if (status === 'cancelled') {
+		return (
+			<span
+				aria-hidden="true"
+				className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#d1d5db] text-[10px] text-[#9ca3af] line-through dark:border-[#3f3f46]"
+			>
+				✕
+			</span>
+		)
+	}
+	return (
+		<span
+			aria-hidden="true"
+			className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#d1d5db] dark:border-[#3f3f46]"
+		/>
+	)
+}
+
+export function TodoChecklistPanel({
+	todos,
+	startTime,
+	isLive = false
+}: {
+	todos: TodoItem[]
+	startTime?: number
+	isLive?: boolean
+}) {
+	const currentSecond = useCurrentSecond()
+	const orderedTodos = useMemo(() => {
+		const seen = new Set<string>()
+		const out: TodoItem[] = []
+		for (const item of todos) {
+			if (seen.has(item.id)) continue
+			seen.add(item.id)
+			out.push(item)
+		}
+		return out
+	}, [todos])
+	if (orderedTodos.length === 0) return null
+	const completed = orderedTodos.filter((t) => t.status === 'completed').length
+	const total = orderedTodos.filter((t) => t.status !== 'cancelled').length
+	const showElapsed = isLive && !!startTime
+	const elapsed = showElapsed ? Math.max(0, currentSecond - Math.floor(startTime! / 1000)) : 0
+	return (
+		<section
+			className="flex flex-col gap-1.5 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-2.5 dark:border-[#222324]"
+			aria-label="Plan"
+		>
+			<div className="flex items-center gap-2 px-0.5">
+				<span aria-hidden="true" className="text-sm">
+					📋
+				</span>
+				<p className="m-0 flex-1 truncate text-xs font-medium text-[#444] sm:text-sm dark:text-[#ccc]">Plan</p>
+				<p className="m-0 shrink-0 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+					{completed}/{total} done
+				</p>
+				{showElapsed ? (
+					<time className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 font-mono text-[10px] text-[#666] tabular-nums sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+						{formatTime(elapsed)}
+					</time>
+				) : null}
+			</div>
+			<ul className="flex flex-col gap-1">
+				{orderedTodos.map((todo) => {
+					const isActive = todo.status === 'in_progress'
+					const isCompleted = todo.status === 'completed'
+					const isCancelled = todo.status === 'cancelled'
+					return (
+						<li key={todo.id} className="flex items-start gap-2 px-0.5 py-0.5">
+							<span className="mt-0.5">
+								<TodoStatusIcon status={todo.status} />
+							</span>
+							<p
+								className={`m-0 flex-1 text-xs leading-[1.45] sm:text-sm ${
+									isActive
+										? 'font-medium text-[#444] dark:text-[#e6e6e6]'
+										: isCompleted
+											? 'text-[#888] line-through dark:text-[#777]'
+											: isCancelled
+												? 'text-[#aaa] line-through dark:text-[#666]'
+												: 'text-[#666] dark:text-[#919296]'
+								}`}
+							>
+								{todo.content}
+							</p>
+						</li>
+					)
+				})}
+			</ul>
+		</section>
+	)
+}
+
+export function deriveTodosFromToolExecutions(
+	toolExecutions: Array<{ name?: string; toolData?: unknown }> | undefined
+): TodoItem[] {
+	if (!toolExecutions || toolExecutions.length === 0) return []
+	for (let i = toolExecutions.length - 1; i >= 0; i--) {
+		const exec = toolExecutions[i]
+		if (exec?.name !== 'todo') continue
+		const data = exec.toolData as { todos?: unknown } | undefined
+		if (!data || !Array.isArray(data.todos)) continue
+		const valid: TodoItem[] = []
+		for (const raw of data.todos) {
+			if (!raw || typeof raw !== 'object') continue
+			const item = raw as Partial<TodoItem>
+			if (!item.id || !item.content || !item.status) continue
+			if (TODO_STATUS_ORDER[item.status as TodoItem['status']] === undefined) continue
+			valid.push({
+				id: String(item.id),
+				content: String(item.content),
+				status: item.status as TodoItem['status']
+			})
+		}
+		return valid
+	}
+	return []
+}

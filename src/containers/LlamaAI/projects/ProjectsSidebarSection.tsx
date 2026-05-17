@@ -2,6 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
+import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
@@ -18,12 +20,26 @@ interface ProjectsSidebarSectionProps {
 	currentProjectId?: string | null
 	currentSessionProjectId?: string | null
 	currentSessionId?: string | null
+	restoringSessionId?: string | null
+	deletingSessionId?: string | null
+	updatingTitleSessionId?: string | null
+	onSessionSelect: (sessionId: string) => void
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<void>
 }
 
 export function ProjectsSidebarSection({
 	currentProjectId,
 	currentSessionProjectId,
-	currentSessionId
+	currentSessionId,
+	restoringSessionId,
+	deletingSessionId,
+	updatingTitleSessionId,
+	onSessionSelect,
+	onDelete,
+	onUpdateTitle,
+	onPinSession
 }: ProjectsSidebarSectionProps) {
 	const { user, hasActiveSubscription, isTrial } = useAuthContext()
 	const storageKey = `${LAST_SELECTED_PROJECT_KEY_PREFIX}:${user?.id ?? 'anonymous'}`
@@ -71,14 +87,24 @@ export function ProjectsSidebarSection({
 		void navigate.toProject(projectId)
 	}
 
-	const goToSession = (sessionId: string) => {
-		void navigate.toSession(sessionId)
-	}
-
 	const onCreated = (project: { id: string }) => {
 		setStorageItem(storageKey, project.id)
 		goToProject(project.id)
 	}
+
+	const toSidebarSession = (session: (typeof visibleProjectSessions)[number], projectId: string): ChatSession => ({
+		sessionId: session.sessionId,
+		title: session.title || 'Untitled chat',
+		createdAt: session.createdAt,
+		lastActivity: session.lastActivity ?? session.createdAt,
+		isActive: session.sessionId === currentSessionId,
+		isPinned: session.isPinned,
+		pinnedAt: session.pinnedAt ?? undefined,
+		isPublic: session.isPublic,
+		shareToken: session.shareToken ?? undefined,
+		hasUnseenCompletion: session.hasUnseenCompletion,
+		projectId
+	})
 
 	return (
 		<div className="flex flex-col gap-1 px-4">
@@ -158,20 +184,21 @@ export function ProjectsSidebarSection({
 										{isExpanded && nestedSessions.length > 0 ? (
 											<ul className="mt-0.5 mb-1 ml-0.5 flex flex-col border-l border-[#e6e6e6] pl-1.5 dark:border-[#222324]">
 												{nestedSessions.map((s) => {
-													const isCurrent = s.sessionId === currentSessionId
+													const sidebarSession = toSidebarSession(s, p.id)
 													return (
 														<li key={s.sessionId}>
-															<button
-																type="button"
-																onClick={() => goToSession(s.sessionId)}
-																className={`flex w-full items-center rounded-md px-2 py-[5px] text-left text-xs transition-colors ${
-																	isCurrent
-																		? 'bg-(--old-blue)/8 text-(--old-blue)'
-																		: 'text-[#666] hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white'
-																}`}
-															>
-																<span className="min-w-0 flex-1 truncate">{s.title || 'Untitled chat'}</span>
-															</button>
+															<AgenticSessionItem
+																session={sidebarSession}
+																isActive={sidebarSession.sessionId === currentSessionId}
+																onSessionSelect={onSessionSelect}
+																onDelete={onDelete}
+																onUpdateTitle={onUpdateTitle}
+																isRestoring={restoringSessionId === sidebarSession.sessionId}
+																isDeleting={deletingSessionId === sidebarSession.sessionId}
+																isUpdatingTitle={updatingTitleSessionId === sidebarSession.sessionId}
+																style={{}}
+																onPinSession={onPinSession}
+															/>
 														</li>
 													)
 												})}

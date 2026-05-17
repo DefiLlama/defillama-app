@@ -4,6 +4,8 @@ import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
+import { useSlackChannels } from '~/containers/LlamaAI/hooks/useSlackChannels'
+import { useSlackWorkspaces } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
 import { sanitizeAlertSummary, sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -19,9 +21,15 @@ interface Alert {
 	enabled: boolean
 	run_count: number
 	created_at: string
-	delivery_channel?: 'email' | 'telegram'
+	delivery_channel?: 'email' | 'telegram' | 'slack'
 	condition?: string | null
+	slack_team_id?: string | null
+	slack_channel_id?: string | null
+	slack_channel_name?: string | null
+	test_sent?: boolean
 }
+
+type DeliveryChannel = 'email' | 'telegram' | 'slack'
 
 interface AlertExecution {
 	id: string
@@ -319,9 +327,15 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const [hourDefault, setHourDefault] = useState(() =>
 		getValidHourForTimezone(parsedSchedule.hour ?? 9, initialTimezone)
 	)
+	const [deliveryChannel, setDeliveryChannel] = useState<DeliveryChannel>(alert.delivery_channel ?? 'email')
+	const [slackTeamId, setSlackTeamId] = useState<string>(alert.slack_team_id ?? '')
+	const [slackChannelId, setSlackChannelId] = useState<string>(alert.slack_channel_id ?? '')
 	const [mode, setMode] = useState<'view' | 'editing' | 'deleting'>('view')
 	const [showExecutions, setShowExecutions] = useState(false)
 	const [selectedExecId, setSelectedExecId] = useState<string | null>(null)
+	const slackWorkspacesQuery = useSlackWorkspaces()
+	const slackChannelsQuery = useSlackChannels(deliveryChannel === 'slack' && slackTeamId ? slackTeamId : null)
+	const slackWorkspaces = (slackWorkspacesQuery.data?.workspaces ?? []).filter((w) => !w.revoked)
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
@@ -364,6 +378,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		setFrequency(alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily')
 		setTimezone(nextTimezone)
 		setHourDefault(getValidHourForTimezone(nextParsedSchedule.hour ?? 9, nextTimezone))
+		setDeliveryChannel(alert.delivery_channel ?? 'email')
+		setSlackTeamId(alert.slack_team_id ?? '')
+		setSlackChannelId(alert.slack_channel_id ?? '')
 	}
 
 	const getConditionUpdate = (nextCondition: string) => {
@@ -460,8 +477,11 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: 'email' | 'telegram'
+			delivery_channel: DeliveryChannel
 			condition: string
+			slack_team_id?: string | null
+			slack_channel_id?: string | null
+			slack_channel_name?: string | null
 		}
 	>({
 		mutationFn: async ({
@@ -469,13 +489,19 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			title: nextTitle,
 			alertConfig,
 			delivery_channel,
-			condition: nextCondition
+			condition: nextCondition,
+			slack_team_id,
+			slack_channel_id,
+			slack_channel_name
 		}: {
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: 'email' | 'telegram'
+			delivery_channel: DeliveryChannel
 			condition: string
+			slack_team_id?: string | null
+			slack_channel_id?: string | null
+			slack_channel_name?: string | null
 		}) => {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
@@ -488,12 +514,20 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					title: nextTitle,
 					alertConfig,
 					delivery_channel,
+					...(delivery_channel === 'slack'
+						? {
+								slack_team_id: slack_team_id ?? null,
+								slack_channel_id: slack_channel_id ?? null,
+								slack_channel_name: slack_channel_name ?? null
+							}
+						: {}),
 					...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
 				})
 			})
 			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
-				throw new Error('Failed to update alert')
+				const errBody = await res.json().catch(() => ({ error: res.statusText }))
+				throw new Error(errBody.error || 'Failed to update alert')
 			}
 			return alertConfig
 		},
@@ -583,7 +617,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 
 	const formatDuration = (ms: number) => (ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`)
 
-	const channelLabel = (alert.delivery_channel || 'email') === 'telegram' ? 'Telegram' : 'Email'
+	const channelLabel =
+		alert.delivery_channel === 'telegram'
+			? 'Telegram'
+			: alert.delivery_channel === 'slack'
+				? alert.slack_channel_name
+					? `Slack #${alert.slack_channel_name}`
+					: 'Slack'
+				: 'Email'
 
 	const selectedExec = execDetailQuery.data
 	if (selectedExec) {
@@ -783,7 +824,12 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						const fd = new FormData(e.currentTarget)
 						const titleValue = (fd.get('title') as string).trim()
 						if (!titleValue) return
+						if (deliveryChannel === 'slack' && (!slackTeamId || !slackChannelId)) return
 						trackUmamiEvent('llamaai-alert-edit')
+						const channelName =
+							deliveryChannel === 'slack'
+								? (slackChannelsQuery.data?.channels.find((c) => c.id === slackChannelId)?.name ?? null)
+								: null
 						updateAlertMutation.mutate({
 							alertId: alert.id,
 							title: titleValue,
@@ -793,8 +839,11 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 								dayOfWeek: Number(fd.get('dayOfWeek')),
 								timezone: fd.get('timezone') as string
 							},
-							delivery_channel: fd.get('delivery_channel') as 'email' | 'telegram',
-							condition: fd.get('condition') as string
+							delivery_channel: deliveryChannel,
+							condition: fd.get('condition') as string,
+							slack_team_id: deliveryChannel === 'slack' ? slackTeamId : null,
+							slack_channel_id: deliveryChannel === 'slack' ? slackChannelId : null,
+							slack_channel_name: channelName
 						})
 					}}
 					className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]"
@@ -858,19 +907,80 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							))}
 						</select>
 					</div>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						<label htmlFor={deliveryChannelId} className="text-sm text-(--text3)">
 							Deliver via
 						</label>
 						<select
 							id={deliveryChannelId}
 							name="delivery_channel"
-							defaultValue={alert.delivery_channel || 'email'}
+							value={deliveryChannel}
+							onChange={(e) => setDeliveryChannel(e.target.value as DeliveryChannel)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							<option value="email">Email</option>
 							<option value="telegram">Telegram</option>
+							<option value="slack">Slack</option>
 						</select>
+						{deliveryChannel === 'slack' && (
+							<>
+								{slackWorkspacesQuery.isLoading ? (
+									<span className="text-xs text-(--text3)">Loading workspaces…</span>
+								) : slackWorkspaces.length === 0 ? (
+									<span className="text-xs text-amber-600 dark:text-amber-400">
+										No Slack workspaces connected. Connect one from Settings → Integrations.
+									</span>
+								) : (
+									<select
+										value={slackTeamId}
+										onChange={(e) => {
+											setSlackTeamId(e.target.value)
+											const ws = slackWorkspaces.find((w) => w.team_id === e.target.value)
+											setSlackChannelId(ws?.default_channel_id ?? '')
+										}}
+										className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+									>
+										<option value="" disabled>
+											Pick workspace
+										</option>
+										{slackWorkspaces.map((w) => (
+											<option key={w.team_id} value={w.team_id}>
+												{w.team_name}
+											</option>
+										))}
+									</select>
+								)}
+								{slackTeamId && (
+									<>
+										{slackChannelsQuery.isLoading ? (
+											<span className="text-xs text-(--text3)">Loading channels…</span>
+										) : slackChannelsQuery.isError ? (
+											<span className="text-xs text-red-500">Failed to load channels</span>
+										) : (
+											<select
+												value={slackChannelId}
+												onChange={(e) => setSlackChannelId(e.target.value)}
+												className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+											>
+												<option value="" disabled>
+													Pick channel
+												</option>
+												{(slackChannelsQuery.data?.channels ?? [])
+													.filter((c) => !c.is_archived)
+													.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
+													.map((c) => (
+														<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
+															{c.is_private ? '🔒 ' : '# '}
+															{c.name}
+															{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
+														</option>
+													))}
+											</select>
+										)}
+									</>
+								)}
+							</>
+						)}
 					</div>
 					<div className="flex flex-col gap-1">
 						<label htmlFor={conditionId} className="text-sm text-(--text3)">

@@ -84,6 +84,7 @@ export interface ChatSession {
 	forkedFromShareToken?: string | null
 	isOptimistic?: boolean
 	projectId?: string | null
+	hasUnseenCompletion?: boolean
 }
 
 export interface ResearchUsage {
@@ -101,7 +102,11 @@ export interface AlertProposedData {
 		hour: number
 		timezone: string
 		dayOfWeek?: number
-		deliveryChannel?: 'email' | 'telegram'
+		deliveryChannel?: 'email' | 'telegram' | 'slack'
+		slackTeamId?: string | null
+		slackTeamName?: string | null
+		slackChannelId?: string | null
+		slackChannelName?: string | null
 	}
 	schedule_expression: string
 	next_run_at: string
@@ -145,7 +150,11 @@ export interface AlertIntent {
 	hour: number
 	timezone: string
 	dayOfWeek?: number
-	deliveryChannel?: 'email' | 'telegram'
+	deliveryChannel?: 'email' | 'telegram' | 'slack'
+	slackTeamId?: string | null
+	slackTeamName?: string | null
+	slackChannelId?: string | null
+	slackChannelName?: string | null
 	toolExecutions: Array<{
 		toolName: string
 		arguments: JsonObject
@@ -276,6 +285,12 @@ export interface SpawnAgentStatus {
 	toolCount?: number
 	chartCount?: number
 	findingsPreview?: string
+}
+
+export interface TodoItem {
+	id: string
+	content: string
+	status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
 }
 
 export interface SearchMatch {

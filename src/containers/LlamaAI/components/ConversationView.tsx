@@ -1,6 +1,7 @@
 import {
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 	type Dispatch,
@@ -16,11 +17,15 @@ import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWar
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
-import { SpawnProgressCard, ToolProgressIndicator } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import {
+	SpawnProgressCard,
+	TodoChecklistPanel,
+	ToolProgressIndicator
+} from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
-import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
 
 interface ConversationViewProps {
 	readOnly: boolean
@@ -32,6 +37,8 @@ interface ConversationViewProps {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -112,7 +119,8 @@ function ConversationMessageItem({
 	isBranchSwitching,
 	onTableFullscreenOpen,
 	anchorId,
-	anchorRef
+	anchorRef,
+	enterToSend
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -128,6 +136,7 @@ function ConversationMessageItem({
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
+	enterToSend: boolean
 }) {
 	return (
 		<MessageBubble
@@ -146,6 +155,7 @@ function ConversationMessageItem({
 			anchorId={anchorId}
 			anchorRef={anchorRef}
 			anchorClassName={anchorId ? 'message-anchor' : undefined}
+			enterToSend={enterToSend}
 		/>
 	)
 }
@@ -155,6 +165,8 @@ function ConversationLiveStatus({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -175,6 +187,8 @@ function ConversationLiveStatus({
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -191,8 +205,14 @@ function ConversationLiveStatus({
 	isLlama: boolean
 	onTableFullscreenOpen?: () => void
 }) {
+	const hasTodos = todos.length > 0
 	return (
 		<>
+			{hasTodos ? (
+				<div style={{ overflowAnchor: 'none' }}>
+					<TodoChecklistPanel todos={todos} startTime={todosStartTime} isLive />
+				</div>
+			) : null}
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -201,6 +221,7 @@ function ConversationLiveStatus({
 						isResearchMode
 						recovery={recovery}
 						onReconnect={onReconnectNow}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				) : (
 					<ToolProgressIndicator
@@ -218,6 +239,7 @@ function ConversationLiveStatus({
 							!hasStreamingCharts(streamingDraft?.charts)
 						}
 						executionStartedAt={executionStartedAt}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				)}
 			</div>
@@ -283,6 +305,8 @@ export function ConversationView({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -328,6 +352,87 @@ export function ConversationView({
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
 	const [activeExchangeMinHeight, setActiveExchangeMinHeight] = useState<number | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+	const userMessageAnchorIds = useMemo(
+		() =>
+			messages
+				.map((message) => (message.role === 'user' ? getMessageAnchorId(message.id) : undefined))
+				.filter((anchorId): anchorId is string => Boolean(anchorId)),
+		[messages]
+	)
+
+	const highlightAnchorNode = (node: HTMLElement) => {
+		node.classList.remove('anchor-highlight')
+		void node.offsetWidth
+		node.classList.add('anchor-highlight')
+		if (highlightTimeoutRef.current !== null) {
+			window.clearTimeout(highlightTimeoutRef.current)
+		}
+		highlightTimeoutRef.current = window.setTimeout(() => {
+			node.classList.remove('anchor-highlight')
+			highlightTimeoutRef.current = null
+		}, 2000)
+	}
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (
+				!event.shiftKey ||
+				event.altKey ||
+				event.ctrlKey ||
+				event.metaKey ||
+				(event.key !== 'ArrowUp' && event.key !== 'ArrowDown') ||
+				userMessageAnchorIds.length === 0
+			) {
+				return
+			}
+
+			const target = event.target instanceof HTMLElement ? event.target : null
+			const editableTarget =
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				target instanceof HTMLSelectElement ||
+				target instanceof HTMLButtonElement ||
+				target?.isContentEditable ||
+				!!target?.closest('input, textarea, select, button, [contenteditable]:not([contenteditable="false"])')
+			const isInsideConversation = !!target && !!scrollContainerRef.current?.contains(target)
+			const isPageShortcut = target === document.body || (isInsideConversation && !editableTarget)
+			if (!isPageShortcut) return
+
+			const container = scrollContainerRef.current
+			if (!container) return
+
+			const containerTop = container.getBoundingClientRect().top
+			const upThreshold = containerTop + 40
+			const downThreshold = containerTop + 96
+			const anchoredUserMessages = userMessageAnchorIds
+				.map((anchorId) => {
+					const node = document.getElementById(anchorId)
+					return node ? { anchorId, node, top: node.getBoundingClientRect().top } : null
+				})
+				.filter((item): item is { anchorId: string; node: HTMLElement; top: number } => item != null)
+			if (anchoredUserMessages.length === 0) return
+
+			event.preventDefault()
+			if (event.key === 'ArrowDown') {
+				const nextMessage = anchoredUserMessages.find((item) => item.top > downThreshold)
+				if (!nextMessage) {
+					scrollToBottom()
+					return
+				}
+				nextMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+				highlightAnchorNode(nextMessage.node)
+				return
+			}
+
+			const previousMessage =
+				anchoredUserMessages.filter((item) => item.top < upThreshold).at(-1) ?? anchoredUserMessages[0]
+			previousMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+			highlightAnchorNode(previousMessage.node)
+		}
+
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [scrollContainerRef, scrollToBottom, userMessageAnchorIds])
 
 	useEffect(() => {
 		return () => {
@@ -357,16 +462,7 @@ export function ConversationView({
 					}
 					container?.removeEventListener('scrollend', applyHighlight)
 					pendingScrollHighlightRef.current = null
-					node.classList.remove('anchor-highlight')
-					void node.offsetWidth
-					node.classList.add('anchor-highlight')
-					if (highlightTimeoutRef.current !== null) {
-						window.clearTimeout(highlightTimeoutRef.current)
-					}
-					highlightTimeoutRef.current = window.setTimeout(() => {
-						node.classList.remove('anchor-highlight')
-						highlightTimeoutRef.current = null
-					}, 2000)
+					highlightAnchorNode(node)
 				}
 
 				pendingScrollHighlightRef.current?.()
@@ -489,6 +585,7 @@ export function ConversationView({
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+											enterToSend={enterToSend}
 										/>
 									)
 								})}
@@ -524,6 +621,7 @@ export function ConversationView({
 												onTableFullscreenOpen={onTableFullscreenOpen}
 												anchorId={getMessageAnchorId(message.id)}
 												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+												enterToSend={enterToSend}
 											/>
 										))}
 
@@ -533,6 +631,8 @@ export function ConversationView({
 												activeToolCalls={activeToolCalls}
 												spawnProgress={spawnProgress}
 												spawnStartTime={spawnStartTime}
+												todos={todos}
+												todosStartTime={todosStartTime}
 												executionStartedAt={executionStartedAt}
 												spawnIsResearchMode={spawnIsResearchMode}
 												streamingThinking={streamingThinking}
@@ -557,6 +657,8 @@ export function ConversationView({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={todos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										streamingThinking={streamingThinking}
 										spawnIsResearchMode={spawnIsResearchMode}

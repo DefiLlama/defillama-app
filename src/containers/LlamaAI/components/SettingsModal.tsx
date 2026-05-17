@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'reac
 import { Icon } from '~/components/Icon'
 import type { TelegramStatus } from '~/containers/LlamaAI/api/telegram'
 import { getIntegrationRowResetKey, IntegrationRow } from '~/containers/LlamaAI/components/IntegrationRow'
+import { SlackIntegrationRow } from '~/containers/LlamaAI/components/SlackIntegrationRow'
 import {
 	type EffortOption,
 	type LlamaAISettings,
@@ -582,15 +583,21 @@ export const SettingsModal = memo(function SettingsModal({
 											</div>
 										</div>
 									) : (
-										<IntegrationRow
-											key={getIntegrationRowResetKey(initialState?.tgloginToken, telegramStatus)}
-											kind="telegram"
-											title="Telegram"
-											description="Chat with LlamaAI and receive alerts in your Telegram DMs."
-											initialStatus={telegramStatus}
-											initialTgloginToken={initialState?.tgloginToken ?? null}
-											onInitialStateConsumed={onInitialStateConsumed}
-										/>
+										<div className="flex flex-col gap-3">
+											<IntegrationRow
+												key={getIntegrationRowResetKey(initialState?.tgloginToken, telegramStatus)}
+												kind="telegram"
+												title="Telegram"
+												description="Chat with LlamaAI and receive alerts in your Telegram DMs."
+												initialStatus={telegramStatus}
+												initialTgloginToken={initialState?.tgloginToken ?? null}
+												onInitialStateConsumed={onInitialStateConsumed}
+											/>
+											<SlackIntegrationRow
+												title="Slack"
+												description="Receive scheduled alerts in your Slack channels. Multi-workspace supported."
+											/>
+										</div>
 									)}
 								</div>
 							)}

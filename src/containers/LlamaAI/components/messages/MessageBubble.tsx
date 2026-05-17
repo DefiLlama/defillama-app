@@ -13,8 +13,10 @@ import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/Markdown
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
+	deriveTodosFromToolExecutions,
 	getToolLabel,
 	ThinkingPanel,
+	TodoChecklistPanel,
 	TOOL_ICONS,
 	useHackerMode
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
@@ -582,10 +584,19 @@ function InlineContent({
 			) : null}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
-				<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
+				<>
+					<FrozenTodoChecklist toolExecutions={toolExecutions} />
+					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
+				</>
 			) : null}
 		</div>
 	)
+}
+
+function FrozenTodoChecklist({ toolExecutions }: { toolExecutions: ToolExecution[] }) {
+	const todos = useMemo(() => deriveTodosFromToolExecutions(toolExecutions), [toolExecutions])
+	if (todos.length === 0) return null
+	return <TodoChecklistPanel todos={todos} />
 }
 
 const formatStepDuration = (ms: number): string => {
@@ -889,7 +900,8 @@ export function MessageBubble({
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef,
-	anchorClassName
+	anchorClassName,
+	enterToSend = true
 }: {
 	message: Message
 	sessionId: string | null
@@ -907,6 +919,7 @@ export function MessageBubble({
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
 	anchorClassName?: string
+	enterToSend?: boolean
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string; isPasted?: boolean } | null>(
@@ -916,6 +929,7 @@ export function MessageBubble({
 	const [isSaving, setIsSaving] = useState(false)
 	const [draftText, setDraftText] = useState(message.content || '')
 	const hackerMode = useHackerMode()
+	const submitShortcutLabel = enterToSend ? 'Enter' : 'Shift Enter'
 	const handleCancelEdit = () => {
 		if (isSaving) return
 		setIsEditing(false)
@@ -1022,7 +1036,7 @@ export function MessageBubble({
 							value={draftText}
 							onChange={(event) => setDraftText(event.target.value)}
 							onKeyDown={(event) => {
-								if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+								if (event.key === 'Enter' && event.shiftKey !== enterToSend && !event.nativeEvent.isComposing) {
 									event.preventDefault()
 									event.stopPropagation()
 									void handleSaveEdit()
@@ -1050,7 +1064,7 @@ export function MessageBubble({
 							<span className="hidden sm:inline">
 								{' · '}
 								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
-									⌘↵
+									{submitShortcutLabel}
 								</kbd>
 								<span className="mx-1">save</span>
 								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
