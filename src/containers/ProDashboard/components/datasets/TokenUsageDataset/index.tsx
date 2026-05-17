@@ -1,14 +1,14 @@
 import {
 	flexRender,
 	getCoreRowModel,
-	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
 	type PaginationState,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
+import { matchSorter } from 'match-sorter'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -100,14 +100,15 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const rawData = rawDataResponse ?? EMPTY_USAGE_DATA
 	const tokenOptions = tokenOptionsResponse ?? EMPTY_TOKEN_OPTIONS
 	const defaultTokens = defaultTokensResponse ?? EMPTY_TOKEN_OPTIONS
+	const deferredSearch = useDeferredValue(search)
 
 	const filteredData = useMemo(() => {
-		if (!search) return rawData
-		const searchLower = search.toLowerCase()
-		return rawData.filter(
-			(item) => item.name.toLowerCase().includes(searchLower) || item.category?.toLowerCase().includes(searchLower)
-		)
-	}, [rawData, search])
+		if (!deferredSearch) return rawData
+		return matchSorter(rawData, deferredSearch, {
+			keys: ['name', (item) => item.category ?? ''],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [rawData, deferredSearch])
 
 	const columns = useMemo(() => getColumns(tokenSymbols), [tokenSymbols])
 
@@ -116,17 +117,14 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		columns,
 		state: {
 			sorting,
-			pagination,
-			globalFilter: search
+			pagination
 		},
 		onSortingChange: setSorting,
 		enableSortingRemoval: false,
 		onPaginationChange: setPagination,
-		onGlobalFilterChange: setSearch,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		autoResetPageIndex: false
 	})
 
@@ -564,8 +562,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				<div className="mt-3 flex items-center gap-2 sm:gap-4">
 					<input
 						placeholder="Search protocols..."
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onInput={(e) => setSearch(e.currentTarget.value)}
 						className="w-full max-w-xs rounded border pro-border pro-bg1 px-2 py-1.5 text-sm pro-text1 focus:ring-1 focus:ring-(--primary) focus:outline-hidden sm:w-auto sm:px-3"
 					/>
 				</div>

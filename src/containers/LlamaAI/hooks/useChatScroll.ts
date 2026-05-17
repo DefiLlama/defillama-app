@@ -57,6 +57,7 @@ export function useChatScroll({
 	const paginationLoadInFlightRef = useRef(false)
 	const newerPaginationLoadInFlightRef = useRef(false)
 	const lastScrollTopRef = useRef(0)
+	const [isAttached, setIsAttached] = useState(() => !startDetached)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
 	const syncScrollToBottomVisibility = useCallback((container: HTMLDivElement | null) => {
@@ -72,6 +73,7 @@ export function useChatScroll({
 	const setMode = useCallback(
 		(mode: ScrollMode, container: HTMLDivElement | null = scrollContainerRef.current) => {
 			modeRef.current = mode
+			setIsAttached(mode === 'attached')
 			syncScrollToBottomVisibility(container)
 		},
 		[scrollContainerRef, syncScrollToBottomVisibility]
@@ -177,6 +179,21 @@ export function useChatScroll({
 			})
 		}
 	}, [items, scrollContainerRef])
+
+	useEffect(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		const resizeObserver = new ResizeObserver(() => {
+			if (modeRef.current === 'attached') {
+				container.scrollTop = container.scrollHeight
+			}
+			syncScrollToBottomVisibility(container)
+			lastScrollTopRef.current = container.scrollTop
+		})
+		resizeObserver.observe(container)
+		return () => resizeObserver.disconnect()
+	}, [scrollContainerRef, syncScrollToBottomVisibility])
 
 	// Keyboard open: when the soft keyboard appears and we're attached, snap to bottom
 	// so the latest content stays visible above the input.
@@ -296,6 +313,7 @@ export function useChatScroll({
 	return {
 		attach,
 		scrollToBottom,
+		isAttached,
 		showScrollToBottom
 	}
 }

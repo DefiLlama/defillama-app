@@ -27,7 +27,7 @@ export const Turnstile = ({ onVerify, onError, onExpire, className }: TurnstileP
 				onExpire={onExpire}
 				options={{
 					theme,
-					size: 'normal',
+					size: 'flexible',
 					appearance: 'always'
 				}}
 			/>

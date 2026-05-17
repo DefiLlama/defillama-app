@@ -101,6 +101,7 @@ export interface ICategoriesAndTags {
 			chains?: Array<string>
 			slug?: string
 			dexs?: boolean
+			perps?: boolean
 		}
 	>
 }

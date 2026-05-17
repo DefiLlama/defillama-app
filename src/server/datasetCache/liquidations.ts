@@ -18,28 +18,26 @@ import {
 	resolveProtocolId,
 	type LiquidationsMetadataCache
 } from '~/containers/LiquidationsV2/queries'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
-function getLiquidationsDomainDir(): string {
-	return getDatasetDomainDir('liquidations')
-}
+const LIQUIDATIONS_FILES = DATASET_DOMAIN_ARTIFACTS.liquidations.files
 
 async function getLiquidationsProtocolsResponse(): Promise<RawProtocolsResponse> {
-	return readJsonFile<RawProtocolsResponse>(`${getLiquidationsDomainDir()}/raw/protocols.json`)
+	return readDatasetDomainJson<RawProtocolsResponse>('liquidations', LIQUIDATIONS_FILES.rawProtocols)
 }
 
 async function getLiquidationsAllResponse(): Promise<RawAllLiquidationsResponse> {
-	return readJsonFile<RawAllLiquidationsResponse>(`${getLiquidationsDomainDir()}/raw/all.json`)
+	return readDatasetDomainJson<RawAllLiquidationsResponse>('liquidations', LIQUIDATIONS_FILES.rawAll)
 }
 
 async function getLiquidationsBlockExplorers(): Promise<BlockExplorersResponse> {
-	return readJsonFile<BlockExplorersResponse>(`${getLiquidationsDomainDir()}/raw/block-explorers.json`)
+	return readDatasetDomainJson<BlockExplorersResponse>('liquidations', LIQUIDATIONS_FILES.rawBlockExplorers)
 }
 
 export async function getLiquidationsOverviewFromCache(
 	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsOverviewPageProps> {
-	await readDatasetManifest()
 	const [protocolsResponse, allResponse] = await Promise.all([
 		getLiquidationsProtocolsResponse(),
 		getLiquidationsAllResponse()
@@ -51,7 +49,6 @@ export async function getTokenLiquidationsFromCache(
 	tokenSymbol: string,
 	metadataCache: LiquidationsMetadataCache
 ): Promise<TokenLiquidationsSectionData | null> {
-	await readDatasetManifest()
 	const [protocolsResponse, allResponse] = await Promise.all([
 		getLiquidationsProtocolsResponse(),
 		getLiquidationsAllResponse()
@@ -60,7 +57,6 @@ export async function getTokenLiquidationsFromCache(
 }
 
 export async function hasTokenLiquidationsInCache(tokenSymbol: string): Promise<boolean> {
-	await readDatasetManifest()
 	const [protocolsResponse, allResponse] = await Promise.all([
 		getLiquidationsProtocolsResponse(),
 		getLiquidationsAllResponse()
@@ -81,7 +77,6 @@ export async function getLiquidationsProtocolFromCache(
 	protocolParam: string,
 	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsProtocolPageProps | null> {
-	await readDatasetManifest()
 	const [protocolsResponse, allResponse, blockExplorers] = await Promise.all([
 		getLiquidationsProtocolsResponse(),
 		getLiquidationsAllResponse(),
@@ -112,7 +107,6 @@ export async function getLiquidationsChainFromCache(
 	chainParam: string,
 	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsChainPageProps | null> {
-	await readDatasetManifest()
 	const [protocolsResponse, allResponse, blockExplorers] = await Promise.all([
 		getLiquidationsProtocolsResponse(),
 		getLiquidationsAllResponse(),

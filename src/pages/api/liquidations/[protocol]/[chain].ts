@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLiquidationsChainPageDataFromNetwork } from '~/containers/LiquidationsV2/queries'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { validateSubscription } from '~/utils/apiAuth'
+import metadataCache from '~/utils/metadata'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
@@ -9,7 +9,7 @@ export const config = {
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	res.setHeader('Cache-Control', 'private, no-store')
 
 	if (req.method !== 'GET') {
@@ -30,22 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
-		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
-
-		const shouldUseDatasetCache = isDatasetCacheEnabled()
-		const data = shouldUseDatasetCache
-			? await (async () => {
-					const { getLiquidationsChainFromCache } = await import('~/server/datasetCache/liquidations')
-					return getLiquidationsChainFromCache(protocol, chain, {
-						chainMetadata: metadataModule.default.chainMetadata,
-						protocolMetadata: metadataModule.default.protocolMetadata
-					})
-				})()
-			: await getLiquidationsChainPageDataFromNetwork(protocol, chain, {
-					chainMetadata: metadataModule.default.chainMetadata,
-					protocolMetadata: metadataModule.default.protocolMetadata
-				})
+		const { getLiquidationsChainPageData } = await import('~/server/datasetCache/runtime/liquidations')
+		const data = await getLiquidationsChainPageData(protocol, chain, {
+			chainMetadata: metadataCache.chainMetadata,
+			protocolMetadata: metadataCache.protocolMetadata
+		})
 
 		if (!data) {
 			return res.status(404).json({ error: 'Liquidations chain not found' })
@@ -53,7 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		return res.status(200).json(data)
 	} catch (error) {
-		console.error(`Failed to fetch liquidations chain data for ${protocol}/${chain}:`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch liquidations chain data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/liquidations/[protocol]/[chain]', handler)

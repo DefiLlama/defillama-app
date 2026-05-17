@@ -23,7 +23,7 @@ import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
-import { getErrorMessage } from '~/utils/error'
+import { getErrorMessage, normalizeError } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import {
 	fetchAdapterChainChartData,
@@ -842,7 +842,7 @@ function useAdapterByChainBreakdownChartData({
 
 			const baseResult = requests[0]
 			if (baseResult?.status !== 'fulfilled') {
-				throw baseResult?.reason ?? new Error('Failed to fetch breakdown chart data')
+				throw normalizeError(baseResult?.reason ?? 'Failed to fetch breakdown chart data')
 			}
 
 			const failedMetrics: FeesExtraMetric[] = []

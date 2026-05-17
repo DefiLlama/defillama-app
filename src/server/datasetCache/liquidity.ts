@@ -1,19 +1,17 @@
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
-function getLiquidityDomainDir(): string {
-	return getDatasetDomainDir('liquidity')
-}
+const LIQUIDITY_FILES = DATASET_DOMAIN_ARTIFACTS.liquidity.files
 
 export async function fetchLiquidityEntryByProtocolIdFromCache(
 	protocolId: string
 ): Promise<ProtocolLiquidityTokensResponse[number] | null> {
-	await readDatasetManifest()
 	if (!protocolId) {
 		return null
 	}
 
-	const payload = await readJsonFile<ProtocolLiquidityTokensResponse>(`${getLiquidityDomainDir()}/full.json`)
+	const payload = await readDatasetDomainJson<ProtocolLiquidityTokensResponse>('liquidity', LIQUIDITY_FILES.full)
 	for (const entry of payload) {
 		if (entry.id === protocolId) {
 			return entry

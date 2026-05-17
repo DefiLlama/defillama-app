@@ -1,8 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const ALLOWED_HOSTS = new Set(['icons.llamao.fi', 'token-icons.llamao.fi'])
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { url } = req.query
 
 	if (!url || typeof url !== 'string') {
@@ -21,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	}
 
 	try {
-		const response = await fetch(parsed.toString())
+		const response = await fetchWithPoolingOnServer(parsed.toString())
 		if (!response.ok) {
 			return res.status(response.status).json({ error: 'failed to fetch icon' })
 		}
@@ -31,7 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'public, max-age=86400')
 		res.send(buffer)
 	} catch (error) {
-		console.log('Error proxying icon:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(502).json({ error: 'failed to fetch icon' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/icon-proxy', handler)

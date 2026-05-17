@@ -6,7 +6,9 @@ import {
 	fetchRWAPlatformBreakdownChartData
 } from '~/containers/RWA/api'
 import type { RWAChartMetricKey, RWAOverviewBreakdownRequest } from '~/containers/RWA/api.types'
-import { toBreakdownChartDataset } from '~/containers/RWA/breakdownDataset'
+import { toOverviewBreakdownChartDataset } from '~/containers/RWA/breakdownDataset'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function assertNever(value: never): never {
 	throw new Error(`Unknown breakdown: ${value}`)
@@ -54,7 +56,7 @@ export function parseOverviewBreakdownRequest(req: Pick<NextApiRequest, 'query'>
 	return null
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
@@ -83,10 +85,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 		}
 
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
-		return res.status(200).json(toBreakdownChartDataset(rows))
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader(
+				'public, s-maxage=3600, stale-while-revalidate=1800',
+				req.url ?? '/api/rwa/overview-breakdown'
+			)
+		)
+		return res.status(200).json(toOverviewBreakdownChartDataset(rows, request))
 	} catch (error) {
-		console.error('RWA overview-breakdown proxy error:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/rwa/overview-breakdown', handler)

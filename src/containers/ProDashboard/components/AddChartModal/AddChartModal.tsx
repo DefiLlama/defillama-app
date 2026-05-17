@@ -33,7 +33,7 @@ const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
 const PRIMARY_TABLE_TYPES_SET = new Set(PRIMARY_TABLE_TYPES)
 
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
-	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
+	const { state, actions, computed } = useModalActions(editItem, onClose)
 
 	const _getCurrentItemType = () => {
 		if (state.selectedMainTab === 'charts') {

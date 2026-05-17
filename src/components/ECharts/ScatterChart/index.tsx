@@ -12,11 +12,12 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useEffectEvent, useId, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useRef, useState } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import type { IScatterChartProps } from '../types'
+import { isIconUrlValid, validateIconUrl } from '../utils'
 
 echarts.use([
 	CanvasRenderer,
@@ -56,9 +57,31 @@ export default function ScatterChart({
 	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
 		onReady?.(instance)
 	})
+	const [iconRevision, setIconRevision] = useState(0)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
+
+	useEffect(() => {
+		if (!showLabels) return
+		const slugs = new Set<string>()
+		for (const point of chartData as any[]) {
+			const slug = point?.[3]
+			if (slug && typeof slug === 'string' && slug.toLowerCase() !== 'unknown') slugs.add(slug)
+		}
+		const pending: Promise<boolean>[] = []
+		for (const slug of slugs) {
+			pending.push(validateIconUrl(getEntityIcon(entityType, slug)))
+		}
+		if (pending.length === 0) return
+		let cancelled = false
+		Promise.all(pending).then(() => {
+			if (!cancelled) setIconRevision((v) => v + 1)
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [chartData, entityType, showLabels])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
@@ -104,9 +127,13 @@ export default function ScatterChart({
 						if (!slug || slug.toLowerCase() === 'unknown') {
 							return { value: point }
 						}
+						const url = getEntityIcon(entityType, slug)
+						if (!isIconUrlValid(url)) {
+							return { value: point }
+						}
 						return {
 							value: point,
-							symbol: `image://${getEntityIcon(entityType, slug)}`,
+							symbol: `image://${url}`,
 							symbolSize: 20
 						}
 					})
@@ -291,7 +318,19 @@ export default function ScatterChart({
 			emitReady(null)
 			instance.dispose()
 		}
-	}, [id, chartData, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
+	}, [
+		id,
+		chartData,
+		isDark,
+		tooltipFormatter,
+		xAxisLabel,
+		yAxisLabel,
+		valueSymbol,
+		title,
+		showLabels,
+		entityType,
+		iconRevision
+	])
 
 	return (
 		<div>

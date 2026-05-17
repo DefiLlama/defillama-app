@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const ICONS_CDN = 'https://icons.llamao.fi/icons'
 
@@ -12,7 +14,7 @@ function buildIconUrl(slug: string): string {
 	return `${ICONS_CDN}/protocols/${normalized}?w=48&h=48`
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { slug } = req.query
 
 	if (!slug || typeof slug !== 'string') {
@@ -21,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		const url = buildIconUrl(slug)
-		const response = await fetch(url)
+		const response = await fetchWithPoolingOnServer(url)
 
 		if (!response.ok) {
 			return res.status(response.status).json({ error: 'Failed to fetch icon' })
@@ -34,7 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'public, max-age=86400')
 		res.send(buffer)
 	} catch (error) {
-		console.log('Error fetching icon:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch icon' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/protocol-icon', handler)

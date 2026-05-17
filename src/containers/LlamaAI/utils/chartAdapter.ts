@@ -324,7 +324,7 @@ const getNumericTooltipValueFromParams = (item: any): number | null => {
 	return value == null || Number.isNaN(value) ? null : value
 }
 
-const createCategoryTooltipFormatter = (
+export const createCategoryTooltipFormatter = (
 	valueSymbol: string,
 	charts: LlamaAICartesianSeriesConfig[] = []
 ): ((params: unknown) => string) => {
@@ -368,6 +368,58 @@ const createCategoryTooltipFormatter = (
 			.join('')
 
 		return `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>${lines}`
+	}
+}
+
+export const createTimeTooltipFormatter = (
+	valueSymbol: string,
+	charts: LlamaAICartesianSeriesConfig[] = []
+): ((params: unknown) => string) => {
+	const seriesSymbols = new Map(charts.map((c) => [c.name, c.valueSymbol ?? valueSymbol]))
+
+	return (params: unknown) => {
+		const items = Array.isArray(params) ? params : params ? [params] : []
+		if (items.length === 0) return ''
+		const first: any = items[0]
+		const ts = Array.isArray(first?.value) ? Number(first.value[0]) : Number(first?.data?.timestamp ?? first?.axisValue)
+		const dateStr = Number.isFinite(ts)
+			? new Date(ts).toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric',
+					timeZone: 'UTC'
+				})
+			: ''
+		const lines = items
+			.map((it: any) => {
+				const name = it?.seriesName
+				if (!name) return null
+				const value = getNumericTooltipValueFromParams(it)
+				if (value == null) return null
+				return {
+					color: it?.color ?? '#888',
+					name,
+					symbol: seriesSymbols.get(name) ?? valueSymbol,
+					value
+				}
+			})
+			.filter(
+				(
+					item
+				): item is {
+					color: string
+					name: string
+					symbol: string
+					value: number
+				} => item !== null
+			)
+			.sort((a, b) => b.value - a.value)
+			.map(
+				(item) =>
+					`<li style="list-style:none;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;"></span>${item.name}: <strong>${formatChartValue(item.value, item.symbol)}</strong></li>`
+			)
+			.join('')
+		return `<div style="font-weight:600;margin-bottom:4px;">${dateStr}</div><ul style="margin:0;padding:0;">${lines}</ul>`
 	}
 }
 
@@ -678,54 +730,8 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 		}
 
 		if (axisType === 'time' && !chartOptions.tooltip) {
-			const seriesSymbols = new Map(charts.map((c) => [c.name, c.valueSymbol ?? primaryAxisSymbol]))
 			chartOptions.tooltip = {
-				formatter: (params: any) => {
-					const items = Array.isArray(params) ? params : params ? [params] : []
-					if (items.length === 0) return ''
-					const first = items[0]
-					const ts = Array.isArray(first?.value)
-						? Number(first.value[0])
-						: Number(first?.data?.timestamp ?? first?.axisValue)
-					const dateStr = Number.isFinite(ts)
-						? new Date(ts).toLocaleDateString('en-US', {
-								year: 'numeric',
-								month: 'short',
-								day: 'numeric',
-								timeZone: 'UTC'
-							})
-						: ''
-					const lines = items
-						.map((it: any) => {
-							const name = it?.seriesName
-							if (!name) return null
-							const value = getNumericTooltipValueFromParams(it)
-							if (value == null) return null
-							return {
-								color: it?.color ?? '#888',
-								name,
-								symbol: seriesSymbols.get(name) ?? primaryAxisSymbol,
-								value
-							}
-						})
-						.filter(
-							(
-								item
-							): item is {
-								color: string
-								name: string
-								symbol: string
-								value: number
-							} => item !== null
-						)
-						.sort((a, b) => b.value - a.value)
-						.map(
-							(item) =>
-								`<li style="list-style:none;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;"></span>${item.name}: <strong>${formatChartValue(item.value, item.symbol)}</strong></li>`
-						)
-						.join('')
-					return `<div style="font-weight:600;margin-bottom:4px;">${dateStr}</div><ul style="margin:0;padding:0;">${lines}</ul>`
-				}
+				formatter: createTimeTooltipFormatter(primaryAxisSymbol, charts)
 			}
 		}
 

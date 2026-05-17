@@ -1,3 +1,42 @@
+import path from 'node:path'
+
+const DEFAULT_DATASET_CACHE_ROOT_DIR = '.cache/datasets'
+const DEFAULT_DATASET_CACHE_MAX_AGE_MS = 5 * 60 * 1000
+const DEFAULT_DATASET_CACHE_FETCH_TIMEOUT_MS = 180_000
+
+export type DatasetCachePolicyPhase = 'build' | 'refresh'
+
+function getEnvNumber(name: string, fallback: number, { allowZero }: { allowZero: boolean }): number {
+	const raw = process.env[name]?.trim()
+	if (!raw) return fallback
+
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) && (allowZero ? parsed >= 0 : parsed > 0) ? parsed : fallback
+}
+
+export function getDatasetCacheRootDir(): string {
+	return path.resolve(
+		/* turbopackIgnore: true */ process.cwd(),
+		process.env.DATASET_CACHE_DIR?.trim() || DEFAULT_DATASET_CACHE_ROOT_DIR
+	)
+}
+
 export function isDatasetCacheEnabled(): boolean {
 	return process.env.NODE_ENV !== 'test' && process.env.DATASET_CACHE_DISABLE !== '1'
+}
+
+export function isDatasetCacheStrict({ phase = 'build' }: { phase?: DatasetCachePolicyPhase } = {}): boolean {
+	return phase === 'build' && process.env.NODE_ENV === 'production'
+}
+
+export function shouldForceDatasetCacheRefresh(): boolean {
+	return process.env.DATASET_CACHE_FORCE_REFRESH === '1'
+}
+
+export function getDatasetCacheMaxAgeMs(): number {
+	return getEnvNumber('DATASET_CACHE_MAX_AGE_MS', DEFAULT_DATASET_CACHE_MAX_AGE_MS, { allowZero: true })
+}
+
+export function getDatasetCacheFetchTimeoutMs(): number {
+	return getEnvNumber('DATASET_CACHE_FETCH_TIMEOUT_MS', DEFAULT_DATASET_CACHE_FETCH_TIMEOUT_MS, { allowZero: false })
 }

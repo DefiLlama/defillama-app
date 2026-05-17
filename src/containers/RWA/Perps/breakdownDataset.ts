@@ -1,5 +1,4 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import type { IRWAPerpsBreakdownChartResponse } from './api.types'
 
 function toUnixMsTimestamp(timestamp: number): number {
@@ -13,26 +12,28 @@ function getUtcStartOfDay(timestamp: number): number {
 	return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 }
 
-function sumChartRow(row: IRWAPerpsBreakdownChartResponse[number] | null): number | null {
+function sumChartRow(row: MultiSeriesChart2Dataset['source'][number] | null): number | null {
 	if (!row) return null
 
 	let total = 0
 	for (const key in row) {
 		if (key === 'timestamp') continue
-		total += row[key]
+		const numericValue = Number(row[key])
+		if (Number.isFinite(numericValue)) total += numericValue
 	}
 
 	return total > 0 ? total : null
 }
 
 function getLatestRowInWindow(
-	rows: IRWAPerpsBreakdownChartResponse,
+	rows: MultiSeriesChart2Dataset['source'],
 	windowStart: number,
 	windowEnd: number
-): IRWAPerpsBreakdownChartResponse[number] | null {
+): MultiSeriesChart2Dataset['source'][number] | null {
 	for (let index = rows.length - 1; index >= 0; index--) {
 		const row = rows[index]
-		if (row.timestamp >= windowStart && row.timestamp < windowEnd) return row
+		const timestamp = Number(row.timestamp)
+		if (timestamp >= windowStart && timestamp < windowEnd) return row
 	}
 
 	return null
@@ -40,11 +41,11 @@ function getLatestRowInWindow(
 
 export function normalizeRWAPerpsBreakdownChartRows(
 	rows: IRWAPerpsBreakdownChartResponse | null
-): IRWAPerpsBreakdownChartResponse {
-	const normalizedRows: IRWAPerpsBreakdownChartResponse = []
+): MultiSeriesChart2Dataset['source'] {
+	const normalizedRows: MultiSeriesChart2Dataset['source'] = []
 
 	for (const row of rows ?? []) {
-		const normalizedRow: IRWAPerpsBreakdownChartResponse[number] = {
+		const normalizedRow: MultiSeriesChart2Dataset['source'][number] = {
 			timestamp: toUnixMsTimestamp(Number(row.timestamp))
 		}
 
@@ -56,7 +57,7 @@ export function normalizeRWAPerpsBreakdownChartRows(
 		normalizedRows.push(normalizedRow)
 	}
 
-	return ensureChronologicalRows(normalizedRows)
+	return normalizedRows
 }
 
 export function toRWAPerpsBreakdownChartDataset(

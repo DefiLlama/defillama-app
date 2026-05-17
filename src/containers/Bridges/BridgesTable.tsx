@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -15,8 +14,8 @@ import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, slug } from '~/utils'
 
@@ -76,14 +75,16 @@ const bridgesColumn = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[140px] min-[480px]:w-[180px] lg:w-[240px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => `/bridges/${slug(chain)}`)} />,
-		size: 200,
 		meta: {
+			headerClassName: 'w-[180px] lg:w-[200px]',
 			align: 'end',
 			headerHelperText: 'Chains are ordered by bridge volume on each chain'
 		}
@@ -91,39 +92,39 @@ const bridgesColumn = [
 	columnHelper.accessor('change_1d', {
 		header: '1d Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('lastDailyVolume', {
 		header: '24h Volume',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('weeklyVolume', {
 		header: '7d Volume',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('monthlyVolume', {
 		header: '1m Volume',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('txsPrevDay', {
 		header: '24h # of Txs',
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})
@@ -135,37 +136,6 @@ const bridgesColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['displayName', 'lastDailyVolume', 'change_1d', 'weeklyVolume', 'monthlyVolume', 'chains', 'txsPrevDay'],
 	1024: ['displayName', 'chains', 'change_1d', 'lastDailyVolume', 'weeklyVolume', 'monthlyVolume', 'txsPrevDay']
 }
-
-const bridgesColumnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		displayName: 140,
-		chains: 180,
-		change_1d: 100,
-		lastDailyVolume: 120,
-		weeklyVolume: 120,
-		monthlyVolume: 120,
-		txsPrevDay: 120
-	},
-	480: {
-		displayName: 180,
-		chains: 180,
-		change_1d: 100,
-		lastDailyVolume: 120,
-		weeklyVolume: 120,
-		monthlyVolume: 120,
-		txsPrevDay: 120
-	},
-	1024: {
-		displayName: 240,
-		chains: 200,
-		change_1d: 100,
-		lastDailyVolume: 120,
-		weeklyVolume: 120,
-		monthlyVolume: 120,
-		txsPrevDay: 120
-	}
-}
-
 export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTableProps>(function BridgesTable(
 	{ data, searchValue = '', csvFileName = 'bridges' },
 	ref
@@ -173,16 +143,13 @@ export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTablePro
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-
 	const instance = useReactTable({
 		data,
 		columns: bridgesColumn,
 		state: {
 			sorting,
 			columnFilters,
-			columnOrder,
-			columnSizing
+			columnOrder
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -191,7 +158,6 @@ export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTablePro
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel()
@@ -203,9 +169,8 @@ export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTablePro
 		})
 	}, [searchValue, instance])
 
-	useSortColumnSizesAndOrders({
+	useSortColumnOrders({
 		instance,
-		columnSizes: bridgesColumnSizes,
 		columnOrders: bridgesColumnOrders
 	})
 

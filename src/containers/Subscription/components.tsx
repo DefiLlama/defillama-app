@@ -117,7 +117,6 @@ function PricingCardCta({
 	canUpgradeCycle,
 	isUpgradeTier,
 	isLowerTier,
-	billingCycle,
 	isPageStateLoading,
 	onPrimaryCtaClick,
 	onSecondaryCtaClick,

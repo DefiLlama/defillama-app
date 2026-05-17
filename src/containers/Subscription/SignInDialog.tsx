@@ -1,13 +1,12 @@
 import * as Ariakit from '@ariakit/react'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
+import dynamic from 'next/dynamic'
 import { useState } from 'react'
-import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscription/auth'
-import { WalletProvider } from '~/layout/WalletProvider'
 import type { FormSubmitEvent } from '~/types/forms'
+import type { WalletSignInButtonProps } from './WalletSignInButton'
 
 type Step = 'signin' | 'signup' | 'forgot'
 
@@ -22,14 +21,26 @@ const outlineBtnCls =
 const signInDialogCls =
 	'dialog top-1/2 right-auto bottom-auto left-1/2 m-0 max-h-[90dvh] min-h-0 w-[calc(100vw-32px)] max-w-[331px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:max-h-[calc(100dvh-48px)] max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
 
+const WalletSignInButton = dynamic<WalletSignInButtonProps>(
+	() => import('./WalletSignInButton').then((module) => module.WalletSignInButton),
+	{
+		ssr: false,
+		loading: () => (
+			<button type="button" className="text-(--link)" disabled>
+				Loading wallet...
+			</button>
+		)
+	}
+)
+
 /* ── Dialog entry point ─────────────────────────────────────────────── */
 
 export function SignInDialog({ store }: { store: Ariakit.DialogStore }) {
 	return (
 		<Ariakit.Dialog store={store} className={signInDialogCls} unmountOnHide>
-			<WalletProvider>
+			<div>
 				<SignInFlow dialogStore={store} />
-			</WalletProvider>
+			</div>
 		</Ariakit.Dialog>
 	)
 }
@@ -46,18 +57,16 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 	const [error, setError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [acceptedTerms, setAcceptedTerms] = useState(false)
+	const [walletSignInRequested, setWalletSignInRequested] = useState(false)
 
-	const { login, signup, signInWithEthereumMutation, signInWithGithubMutation, resetPasswordMutation, loaders } =
-		useAuthContext()
-	const { openConnectModal } = useConnectModal()
-	const { address } = useAccount()
-	const { signMessageAsync } = useSignMessage()
+	const { login, signup, signInWithGithubMutation, resetPasswordMutation, loaders } = useAuthContext()
 
 	const goTo = (next: Step) => {
 		setError('')
 		setPassword('')
 		setConfirmPassword('')
 		setShowPassword(false)
+		setWalletSignInRequested(false)
 		setStep(next)
 	}
 
@@ -111,19 +120,6 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 			goTo('signin')
 		} catch {
 			setError('Failed to send reset email')
-		}
-	}
-
-	const handleWalletSignIn = async () => {
-		if (address) {
-			try {
-				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction: signMessageAsync })
-				dialogStore.hide()
-			} catch {
-				setError('Failed to sign in with wallet')
-			}
-		} else {
-			openConnectModal?.()
 		}
 	}
 
@@ -238,9 +234,20 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 
 				<p className="mt-6 text-center text-xs text-(--text-primary)">
 					Registered with a wallet before?{' '}
-					<button type="button" className="text-(--link)" onClick={() => void handleWalletSignIn()}>
-						Sign-in here
-					</button>
+					{walletSignInRequested ? (
+						<WalletSignInButton dialogStore={dialogStore} setError={setError} autoStart />
+					) : (
+						<button
+							type="button"
+							className="text-(--link)"
+							onClick={() => {
+								setError('')
+								setWalletSignInRequested(true)
+							}}
+						>
+							Sign-in here
+						</button>
+					)}
 				</p>
 			</>
 		)

@@ -14,7 +14,6 @@ const columnHelper = createColumnHelper<IEquitiesListCompanyRow>()
 const columns = [
 	columnHelper.accessor('ticker', {
 		header: 'Ticker',
-		size: 120,
 		cell: ({ row }) => (
 			<span className="relative flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -24,11 +23,13 @@ const columns = [
 				</BasicLink>
 			</span>
 		),
-		meta: { align: 'start' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'start'
+		}
 	}),
 	columnHelper.accessor('name', {
 		header: 'Company',
-		size: 200,
 		filterFn: (row, _columnId, filterValue) => {
 			const query = String(filterValue).trim().toLowerCase()
 			if (!query) return true
@@ -39,106 +40,151 @@ const columns = [
 				{getValue()}
 			</BasicLink>
 		),
-		meta: { align: 'start' }
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
+			align: 'start'
+		}
 	}),
 	columnHelper.accessor('currentPrice', {
 		header: defs.currentPrice.label,
-		size: 120,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.currentPrice.description }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end',
+			headerHelperText: defs.currentPrice.description
+		}
 	}),
 	columnHelper.accessor('priceChangePercentage1d', {
 		header: defs.priceChangePercentage1d.label,
-		size: 148,
 		cell: ({ getValue }) => {
 			const value = getValue()
 			return (
 				<span className={value >= 0 ? 'text-(--success)' : 'text-(--error)'}>{abbreviateNumber(value, 2, '%')}</span>
 			)
 		},
-		meta: { align: 'end', headerHelperText: defs.priceChangePercentage1d.description }
+		meta: {
+			headerClassName: 'w-[148px]',
+			align: 'end',
+			headerHelperText: defs.priceChangePercentage1d.description
+		}
 	}),
 	columnHelper.accessor('priceChangePercentage7d', {
 		header: defs.priceChangePercentage7d.label,
-		size: 148,
 		cell: ({ getValue }) => {
 			const value = getValue()
 			return (
 				<span className={value >= 0 ? 'text-(--success)' : 'text-(--error)'}>{abbreviateNumber(value, 2, '%')}</span>
 			)
 		},
-		meta: { align: 'end', headerHelperText: defs.priceChangePercentage7d.description }
+		meta: {
+			headerClassName: 'w-[148px]',
+			align: 'end',
+			headerHelperText: defs.priceChangePercentage7d.description
+		}
 	}),
 	columnHelper.accessor('priceChangePercentage1m', {
 		header: defs.priceChangePercentage1m.label,
-		size: 148,
 		cell: ({ getValue }) => {
 			const value = getValue()
 			return (
 				<span className={value >= 0 ? 'text-(--success)' : 'text-(--error)'}>{abbreviateNumber(value, 2, '%')}</span>
 			)
 		},
-		meta: { align: 'end', headerHelperText: defs.priceChangePercentage1m.description }
+		meta: {
+			headerClassName: 'w-[148px]',
+			align: 'end',
+			headerHelperText: defs.priceChangePercentage1m.description
+		}
 	}),
 	columnHelper.accessor('marketCap', {
 		header: defs.marketCap.label,
-		size: 120,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.marketCap.description }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end',
+			headerHelperText: defs.marketCap.description
+		}
 	}),
 	columnHelper.accessor('trailingPE', {
 		header: defs.trailingPE.label,
-		size: 80,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2),
-		meta: { align: 'end', headerHelperText: defs.trailingPE.description }
+		meta: {
+			headerClassName: 'w-[80px]',
+			align: 'end',
+			headerHelperText: defs.trailingPE.description
+		}
 	}),
 	columnHelper.accessor('dividendYield', {
 		header: defs.dividendYield.label,
-		size: 100,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '%'),
-		meta: { align: 'end', headerHelperText: defs.dividendYield.description }
+		meta: {
+			headerClassName: 'w-[100px]',
+			align: 'end',
+			headerHelperText: defs.dividendYield.description
+		}
 	}),
 	columnHelper.accessor('priceToBook', {
 		header: defs.priceToBook.label,
-		size: 72,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2),
-		meta: { align: 'end', headerHelperText: defs.priceToBook.description }
+		meta: {
+			headerClassName: 'w-[72px]',
+			align: 'end',
+			headerHelperText: defs.priceToBook.description
+		}
 	}),
 	columnHelper.accessor('operatingProfitMargin', {
 		header: defs.operatingProfitMargin.label,
-		size: 110,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '%'),
-		meta: { align: 'end', headerHelperText: defs.operatingProfitMargin.description }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end',
+			headerHelperText: defs.operatingProfitMargin.description
+		}
 	}),
 	columnHelper.accessor('revenueTTM', {
 		header: defs.revenueTTM.label,
-		size: 140,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.revenueTTM.description }
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end',
+			headerHelperText: defs.revenueTTM.description
+		}
 	}),
 	columnHelper.accessor('grossProfitTTM', {
 		header: defs.grossProfitTTM.label,
-		size: 160,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.grossProfitTTM.description }
+		meta: {
+			headerClassName: 'w-[160px]',
+			align: 'end',
+			headerHelperText: defs.grossProfitTTM.description
+		}
 	}),
 	columnHelper.accessor('earningsTTM', {
 		header: defs.earningsTTM.label,
-		size: 140,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.earningsTTM.description }
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end',
+			headerHelperText: defs.earningsTTM.description
+		}
 	}),
 	columnHelper.accessor('totalAssets', {
 		header: defs.totalAssets.label,
-		size: 120,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.totalAssets.description }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end',
+			headerHelperText: defs.totalAssets.description
+		}
 	}),
 	columnHelper.accessor('totalLiabilities', {
 		header: defs.totalLiabilities.label,
-		size: 132,
 		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
-		meta: { align: 'end', headerHelperText: defs.totalLiabilities.description }
+		meta: {
+			headerClassName: 'w-[132px]',
+			align: 'end',
+			headerHelperText: defs.totalLiabilities.description
+		}
 	})
 ]
 

@@ -38,6 +38,7 @@ export interface Subscription {
 		isTrial?: boolean
 		trial_started_at?: string
 		isCanceled?: string
+		isPastDue?: string
 	}
 }
 
@@ -123,6 +124,32 @@ async function fetchSubscription({ isAuthenticated }: { isAuthenticated: boolean
 	} catch (error) {
 		console.log('Error fetching subscription:', error)
 		return defaultInactiveSubscription
+	}
+}
+
+async function fetchPastDueSubscription({
+	isAuthenticated
+}: {
+	isAuthenticated: boolean
+}): Promise<Subscription | null> {
+	if (!isAuthenticated) return null
+
+	try {
+		const response = await fetch(`${AUTH_SERVER}/subscription/past-due`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${pb.authStore.token}`
+			}
+		})
+
+		if (!response.ok) return null
+
+		const data: SubscriptionResponse = await response.json()
+		return data?.subscription ?? null
+	} catch (error) {
+		console.log('Error fetching past-due subscription:', error)
+		return null
 	}
 }
 
@@ -234,6 +261,19 @@ export const useSubscribe = () => {
 	})
 
 	const subscriptionData = subscriptionQuery?.data ?? null
+
+	const pastDueSubscriptionQuery = useQuery({
+		queryKey: ['subscription', 'past-due', user?.id],
+		queryFn: () => fetchPastDueSubscription({ isAuthenticated }),
+		retry: false,
+		refetchOnWindowFocus: false,
+		enabled:
+			isAuthenticated &&
+			router.pathname === '/account' &&
+			!subscriptionQuery.isLoading &&
+			subscriptionData?.status !== 'active',
+		staleTime: 1000 * 60 * 15
+	})
 
 	const apiSubscription = subscriptionData?.type === 'api' ? subscriptionData : defaultInactiveSubscription
 
@@ -541,6 +581,8 @@ export const useSubscribe = () => {
 		isUsageStatsLoading: usageStatsQuery.isLoading,
 		isUsageStatsError: usageStatsQuery.isError,
 		cancelSubscription: cancelSubscriptionMutation.mutateAsync,
-		isCancelSubscriptionLoading: cancelSubscriptionMutation.isPending
+		isCancelSubscriptionLoading: cancelSubscriptionMutation.isPending,
+		pastDueSubscription: pastDueSubscriptionQuery.data ?? null,
+		isPastDueSubscriptionLoading: pastDueSubscriptionQuery.isLoading
 	}
 }

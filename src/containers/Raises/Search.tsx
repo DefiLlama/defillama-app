@@ -1,20 +1,19 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { slug } from '~/utils'
 
 export function RaisesSearch({ list }: { list?: string[] }) {
 	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		if (!deferredSearchValue) return list || []
-		return matchSorter(list || [], deferredSearchValue, {
+		if (!searchValue) return list || []
+		return matchSorter(list || [], searchValue, {
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [list, deferredSearchValue])
+	}, [list, searchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 

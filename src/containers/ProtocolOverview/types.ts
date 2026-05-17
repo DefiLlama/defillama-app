@@ -45,6 +45,7 @@ interface IAdapterOverview {
 	total24h: number | null
 	total7d: number | null
 	total30d: number | null
+	total1y: number | null
 	totalAllTime: number | null
 	methodology?: string | null
 	methodologyURL?: string | null
@@ -105,6 +106,7 @@ export interface IProtocolOverviewPageData {
 		emissions24h: number
 		emissions7d: number
 		emissions30d: number
+		emissions1y: number | null
 		emissionsAllTime: number
 		emissionsMonthlyAverage1y: number
 		methodology?: string
@@ -172,6 +174,8 @@ export interface IProtocolOverviewPageData {
 		note: string | null
 	} | null
 	isCEX?: boolean
+	cexMarketsExchange?: string | null
+	cexMarketsSlug?: string | null
 	hasKeyMetrics?: boolean
 	competitors?: Array<{ name: string; tvl: number }>
 	hacks: Array<IHackApiItem>
@@ -257,6 +261,7 @@ export interface IProtocolCoreChartProps {
 	chartOptions?: Record<string, Record<string, unknown>>
 	height?: string
 	unlockTokenSymbol?: string | null
+	gasUsedValueSymbol?: string
 	isThemeDark: boolean
 	groupBy?: ChartTimeGroupingWithCumulative
 	hideDataZoom?: boolean

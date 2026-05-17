@@ -1,5 +1,5 @@
 import type { Dispatch } from 'react'
-import type { CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
+import type { ContextWarningPayload, CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type {
 	AlertProposedData,
 	ChartSet,
@@ -61,6 +61,7 @@ export interface StreamState {
 	error: string | null
 	lastFailedRequest: FailedRequest | null
 	rateLimitDetails: RateLimitDetails | null
+	contextWarning: ContextWarningPayload | null
 }
 
 export interface StreamBuffer {
@@ -74,6 +75,7 @@ export interface StreamBuffer {
 	citations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
+	error: string | null
 	hasStartedText: boolean
 	spawnStarted: boolean
 	receivedEventCount: number
@@ -107,6 +109,7 @@ export type StreamAction =
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
+	| { type: 'SET_CONTEXT_WARNING'; value: ContextWarningPayload | null }
 
 // Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
@@ -140,7 +143,8 @@ export const createInitialStreamState = (): StreamState => ({
 	...createEmptyRuntimeState(),
 	error: null,
 	lastFailedRequest: null,
-	rateLimitDetails: null
+	rateLimitDetails: null,
+	contextWarning: null
 })
 
 // Keep a mutable buffer while SSE events arrive, then commit it as one assistant message at the end.
@@ -155,10 +159,26 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	citations: [],
 	toolExecutions: [],
 	thinking: '',
+	error: null,
 	hasStartedText: false,
 	spawnStarted: false,
 	receivedEventCount: 0
 })
+
+export function hasStreamBufferContent(buffer: StreamBuffer) {
+	return Boolean(
+		buffer.text ||
+		buffer.charts.length > 0 ||
+		buffer.csvExports.length > 0 ||
+		buffer.mdExports.length > 0 ||
+		buffer.alerts.length > 0 ||
+		buffer.dashboards.length > 0 ||
+		buffer.generatedImages.length > 0 ||
+		buffer.citations.length > 0 ||
+		buffer.toolExecutions.length > 0 ||
+		buffer.thinking
+	)
+}
 
 // Drive the live streaming UI without mutating message history until the request is complete.
 export function streamReducer(state: StreamState, action: StreamAction): StreamState {
@@ -264,6 +284,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					lastErrorMessage: null
 				}
 			}
+		case 'SET_CONTEXT_WARNING':
+			return { ...state, contextWarning: action.value }
 		default:
 			return state
 	}
@@ -271,17 +293,19 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 
 // Convert the buffered stream payload into the same message shape used for restored history.
 export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string): Message {
+	const nonEmpty = <T>(value: T[] | undefined) => (value && value.length > 0 ? value : undefined)
+
 	return {
 		role: 'assistant',
 		content: buffer.text || undefined,
-		charts: buffer.charts.length > 0 ? buffer.charts : undefined,
-		csvExports: buffer.csvExports.length > 0 ? buffer.csvExports : undefined,
-		mdExports: buffer.mdExports.length > 0 ? buffer.mdExports : undefined,
-		alerts: buffer.alerts.length > 0 ? buffer.alerts : undefined,
-		dashboards: buffer.dashboards.length > 0 ? buffer.dashboards : undefined,
-		generatedImages: buffer.generatedImages.length > 0 ? buffer.generatedImages : undefined,
-		citations: buffer.citations.length > 0 ? buffer.citations : undefined,
-		toolExecutions: buffer.toolExecutions.length > 0 ? buffer.toolExecutions : undefined,
+		charts: nonEmpty(buffer.charts),
+		csvExports: nonEmpty(buffer.csvExports),
+		mdExports: nonEmpty(buffer.mdExports),
+		alerts: nonEmpty(buffer.alerts),
+		dashboards: nonEmpty(buffer.dashboards),
+		generatedImages: nonEmpty(buffer.generatedImages),
+		citations: nonEmpty(buffer.citations),
+		toolExecutions: nonEmpty(buffer.toolExecutions),
 		thinking: buffer.thinking || undefined,
 		messageMetadata: buffer.messageMetadata,
 		id: messageId

@@ -13,6 +13,7 @@ import {
 	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -33,7 +34,6 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		pageIndex: 0,
 		pageSize: 10
 	})
-	const [protocolName, setProtocolName] = React.useState('')
 	const { data, isLoading, error } = useBridgeAggregatorsData(chains)
 
 	const instance = useReactTable({
@@ -60,6 +60,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		getPaginationRowModel: getPaginationRowModel(),
 		autoResetPageIndex: false
 	})
+	const [, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	React.useEffect(() => {
 		const defaultOrder = bridgeAggregatorsDatasetColumns.map((column) => column.id as string)
@@ -86,37 +87,6 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 			instance.setColumnVisibility({})
 		}
 	}, [chains, instance])
-
-	// const csvData = React.useMemo(() => {
-	// 	const rows = instance.getRowModel().rows
-	// 	const headers = [
-	// 		'Protocol',
-	// 		'24h Change',
-	// 		'7d Change',
-	// 		'24h Volume',
-	// 		'7d Volume',
-	// 		'30d Volume',
-	// 		'% of Total',
-	// 		'Cumulative Volume'
-	// 	]
-
-	// 	const data = rows.map((row, index) => {
-	// 		const cumulativeVolume = rows.slice(0, index + 1).reduce((sum, r) => sum + (r.original.total24h || 0), 0)
-
-	// 		return [
-	// 			row.original.name,
-	// 			row.original.change_24h,
-	// 			row.original.change_7d,
-	// 			row.original.total24h,
-	// 			row.original.total7d,
-	// 			row.original.total30d,
-	// 			row.original.dominance,
-	// 			cumulativeVolume
-	// 		]
-	// 	})
-
-	// 	return { headers, data }
-	// }, [instance])
 
 	if (isLoading) {
 		return (
@@ -194,15 +164,14 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
+								downloadCSV('bridge-aggregators-data.csv', csv, { addTimestamp: true })
 							}}
 							smol
 						/>
 						<input
 							type="text"
 							placeholder="Search protocols..."
-							value={protocolName}
-							onChange={(e) => setProtocolName(e.target.value)}
+							onInput={(e) => setProtocolName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

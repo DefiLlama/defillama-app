@@ -6,7 +6,7 @@ import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useVolatility } from '~/containers/Yields/queries/client'
 import { NameYield, NameYieldPool } from '~/containers/Yields/Tables/Name'
@@ -22,10 +22,12 @@ const columnHelper = createColumnHelper<IYieldTableRow>()
 
 function createColumns({
 	hasPremiumAccess,
-	onRequestUpgrade
+	onRequestUpgrade,
+	compact = false
 }: {
 	hasPremiumAccess: boolean
 	onRequestUpgrade: (source: 'header' | 'cell') => void
+	compact?: boolean
 }) {
 	return [
 		columnHelper.accessor('pool', {
@@ -40,46 +42,58 @@ function createColumns({
 					poolMeta={row.original.poolMeta}
 				/>
 			),
-			size: 200
+			meta: {
+				headerClassName: compact ? 'w-[160px] sm:w-[220px]' : 'w-[120px] min-[812px]:w-[200px] xl:w-[240px]'
+			}
 		}),
 		columnHelper.accessor('project', {
 			id: 'project',
 			header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
 			enableSorting: false,
 			cell: ({ row }) => <NameYield project={row.original.project} projectslug={row.original.projectslug} />,
-			size: 200
+			meta: {
+				headerClassName: compact ? 'w-[140px] sm:w-[220px]' : 'w-[200px]'
+			}
 		}),
 		columnHelper.accessor('chains', {
 			id: 'chains',
 			header: 'Chain',
 			enableSorting: false,
 			cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
-			meta: { align: 'end' },
-			size: 60
+			meta: {
+				headerClassName: compact ? 'w-[36px]' : 'w-[60px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.tvl ?? undefined, {
 			id: 'tvl',
 			header: 'TVL',
 			enableSorting: true,
 			cell: (info) => <span>{formattedNum(info.getValue(), true)}</span>,
-			size: 120,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: compact ? 'w-[90px]' : 'w-[120px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.apy ?? undefined, {
 			id: 'apy',
 			header: 'APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign fontWeight={700} />,
-			size: 100,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: compact ? 'w-[90px] sm:w-[70px]' : 'w-[100px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.apyBase ?? undefined, {
 			id: 'apyBase',
 			header: 'Base APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 140,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: 'w-[140px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.apyReward ?? undefined, {
 			id: 'apyReward',
@@ -104,16 +118,20 @@ function createColumns({
 					</span>
 				)
 			},
-			size: 140,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: 'w-[140px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.apyMean30d ?? undefined, {
 			id: 'apyMean30d',
 			header: '30d Avg APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 125,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: 'w-[125px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.cv30d ?? undefined, {
 			id: 'cv30d',
@@ -128,8 +146,10 @@ function createColumns({
 					onRequestUpgrade={onRequestUpgrade}
 				/>
 			),
-			size: 110,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: 'w-[110px]',
+				align: 'end'
+			}
 		}),
 		columnHelper.accessor((row) => row.apyChart30d ?? undefined, {
 			id: 'apyChart30d',
@@ -154,8 +174,10 @@ function createColumns({
 					</BasicLink>
 				)
 			},
-			size: 125,
-			meta: { align: 'end' }
+			meta: {
+				headerClassName: 'w-[125px]',
+				align: 'end'
+			}
 		})
 	]
 }
@@ -179,46 +201,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'apyMean30d', 'cv30d', 'apyChart30d'],
 	1280: COL_IDS
 }
-
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		pool: 120,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyBase: 140,
-		apyReward: 140,
-		apyMean30d: 125,
-		cv30d: 110,
-		apyChart30d: 125
-	},
-	812: {
-		pool: 200,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyBase: 140,
-		apyReward: 140,
-		apyMean30d: 125,
-		cv30d: 110,
-		apyChart30d: 125
-	},
-	1280: {
-		pool: 240,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyBase: 140,
-		apyReward: 140,
-		apyMean30d: 125,
-		cv30d: 110,
-		apyChart30d: 125
-	}
-}
-
 const COMPACT_COL_IDS = ['pool', 'project', 'chains', 'tvl', 'apy']
 
 const compactColumnOrders: ColumnOrdersByBreakpoint = {
@@ -226,12 +208,6 @@ const compactColumnOrders: ColumnOrdersByBreakpoint = {
 	400: ['pool', 'project', 'apy', 'tvl', 'chains'],
 	640: COMPACT_COL_IDS
 }
-
-const compactColumnSizes: ColumnSizesByBreakpoint = {
-	0: { pool: 160, project: 140, chains: 36, tvl: 90, apy: 90 },
-	640: { pool: 220, project: 220, chains: 36, tvl: 90, apy: 70 }
-}
-
 export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; compact?: boolean }) {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
@@ -252,8 +228,8 @@ export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; comp
 		[data, volatility]
 	)
 	const columns = useMemo(
-		() => createColumns({ hasPremiumAccess, onRequestUpgrade }),
-		[hasPremiumAccess, onRequestUpgrade]
+		() => createColumns({ hasPremiumAccess, onRequestUpgrade, compact }),
+		[hasPremiumAccess, onRequestUpgrade, compact]
 	)
 
 	return (
@@ -261,7 +237,6 @@ export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; comp
 			<YieldsTableWrapper
 				data={rows}
 				columns={compact ? columns.filter((c) => COMPACT_COL_IDS.includes(c.id!)) : columns}
-				columnSizes={compact ? compactColumnSizes : columnSizes}
 				columnOrders={compact ? compactColumnOrders : columnOrders}
 				sortingState={[{ id: 'tvl', desc: true }]}
 				skipVirtualization

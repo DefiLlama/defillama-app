@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { chainIconUrl } from '~/utils/icons'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const { category, limit } = req.query
 		let categoryParam = typeof category === 'string' ? category : 'All'
@@ -62,7 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.status(200).json(finalChains)
 	} catch (error) {
-		console.log('Error fetching chains data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch chains data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/datasets/chains', handler)

@@ -9,10 +9,9 @@ import { fetchEmissionSupplyMetrics } from '~/containers/Unlocks/api'
 import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
-import { formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
-import { getErrorMessage } from '~/utils/error'
 import { tokenIconUrl } from '~/utils/icons'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
+import { recordRuntimeError } from '~/utils/telemetry'
 import { AIRDROP_EXCLUDE } from './airdrop-exclude'
 import { fetchAirdropsConfig, fetchProtocols } from './api'
 import type { ParentProtocolLite, ProtocolLite } from './api.types'
@@ -231,16 +230,13 @@ export async function getExtraTvlByChain({
 		fetchChainChart<ChainChartResponse>(chain)
 			.then((data) => data?.[config.chartKey]?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
 			.catch((err) => {
-				postRuntimeLogs(
-					formatRuntimeLog({
-						event: 'extraTvlByChain',
-						level: 'error',
-						status: 'chart-failed',
-						context: { chain, metric, label: config.label },
-						message: getErrorMessage(err)
-					}),
-					{ level: 'error' }
-				)
+				recordRuntimeError(err, 'pageBuild', {
+					event: 'extraTvlByChain',
+					status: 'chart-failed',
+					chain,
+					metric,
+					label: config.label
+				})
 				return null
 			}),
 		fetchChainsByCategoryAll<{
@@ -252,16 +248,13 @@ export async function getExtraTvlByChain({
 				)
 			)
 			.catch((err) => {
-				postRuntimeLogs(
-					formatRuntimeLog({
-						event: 'extraTvlByChain',
-						level: 'error',
-						status: 'chains-list-failed',
-						context: { chain, metric, label: config.label },
-						message: getErrorMessage(err)
-					}),
-					{ level: 'error' }
-				)
+				recordRuntimeError(err, 'pageBuild', {
+					event: 'extraTvlByChain',
+					status: 'chains-list-failed',
+					chain,
+					metric,
+					label: config.label
+				})
 				return []
 			})
 	])

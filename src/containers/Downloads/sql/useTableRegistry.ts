@@ -49,30 +49,40 @@ export function useTableRegistry({ conn, authorizedFetch }: UseTableRegistryOpti
 	const [error, setError] = useState<string | null>(null)
 
 	const load = useCallback(
-		async (source: TableSource): Promise<RegisteredTable | null> => {
+		async (source: TableSource, signal?: AbortSignal): Promise<RegisteredTable | null> => {
 			if (!conn) return null
 			const name = tableNameFor(source)
 			setLoading(name)
 			setError(null)
 			try {
-				const { csvText, columns } = await fetchCsvFor(source, authorizedFetch)
-				// LlamaSQL's virtual filesystem: register text blob, then create table.
+				throwIfAborted(signal)
+				const { csvText, columns } = await fetchCsvFor(source, authorizedFetch, signal)
+				throwIfAborted(signal)
 				const fileName = `${name}.csv`
 				const db = conn.bindings
 				if (db && typeof db.registerFileText === 'function') {
-					await db.registerFileText(fileName, csvText)
+					await withAbort(Promise.resolve(db.registerFileText(fileName, csvText)), signal)
 				} else {
-					// Fallback path if private API shifts.
-					await registerViaBuffer(conn, fileName, csvText)
+					await registerViaBuffer(conn, fileName, csvText, signal)
 				}
-				await conn.query(
-					`CREATE OR REPLACE TABLE "${name}" AS SELECT * FROM read_csv_auto('${fileName}', header = true, sample_size = -1)`
+				throwIfAborted(signal)
+				await withAbort(
+					conn.query(
+						`CREATE OR REPLACE TABLE "${name}" AS SELECT * FROM read_csv_auto('${fileName}', header = true, sample_size = -1)`
+					),
+					signal,
+					() => conn.cancelSent().catch(() => undefined)
 				)
-				const countResult = await conn.query(`SELECT COUNT(*)::BIGINT AS n FROM "${name}"`)
+				throwIfAborted(signal)
+				const countResult = await withAbort(conn.query(`SELECT COUNT(*)::BIGINT AS n FROM "${name}"`), signal, () =>
+					conn.cancelSent().catch(() => undefined)
+				)
 				const countRow = countResult.toArray()[0] as { n: bigint | number } | undefined
 				const rowCount = countRow ? Number(countRow.n) : 0
 
-				const typeByColumn = await describeTypes(conn, name)
+				throwIfAborted(signal)
+				const typeByColumn = await describeTypes(conn, name, signal)
+				throwIfAborted(signal)
 				const entry: RegisteredTable = {
 					name,
 					source,
@@ -86,6 +96,7 @@ export function useTableRegistry({ conn, authorizedFetch }: UseTableRegistryOpti
 				})
 				return entry
 			} catch (err) {
+				if (isAbortError(err) || signal?.aborted) return null
 				setError(err instanceof Error ? err.message : String(err))
 				return null
 			} finally {
@@ -111,9 +122,15 @@ export function useTableRegistry({ conn, authorizedFetch }: UseTableRegistryOpti
 	return { tables, loading, error, load, remove }
 }
 
-async function describeTypes(conn: AsyncDuckDBConnection, name: string): Promise<Map<string, string>> {
+async function describeTypes(
+	conn: AsyncDuckDBConnection,
+	name: string,
+	signal?: AbortSignal
+): Promise<Map<string, string>> {
 	try {
-		const described = await conn.query(`DESCRIBE "${name}"`)
+		const described = await withAbort(conn.query(`DESCRIBE "${name}"`), signal, () =>
+			conn.cancelSent().catch(() => undefined)
+		)
 		const map = new Map<string, string>()
 		for (const row of described.toArray() as Array<{ column_name: string; column_type: string }>) {
 			if (row?.column_name) map.set(row.column_name, row.column_type)
@@ -124,12 +141,16 @@ async function describeTypes(conn: AsyncDuckDBConnection, name: string): Promise
 	}
 }
 
-async function registerViaBuffer(conn: AsyncDuckDBConnection, fileName: string, text: string): Promise<void> {
-	// Fallback: if registerFileText isn't available, try a byte buffer instead.
+async function registerViaBuffer(
+	conn: AsyncDuckDBConnection,
+	fileName: string,
+	text: string,
+	signal?: AbortSignal
+): Promise<void> {
 	const enc = new TextEncoder().encode(text)
 	const db = conn.bindings
 	if (db && typeof db.registerFileBuffer === 'function') {
-		await db.registerFileBuffer(fileName, enc)
+		await withAbort(Promise.resolve(db.registerFileBuffer(fileName, enc)), signal)
 		return
 	}
 	throw new Error('Unable to register CSV buffer with LlamaSQL instance')
@@ -137,14 +158,17 @@ async function registerViaBuffer(conn: AsyncDuckDBConnection, fileName: string, 
 
 async function fetchCsvFor(
 	source: TableSource,
-	authorizedFetch: AuthorizedFetch
+	authorizedFetch: AuthorizedFetch,
+	signal?: AbortSignal
 ): Promise<{ csvText: string; columns: string[] }> {
 	const url =
 		source.kind === 'dataset'
 			? `/api/downloads/${encodeURIComponent(source.slug)}`
 			: `/api/downloads/chart/${encodeURIComponent(source.slug)}?param=${encodeURIComponent(source.param)}`
 
-	const resp = await authorizedFetch(url)
+	throwIfAborted(signal)
+	const resp = await authorizedFetch(url, signal ? { signal } : undefined)
+	throwIfAborted(signal)
 	if (!resp) throw new Error('Not authenticated')
 	if (!resp.ok) {
 		const body = await safeJson(resp)
@@ -153,9 +177,40 @@ async function fetchCsvFor(
 				`Failed to load ${source.kind === 'dataset' ? source.slug : `${source.slug}/${source.param}`}: HTTP ${resp.status}`
 		)
 	}
-	const csvText = await resp.text()
+	const csvText = await withAbort(resp.text(), signal)
+	throwIfAborted(signal)
 	const columns = inferColumns(source, csvText)
 	return { csvText, columns }
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+	if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError')
+}
+
+function isAbortError(err: unknown): boolean {
+	return typeof err === 'object' && err !== null && (err as { name?: string }).name === 'AbortError'
+}
+
+async function withAbort<T>(promise: Promise<T>, signal?: AbortSignal, onAbort?: () => void): Promise<T> {
+	if (!signal) return promise
+	throwIfAborted(signal)
+	return await new Promise<T>((resolve, reject) => {
+		const onSignalAbort = () => {
+			onAbort?.()
+			reject(new DOMException('Cancelled', 'AbortError'))
+		}
+		signal.addEventListener('abort', onSignalAbort, { once: true })
+		promise.then(
+			(value) => {
+				signal.removeEventListener('abort', onSignalAbort)
+				resolve(value)
+			},
+			(err) => {
+				signal.removeEventListener('abort', onSignalAbort)
+				reject(err)
+			}
+		)
+	})
 }
 
 async function safeJson(resp: Response): Promise<any> {

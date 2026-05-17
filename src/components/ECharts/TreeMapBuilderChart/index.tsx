@@ -55,8 +55,35 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 		const instance = echarts.init(container, null, { renderer: 'canvas' })
 		chartRef.current = instance
 		onReadyRef.current?.(instance)
+		const handleTreemapClick = (params: any) => {
+			if (params?.seriesType !== 'treemap') return
+			const seriesModel = (instance as any).getModel?.()?.getSeriesByIndex?.(params.seriesIndex ?? 0)
+			const node = seriesModel?.getData?.()?.tree?.getNodeByDataIndex?.(params.dataIndex)
+			const nodeId = node?.getId?.()
+			const nodePath = node
+				?.getAncestors?.(true)
+				?.map((ancestor: any) => ancestor?.name)
+				?.filter((name: any) => typeof name === 'string' && name)
+			if (typeof nodeId === 'string' && nodeId) {
+				const chartWithTreemapFocus = instance as echarts.ECharts & {
+					__llamaTreemapFocusNode?: { id: string; path?: string[] }
+				}
+				chartWithTreemapFocus.__llamaTreemapFocusNode = {
+					id: nodeId,
+					...(Array.isArray(nodePath) && nodePath.length > 0 ? { path: nodePath } : {})
+				}
+			}
+		}
+		const handleRestore = () => {
+			delete (instance as any).__llamaTreemapFocusNode
+			delete (instance as any).__llamaTreemapFocusNodeId
+		}
+		instance.on('click', handleTreemapClick)
+		instance.on('restore', handleRestore)
 
 		return () => {
+			instance.off('click', handleTreemapClick)
+			instance.off('restore', handleRestore)
 			instance.dispose()
 			chartRef.current = null
 			onReadyRef.current?.(null)

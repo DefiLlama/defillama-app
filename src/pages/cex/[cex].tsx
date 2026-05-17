@@ -17,7 +17,6 @@ export const getStaticProps = withPerformanceLogging(
 
 		const exchangeName = params.cex
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const cexs = metadataCache.cexs
 
@@ -26,8 +25,40 @@ export const getStaticProps = withPerformanceLogging(
 		)
 
 		if (!exchangeData) {
+			console.warn(`[cex/[cex]] ${exchangeName} not found in metadata cache (${cexs.length} CEX entries loaded)`)
 			return {
 				notFound: true
+			}
+		}
+
+		const { fetchExchangeMarketsList } = await import('~/server/datasetCache/runtime/markets')
+		const exchangesList = await fetchExchangeMarketsList()
+		const normalizedCexSlug = slug(exchangeData.slug ?? '')
+		let cexMarketsExchange: string | null = null
+		let cexMarketsSlug: string | null = null
+		for (const entry of exchangesList.cex.spot) {
+			if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
+				cexMarketsExchange = entry.exchange
+				cexMarketsSlug = entry.defillama_slug
+				break
+			}
+		}
+		if (!cexMarketsExchange) {
+			for (const entry of exchangesList.cex.linear_perp) {
+				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
+					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
+					break
+				}
+			}
+		}
+		if (!cexMarketsExchange) {
+			for (const entry of exchangesList.cex.inverse_perp) {
+				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
+					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
+					break
+				}
 			}
 		}
 
@@ -45,10 +76,11 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
+			console.warn(`[cex/[cex]] ${exchangeName} matched metadata but overview data was unavailable`)
 			return { notFound: true }
 		}
 
-		return { props: data, revalidate: maxAgeForNext([22]) }
+		return { props: { ...data, cexMarketsExchange, cexMarketsSlug }, revalidate: maxAgeForNext([22]) }
 	}
 )
 

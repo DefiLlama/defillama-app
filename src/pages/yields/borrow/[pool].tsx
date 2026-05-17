@@ -1,7 +1,8 @@
 import type { GetServerSideProps } from 'next'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 	return Promise.resolve({
 		redirect: {
 			destination: `/yields/pool/${context.params?.pool}`,
@@ -22,3 +23,5 @@ export default function YieldPoolPage() {
 		</Layout>
 	)
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/yields/borrow/[pool]', getServerSidePropsHandler)

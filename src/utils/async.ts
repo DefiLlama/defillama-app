@@ -1,5 +1,12 @@
 import { normalizeError } from './error'
-import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from './http-client'
+import { fetchWithPoolingOnServer, serverFetchUrl, type FetchWithPoolingOnServerOptions } from './http-client'
+import {
+	looksLikeHtmlDocument,
+	redactApiKeyFromUrl,
+	sanitizeDefiLlamaProApiUrl,
+	sanitizeResponseTextForError
+} from './http-error-format'
+import { recordRuntimeError } from './telemetry'
 
 // ─────────────────────────────────────────────────────────────
 // Config: Only 2 knobs instead of 5
@@ -11,13 +18,37 @@ export function getEnvNumber(name: string, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback
 }
 
-const LOG_MAX_QPS = Math.max(0, getEnvNumber('RUNTIME_LOG_MAX_QPS', 5))
-const LOG_QUEUE_MAX = Math.max(10, getEnvNumber('RUNTIME_LOG_QUEUE_MAX', 200))
-const WEBHOOK_MIN_INTERVAL_MS = Math.max(250, getEnvNumber('RUNTIME_LOG_WEBHOOK_MIN_INTERVAL_MS', 1000))
-const LOG_SILENT =
-	process.env.RUNTIME_LOG_SILENT === '1' ||
-	(process.env.NODE_ENV === 'production' && process.env.RUNTIME_LOG_SILENT !== '0')
+export function getFastJsonTimeoutMs(): number {
+	return getEnvNumber('SERVER_FETCH_JSON_FAST_TIMEOUT_MS', 10_000)
+}
+
+export function getSlowJsonTimeoutMs(): number {
+	return getEnvNumber('SERVER_FETCH_JSON_SLOW_TIMEOUT_MS', 45_000)
+}
+
+function getDefaultJsonTimeoutMs(): number {
+	return typeof window === 'undefined' ? getEnvNumber('SERVER_FETCH_JSON_TIMEOUT_MS', 25_000) : 60_000
+}
+
 const REGEXP_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g
+const PUBLIC_SINGLEFLIGHT_HOSTS = new Set([
+	'api.llama.fi',
+	'pro-api.llama.fi',
+	'fe-cache.llama.fi',
+	'defillama-datasets.llama.fi',
+	'raw.githubusercontent.com',
+	'yields.llama.fi',
+	'coins.llama.fi',
+	'stablecoins.llama.fi',
+	'bridges.llama.fi',
+	'nft.llama.fi',
+	'fdv-server.llama.fi',
+	'etfs.llama.fi',
+	'risks.llama.fi',
+	'users.llama.fi',
+	'ask.llama.fi'
+])
+const fetchJsonSingleflight = new Map<string, { promise: Promise<unknown>; waiters: number }>()
 
 // ─────────────────────────────────────────────────────────────
 // Shared utilities (exported for perf.ts to reuse)
@@ -43,24 +74,85 @@ function isRetryableStatus(status: number): boolean {
 	return status === 408 || status === 429 || (status >= 500 && status < 600)
 }
 
-function looksLikeHtmlDocument(text: string): boolean {
-	// We specifically want to catch "Cloudflare HTML error page" type responses.
-	// Keep this cheap: no regex, small checks, case-insensitive.
-	const s = text.trimStart().slice(0, 2048).toLowerCase()
-	return s.startsWith('<!doctype html') || s.startsWith('<html') || (s.includes('<head') && s.includes('</html>'))
-}
-
-function sanitizeResponseTextForError(text: string): string {
-	if (!text) return ''
-	if (looksLikeHtmlDocument(text)) return '[html error page]'
-	// Keep logs/errors small; avoid huge payloads (and accidental PII) in exceptions.
-	const trimmed = text.trim()
-	if (trimmed.length <= 500) return trimmed
-	return `${trimmed.slice(0, 500)}…`
-}
-
 function escapeRegExp(value: string): string {
 	return value.replace(REGEXP_SPECIAL_CHARS, '\\$&')
+}
+
+function envEnabled(name: string, fallback = false): boolean {
+	const raw = process.env[name]
+	if (raw === undefined) return fallback
+	return raw === '1' || raw.toLowerCase() === 'true'
+}
+
+function requestMethod(options?: RequestInit): string {
+	return (options?.method ?? 'GET').toUpperCase()
+}
+
+function hasUnsafeSingleflightHeaders(options?: RequestInit): boolean {
+	if (!options?.headers) return false
+	const headers = new Headers(options.headers)
+	return headers.has('authorization') || headers.has('cookie')
+}
+
+function isRequestInput(url: RequestInfo | URL): url is Request {
+	return typeof Request !== 'undefined' && url instanceof Request
+}
+
+function resolvedUrlString(url: RequestInfo | URL): string | null {
+	const resolved = typeof window === 'undefined' ? serverFetchUrl(url) : url
+	if (typeof resolved === 'string') return resolved
+	if (resolved instanceof URL) return resolved.toString()
+	if (typeof (resolved as any)?.url === 'string') return (resolved as any).url
+	return null
+}
+
+function singleflightKey(url: RequestInfo | URL, options?: FetchWithPoolingOnServerOptions): string | null {
+	if (!envEnabled('SERVER_FETCH_JSON_SINGLEFLIGHT')) return null
+	if (typeof window !== 'undefined') return null
+	if (isRequestInput(url)) return null
+	if (requestMethod(options) !== 'GET' || options?.body || hasUnsafeSingleflightHeaders(options)) return null
+
+	const raw = resolvedUrlString(url)
+	if (!raw) return null
+	try {
+		const parsed = new URL(raw)
+		if (!PUBLIC_SINGLEFLIGHT_HOSTS.has(parsed.hostname)) return null
+		return `${requestMethod(options)} ${parsed.toString()} timeout=${options?.timeout ?? getDefaultJsonTimeoutMs()}`
+	} catch {
+		return null
+	}
+}
+
+function waitForSingleflight<T>(promise: Promise<unknown>, waitMs: number): Promise<T> {
+	let timeout: ReturnType<typeof setTimeout> | undefined
+	const timeoutPromise = new Promise<never>((_resolve, reject) => {
+		timeout = setTimeout(() => reject(new Error(`singleflight wait timeout after ${waitMs}ms`)), waitMs)
+	})
+	return Promise.race([promise, timeoutPromise]).finally(() => {
+		if (timeout) clearTimeout(timeout)
+	}) as Promise<T>
+}
+
+async function runSingleflight<T>(key: string, waitMs: number, run: () => Promise<T>): Promise<T> {
+	const maxWaiters = Math.max(0, getEnvNumber('SERVER_FETCH_JSON_SINGLEFLIGHT_MAX_WAITERS', 20))
+	const existing = fetchJsonSingleflight.get(key)
+
+	if (existing && existing.waiters < maxWaiters) {
+		existing.waiters++
+		try {
+			return await waitForSingleflight<T>(existing.promise, waitMs)
+		} finally {
+			existing.waiters--
+		}
+	}
+
+	const promise = run().finally(() => {
+		if (fetchJsonSingleflight.get(key)?.promise === promise) {
+			fetchJsonSingleflight.delete(key)
+		}
+	}) as Promise<unknown>
+	fetchJsonSingleflight.set(key, { promise, waiters: 0 })
+	return promise as Promise<T>
 }
 
 function sanitizeUrlForLogs(input: RequestInfo | URL): string {
@@ -75,10 +167,7 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	// Minimal behavior:
 	// - If SERVER_URL / V2_SERVER_URL (or lowercase variants) is set, strip it from logged URL.
 	// - If not set, log as-is.
-	const apiKey = process.env.API_KEY
-	if (apiKey && raw.includes(apiKey)) {
-		raw = raw.replaceAll(apiKey, '[REDACTED]')
-	}
+	raw = redactApiKeyFromUrl(raw)
 
 	const serverUrlCandidates = [
 		process.env.SERVER_URL,
@@ -100,297 +189,13 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 		const parsed = new URL(raw)
 		// Fallback when env candidates are unavailable in client runtime.
 		if (parsed.hostname === 'api.llama.fi' || parsed.hostname === 'pro-api.llama.fi') {
-			const pathWithoutBase = parsed.pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
-			return `${pathWithoutBase}${parsed.search}${parsed.hash}` || '/'
+			return sanitizeDefiLlamaProApiUrl(raw)
 		}
 	} catch {
 		// raw can be a relative URL; keep as-is.
 	}
 
 	return raw
-}
-
-// ─────────────────────────────────────────────────────────────
-// Logging: Simple QPS throttle + dedup + async webhook
-// ─────────────────────────────────────────────────────────────
-const recentErrors = new Map<string, number>() // key → timestamp
-const DEDUP_WINDOW_MS = 60_000
-const DEDUP_MAX_ENTRIES = 1000
-const CLEANUP_INTERVAL_MS = 10_000
-let lastCleanupTime = 0
-let qpsWindow = 0
-let qpsCount = 0
-let dropped = 0
-
-const logQueue: string[] = []
-let flushTimer: ReturnType<typeof setTimeout> | null = null
-let webhookInFlight = false
-let webhookNextSendAt = 0
-let webhookBackoffMs = 0
-const WEBHOOK_MAX_BACKOFF_MS = 30_000
-
-function webhookEnabled(): boolean {
-	return typeof window === 'undefined' && !!process.env.RUNTIME_LOGS_WEBHOOK
-}
-
-function ensureFlushScheduled(delayMs: number = 0): void {
-	if (flushTimer || !webhookEnabled()) return
-	const delay = Math.max(0, delayMs)
-	flushTimer = setTimeout(() => void flushQueue(), delay)
-	if (typeof flushTimer.unref === 'function') {
-		flushTimer.unref()
-	}
-}
-
-async function flushQueue(): Promise<void> {
-	// Allow rescheduling by clearing timer handle first.
-	flushTimer = null
-
-	if (!webhookEnabled()) return
-	if (webhookInFlight) {
-		ensureFlushScheduled(250)
-		return
-	}
-	if (logQueue.length === 0 && dropped === 0) return
-
-	const now = Date.now()
-	if (now < webhookNextSendAt) {
-		ensureFlushScheduled(webhookNextSendAt - now)
-		return
-	}
-
-	// Convert accumulated drops into a single line, so it also gets rate-limited.
-	if (dropped > 0) {
-		logQueue.unshift(`[logs] ${dropped} dropped`)
-		dropped = 0
-	}
-
-	// Build ONE batch (slow mode): at most one webhook request per flush.
-	// (Discord limit is 2000; keep margin for safety.)
-	let batch = ''
-	while (logQueue.length > 0) {
-		const line = logQueue[0] ?? ''
-		const next = batch ? `${batch}\n${line}` : line
-		if (next.length > 1900) {
-			if (!batch) {
-				// Single line too large: send truncated and move on.
-				batch = line.slice(0, 1900)
-				logQueue.shift()
-			}
-			break
-		}
-		batch = next
-		logQueue.shift()
-	}
-
-	if (!batch) return
-
-	webhookInFlight = true
-	const result = await sendWebhook(batch)
-	webhookInFlight = false
-
-	const afterSendNow = Date.now()
-
-	if (result.ok) {
-		webhookBackoffMs = 0
-		webhookNextSendAt = afterSendNow + WEBHOOK_MIN_INTERVAL_MS
-	} else if (result.retryAfterMs && result.retryAfterMs > 0) {
-		// Respect Discord rate limiting.
-		webhookNextSendAt = afterSendNow + Math.min(WEBHOOK_MAX_BACKOFF_MS, result.retryAfterMs)
-	} else {
-		// Generic failure: exponential-ish backoff, bounded.
-		webhookBackoffMs = Math.min(WEBHOOK_MAX_BACKOFF_MS, webhookBackoffMs ? webhookBackoffMs * 2 : 2000)
-		webhookNextSendAt = afterSendNow + webhookBackoffMs
-	}
-
-	// Schedule next flush only if we still have work.
-	if (logQueue.length > 0 || dropped > 0) {
-		ensureFlushScheduled(Math.max(0, webhookNextSendAt - Date.now()))
-	}
-}
-
-export async function flushRuntimeLogs(timeoutMs: number = 2000): Promise<void> {
-	if (!webhookEnabled()) return
-
-	const deadline = Date.now() + timeoutMs
-
-	while ((logQueue.length > 0 || dropped > 0 || webhookInFlight) && Date.now() < deadline) {
-		if (flushTimer) {
-			clearTimeout(flushTimer)
-			flushTimer = null
-		}
-
-		await flushQueue()
-
-		if (logQueue.length === 0 && dropped === 0 && !webhookInFlight) return
-
-		const delay = Math.min(250, Math.max(25, webhookNextSendAt - Date.now()), Math.max(0, deadline - Date.now()))
-		if (delay > 0) await sleep(delay)
-	}
-}
-
-async function sendWebhook(content: string): Promise<{ ok: boolean; retryAfterMs?: number }> {
-	const url = process.env.RUNTIME_LOGS_WEBHOOK
-	if (!url) return { ok: false }
-
-	const controller = new AbortController()
-	const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-	try {
-		const res = await fetch(url, {
-			method: 'POST',
-			body: JSON.stringify({ content }),
-			headers: { 'Content-Type': 'application/json' },
-			signal: controller.signal
-		})
-
-		if (res.status === 429) {
-			const retryAfterHeader = res.headers.get('Retry-After') || ''
-			const retryAfterSeconds = Number(retryAfterHeader)
-			const retryAfterMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0 ? retryAfterSeconds * 1000 : 5000
-			return { ok: false, retryAfterMs }
-		}
-
-		return { ok: res.ok }
-	} catch {
-		// Silently ignore webhook failures (best-effort logger)
-		return { ok: false }
-	} finally {
-		clearTimeout(timeoutId)
-	}
-}
-
-type RuntimeLogLevel = 'info' | 'warn' | 'error' | 'retry'
-
-type RuntimeLogOptions = {
-	level?: RuntimeLogLevel
-	forceConsole?: boolean
-}
-
-type RuntimeLogContext = string | number | boolean | null | undefined | Record<string, unknown>
-
-function formatRuntimeLogContext(context: RuntimeLogContext): string | null {
-	if (context == null) return null
-	if (typeof context === 'string') return context
-	if (typeof context === 'number' || typeof context === 'boolean') return String(context)
-
-	try {
-		return JSON.stringify(context)
-	} catch {
-		return '[unserializable context]'
-	}
-}
-
-export function formatRuntimeLog({
-	event,
-	level,
-	status,
-	durationMs,
-	target,
-	context,
-	message,
-	stack
-}: {
-	event: string
-	level: RuntimeLogLevel
-	status?: string | number | null
-	durationMs?: number | null
-	target?: string | null
-	context?: RuntimeLogContext
-	message?: string | null
-	stack?: string | null
-}): string {
-	const parts = [`[${event}]`, `[${level}]`]
-	if (status != null && status !== '') parts.push(`[${status}]`)
-	if (durationMs != null) parts.push(`[${durationMs}ms]`)
-	if (target) parts.push(`< ${target} >`)
-
-	if (context != null) {
-		const contextText = formatRuntimeLogContext(context)
-		if (contextText) parts.push(contextText)
-	}
-
-	if (message) parts.push(message)
-	if (stack) parts.push(`[stack: ${stack}]`)
-
-	return parts.join(' ')
-}
-
-export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void {
-	// Never log or ship HTML pages (e.g. Cloudflare error documents).
-	// These are noisy, can be huge, and aren't useful for runtime diagnostics here.
-	if (looksLikeHtmlDocument(log)) return
-
-	const now = Date.now()
-	const level = options?.level ?? 'info'
-	const forceConsole = options?.forceConsole ?? false
-	let droppedForThrottle = false
-
-	// QPS throttle
-	if (now - qpsWindow >= 1000) {
-		qpsWindow = now
-		qpsCount = 0
-	}
-	if (LOG_MAX_QPS > 0 && qpsCount >= LOG_MAX_QPS) {
-		dropped++
-		droppedForThrottle = true
-		ensureFlushScheduled(0)
-	}
-	if (!droppedForThrottle) {
-		qpsCount++
-	}
-
-	// Dedup: skip if same error logged within window
-	const key = log.replace(/\[\d+ms\]/g, '').replace(/\d{10,}/g, '')
-	const lastSeen = recentErrors.get(key)
-	if (!droppedForThrottle && lastSeen && now - lastSeen < DEDUP_WINDOW_MS) {
-		dropped++
-		ensureFlushScheduled(0)
-		droppedForThrottle = true
-	}
-	if (!droppedForThrottle) {
-		recentErrors.set(key, now)
-	}
-
-	// Periodic cleanup (time-throttled to avoid running on every call)
-	const shouldCleanup = recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
-	if (shouldCleanup || recentErrors.size >= DEDUP_MAX_ENTRIES) {
-		lastCleanupTime = now
-		const cutoff = now - DEDUP_WINDOW_MS
-		for (const [k, t] of recentErrors) {
-			if (t < cutoff) recentErrors.delete(k)
-		}
-		// Hard cap: evict oldest entries if map still too large
-		if (recentErrors.size >= DEDUP_MAX_ENTRIES) {
-			const toDelete = recentErrors.size - DEDUP_MAX_ENTRIES + 100
-			let deleted = 0
-			for (const dedupKey of recentErrors.keys()) {
-				if (deleted >= toDelete) break
-				recentErrors.delete(dedupKey)
-				deleted++
-			}
-		}
-	}
-
-	// Enqueue for webhook
-	if (!droppedForThrottle && webhookEnabled()) {
-		if (logQueue.length >= LOG_QUEUE_MAX) {
-			dropped++
-			ensureFlushScheduled(0)
-		} else {
-			logQueue.push(log.slice(0, 1900))
-			ensureFlushScheduled(0)
-		}
-	}
-
-	// Console (unless silent)
-	// IMPORTANT: apply the same throttle/dedup gate to console to avoid event-loop spam.
-	// If webhook is disabled, console may be the only place logs go, so keep it even when throttled.
-	if ((!LOG_SILENT || forceConsole || level === 'error') && (!droppedForThrottle || !webhookEnabled())) {
-		const output =
-			level === 'error' ? console.error : level === 'warn' || level === 'retry' ? console.warn : console.log
-		output(`\n${log}\n`)
-	}
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -401,7 +206,27 @@ export async function fetchJson<T = any>(
 	options?: FetchWithPoolingOnServerOptions,
 	extraRetry: boolean = false
 ): Promise<T> {
-	const start = Date.now()
+	const timeout = options?.timeout ?? getDefaultJsonTimeoutMs()
+	const requestOptions = { ...options, timeout }
+	const key = singleflightKey(url, requestOptions)
+	if (key) {
+		const waitMs = Math.max(1, getEnvNumber('SERVER_FETCH_JSON_SINGLEFLIGHT_WAIT_MS', timeout))
+		return runSingleflight<T>(key, waitMs, () =>
+			fetchJsonWithRetries<T>(
+				url,
+				{ ...requestOptions, telemetry: { ...requestOptions.telemetry, singleflightRole: 'leader' } },
+				extraRetry
+			)
+		)
+	}
+	return fetchJsonWithRetries<T>(url, requestOptions, extraRetry)
+}
+
+async function fetchJsonWithRetries<T = any>(
+	url: RequestInfo | URL,
+	options: FetchWithPoolingOnServerOptions,
+	extraRetry: boolean = false
+): Promise<T> {
 	const maxAttempts = extraRetry ? 3 : 2
 	const sanitizedUrl = sanitizeUrlForLogs(url)
 	let lastErr: Error | null = null
@@ -410,7 +235,10 @@ export async function fetchJson<T = any>(
 
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
 		try {
-			const res = await fetchWithPoolingOnServer(url, options)
+			const res = await fetchWithPoolingOnServer(url, {
+				...options,
+				telemetry: { ...options.telemetry, attempt: attempt + 1, maxAttempts }
+			})
 
 			if (!res.ok) {
 				lastStatus = res.status
@@ -432,21 +260,7 @@ export async function fetchJson<T = any>(
 				throw new Error(`${sanitizedUrl}: [${res.status}] ${sanitized || res.statusText}`)
 			}
 
-			const data = await res.json()
-			const elapsed = Date.now() - start
-			if (elapsed > 5000) {
-				postRuntimeLogs(
-					formatRuntimeLog({
-						event: 'fetchJson',
-						level: 'info',
-						status: 'slow',
-						durationMs: elapsed,
-						target: sanitizedUrl
-					})
-				)
-			}
-
-			return data
+			return res.json()
 		} catch (err) {
 			lastErr = normalizeError(err)
 			// Common case: API returned HTML (starts with "<") but we tried to parse JSON.
@@ -463,7 +277,6 @@ export async function fetchJson<T = any>(
 	}
 
 	// Log on final failure only
-	const elapsed = Date.now() - start
 	const errorKind = lastErrWasHtml
 		? 'html'
 		: lastStatus != null
@@ -471,20 +284,10 @@ export async function fetchJson<T = any>(
 			: lastErr && isTransientError(lastErr)
 				? 'transient'
 				: 'error'
-	const errorKindForLog = String(errorKind)
 	const errorMessage = lastErrWasHtml
 		? 'returned html page'
 		: (lastErr?.message.replace(new RegExp(`^${escapeRegExp(sanitizedUrl)}:\\s*`), '') ?? 'Unknown fetch error')
-	const finalLog = formatRuntimeLog({
-		event: 'fetchJson',
-		level: 'error',
-		status: errorKindForLog,
-		durationMs: elapsed,
-		target: sanitizedUrl,
-		message: errorMessage
-	})
-	// Avoid spamming console when webhook logging is configured.
-	postRuntimeLogs(finalLog, { level: 'error', forceConsole: !webhookEnabled() })
+	recordRuntimeError(lastErr ?? new Error(errorMessage), 'outboundFetch', { url: sanitizedUrl, status: errorKind })
 	if (!lastErr) {
 		throw new Error(`${sanitizedUrl}: Unknown fetch error`)
 	}

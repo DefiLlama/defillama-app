@@ -65,6 +65,8 @@ export type RWAPerpsChartMode = 'overview' | 'venue' | 'assetGroup'
 export interface IRWAPerpsOverviewBreakdownRequest {
 	breakdown: Exclude<RWAPerpsOverviewBreakdown, 'contract'>
 	key: RWAPerpsChartMetricKey
+	assetClass?: string
+	excludeAssetClass?: string
 }
 
 export interface IRWAPerpsVenueBreakdownRequest {
@@ -83,6 +85,8 @@ export interface IRWAPerpsContractBreakdownRequest {
 	key: RWAPerpsChartMetricKey
 	venue?: string
 	assetGroup?: string
+	assetClass?: string
+	excludeAssetClass?: string
 }
 
 export interface IRWAPerpsOverviewPageData {

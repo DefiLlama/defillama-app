@@ -53,7 +53,9 @@ export function BridgeTokensTable({ data }: { data: BridgeTokensTableRow[] }) {
 						</a>
 					)
 				},
-				size: 120
+				meta: {
+					headerClassName: 'w-[120px]'
+				}
 			}),
 			columnHelper.display({
 				id: 'chainName',
@@ -70,32 +72,32 @@ export function BridgeTokensTable({ data }: { data: BridgeTokensTableRow[] }) {
 						})?.chainDisplayName ?? null
 					)
 				},
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			}),
 			columnHelper.accessor('deposited', {
 				header: 'Deposited',
 				cell: (info) => formattedNum(info.getValue() ?? 0, true),
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			}),
 			columnHelper.accessor('withdrawn', {
 				header: 'Withdrawn',
 				cell: (info) => formattedNum(info.getValue() ?? 0, true),
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			}),
 			columnHelper.accessor('volume', {
 				header: 'Total Volume',
 				cell: (info) => formattedNum(info.getValue(), true),
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			})

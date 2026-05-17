@@ -1,3 +1,5 @@
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRuntimeError } from '~/utils/telemetry'
 interface ProtocolSplitData {
 	series: {
 		name: string
@@ -64,7 +66,7 @@ export default class SProtocolSplitCharts {
 			params.append('categoryFilterMode', categoryFilterMode)
 		}
 
-		const response = await fetch(`/api/protocols/split/${metric}?${params.toString()}`)
+		const response = await fetchWithPoolingOnServer(`/api/protocols/split/${metric}?${params.toString()}`)
 
 		if (!response.ok) {
 			throw new Error(`Failed to fetch ${metric} split data: ${response.statusText}`)
@@ -133,7 +135,7 @@ export default class SProtocolSplitCharts {
 
 			return data
 		} catch (error) {
-			console.log(`Error fetching ${metric} split data:`, error)
+			recordRuntimeError(error, 'pageBuild')
 
 			return {
 				series: [],
@@ -228,7 +230,7 @@ export default class SProtocolSplitCharts {
 		}
 
 		try {
-			const response = await fetch(`/api/protocols/split/protocol-chain?${params.toString()}`)
+			const response = await fetchWithPoolingOnServer(`/api/protocols/split/protocol-chain?${params.toString()}`)
 
 			if (!response.ok) {
 				throw new Error(`Failed to fetch protocol chain data: ${response.statusText}`)
@@ -236,7 +238,7 @@ export default class SProtocolSplitCharts {
 
 			return response.json()
 		} catch (error) {
-			console.log(`Error fetching protocol chain data for ${protocol}:`, error)
+			recordRuntimeError(error, 'pageBuild')
 			return {
 				series: [],
 				metadata: {

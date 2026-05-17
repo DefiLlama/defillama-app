@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { fetchLiquidityTokensDataset, fetchProtocolTokenLiquidityChart } from '~/api'
-import { CACHE_SERVER, YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
+import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import {
@@ -11,6 +12,8 @@ import {
 import { fetchProtocolEmission } from '~/containers/Unlocks/api'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRuntimeError } from '~/utils/telemetry'
 import { processAdjustedProtocolTvl, type ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
@@ -70,7 +73,7 @@ export default class ProtocolCharts {
 			const adjusted = processAdjustedProtocolTvl(data?.chainTvls as unknown as ProtocolChainTvls)
 			return adjusted
 		} catch (error) {
-			console.log(`Error fetching or processing protocol TVL for ${protocolId}:`, error)
+			recordRuntimeError(error, 'pageBuild')
 			return []
 		}
 	}
@@ -106,7 +109,7 @@ export default class ProtocolCharts {
 
 			return points.sort((a, b) => a[0] - b[0])
 		} catch (e) {
-			console.log('Error fetching protocol incentives', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}
@@ -131,7 +134,7 @@ export default class ProtocolCharts {
 			}
 			return totals.sort((a, b) => a[0] - b[0])
 		} catch (e) {
-			console.log('Error fetching protocol unlocks', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}
@@ -185,10 +188,10 @@ export default class ProtocolCharts {
 	}
 
 	static async getTokenData(geckoId: string) {
-		let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
-		const response = await fetch(url)
-		const { data } = await response.json()
-		return data
+		if (!geckoId) return { mcaps: [], prices: [], volumes: [] }
+
+		const result = await fetchCoinGeckoChartByIdWithCacheFallback(geckoId, { fullChart: true })
+		return result?.data ?? { mcaps: [], prices: [], volumes: [] }
 	}
 
 	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
@@ -230,7 +233,7 @@ export default class ProtocolCharts {
 				.map(([ts, val]) => [Number(ts), Number(val)] as [number, number])
 				.sort((a, b) => a[0] - b[0])
 		} catch (e) {
-			console.log('Error fetching token liquidity', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}
@@ -242,13 +245,13 @@ export default class ProtocolCharts {
 			if (!data) return []
 			return data.map(([timestampMs, value]) => [Math.floor(timestampMs / 1e3), value] as [number, number])
 		} catch (e) {
-			console.log('Error fetching protocol treasury', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}
 
 	static async medianApy(protocol: string): Promise<[number, number][]> {
-		const response = await fetch(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
+		const response = await fetchWithPoolingOnServer(`${YIELD_PROJECT_MEDIAN_API}/${protocol}`)
 		const { data } = await response.json()
 		const res: [number, number][] = []
 		for (const item of data) {
@@ -280,7 +283,7 @@ export default class ProtocolCharts {
 			result.sort((a, b) => a[0] - b[0])
 			return result
 		} catch (e) {
-			console.log('Error fetching protocol borrowed', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}
@@ -288,12 +291,14 @@ export default class ProtocolCharts {
 	static async pfRatio(protocol: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		try {
-			const res = await fetch(`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`)
+			const res = await fetchWithPoolingOnServer(
+				`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`
+			)
 			if (!res.ok) return []
 			const data = await res.json()
 			return Array.isArray(data) ? data : []
 		} catch (e) {
-			console.log('Error fetching protocol P/F ratio', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}
@@ -301,12 +306,14 @@ export default class ProtocolCharts {
 	static async psRatio(protocol: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		try {
-			const res = await fetch(`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`)
+			const res = await fetchWithPoolingOnServer(
+				`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`
+			)
 			if (!res.ok) return []
 			const data = await res.json()
 			return Array.isArray(data) ? data : []
 		} catch (e) {
-			console.log('Error fetching protocol P/S ratio', e)
+			recordRuntimeError(e, 'pageBuild')
 			return []
 		}
 	}

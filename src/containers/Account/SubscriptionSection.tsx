@@ -11,6 +11,7 @@ import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 import { EndTrialModal } from './EndTrialModal'
 import { ExternalDataBalanceCard } from './ExternalDataBalanceCard'
 import { SubscriptionCard } from './SubscriptionCard'
+import { useTeam } from './Team/useTeam'
 import { TrialSubscriptionCard } from './TrialSubscriptionCard'
 import { TrialUpgradeBanner } from './TrialUpgradeBanner'
 
@@ -157,6 +158,63 @@ function FreeUpgradeBanner() {
 	)
 }
 
+function PastDueSubscriptionCard({
+	subscription,
+	onUpdatePayment,
+	onCancel,
+	isUpdateLoading,
+	isCancelLoading
+}: {
+	subscription: Subscription
+	onUpdatePayment: () => void
+	onCancel: () => void
+	isUpdateLoading: boolean
+	isCancelLoading: boolean
+}) {
+	const planName = getPlanName(subscription.type)
+	const canUpdatePayment = subscription.provider === 'stripe'
+	return (
+		<div className="flex flex-col gap-4 rounded-2xl border border-sub-warning-border-light bg-sub-warning-bg/10 p-4 dark:border-sub-warning-border-dark">
+			<div className="flex items-start gap-2">
+				<Icon
+					name="alert-warning"
+					height={20}
+					width={20}
+					className="mt-0.5 shrink-0 text-sub-warning-text-light dark:text-sub-warning-text-dark"
+				/>
+				<div className="flex flex-col gap-1">
+					<h3 className="text-base font-semibold text-sub-warning-text-light dark:text-sub-warning-text-dark">
+						{planName} Subscription Past Due
+					</h3>
+					<p className="text-sm text-sub-warning-text-light dark:text-sub-warning-text-dark">
+						Your most recent payment failed. To keep your subscription active, update your payment method on Stripe.
+						Otherwise, you can cancel the overdue subscription below.
+					</p>
+				</div>
+			</div>
+			<div className="flex flex-wrap gap-2">
+				{canUpdatePayment && (
+					<button
+						onClick={onUpdatePayment}
+						disabled={isUpdateLoading}
+						className="flex h-9 items-center gap-1 rounded-lg bg-(--sub-brand-primary) px-3 text-sm font-medium whitespace-nowrap text-white disabled:opacity-50"
+					>
+						{isUpdateLoading ? 'Loading...' : 'Update Payment on Stripe'}
+						{!isUpdateLoading && <Icon name="circle-external-link" height={16} width={16} className="shrink-0" />}
+					</button>
+				)}
+				<button
+					onClick={onCancel}
+					disabled={isCancelLoading}
+					className="flex h-9 items-center rounded-lg border border-(--sub-border-muted) px-3 text-sm font-medium whitespace-nowrap text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
+				>
+					{isCancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
+				</button>
+			</div>
+		</div>
+	)
+}
+
 function LegacyWarning() {
 	return (
 		<div className="flex items-start gap-2 rounded-2xl border border-sub-warning-border-light bg-sub-warning-bg/10 p-4 dark:border-sub-warning-border-dark">
@@ -177,8 +235,44 @@ function LegacyWarning() {
 	)
 }
 
+function getTeamSubLabel(type: string | null): string {
+	if (type === 'api') return 'API'
+	if (type === 'llamafeed') return 'Pro'
+	return ''
+}
+
+function TeamSubscriptionBanner({ teamName, subscriptionType }: { teamName: string; subscriptionType: string | null }) {
+	const hasAssigned = subscriptionType !== null
+
+	return (
+		<div className="flex flex-col gap-3 rounded-2xl border border-(--sub-border-slate-100) bg-white p-4 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
+			<div className="flex items-center gap-2">
+				<Icon name="users" height={20} width={20} className="text-(--sub-ink-primary) dark:text-white" />
+				<span className="text-sm font-medium text-(--sub-ink-primary) dark:text-white">Team Subscription</span>
+			</div>
+			{hasAssigned ? (
+				<p className="text-sm text-(--sub-text-muted)">
+					Your{' '}
+					<span className="font-medium text-(--sub-ink-primary) dark:text-white">
+						{getTeamSubLabel(subscriptionType)}
+					</span>{' '}
+					subscription is managed by{' '}
+					<span className="font-medium text-(--sub-ink-primary) dark:text-white">{teamName}</span>. Billing and seat
+					changes are handled by your team admin.
+				</p>
+			) : (
+				<p className="text-sm text-(--sub-text-muted)">
+					You're a member of <span className="font-medium text-(--sub-ink-primary) dark:text-white">{teamName}</span>.
+					Contact your team admin to be assigned a subscription.
+				</p>
+			)}
+		</div>
+	)
+}
+
 export function SubscriptionSection() {
 	const { isTrial: isTrialFromAuth, hasActiveSubscription } = useAuthContext()
+	const { team } = useTeam()
 
 	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
@@ -190,26 +284,80 @@ export function SubscriptionSection() {
 	const {
 		apiSubscription,
 		llamafeedSubscription,
+		pastDueSubscription,
 		credits,
 		usageStats,
 		isUsageStatsLoading,
 		isUsageStatsError,
 		createPortalSession,
-		enableOverage,
 		cancelSubscription,
 		generateNewKeyMutation,
 		apiKey,
 		isPortalSessionLoading,
-		isEnableOverageLoading,
 		isCancelSubscriptionLoading,
 		endTrialSubscription,
 		isEndTrialLoading,
 		isSubscriptionLoading
 	} = useSubscribe()
 
+	const isTeamMember = Boolean(team && !team.isAdmin)
+	const teamAssignedType = isTeamMember ? (team?.subscriptionType ?? null) : null
+
+	// Team member guard: hide personal billing controls. Still render the feature cards
+	// (API access, usage, external-data balance) that the assigned subscription unlocks.
+	if (isTeamMember && team) {
+		const teamBanner = <TeamSubscriptionBanner teamName={team.name} subscriptionType={teamAssignedType} />
+
+		if (teamAssignedType === 'api') {
+			const memberBalanceCard = balance ? (
+				<ExternalDataBalanceCard
+					freeRemaining={balance.freeRemaining}
+					toppedUpBalance={balance.toppedUpBalance}
+					freeLimit={balance.freeLimit}
+					freeSpent={balance.freeSpent}
+					isLoading={isAiBalanceLoading}
+					onTopUp={() => setIsTopupModalOpen(true)}
+				/>
+			) : isAiBalanceLoading ? (
+				<ExternalDataBalanceCard
+					freeRemaining="0"
+					toppedUpBalance="0"
+					freeLimit="0"
+					freeSpent="0"
+					isLoading
+					onTopUp={() => {}}
+				/>
+			) : null
+
+			return (
+				<>
+					{teamBanner}
+					<ApiAccessCard
+						apiKey={apiKey}
+						credits={credits}
+						usageStats={usageStats}
+						isUsageStatsLoading={isUsageStatsLoading}
+						isUsageStatsError={isUsageStatsError}
+						onRegenerateKey={() => generateNewKeyMutation.mutate()}
+						isRegenerateLoading={generateNewKeyMutation.isPending}
+					/>
+					{memberBalanceCard}
+					{isTopupModalOpen ? (
+						<Suspense fallback={null}>
+							<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+						</Suspense>
+					) : null}
+				</>
+			)
+		}
+
+		return teamBanner
+	}
+
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active'
 	const activeSubscription = hasApiSubscription ? apiSubscription : hasProSubscription ? llamafeedSubscription : null
+	const isPastDue = Boolean(pastDueSubscription?.id) && !hasApiSubscription && !hasProSubscription
 	const isProMonthly = hasProSubscription && llamafeedSubscription?.billing_interval === 'month'
 	const isApiMonthly = hasApiSubscription && apiSubscription?.billing_interval === 'month'
 	const isTrial = hasProSubscription && (isTrialFromAuth || String(llamafeedSubscription?.metadata?.isTrial) === 'true')
@@ -236,6 +384,37 @@ export function SubscriptionSection() {
 	const handleUpgradeToYearly = (type: 'llamafeed' | 'api') => {
 		setYearlyUpgradeType(type)
 		setIsYearlyUpgradeModalOpen(true)
+	}
+
+	if (isPastDue && pastDueSubscription) {
+		const handlePastDuePayment = async () => {
+			if (pastDueSubscription.provider === 'stripe') {
+				await createPortalSession()
+			}
+		}
+		return (
+			<>
+				<PastDueSubscriptionCard
+					subscription={pastDueSubscription}
+					onUpdatePayment={handlePastDuePayment}
+					onCancel={() => setIsCancelSubModalOpen(true)}
+					isUpdateLoading={isPortalSessionLoading}
+					isCancelLoading={isCancelSubscriptionLoading}
+				/>
+				{isCancelSubModalOpen ? (
+					<CancelSubscriptionModal
+						isOpen={isCancelSubModalOpen}
+						onClose={() => setIsCancelSubModalOpen(false)}
+						onConfirm={async (message) => {
+							await cancelSubscription(message)
+							setIsCancelSubModalOpen(false)
+						}}
+						isLoading={isCancelSubscriptionLoading}
+						variant="subscription"
+					/>
+				) : null}
+			</>
+		)
 	}
 
 	if (isTrial && llamafeedSubscription) {
@@ -358,14 +537,11 @@ export function SubscriptionSection() {
 				<ApiAccessCard
 					apiKey={apiKey}
 					credits={credits}
-					overageEnabled={activeSubscription.overage ?? false}
 					usageStats={usageStats}
 					isUsageStatsLoading={isUsageStatsLoading}
 					isUsageStatsError={isUsageStatsError}
 					onRegenerateKey={() => generateNewKeyMutation.mutate()}
-					onToggleOverage={enableOverage}
 					isRegenerateLoading={generateNewKeyMutation.isPending}
-					isOverageLoading={isEnableOverageLoading}
 				/>
 				{balanceCard}
 				{topupModal}

@@ -59,7 +59,9 @@ const columns = [
 				</span>
 			)
 		},
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('tokenBreakdowns', {
 		id: 'tokenBreakdowns',
@@ -106,8 +108,8 @@ const columns = [
 				</Tooltip>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -115,8 +117,8 @@ const columns = [
 		id: 'stablecoins',
 		header: 'Stablecoins',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 115,
 		meta: {
+			headerClassName: 'w-[115px]',
 			align: 'end'
 		}
 	}),
@@ -124,16 +126,16 @@ const columns = [
 		id: 'majors',
 		header: 'Majors (BTC, ETH)',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 160,
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('ownTokens', {
 		header: 'Own Tokens',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -141,8 +143,8 @@ const columns = [
 		id: 'others',
 		header: 'Others',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -150,8 +152,8 @@ const columns = [
 		id: 'coreTvl',
 		header: 'Total excl. own tokens',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 185,
 		meta: {
+			headerClassName: 'w-[min(185px,40vw)]',
 			align: 'end'
 		}
 	}),
@@ -159,8 +161,8 @@ const columns = [
 		id: 'tvl',
 		header: 'Total Treasury',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 135,
 		meta: {
+			headerClassName: 'w-[135px]',
 			align: 'end'
 		}
 	}),
@@ -168,8 +170,8 @@ const columns = [
 		id: 'mcap',
 		header: 'Mcap',
 		cell: (info) => (info.getValue() === null ? null : formattedNum(info.getValue(), true)),
-		size: 128,
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end'
 		}
 	})

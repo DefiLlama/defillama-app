@@ -18,6 +18,7 @@ import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import { SearchResults } from '~/containers/LlamaAI/components/sidebar/SearchResults'
 import { useSemanticSearch } from '~/containers/LlamaAI/hooks/useSemanticSearch'
+import { ProjectsSidebarSection } from '~/containers/LlamaAI/projects/ProjectsSidebarSection'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -33,7 +34,7 @@ interface AgenticSidebarProps {
 	restoringSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
-	onDelete: (sessionId: string) => Promise<void>
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	isDeletingSession: boolean
 	isUpdatingTitle: boolean
@@ -47,6 +48,8 @@ interface AgenticSidebarProps {
 	isFetchingMoreSessions?: boolean
 	loadMoreSessionsError?: string | null
 	onLoadMoreSessions?: () => void
+	currentProjectId?: string | null
+	currentSessionProjectId?: string | null
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -89,7 +92,7 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	deletingSessionId: string | null
 	updatingTitleSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
-	onDelete: (sessionId: string) => Promise<void>
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	selectMode: boolean
 	isSelected: boolean
@@ -170,11 +173,15 @@ export function AgenticSidebar({
 	hasMoreSessions = false,
 	isFetchingMoreSessions = false,
 	loadMoreSessionsError = null,
-	onLoadMoreSessions
+	onLoadMoreSessions,
+	currentProjectId = null,
+	currentSessionProjectId = null
 }: AgenticSidebarProps) {
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const projectsSectionRef = useRef<HTMLDivElement>(null)
+	const [projectsSectionHeight, setProjectsSectionHeight] = useState(0)
 	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
 	const [selectMode, setSelectMode] = useState(false)
@@ -221,9 +228,9 @@ export function AgenticSidebar({
 	}, [])
 
 	const handleDelete = useCallback(
-		(sessionId: string) => {
+		(sessionId: string, projectId?: string | null) => {
 			setDeletingSessionId(sessionId)
-			return onDelete(sessionId).finally(() => {
+			return onDelete(sessionId, projectId).finally(() => {
 				setDeletingSessionId(null)
 			})
 		},
@@ -243,10 +250,13 @@ export function AgenticSidebar({
 	const [nowMs] = useState(() => Date.now())
 	const trimmedSearchQuery = searchQuery.trim()
 
+	const nonProjectSessions = useMemo(() => sessions.filter((s) => !s.projectId), [sessions])
+	const hasNonProjectSessions = nonProjectSessions.length > 0
+
 	const filteredSessions = useMemo(() => {
-		if (!trimmedSearchQuery) return sessions
-		return sessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
-	}, [sessions, searchQuery, trimmedSearchQuery])
+		if (!trimmedSearchQuery) return nonProjectSessions
+		return nonProjectSessions.filter((s) => s.title.toLowerCase().includes(trimmedSearchQuery.toLowerCase()))
+	}, [nonProjectSessions, trimmedSearchQuery])
 
 	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
 		const pinned = filteredSessions
@@ -333,9 +343,20 @@ export function AgenticSidebar({
 			return 32
 		},
 		overscan: 5,
+		scrollMargin: projectsSectionHeight,
 		onChange: handleVirtualizerChange
 	})
 	const virtualizedItems = virtualizer.getVirtualItems()
+
+	useEffect(() => {
+		const el = projectsSectionRef.current
+		if (!el) return
+		const updateHeight = () => setProjectsSectionHeight(el.offsetHeight)
+		updateHeight()
+		const observer = new ResizeObserver(updateHeight)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [])
 
 	const onClickOutside = useEffectEvent((event: MouseEvent) => {
 		if (
@@ -360,11 +381,12 @@ export function AgenticSidebar({
 			className={`llamaai-agentic-sidebar relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
 			<header className="flex flex-col gap-2 p-4 pb-2">
-				<div className="flex items-center">
-					{sessions.length > 0 ? (
+				<div className="flex h-6 items-center">
+					{isLoading || hasNonProjectSessions ? (
 						<button
 							onClick={selectMode ? exitSelectMode : () => setSelectMode(true)}
-							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors ${
+							disabled={isLoading && !hasNonProjectSessions}
+							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors disabled:invisible ${
 								selectMode
 									? 'bg-(--old-blue)/12 text-(--old-blue)'
 									: 'text-[#666] hover:text-[#333] dark:text-[#919296] dark:hover:text-white'
@@ -420,7 +442,7 @@ export function AgenticSidebar({
 					<span>New Chat</span>
 				</button>
 
-				{sessions.length > 0 ? (
+				{isLoading || hasNonProjectSessions ? (
 					<div className="group/search relative flex items-center rounded-md bg-[#f5f5f5] transition-colors focus-within:bg-[#ebebeb] dark:bg-[#1a1a1b] dark:focus-within:bg-[#222324]">
 						<Icon
 							name="search"
@@ -433,7 +455,8 @@ export function AgenticSidebar({
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							placeholder="Search"
-							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
+							disabled={isLoading && !hasNonProjectSessions}
+							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none disabled:cursor-default dark:placeholder:text-[#555]"
 						/>
 						{isSearching ? (
 							<Icon name="search" height={11} width={11} className="mr-1.5 shrink-0 animate-pulse text-[#999]" />
@@ -450,88 +473,94 @@ export function AgenticSidebar({
 				) : null}
 			</header>
 
-			<nav
-				ref={scrollContainerRef}
-				className="thin-scrollbar flex-1 overflow-auto overscroll-contain p-4 pt-0 pr-1"
-				aria-label="Chat history"
-			>
-				{isLoading ? (
-					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						<LoadingSpinner size={12} />
-					</div>
-				) : loadError ? (
-					<p className="rounded-sm border border-dashed border-red-300 bg-red-50 p-4 text-center text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-						{loadError}
-					</p>
-				) : sessions.length === 0 ? (
-					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						You don't have any chats yet
-					</p>
-				) : trimmedSearchQuery && (searchResults.length > 0 || isSearching) ? (
-					<SearchResults
-						results={searchResults}
-						isSearching={isSearching}
-						query={searchQuery}
-						onMatchClick={(sessionId, messageId) => {
-							clearSearch()
-							onSearchMatchClick?.(sessionId, messageId)
-						}}
-						onSessionClick={(sessionId) => {
-							clearSearch()
-							onSessionSelect(sessionId)
-						}}
+			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto overscroll-contain">
+				<div ref={projectsSectionRef} className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
+					<ProjectsSidebarSection
+						currentProjectId={currentProjectId}
+						currentSessionProjectId={currentSessionProjectId}
+						currentSessionId={currentSessionId}
 					/>
-				) : filteredSessions.length === 0 && trimmedSearchQuery && !isSearching && searchResults.length === 0 ? (
-					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						No chats matching &ldquo;{searchQuery}&rdquo;
-					</p>
-				) : (
-					<div
-						style={{
-							height: `${virtualizer.getTotalSize()}px`,
-							width: '100%',
-							position: 'relative'
-						}}
-					>
-						{virtualizedItems.map((virtualItem) => {
-							const item = virtualItems[virtualItem.index]
-							const itemStyle: CSSProperties = {
-								position: 'absolute',
-								top: 0,
-								left: 0,
-								width: '100%',
-								height: `${virtualItem.size}px`,
-								transform: `translateY(${virtualItem.start}px)`
-							}
+				</div>
 
-							return (
-								<VirtualizedSidebarItem
-									key={
-										item.type === 'header'
-											? `header-${item.groupName}`
-											: item.type === 'loader'
-												? 'session-loader'
-												: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
-									}
-									item={item}
-									itemStyle={itemStyle}
-									currentSessionId={currentSessionId}
-									restoringSessionId={restoringSessionId}
-									deletingSessionId={deletingSessionId}
-									updatingTitleSessionId={updatingTitleSessionId}
-									onSessionSelect={onSessionSelect}
-									onDelete={handleDelete}
-									onUpdateTitle={handleUpdateTitle}
-									selectMode={selectMode}
-									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
-									onToggleSelect={toggleSelect}
-									onPinSession={onPinSession}
-								/>
-							)
-						})}
-					</div>
-				)}
-			</nav>
+				<nav className="p-4 pt-3 pr-1" aria-label="Chat history">
+					{isLoading ? (
+						<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+							<LoadingSpinner size={12} />
+						</div>
+					) : loadError ? (
+						<p className="rounded-sm border border-dashed border-red-300 bg-red-50 p-4 text-center text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+							{loadError}
+						</p>
+					) : nonProjectSessions.length === 0 ? (
+						<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+							You don't have any chats yet
+						</p>
+					) : trimmedSearchQuery && (searchResults.length > 0 || isSearching) ? (
+						<SearchResults
+							results={searchResults}
+							isSearching={isSearching}
+							query={searchQuery}
+							onMatchClick={(sessionId, messageId) => {
+								clearSearch()
+								onSearchMatchClick?.(sessionId, messageId)
+							}}
+							onSessionClick={(sessionId) => {
+								clearSearch()
+								onSessionSelect(sessionId)
+							}}
+						/>
+					) : filteredSessions.length === 0 && trimmedSearchQuery && !isSearching && searchResults.length === 0 ? (
+						<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+							No chats matching &ldquo;{searchQuery}&rdquo;
+						</p>
+					) : (
+						<div
+							style={{
+								height: `${virtualizer.getTotalSize()}px`,
+								width: '100%',
+								position: 'relative'
+							}}
+						>
+							{virtualizedItems.map((virtualItem) => {
+								const item = virtualItems[virtualItem.index]
+								const itemStyle: CSSProperties = {
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%',
+									height: `${virtualItem.size}px`,
+									transform: `translateY(${virtualItem.start - projectsSectionHeight}px)`
+								}
+
+								return (
+									<VirtualizedSidebarItem
+										key={
+											item.type === 'header'
+												? `header-${item.groupName}`
+												: item.type === 'loader'
+													? 'session-loader'
+													: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
+										}
+										item={item}
+										itemStyle={itemStyle}
+										currentSessionId={currentSessionId}
+										restoringSessionId={restoringSessionId}
+										deletingSessionId={deletingSessionId}
+										updatingTitleSessionId={updatingTitleSessionId}
+										onSessionSelect={onSessionSelect}
+										onDelete={handleDelete}
+										onUpdateTitle={handleUpdateTitle}
+										selectMode={selectMode}
+										isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
+										onToggleSelect={toggleSelect}
+										onPinSession={onPinSession}
+									/>
+								)
+							})}
+						</div>
+					)}
+				</nav>
+			</div>
 
 			{balance ? (
 				<Tooltip
@@ -541,7 +570,7 @@ export function AgenticSidebar({
 							: 'Subscribe to a plan to top up your external data balance.'
 					}
 					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
-					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
+					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] bg-(--cards-bg) px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
 				>
 					<div className="flex min-w-0 items-center gap-2">
 						<Icon name="package" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />

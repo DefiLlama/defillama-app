@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useCallback, useState } from 'react'
@@ -11,6 +12,7 @@ import { setReferrer } from '~/containers/Subscription/referrer'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 interface SharedSession {
 	session: {
@@ -43,8 +45,8 @@ interface PageProps {
 	sessionTitle: string | null
 }
 
-export const getServerSideProps = async ({ params }: { params: { shareToken: string } }) => {
-	const { shareToken } = params
+const getServerSidePropsHandler: GetServerSideProps<PageProps> = async (context) => {
+	const shareToken = context.params?.shareToken as string
 
 	let sessionTitle: string | null = null
 	try {
@@ -58,6 +60,11 @@ export const getServerSideProps = async ({ params }: { params: { shareToken: str
 		props: { shareToken, sessionTitle }
 	}
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry<PageProps>(
+	'/ai/chat/shared/[shareToken]',
+	getServerSidePropsHandler
+)
 
 async function getSharedSession(shareToken: string) {
 	try {

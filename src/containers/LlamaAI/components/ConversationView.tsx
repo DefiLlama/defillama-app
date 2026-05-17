@@ -1,5 +1,6 @@
 import {
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 	type Dispatch,
@@ -11,20 +12,19 @@ import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWarningBanner'
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
-import {
-	SpawnProgressCard,
-	ToolProgressIndicator,
-	TypingIndicator
-} from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { SpawnProgressCard, ToolProgressIndicator } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
+import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 
 interface ConversationViewProps {
 	readOnly: boolean
+	isSharedView?: boolean
 	messages: Message[]
 	sessionId: string | null
 	isLlama: boolean
@@ -52,6 +52,7 @@ interface ConversationViewProps {
 	scrollContainerRef: RefObject<HTMLDivElement | null>
 	messagesEndRef: RefObject<HTMLDivElement | null>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
+	isScrollAttached: boolean
 	showScrollToBottom: boolean
 	scrollToBottom: () => void
 	handleSubmit: (
@@ -63,6 +64,9 @@ interface ConversationViewProps {
 	) => void
 	handleStopRequest: () => void
 	handleActionClick: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
@@ -70,13 +74,17 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 	onTableFullscreenOpen?: () => void
 	onShare?: (messageId?: string) => void
+	contextWarning?: ContextWarningPayload | null
+	onDismissContextWarning?: () => void
+	onStartNewChat?: () => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
 // submitted prompt slightly below the top edge on both mobile and desktop.
-const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
+const ACTIVE_EXCHANGE_TOP_OFFSET_PX = 12
 
 function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, Message | null] {
 	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
@@ -99,6 +107,9 @@ function ConversationMessageItem({
 	isLlama,
 	isLatestAssistant,
 	onActionClick,
+	onEditMessage,
+	onBranchSwitch,
+	isBranchSwitching,
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef
@@ -111,6 +122,9 @@ function ConversationMessageItem({
 	isLlama: boolean
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
@@ -123,6 +137,9 @@ function ConversationMessageItem({
 			isLlama={isLlama}
 			isLatestAssistant={isLatestAssistant}
 			onActionClick={onActionClick}
+			onEditMessage={onEditMessage}
+			onBranchSwitch={onBranchSwitch}
+			isBranchSwitching={isBranchSwitching}
 			nextUserMessage={nextUserMessage}
 			onShare={onShare}
 			onTableFullscreenOpen={onTableFullscreenOpen}
@@ -176,16 +193,6 @@ function ConversationLiveStatus({
 }) {
 	return (
 		<>
-			{isStreaming &&
-			activeToolCalls.length === 0 &&
-			spawnProgress.size === 0 &&
-			!streamingDraft?.content &&
-			!streamingThinking &&
-			!isCompacting &&
-			!hasStreamingCharts(streamingDraft?.charts) ? (
-				<TypingIndicator />
-			) : null}
-
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -201,6 +208,15 @@ function ConversationLiveStatus({
 						thinking={streamingThinking}
 						isCompacting={isCompacting}
 						spawnProgress={spawnProgress.size > 0 ? spawnProgress : undefined}
+						isWaiting={
+							isStreaming &&
+							activeToolCalls.length === 0 &&
+							spawnProgress.size === 0 &&
+							!streamingDraft?.content &&
+							!streamingThinking &&
+							!isCompacting &&
+							!hasStreamingCharts(streamingDraft?.charts)
+						}
 						executionStartedAt={executionStartedAt}
 					/>
 				)}
@@ -259,6 +275,7 @@ function ConversationLiveStatus({
 
 export function ConversationView({
 	readOnly,
+	isSharedView = false,
 	messages,
 	sessionId,
 	isLlama,
@@ -281,11 +298,15 @@ export function ConversationView({
 	scrollContainerRef,
 	messagesEndRef,
 	promptInputRef,
+	isScrollAttached,
 	showScrollToBottom,
 	scrollToBottom,
 	handleSubmit,
 	handleStopRequest,
 	handleActionClick,
+	onEditMessage,
+	onBranchSwitch,
+	isBranchSwitching,
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
@@ -293,14 +314,19 @@ export function ConversationView({
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
+	enterToSend,
 	onTableFullscreenOpen,
-	onShare
+	onShare,
+	contextWarning,
+	onDismissContextWarning,
+	onStartNewChat
 }: ConversationViewProps) {
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const handledAnchorIdRef = useRef<string | null>(null)
 	const highlightTimeoutRef = useRef<number | null>(null)
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
+	const [activeExchangeMinHeight, setActiveExchangeMinHeight] = useState<number | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
 
 	useEffect(() => {
@@ -391,6 +417,33 @@ export function ConversationView({
 		return null
 	})()
 
+	useLayoutEffect(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		const updateMinHeight = () => {
+			const paddingBottom = Number.parseFloat(window.getComputedStyle(container).paddingBottom) || 0
+			setActiveExchangeMinHeight(Math.max(0, container.clientHeight - paddingBottom - ACTIVE_EXCHANGE_TOP_OFFSET_PX))
+		}
+
+		updateMinHeight()
+		const resizeObserver = new ResizeObserver(updateMinHeight)
+		resizeObserver.observe(container)
+		window.addEventListener('resize', updateMinHeight)
+		return () => {
+			resizeObserver.disconnect()
+			window.removeEventListener('resize', updateMinHeight)
+		}
+	}, [scrollContainerRef])
+
+	useLayoutEffect(() => {
+		if (!shouldSpaceLastExchange || !isScrollAttached || activeExchangeMinHeight == null) return
+		const container = scrollContainerRef.current
+		if (container) {
+			container.scrollTop = container.scrollHeight
+		}
+	}, [activeExchangeMinHeight, isScrollAttached, scrollContainerRef, shouldSpaceLastExchange])
+
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
@@ -430,6 +483,9 @@ export function ConversationView({
 											isLlama={isLlama}
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+											onEditMessage={!readOnly ? onEditMessage : undefined}
+											onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+											isBranchSwitching={isBranchSwitching}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
@@ -445,11 +501,12 @@ export function ConversationView({
 
 								{shouldSpaceLastExchange ? (
 									<div
-										className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
+										className={`flex flex-col gap-2.5 ${
 											animateActiveExchange && isLiveExchange
-												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
+												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.18s_ease-out_both]'
 												: ''
 										}`}
+										style={activeExchangeMinHeight != null ? { minHeight: activeExchangeMinHeight } : undefined}
 									>
 										{lastExchangeMessages.map((message, i) => (
 											<ConversationMessageItem
@@ -461,6 +518,9 @@ export function ConversationView({
 												isLlama={isLlama}
 												isLatestAssistant={message.id === lastAssistantId}
 												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+												onEditMessage={!readOnly ? onEditMessage : undefined}
+												onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+												isBranchSwitching={isBranchSwitching}
 												onTableFullscreenOpen={onTableFullscreenOpen}
 												anchorId={getMessageAnchorId(message.id)}
 												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
@@ -539,7 +599,18 @@ export function ConversationView({
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-					<TipOrNotifyBanner />
+					{!isSharedView && contextWarning && onStartNewChat && onDismissContextWarning ? (
+						<ContextWarningBanner
+							warning={contextWarning}
+							onStartNewChat={onStartNewChat}
+							onDismiss={onDismissContextWarning}
+						/>
+					) : null}
+					{!isSharedView && !contextWarning ? (
+						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
+							<TipOrNotifyBanner />
+						</div>
+					) : null}
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}
@@ -554,6 +625,7 @@ export function ConversationView({
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}
+						enterToSend={enterToSend}
 					/>
 				</div>
 			) : null}

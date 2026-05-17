@@ -1,6 +1,7 @@
 import type { GetServerSideProps } from 'next'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 	return Promise.resolve({
 		redirect: {
 			destination: `/protocol/dexs/${context.params?.item}`,
@@ -12,3 +13,5 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 export default function Dex() {
 	return <div>Dex</div>
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/dexs/[item]', getServerSidePropsHandler)

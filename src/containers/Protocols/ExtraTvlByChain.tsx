@@ -171,7 +171,9 @@ function buildColumns(metric: ExtraTvlMetric) {
 					</span>
 				)
 			},
-			size: 280
+			meta: {
+				headerClassName: 'w-[min(280px,40vw)]'
+			}
 		}),
 		columnHelper.accessor('category', {
 			id: 'category',
@@ -186,9 +188,8 @@ function buildColumns(metric: ExtraTvlMetric) {
 					</BasicLink>
 				)
 			},
-			size: 128,
 			meta: {
-				align: 'end'
+				headerClassName: 'w-[128px]'
 			}
 		}),
 		columnHelper.accessor('value', {
@@ -196,16 +197,16 @@ function buildColumns(metric: ExtraTvlMetric) {
 			header: metricInfo.header,
 			cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 			meta: {
+				headerClassName: 'w-[128px]',
 				align: 'end',
 				headerHelperText: metricInfo.headerHelperText
-			},
-			size: 128
+			}
 		}),
 		columnHelper.accessor('change_1m', {
 			header: 'Change 30d',
 			cell: (info) => <PercentChange percent={info.getValue()} />,
-			size: 110,
 			meta: {
+				headerClassName: 'w-[110px]',
 				align: 'end'
 			}
 		})

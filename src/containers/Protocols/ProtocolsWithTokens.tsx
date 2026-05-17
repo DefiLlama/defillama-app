@@ -211,7 +211,9 @@ function defaultColumns(type: TokenMetricType) {
 					</span>
 				)
 			},
-			size: 280
+			meta: {
+				headerClassName: 'w-[min(280px,40vw)]'
+			}
 		}),
 		columnHelper.accessor('category', {
 			header: 'Category',
@@ -225,8 +227,8 @@ function defaultColumns(type: TokenMetricType) {
 					</BasicLink>
 				)
 			},
-			size: 128,
 			meta: {
+				headerClassName: 'w-[128px]',
 				align: 'end'
 			}
 		})
@@ -240,9 +242,9 @@ const mcapColumns = [
 		header: 'Market Cap',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end'
-		},
-		size: 128
+		}
 	})
 ]
 
@@ -253,9 +255,9 @@ const fdvColumns = [
 		header: 'FDV',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end'
-		},
-		size: 128
+		}
 	})
 ]
 
@@ -266,9 +268,9 @@ const priceColumns = [
 		header: 'Token Price',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end'
-		},
-		size: 128
+		}
 	})
 ]
 
@@ -279,11 +281,11 @@ const outstandingFdvColumns = [
 		header: 'Outstanding FDV',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end',
 			headerHelperText:
 				'Token price multiplied by outstanding supply.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
-		},
-		size: 128
+		}
 	})
 ]
 

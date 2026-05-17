@@ -6,6 +6,8 @@ import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = unknown[] | Record<string, unknown> | { error: string } | null
 type StablecoinMcapSeriesPoint = [number, number]
@@ -15,8 +17,8 @@ const NO_STORE_CACHE_CONTROL = 'no-store'
 const getQueryParam = (value: string | string[] | undefined): string | undefined =>
 	Array.isArray(value) ? value[0] : value
 
-const setSuccessCacheHeaders = (res: NextApiResponse<ResponseData>) => {
-	res.setHeader('Cache-Control', SUCCESS_CACHE_CONTROL)
+const setSuccessCacheHeaders = (req: NextApiRequest, res: NextApiResponse<ResponseData>) => {
+	res.setHeader('Cache-Control', jitterCacheControlHeader(SUCCESS_CACHE_CONTROL, req.url ?? '/api/charts/chain'))
 }
 
 const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
@@ -35,12 +37,12 @@ const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapS
 		}
 		return series
 	} catch (error) {
-		console.log('Failed to build stablecoin chart series', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return null
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		setNoStoreHeaders(res)
@@ -71,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				...(dataType ? { dataType: dataType as Parameters<typeof fetchAdapterChainChartData>[0]['dataType'] } : {}),
 				...(category ? { category } : {})
 			})
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -90,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				protocol,
 				...(dataType ? { dataType: dataType as Parameters<typeof fetchAdapterProtocolChartData>[0]['dataType'] } : {})
 			})
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -102,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 			}
 
 			const data = await fetchChainAssetsChart(chain)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -123,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				return chart
 			})
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -140,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -162,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 						: null
 				)
 				.catch((error) => {
-					console.log(error)
+					recordRouteRuntimeError(error, 'apiRoute')
 					return null
 				})
 
@@ -171,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -189,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 			}
 
 			const nonZeroIndex = chart.findIndex((point) => Array.isArray(point) && Number(point[1]) > 0)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(chart.slice(nonZeroIndex >= 0 ? nonZeroIndex : 0))
 		}
 
@@ -197,7 +199,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		return res.status(400).json({ error: `Unsupported kind: ${kind}` })
 	} catch (error) {
 		setNoStoreHeaders(res)
-		console.log('Failed to fetch chain chart data', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to load chain chart data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/charts/chain', handler)

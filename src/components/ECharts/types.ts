@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
-type EChartsFormatterParams = Record<string, unknown>
+type EChartsFormatterParams = unknown
 
 type ChartDataItem = any
 

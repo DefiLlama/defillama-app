@@ -63,6 +63,7 @@ interface PromptInputProps {
 	onOpenAlerts?: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 	walkthroughActive?: boolean
 }
 
@@ -93,6 +94,7 @@ export function PromptInput({
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
+	enterToSend,
 	walkthroughActive
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
@@ -100,7 +102,6 @@ export function PromptInput({
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
 	const valueRef = useRef(value)
-	const selectedImageIdsRef = useRef<string[]>([])
 	const isSuggestedRef = useRef(false)
 	const shiftHeldRef = useRef(false)
 
@@ -137,6 +138,7 @@ export function PromptInput({
 			selectionEnd?: number
 			focus?: boolean
 		}) => {
+			valueRef.current = nextValue
 			pendingSelectionRef.current =
 				selectionStart == null
 					? null
@@ -201,10 +203,6 @@ export function PromptInput({
 	useEffect(() => {
 		valueRef.current = value
 	}, [value])
-
-	useEffect(() => {
-		selectedImageIdsRef.current = imageUpload.selectedImages.map(({ id }) => id)
-	}, [imageUpload.selectedImages])
 
 	// Handle restore request (e.g., failed submission retry)
 	useEffect(() => {
@@ -273,19 +271,22 @@ export function PromptInput({
 		return Promise.all(imagePromises)
 	}, [])
 
-	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ id: string }>) => {
-		const currentValue = valueRef.current
-		const currentIds = selectedImageIdsRef.current
-		if (currentValue !== promptValue) return false
+	const shouldResetSubmittedDraft = useCallback(
+		(promptValue: string, imagesToSend: Array<{ id: string }>) => {
+			const currentValue = valueRef.current
+			const currentIds = imageUpload.getSelectedImageIds()
+			if (currentValue !== promptValue) return false
 
-		if (imagesToSend.length !== currentIds.length) return false
+			if (imagesToSend.length !== currentIds.length) return false
 
-		for (let index = 0; index < imagesToSend.length; index++) {
-			if (imagesToSend[index].id !== currentIds[index]) return false
-		}
+			for (let index = 0; index < imagesToSend.length; index++) {
+				if (imagesToSend[index].id !== currentIds[index]) return false
+			}
 
-		return true
-	}, [])
+			return true
+		},
+		[imageUpload]
+	)
 
 	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
@@ -324,19 +325,27 @@ export function PromptInput({
 		}
 	}
 
-	// Let the combobox own navigation keys first, then submit on Enter when no suggestion is active.
+	const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		// Ariakit's composite proxy forwards Enter to the active @ suggestion, swallowing
+		// the textarea's native newline. Stop capture propagation so the configured newline shortcut
+		// keeps the textarea behavior before combobox handlers see the event.
+		if (event.key === 'Enter' && event.shiftKey === enterToSend) {
+			event.stopPropagation()
+		}
+	}
+
+	// Let the combobox own navigation keys first, then submit on the configured shortcut.
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		const shouldSubmit = event.key === 'Enter' && event.shiftKey !== enterToSend
+
 		// First let entity combobox handle the event
-		entityCombobox.handleKeyDown(event)
+		if (!shouldSubmit) {
+			entityCombobox.handleKeyDown(event)
+		}
 		if (event.defaultPrevented) return
 
 		// Handle enter for submission
-		if (
-			event.key === 'Enter' &&
-			!event.shiftKey &&
-			!entityCombobox.hasRenderedItems &&
-			!event.nativeEvent.isComposing
-		) {
+		if (shouldSubmit && !entityCombobox.hasRenderedItems && !event.nativeEvent.isComposing) {
 			event.preventDefault()
 			if (isStreaming) return
 			void submitForm(value)
@@ -475,6 +484,7 @@ export function PromptInput({
 				isStreaming={isStreaming}
 				onScroll={handleScroll}
 				onChange={handleChange}
+				onKeyDownCapture={handleKeyDownCapture}
 				onKeyDown={handleKeyDown}
 				onPaste={handlePaste}
 				onCompositionStart={entityCombobox.handleCompositionStart}
@@ -548,7 +558,7 @@ export function PromptInput({
 					<SubmitButton
 						isStreaming={isStreaming}
 						isPending={isPending}
-						hasValue={value.trim().length > 0}
+						hasValue={value.trim().length > 0 || imageUpload.selectedImages.length > 0}
 						onStop={handleStopRequest}
 					/>
 				</div>

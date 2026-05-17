@@ -5,14 +5,11 @@ type TokenPageSectionNavItem = {
 	label: string
 }
 
-function getCurrentUrlWithHash(hash: string) {
-	return `${window.location.pathname}${window.location.search}${hash}`
-}
-
 export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNavItem[] }) {
 	const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? '')
 	const observerEntries = useRef(new Map<string, IntersectionObserverEntry>())
-	const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+	const navRef = useRef<HTMLElement | null>(null)
+	const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
 	const clickLockTargetId = useRef<string | null>(null)
 	const sectionIds = useMemo(() => sections.map((section) => section.id), [sections])
 	const initialHashSectionId = useMemo(() => {
@@ -25,7 +22,6 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 		setActiveSectionId((currentActiveSectionId) => {
 			if (currentActiveSectionId === nextActiveSectionId) return currentActiveSectionId
 
-			window.history.replaceState(window.history.state, '', getCurrentUrlWithHash(`#${nextActiveSectionId}`))
 			return nextActiveSectionId
 		})
 	}
@@ -43,7 +39,23 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 
 	useEffect(() => {
 		if (!activeSectionId) return
-		buttonRefs.current[activeSectionId]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+
+		const navElement = navRef.current
+		const linkElement = linkRefs.current[activeSectionId]
+		if (!navElement || !linkElement) return
+
+		const navRect = navElement.getBoundingClientRect()
+		const linkRect = linkElement.getBoundingClientRect()
+		const linkLeft = linkRect.left - navRect.left + navElement.scrollLeft
+		const linkRight = linkLeft + linkRect.width
+		const visibleLeft = navElement.scrollLeft
+		const visibleRight = visibleLeft + navElement.clientWidth
+
+		if (linkLeft < visibleLeft) {
+			navElement.scrollLeft = linkLeft
+		} else if (linkRight > visibleRight) {
+			navElement.scrollLeft = linkRight - navElement.clientWidth
+		}
 	}, [activeSectionId])
 
 	useEffect(() => {
@@ -132,33 +144,31 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 
 	return (
 		<div className="sticky top-0 z-20 overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<nav className="flex w-full overflow-x-auto text-sm font-medium" aria-label="Token page sections">
+			<nav ref={navRef} className="flex w-full overflow-x-auto text-sm font-medium" aria-label="Token page sections">
 				{sections.map((section) => {
 					const isActive = activeSectionId === section.id
 
 					return (
-						<button
+						<a
 							key={section.id}
-							type="button"
+							href={`#${section.id}`}
 							ref={(element) => {
 								if (!element) return
-								buttonRefs.current[section.id] = element
+								linkRefs.current[section.id] = element
 								return () => {
-									delete buttonRefs.current[section.id]
+									delete linkRefs.current[section.id]
 								}
 							}}
-							aria-pressed={isActive}
+							aria-current={isActive ? 'location' : undefined}
 							onClick={() => {
 								setActiveSectionId(section.id)
 								clickLockTargetId.current = section.id
-								window.history.replaceState(window.history.state, '', getCurrentUrlWithHash(`#${section.id}`))
-								document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 							}}
 							data-active={isActive}
 							className="shrink-0 border-b-2 border-transparent px-4 py-3 whitespace-nowrap text-(--text-secondary) hover:bg-(--btn-hover-bg) hover:text-(--text-primary) focus-visible:bg-(--btn-hover-bg) focus-visible:text-(--text-primary) data-[active=true]:border-(--primary) data-[active=true]:text-(--text-primary)"
 						>
 							{section.label}
-						</button>
+						</a>
 					)
 				})}
 			</nav>

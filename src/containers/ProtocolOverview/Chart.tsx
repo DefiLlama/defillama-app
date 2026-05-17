@@ -34,6 +34,7 @@ export default function ProtocolChart({
 	chartOptions,
 	height,
 	unlockTokenSymbol = '',
+	gasUsedValueSymbol,
 	isThemeDark,
 	groupBy,
 	hideDataZoom = false,
@@ -45,6 +46,10 @@ export default function ProtocolChart({
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const eventHoverCleanupRef = useRef<(() => void) | null>(null)
 	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
+	const seriesValueSymbols = useMemo(
+		() => (gasUsedValueSymbol ? { 'Gas Used': gasUsedValueSymbol } : undefined),
+		[gasUsedValueSymbol]
+	)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -55,6 +60,7 @@ export default function ProtocolChart({
 		tooltipSort: false,
 		hideLegend: true,
 		unlockTokenSymbol: unlockTokenSymbol ?? '',
+		seriesValueSymbols,
 		isThemeDark,
 		groupBy: tooltipGroupBy
 	})
@@ -201,7 +207,8 @@ export default function ProtocolChart({
 			baseYAxis: yAxis,
 			chartColors,
 			chartsInSeries,
-			unlockTokenSymbol
+			unlockTokenSymbol,
+			gasUsedValueSymbol: gasUsedValueSymbol ?? valueSymbol
 		})
 
 		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
@@ -294,7 +301,9 @@ export default function ProtocolChart({
 		eventRailData,
 		isThemeDark,
 		tooltipGroupBy,
-		hideDataZoom
+		hideDataZoom,
+		gasUsedValueSymbol,
+		valueSymbol
 	])
 
 	return (

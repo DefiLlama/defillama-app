@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { generateICSContent } from '~/utils/calendar'
+import { withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { token } = req.query
 	const { timestamp, value, name } = req.query
 
@@ -24,3 +25,5 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 	res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 	res.send(content)
 }
+
+export default withApiRouteTelemetry('/api/calendar/[token]', handler)

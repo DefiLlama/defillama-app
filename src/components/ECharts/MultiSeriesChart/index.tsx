@@ -1,12 +1,12 @@
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { ChartContainer } from '../ChartContainer'
 import { formatTooltipValue } from '../formatters'
 import { useDefaults } from '../useDefaults'
-import { mergeDeep } from '../utils'
+import { isIconUrlValid, mergeDeep, validateIconUrl } from '../utils'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{
@@ -56,6 +56,19 @@ export default function MultiSeriesChart({
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
+	const [logoRevision, setLogoRevision] = useState(0)
+
+	useEffect(() => {
+		const urls = (series ?? []).map((s) => s.logo).filter((u): u is string => !!u)
+		if (urls.length === 0) return
+		let cancelled = false
+		Promise.all(urls.map(validateIconUrl)).then(() => {
+			if (!cancelled) setLogoRevision((v) => v + 1)
+		})
+		return () => {
+			cancelled = true
+		}
+	}, [series])
 
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
@@ -67,6 +80,7 @@ export default function MultiSeriesChart({
 	})
 
 	const processedSeries = useMemo(() => {
+		void logoRevision
 		return (
 			series?.map((serie: any) => {
 				const serieConfig: any = {
@@ -86,9 +100,10 @@ export default function MultiSeriesChart({
 						) || [],
 					metricType: serie.metricType,
 					yAxisIndex: serie.yAxisIndex,
-					...(serie.logo && {
-						legendIcon: 'image://' + serie.logo
-					}),
+					...(serie.logo &&
+						isIconUrlValid(serie.logo) && {
+							legendIcon: 'image://' + serie.logo
+						}),
 					...(serie.stack && {
 						stack: serie.stack
 					})
@@ -114,7 +129,7 @@ export default function MultiSeriesChart({
 				return serieConfig
 			}) || []
 		)
-	}, [series, isThemeDark, xAxisType])
+	}, [series, isThemeDark, xAxisType, logoRevision])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const hasNotifiedReadyRef = useRef(false)

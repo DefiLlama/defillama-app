@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import type {} from '~/components/Table/utils'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { formattedNum } from '~/utils'
 import { perpsDefinitions as d } from './definitions'
@@ -36,51 +36,62 @@ const columns = [
 				</BasicLink>
 			</span>
 		),
-		meta: { headerHelperText: d.venue.description },
-		size: 220
+		meta: {
+			headerClassName: 'w-[160px] sm:w-[220px]',
+			headerHelperText: d.venue.description
+		}
 	}),
 	columnHelper.accessor((row) => row.openInterest ?? undefined, {
 		id: 'openInterest',
 		header: d.openInterest.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.openInterest.description },
-		size: 180
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
+			align: 'end',
+			headerHelperText: d.openInterest.description
+		}
 	}),
 	columnHelper.accessor((row) => row.openInterestShare ?? undefined, {
 		id: 'openInterestShare',
 		header: d.openInterestShare.label,
 		cell: (info) => `${formattedNum(info.getValue() * 100, false)}%`,
-		meta: { align: 'end', headerHelperText: d.openInterestShare.description },
-		size: 150
+		meta: {
+			headerClassName: 'w-[150px]',
+			align: 'end',
+			headerHelperText: d.openInterestShare.description
+		}
 	}),
 	columnHelper.accessor((row) => row.volume24h ?? undefined, {
 		id: 'volume24h',
 		header: d.volume24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.volume24h.description },
-		size: 180
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
+			align: 'end',
+			headerHelperText: d.volume24h.description
+		}
 	}),
 	columnHelper.accessor((row) => row.volume24hShare ?? undefined, {
 		id: 'volume24hShare',
 		header: d.volume24hShare.label,
 		cell: (info) => `${formattedNum(info.getValue() * 100, false)}%`,
-		meta: { align: 'end', headerHelperText: d.volume24hShare.description },
-		size: 190
+		meta: {
+			headerClassName: 'w-[min(190px,40vw)]',
+			align: 'end',
+			headerHelperText: d.volume24hShare.description
+		}
 	}),
 	columnHelper.accessor((row) => row.markets ?? undefined, {
 		id: 'markets',
 		header: d.markets.label,
 		cell: (info) => formattedNum(info.getValue(), false),
-		meta: { align: 'end', headerHelperText: d.markets.description },
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end',
+			headerHelperText: d.markets.description
+		}
 	})
 ]
-
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: { venue: 160 },
-	640: { venue: 220 }
-}
-
 export function RWAPerpsVenuesOverview({
 	venues,
 	initialChartDataset
@@ -98,7 +109,6 @@ export function RWAPerpsVenuesOverview({
 				columnToSearch="venue"
 				header="Venues"
 				headingAs="h1"
-				columnSizes={columnSizes}
 				csvFileName="rwa-perps-venues.csv"
 				sortingState={[{ id: 'openInterest', desc: true }]}
 			/>

@@ -13,6 +13,7 @@ import type {
 import { STABLECOIN_CHART_CACHE_CONTROL } from '~/containers/Stablecoins/chartSeries'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
 import metadataCache from '~/utils/metadata'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const GLOBAL_CHARTS = new Set<StablecoinVolumeGlobalChartKind>(['total', 'chain', 'token', 'currency'])
 const CHAIN_CHARTS = new Set<StablecoinVolumeChainChartKind>(['total', 'token', 'currency'])
@@ -30,7 +31,7 @@ const parseLimit = (value: string | string[] | undefined): number | undefined =>
 	return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -79,7 +80,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', STABLECOIN_CHART_CACHE_CONTROL)
 		return res.status(200).json(payload)
 	} catch (error) {
-		console.error('Error fetching stablecoin volume chart:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch stablecoin volume chart' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/stablecoins/volume-chart', handler)

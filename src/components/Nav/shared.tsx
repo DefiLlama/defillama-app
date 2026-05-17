@@ -67,6 +67,10 @@ export function NavItemContent({
 				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
+			) : name === 'DefiLlama Research' ? (
+				<svg viewBox="0 0 21 29" className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
+					<use href="/assets/research/research-icon.svg#research-icon" />
+				</svg>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-nowrap items-center gap-2 text-left leading-tight">
 				<span className="min-w-0 flex-1 truncate">{name}</span>

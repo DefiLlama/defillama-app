@@ -57,7 +57,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	defaultTitle
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const [title, setTitle] = useState(defaultTitle || alertId.replace(/_/g, ' '))
+	const [title, setTitle] = useState(defaultTitle || 'Untitled alert')
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency)
 	const [hour, setHour] = useState(alertIntent.hour)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
@@ -182,7 +182,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					value={frequency}
 					onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
 					disabled={isSaved}
-					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
+					className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324] dark:bg-[#222]"
 				>
 					<option value="daily">Daily</option>
 					<option value="weekly">Weekly</option>
@@ -193,7 +193,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 						value={dayOfWeek}
 						onChange={(e) => setDayOfWeek(Number(e.target.value))}
 						disabled={isSaved}
-						className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
+						className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324] dark:bg-[#222]"
 					>
 						{DAYS_OF_WEEK.map((day, idx) => (
 							<option key={day} value={idx}>
@@ -209,7 +209,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					value={hour}
 					onChange={(e) => setHour(Number(e.target.value))}
 					disabled={isSaved}
-					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
+					className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324] dark:bg-[#222]"
 				>
 					{Array.from({ length: 24 }, (_, h) => (
 						<option key={`llamai-alert-h${h}`} value={h}>

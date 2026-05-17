@@ -192,7 +192,7 @@ export function Select(props: ISelect) {
 					setSelectedValues(values)
 				}}
 			>
-				<NestedMenu label={label} render={<Ariakit.Select />}>
+				<NestedMenu label={label} render={<button type="button" />}>
 					<div ref={nestedMenuRef}>
 						{showCheckboxes ? (
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">

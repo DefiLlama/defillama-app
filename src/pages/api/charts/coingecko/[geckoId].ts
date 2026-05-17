@@ -3,6 +3,8 @@ import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import type { CgChartResponse } from '~/api/coingecko.types'
 import { CACHE_SERVER } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = CgChartResponse | { totalSupply: number | null } | { error: string } | null
 const SUCCESS_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600'
@@ -11,15 +13,15 @@ const NO_STORE_CACHE_CONTROL = 'no-store'
 const getQueryParam = (value: string | string[] | undefined): string | undefined =>
 	Array.isArray(value) ? value[0] : value
 
-const setSuccessCacheHeaders = (res: NextApiResponse<ResponseData>) => {
-	res.setHeader('Cache-Control', SUCCESS_CACHE_CONTROL)
+const setSuccessCacheHeaders = (req: NextApiRequest, res: NextApiResponse<ResponseData>) => {
+	res.setHeader('Cache-Control', jitterCacheControlHeader(SUCCESS_CACHE_CONTROL, req.url ?? '/api/charts/coingecko'))
 }
 
 const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 	res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		setNoStoreHeaders(res)
@@ -43,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 			if (totalSupply === null) {
 				setNoStoreHeaders(res)
 			} else {
-				setSuccessCacheHeaders(res)
+				setSuccessCacheHeaders(req, res)
 			}
 			return res.status(200).json({ totalSupply })
 		}
@@ -55,11 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 			return res.status(200).json(null)
 		}
 
-		setSuccessCacheHeaders(res)
+		setSuccessCacheHeaders(req, res)
 		return res.status(200).json(chart)
 	} catch (error) {
 		setNoStoreHeaders(res)
-		console.log('Failed to fetch coingecko chart data', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to load coingecko chart data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/charts/coingecko/[geckoId]', handler)

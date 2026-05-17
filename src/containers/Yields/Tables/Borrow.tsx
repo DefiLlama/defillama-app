@@ -49,7 +49,9 @@ const columns = [
 				</span>
 			)
 		},
-		size: 200
+		meta: {
+			headerClassName: 'w-[200px] 2xl:w-[240px] min-[1600px]:w-[280px] min-[1640px]:w-[320px] min-[1720px]:w-[420px]'
+		}
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
@@ -64,7 +66,9 @@ const columns = [
 				borrow={true}
 			/>
 		),
-		size: 200
+		meta: {
+			headerClassName: 'w-[200px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		id: 'chains',
@@ -72,9 +76,9 @@ const columns = [
 		enableSorting: false,
 		cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
 		meta: {
+			headerClassName: 'w-[60px]',
 			align: 'end'
-		},
-		size: 60
+		}
 	}),
 	columnHelper.accessor((row) => row.apyBase ?? undefined, {
 		id: 'apyBase',
@@ -83,8 +87,8 @@ const columns = [
 		cell: (info) => {
 			return <ColoredAPY data-variant="supply">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Base rate lenders earn which is generated from the borrow side.'
 		}
@@ -109,8 +113,8 @@ const columns = [
 				</div>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end',
 			headerHelperText: 'Incentive reward APY for lending.'
 		}
@@ -126,8 +130,8 @@ const columns = [
 				</ColoredAPY>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end',
 			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
 		}
@@ -139,8 +143,8 @@ const columns = [
 		cell: (info) => {
 			return <ColoredAPY data-variant="borrow">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Interest borrowers pay to lenders.'
 		}
@@ -169,8 +173,8 @@ const columns = [
 				</div>
 			) : null
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end',
 			headerHelperText: 'Incentive reward APY for borrowing.'
 		}
@@ -190,8 +194,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[90px]',
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
@@ -210,8 +214,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -229,8 +233,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
@@ -258,8 +262,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})
@@ -323,109 +327,14 @@ const columnOrders: Record<number, readonly BorrowColumnId[]> = {
 		'totalAvailableUsd'
 	]
 }
-const columnSizes: Record<number, Partial<Record<BorrowColumnId, number>>> = {
-	0: {
-		pool: 200,
-		project: 200,
-		chains: 60,
-		apyBase: 140,
-		apyReward: 160,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
-	},
-	812: {
-		pool: 200,
-		project: 200,
-		chains: 60,
-		apyBase: 140,
-		apyReward: 160,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
-	},
-	1536: {
-		pool: 240,
-		project: 200,
-		chains: 60,
-		apyBase: 140,
-		apyReward: 160,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
-	},
-	1600: {
-		pool: 280,
-		project: 200,
-		chains: 60,
-		apyBase: 140,
-		apyReward: 160,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
-	},
-	1640: {
-		pool: 320,
-		project: 200,
-		chains: 60,
-		apyBase: 140,
-		apyReward: 160,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
-	},
-	1720: {
-		pool: 420,
-		project: 200,
-		chains: 60,
-		apyBase: 140,
-		apyReward: 160,
-		apyBorrow: 130,
-		apyBaseBorrow: 140,
-		apyRewardBorrow: 160,
-		ltv: 90,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
-	}
-}
-
 export const BORROW_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, BorrowColumnId> = {
 	kind: 'borrow',
 	columnIds: BORROW_COLUMN_IDS,
 	columns,
-	columnOrders,
-	columnSizes
+	columnOrders
 }
 
 export function YieldsBorrowTable({ data }: IYieldsTableProps) {
 	const resolvedConfig = resolveVirtualYieldsTableConfig(BORROW_TABLE_CONFIG, undefined)
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={resolvedConfig.columns}
-			columnSizes={resolvedConfig.columnSizes}
-			columnOrders={resolvedConfig.columnOrders}
-		/>
-	)
+	return <YieldsTableWrapper data={data} columns={resolvedConfig.columns} columnOrders={resolvedConfig.columnOrders} />
 }

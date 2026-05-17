@@ -1,8 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL } from '~/constants'
 import { validateSubscription } from '~/utils/apiAuth'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -26,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		const upstreamUrl = `${SERVER_URL}/inflows/${encodeURIComponent(slug)}/${startNum}?end=${endNum}&tokensToExclude=${encodeURIComponent(typeof tokensToExclude === 'string' ? tokensToExclude : '')}`
-		const upstream = await fetch(upstreamUrl)
+		const upstream = await fetchWithPoolingOnServer(upstreamUrl)
 
 		if (!upstream.ok) {
 			return res.status(upstream.status).json({ error: `Upstream API returned ${upstream.status}` })
@@ -36,7 +38,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(200).json(data)
 	} catch (error) {
-		console.error('CEX inflows proxy error:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Internal server error' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/cex/inflows', handler)

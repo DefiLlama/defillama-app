@@ -4,13 +4,14 @@ import {
 	getCexAnalyticsSnapshot,
 	getCexAnalyticsTotals
 } from '~/server/cexAnalytics/queries'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type View = 'snapshot' | 'totals' | 'share'
 
 const isView = (value: string | undefined): value is View =>
 	value === 'snapshot' || value === 'totals' || value === 'share'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const view = typeof req.query.view === 'string' ? req.query.view : 'snapshot'
 		if (!isView(view)) {
@@ -33,7 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const topN = Number.isFinite(requestedTopN) ? Math.min(Math.max(Math.trunc(requestedTopN), 1), 12) : 8
 		res.status(200).json(await getCexAnalyticsMarketShare(metric, topN))
 	} catch (error) {
-		console.log('Error fetching cex analytics data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch cex analytics data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/datasets/cex-analytics', handler)

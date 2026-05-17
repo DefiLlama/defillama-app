@@ -390,6 +390,24 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds: Record<strin
 	}
 }
 
+export const getBridgeChainNetInflows = async (chain: string): Promise<{ netInflows: number | null } | null> => {
+	const { chainCoingeckoIds } = await fetchJson<LlamaConfigResponse>(CONFIG_API)
+	if (!chainCoingeckoIds[chain]) return null
+
+	const chart = await retryAsync(() => fetchBridgeVolumeByChain(chain), {
+		context: `fetchBridgeVolumeByChain(${chain})`,
+		throwOnFailure: true,
+		onFailureError: () => new Error(`bridge volume for chain ${chain} is broken`)
+	})
+	const netInflows = chart.length ? (chart[chart.length - 1].depositUSD ?? null) : null
+
+	if (netInflows === 0) {
+		return null
+	}
+
+	return { netInflows }
+}
+
 const getLargeTransactionsData = async (chain: string, startTimestamp: number, endTimestamp: number) => {
 	return retryAsync(() => fetchBridgeLargeTransactions(startTimestamp, endTimestamp, chain || undefined), {
 		context: `fetchBridgeLargeTransactions(${chain || 'all'})`,

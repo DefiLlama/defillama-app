@@ -1,8 +1,9 @@
 import { useCallback, useSyncExternalStore } from 'react'
 
-export function useMedia(query: string) {
+export function useMedia(query: string, enabled = true) {
 	const subscribe = useCallback(
 		(onStoreChange: () => void) => {
+			if (!enabled) return () => {}
 			if (typeof window === 'undefined') return () => {}
 
 			const mediaQueryList = window.matchMedia(query)
@@ -25,14 +26,15 @@ export function useMedia(query: string) {
 				legacyMediaQueryList.removeListener?.(onStoreChange)
 			}
 		},
-		[query]
+		[query, enabled]
 	)
 
 	const getSnapshot = useCallback(() => {
+		if (!enabled) return false
 		if (typeof window === 'undefined') return false
 
 		return window.matchMedia(query).matches
-	}, [query])
+	}, [query, enabled])
 
 	return useSyncExternalStore(subscribe, getSnapshot, () => false)
 }

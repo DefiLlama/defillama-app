@@ -1,4 +1,5 @@
-import { AUTH_SERVER, POCKETBASE_URL } from '~/constants'
+import { AUTH_SERVER, FEATURES_SERVER, POCKETBASE_URL } from '~/constants'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 
 type ValidationSuccess = { valid: true; isTrial: boolean }
 type ValidationFailure = { valid: false; status: number; error: string }
@@ -10,14 +11,14 @@ export async function validateSubscription(authHeader: string | undefined): Prom
 	}
 
 	const [subResponse, userResponse] = await Promise.all([
-		fetch(`${AUTH_SERVER}/subscription/status`, {
+		fetchWithPoolingOnServer(`${AUTH_SERVER}/subscription/status`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: authHeader
 			}
 		}),
-		fetch(`${POCKETBASE_URL}/api/collections/users/auth-refresh`, {
+		fetchWithPoolingOnServer(`${POCKETBASE_URL}/api/collections/users/auth-refresh`, {
 			method: 'POST',
 			headers: { Authorization: authHeader }
 		}).catch(() => null)
@@ -42,7 +43,7 @@ export async function validateSubscription(authHeader: string | undefined): Prom
 }
 
 export async function getTrialCsvDownloadCount(authHeader: string): Promise<number> {
-	const response = await fetch(`${POCKETBASE_URL}/api/collections/users/auth-refresh`, {
+	const response = await fetchWithPoolingOnServer(`${POCKETBASE_URL}/api/collections/users/auth-refresh`, {
 		method: 'POST',
 		headers: { Authorization: authHeader }
 	})
@@ -55,7 +56,7 @@ export async function getTrialCsvDownloadCount(authHeader: string): Promise<numb
 }
 
 export async function trackCsvDownload(authHeader: string): Promise<void> {
-	await fetch(`${AUTH_SERVER}/user/track-csv-download`, {
+	await fetchWithPoolingOnServer(`${FEATURES_SERVER}/user/track-csv-download`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

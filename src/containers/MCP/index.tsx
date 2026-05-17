@@ -482,6 +482,11 @@ export default function MCPContainer() {
 					</StepCard>
 				</div>
 
+				<p className="mt-4 rounded-md border border-(--cards-border) bg-(--bg-card) px-4 py-3 text-[13px] leading-relaxed text-(--text-tertiary)">
+					Note: each DefiLlama account can only be connected to one MCP client at a time. Connecting a new client will
+					disconnect the previous one.
+				</p>
+
 				{/* LlamaAI Upsell */}
 				<a
 					href="/ai"

@@ -1,6 +1,7 @@
 import type { GetServerSideProps } from 'next'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 	return Promise.resolve({
 		redirect: {
 			destination: `/protocol/bridge-aggregators/${context.params?.item}`,
@@ -12,3 +13,5 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 export default function BridgeAggregator() {
 	return <div>BridgeAggregator</div>
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/bridge-aggregators/[item]', getServerSidePropsHandler)

@@ -194,6 +194,8 @@ export function useProTable(
 		return nextVisibility
 	}, [allLeafColumnIds, state.columnOrder, state.columnVisibility])
 
+	const deferredSearchTerm = React.useDeferredValue(state.searchTerm)
+
 	const table = useReactTable({
 		data: filteredProtocolsList,
 		columns: allColumns,
@@ -201,7 +203,7 @@ export function useProTable(
 			sorting: state.sorting,
 			pagination: state.pagination,
 			expanded: state.expanded,
-			globalFilter: state.searchTerm,
+			globalFilter: deferredSearchTerm,
 			columnVisibility: resolvedColumnVisibility,
 			columnOrder: state.columnOrder
 		},

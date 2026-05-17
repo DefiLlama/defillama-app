@@ -8,12 +8,14 @@ import {
 	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { PercentChange } from '~/components/PercentChange'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
+import { rwaSlug } from '../rwaSlug'
 import {
 	buildRWAPerpsContractChartSpec,
 	buildRWAPerpsContractInfoRows,
@@ -183,7 +185,11 @@ function RWAPerpsContractInfoCard({ contract }: { contract: IRWAPerpsContractDat
 	const midpoint = Math.ceil(infoRows.length / 2)
 	const desktopInfoColumns = [infoRows.slice(0, midpoint), infoRows.slice(midpoint)].filter((rows) => rows.length > 0)
 	const renderInfoRowValue = (row: (typeof infoRows)[number]) =>
-		row.label === 'Website' ? (
+		row.label === d.venue.label ? (
+			<BasicLink href={`/rwa/perps/venue/${rwaSlug(row.value)}`} className="text-(--link-text) hover:underline">
+				{row.value}
+			</BasicLink>
+		) : row.label === 'Website' ? (
 			<a href={row.value} target="_blank" rel="noopener noreferrer" className="text-(--link-text) hover:underline">
 				{row.value}
 			</a>

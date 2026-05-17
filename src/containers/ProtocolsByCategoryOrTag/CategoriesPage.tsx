@@ -22,7 +22,9 @@ const categoriesColumns = [
 	columnHelper.accessor('name', {
 		header: 'Category',
 		enableSorting: false,
-		size: 240,
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		},
 		cell: ({ getValue, row }) => {
 			const categoryName = getValue()
 
@@ -61,15 +63,15 @@ const categoriesColumns = [
 	}),
 	columnHelper.accessor('protocols', {
 		header: 'Protocols',
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'Combined TVL',
-		size: 135,
 		meta: {
+			headerClassName: 'w-[135px]',
 			align: 'end'
 		},
 		cell: ({ getValue }) => {
@@ -79,32 +81,32 @@ const categoriesColumns = [
 	}),
 	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		},
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />
 	}),
 	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		},
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />
 	}),
 	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		},
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />
 	}),
 	columnHelper.accessor('revenue', {
 		header: 'Combined 24h Revenue',
-		size: 200,
 		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
 			align: 'end'
 		},
 		cell: ({ getValue }) => {
@@ -115,7 +117,9 @@ const categoriesColumns = [
 	columnHelper.accessor('description', {
 		header: 'Description',
 		enableSorting: false,
-		size: 1600
+		meta: {
+			headerClassName: 'w-[min(1600px,40vw)]'
+		}
 	})
 ]
 

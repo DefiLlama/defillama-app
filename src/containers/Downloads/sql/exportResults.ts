@@ -1,3 +1,4 @@
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { downloadTabular, type CsvCell, type DownloadFormat } from '~/utils/download'
 
 export interface QueryResult {
@@ -9,6 +10,7 @@ export interface QueryResult {
 // Convert once, here, and pass a CsvCell[][] to the shared downloadTabular pipeline so we
 // reuse the same escaping, file-naming, and analytics hooks as the rest of the app.
 export function exportQueryResult(result: QueryResult, format: DownloadFormat, filename = 'query-result'): void {
+	trackUmamiEvent('sql-studio-download', { format })
 	if (!result || result.rows.length === 0) {
 		// Still emit an empty file so "nothing happened" isn't the UX for empty results.
 		downloadTabular(format, filename, [result.columns.map((c) => c.name)], { addTimestamp: true })

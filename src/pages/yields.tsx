@@ -1,7 +1,7 @@
 import { Announcement } from '~/components/Announcement'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import YieldPage from '~/containers/Yields'
-import { getLendBorrowData, getYieldPageData } from '~/containers/Yields/queries/index'
+import { getLendBorrowDataFromYieldPageData, getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer, exploitWarning } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -10,9 +10,15 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('yields', async () => {
 	// trigger build
 	const data = await getYieldPageData()
-	const dataBorrow = await getLendBorrowData()
+	const [dataBorrow, { questions: entityQuestions }] = await Promise.all([
+		getLendBorrowDataFromYieldPageData(data),
+		fetchEntityQuestions('yields', 'page').catch(() => ({
+			questions: [] as string[]
+		}))
+	])
+	const borrowPoolsById = new Map(dataBorrow.props.pools.map((pool) => [pool.pool, pool]))
 	data.props.pools = data.props.pools.map((p) => {
-		const x = dataBorrow.props.pools.find((i) => i.pool === p.pool)
+		const x = borrowPoolsById.get(p.pool)
 		return {
 			...p,
 			apyBaseBorrow: x?.apyBaseBorrow ?? null,
@@ -24,10 +30,6 @@ export const getStaticProps = withPerformanceLogging('yields', async () => {
 			ltv: x?.ltv ?? null
 		}
 	})
-
-	const { questions: entityQuestions } = await fetchEntityQuestions('yields', 'page').catch(() => ({
-		questions: [] as string[]
-	}))
 
 	return {
 		props: { ...data.props, entityQuestions },

@@ -8,6 +8,7 @@ import {
 } from '~/constants'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { slug as toSlug } from '~/utils'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 
 export type CategoryBreakdownKind = { kind: 'tvl' } | { kind: 'dimension'; adapterType: string; dataType?: string }
 
@@ -414,13 +415,13 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		extractRows: extractRWACategoryRows,
 		customFetch: async (param: string) => {
 			if (param === 'all') {
-				const resp = await fetch(`${RWA_SERVER_URL}/chart/category-breakdown`)
+				const resp = await fetchWithPoolingOnServer(`${RWA_SERVER_URL}/chart/category-breakdown`)
 				if (!resp.ok) return []
 				return extractRWACategoryRows(await resp.json())
 			}
 			const [assetResp, assetsResp] = await Promise.all([
-				fetch(`${RWA_SERVER_URL}/chart/chain/${param}/asset-breakdown`),
-				fetch(`${RWA_SERVER_URL}/current?z=0`)
+				fetchWithPoolingOnServer(`${RWA_SERVER_URL}/chart/chain/${param}/asset-breakdown`),
+				fetchWithPoolingOnServer(`${RWA_SERVER_URL}/current?z=0`)
 			])
 			if (!assetResp.ok || !assetsResp.ok) return []
 			const assetData = await assetResp.json()
@@ -525,8 +526,8 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		extractRows: () => [],
 		customFetch: async (param: string) => {
 			const [chartResp, assetsResp] = await Promise.all([
-				fetch(`${RWA_SERVER_URL}/chart/category/${param}/asset-breakdown`),
-				fetch(`${RWA_SERVER_URL}/current?z=0`)
+				fetchWithPoolingOnServer(`${RWA_SERVER_URL}/chart/category/${param}/asset-breakdown`),
+				fetchWithPoolingOnServer(`${RWA_SERVER_URL}/current?z=0`)
 			])
 			if (!chartResp.ok || !assetsResp.ok) return []
 			const chart = await chartResp.json()
@@ -1073,7 +1074,7 @@ export async function fetchAllChartOptions(): Promise<ChartOptionsMap> {
 	await Promise.all(
 		[...urlToDatasets.entries()].map(async ([url, datasets]) => {
 			try {
-				const response = await fetch(url)
+				const response = await fetchWithPoolingOnServer(url)
 				if (!response.ok) {
 					for (const ds of datasets) result[ds.slug] = []
 					return

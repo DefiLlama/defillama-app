@@ -1,5 +1,5 @@
 import { SERVER_URL, V2_SERVER_URL } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, getSlowJsonTimeoutMs } from '~/utils/async'
 import type {
 	IProtocolChainBreakdownChart,
 	IProtocolChainBreakdownValue,
@@ -88,14 +88,16 @@ export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IP
 const fetchProtocolValueChart = async ({
 	path,
 	key,
-	currency
+	currency,
+	timeout
 }: {
 	path: string
 	key?: string
 	currency?: string
+	timeout?: number
 }): Promise<IProtocolValueChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson<unknown>(finalUrl)
+	const values = await fetchJson<unknown>(finalUrl, timeout != null ? { timeout } : undefined)
 	return normalizeProtocolValueChart(values)
 }
 
@@ -105,14 +107,16 @@ const fetchProtocolValueChart = async ({
 const fetchProtocolChainBreakdownChart = async ({
 	path,
 	key,
-	currency
+	currency,
+	timeout
 }: {
 	path: string
 	key?: string
 	currency?: string
+	timeout?: number
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson<unknown>(finalUrl)
+	const values = await fetchJson<unknown>(finalUrl, timeout != null ? { timeout } : undefined)
 	return normalizeProtocolChainBreakdownChart(values)
 }
 
@@ -122,14 +126,16 @@ const fetchProtocolChainBreakdownChart = async ({
 const fetchProtocolTokenBreakdownChart = async ({
 	path,
 	key,
-	currency
+	currency,
+	timeout
 }: {
 	path: string
 	key?: string
 	currency?: string
+	timeout?: number
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson<unknown>(finalUrl)
+	const values = await fetchJson<unknown>(finalUrl, timeout != null ? { timeout } : undefined)
 	return normalizeProtocolTokenBreakdownChart(values)
 }
 
@@ -155,14 +161,17 @@ const fetchProtocolMetricValueChart = async ({
 	namespace,
 	protocol,
 	key,
-	currency
+	currency,
+	timeout
 }: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'> & {
 	namespace: ProtocolChartNamespace
+	timeout?: number
 }): Promise<IProtocolValueChart | null> => {
 	return fetchProtocolValueChart({
 		path: buildProtocolChartPath({ namespace, protocol }),
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -173,14 +182,16 @@ const fetchProtocolMetricChainBreakdownChart = async ({
 	namespace,
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'> & {
+	currency,
+	timeout
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency' | 'timeout'> & {
 	namespace: ProtocolChartNamespace
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	return fetchProtocolChainBreakdownChart({
 		path: buildProtocolChartPath({ namespace, protocol, breakdownType: 'chain-breakdown' }),
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -191,14 +202,16 @@ const fetchProtocolMetricTokenBreakdownChart = async ({
 	namespace,
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'> & {
+	currency,
+	timeout
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency' | 'timeout'> & {
 	namespace: ProtocolChartNamespace
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	return fetchProtocolTokenBreakdownChart({
 		path: buildProtocolChartPath({ namespace, protocol, breakdownType: 'token-breakdown' }),
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -208,13 +221,15 @@ const fetchProtocolMetricTokenBreakdownChart = async ({
 const fetchProtocolTvlValueChart = async ({
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolValueChart | null> => {
+	currency,
+	timeout
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency' | 'timeout'>): Promise<IProtocolValueChart | null> => {
 	return fetchProtocolMetricValueChart({
 		namespace: 'tvl',
 		protocol,
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -224,13 +239,18 @@ const fetchProtocolTvlValueChart = async ({
 const fetchProtocolTvlChainBreakdownChart = async ({
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolChainBreakdownChart | null> => {
+	currency,
+	timeout
+}: Pick<
+	IProtocolChartV2Params,
+	'protocol' | 'key' | 'currency' | 'timeout'
+>): Promise<IProtocolChainBreakdownChart | null> => {
 	return fetchProtocolMetricChainBreakdownChart({
 		namespace: 'tvl',
 		protocol,
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -240,13 +260,18 @@ const fetchProtocolTvlChainBreakdownChart = async ({
 export const fetchProtocolTvlTokenBreakdownChart = async ({
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolTokenBreakdownChart | null> => {
+	currency,
+	timeout
+}: Pick<
+	IProtocolChartV2Params,
+	'protocol' | 'key' | 'currency' | 'timeout'
+>): Promise<IProtocolTokenBreakdownChart | null> => {
 	return fetchProtocolMetricTokenBreakdownChart({
 		namespace: 'tvl',
 		protocol,
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -256,13 +281,15 @@ export const fetchProtocolTvlTokenBreakdownChart = async ({
 const fetchProtocolTreasuryValueChart = async ({
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolValueChart | null> => {
+	currency,
+	timeout
+}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency' | 'timeout'>): Promise<IProtocolValueChart | null> => {
 	return fetchProtocolMetricValueChart({
 		namespace: 'treasury',
 		protocol,
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -272,13 +299,18 @@ const fetchProtocolTreasuryValueChart = async ({
 const fetchProtocolTreasuryChainBreakdownChart = async ({
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolChainBreakdownChart | null> => {
+	currency,
+	timeout
+}: Pick<
+	IProtocolChartV2Params,
+	'protocol' | 'key' | 'currency' | 'timeout'
+>): Promise<IProtocolChainBreakdownChart | null> => {
 	return fetchProtocolMetricChainBreakdownChart({
 		namespace: 'treasury',
 		protocol,
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -288,13 +320,18 @@ const fetchProtocolTreasuryChainBreakdownChart = async ({
 export const fetchProtocolTreasuryTokenBreakdownChart = async ({
 	protocol,
 	key,
-	currency
-}: Pick<IProtocolChartV2Params, 'protocol' | 'key' | 'currency'>): Promise<IProtocolTokenBreakdownChart | null> => {
+	currency,
+	timeout
+}: Pick<
+	IProtocolChartV2Params,
+	'protocol' | 'key' | 'currency' | 'timeout'
+>): Promise<IProtocolTokenBreakdownChart | null> => {
 	return fetchProtocolMetricTokenBreakdownChart({
 		namespace: 'treasury',
 		protocol,
 		key,
-		currency
+		currency,
+		timeout
 	})
 }
 
@@ -317,17 +354,18 @@ export async function fetchProtocolTvlChart({
 	protocol,
 	key,
 	currency,
-	breakdownType
+	breakdownType,
+	timeout
 }: IProtocolChartV2Params): Promise<
 	IProtocolValueChart | IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart | null
 > {
 	if (breakdownType === 'chain-breakdown') {
-		return fetchProtocolTvlChainBreakdownChart({ protocol, key, currency })
+		return fetchProtocolTvlChainBreakdownChart({ protocol, key, currency, timeout })
 	}
 	if (breakdownType === 'token-breakdown') {
-		return fetchProtocolTvlTokenBreakdownChart({ protocol, key, currency })
+		return fetchProtocolTvlTokenBreakdownChart({ protocol, key, currency, timeout })
 	}
-	return fetchProtocolTvlValueChart({ protocol, key, currency })
+	return fetchProtocolTvlValueChart({ protocol, key, currency, timeout })
 }
 
 /**
@@ -349,17 +387,18 @@ export async function fetchProtocolTreasuryChart({
 	protocol,
 	key,
 	currency,
-	breakdownType
+	breakdownType,
+	timeout
 }: IProtocolChartV2Params): Promise<
 	IProtocolValueChart | IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart | null
 > {
 	if (breakdownType === 'chain-breakdown') {
-		return fetchProtocolTreasuryChainBreakdownChart({ protocol, key, currency })
+		return fetchProtocolTreasuryChainBreakdownChart({ protocol, key, currency, timeout })
 	}
 	if (breakdownType === 'token-breakdown') {
-		return fetchProtocolTreasuryTokenBreakdownChart({ protocol, key, currency })
+		return fetchProtocolTreasuryTokenBreakdownChart({ protocol, key, currency, timeout })
 	}
-	return fetchProtocolTreasuryValueChart({ protocol, key, currency })
+	return fetchProtocolTreasuryValueChart({ protocol, key, currency, timeout })
 }
 
 /**
@@ -367,7 +406,8 @@ export async function fetchProtocolTreasuryChart({
  */
 export async function fetchProtocolExpenses(): Promise<IProtocolExpenses[]> {
 	return fetchJson<IProtocolExpenses[]>(
-		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
+		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json',
+		{ timeout: getSlowJsonTimeoutMs() }
 	)
 }
 

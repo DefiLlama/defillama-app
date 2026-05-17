@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { matchSorter } from 'match-sorter'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { fetchChainsByCategory, fetchChainsCategories } from '~/containers/Chains/api'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
@@ -19,6 +20,7 @@ export function SelectItemsStep() {
 	const { state, actions } = useComparisonWizardContext()
 	const { protocols, chains, protocolsLoading } = useProDashboardCatalog()
 	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 	const listRef = useRef<HTMLDivElement>(null)
 
@@ -147,13 +149,16 @@ export function SelectItemsStep() {
 			}
 		}
 
-		if (search.trim()) {
-			const searchLower = search.toLowerCase()
-			filtered = filtered.filter((o) => o.label.toLowerCase().includes(searchLower))
+		const searchQuery = deferredSearch.trim()
+		if (searchQuery) {
+			filtered = matchSorter(filtered, searchQuery, {
+				keys: ['label'],
+				threshold: matchSorter.rankings.CONTAINS
+			})
 		}
 
 		return filtered
-	}, [options, search, selectedCategoriesSet, state.comparisonType, chainCategoryData, protocols])
+	}, [options, deferredSearch, selectedCategoriesSet, state.comparisonType, chainCategoryData, protocols])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
@@ -269,8 +274,7 @@ export function SelectItemsStep() {
 						/>
 						<input
 							type="text"
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
+							onInput={(e) => setSearch(e.currentTarget.value)}
 							placeholder={`Search ${typeLabel.toLowerCase()}...`}
 							className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-2 pr-3 pl-9 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>

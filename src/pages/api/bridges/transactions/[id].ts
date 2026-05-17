@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchBridgeTransactions } from '~/containers/Bridges/api'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
@@ -10,7 +12,7 @@ export const config = {
 const getQueryParam = (value: string | string[] | undefined): string | undefined =>
 	Array.isArray(value) ? value[0] : value
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		res.setHeader('Cache-Control', 'no-store')
@@ -41,11 +43,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		const data = await fetchBridgeTransactions(idParam, startTimestamp, endTimestamp)
-		res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, s-maxage=300, stale-while-revalidate=60', req.url ?? idParam)
+		)
 		return res.status(200).json(data)
 	} catch (error) {
 		res.setHeader('Cache-Control', 'no-store')
-		console.error(`Failed to fetch bridge transactions for ${idParam}:`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch bridge transactions' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/bridges/transactions/[id]', handler)

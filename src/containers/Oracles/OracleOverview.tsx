@@ -71,6 +71,9 @@ export const OracleOverview = ({
 							</BasicLink>
 						</span>
 					)
+				},
+				meta: {
+					headerClassName: 'w-[min(240px,40vw)]'
 				}
 			}),
 			columnHelper.accessor('category', {
@@ -78,6 +81,7 @@ export const OracleOverview = ({
 				enableSorting: false,
 				cell: ({ getValue }) => getValue() ?? 'Unknown',
 				meta: {
+					headerClassName: 'w-[140px]',
 					align: 'center'
 				}
 			}),
@@ -94,6 +98,7 @@ export const OracleOverview = ({
 					)
 				},
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'center'
 				}
 			})
