@@ -10,7 +10,7 @@
  */
 
 import { exportChartAsPng } from '~/components/ButtonStyled/chartPngExport'
-import { renderEditorialReport } from '~/containers/LlamaAI/templates/editorial'
+import { renderEditorialReport, type ChartImage } from '~/containers/LlamaAI/templates/editorial'
 import type { Message } from '~/containers/LlamaAI/types'
 import type { ChartInstanceRegistry } from '~/containers/LlamaAI/utils/chartInstanceRegistry'
 
@@ -69,8 +69,8 @@ async function buildChartImages(
 	message: Message,
 	chartInstances: ChartInstanceRegistry,
 	isDark: boolean
-): Promise<Map<string, string>> {
-	const images = new Map<string, string>()
+): Promise<Map<string, ChartImage>> {
+	const images = new Map<string, ChartImage>()
 	const chartConfigs = (message.charts ?? []).flatMap((set) => set.charts ?? [])
 	if (chartConfigs.length === 0) return images
 
@@ -86,7 +86,7 @@ async function buildChartImages(
 		const title = typeof chart.title === 'string' ? chart.title : undefined
 		try {
 			const dataUrl = await exportChartAsPng(instance, { isDark, title })
-			if (dataUrl) images.set(chart.id, dataUrl)
+			if (dataUrl) images.set(chart.id, { dataUrl, title })
 		} catch (error) {
 			console.warn(`Failed to export chart ${chart.id}:`, error)
 		}

@@ -87,11 +87,26 @@ describe('renderEditorialReport', () => {
 				content: 'Volume chart:\n\n[CHART:chart-xyz]\n\nEnd of section.',
 				charts: [{ charts: [{ id: 'chart-xyz', type: 'bar' } as any], chartData: {} }]
 			}),
-			chartImages: new Map([['chart-xyz', 'data:image/png;base64,AAA=']])
+			chartImages: new Map([['chart-xyz', { dataUrl: 'data:image/png;base64,AAA=', title: 'Volume by chain' }]])
 		})
 
 		expect(html).toContain('<figure class="chart">')
 		expect(html).toContain('src="data:image/png;base64,AAA="')
+		expect(html).toContain('alt="Volume by chain"')
+		expect(html).toContain('<figcaption>Volume by chain</figcaption>')
+	})
+
+	it('falls back to a generic alt when the chart has no title', async () => {
+		const html = await renderReport({
+			message: makeMessage({
+				content: '[CHART:chart-noname]',
+				charts: [{ charts: [{ id: 'chart-noname', type: 'bar' } as any], chartData: {} }]
+			}),
+			chartImages: new Map([['chart-noname', { dataUrl: 'data:image/png;base64,BBB=' }]])
+		})
+
+		expect(html).toContain('alt="Chart"')
+		expect(html).not.toContain('<figcaption>')
 	})
 
 	it('omits chart blocks when no image is available (chart not yet rendered)', async () => {

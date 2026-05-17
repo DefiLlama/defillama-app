@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -42,6 +42,18 @@ export function DownloadArtifactButton({ message, sessionId, className }: Downlo
 	const subscribeStore = Ariakit.useDialogStore()
 	const menu = Ariakit.useMenuStore()
 	const loading = loaders.userLoading || isLoading
+	// Track every blob URL we hand to window.open so we can revoke them when the
+	// component unmounts. We can't revoke per-click because the user may keep
+	// the preview tab open (and would lose reload / view-source / copy-link if
+	// we revoked while the tab was alive).
+	const previewBlobUrlsRef = useRef<Set<string>>(new Set())
+	useEffect(() => {
+		const blobUrls = previewBlobUrlsRef.current
+		return () => {
+			for (const url of blobUrls) URL.revokeObjectURL(url)
+			blobUrls.clear()
+		}
+	}, [])
 
 	const runExport = async (action: 'preview' | 'download'): Promise<void> => {
 		if (loading || !chartInstances) return
@@ -63,9 +75,7 @@ export function DownloadArtifactButton({ message, sessionId, className }: Downlo
 			})
 
 			if (action === 'preview') {
-				// Don't revoke — the new tab needs the blob URL to stay valid for
-				// reloads, "view source", or copy-link. Browser GCs the blob when
-				// both originating and destination tabs are closed.
+				previewBlobUrlsRef.current.add(blobUrl)
 				window.open(blobUrl, '_blank', 'noopener,noreferrer')
 				trackUmamiEvent('llamaai-download', {
 					kind: 'artifact-html-preview',
