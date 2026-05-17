@@ -266,9 +266,7 @@ export async function renderEditorialReport(input: EditorialReportInput): Promis
 			if (chart) {
 				const altText = escapeHtml(chart.title ?? 'Chart')
 				const caption = chart.title ? `<figcaption>${escapeHtml(chart.title)}</figcaption>` : ''
-				bodyParts.push(
-					`<figure class="chart"><img src="${chart.dataUrl}" alt="${altText}" loading="lazy" />${caption}</figure>`
-				)
+				bodyParts.push(`<figure class="chart"><img src="${chart.dataUrl}" alt="${altText}" />${caption}</figure>`)
 			}
 		} else if (block.type === 'sources') {
 			sourcesParts.push(renderSourcesList(block.citations))
