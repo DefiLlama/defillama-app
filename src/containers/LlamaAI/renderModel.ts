@@ -7,6 +7,16 @@ import type {
 } from '~/containers/LlamaAI/types'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
+/**
+ * Whether a message has rendered chart artifacts. Used to gate features
+ * (e.g. the HTML artifact export button) that don't make sense for a
+ * brief chat reply. Charts are a server-emitted artifact, so this is a
+ * deterministic signal — not a content heuristic.
+ */
+export function messageHasCharts(message: Message | null | undefined): boolean {
+	return (message?.charts?.length ?? 0) > 0
+}
+
 export type ChartArtifactRecord = {
 	type: 'chart'
 	id: string
