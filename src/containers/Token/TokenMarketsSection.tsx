@@ -437,9 +437,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 						/>
 						<input
 							value={(table.getColumn('exchange')?.getFilterValue() as string | undefined) ?? ''}
-							onChange={(event) =>
-								table.getColumn('exchange')?.setFilterValue(event.currentTarget.value || undefined)
-							}
+							onChange={(event) => table.getColumn('exchange')?.setFilterValue(event.currentTarget.value || undefined)}
 							placeholder="Search exchanges..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>

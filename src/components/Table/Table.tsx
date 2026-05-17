@@ -187,8 +187,8 @@ export function VirtualTable<T extends RowData>({
 		// the virtualizer would scroll the window to its stale initialOffset (0) and
 		// clobber any hash-based scroll the browser had just applied. Keeping
 		// initialOffset at 0 also preserves SSR/CSR render parity (no hydration mismatch).
-		observeElementOffset: (instance, cb) => {
-			const target = instance.scrollElement as (Window & typeof globalThis) | null
+		observeElementOffset: (virtualizer, cb) => {
+			const target = virtualizer.scrollElement as (Window & typeof globalThis) | null
 			if (!target) return
 			cb(target.scrollY, false)
 			const onScroll = () => cb(target.scrollY, true)

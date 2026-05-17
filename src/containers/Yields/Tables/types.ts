@@ -79,8 +79,26 @@ export interface IYieldsTableProps {
 	interactionDisabled?: boolean
 }
 
+/**
+ * Borrow-side slice from lending pool APIs (`pool.borrow`), enriched by `formatOptimizerPool`.
+ * Not a full table row — see `IYieldsOptimizerTableRow`.
+ */
+export interface IYieldsOptimizerBorrowLeg {
+	symbol?: string
+	/** CDP / strategy rows use this for `configID` (see Strategy table). */
+	pool?: string
+	/** CDP / minted-coin routes clone the source pool into `borrow`; used for protocol-level filters. */
+	project?: string
+	/** Used to price manually entered borrow amounts when the API exposes token addresses. */
+	underlyingTokens?: string[]
+	totalAvailableUsd?: number | null
+	apyBaseBorrow?: number | null
+	apyRewardBorrow?: number | null
+	apyBorrow?: number | null
+}
+
 export interface IYieldsOptimizerTableRow extends IYieldTableRow {
-	borrow: IYieldsOptimizerTableRow
+	borrow: IYieldsOptimizerBorrowLeg
 	projectName: string
 	rewardTokensNames: string[]
 	borrowAvailableUsd?: number | null
