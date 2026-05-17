@@ -87,6 +87,10 @@ export interface IYieldsOptimizerBorrowLeg {
 	symbol?: string
 	/** CDP / strategy rows use this for `configID` (see Strategy table). */
 	pool?: string
+	/** CDP / minted-coin routes clone the source pool into `borrow`; used for protocol-level filters. */
+	project?: string
+	/** Used to price manually entered borrow amounts when the API exposes token addresses. */
+	underlyingTokens?: string[]
 	totalAvailableUsd?: number | null
 	apyBaseBorrow?: number | null
 	apyRewardBorrow?: number | null
