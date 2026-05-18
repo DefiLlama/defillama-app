@@ -186,6 +186,7 @@ interface SharedSessionMessage {
 
 interface SessionRestoreResult {
 	messages?: PersistedMessage[]
+	todos?: TodoItem[]
 	activeLeafMessageId?: string
 	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
 	projectId?: string | null
@@ -649,6 +650,10 @@ function createAgenticCallbacks({
 					dispatch({ type: 'SET_TODOS', value: todos })
 				}
 			}
+		},
+		onTodos: (todos) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_TODOS', value: todos })
 		},
 		onMessageMetadata: (data) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1523,6 +1528,7 @@ export function AgenticChat({
 			}
 
 			setMessages(restored)
+			dispatchStream({ type: 'SET_TODOS', value: Array.isArray(result.todos) ? result.todos : [] })
 			setActiveLeafMessageId(
 				'activeLeafMessageId' in result
 					? (result.activeLeafMessageId ?? restored[restored.length - 1]?.id ?? null)
@@ -1790,12 +1796,18 @@ export function AgenticChat({
 				sessionId: nextSessionId,
 				title: 'New Chat',
 				projectId: projectIdForNewChat
-			}).catch((createSessionError) => {
-				console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
 			})
 			if (route.kind !== 'project') {
-				await persistSession
-				void navigate.toSession(nextSessionId)
+				try {
+					await persistSession
+					void navigate.toSession(nextSessionId)
+				} catch (createSessionError) {
+					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+				}
+			} else {
+				void persistSession.catch((createSessionError) => {
+					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+				})
 			}
 			promptInputRef.current?.focus()
 			return
@@ -1979,7 +1991,7 @@ export function AgenticChat({
 		(
 			prompt: string,
 			entities?: Array<{ term: string; slug: string; type?: string }>,
-			images?: Array<{ data: string; mimeType: string; filename?: string }>,
+			images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 			pageContext?: ChatPageContext,
 			isSuggestedQuestion?: boolean
 		) => {

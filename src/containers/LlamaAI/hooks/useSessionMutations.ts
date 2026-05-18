@@ -100,6 +100,15 @@ export function useSessionMutations() {
 		[queryClient]
 	)
 
+	const removeProjectSession = useCallback(
+		(projectId: string, sessionId: string) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+				old?.filter((item) => item.sessionId !== sessionId)
+			)
+		},
+		[queryClient]
+	)
+
 	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
 		mutationFn: async ({
@@ -130,6 +139,9 @@ export function useSessionMutations() {
 		onSuccess: (_data, variables) => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 			if (variables.projectId) invalidateProjectSessions(variables.projectId)
+		},
+		onError: (_error, variables) => {
+			if (variables.projectId) removeProjectSession(variables.projectId, variables.sessionId)
 		}
 	})
 
@@ -397,6 +409,7 @@ export function useSessionMutations() {
 						newerCursor: result.newerCursor
 					},
 					streaming: result.streaming,
+					todos: result.todos,
 					projectId: result.projectId ?? null
 				}
 			} catch (error) {

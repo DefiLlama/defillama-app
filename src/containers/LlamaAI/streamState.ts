@@ -22,7 +22,7 @@ export interface ChatPageContext {
 export interface FailedRequest {
 	prompt: string
 	entities?: Array<{ term: string; slug: string; type?: string }>
-	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 	pageContext?: ChatPageContext
 }
 

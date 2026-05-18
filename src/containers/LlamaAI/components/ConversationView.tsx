@@ -65,7 +65,7 @@ interface ConversationViewProps {
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
 		isSuggestedQuestion?: boolean
 	) => void

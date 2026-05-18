@@ -5,6 +5,7 @@ import type {
 	DashboardArtifact,
 	GeneratedImage,
 	MessageMetadata,
+	TodoItem,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
@@ -48,6 +49,7 @@ export interface AgenticSSECallbacks {
 	onAlertProposed?: (data: AlertProposedData) => void
 	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
+	onTodos?: (todos: TodoItem[]) => void
 	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
@@ -185,6 +187,12 @@ interface ContextWarningEvent {
 	content: ContextWarningPayload
 }
 
+interface TodoSnapshotEvent {
+	type: 'todo_snapshot'
+	todos?: TodoItem[]
+	summary?: Record<string, number>
+}
+
 interface ErrorEvent {
 	type: 'error'
 	content?: string
@@ -217,6 +225,7 @@ type AgenticSSEEvent =
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
 	| CompactionEvent
 	| ({ type: 'tool_execution' } & ToolExecution)
+	| TodoSnapshotEvent
 	| ThinkingEvent
 	| CitationsEvent
 	| TitleEvent
@@ -258,7 +267,7 @@ interface FetchAgenticResponseParams {
 	researchMode?: boolean
 	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
-	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
 	quotedText?: string
@@ -361,6 +370,9 @@ export function parseSSEStream(
 					break
 				case 'tool_execution':
 					callbacks.onToolExecution?.(data)
+					break
+				case 'todo_snapshot':
+					callbacks.onTodos?.(Array.isArray(data.todos) ? data.todos : [])
 					break
 				case 'message_metadata':
 					callbacks.onMessageMetadata?.(data.content)
@@ -487,7 +499,7 @@ export async function fetchAgenticResponse({
 		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
-		images?: Array<{ data: string; mimeType: string; filename?: string }>
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
 		quotedText?: string

@@ -775,12 +775,13 @@ export function TodoChecklistPanel({
 }
 
 export function deriveTodosFromToolExecutions(
-	toolExecutions: Array<{ name?: string; toolData?: unknown }> | undefined
+	toolExecutions: Array<{ name?: string; success?: boolean; error?: string; toolData?: unknown }> | undefined
 ): TodoItem[] {
 	if (!toolExecutions || toolExecutions.length === 0) return []
 	for (let i = toolExecutions.length - 1; i >= 0; i--) {
 		const exec = toolExecutions[i]
 		if (exec?.name !== 'todo') continue
+		if (exec.success !== true || exec.error) continue
 		const data = exec.toolData as { todos?: unknown } | undefined
 		if (!data || !Array.isArray(data.todos)) continue
 		const valid: TodoItem[] = []
