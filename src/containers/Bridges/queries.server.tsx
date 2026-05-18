@@ -26,10 +26,6 @@ import { formatBridgesData, formatChainsData } from './utils'
 
 const EMPTY_DAY_STATS: RawBridgeDayStats = {
 	date: 0,
-	totalDepositedUSD: 0,
-	totalWithdrawnUSD: 0,
-	totalDepositTxs: 0,
-	totalWithdrawalTxs: 0,
 	totalTokensDeposited: {},
 	totalTokensWithdrawn: {},
 	totalAddressDeposited: {},
@@ -174,39 +170,22 @@ function buildPrevDayDataByChain({
 
 	for (let index = 0; index < statsOnPrevDay.length; index++) {
 		const data = statsOnPrevDay[index]
-		const allChainsData = prevDayDataByChain['All Chains']
 		prevDayDataByChain['All Chains'] = {
-			date: Math.max(allChainsData?.date ?? 0, data.date),
-			totalDepositedUSD:
-				allChainsData?.totalDepositedUSD == null && data.totalDepositedUSD == null
-					? undefined
-					: (allChainsData?.totalDepositedUSD ?? 0) + (data.totalDepositedUSD ?? 0),
-			totalWithdrawnUSD:
-				allChainsData?.totalWithdrawnUSD == null && data.totalWithdrawnUSD == null
-					? undefined
-					: (allChainsData?.totalWithdrawnUSD ?? 0) + (data.totalWithdrawnUSD ?? 0),
-			totalDepositTxs:
-				allChainsData?.totalDepositTxs == null && data.totalDepositTxs == null
-					? undefined
-					: (allChainsData?.totalDepositTxs ?? 0) + (data.totalDepositTxs ?? 0),
-			totalWithdrawalTxs:
-				allChainsData?.totalWithdrawalTxs == null && data.totalWithdrawalTxs == null
-					? undefined
-					: (allChainsData?.totalWithdrawalTxs ?? 0) + (data.totalWithdrawalTxs ?? 0),
+			date: Math.max(prevDayDataByChain['All Chains']?.date ?? 0, data.date),
 			totalTokensDeposited: {
-				...(allChainsData?.totalTokensDeposited ?? {}),
+				...(prevDayDataByChain['All Chains']?.totalTokensDeposited ?? {}),
 				...data.totalTokensDeposited
 			},
 			totalTokensWithdrawn: {
-				...(allChainsData?.totalTokensWithdrawn ?? {}),
+				...(prevDayDataByChain['All Chains']?.totalTokensWithdrawn ?? {}),
 				...data.totalTokensWithdrawn
 			},
 			totalAddressDeposited: {
-				...(allChainsData?.totalAddressDeposited ?? {}),
+				...(prevDayDataByChain['All Chains']?.totalAddressDeposited ?? {}),
 				...data.totalAddressDeposited
 			},
 			totalAddressWithdrawn: {
-				...(allChainsData?.totalAddressWithdrawn ?? {}),
+				...(prevDayDataByChain['All Chains']?.totalAddressWithdrawn ?? {}),
 				...data.totalAddressWithdrawn
 			}
 		}
@@ -370,11 +349,7 @@ function buildTableDataByChain({
 			addressesTableData,
 			tokenDeposits,
 			tokenWithdrawals,
-			tokenColor,
-			totalDepositedUSD: prevDayData?.totalDepositedUSD,
-			totalWithdrawnUSD: prevDayData?.totalWithdrawnUSD,
-			totalDepositTxs: prevDayData?.totalDepositTxs,
-			totalWithdrawalTxs: prevDayData?.totalWithdrawalTxs
+			tokenColor
 		}
 	}
 
@@ -702,7 +677,7 @@ export async function getBridgePageData(bridge: string): Promise<BridgePageData 
 		return null
 	}
 
-	const { id, chains, icon, displayName, destinationChain, name } = bridgeData
+	const { id, chains, icon, displayName, destinationChain } = bridgeData
 
 	const [iconType, iconName] = icon.split(':')
 	// get logo based on icon type (chain or protocol)
@@ -719,11 +694,12 @@ export async function getBridgePageData(bridge: string): Promise<BridgePageData 
 	const volumeDataByChain = buildVolumeDataByChain({ volume, chains, destinationChain })
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
-	const rollingHours = name === 'wormhole' ? 28 : 24
+	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
+	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 
 	const statsOnPrevDay: RawBridgeDayStats[] = await Promise.all(
 		chains.map(async (chain) => {
-			const stats = await retryAsync(() => fetchBridgeDayStats(currentTimestamp, chain, { id, rollingHours }), {
+			const stats = await retryAsync(() => fetchBridgeDayStats(prevDayTimestamp, chain, id), {
 				context: `fetchBridgeDayStats(${chain},${id})`,
 				throwOnFailure: true,
 				onFailureError: () => new Error(`bridgedaystats for chain ${chain} is broken`)

@@ -68,10 +68,6 @@ export interface RawBridgeAddressStats {
 
 export interface RawBridgeDayStats {
 	date: number
-	totalDepositedUSD?: number
-	totalWithdrawnUSD?: number
-	totalDepositTxs?: number
-	totalWithdrawalTxs?: number
 	totalTokensDeposited: Record<string, RawBridgeTokenStats>
 	totalTokensWithdrawn: Record<string, RawBridgeTokenStats>
 	totalAddressDeposited: Record<string, RawBridgeAddressStats>
