@@ -444,10 +444,13 @@ export function EntityPreviewLink({
 					</div>
 				</div>
 				<PreviewBody entity={entity} preview={preview} loading={loading} />
-				<div className="flex items-center justify-between gap-2 border-t border-(--cards-border) px-3 py-2 text-xs">
+				<a
+					href={entity.route}
+					className="flex items-center justify-between gap-2 border-t border-(--cards-border) px-3 py-2 text-xs no-underline hover:bg-(--app-bg)"
+				>
 					<span className="text-(--text-tertiary)">Open page</span>
 					<span className="truncate text-(--link-text)">{entity.route}</span>
-				</div>
+				</a>
 			</Ariakit.Hovercard>
 		</Ariakit.HovercardProvider>
 	)
