@@ -29,6 +29,16 @@ function renderFundingRate(value: number | null | undefined): string {
 	return `${(value * 100).toFixed(4)}%`
 }
 
+function renderFeeRate(value: number | null | undefined): string {
+	if (value == null) return '–'
+	return `${(value * 100).toFixed(3)}%`
+}
+
+function renderLeverage(value: number | null | undefined): string {
+	if (value == null) return '–'
+	return `${value}x`
+}
+
 const pairColumn = columnHelper.accessor('symbol', {
 	id: 'symbol',
 	header: 'Pair',
@@ -93,13 +103,52 @@ const fundingColumn = columnHelper.accessor((row) => row.funding_rate_8h ?? unde
 	}
 })
 
-const SPOT_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [pairColumn, priceColumn, volumeColumn]
+const maxLeverageColumn = columnHelper.accessor((row) => row.max_leverage ?? undefined, {
+	id: 'max_leverage',
+	header: 'Max Leverage',
+	cell: ({ row }) => renderLeverage(row.original.max_leverage),
+	meta: {
+		headerClassName: 'w-[130px]',
+		align: 'end'
+	}
+})
+
+const makerFeeColumn = columnHelper.accessor((row) => row.maker_fee ?? undefined, {
+	id: 'maker_fee',
+	header: 'Maker Fee',
+	cell: ({ row }) => renderFeeRate(row.original.maker_fee),
+	meta: {
+		headerClassName: 'w-[110px]',
+		align: 'end'
+	}
+})
+
+const takerFeeColumn = columnHelper.accessor((row) => row.taker_fee ?? undefined, {
+	id: 'taker_fee',
+	header: 'Taker Fee',
+	cell: ({ row }) => renderFeeRate(row.original.taker_fee),
+	meta: {
+		headerClassName: 'w-[110px]',
+		align: 'end'
+	}
+})
+
+const SPOT_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
+	pairColumn,
+	priceColumn,
+	volumeColumn,
+	makerFeeColumn,
+	takerFeeColumn
+]
 const PERP_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
 	pairColumn,
 	priceColumn,
 	volumeColumn,
 	oiColumn,
-	fundingColumn
+	fundingColumn,
+	maxLeverageColumn,
+	makerFeeColumn,
+	takerFeeColumn
 ]
 
 function getCategoryRows(data: ExchangeMarketsResponse, category: ExchangeMarketCategory): ExchangeMarketPair[] {

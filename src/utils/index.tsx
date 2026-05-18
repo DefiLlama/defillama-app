@@ -295,17 +295,17 @@ export const formattedNum = (number: unknown, symbol: boolean | string = false):
 
 	if (num > 1_000) {
 		return symbol
-			? `${currencyMark}${Number(num.toFixed(0)).toLocaleString()}`
-			: `${normalMark}${Number(num.toFixed(0)).toLocaleString()}`
+			? `${currencyMark}${Number(num.toFixed(0)).toLocaleString('en-US')}`
+			: `${normalMark}${Number(num.toFixed(0)).toLocaleString('en-US')}`
 	}
 
 	if (symbol) {
-		return `${currencyMark}${num.toLocaleString(undefined, {
+		return `${currencyMark}${num.toLocaleString('en-US', {
 			maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
 		})}`
 	}
 
-	return `${normalMark}${num.toLocaleString(undefined, {
+	return `${normalMark}${num.toLocaleString('en-US', {
 		maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
 	})}`
 }

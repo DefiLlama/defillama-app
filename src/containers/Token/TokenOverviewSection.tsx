@@ -11,6 +11,7 @@ import {
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -132,13 +133,20 @@ function areTokenOverviewChartsEqual(a: TokenOverviewChartLabel[], b: TokenOverv
 	return a.length === b.length && a.every((value, index) => value === b[index])
 }
 
+export type TokenIssuer = {
+	name: string
+	slug: string
+}
+
 export function TokenPageHero({
 	overview,
 	logo,
+	issuer,
 	headingAs: Heading = 'h1'
 }: {
 	overview: TokenOverviewData
 	logo?: string | null
+	issuer?: TokenIssuer | null
 	headingAs?: 'h1' | 'div'
 }) {
 	const percentChange = formatPercent(overview.marketData.percentChange24h)
@@ -161,6 +169,17 @@ export function TokenPageHero({
 					{overview.symbol ? <span className="font-normal">({overview.symbol})</span> : null}
 				</Heading>
 			</div>
+			{issuer ? (
+				<div className="-mt-3 flex flex-wrap items-baseline gap-1 text-sm text-(--text-label)">
+					<span>Issued by</span>
+					<BasicLink
+						href={`/protocol/${issuer.slug}`}
+						className="font-medium text-(--blue) hover:underline"
+					>
+						{issuer.name}
+					</BasicLink>
+				</div>
+			) : null}
 			{hasPriceBreakdown ? (
 				<details className="group/price">
 					<summary className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -665,18 +684,20 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 export function TokenOverviewSection({
 	overview,
 	geckoId,
-	logo
+	logo,
+	issuer
 }: {
 	overview: TokenOverviewData
 	geckoId: string | null
 	logo?: string | null
+	issuer?: TokenIssuer | null
 }) {
 	return (
 		<section className="scroll-mt-24" id="token-overview">
 			<h2 className="sr-only">Overview</h2>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
-					<TokenPageHero overview={overview} logo={logo} />
+					<TokenPageHero overview={overview} logo={logo} issuer={issuer} />
 					<TokenMetrics overview={overview} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">

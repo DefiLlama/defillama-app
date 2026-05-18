@@ -51,6 +51,11 @@ type TokenPageSectionId =
 	| 'token-yields'
 	| 'token-borrow'
 
+type TokenIssuer = {
+	name: string
+	slug: string
+}
+
 type TokenPageProps = {
 	record: TokenDirectoryRecord
 	displayName: string
@@ -59,6 +64,7 @@ type TokenPageProps = {
 	incomeStatementProtocolName: string | null
 	incomeStatementHasIncentives: boolean
 	geckoId: string | null
+	issuer: TokenIssuer | null
 	tokenRiskData: TokenRiskResponse | null
 	tokenRiskTimelineData: RiskTimelineResponse | null
 	initialYieldsRows: IYieldTableRow[]
@@ -94,8 +100,8 @@ type TokenPageSection = {
 const TOKEN_SECTIONS = {
 	'token-overview': {
 		label: 'Overview',
-		render: ({ overview, geckoId, record }) => (
-			<TokenOverviewSection overview={overview} geckoId={geckoId} logo={record.logo} />
+		render: ({ overview, geckoId, record, issuer }) => (
+			<TokenOverviewSection overview={overview} geckoId={geckoId} logo={record.logo} issuer={issuer} />
 		)
 	},
 	'token-markets': {
@@ -515,6 +521,12 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			initialTokenBorrowRoutesCounts
 		})
 
+		const issuerDisplayName = protocolMetadata?.displayName ?? protocolMetadata?.name ?? null
+		const issuer: TokenIssuer | null =
+			record.protocolId && issuerDisplayName
+				? { name: issuerDisplayName, slug: slug(issuerDisplayName) }
+				: null
+
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply, Trading Volume & Token Rights`
 			: `${displayName} Price, Market Cap, Supply & Trading Volume`
@@ -531,6 +543,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				incomeStatementProtocolName,
 				incomeStatementHasIncentives,
 				geckoId,
+				issuer,
 				tokenRiskData,
 				tokenRiskTimelineData,
 				initialYieldsRows,

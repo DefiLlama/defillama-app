@@ -17,6 +17,9 @@ export interface TokenMarketPair {
 	oi: number | null
 	oi_usd: number | null
 	funding_rate_8h: number | null
+	max_leverage?: number | null
+	maker_fee?: number | null
+	taker_fee?: number | null
 }
 
 export interface TokenMarketCategoryTotals {
