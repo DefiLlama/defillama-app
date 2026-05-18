@@ -20,13 +20,14 @@ import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/lan
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { useResearchSearchParams } from '~/containers/Articles/landing/useResearchSearchParams'
 import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
+import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export type ResearchLandingData = {
+export type ResearchLandingArticles = {
 	heroReports: ArticleDocument[]
 	latest: ArticleDocument[]
 	spotlight: ArticleDocument[]
@@ -39,11 +40,11 @@ export type ResearchLandingData = {
 }
 
 type ArticlesPageProps = {
-	landingData: ResearchLandingData
+	landingData: ResearchLandingArticles
 	landingBanner: BannerLookupResult | null
 }
 
-export async function loadResearchLandingData(): Promise<ResearchLandingData> {
+async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
 	const settled = await Promise.allSettled([
 		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportsHero),
 		listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest),
@@ -86,11 +87,21 @@ export async function loadResearchLandingData(): Promise<ResearchLandingData> {
 	}
 }
 
+export async function loadResearchLandingData(): Promise<ArticlesPageProps> {
+	const [articlesResult, bannerResult] = await Promise.allSettled([getResearchLandingArticles(), getLandingBanner()])
+
+	if (articlesResult.status === 'rejected') {
+		throw articlesResult.reason
+	}
+
+	return {
+		landingData: articlesResult.value,
+		landingBanner: bannerResult.status === 'fulfilled' ? bannerResult.value : null
+	}
+}
+
 export const getStaticProps = withPerformanceLogging<ArticlesPageProps>('research', async () => {
-	const [landingData, landingBanner] = await Promise.all([
-		loadResearchLandingData(),
-		getLandingBanner().catch(() => null)
-	])
+	const { landingData, landingBanner } = await loadResearchLandingData()
 	return {
 		props: {
 			landingData,
@@ -100,13 +111,7 @@ export const getStaticProps = withPerformanceLogging<ArticlesPageProps>('researc
 	}
 })
 
-function ArticlesLandingInner({
-	initialData,
-	initialBanner
-}: {
-	initialData: ResearchLandingData
-	initialBanner: BannerLookupResult | null
-}) {
+function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps }) {
 	const landingQuery = useQuery({
 		queryKey: ['research-landing'],
 		retry: false,
@@ -114,6 +119,8 @@ function ArticlesLandingInner({
 		initialData,
 		staleTime: 60_000
 	})
+
+	const landingData = landingQuery.data?.landingData
 
 	const isLoading = landingQuery.isLoading
 	const error = landingQuery.error
@@ -137,7 +144,7 @@ function ArticlesLandingInner({
 			<ResearchHero
 				title="Bespoke Digital Asset Research and Market Intelligence"
 				subtitle="Independent and trusted in-depth analysis of digital asset markets for institutional strategy and decision-making."
-				reports={landingQuery.data?.heroReports ?? []}
+				reports={landingData?.heroReports ?? []}
 			/>
 
 			<div className="relative overflow-hidden">
@@ -178,22 +185,22 @@ function ArticlesLandingInner({
 				></div>
 
 				<div className="relative z-1 mx-auto w-full max-w-7xl space-y-[30px] px-4 sm:px-6 lg:space-y-[70px] lg:px-8">
-					<ResearchLatest articles={landingQuery.data?.latest ?? []} />
+					<ResearchLatest articles={landingData?.latest ?? []} />
 
-					<ResearchSpotlight title="In the spotlight" articles={landingQuery.data?.spotlight ?? []} />
+					<ResearchSpotlight title="In the spotlight" articles={landingData?.spotlight ?? []} />
 
-					<ResearchInterviews title="Interviews" articles={landingQuery.data?.interviews ?? []} />
+					<ResearchInterviews title="Interviews" articles={landingData?.interviews ?? []} />
 
 					<div id="reports">
-						{(landingQuery.data?.highlight ?? []).length > 0 ? (
+						{(landingData?.highlight ?? []).length > 0 ? (
 							<ResearchSectionWithSharedHeightProvider>
 								<div className="grid grid-cols-1 gap-[36px] lg:grid-cols-[725fr_403fr]">
-									<ResearchReportHighlightWithHeight highlight={(landingQuery.data?.highlight ?? [])[0]} />
+									<ResearchReportHighlightWithHeight highlight={(landingData?.highlight ?? [])[0]} />
 									<div className="flex flex-col gap-y-[64px]">
 										<ResearchWidgetWithScrollbarWithHeight
 											id="insights"
 											title="Insights"
-											articles={landingQuery.data?.insights ?? []}
+											articles={landingData?.insights ?? []}
 										/>
 									</div>
 								</div>
@@ -201,7 +208,7 @@ function ArticlesLandingInner({
 						) : null}
 					</div>
 
-					<ResearchBanner initialData={initialBanner} />
+					<ResearchBanner initialData={landingQuery.data?.landingBanner} />
 
 					<div id="clients">
 						<TitleLine title="Trusted by" />
@@ -219,20 +226,20 @@ function ArticlesLandingInner({
 								<ResearchGridWithScrollbar
 									id="more-reports"
 									title="More reports"
-									articles={landingQuery.data?.moreReports ?? []}
+									articles={landingData?.moreReports ?? []}
 									pageWidget="DL Research More Reports widget"
 								/>
 							</div>
 							<div className="flex flex-col gap-y-[64px]">
 								<ResearchSpotlightColumnWithHeight
 									title="Explore Spotlights"
-									articles={landingQuery.data?.spotlightColumn ?? []}
+									articles={landingData?.spotlightColumn ?? []}
 								/>
 							</div>
 						</div>
 					</ResearchSectionWithSharedHeightProvider>
 
-					<ResearchCollections title="Collections" articles={landingQuery.data?.collections ?? []} />
+					<ResearchCollections title="Collections" articles={landingData?.collections ?? []} />
 				</div>
 			</div>
 		</div>
@@ -255,7 +262,10 @@ export default function ArticlesPage({ landingData, landingBanner }: InferGetSta
 					{showSearch ? (
 						<ResearchSearch />
 					) : (
-						<ArticlesLandingInner initialData={landingData} initialBanner={landingBanner} />
+						<>
+							<ArticleBannerStrip scope="landing" initialData={{ landing: landingBanner }} />
+							<ArticlesLandingInner initialData={{ landingData, landingBanner }} />
+						</>
 					)}
 				</div>
 			</ArticleProxyAuthProvider>
