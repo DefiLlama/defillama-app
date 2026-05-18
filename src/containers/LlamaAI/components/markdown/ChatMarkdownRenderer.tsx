@@ -6,14 +6,17 @@ import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
+import type { ArticleEntityType } from '~/containers/Articles/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
+import { allowLlamaAIExternalHostname, isLlamaAIExternalLink } from '~/containers/LlamaAI/utils/externalLinks'
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
 	processCitationMarkers
 } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
@@ -75,7 +78,9 @@ function HeadingWithId({
 const TABLE_WATERMARK_HEIGHT = 40
 const TABLE_WATERMARK_WIDTH = Math.round((389 / 133) * TABLE_WATERMARK_HEIGHT)
 
-type EntityLinkProps = ComponentPropsWithoutRef<'a'>
+type EntityLinkProps = ComponentPropsWithoutRef<'a'> & {
+	onExternalLinkClick?: (href: string) => void
+}
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
 type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
 type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
@@ -83,6 +88,15 @@ type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
 type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
+
+const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
+	protocol: 'protocol',
+	subprotocol: 'protocol',
+	chain: 'chain',
+	category: 'category',
+	stablecoin: 'stablecoin',
+	cex: 'cex'
+}
 
 function normalizeSourceUrl(url: string) {
 	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
@@ -244,7 +258,7 @@ function TableWrapper({
 	)
 }
 
-function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
+function EntityLinkRenderer({ href, children, onClick, onExternalLinkClick, ...props }: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
@@ -253,23 +267,22 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 		}
 
 		const entityUrl = getEntityUrl(type, slug)
+		const articleEntityType = LLAMA_PREVIEW_ENTITY_TYPES[type]
 
-		const entityLogoUrl = (entityType: string, entitySlug: string) => {
-			switch (entityType) {
-				case 'chain':
-					return chainIconUrl(entitySlug)
-				case 'stablecoin':
-					return peggedAssetIconUrl(entitySlug)
-				case 'equity':
-					return equityIconUrl(entitySlug)
-				case 'protocol':
-					return tokenIconUrl(entitySlug)
-				default:
-					return null
-			}
+		if (articleEntityType) {
+			return (
+				<EntityPreviewLink
+					entity={{
+						entityType: articleEntityType,
+						slug,
+						label: extractText(children) || slug,
+						route: entityUrl
+					}}
+				>
+					{children}
+				</EntityPreviewLink>
+			)
 		}
-
-		const logoUrl = entityLogoUrl(type, slug)
 
 		return (
 			<a
@@ -277,27 +290,28 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 				className="text-(--link-text) no-underline hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
+				onClick={onClick}
 				{...props}
 			>
-				{logoUrl ? (
-					<img
-						src={logoUrl}
-						alt=""
-						height={14}
-						width={14}
-						className="relative top-[-0.1em] mr-1 inline-block shrink-0 rounded-full"
-					/>
-				) : null}
 				<span className="min-w-0">{children}</span>
 			</a>
 		)
 	}
+	const external = isLlamaAIExternalLink(href)
 	return (
 		<a
 			href={href}
 			target="_blank"
-			rel="noreferrer noopener"
+			rel={external ? 'noopener noreferrer nofollow ugc' : 'noreferrer noopener'}
 			className="text-(--link-text) no-underline hover:underline"
+			onClick={(event) => {
+				onClick?.(event)
+				if (event.defaultPrevented) return
+				if (external) {
+					event.preventDefault()
+					onExternalLinkClick?.(href)
+				}
+			}}
 			{...props}
 		>
 			{children}
@@ -447,6 +461,7 @@ export function ChatMarkdownRenderer({
 	onTableFullscreenOpen?: () => void
 	messageId?: string
 }) {
+	const [pendingExternalHref, setPendingExternalHref] = useState<string | null>(null)
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
 		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
@@ -474,9 +489,9 @@ export function ChatMarkdownRenderer({
 			const textChild = getSingleTextChild(props.children)
 			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
 				const llamaUrl = processedData.linkMap.get(textChild)
-				return EntityLinkRenderer({ ...props, href: llamaUrl })
+				return EntityLinkRenderer({ ...props, href: llamaUrl, onExternalLinkClick: setPendingExternalHref })
 			}
-			return EntityLinkRenderer(props)
+			return EntityLinkRenderer({ ...props, onExternalLinkClick: setPendingExternalHref })
 		},
 		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
 			<TableWrapper
@@ -540,6 +555,14 @@ export function ChatMarkdownRenderer({
 			>
 				{processedData.content}
 			</ReactMarkdown>
+			<ExternalLinkInterstitial
+				href={pendingExternalHref}
+				onClose={() => setPendingExternalHref(null)}
+				onAllowPermanently={(hostname, href) => {
+					allowLlamaAIExternalHostname(hostname)
+					window.open(href, '_blank', 'noopener,noreferrer')
+				}}
+			/>
 		</div>
 	)
 }
