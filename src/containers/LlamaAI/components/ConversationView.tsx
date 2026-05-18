@@ -700,7 +700,7 @@ export function ConversationView({
 
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
-					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+					<div className="pointer-events-none absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 					{!isSharedView && contextWarning && onStartNewChat && onDismissContextWarning ? (
 						<ContextWarningBanner
 							warning={contextWarning}
