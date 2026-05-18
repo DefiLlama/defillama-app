@@ -54,14 +54,16 @@ export async function loadResearchLandingData(): Promise<ResearchLandingData> {
 		listArticles({
 			section: 'report',
 			sort: 'newest',
-			limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports
+			limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports,
+			skip: 10
 		}),
 		listArticles({
 			section: 'spotlight',
 			sort: 'newest',
-			limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
+			limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn,
+			skip: 4
 		}),
-		listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections })
+		listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections, skip: 15 })
 	])
 
 	const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])

@@ -120,6 +120,7 @@ export async function listArticles(
 	params: {
 		page?: number
 		limit?: number
+		skip?: number
 		query?: string
 		tags?: string[]
 		entityType?: string
@@ -132,6 +133,7 @@ export async function listArticles(
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'page', params.page)
 	appendSearchParam(search, 'limit', params.limit)
+	appendSearchParam(search, 'skip', params.skip)
 	appendSearchParam(search, 'query', params.query)
 	appendSearchParam(search, 'tags', params.tags?.join(','))
 	appendSearchParam(search, 'entityType', params.entityType)
