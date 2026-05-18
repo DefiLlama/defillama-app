@@ -12,6 +12,7 @@ import {
 	getProject,
 	getProjectUsage,
 	listGithubInstallations,
+	listInstallationRepoBranches,
 	listInstallationRepos,
 	listProjectFiles,
 	listProjectSessions,
@@ -34,6 +35,8 @@ import type { Project, ProjectWithStats } from './types'
 
 const githubInstallationsKey = ['github', 'installations'] as const
 const githubReposKey = (id: number) => ['github', 'installations', id, 'repos'] as const
+const githubBranchesKey = (id: number, owner: string, repo: string) =>
+	['github', 'installations', id, 'repos', owner, repo, 'branches'] as const
 
 export function useProjectUsage(enabled = true) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
@@ -213,6 +216,17 @@ export function useGithubRepos(installationId: number | null) {
 		enabled: isAuthenticated && !!installationId,
 		staleTime: 60_000,
 		refetchOnMount: 'always'
+	})
+}
+
+export function useGithubBranches(installationId: number | null, owner: string | null, repo: string | null) {
+	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	return useQuery({
+		queryKey: githubBranchesKey(installationId ?? 0, owner ?? '', repo ?? ''),
+		queryFn: () =>
+			listInstallationRepoBranches(authorizedFetch, installationId as number, owner as string, repo as string),
+		enabled: isAuthenticated && !!installationId && !!owner && !!repo,
+		staleTime: 120_000
 	})
 }
 
