@@ -8,6 +8,7 @@
 	"scripts": {
 		"analyze": "next experimental-analyze",
 		"dev": "node ./scripts/command/runPreparedNext.mjs development dev",
+		"prepare": "git config core.hooksPath .githooks || true",
 		"build:metadata": "node ./scripts/command/runTsCommand.mjs scripts/command/prepareCli.ts",
 		"build": "node ./scripts/command/runPreparedNext.mjs production build",
 		"start": "./scripts/prestart.sh & node .next/standalone/server.js",
