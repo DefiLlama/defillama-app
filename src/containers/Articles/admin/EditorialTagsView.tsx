@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
 import {
 	ArticleApiError,
 	listArticlesByTag,
@@ -12,6 +11,7 @@ import {
 	updateReportHighlightSponsorLogo,
 	type ArticleByTagResponse
 } from '~/containers/Articles/api'
+import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
 import { EDITORIAL_TAG_LIST, type EditorialTagDefinition } from '~/containers/Articles/editorialTags'
 import type { ArticleDocument, ArticleImage } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
@@ -48,7 +48,11 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 	const queryClient = useQueryClient()
 	const limit = definition.cardinality === 'singleton' ? 1 : 30
 
-	const { data, isLoading, error } = useQuery<ArticleByTagResponse>({
+	const {
+		data,
+		isLoading,
+		error
+	} = useQuery<ArticleByTagResponse>({
 		queryKey: ['research', 'admin', 'editorial-tag', definition.slug],
 		queryFn: () => listArticlesByTag(definition.slug, limit, authorizedFetch),
 		retry: false
@@ -328,7 +332,7 @@ function EditorialTagRow({
 				type="button"
 				onClick={onRemove}
 				disabled={pending}
-				className="justify-self-end rounded-md px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+				className="rounded-md px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50 justify-self-end"
 			>
 				Remove
 			</button>

@@ -1,5 +1,4 @@
-import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
-import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
+import { CACHE_SERVER, DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { fetchChainChart } from '~/containers/Chains/api'
 import {
@@ -212,8 +211,10 @@ export default class ChainCharts {
 
 	private static async getTokenData(geckoId: string) {
 		if (!geckoId) return null
-		const result = await fetchCoinGeckoChartByIdWithCacheFallback(geckoId, { fullChart: true })
-		return result?.data ?? null
+		const url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
+		const response = await fetchWithPoolingOnServer(url)
+		const { data } = await response.json()
+		return data
 	}
 
 	private static async chainMcapData(_chain: string, geckoId?: string): Promise<[number, number][]> {

@@ -1,7 +1,6 @@
 import dayjs from 'dayjs'
 import { fetchLiquidityTokensDataset, fetchProtocolTokenLiquidityChart } from '~/api'
-import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
-import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { CACHE_SERVER, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import {
@@ -190,8 +189,10 @@ export default class ProtocolCharts {
 	static async getTokenData(geckoId: string) {
 		if (!geckoId) return { mcaps: [], prices: [], volumes: [] }
 
-		const result = await fetchCoinGeckoChartByIdWithCacheFallback(geckoId, { fullChart: true })
-		return result?.data ?? { mcaps: [], prices: [], volumes: [] }
+		const url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
+		const response = await fetchWithPoolingOnServer(url)
+		const { data } = await response.json()
+		return data
 	}
 
 	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
