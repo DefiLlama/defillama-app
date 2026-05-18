@@ -88,9 +88,16 @@ export function fetchBridgeVolumeBySlug(protocolSlug: string): Promise<RawBridge
 export function fetchBridgeDayStats(
 	timestamp: number,
 	chain: string,
-	id?: string | number
+	options?: string | number | { id?: string | number; rollingHours?: number }
 ): Promise<RawBridgeDayStatsResponse> {
-	const query = id == null ? '' : `?id=${encodeURIComponent(String(id))}`
+	const params = new URLSearchParams()
+	if (typeof options === 'string' || typeof options === 'number') {
+		params.set('id', String(options))
+	} else if (options) {
+		if (options.id != null) params.set('id', String(options.id))
+		if (options.rollingHours != null) params.set('rollingHours', String(options.rollingHours))
+	}
+	const query = params.toString() ? `?${params.toString()}` : ''
 	const url = `${BRIDGEDAYSTATS_API}/${encodeURIComponent(String(timestamp))}/${encodeURIComponent(chain)}${query}`
 	return fetchJson<RawBridgeDayStatsResponse | BridgeApiErrorEnvelope>(url).then((response) =>
 		unwrapBridgeResponse(url, response)
