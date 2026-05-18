@@ -15,7 +15,7 @@ const HTML_ESCAPE_MAP: Record<string, string> = {
 // Hoisted regex escape pattern (js-hoist-regexp)
 const REGEX_ESCAPE_PATTERN = /[.*+?^${}()|[\]\\]/g
 
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
 	return str.replace(HTML_ESCAPE_REGEX, (char) => HTML_ESCAPE_MAP[char] || char)
 }
 

@@ -25,6 +25,10 @@ import {
 } from '~/containers/LlamaAI/renderModel'
 import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
+import {
+	ChartInstanceRegistryProvider,
+	createChartInstanceRegistry
+} from '~/containers/LlamaAI/utils/chartInstanceRegistry'
 import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -916,6 +920,13 @@ export function MessageBubble({
 	const [isSaving, setIsSaving] = useState(false)
 	const [draftText, setDraftText] = useState(message.content || '')
 	const hackerMode = useHackerMode()
+	// Per-message chart instance registry — populated as each ChartRenderer
+	// mounts (via useRegisterChartInstance). Read by DownloadArtifactButton.
+	// User messages never render charts, so skip the allocation.
+	const chartInstances = useMemo(
+		() => (message.role === 'assistant' ? createChartInstanceRegistry() : null),
+		[message.role]
+	)
 	const handleCancelEdit = () => {
 		if (isSaving) return
 		setIsEditing(false)
@@ -1117,18 +1128,20 @@ export function MessageBubble({
 	return (
 		<div id={anchorId} ref={anchorRef} className={`group/msg flex flex-col gap-2.5 ${anchorClassName ?? ''}`}>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
-			<InlineContent
-				message={readOnly ? { ...message, alerts: undefined } : message}
-				toolExecutions={message.toolExecutions}
-				isStreaming={isDraft}
-				sessionId={sessionId}
-				onActionClick={onActionClick}
-				nextUserMessage={nextUserMessage}
-				hackerMode={hackerMode}
-				showToolDetails={isLlama}
-				onTableFullscreenOpen={onTableFullscreenOpen}
-				onImageClick={setPreviewImage}
-			/>
+			<ChartInstanceRegistryProvider value={chartInstances}>
+				<InlineContent
+					message={readOnly ? { ...message, alerts: undefined } : message}
+					toolExecutions={message.toolExecutions}
+					isStreaming={isDraft}
+					sessionId={sessionId}
+					onActionClick={onActionClick}
+					nextUserMessage={nextUserMessage}
+					hackerMode={hackerMode}
+					showToolDetails={isLlama}
+					onTableFullscreenOpen={onTableFullscreenOpen}
+					onImageClick={setPreviewImage}
+				/>
+			</ChartInstanceRegistryProvider>
 			<ImagePreviewModal
 				imageUrl={previewImage}
 				onClose={() => setPreviewImage(null)}
@@ -1145,6 +1158,7 @@ export function MessageBubble({
 					readOnly={readOnly}
 					messageMetadata={message.messageMetadata}
 					isLatest={isLatestAssistant}
+					message={message}
 				/>
 			) : null}
 		</div>

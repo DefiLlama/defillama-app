@@ -10,6 +10,7 @@ import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
+	normalizeSourceUrl,
 	processCitationMarkers
 } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -17,9 +18,8 @@ import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
-export function headingSlug(text: string): string {
+function headingSlug(text: string): string {
 	return text
 		.toLowerCase()
 		.replace(/[^\w\s-]/g, '')
@@ -83,15 +83,6 @@ type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
 type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
-
-function normalizeSourceUrl(url: string) {
-	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
-		if (url.startsWith(prefix)) {
-			return `https://defillama.com${url.slice(prefix.length)}`
-		}
-	}
-	return url
-}
 
 function TableWrapper({
 	children,

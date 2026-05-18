@@ -12,6 +12,7 @@ import {
 } from '~/containers/LlamaAI/utils/chartCapabilities'
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
 import { ChartDataTransformer } from '~/containers/LlamaAI/utils/chartDataTransformer'
+import { useRegisterChartInstance } from '~/containers/LlamaAI/utils/chartInstanceRegistry'
 import { buildRenderPlan, type ChartRenderPlan } from '~/containers/LlamaAI/utils/chartRenderPlan'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -211,6 +212,10 @@ function tryBuildPresentation(config: ChartConfiguration, data: any[], chartStat
 function SingleChart({ config, data, isActive, title, sessionId, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	// Surface this chart's instance to the surrounding message-level registry so
+	// DownloadArtifactButton can invoke the PNG export pipeline per chart. No-op
+	// outside a registry provider (i.e. charts rendered outside a MessageBubble).
+	useRegisterChartInstance(config.id, chartInstance)
 	const handleStackedChange = useCallback((stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }), [])
 	const handlePercentageChange = useCallback(
 		(percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage }),

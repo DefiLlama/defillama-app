@@ -10,6 +10,21 @@ import DOMPurify from 'dompurify'
 const ALLOWED_PROTOCOLS = ['https:']
 
 /**
+ * Internal preview/staging hosts that some assistant responses cite — rewritten
+ * to the public defillama.com host so shared/exported reports work for everyone.
+ */
+const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+export function normalizeSourceUrl(url: string): string {
+	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
+		if (url.startsWith(prefix)) {
+			return `https://defillama.com${url.slice(prefix.length)}`
+		}
+	}
+	return url
+}
+
+/**
  * Validate and sanitize a URL for safe use in href attributes.
  * Returns null if the URL is unsafe or malformed.
  */
