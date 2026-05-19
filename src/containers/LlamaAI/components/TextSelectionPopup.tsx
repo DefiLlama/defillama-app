@@ -15,10 +15,16 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 	const [selectedText, setSelectedText] = useState('')
 	const [position, setPosition] = useState<PopupPosition | null>(null)
 	const popupRef = useRef<HTMLButtonElement>(null)
+	const selectionTimeoutRef = useRef<number | null>(null)
 
 	useEffect(() => {
 		const POPUP_OFFSET = 36
 		const VIEWPORT_MARGIN = 8
+		const clearScheduledSelectionCheck = () => {
+			if (selectionTimeoutRef.current === null) return
+			window.clearTimeout(selectionTimeoutRef.current)
+			selectionTimeoutRef.current = null
+		}
 
 		const showPopupForSelection = () => {
 			const selection = window.getSelection()
@@ -62,25 +68,35 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 			setPosition({ top, left: centeredLeft })
 		}
 
-		const handleMouseUp = () => {
-			setTimeout(showPopupForSelection, 10)
+		const schedulePopupForSelection = (delay = 0) => {
+			clearScheduledSelectionCheck()
+			selectionTimeoutRef.current = window.setTimeout(() => {
+				selectionTimeoutRef.current = null
+				showPopupForSelection()
+			}, delay)
 		}
 
 		const handleMouseDown = (e: MouseEvent) => {
 			if (popupRef.current?.contains(e.target as Node)) return
+			clearScheduledSelectionCheck()
 			setSelectedText('')
 			setPosition(null)
 		}
 
-		const handleSelectionChange = () => {
-			showPopupForSelection()
-		}
+		const handlePointerSelectionEnd = () => schedulePopupForSelection(20)
+		const handleDoubleClick = () => schedulePopupForSelection(40)
+		const handleSelectionChange = () => schedulePopupForSelection()
 
-		document.addEventListener('mouseup', handleMouseUp)
+		document.addEventListener('mouseup', handlePointerSelectionEnd)
+		document.addEventListener('pointerup', handlePointerSelectionEnd)
+		document.addEventListener('dblclick', handleDoubleClick)
 		document.addEventListener('mousedown', handleMouseDown)
 		document.addEventListener('selectionchange', handleSelectionChange)
 		return () => {
-			document.removeEventListener('mouseup', handleMouseUp)
+			clearScheduledSelectionCheck()
+			document.removeEventListener('mouseup', handlePointerSelectionEnd)
+			document.removeEventListener('pointerup', handlePointerSelectionEnd)
+			document.removeEventListener('dblclick', handleDoubleClick)
 			document.removeEventListener('mousedown', handleMouseDown)
 			document.removeEventListener('selectionchange', handleSelectionChange)
 		}
