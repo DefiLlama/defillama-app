@@ -100,6 +100,7 @@ export function readPendingSettingsIntent(storage: StorageLike): SettingsInitial
 	const tgloginToken = storage.getItem(PENDING_TGLOGIN_KEY)
 	if (tgloginToken) {
 		storage.removeItem(PENDING_TGLOGIN_KEY)
+		storage.removeItem(PENDING_SETTINGS_TAB_KEY)
 		storage.removeItem(PENDING_SLACK_RESULT_KEY)
 		storage.removeItem(PENDING_SLACK_TEAM_KEY)
 		storage.removeItem(PENDING_SLACK_ERROR_KEY)

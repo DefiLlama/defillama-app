@@ -70,6 +70,7 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 		() => repos.data?.find((r) => r.full_name === selectedRepo) ?? null,
 		[repos.data, selectedRepo]
 	)
+	const repoSelectionIsStale = !!selectedRepo && !repos.isLoading && !repos.isError && !repoMeta
 
 	const repoOwner = repoMeta ? repoMeta.full_name.split('/')[0] : null
 	const repoName = repoMeta ? repoMeta.name : null
@@ -94,9 +95,15 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 	}, [branches.data, branchQuery])
 
 	const onConnect = async () => {
-		if (!selectedRepo || !selectedBranch || !effectiveInstallId) return
-		const repo = repos.data?.find((r) => r.full_name === selectedRepo)
-		if (!repo) return
+		if (!selectedRepo || !selectedBranch || !effectiveInstallId) {
+			toast.error('Choose a repository and branch before connecting.')
+			return
+		}
+		const repo = repoMeta
+		if (!repo) {
+			toast.error('Repository metadata is stale. Pick the repository again.')
+			return
+		}
 		try {
 			await connect.mutateAsync({
 				owner: repo.full_name.split('/')[0],
@@ -255,6 +262,11 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 									</Ariakit.ComboboxPopover>
 								</Ariakit.ComboboxProvider>
 							)}
+							{repoSelectionIsStale ? (
+								<p className="text-xs text-red-600 dark:text-red-400">
+									Repository metadata is stale. Pick the repository again.
+								</p>
+							) : null}
 						</div>
 
 						<div className="flex flex-col gap-1.5">
@@ -345,7 +357,7 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 						<button
 							type="button"
 							onClick={() => void onConnect()}
-							disabled={!selectedRepo || !selectedBranch || connect.isPending}
+							disabled={!repoMeta || !selectedBranch || !effectiveInstallId || connect.isPending}
 							className="flex items-center gap-1.5 rounded-md border border-(--old-blue) bg-(--old-blue) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-(--old-blue)/90 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{connect.isPending ? <LoadingSpinner size={12} /> : null}

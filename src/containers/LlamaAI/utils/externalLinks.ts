@@ -58,9 +58,10 @@ export function isLlamaAIExternalLink(href?: string | null): boolean {
 	if (!href || typeof href !== 'string') return false
 	const trimmed = href.trim()
 	if (!trimmed) return false
-	if (trimmed.startsWith('#') || trimmed.startsWith('/') || trimmed.startsWith('?')) return false
+	if (trimmed.startsWith('#') || trimmed.startsWith('?')) return false
+	if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return false
 	try {
-		const url = new URL(trimmed)
+		const url = new URL(trimmed.startsWith('//') ? `https:${trimmed}` : trimmed)
 		if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
 		const hostname = normalizeHostname(url.hostname)
 		return !INTERNAL_HOSTS.has(hostname) && !isAllowedLlamaAIExternalHostname(hostname)

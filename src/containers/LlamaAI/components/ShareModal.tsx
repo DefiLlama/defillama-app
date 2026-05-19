@@ -32,6 +32,13 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 	const [copyFailed, setCopyFailed] = useState(false)
 
 	useEffect(() => {
+		if (open) return
+		hasStartedRef.current = false
+		setCopyFailed(false)
+		setShareLink('')
+	}, [open])
+
+	useEffect(() => {
 		if (!open || hasStartedRef.current) return
 		hasStartedRef.current = true
 
