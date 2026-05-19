@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
@@ -274,9 +275,19 @@ export default function SectionArticlePage({
 	const noIndex = !expectedSection
 	const title = initialArticle?.seoTitle || initialArticle?.title || 'Research - DefiLlama'
 	const description = initialArticle?.seoDescription || initialArticle?.excerpt || 'DefiLlama research.'
+	const firstPublished = initialArticle?.firstPublishedAt ?? initialArticle?.publishedAt ?? null
+	const lastPublished = initialArticle?.lastPublishedAt ?? initialArticle?.publishedAt ?? null
 
 	return (
 		<Layout title={title} description={description} canonicalUrl={canonical} noIndex={noIndex} hideDesktopSearch>
+			<Head>
+				{firstPublished ? (
+					<meta key="article:published_time" property="article:published_time" content={firstPublished} />
+				) : null}
+				{lastPublished ? (
+					<meta key="article:modified_time" property="article:modified_time" content={lastPublished} />
+				) : null}
+			</Head>
 			<ArticleProxyAuthProvider>
 				{slug && sectionSlug ? (
 					<SectionArticleContent
