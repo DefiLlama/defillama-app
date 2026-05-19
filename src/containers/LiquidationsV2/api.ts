@@ -18,16 +18,16 @@ import type {
 } from './api.types'
 
 export async function fetchProtocolsList(): Promise<RawProtocolsResponse> {
-	return fetchJson<RawProtocolsResponse>(`${LIQUIDATIONS_SERVER_URL_V2}/protocols?zz=15`)
+	return fetchJson<RawProtocolsResponse>(`${LIQUIDATIONS_SERVER_URL_V2}/protocols?zz=16`)
 }
 
 export async function fetchAllLiquidations(): Promise<RawAllLiquidationsResponse> {
-	return fetchJson<RawAllLiquidationsResponse>(`${LIQUIDATIONS_SERVER_URL_V2}/all?zz=15`)
+	return fetchJson<RawAllLiquidationsResponse>(`${LIQUIDATIONS_SERVER_URL_V2}/all?zz=16`)
 }
 
 export async function fetchProtocolLiquidations(protocol: string): Promise<RawProtocolLiquidationsResponse> {
 	return fetchJson<RawProtocolLiquidationsResponse>(
-		`${LIQUIDATIONS_SERVER_URL_V2}/protocol/${encodeURIComponent(protocol)}?zz=15`
+		`${LIQUIDATIONS_SERVER_URL_V2}/protocol/${encodeURIComponent(protocol)}?zz=16`
 	)
 }
 
