@@ -34,7 +34,8 @@ import { ArticleCoverImageEditor } from './ArticleCoverImageEditor'
 import { ArticleEditorCanvas } from './ArticleEditorCanvas'
 import { useActiveEntityLink, useEditorFlags, type BlockItem, type MarkButton } from './ArticleEditorControls'
 import { CoverDetailsDialog, DeleteArticleDialog } from './ArticleEditorDialogs'
-import { ArticleEditorHeader } from './ArticleEditorHeader'
+import { ArticleEditorHeader, type ArticleEditorViewMode } from './ArticleEditorHeader'
+import { ArticleEditorPreview } from './ArticleEditorPreview'
 import { articleQueryKey, formatRelative, sanitizeLinkHref, slugFromTitle, useTicker } from './ArticleEditorUtils'
 import { ArticleMetaDialog } from './ArticleMetaDialog'
 import { ArticleTitleFields } from './ArticleTitleFields'
@@ -48,6 +49,7 @@ import { useArticleCollaborators } from './useArticleCollaborators'
 
 export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
+	const routeView = Array.isArray(router.query.view) ? router.query.view[0] : router.query.view
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [article, setArticle] = useState<LocalArticleDocument>(() => createEmptyLocalArticle())
@@ -81,10 +83,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [slugEditing, setSlugEditing] = useState(false)
 	const [slugDraft, setSlugDraft] = useState('')
 	const [publishErrors, setPublishErrors] = useState<Record<string, string>>({})
+	const [viewMode, setViewMode] = useState<ArticleEditorViewMode>('write')
+	const [previewArticle, setPreviewArticle] = useState<LocalArticleDocument | null>(null)
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
 	const autoRedirectingRef = useRef(false)
 	const hydratedArticleIdRef = useRef<string | null>(null)
+	const routeViewModeHandledRef = useRef<string | null>(null)
 	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
 	const articleIdRef = useRef<string | undefined>(article.id)
 	articleIdRef.current = article.id
@@ -732,6 +737,44 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			.run()
 	}
 
+	const buildPreviewArticle = useCallback((): LocalArticleDocument => {
+		const contentJson = editor && !editor.isDestroyed ? editor.getJSON() : article.contentJson
+		const normalized = normalizeLocalArticleDocument({ ...article, contentJson }, article)
+		if (normalized.ok === false) return { ...article, contentJson }
+		return {
+			...normalized.value,
+			coAuthors: article.coAuthors,
+			editorialTagMetadata: article.editorialTagMetadata,
+			pending: article.pending,
+			pendingActorPbUserId: article.pendingActorPbUserId,
+			pendingUpdatedAt: article.pendingUpdatedAt,
+			viewerRole: article.viewerRole
+		}
+	}, [article, editor])
+
+	const handleViewModeChange = useCallback(
+		(mode: ArticleEditorViewMode) => {
+			if (mode === 'preview') setPreviewArticle(buildPreviewArticle())
+			setViewMode(mode)
+		},
+		[buildPreviewArticle]
+	)
+
+	useEffect(() => {
+		if (viewMode !== 'preview') return
+		setPreviewArticle(buildPreviewArticle())
+	}, [buildPreviewArticle, viewMode])
+
+	useEffect(() => {
+		if (!router.isReady) return
+		const routeMode: ArticleEditorViewMode = routeView === 'preview' ? 'preview' : 'write'
+		const routeModeKey = `${articleId ?? 'new'}:${routeMode}`
+		if (routeViewModeHandledRef.current === routeModeKey) return
+		routeViewModeHandledRef.current = routeModeKey
+		setViewMode(routeMode)
+		if (routeMode === 'write') setPreviewArticle(null)
+	}, [articleId, routeView, router.isReady])
+
 	if (isLoading) {
 		return <ResearchLoader />
 	}
@@ -883,48 +926,63 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				setSlugDraft={setSlugDraft}
 				slugDraft={slugDraft}
 				slugEditing={slugEditing}
+				viewMode={viewMode}
+				onViewModeChange={handleViewModeChange}
 			/>
 
-			<ArticleTitleFields article={article} updateArticle={updateArticle} />
+			{viewMode === 'preview' ? (
+				<ArticleEditorPreview
+					article={previewArticle ?? article}
+					articleViewHref={articleViewHref}
+					isDirty={isDirty}
+					onEdit={() => handleViewModeChange('write')}
+					readMins={readMins}
+					wordCount={wordCount}
+				/>
+			) : (
+				<>
+					<ArticleTitleFields article={article} updateArticle={updateArticle} />
 
-			<ArticleCoverImageEditor
-				article={article}
-				coverFileInputRef={coverFileInputRef}
-				coverHovered={coverHovered}
-				handleCoverFile={handleCoverFile}
-				isUploadingCover={isUploadingCover}
-				onOpenCoverDetails={() => coverDetailsDialog.show()}
-				openCoverPicker={openCoverPicker}
-				publishError={publishErrors.coverImage}
-				setCoverHovered={setCoverHovered}
-				updateArticle={updateArticle}
-			/>
+					<ArticleCoverImageEditor
+						article={article}
+						coverFileInputRef={coverFileInputRef}
+						coverHovered={coverHovered}
+						handleCoverFile={handleCoverFile}
+						isUploadingCover={isUploadingCover}
+						onOpenCoverDetails={() => coverDetailsDialog.show()}
+						openCoverPicker={openCoverPicker}
+						publishError={publishErrors.coverImage}
+						setCoverHovered={setCoverHovered}
+						updateArticle={updateArticle}
+					/>
 
-			<ArticleEditorCanvas
-				activeEntity={activeEntity}
-				applyLink={applyLink}
-				blockItems={blockItems}
-				changeActiveEntityLink={changeActiveEntityLink}
-				editor={editor}
-				flags={flags}
-				handleLinkRail={handleLinkRail}
-				insertCallout={insertCallout}
-				insertCitation={insertCitation}
-				linkEdit={linkEdit}
-				linkInputRef={linkInputRef}
-				markButtons={markButtons}
-				onOpenChartPicker={() => chartDialog.show()}
-				onOpenEmbedPicker={() => {
-					setEditingEmbed(null)
-					embedDialog.show()
-				}}
-				openActiveEntityLink={openActiveEntityLink}
-				openLinkEditor={openLinkEditor}
-				readMins={readMins}
-				setLinkEdit={setLinkEdit}
-				unsetActiveEntityLink={unsetActiveEntityLink}
-				wordCount={wordCount}
-			/>
+					<ArticleEditorCanvas
+						activeEntity={activeEntity}
+						applyLink={applyLink}
+						blockItems={blockItems}
+						changeActiveEntityLink={changeActiveEntityLink}
+						editor={editor}
+						flags={flags}
+						handleLinkRail={handleLinkRail}
+						insertCallout={insertCallout}
+						insertCitation={insertCitation}
+						linkEdit={linkEdit}
+						linkInputRef={linkInputRef}
+						markButtons={markButtons}
+						onOpenChartPicker={() => chartDialog.show()}
+						onOpenEmbedPicker={() => {
+							setEditingEmbed(null)
+							embedDialog.show()
+						}}
+						openActiveEntityLink={openActiveEntityLink}
+						openLinkEditor={openLinkEditor}
+						readMins={readMins}
+						setLinkEdit={setLinkEdit}
+						unsetActiveEntityLink={unsetActiveEntityLink}
+						wordCount={wordCount}
+					/>
+				</>
+			)}
 
 			<ArticleMetaDialog
 				article={article}

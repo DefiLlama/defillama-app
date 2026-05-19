@@ -776,7 +776,15 @@ function ShareBlock({ url, title, compactMode = false }: { url: string; title: s
 	)
 }
 
-export function ArticleRenderer({ article }: { article: LocalArticleDocument }) {
+export function ArticleRenderer({
+	article,
+	hideSidePanel = false,
+	shareUrlOverride
+}: {
+	article: LocalArticleDocument
+	hideSidePanel?: boolean
+	shareUrlOverride?: string
+}) {
 	const visibleDateIso =
 		article.displayDate ??
 		(article.status === 'published' ? (article.publishedAt ?? article.lastPublishedAt ?? null) : article.updatedAt)
@@ -794,12 +802,16 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 	const tagChips = (article.tags ?? []).filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
 
 	const sectionPath = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}` : null
-	const [shareUrl, setShareUrl] = useState<string>(sectionPath ?? `/research/${article.slug}`)
+	const [shareUrl, setShareUrl] = useState<string>(shareUrlOverride ?? sectionPath ?? `/research/${article.slug}`)
 	useEffect(() => {
+		if (shareUrlOverride) {
+			setShareUrl(shareUrlOverride)
+			return
+		}
 		if (typeof window !== 'undefined') {
 			setShareUrl(window.location.href)
 		}
-	}, [article.slug, article.section])
+	}, [article.slug, article.section, shareUrlOverride])
 
 	const sentinelRef = useRef<HTMLDivElement>(null)
 	const [pastHeader, setPastHeader] = useState(false)
@@ -834,6 +846,9 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 		? [coverCredit ? `Credit: ${coverCredit}` : '', coverCopyright ? `© ${coverCopyright}` : ''].filter(Boolean)
 		: []
 	const hasCoverMeta = !!cover && (coverHeadline || coverCaption || coverMetaParts.length > 0)
+	const articlePageClassName = hideSidePanel
+		? 'article-page mx-auto grid w-full max-w-[760px] animate-fadein gap-10 px-4 pb-24 sm:px-6'
+		: 'article-page mx-auto grid w-full max-w-[1300px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,700px)_401px] lg:gap-[125px]'
 
 	const isInterview = article.section === 'interview'
 	const bylineLabel = isInterview ? 'Interviewer' : 'By'
@@ -907,7 +922,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 		) : null
 
 	return (
-		<div className="article-page mx-auto grid w-full max-w-[1300px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,700px)_401px] lg:gap-[125px]">
+		<div className={articlePageClassName}>
 			<article className="article-published min-w-0">
 				<header className="grid gap-4 pt-6 sm:pt-10 lg:gap-5">
 					<h1 className="text-[26px] leading-[1.2] font-bold tracking-tight text-(--text-primary) sm:text-3xl sm:leading-[1.15] md:text-[36px] md:leading-[1.32]">
@@ -1038,21 +1053,23 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				</div>
 			</article>
 
-			<aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
-				<div className="flex flex-col gap-8 border-l border-(--cards-border) pt-10 pr-1 pb-6 pl-5">
-					{toc.length > 1 ? (
+			{hideSidePanel ? null : (
+				<aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
+					<div className="flex flex-col gap-8 border-l border-(--cards-border) pt-10 pr-1 pb-6 pl-5">
+						{toc.length > 1 ? (
+							<div className="pr-2">
+								<ArticleToc toc={toc} compactMode={pastHeader} />
+							</div>
+						) : null}
 						<div className="pr-2">
-							<ArticleToc toc={toc} compactMode={pastHeader} />
+							<ShareBlock url={shareUrl} title={article.title} compactMode={pastHeader} />
 						</div>
-					) : null}
-					<div className="pr-2">
-						<ShareBlock url={shareUrl} title={article.title} compactMode={pastHeader} />
+						<div className="pr-2">
+							<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
+						</div>
 					</div>
-					<div className="pr-2">
-						<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
-					</div>
-				</div>
-			</aside>
+				</aside>
+			)}
 		</div>
 	)
 }

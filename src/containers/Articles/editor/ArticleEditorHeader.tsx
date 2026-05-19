@@ -5,6 +5,8 @@ import type { LocalArticleDocument } from '../types'
 import { Icon } from './ArticleEditorIcon'
 import type { SavePillState } from './ArticleEditorTypes'
 
+export type ArticleEditorViewMode = 'write' | 'preview'
+
 type ArticleEditorHeaderProps = {
 	article: LocalArticleDocument
 	articleViewHref: string
@@ -20,6 +22,7 @@ type ArticleEditorHeaderProps = {
 	savedLabel: string | null
 	slugDraft: string
 	slugEditing: boolean
+	viewMode: ArticleEditorViewMode
 	beginSlugEdit: () => void
 	cancelSlugEdit: () => void
 	commitSlugEdit: () => void
@@ -29,6 +32,7 @@ type ArticleEditorHeaderProps = {
 	handleUnpublish: () => Promise<void>
 	onOpenHistory: () => void
 	onOpenMeta: () => void
+	onViewModeChange: (mode: ArticleEditorViewMode) => void
 	saveArticle: () => Promise<void>
 	setSlugDraft: Dispatch<SetStateAction<string>>
 }
@@ -58,7 +62,9 @@ export function ArticleEditorHeader({
 	savedLabel,
 	setSlugDraft,
 	slugDraft,
-	slugEditing
+	slugEditing,
+	viewMode,
+	onViewModeChange
 }: ArticleEditorHeaderProps) {
 	return (
 		<header
@@ -159,6 +165,38 @@ export function ArticleEditorHeader({
 						</kbd>
 					) : null}
 				</button>
+
+				<div
+					role="group"
+					aria-label="Editor mode"
+					className="flex h-9 items-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-0.5"
+				>
+					{(
+						[
+							{ mode: 'write', label: 'Write', icon: 'pencil' },
+							{ mode: 'preview', label: 'Preview', icon: 'eye' }
+						] as const
+					).map((item) => {
+						const active = viewMode === item.mode
+						return (
+							<button
+								key={item.mode}
+								type="button"
+								aria-pressed={active}
+								title={item.label}
+								onClick={() => onViewModeChange(item.mode)}
+								className={`flex h-8 items-center gap-1.5 rounded-sm px-2.5 text-xs font-medium transition-colors ${
+									active
+										? 'bg-(--link-button) text-(--link-text)'
+										: 'text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
+								}`}
+							>
+								<Icon name={item.icon} className="h-3.5 w-3.5" />
+								<span className="hidden sm:inline">{item.label}</span>
+							</button>
+						)
+					})}
+				</div>
 
 				{article.id ? (
 					<button
@@ -277,27 +315,17 @@ export function ArticleEditorHeader({
 					</>
 				) : article.id ? (
 					<>
-						{article.section ? (
-							<Link
-								href={articleViewHref}
-								target="_blank"
-								rel="noreferrer"
-								className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
-							>
-								<Icon name="eye" className="h-3.5 w-3.5" />
-								<span>Preview</span>
-							</Link>
-						) : (
+						{!article.section ? (
 							<button
 								type="button"
 								onClick={onOpenMeta}
-								title="Set a section to preview this draft"
+								title="Set a section"
 								className="flex h-9 items-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-transparent px-3 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-secondary)"
 							>
-								<Icon name="eye" className="h-3.5 w-3.5" />
-								<span>Set section to preview</span>
+								<Icon name="sliders" className="h-3.5 w-3.5" />
+								<span>Set section</span>
 							</button>
-						)}
+						) : null}
 						{isOwner ? (
 							<button
 								type="button"

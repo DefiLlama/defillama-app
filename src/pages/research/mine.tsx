@@ -6,7 +6,7 @@ import { deleteArticle as deleteArticleApi, listMyArticles, type ArticleListResp
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
-import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 
@@ -395,29 +395,28 @@ function MyArticlesContent() {
 									</Link>
 
 									<div className="flex shrink-0 items-center gap-1">
-										{article.section ? (
-											<Link
-												href={`/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`}
-												target="_blank"
-												rel="noreferrer"
-												aria-label={article.status === 'published' ? 'View' : 'Preview'}
-												title={article.status === 'published' ? 'View' : 'Preview'}
-												className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
+										<Link
+											href={{
+												pathname: '/research/edit/[id]',
+												query: { id: article.id, view: 'preview' }
+											}}
+											aria-label="Preview in editor"
+											title="Preview in editor"
+											className="flex size-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
+										>
+											<svg
+												viewBox="0 0 24 24"
+												className="size-4"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.75"
+												strokeLinecap="round"
+												strokeLinejoin="round"
 											>
-												<svg
-													viewBox="0 0 24 24"
-													className="h-4 w-4"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="1.75"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												>
-													<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-													<circle cx="12" cy="12" r="3" />
-												</svg>
-											</Link>
-										) : null}
+												<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+												<circle cx="12" cy="12" r="3" />
+											</svg>
+										</Link>
 										<Link
 											href={`/research/edit/${article.id}`}
 											className="hidden h-8 items-center gap-1.5 rounded-md border border-(--cards-border) px-3 text-xs text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary) sm:flex"
