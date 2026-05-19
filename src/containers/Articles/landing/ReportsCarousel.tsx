@@ -106,7 +106,11 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 	const imageBlock = (
 		<div className="space-y-[12px] bg-white" style={{ aspectRatio: `${IMG_ASPECT.w}/${IMG_ASPECT.h}` }}>
 			{imgUrl ? (
-				<img src={imgUrl} alt="" className="h-full w-full object-cover md:h-full md:w-full md:object-fill" />
+				<img
+					src={imgUrl}
+					alt={article.coverImage.alt}
+					className="h-full w-full object-cover md:h-full md:w-full md:object-fill"
+				/>
 			) : (
 				<div className="flex h-full min-h-[200px] w-full items-center justify-center bg-slate-200 text-slate-500" />
 			)}
@@ -116,7 +120,7 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 	const sponsorBadge = sponsorLogoUrl ? (
 		<div className="pointer-events-none absolute top-[12px] right-[12px] flex items-center gap-2 rounded-full bg-black/55 px-2 py-1 text-white backdrop-blur-sm">
 			<span className="font-jetbrains text-[8px] tracking-[0.16em] uppercase opacity-80">Sponsored by</span>
-			<img src={sponsorLogoUrl} alt="" className="h-5 w-auto max-w-[80px] object-contain" />
+			<img src={sponsorLogoUrl} alt={article.sponsorLogo.alt} className="h-5 w-auto max-w-[80px] object-contain" />
 		</div>
 	) : null
 
