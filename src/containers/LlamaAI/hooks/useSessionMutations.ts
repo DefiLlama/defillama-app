@@ -141,6 +141,11 @@ export function useSessionMutations() {
 			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		},
 		onError: (_error, variables) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					removeSessionFromInfiniteData(old, variables.sessionId)
+				)
+			}
 			if (variables.projectId) removeProjectSession(variables.projectId, variables.sessionId)
 		}
 	})

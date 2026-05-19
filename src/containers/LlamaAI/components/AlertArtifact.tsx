@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AI_SERVER } from '~/constants'
 import { useSlackChannels } from '~/containers/LlamaAI/hooks/useSlackChannels'
@@ -75,9 +75,18 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [slackChannelId, setSlackChannelId] = useState<string>(alertIntent.slackChannelId ?? '')
 	const slackWorkspacesQuery = useSlackWorkspaces()
 	const slackChannelsQuery = useSlackChannels(isSlack && slackTeamId ? slackTeamId : null)
-	const activeWorkspaces = (slackWorkspacesQuery.data?.workspaces ?? []).filter((w) => !w.revoked)
+	const activeWorkspaces = useMemo(() => {
+		const workspaces = slackWorkspacesQuery.data?.workspaces ?? []
+		return workspaces.filter((w) => !w.revoked)
+	}, [slackWorkspacesQuery.data?.workspaces])
+	const slackChannels = slackChannelsQuery.data?.channels
+	const selectableSlackChannels = useMemo(() => {
+		const channels = (slackChannels ?? []).filter((c) => !c.is_archived)
+		channels.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
+		return channels
+	}, [slackChannels])
 	const selectedWorkspace = activeWorkspaces.find((w) => w.team_id === slackTeamId) ?? null
-	const selectedChannel = (slackChannelsQuery.data?.channels ?? []).find((c) => c.id === slackChannelId) ?? null
+	const selectedChannel = (slackChannels ?? []).find((c) => c.id === slackChannelId) ?? null
 	const slackTeamName = selectedWorkspace?.team_name ?? alertIntent.slackTeamName ?? null
 	const slackChannelName = selectedChannel?.name ?? alertIntent.slackChannelName ?? null
 	const isSaved = savedDbId !== null
@@ -102,7 +111,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	})
 
 	useEffect(() => {
-		if (alertDetailQuery.data?.alert?.test_sent === true) setTestSent('already')
+		if (alertDetailQuery.data?.alert?.test_sent === true) setTestSent((prev) => prev ?? 'already')
 	}, [alertDetailQuery.data?.alert?.test_sent])
 
 	const {
@@ -326,16 +335,13 @@ export const AlertArtifact = memo(function AlertArtifact({
 								<option value="" disabled>
 									Pick channel
 								</option>
-								{(slackChannelsQuery.data?.channels ?? [])
-									.filter((c) => !c.is_archived)
-									.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
-									.map((c) => (
-										<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
-											{c.is_private ? '🔒 ' : '# '}
-											{c.name}
-											{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
-										</option>
-									))}
+								{selectableSlackChannels.map((c) => (
+									<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
+										{c.is_private ? '🔒 ' : '# '}
+										{c.name}
+										{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
+									</option>
+								))}
 							</select>
 						)
 					) : null}

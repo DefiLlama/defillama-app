@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { createElement, useMemo, useRef, useState } from 'react'
+import { createElement, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -9,14 +9,21 @@ import { Icon } from '~/components/Icon'
 import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
 import type { ArticleEntityType } from '~/containers/Articles/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
-import { allowLlamaAIExternalHostname, isLlamaAIExternalLink } from '~/containers/LlamaAI/utils/externalLinks'
+import {
+	allowLlamaAIExternalHostname,
+	getLlamaAIExternalAllowlistSnapshot,
+	isLlamaAIExternalLink,
+	parseLlamaAIExternalAllowlistSnapshot
+} from '~/containers/LlamaAI/utils/externalLinks'
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
 	processCitationMarkers
 } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+import { equityIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
@@ -80,6 +87,7 @@ const TABLE_WATERMARK_WIDTH = Math.round((389 / 133) * TABLE_WATERMARK_HEIGHT)
 
 type EntityLinkProps = ComponentPropsWithoutRef<'a'> & {
 	onExternalLinkClick?: (href: string) => void
+	allowedExternalHosts?: ReadonlySet<string>
 }
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
 type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
@@ -258,11 +266,18 @@ function TableWrapper({
 	)
 }
 
-function EntityLinkRenderer({ href, children, onClick, onExternalLinkClick, ...props }: EntityLinkProps) {
+function EntityLinkRenderer({
+	href,
+	children,
+	onClick,
+	onExternalLinkClick,
+	allowedExternalHosts,
+	...props
+}: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex', 'equity'].includes(type)) {
 			return <span>{children}</span>
 		}
 
@@ -284,6 +299,7 @@ function EntityLinkRenderer({ href, children, onClick, onExternalLinkClick, ...p
 			)
 		}
 
+		const logoUrl = type === 'equity' ? equityIconUrl(slug) : null
 		return (
 			<a
 				href={entityUrl}
@@ -293,11 +309,20 @@ function EntityLinkRenderer({ href, children, onClick, onExternalLinkClick, ...p
 				onClick={onClick}
 				{...props}
 			>
+				{logoUrl ? (
+					<img
+						src={logoUrl}
+						alt=""
+						height={14}
+						width={14}
+						className="relative top-[-0.1em] mr-1 inline-block shrink-0 rounded-full"
+					/>
+				) : null}
 				<span className="min-w-0">{children}</span>
 			</a>
 		)
 	}
-	const external = isLlamaAIExternalLink(href)
+	const external = isLlamaAIExternalLink(href, allowedExternalHosts)
 	return (
 		<a
 			href={href}
@@ -462,6 +487,15 @@ export function ChatMarkdownRenderer({
 	messageId?: string
 }) {
 	const [pendingExternalHref, setPendingExternalHref] = useState<string | null>(null)
+	const externalAllowlistSnapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		getLlamaAIExternalAllowlistSnapshot,
+		() => '[]'
+	)
+	const allowedExternalHosts = useMemo(
+		() => parseLlamaAIExternalAllowlistSnapshot(externalAllowlistSnapshot),
+		[externalAllowlistSnapshot]
+	)
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
 		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
@@ -489,9 +523,14 @@ export function ChatMarkdownRenderer({
 			const textChild = getSingleTextChild(props.children)
 			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
 				const llamaUrl = processedData.linkMap.get(textChild)
-				return EntityLinkRenderer({ ...props, href: llamaUrl, onExternalLinkClick: setPendingExternalHref })
+				return EntityLinkRenderer({
+					...props,
+					href: llamaUrl,
+					onExternalLinkClick: setPendingExternalHref,
+					allowedExternalHosts
+				})
 			}
-			return EntityLinkRenderer({ ...props, onExternalLinkClick: setPendingExternalHref })
+			return EntityLinkRenderer({ ...props, onExternalLinkClick: setPendingExternalHref, allowedExternalHosts })
 		},
 		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
 			<TableWrapper
@@ -560,6 +599,7 @@ export function ChatMarkdownRenderer({
 				onClose={() => setPendingExternalHref(null)}
 				onAllowPermanently={(hostname, href) => {
 					allowLlamaAIExternalHostname(hostname)
+					setPendingExternalHref(null)
 					window.open(href, '_blank', 'noopener,noreferrer')
 				}}
 			/>

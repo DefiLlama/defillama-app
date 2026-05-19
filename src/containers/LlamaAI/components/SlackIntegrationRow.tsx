@@ -1,30 +1,29 @@
-import { type ReactNode } from 'react'
-import type { SlackLink, SlackStatus } from '~/containers/LlamaAI/api/slack'
+import * as Ariakit from '@ariakit/react'
+import { useState, type ReactNode } from 'react'
+import type { SlackLink } from '~/containers/LlamaAI/api/slack'
 import { useSlackIntegrationLink } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
 
 type Props = {
 	title: string
 	description: string
 	glyph?: ReactNode
-	initialStatus?: SlackStatus | null
 }
 
 function ConnectButton({ onClick, disabled, label }: { onClick: () => void; disabled?: boolean; label: string }) {
 	return (
-		<a
-			href="#slack-connect"
-			onClick={(e) => {
-				e.preventDefault()
+		<button
+			type="button"
+			onClick={() => {
 				if (!disabled) onClick()
 			}}
-			aria-disabled={disabled}
+			disabled={disabled}
 			className={`inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#4A154B] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white hover:bg-[#3a1140] ${
-				disabled ? 'pointer-events-none opacity-50' : ''
+				disabled ? 'opacity-50' : ''
 			}`}
 		>
 			<SlackLogo />
 			{label}
-		</a>
+		</button>
 	)
 }
 
@@ -69,7 +68,7 @@ function WorkspaceRow({
 				<p className="m-0 mt-0.5 text-xs text-[#777] dark:text-[#919296]">
 					{workspace.revoked ? (
 						<span className="text-amber-600 dark:text-amber-400">
-							Disconnected by Slack — reconnect to resume alerts
+							Disconnected by Slack. Reconnect to resume alerts.
 						</span>
 					) : workspace.default_channel_name ? (
 						<>Default channel: #{workspace.default_channel_name}</>
@@ -105,17 +104,14 @@ function WorkspaceRow({
 	)
 }
 
-export function SlackIntegrationRow({ title, description, glyph, initialStatus }: Props) {
-	const link = useSlackIntegrationLink({ initialStatus })
+export function SlackIntegrationRow({ title, description, glyph }: Props) {
+	const link = useSlackIntegrationLink()
+	const [disconnectTarget, setDisconnectTarget] = useState<SlackLink | null>(null)
 
-	const handleDisconnect = (teamId: string, teamName: string) => {
-		if (typeof window !== 'undefined') {
-			const confirmed = window.confirm(
-				`Disconnect ${teamName}? Existing alerts targeting this workspace will be paused.`
-			)
-			if (!confirmed) return
-		}
-		link.disconnect(teamId)
+	const confirmDisconnect = () => {
+		if (!disconnectTarget) return
+		link.disconnect(disconnectTarget.team_id)
+		setDisconnectTarget(null)
 	}
 
 	return (
@@ -156,7 +152,7 @@ export function SlackIntegrationRow({ title, description, glyph, initialStatus }
 						<WorkspaceRow
 							key={w.team_id}
 							workspace={w}
-							onDisconnect={() => handleDisconnect(w.team_id, w.team_name)}
+							onDisconnect={() => setDisconnectTarget(w)}
 							onReconnect={() => link.connect()}
 							isDisconnecting={link.isDisconnecting}
 						/>
@@ -172,6 +168,36 @@ export function SlackIntegrationRow({ title, description, glyph, initialStatus }
 					{link.state.message}
 				</div>
 			)}
+			<Ariakit.DialogProvider open={!!disconnectTarget} setOpen={(open) => !open && setDisconnectTarget(null)}>
+				<Ariakit.Dialog
+					className="fixed top-1/2 left-1/2 z-50 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[#e6e6e6] bg-(--cards-bg) p-5 shadow-2xl dark:border-[#222324]"
+					backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-md" />}
+				>
+					<Ariakit.DialogHeading className="text-base font-semibold text-(--text-primary)">
+						Disconnect Slack workspace?
+					</Ariakit.DialogHeading>
+					<p className="mt-1 text-sm text-[#666] dark:text-[#919296]">
+						{disconnectTarget?.team_name ?? 'This workspace'} will stop receiving LlamaAI alerts. Existing alerts
+						targeting this workspace will be paused.
+					</p>
+					<footer className="mt-5 flex justify-end gap-2">
+						<Ariakit.DialogDismiss
+							type="button"
+							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#222324]"
+						>
+							Cancel
+						</Ariakit.DialogDismiss>
+						<button
+							type="button"
+							onClick={confirmDisconnect}
+							disabled={!disconnectTarget || link.isDisconnecting}
+							className="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400"
+						>
+							Disconnect
+						</button>
+					</footer>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
 		</div>
 	)
 }

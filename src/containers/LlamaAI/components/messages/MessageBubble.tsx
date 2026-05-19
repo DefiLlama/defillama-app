@@ -929,7 +929,6 @@ export function MessageBubble({
 	const [isSaving, setIsSaving] = useState(false)
 	const [draftText, setDraftText] = useState(message.content || '')
 	const hackerMode = useHackerMode()
-	const submitShortcutLabel = enterToSend ? 'Enter' : 'Shift Enter'
 	const handleCancelEdit = () => {
 		if (isSaving) return
 		setIsEditing(false)
@@ -1063,9 +1062,21 @@ export function MessageBubble({
 							{isPersistedId ? 'Saving creates a new branch' : 'This will replace your message'}
 							<span className="hidden sm:inline">
 								{' · '}
-								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
-									{submitShortcutLabel}
-								</kbd>
+								{enterToSend ? (
+									<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+										Enter
+									</kbd>
+								) : (
+									<>
+										<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+											Shift
+										</kbd>
+										<span className="mx-0.5">+</span>
+										<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+											Enter
+										</kbd>
+									</>
+								)}
 								<span className="mx-1">save</span>
 								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
 									esc

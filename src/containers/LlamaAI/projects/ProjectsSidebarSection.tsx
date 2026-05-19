@@ -196,7 +196,6 @@ export function ProjectsSidebarSection({
 																isRestoring={restoringSessionId === sidebarSession.sessionId}
 																isDeleting={deletingSessionId === sidebarSession.sessionId}
 																isUpdatingTitle={updatingTitleSessionId === sidebarSession.sessionId}
-																style={{}}
 																onPinSession={onPinSession}
 															/>
 														</li>

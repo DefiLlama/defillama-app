@@ -87,14 +87,12 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 		const handleDoubleClick = () => schedulePopupForSelection(40)
 		const handleSelectionChange = () => schedulePopupForSelection()
 
-		document.addEventListener('mouseup', handlePointerSelectionEnd)
 		document.addEventListener('pointerup', handlePointerSelectionEnd)
 		document.addEventListener('dblclick', handleDoubleClick)
 		document.addEventListener('mousedown', handleMouseDown)
 		document.addEventListener('selectionchange', handleSelectionChange)
 		return () => {
 			clearScheduledSelectionCheck()
-			document.removeEventListener('mouseup', handlePointerSelectionEnd)
 			document.removeEventListener('pointerup', handlePointerSelectionEnd)
 			document.removeEventListener('dblclick', handleDoubleClick)
 			document.removeEventListener('mousedown', handleMouseDown)

@@ -27,7 +27,7 @@ interface AgenticSessionItemProps {
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
-	style: React.CSSProperties
+	style?: React.CSSProperties
 	selectMode?: boolean
 	isSelected?: boolean
 	onToggleSelect?: (sessionId: string) => void

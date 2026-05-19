@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
@@ -335,7 +335,16 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const [selectedExecId, setSelectedExecId] = useState<string | null>(null)
 	const slackWorkspacesQuery = useSlackWorkspaces()
 	const slackChannelsQuery = useSlackChannels(deliveryChannel === 'slack' && slackTeamId ? slackTeamId : null)
-	const slackWorkspaces = (slackWorkspacesQuery.data?.workspaces ?? []).filter((w) => !w.revoked)
+	const slackWorkspaces = useMemo(() => {
+		const workspaces = slackWorkspacesQuery.data?.workspaces ?? []
+		return workspaces.filter((w) => !w.revoked)
+	}, [slackWorkspacesQuery.data?.workspaces])
+	const slackChannels = slackChannelsQuery.data?.channels
+	const selectableSlackChannels = useMemo(() => {
+		const channels = (slackChannels ?? []).filter((c) => !c.is_archived)
+		channels.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
+		return channels
+	}, [slackChannels])
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
@@ -827,9 +836,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						if (deliveryChannel === 'slack' && (!slackTeamId || !slackChannelId)) return
 						trackUmamiEvent('llamaai-alert-edit')
 						const channelName =
-							deliveryChannel === 'slack'
-								? (slackChannelsQuery.data?.channels.find((c) => c.id === slackChannelId)?.name ?? null)
-								: null
+							deliveryChannel === 'slack' ? (slackChannels?.find((c) => c.id === slackChannelId)?.name ?? null) : null
 						updateAlertMutation.mutate({
 							alertId: alert.id,
 							title: titleValue,
@@ -913,7 +920,6 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</label>
 						<select
 							id={deliveryChannelId}
-							name="delivery_channel"
 							value={deliveryChannel}
 							onChange={(e) => setDeliveryChannel(e.target.value as DeliveryChannel)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
@@ -965,16 +971,13 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 												<option value="" disabled>
 													Pick channel
 												</option>
-												{(slackChannelsQuery.data?.channels ?? [])
-													.filter((c) => !c.is_archived)
-													.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
-													.map((c) => (
-														<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
-															{c.is_private ? '🔒 ' : '# '}
-															{c.name}
-															{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
-														</option>
-													))}
+												{selectableSlackChannels.map((c) => (
+													<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
+														{c.is_private ? '🔒 ' : '# '}
+														{c.name}
+														{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
+													</option>
+												))}
 											</select>
 										)}
 									</>
