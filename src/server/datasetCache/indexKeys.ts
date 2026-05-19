@@ -7,10 +7,7 @@ const MAX_DATASET_INDEX_FILE_NAME_BYTES = 240
 // reserved on Windows (alongside <>:"/\|?). Escape them too so shard filenames
 // are portable across platforms.
 function encodeForFilename(key: string): string {
-	return encodeURIComponent(key).replace(
-		/[!*'()]/g,
-		(char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`
-	)
+	return encodeURIComponent(key).replace(/[!*'()]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
 }
 
 export function getDatasetIndexFileName(key: string): string {

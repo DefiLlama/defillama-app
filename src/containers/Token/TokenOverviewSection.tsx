@@ -172,10 +172,7 @@ export function TokenPageHero({
 			{issuer ? (
 				<div className="-mt-3 flex flex-wrap items-baseline gap-1 text-sm text-(--text-label)">
 					<span>Issued by</span>
-					<BasicLink
-						href={`/protocol/${issuer.slug}`}
-						className="font-medium text-(--blue) hover:underline"
-					>
+					<BasicLink href={`/protocol/${issuer.slug}`} className="font-medium text-(--blue) hover:underline">
 						{issuer.name}
 					</BasicLink>
 				</div>

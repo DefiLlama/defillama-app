@@ -523,9 +523,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 
 		const issuerDisplayName = protocolMetadata?.displayName ?? protocolMetadata?.name ?? null
 		const issuer: TokenIssuer | null =
-			record.protocolId && issuerDisplayName
-				? { name: issuerDisplayName, slug: slug(issuerDisplayName) }
-				: null
+			record.protocolId && issuerDisplayName ? { name: issuerDisplayName, slug: slug(issuerDisplayName) } : null
 
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply, Trading Volume & Token Rights`
