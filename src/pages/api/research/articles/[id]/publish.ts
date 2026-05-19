@@ -99,8 +99,10 @@ async function revalidatePaths(paths: string[], res: NextApiResponse<ResponseDat
 }
 
 export async function researchPublishHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-	if (req.method !== 'POST') {
-		res.setHeader('Allow', ['POST'])
+	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
+
+	if (req.method !== 'GET') {
+		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 

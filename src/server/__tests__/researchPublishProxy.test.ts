@@ -8,7 +8,7 @@ function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
 	return {
 		body: {},
 		headers: {},
-		method: 'POST',
+		method: 'GET',
 		query: { id: 'article-id' },
 		...overrides
 	} as NextApiRequest

@@ -95,13 +95,14 @@ describe('articles api client', () => {
 	})
 
 	it('routes publish through the local research API proxy', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1779199500000)
 		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
 
 		await publishArticle('article-id', fetchFn)
 
 		const [url, options] = fetchFn.mock.calls[0]
-		expect(url).toBe('/api/research/articles/article-id/publish')
-		expect(options?.method).toBe('POST')
+		expect(url).toBe('/api/research/articles/article-id/publish?_n=1779199500000')
+		expect(options?.method).toBe('GET')
 	})
 
 	it('requests the all-articles banner lookup path', async () => {
