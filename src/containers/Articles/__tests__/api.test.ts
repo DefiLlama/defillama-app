@@ -5,6 +5,7 @@ import {
 	listArticlePaths,
 	listArticles,
 	listArticlesByTag,
+	publishArticle,
 	updateEditorialTagMetadata,
 	updateReportHighlightSponsorLogo
 } from '../api'
@@ -91,6 +92,16 @@ describe('articles api client', () => {
 		expect(JSON.parse(String(options?.body))).toEqual({
 			sponsorLogo: { url: 'https://features.llama.fi/uploads/image/logo-id' }
 		})
+	})
+
+	it('routes publish through the local research API proxy', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
+
+		await publishArticle('article-id', fetchFn)
+
+		const [url, options] = fetchFn.mock.calls[0]
+		expect(url).toBe('/api/research/articles/article-id/publish')
+		expect(options?.method).toBe('POST')
 	})
 
 	it('requests the all-articles banner lookup path', async () => {
