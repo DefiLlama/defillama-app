@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { DownloadPdfLink } from '~/containers/Articles/landing/DownloadPdfLink'
 import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
@@ -137,15 +138,13 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 						Read more
 					</span>
 					{pdfUrl ? (
-						<a
-							href={pdfUrl}
-							target="_blank"
-							rel="noopener noreferrer"
-							onClick={(e) => e.stopPropagation()}
+						<DownloadPdfLink
+							article={article}
+							pdfUrl={pdfUrl}
+							widgetLabel="Reports carousel"
+							stopPropagation
 							className="w-full rounded bg-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium text-[#0D1E3B] transition-opacity hover:opacity-90"
-						>
-							Download PDF
-						</a>
+						/>
 					) : null}
 				</div>
 			) : (
@@ -162,14 +161,12 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 						Read more
 					</Link>
 					{pdfUrl ? (
-						<a
-							href={pdfUrl}
-							target="_blank"
-							rel="noopener noreferrer"
+						<DownloadPdfLink
+							article={article}
+							pdfUrl={pdfUrl}
+							widgetLabel="Reports carousel"
 							className="w-full rounded bg-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium text-[#0D1E3B] transition-opacity hover:opacity-90"
-						>
-							Download PDF
-						</a>
+						/>
 					) : null}
 				</div>
 			)}
