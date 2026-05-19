@@ -304,7 +304,7 @@ export async function updateReportHighlightSponsorLogo(
 
 export async function publishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/publish`), { method: 'POST' })
+		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish`, { method: 'POST' })
 	)
 	return data.article
 }
