@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { validateArticleChartConfig } from '../chartAdapters'
+import { normalizeArticleContentJson } from '../document'
 import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from '../entityLinks'
@@ -794,9 +795,10 @@ export function ArticleRenderer({
 			? null
 			: 'Draft'
 	const ctx: RenderContext = { figureCount: { value: 0 } }
+	const contentJson = useMemo(() => normalizeArticleContentJson(article.contentJson), [article.contentJson])
 
 	const toc: TocEntry[] = []
-	collectToc(article.contentJson, toc)
+	collectToc(contentJson, toc)
 
 	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
 	const tagChips = (article.tags ?? []).filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
@@ -1036,7 +1038,7 @@ export function ArticleRenderer({
 				<div className="article-prose [overflow-wrap:anywhere] break-words">
 					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h1:mt-8 prose-h1:mb-3 prose-h2:mt-6 prose-h2:mb-2 prose-h2:text-2xl prose-h3:mt-5 prose-h3:mb-1.5 prose-h3:text-lg prose-h4:mt-4 prose-h4:mb-1.5 prose-h4:text-base prose-h5:mt-3 prose-h5:mb-1 prose-h5:text-sm prose-h6:mt-3 prose-h6:mb-1 prose-h6:text-sm prose-p:my-3 prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:my-4 prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-figure:my-4 prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:my-4 prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-ol:my-3 prose-ul:my-3 prose-li:my-1 prose-img:my-4 prose-hr:my-6 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_:where(h1,h2,h3,h4,h5,h6):first-child]:mt-0 [&_li>p]:my-0 [&_li>p]:leading-[1.55]">
 						{(() => {
-							const docContent = article.contentJson?.content ?? []
+							const docContent = contentJson.content ?? []
 							const nodes = docContent.map((child, idx) => renderNode(child, `article-root-${idx}`, ctx))
 							if (docContent.length === 0) return nodes
 							const slot = horizontalBannerSlot(article.id ?? '', docContent.length)

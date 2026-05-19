@@ -62,4 +62,69 @@ describe('ArticleRenderer', () => {
 		expect(html).toContain('Fees · All time')
 		expect(html).not.toContain('ProseMirror')
 	})
+
+	it('flattens nested Q&A blocks before rendering published content', () => {
+		const normalized = normalizeLocalArticleDocument({
+			id: 'nested-interview',
+			title: 'Nested interview',
+			status: 'published',
+			contentJson: { type: 'doc', content: [] }
+		})
+
+		expect(normalized.ok).toBe(true)
+		if (!normalized.ok) return
+
+		const nestedContentJson = {
+			type: 'doc',
+			content: [
+				{
+					type: 'qa',
+					content: [
+						{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question one?' }] },
+						{
+							type: 'qaAnswer',
+							content: [
+								{ type: 'paragraph', content: [{ type: 'text', text: 'Answer one.' }] },
+								{
+									type: 'qa',
+									content: [
+										{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question two?' }] },
+										{
+											type: 'qaAnswer',
+											content: [
+												{ type: 'paragraph', content: [{ type: 'text', text: 'Answer two.' }] },
+												{
+													type: 'qa',
+													content: [
+														{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question three?' }] },
+														{
+															type: 'qaAnswer',
+															content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Answer three.' }] }]
+														}
+													]
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+
+		const client = new QueryClient()
+		const html = renderToStaticMarkup(
+			<QueryClientProvider client={client}>
+				<ArticleRenderer article={{ ...normalized.value, contentJson: nestedContentJson }} />
+			</QueryClientProvider>
+		)
+
+		expect(html.match(/data-article-qa="true"/g)).toHaveLength(3)
+		expect(html).toContain('Question one?')
+		expect(html).toContain('Question two?')
+		expect(html).toContain('Question three?')
+		expect(html).not.toMatch(/data-article-qa-answer="true"[^>]*>(?:(?!<\/dd>)[\s\S])*<dl data-article-qa="true"/)
+	})
 })
