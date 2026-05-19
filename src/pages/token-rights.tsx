@@ -103,15 +103,13 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 		mod.fetchTokenRightsEntries()
 	)
 	const metadataModule = await import('~/utils/metadata')
-	const holdersRevenue = await import('~/containers/DimensionAdapters/api')
-		.then((m) =>
-			m.fetchAdapterChainMetrics({
-				adapterType: ADAPTER_TYPES.FEES,
-				chain: 'All',
-				dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
-			})
-		)
-		.catch(() => null)
+	const holdersRevenue = await import('~/containers/DimensionAdapters/api').then((m) =>
+		m.fetchAdapterChainMetrics({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'All',
+			dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+		})
+	)
 	const entries = await tokenRightsEntriesPromise
 
 	const { chainMetadata, protocolMetadata, tokenDirectory, cexs } = metadataModule.default as {
@@ -124,7 +122,7 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 		.then((m) => m.fetchProtocols())
 		.catch(() => ({ protocols: [], parentProtocols: [] }))
 	const holdersRevenueByDefillamaId = buildHoldersRevenueByDefillamaId(
-		holdersRevenue?.protocols ?? [],
+		holdersRevenue.protocols,
 		liteProtocols,
 		parentProtocols
 	)
