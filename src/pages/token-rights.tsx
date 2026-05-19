@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import {
 	createColumnHelper,
 	getCoreRowModel,
@@ -758,18 +759,27 @@ function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; l
 	)
 
 	return (
-		<Tooltip content={content} className="justify-center gap-2">
-			{rights.map((active, index) => (
-				<span
-					key={labels[index]}
-					className={
-						active
-							? 'h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
-							: 'h-3 w-3 rounded-full border-2 border-green-600/40'
-					}
-				/>
-			))}
-		</Tooltip>
+		<Ariakit.HovercardProvider placement="top-start" showTimeout={0}>
+			<Ariakit.HovercardAnchor className="flex shrink-0 items-center justify-center gap-2">
+				{rights.map((active, index) => (
+					<span
+						key={labels[index]}
+						className={
+							active
+								? 'h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+								: 'h-3 w-3 rounded-full border-2 border-green-600/40'
+						}
+					/>
+				))}
+			</Ariakit.HovercardAnchor>
+			<Ariakit.Hovercard
+				unmountOnHide
+				gutter={6}
+				className="z-50 max-h-[calc(100dvh-80px)] w-max max-w-[calc(100vw-32px)] overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+			>
+				{content}
+			</Ariakit.Hovercard>
+		</Ariakit.HovercardProvider>
 	)
 }
 

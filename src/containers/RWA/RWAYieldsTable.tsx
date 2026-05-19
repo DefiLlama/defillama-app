@@ -196,7 +196,7 @@ export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; comp
 	const { data: volatility } = useVolatility()
 	const { onRequestUpgrade, modal } = useYieldsUpgradePrompt()
 	const hasPremiumAccess = isClient && hasActiveSubscription
-	const rows = useMemo(
+	const rows = useMemo<IYieldTableRow[]>(
 		() =>
 			data.map((row) => {
 				const volatilityEntry = row.configID ? volatility?.[row.configID] : undefined
