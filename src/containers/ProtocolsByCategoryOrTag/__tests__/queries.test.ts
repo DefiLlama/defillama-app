@@ -39,6 +39,23 @@ vi.mock('../api', () => ({
 
 import { buildCategoryCharts, getProtocolsByCategoryOrTag } from '../queries'
 
+const categoriesAndTags = {
+	categories: ['Interface'],
+	tags: [],
+	tagCategoryMap: {},
+	configs: {
+		Interface: {
+			category: 'Interface',
+			chains: ['ethereum'],
+			slug: 'interface',
+			dexs: true,
+			fees: true,
+			perps: true,
+			revenue: true
+		}
+	}
+}
+
 const makeAdapterMetrics = (protocols: IAdapterChainMetrics['protocols']): IAdapterChainMetrics =>
 	({
 		breakdown24h: null,
@@ -240,6 +257,7 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 		const result = await getProtocolsByCategoryOrTag({
 			kind: 'category',
 			category: 'Interface',
+			categoriesAndTags,
 			chainMetadata: {}
 		})
 
@@ -256,5 +274,72 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 		expect(parent?.subRows?.map((row) => row.name)).toEqual(['Interface Child A', 'Interface Child B'])
 		expect(parent?.dexVolume?.total24h).toBe(50)
 		expect(parent?.perpVolume?.total24h).toBe(10)
+	})
+
+	it('skips adapter category-chain metric fetches when metadata says the chain is unsupported', async () => {
+		const result = await getProtocolsByCategoryOrTag({
+			kind: 'category',
+			category: 'Interface',
+			chain: 'polygon',
+			categoriesAndTags,
+			chainMetadata: {
+				polygon: {
+					name: 'Polygon',
+					id: 'polygon',
+					fees: true,
+					dexs: true,
+					perps: true
+				}
+			}
+		})
+
+		expect(result).not.toBeNull()
+		expect(fetchAdapterChainMetricsMock).not.toHaveBeenCalled()
+		expect(fetchAdapterChainChartDataMock).not.toHaveBeenCalled()
+	})
+
+	it('uses dimAgg metric keys to skip unsupported metrics on a supported category chain', async () => {
+		const result = await getProtocolsByCategoryOrTag({
+			kind: 'category',
+			category: 'Interface',
+			chain: 'polygon',
+			categoriesAndTags: {
+				...categoriesAndTags,
+				configs: {
+					Interface: {
+						...categoriesAndTags.configs.Interface,
+						chains: ['polygon'],
+						dimAgg: {
+							dexs: {
+								dv: { '24h': 1, '7d': 1, '30d': 1 }
+							}
+						}
+					}
+				}
+			},
+			chainMetadata: {
+				polygon: {
+					name: 'Polygon',
+					id: 'polygon',
+					fees: true,
+					dexs: true,
+					perps: true
+				}
+			}
+		})
+
+		expect(result).not.toBeNull()
+		expect(fetchAdapterChainMetricsMock).toHaveBeenCalledTimes(1)
+		expect(fetchAdapterChainMetricsMock).toHaveBeenCalledWith({
+			chain: 'polygon',
+			adapterType: 'dexs',
+			category: 'interface'
+		})
+		expect(fetchAdapterChainChartDataMock).toHaveBeenCalledTimes(1)
+		expect(fetchAdapterChainChartDataMock).toHaveBeenCalledWith({
+			chain: 'polygon',
+			adapterType: 'dexs',
+			category: 'interface'
+		})
 	})
 })
