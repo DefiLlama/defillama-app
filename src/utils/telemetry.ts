@@ -930,7 +930,7 @@ function responseContentLengthBytes(response: Response): number | undefined {
 	if (!contentLength) return undefined
 
 	const parsed = Number(contentLength)
-	if (!Number.isFinite(parsed)) return undefined
+	if (!Number.isInteger(parsed) || parsed < 0) return undefined
 
 	return parsed
 }

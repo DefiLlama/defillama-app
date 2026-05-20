@@ -411,6 +411,47 @@ describe('telemetry client', () => {
 		expect(outbound).not.toHaveProperty('apiGroup')
 	})
 
+	it('does not record malformed outbound content-length values as response bytes', async () => {
+		const responseHeadersByUrl = new Map([
+			['https://api.llama.fi/negative-length', '-1'],
+			['https://api.llama.fi/decimal-length', '1.5'],
+			['https://api.llama.fi/nan-length', 'not-a-number']
+		])
+		const fetchMock = vi.fn(async (url: string) => {
+			const contentLength = responseHeadersByUrl.get(url)
+			if (contentLength) {
+				return new Response('{}', {
+					status: 200,
+					headers: { 'content-length': contentLength }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withRouteTelemetry(
+			{
+				route: 'malformed-content-length-route',
+				operationType: 'apiRoute',
+				runtime: 'node',
+				flushTimeoutMs: 1000
+			},
+			async () => {
+				for (const url of responseHeadersByUrl.keys()) {
+					await fetchWithPoolingOnServer(url)
+				}
+				return 'ok'
+			}
+		)
+
+		const outbound = sentEvents(fetchMock).filter((event) => event.type === 'outbound_http_request')
+		expect(outbound).toHaveLength(3)
+		for (const event of outbound) {
+			expect(event.attributes).not.toHaveProperty('response_bytes')
+		}
+	})
+
 	it('resolves relative server fetch URLs before pooling and telemetry', async () => {
 		vi.stubEnv('SITE_URL', 'https://defillama.test')
 		const fetchMock = vi.fn(async (url: string) => {
