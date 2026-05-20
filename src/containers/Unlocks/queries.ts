@@ -1,7 +1,10 @@
 import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
+import { DATASETS_SERVER_URL } from '~/constants'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
+import { fetchJson, getSlowJsonTimeoutMs } from '~/utils/async'
+import type { ITokenListEntry } from '~/utils/metadata/types'
 import { fetchProtocolEmission, fetchAllProtocolEmissions } from './api'
 import type {
 	EmissionsDataset,
@@ -14,6 +17,17 @@ import type {
 } from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
 import type { ProtocolEmissionResult } from './types'
+
+type UnlockTokenlistEntry = Pick<ITokenListEntry, 'current_price' | 'symbol'>
+type UnlockTokenlist = Record<string, UnlockTokenlistEntry | undefined>
+type UnlockCurrentPrice = {
+	price?: number | null
+	symbol?: string | null
+}
+type RawTokenlistEntry = Partial<UnlockTokenlistEntry> & { id?: unknown }
+
+const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
+let unlockTokenlistPromise: Promise<UnlockTokenlist> | null = null
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	const source: Array<Record<string, number | null>> = chartData.map((row) => ({ ...row }))
@@ -100,6 +114,109 @@ function normalizeCategoriesBreakdown(input: unknown): Record<string, string[]> 
 	}
 
 	return normalized
+}
+
+function isFinitePositiveNumber(value: unknown): value is number {
+	return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function normalizeTokenlistSymbol(value: unknown): string | null {
+	return typeof value === 'string' && value ? value.toUpperCase() : null
+}
+
+function addRawTokenlistEntry(
+	tokenlist: UnlockTokenlist,
+	key: string,
+	entry: RawTokenlistEntry | null | undefined
+): void {
+	const id = typeof entry?.id === 'string' && entry.id ? entry.id : key.replace(/^coingecko:/, '')
+	if (!id) return
+	tokenlist[id] = {
+		current_price: typeof entry?.current_price === 'number' ? entry.current_price : null,
+		symbol: typeof entry?.symbol === 'string' ? entry.symbol : ''
+	}
+}
+
+function parseUnlockTokenlist(raw: unknown): UnlockTokenlist {
+	const tokenlist: UnlockTokenlist = {}
+
+	if (Array.isArray(raw)) {
+		for (const entry of raw) {
+			if (!entry || typeof entry !== 'object') continue
+			const id = (entry as { id?: unknown }).id
+			if (typeof id !== 'string' || !id) continue
+			addRawTokenlistEntry(tokenlist, id, entry as RawTokenlistEntry)
+		}
+		return tokenlist
+	}
+
+	if (!raw || typeof raw !== 'object') return tokenlist
+	for (const [key, entry] of Object.entries(raw)) {
+		if (!entry || typeof entry !== 'object') continue
+		addRawTokenlistEntry(tokenlist, key, entry as RawTokenlistEntry)
+	}
+	return tokenlist
+}
+
+export async function fetchUnlockTokenlistPrices(): Promise<UnlockTokenlist> {
+	if (unlockTokenlistPromise) return unlockTokenlistPromise
+
+	unlockTokenlistPromise = fetchJson<unknown>(TOKEN_LIST_API_URL, { timeout: getSlowJsonTimeoutMs() })
+		.then(parseUnlockTokenlist)
+		.catch((error) => {
+			unlockTokenlistPromise = null
+			console.error('Failed to fetch unlock tokenlist prices:', error)
+			return {}
+		})
+
+	return unlockTokenlistPromise
+}
+
+function getTokenlistCurrentPrice(geckoId: string | null | undefined, tokenlist?: UnlockTokenlist): UnlockCurrentPrice | null {
+	if (!geckoId || !tokenlist) return null
+	const token = tokenlist[geckoId]
+	if (!isFinitePositiveNumber(token?.current_price)) return null
+	return {
+		price: token.current_price,
+		symbol: normalizeTokenlistSymbol(token.symbol)
+	}
+}
+
+async function fetchCurrentUnlockPrices({
+	protocols,
+	tokenlist
+}: {
+	protocols: Array<{ gecko_id?: string | null }>
+	tokenlist?: UnlockTokenlist
+}): Promise<Record<string, UnlockCurrentPrice | undefined>> {
+	const prices: Record<string, UnlockCurrentPrice | undefined> = {}
+	const geckoIds = new Set<string>()
+
+	for (const protocol of protocols) {
+		const geckoId = protocol?.gecko_id
+		if (geckoId) geckoIds.add(geckoId)
+	}
+
+	if (geckoIds.size === 0) return prices
+
+	const tokenlistPrices = tokenlist ?? (await fetchUnlockTokenlistPrices())
+	const missingCoinIds = new Set<string>()
+
+	for (const geckoId of geckoIds) {
+		const coinKey = `coingecko:${geckoId}`
+		const tokenlistPrice = getTokenlistCurrentPrice(geckoId, tokenlistPrices)
+		if (tokenlistPrice) {
+			prices[coinKey] = tokenlistPrice
+		} else {
+			missingCoinIds.add(coinKey)
+		}
+	}
+
+	if (missingCoinIds.size > 0) {
+		Object.assign(prices, await fetchCoinPricesBatched([...missingCoinIds]))
+	}
+
+	return prices
 }
 
 interface EmissionsDataInput {
@@ -521,19 +638,17 @@ export async function getUnlocksCalendarStaticPropsData(): Promise<{
 
 const getAllProtocolEmissionsWithHistory = async ({
 	startDate,
-	endDate
+	endDate,
+	tokenlist
 }: {
 	startDate?: number
 	endDate?: number
+	tokenlist?: UnlockTokenlist
 } = {}) => {
 	try {
 		const protocols = await fetchAllProtocolEmissions()
 
-		const coinIdsList: string[] = []
-		for (const p of protocols) {
-			if (p.gecko_id) coinIdsList.push(`coingecko:${p.gecko_id}`)
-		}
-		const coinPrices = await fetchCoinPricesBatched(coinIdsList)
+		const coinPrices = await fetchCurrentUnlockPrices({ protocols, tokenlist })
 
 		return protocols
 			.map((protocol: ProtocolEmission) => {
@@ -589,22 +704,20 @@ type EnrichedProtocolEmission = ProtocolEmission & {
 export const getAllProtocolEmissions = async ({
 	startDate,
 	endDate,
-	getHistoricalPrices = true
+	getHistoricalPrices = true,
+	tokenlist
 }: {
 	startDate?: number
 	endDate?: number
 	getHistoricalPrices?: boolean
+	tokenlist?: UnlockTokenlist
 } = {}) => {
 	try {
 		const protocols = await fetchAllProtocolEmissions()
 		const nowSec = Date.now() / 1000
 		const weekAgoSec = nowSec - 7 * 24 * 60 * 60
 
-		const coinIds: string[] = []
-		for (const p of protocols) {
-			if (p.gecko_id) coinIds.push(`coingecko:${p.gecko_id}`)
-		}
-		const coinPrices = await fetchCoinPricesBatched(coinIds)
+		const coinPrices = await fetchCurrentUnlockPrices({ protocols, tokenlist })
 
 		const priceReqs: Record<string, number[]> = {}
 		const lastPastTimestampByCoinKey = new Map<string, number>()
@@ -831,6 +944,7 @@ export const getProtocolEmissons = async (
 	options?: {
 		emissionsProtocolsList?: string[]
 		skipAvailabilityCheck?: boolean
+		tokenlist?: UnlockTokenlist
 	}
 ): Promise<ProtocolEmissionResult> => {
 	try {
@@ -882,16 +996,27 @@ export const getProtocolEmissons = async (
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const coinKey = typeof tokenKey === 'string' && tokenKey ? tokenKey : null
-		const prices = coinKey
+		const geckoId =
+			typeof res?.gecko_id === 'string' && res.gecko_id
+				? res.gecko_id
+				: typeof tokenKey === 'string' && tokenKey.startsWith('coingecko:')
+					? tokenKey.slice('coingecko:'.length)
+					: null
+		const coinKey = typeof tokenKey === 'string' && tokenKey ? tokenKey : geckoId ? `coingecko:${geckoId}` : null
+		const tokenlistPrices = options?.tokenlist ?? (geckoId ? await fetchUnlockTokenlistPrices() : undefined)
+		const tokenlistPrice = getTokenlistCurrentPrice(geckoId, tokenlistPrices)
+		const prices =
+			coinKey && !tokenlistPrice
 			? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
 					console.log(err)
 					return {}
 				})
 			: {}
 
-		const tokenPriceData = coinKey ? prices[coinKey] : undefined
-		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
+		const tokenPriceData = tokenlistPrice ?? (coinKey ? prices[coinKey] : undefined)
+		const tokenPrice: { price?: number; symbol?: string } = {}
+		if (isFinitePositiveNumber(tokenPriceData?.price)) tokenPrice.price = tokenPriceData.price
+		if (typeof tokenPriceData?.symbol === 'string' && tokenPriceData.symbol) tokenPrice.symbol = tokenPriceData.symbol
 
 		let upcomingEvent: EmissionEvent[] = []
 		if (roundedEvents.length > 0) {
@@ -926,7 +1051,7 @@ export const getProtocolEmissons = async (
 			notes: metadata?.notes ?? [],
 			events: roundedEvents,
 			token: metadata?.token ?? null,
-			geckoId: res?.gecko_id ?? null,
+			geckoId,
 			upcomingEvent,
 			tokenAllocation: {
 				documented: normalizeTokenAllocation(documentedData.tokenAllocation),
