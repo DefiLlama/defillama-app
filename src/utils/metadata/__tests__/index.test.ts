@@ -9,30 +9,30 @@ vi.mock('../fetch', () => ({
 	fetchCoreMetadata: fetchCoreMetadataMock
 }))
 
-vi.mock('../../../.cache/bridgeChainSlugs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/bridgeChainSlugToName.json', () => ({ default: {} }))
-vi.mock('../../../.cache/bridgeProtocolSlugs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/categoriesAndTags.json', () => ({
+vi.mock('../../../.cache/app-metadata/bridgeChainSlugs.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/bridgeChainSlugToName.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/bridgeProtocolSlugs.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/categoriesAndTags.json', () => ({
 	default: { categories: [], tags: [], tagCategoryMap: {}, configs: {} }
 }))
-vi.mock('../../../.cache/cexs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/cgExchangeIdentifiers.json', () => ({ default: [] }))
-vi.mock('../../../.cache/chainDisplayNames.json', () => ({ default: {} }))
-vi.mock('../../../.cache/chains.json', () => ({ default: {} }))
-vi.mock('../../../.cache/emissionsHistoricalPrices.json', () => ({ default: {} }))
-vi.mock('../../../.cache/emissionsProtocolsList.json', () => ({ default: [] }))
-vi.mock('../../../.cache/liquidationsTokenSymbols.json', () => ({ default: [] }))
-vi.mock('../../../.cache/llamaswap-protocols.json', () => ({ default: {} }))
-vi.mock('../../../.cache/protocolDisplayNames.json', () => ({ default: {} }))
-vi.mock('../../../.cache/protocols.json', () => ({ default: {} }))
-vi.mock('../../../.cache/rwa.json', () => ({
+vi.mock('../../../.cache/app-metadata/cexs.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/cgExchangeIdentifiers.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/chainDisplayNames.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/chains.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/emissionsHistoricalPrices.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/emissionsProtocolsList.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/liquidationsTokenSymbols.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/llamaswap-protocols.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/protocolDisplayNames.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/protocols.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/rwa.json', () => ({
 	default: { canonicalMarketIds: [], platforms: [], chains: [], categories: [], assetGroups: [], idMap: {} }
 }))
-vi.mock('../../../.cache/rwaPerps.json', () => ({
+vi.mock('../../../.cache/app-metadata/rwaPerps.json', () => ({
 	default: { contracts: [], venues: [], categories: [], assetGroups: [], total: 0 }
 }))
-vi.mock('../../../.cache/tokenlist.json', () => ({ default: {} }))
-vi.mock('../../../.cache/tokens.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/tokenlist.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/tokens.json', () => ({ default: {} }))
 
 const defaultTokenListEntry = {
 	symbol: 'AAVE',

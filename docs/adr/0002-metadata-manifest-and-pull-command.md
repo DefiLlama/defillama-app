@@ -6,15 +6,17 @@ Accepted
 
 ## Context
 
-Metadata artifacts are small generated `.cache/*.json` files that are statically imported by `src/utils/metadata`. The pull command also owned freshness, local-dev stubs, CI failure stubs, Tasty metrics, page ordering, and trending route generation in one script.
+Metadata artifacts are small generated `.cache/app-metadata/*.json` files that are statically imported by `src/utils/metadata`. The pull command also owned freshness, local-dev stubs, CI failure stubs, Tasty metrics, page ordering, and trending route generation in one script.
 
 That made the command a shallow Module: callers and maintainers had to understand several unrelated policies before changing one of them.
 
 ## Decision
 
-Use `.cache/metadata-manifest.json` as the freshness and artifact-status contract for metadata artifacts. The manifest records the artifact version, pull timestamp, status (`ready` or `stub`), and artifact filenames.
+Use `.cache/app-metadata/manifest.json` as the freshness and artifact-status contract for metadata artifacts. The manifest records the artifact version, pull timestamp, status (`ready` or `stub`), and artifact filenames.
 
-Keep the generated `.cache/*.json` filenames unchanged and separate from `.cache/datasets/*`. Metadata artifacts remain statically imported. Dataset cache remains runtime-loaded through its own manifest and runtime domain Modules.
+Keep the generated `.cache/app-metadata/*.json` filenames unchanged and separate from `.cache/datasets/*`. Metadata artifacts remain statically imported. Dataset cache remains runtime-loaded through its own manifest and runtime domain Modules.
+
+Update 2026-05-20: metadata artifacts moved from the `.cache` root into `.cache/app-metadata/` so the generated artifact root contains separate app metadata and dataset cache trees.
 
 Convert the pull command to TypeScript and split its implementation into Modules for artifact writing, freshness, stub policy, Tasty metrics, page ordering, and trending route generation.
 
@@ -22,4 +24,4 @@ Convert the pull command to TypeScript and split its implementation into Modules
 
 Local contributors without an API key can still start the dev server by generating empty stub artifacts. Production metadata pull failures remain loud.
 
-The old `.cache/lastPull.json` marker is not supported. Regenerate `.cache` after this change.
+The old `.cache/lastPull.json` and `.cache/metadata-manifest.json` markers are not supported. Regenerate `.cache` after this change.

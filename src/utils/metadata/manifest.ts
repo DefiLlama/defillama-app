@@ -1,7 +1,7 @@
 import { METADATA_ARTIFACT_FILES } from './artifactContract'
 
 export const METADATA_ARTIFACT_VERSION = 1
-export const METADATA_MANIFEST_FILE = 'metadata-manifest.json'
+export const METADATA_MANIFEST_FILE = 'manifest.json'
 export const METADATA_PULL_TTL_MS = 5 * 60 * 1000
 
 export type MetadataArtifactStatus = 'ready' | 'stub'

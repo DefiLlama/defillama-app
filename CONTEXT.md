@@ -10,9 +10,9 @@ Dataset cache artifacts are runtime-loaded from disk through the dataset JSON ca
 
 ## Metadata Artifacts
 
-Metadata artifacts are the generated `.cache/*.json` files imported by `src/utils/metadata`. Their filenames, CI stubs, initial runtime cache shape, and refresh application live behind the metadata artifact module so the artifact contract stays in one place.
+Metadata artifacts are the generated `.cache/app-metadata/*.json` files imported by `src/utils/metadata`. Their filenames, CI stubs, initial runtime cache shape, and refresh application live behind the metadata artifact module so the artifact contract stays in one place.
 
-The metadata manifest is `.cache/metadata-manifest.json`. It records whether the static metadata artifacts are a `ready` pull or a local/CI `stub` set, and replaces the older `.cache/lastPull.json` freshness marker.
+The metadata manifest is `.cache/app-metadata/manifest.json`. It records whether the static metadata artifacts are a `ready` pull or a local/CI `stub` set, and replaces the older `.cache/lastPull.json` freshness marker.
 
 The metadata pull command is a thin command Adapter around metadata artifact publishing. Page ordering, Tasty metrics, upstream source fetching, and local/CI stub policy live in separate Modules so each reason to change stays local.
 

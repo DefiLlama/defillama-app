@@ -14,7 +14,7 @@ import {
 } from './manifest'
 
 export function getMetadataCacheDir(repoRoot = process.cwd()): string {
-	return path.join(repoRoot, '.cache')
+	return path.join(repoRoot, '.cache', 'app-metadata')
 }
 
 export function getMetadataManifestPath(cacheDir: string): string {
