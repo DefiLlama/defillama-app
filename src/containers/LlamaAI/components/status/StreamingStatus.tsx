@@ -1,5 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Icon } from '~/components/Icon'
+import {
+	LLAMA_AI_ANIMATION_SRC,
+	LLAMA_AI_HACKER_ANIMATION_SRC
+} from '~/containers/LlamaAI/components/status/LlamaAIAnimationPreloads'
 import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
@@ -404,9 +408,11 @@ export function ToolProgressIndicator({
 			aria-label="LlamaAI progress"
 		>
 			<img
-				src={hackerMode ? '/assets/llamaai/hackerllama.webp' : '/assets/llamaai/llamaai_animation.webp'}
+				src={hackerMode ? LLAMA_AI_HACKER_ANIMATION_SRC : LLAMA_AI_ANIMATION_SRC}
 				alt=""
 				className={`h-16 w-16 shrink-0 ${hackerMode ? 'rounded-lg drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]' : ''}`}
+				loading="eager"
+				fetchPriority="high"
 			/>
 			<div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
 				<div className="flex flex-col gap-0.5">
@@ -525,7 +531,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 				onClick={() => setIsExpanded(!isExpanded)}
 				className="flex items-center gap-2 text-left sm:gap-3"
 			>
-				<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
+				<img src={LLAMA_AI_ANIMATION_SRC} alt="" className="h-6 w-6 shrink-0" loading="eager" fetchPriority="high" />
 
 				<p className="m-0 flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
 					{isResearchMode ? 'Researching in parallel...' : 'Working in herd...'}

@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
+import { LlamaAIAnimationPreloads } from '~/containers/LlamaAI/components/status/LlamaAIAnimationPreloads'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setReferrer } from '~/containers/Subscription/referrer'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
@@ -122,6 +123,7 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 	if (isLoading || !router.isReady) {
 		return (
 			<Layout title={title} description={description} canonicalUrl={null} noIndex={true}>
+				<LlamaAIAnimationPreloads />
 				<Head>
 					<meta property="og:image" content={ogImageUrl} />
 					<meta name="twitter:card" content="summary_large_image" />
@@ -157,6 +159,7 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 
 	return (
 		<Layout title={title} description={description} canonicalUrl={null} noIndex={true} hideDesktopSearchLlamaAiButton>
+			<LlamaAIAnimationPreloads />
 			<Head>
 				<meta property="og:image" content={ogImageUrl} />
 				<meta name="twitter:card" content="summary_large_image" />

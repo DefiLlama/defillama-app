@@ -1,5 +1,5 @@
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
-import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
+import type { AdaptedChartData, AdaptedLlamaAICartesianChart } from '~/containers/LlamaAI/utils/chartAdapter'
 
 export type ChartViewState = {
 	stacked: boolean
@@ -8,6 +8,7 @@ export type ChartViewState = {
 	grouping: 'day' | 'week' | 'month' | 'quarter' | 'year'
 	showHallmarks: boolean
 	showLabels: boolean
+	logScale: boolean
 }
 
 export interface ChartCapabilities {
@@ -17,6 +18,9 @@ export interface ChartCapabilities {
 	allowGrouping: boolean
 	allowHallmarks: boolean
 	allowLabels: boolean
+	allowLogScale: boolean
+	// y-axis indices whose series are all strictly positive — log is applied only to these.
+	logEligibleYAxes: number[]
 	groupingOptions: readonly ChartViewState['grouping'][]
 }
 
@@ -29,10 +33,48 @@ export interface ChartControlsModel {
 	showCumulative: boolean
 	showHallmarks: boolean
 	showLabels: boolean
+	showLogScale: boolean
 	groupingOptions: readonly ChartViewState['grouping'][]
 }
 
 const GROUPING_OPTIONS: readonly ChartViewState['grouping'][] = ['day', 'week', 'month', 'quarter', 'year']
+
+// A y-axis can render on a log scale only when every plotted value on it is strictly positive.
+// Returns the axis indices that qualify; an empty result means the chart can't offer log scale.
+function getLogEligibleYAxes(adaptedChart: AdaptedLlamaAICartesianChart): number[] {
+	const seriesNamesByAxis = new Map<number, string[]>()
+	for (const series of adaptedChart.seriesMeta) {
+		const axisIndex = series.yAxisIndex ?? 0
+		const names = seriesNamesByAxis.get(axisIndex) ?? []
+		names.push(series.name)
+		seriesNamesByAxis.set(axisIndex, names)
+	}
+
+	const eligible: number[] = []
+	for (const [axisIndex, names] of seriesNamesByAxis) {
+		let hasNumericValue = false
+		let allPositive = true
+		for (const row of adaptedChart.props.dataset.source) {
+			for (const name of names) {
+				const value = row[name]
+				if (typeof value !== 'number') continue
+				hasNumericValue = true
+				if (value <= 0) allPositive = false
+			}
+		}
+		if (hasNumericValue && allPositive) eligible.push(axisIndex)
+	}
+	return eligible
+}
+
+// Scatter log scale needs both axes strictly positive (x and y are the first two tuple slots).
+function isScatterLogEligible(adaptedChart: Extract<AdaptedChartData, { chartType: 'scatter' }>): boolean {
+	const points = (adaptedChart.props.chartData ?? []) as unknown as Array<Array<number | string | null | undefined>>
+	if (points.length === 0) return false
+	return points.every(
+		(point) => typeof point?.[0] === 'number' && point[0] > 0 && typeof point?.[1] === 'number' && point[1] > 0
+	)
+}
 
 export function deriveCapabilities(config: ChartConfiguration, adaptedChart: AdaptedChartData): ChartCapabilities {
 	switch (adaptedChart.chartType) {
@@ -49,6 +91,7 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 				Array.isArray(adaptedChart.props.categoryLogos) &&
 				adaptedChart.props.categoryLogos.some(Boolean)
 			)
+			const logEligibleYAxes = getLogEligibleYAxes(adaptedChart)
 			return {
 				allowStack: !!config.displayOptions?.canStack && stackEligibleSeries.length > 1,
 				allowPercentage: !!config.displayOptions?.canShowPercentage && percentageEligibleSeries.length > 1,
@@ -56,6 +99,8 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 				allowGrouping,
 				allowHallmarks: adaptedChart.hasHallmarks,
 				allowLabels: hasCategoryLogos,
+				allowLogScale: logEligibleYAxes.length > 0,
+				logEligibleYAxes,
 				groupingOptions: allowGrouping ? GROUPING_OPTIONS : []
 			}
 		}
@@ -67,6 +112,8 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 				allowGrouping: false,
 				allowHallmarks: false,
 				allowLabels: false,
+				allowLogScale: false,
+				logEligibleYAxes: [],
 				groupingOptions: []
 			}
 		case 'scatter':
@@ -77,6 +124,8 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 				allowGrouping: false,
 				allowHallmarks: false,
 				allowLabels: true,
+				allowLogScale: isScatterLogEligible(adaptedChart),
+				logEligibleYAxes: [],
 				groupingOptions: []
 			}
 		case 'hbar': {
@@ -92,6 +141,8 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 				allowGrouping: false,
 				allowHallmarks: false,
 				allowLabels: hbarHasLogos,
+				allowLogScale: false,
+				logEligibleYAxes: [],
 				groupingOptions: []
 			}
 		}
@@ -114,7 +165,8 @@ export function normalizeViewState(
 				? chartState.grouping
 				: 'day',
 		showHallmarks: capabilities.allowHallmarks ? chartState.showHallmarks : false,
-		showLabels: capabilities.allowLabels ? chartState.showLabels : false
+		showLabels: capabilities.allowLabels ? chartState.showLabels : false,
+		logScale: capabilities.allowLogScale ? chartState.logScale : false
 	}
 
 	if (normalized.cumulative) {
@@ -140,6 +192,7 @@ export function buildControlsModel(
 		showCumulative: capabilities.allowCumulative,
 		showHallmarks: capabilities.allowHallmarks,
 		showLabels: capabilities.allowLabels,
+		showLogScale: capabilities.allowLogScale,
 		groupingOptions: capabilities.groupingOptions
 	}
 }

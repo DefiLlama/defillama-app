@@ -306,6 +306,7 @@ export interface IScatterChartProps {
 	tooltipFormatter?: (params: EChartsFormatterParams) => string
 	showLabels?: boolean
 	entityType?: 'protocol' | 'chain'
+	logScale?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
