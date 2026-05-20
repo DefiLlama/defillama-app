@@ -4,6 +4,34 @@ import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from './types'
 
 const SITE_ORIGIN = 'https://defillama.com'
 
+const PUBLISHER = {
+	'@context': 'https://schema.org',
+	'@type': 'Organization',
+	name: 'DefiLlama Research',
+	url: `${SITE_ORIGIN}/research`,
+	contactPoint: [
+		{
+			'@type': 'ContactPoint',
+			email: 'research@defillama.com',
+			contactType: 'General enquiries'
+		}
+	],
+	foundingDate: '2020-10-01',
+	sameAs: [
+		'https://x.com/defillama_res',
+		'https://t.me/defillama_research',
+		'https://x.com/DefiLlama',
+		'https://discord.defillama.com/'
+	],
+	logo: {
+		'@type': 'ImageObject',
+		url: 'https://defillama.com/assets/defillama-dark.webp',
+		width: 389,
+		height: 133
+	},
+	'@id': `${SITE_ORIGIN}/research`
+}
+
 function articleCanonicalPath(article: LocalArticleDocument): string {
 	if (article.section) {
 		const sectionSlug = ARTICLE_SECTION_SLUGS[article.section]
@@ -16,7 +44,11 @@ export function articleCanonicalUrl(article: LocalArticleDocument): string {
 	return `${SITE_ORIGIN}${articleCanonicalPath(article)}`
 }
 
-function buildJsonLd(article: LocalArticleDocument): Record<string, unknown> {
+export function articleSectionCanonicalUrl(article: LocalArticleDocument): string {
+	return `${SITE_ORIGIN}${`/research/${ARTICLE_SECTION_SLUGS[article.section] || ''}`}`
+}
+
+function buildArticleJsonLd(article: LocalArticleDocument): Record<string, unknown> {
 	const url = articleCanonicalUrl(article)
 	const brandByline = article.brandByline === true
 	const author = brandByline
@@ -49,17 +81,16 @@ function buildJsonLd(article: LocalArticleDocument): Record<string, unknown> {
 		'@context': 'https://schema.org',
 		'@type': 'Article',
 		headline: article.title,
-		mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+		name: article.title,
+		mainEntityOfPage: { '@type': 'WebPage', '@id': url, name: article.title },
 		url,
 		author,
-		publisher: {
-			'@type': 'Organization',
-			name: 'DefiLlama Research',
-			url: `${SITE_ORIGIN}/research`
-		},
+		publisher: PUBLISHER,
 		articleSection: article.section ? ARTICLE_SECTION_LABELS[article.section] : undefined,
+		genre: 'cryptocurrency',
 		keywords: (article.tags ?? []).join(', ') || undefined,
 		datePublished: article.firstPublishedAt ?? article.publishedAt ?? undefined,
+		dateCreated: article.createdAt,
 		dateModified: article.lastPublishedAt ?? article.publishedAt ?? article.updatedAt
 	}
 	if (article.coverImage?.url) {
@@ -77,6 +108,33 @@ function buildJsonLd(article: LocalArticleDocument): Record<string, unknown> {
 		ld.description = article.seoDescription
 	}
 	return ld
+}
+
+function buildBreadcrumbJsonLd(article: LocalArticleDocument): Record<string, unknown> {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{
+				'@type': 'ListItem',
+				position: 1,
+				name: 'DefiLlama Research',
+				item: `${SITE_ORIGIN}/research`
+			},
+			{
+				'@type': 'ListItem',
+				position: 2,
+				name: article.section,
+				item: articleSectionCanonicalUrl(article)
+			},
+			{
+				'@type': 'ListItem',
+				position: 3,
+				name: article.title,
+				item: articleCanonicalUrl(article)
+			}
+		]
+	}
 }
 
 export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
@@ -117,7 +175,16 @@ export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
 				<meta key="og:image:alt" property="og:image:alt" content={article.coverImage.caption} />
 			) : null}
 			{isPublished ? (
-				<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(article)) }} />
+				<>
+					<script
+						type="application/ld+json"
+						dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleJsonLd(article)) }}
+					/>
+					<script
+						type="application/ld+json"
+						dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd(article)) }}
+					/>
+				</>
 			) : null}
 		</Head>
 	)
