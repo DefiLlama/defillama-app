@@ -175,9 +175,7 @@ export async function listArticlesByTag(
 ): Promise<ArticleByTagResponse> {
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'limit', limit)
-	return parseResponse(
-		await fetchFn(articleUrlWithCacheNonce(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`))
-	)
+	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
 }
 
 export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<ArticlePathsResponse> {
