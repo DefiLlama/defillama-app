@@ -30,8 +30,8 @@ async function fetchEmissionsHistoricalPrices(
 	emissions: UnlockHistoricalPriceProtocol[]
 ): Promise<IEmissionsHistoricalPrices> {
 	try {
-		const { priceReqs } = buildUnlocksHistoricalPriceRequests(emissions)
-		if (Object.keys(priceReqs).length === 0) return {}
+		const { priceReqs, hasPriceRequests } = buildUnlocksHistoricalPriceRequests(emissions)
+		if (!hasPriceRequests) return {}
 
 		const response = await fetchMetadataJson<{ coins?: IEmissionsHistoricalPrices }>(
 			`${COINS_SERVER_URL}/pro/prices/historical`,

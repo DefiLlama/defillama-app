@@ -725,9 +725,10 @@ export const getAllProtocolEmissions = async ({
 		const nowSec = Date.now() / 1000
 
 		const coinPrices = await fetchCurrentUnlockPrices({ protocols, tokenlist })
-		const { priceReqs, lastPastTimestampByCoinKey } = buildUnlocksHistoricalPriceRequests(protocols, nowSec)
-
-		const hasPriceRequests = Object.keys(priceReqs).length > 0
+		const { priceReqs, hasPriceRequests, lastPastTimestampByCoinKey } = buildUnlocksHistoricalPriceRequests(
+			protocols,
+			nowSec
+		)
 		let historicalPrices: UnlockHistoricalPricesByCoin = {}
 		if (getHistoricalPrices) {
 			if (emissionsHistoricalPrices !== undefined) {

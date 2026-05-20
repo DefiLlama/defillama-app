@@ -603,14 +603,6 @@ function hslToHex(h: number, s: number, l: number): string {
 	return `#${f(0)}${f(8)}${f(4)}`
 }
 
-const chunks = <T,>(array: T[], size: number): T[][] => {
-	const result: T[][] = []
-	for (let i = 0; i < array.length; i += size) {
-		result.push(array.slice(i, i + size))
-	}
-	return result
-}
-
 interface BatchHistoricalPrice {
 	price: number
 	timestamp: number
@@ -630,13 +622,25 @@ export async function batchFetchHistoricalPrices(
 	priceReqs: Record<string, number | number[]>,
 	batchSize: number = 15
 ): Promise<{ results: Record<string, BatchHistoricalCoin> }> {
-	const entries = Object.entries(priceReqs)
-	const batches = chunks(entries, batchSize)
-
 	const results: Record<string, BatchHistoricalCoin> = {}
+	let batchReqs: Record<string, number | number[]> = {}
+	let batchCount = 0
 
-	for (const batch of batches) {
-		const batchReqs = Object.fromEntries(batch)
+	for (const coin in priceReqs) {
+		batchReqs[coin] = priceReqs[coin]
+		batchCount++
+		if (batchCount < batchSize) continue
+
+		const response = await fetchJson<BatchHistoricalResponse>(
+			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
+		)
+
+		Object.assign(results, response.coins)
+		batchReqs = {}
+		batchCount = 0
+	}
+
+	if (batchCount > 0) {
 		const response = await fetchJson<BatchHistoricalResponse>(
 			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
 		)
