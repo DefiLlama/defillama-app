@@ -63,10 +63,9 @@ function articleUrl(path: string) {
 
 /** Temporary CDN cache bust; remove when Cloudflare purge covers these routes. */
 function articleUrlWithCacheNonce(path: string) {
-	const base = FEATURES_SERVER.replace(/\/$/, '')
-	const url = new URL(path.startsWith('/') ? path : `/${path}`, `${base}/`)
-	url.searchParams.set('_n', String(Date.now()))
-	return url.toString()
+	const url = articleUrl(path)
+	const nonce = String(Date.now())
+	return url.includes('?') ? `${url}&_n=${nonce}` : `${url}?_n=${nonce}`
 }
 
 function nullableText(value: string | null | undefined): string | null {
