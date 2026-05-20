@@ -546,6 +546,11 @@ function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, ti
 	])
 }
 
+function replaceCurrentHistoryPath(path: string) {
+	if (typeof window === 'undefined') return
+	window.history.replaceState(window.history.state, '', path)
+}
+
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
@@ -2029,7 +2034,6 @@ export function AgenticChat({
 						const seeded = sharedSession.messages.map((msg, i) => mapSharedSessionMessage(msg, i))
 						setMessages(seeded)
 						isFirstMessageRef.current = false
-						void navigate.toSession(currentSessionId, { replace: true })
 					} else if (isFirstMessageRef.current && !currentSessionId) {
 						currentSessionId = createFakeSession(submitProjectId)
 						setSessionId(currentSessionId)
@@ -2119,7 +2123,7 @@ export function AgenticChat({
 								if (previousSessionId && previousSessionId !== id) {
 									registerSessionAlias(previousSessionId, id)
 									if (sharedSession) {
-										void navigate.toSession(id, { replace: true })
+										replaceCurrentHistoryPath(`/ai/chat/${id}`)
 									}
 								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
@@ -2288,7 +2292,6 @@ export function AgenticChat({
 			effectiveShareToken,
 			routeProjectId,
 			currentSessionProjectId,
-			navigate,
 			registerSessionAlias,
 			hasUser,
 			onForkSubmit
