@@ -50,10 +50,22 @@ describe('homepage unlocks summary', () => {
 		const { parseHomepageUnlocksSummary } = await import('../homepageUnlocks.server')
 
 		expect(parseHomepageUnlocksSummary({ schemaVersion: 2, total14d: 100, chart: [] })).toBeNull()
-		expect(parseHomepageUnlocksSummary({ schemaVersion: 1, total14d: Number.NaN, chart: [] })).toBeNull()
 		expect(
 			parseHomepageUnlocksSummary({
 				schemaVersion: 1,
+				generatedAtSec: 1,
+				windowDays: 14,
+				total14d: Number.NaN,
+				chart: []
+			})
+		).toBeNull()
+		expect(parseHomepageUnlocksSummary({ schemaVersion: 1, windowDays: 14, total14d: 100, chart: [] })).toBeNull()
+		expect(parseHomepageUnlocksSummary({ schemaVersion: 1, generatedAtSec: 1, total14d: 100, chart: [] })).toBeNull()
+		expect(
+			parseHomepageUnlocksSummary({
+				schemaVersion: 1,
+				generatedAtSec: 1,
+				windowDays: 14,
 				total14d: 100,
 				chart: [{ date: 1, total: 100, breakdown: [{ token: 'ETH', value: '100', pct: '100.00' }] }]
 			})

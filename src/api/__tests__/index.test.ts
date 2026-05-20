@@ -80,6 +80,36 @@ describe('fetchCoinPrices', () => {
 		expect(Object.keys(prices)).toEqual(coins)
 	})
 
+	it('keeps legacy GET fallback partial results when one chunk fails', async () => {
+		fetchJsonMock
+			.mockRejectedValueOnce(new Error('https://coins.llama.fi/pro/prices/current: [404] Not Found'))
+			.mockImplementation(async (url: string) => {
+				const coinList = url.match(/\/current\/([^?]+)/)?.[1]?.split(',') ?? []
+				if (coinList.includes('coingecko:fallback-0')) {
+					throw new Error('legacy chunk failed')
+				}
+				return {
+					coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
+				}
+			})
+		const { fetchCoinPrices } = await import('../index')
+		const coins = Array.from({ length: 11 }, (_, i) => `coingecko:fallback-${i}`)
+
+		const prices = await fetchCoinPrices(coins)
+
+		expect(fetchJsonMock).toHaveBeenCalledTimes(3)
+		expect(Object.keys(prices)).toEqual(['coingecko:fallback-10'])
+		expect(recordRuntimeErrorMock).toHaveBeenCalledWith(
+			expect.any(Error),
+			'outboundFetch',
+			expect.objectContaining({
+				target: 'https://coins.llama.fi/prices/current',
+				coin_count: 10,
+				first_coin: 'coingecko:fallback-0'
+			})
+		)
+	})
+
 	it('does not fall back to legacy GET for server failures', async () => {
 		fetchJsonMock.mockRejectedValue(new Error('https://coins.llama.fi/pro/prices/current: [500] Internal Error'))
 		const { fetchCoinPrices } = await import('../index')

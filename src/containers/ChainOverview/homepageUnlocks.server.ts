@@ -41,6 +41,8 @@ export function parseHomepageUnlocksSummary(raw: unknown): IChainOverviewData['u
 	if (typeof raw !== 'object' || raw === null) return null
 	const value = raw as Partial<HomepageUnlocksSummary>
 	if (value.schemaVersion !== 1) return null
+	if (!isFiniteNumber(value.generatedAtSec)) return null
+	if (!isFiniteNumber(value.windowDays)) return null
 	if (!Array.isArray(value.chart) || !value.chart.every(isChartEntry)) return null
 	if (!isFiniteNumber(value.total14d)) return null
 

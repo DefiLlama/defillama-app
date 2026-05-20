@@ -70,12 +70,22 @@ async function fetchCoinPricesGetBatch(
 	}
 	const results = await Promise.all(
 		batches.map(async (batch) => {
-			const searchParams = new URLSearchParams()
-			if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
-			const queryString = searchParams.toString()
-			const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
-			const response = await fetchJson<CoinsPricesResponse>(url)
-			return response.coins ?? {}
+			try {
+				const searchParams = new URLSearchParams()
+				if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
+				const queryString = searchParams.toString()
+				const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
+				const response = await fetchJson<CoinsPricesResponse>(url)
+				return response.coins ?? {}
+			} catch (err) {
+				recordRuntimeError(err, 'outboundFetch', {
+					target: `${COINS_PRICES_API_URL}/current`,
+					coin_count: batch.length,
+					first_coin: batch[0],
+					search_width: options?.searchWidth ?? 'default'
+				})
+				return {}
+			}
 		})
 	)
 	return Object.assign({}, ...results)
