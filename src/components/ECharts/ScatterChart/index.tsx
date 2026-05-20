@@ -330,6 +330,7 @@ export default function ScatterChart({
 		title,
 		showLabels,
 		entityType,
+		logScale,
 		iconRevision
 	])
 
