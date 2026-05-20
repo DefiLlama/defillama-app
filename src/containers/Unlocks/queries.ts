@@ -4,7 +4,8 @@ import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/b
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
 import { fetchJson, getSlowJsonTimeoutMs } from '~/utils/async'
-import type { ITokenListEntry } from '~/utils/metadata/types'
+import type { IEmissionsHistoricalPrices, ITokenListEntry } from '~/utils/metadata/types'
+import { buildUnlocksHistoricalPriceRequests } from '~/utils/unlocks/historicalPriceRequests'
 import { fetchProtocolEmission, fetchAllProtocolEmissions } from './api'
 import type {
 	EmissionsDataset,
@@ -172,7 +173,10 @@ export async function fetchUnlockTokenlistPrices(): Promise<UnlockTokenlist> {
 	return unlockTokenlistPromise
 }
 
-function getTokenlistCurrentPrice(geckoId: string | null | undefined, tokenlist?: UnlockTokenlist): UnlockCurrentPrice | null {
+function getTokenlistCurrentPrice(
+	geckoId: string | null | undefined,
+	tokenlist?: UnlockTokenlist
+): UnlockCurrentPrice | null {
 	if (!geckoId || !tokenlist) return null
 	const token = tokenlist[geckoId]
 	if (!isFinitePositiveNumber(token?.current_price)) return null
@@ -212,7 +216,7 @@ async function fetchCurrentUnlockPrices({
 		}
 	}
 
-	if (missingCoinIds.size > 0) {
+	if (missingCoinIds.size > 0 && !tokenlist) {
 		Object.assign(prices, await fetchCoinPricesBatched([...missingCoinIds]))
 	}
 
@@ -701,76 +705,37 @@ type EnrichedProtocolEmission = ProtocolEmission & {
 	tSymbol: string | null
 }
 
+type UnlockHistoricalPricesByCoin = Record<string, { prices?: Array<{ timestamp: number; price: number }> }>
+
 export const getAllProtocolEmissions = async ({
 	startDate,
 	endDate,
 	getHistoricalPrices = true,
-	tokenlist
+	tokenlist,
+	emissionsHistoricalPrices
 }: {
 	startDate?: number
 	endDate?: number
 	getHistoricalPrices?: boolean
 	tokenlist?: UnlockTokenlist
+	emissionsHistoricalPrices?: IEmissionsHistoricalPrices
 } = {}) => {
 	try {
 		const protocols = await fetchAllProtocolEmissions()
 		const nowSec = Date.now() / 1000
-		const weekAgoSec = nowSec - 7 * 24 * 60 * 60
 
 		const coinPrices = await fetchCurrentUnlockPrices({ protocols, tokenlist })
+		const { priceReqs, lastPastTimestampByCoinKey } = buildUnlocksHistoricalPriceRequests(protocols, nowSec)
 
-		const priceReqs: Record<string, number[]> = {}
-		const lastPastTimestampByCoinKey = new Map<string, number>()
-
+		const hasPriceRequests = Object.keys(priceReqs).length > 0
+		let historicalPrices: UnlockHistoricalPricesByCoin = {}
 		if (getHistoricalPrices) {
-			for (const protocol of protocols) {
-				const geckoId = protocol?.gecko_id
-				if (!geckoId) continue
-
-				const coinKey = `coingecko:${geckoId}`
-				const events = Array.isArray(protocol?.events) ? protocol.events : []
-
-				let earliestEvent: number | undefined
-				let lastPastEvent: number | undefined
-
-				for (const e of events) {
-					const ts = e?.timestamp
-					if (typeof ts !== 'number' || !Number.isFinite(ts)) continue
-					if (earliestEvent == null || ts < earliestEvent) earliestEvent = ts
-
-					const cat = e?.category
-					if (cat === 'noncirculating' || cat === 'farming') continue
-
-					// Keep consistent with UI timestamps (rounded) to align with `lastEvent` later.
-					const roundedTs = roundToNearestHalfHour(ts)
-					if (roundedTs < weekAgoSec && (lastPastEvent == null || roundedTs > lastPastEvent)) {
-						lastPastEvent = roundedTs
-					}
-				}
-
-				if (lastPastEvent == null) continue
-
-				lastPastTimestampByCoinKey.set(coinKey, lastPastEvent)
-				if (earliestEvent != null && lastPastEvent === roundToNearestHalfHour(earliestEvent)) continue
-
-				const anchor = Math.floor(lastPastEvent / 86400) * 86400
-				const timestamps: number[] = []
-				for (let d = 7; d >= 1; d--) timestamps.push(anchor - d * 86400)
-				timestamps.push(anchor)
-				for (let d = 1; d <= 7; d++) timestamps.push(anchor + d * 86400)
-				priceReqs[coinKey] = timestamps
+			if (emissionsHistoricalPrices !== undefined) {
+				historicalPrices = emissionsHistoricalPrices
+			} else if (hasPriceRequests) {
+				historicalPrices = (await batchFetchHistoricalPrices(priceReqs)).results
 			}
 		}
-
-		let hasPriceRequests = false
-		for (const coinKey in priceReqs) {
-			if (Object.prototype.hasOwnProperty.call(priceReqs, coinKey)) {
-				hasPriceRequests = true
-				break
-			}
-		}
-		const historicalPrices =
-			getHistoricalPrices && hasPriceRequests ? (await batchFetchHistoricalPrices(priceReqs)).results : {}
 
 		const rows: EnrichedProtocolEmission[] = []
 		for (const protocol of protocols) {
@@ -1007,11 +972,11 @@ export const getProtocolEmissons = async (
 		const tokenlistPrice = getTokenlistCurrentPrice(geckoId, tokenlistPrices)
 		const prices =
 			coinKey && !tokenlistPrice
-			? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
-					console.log(err)
-					return {}
-				})
-			: {}
+				? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
+						console.log(err)
+						return {}
+					})
+				: {}
 
 		const tokenPriceData = tokenlistPrice ?? (coinKey ? prices[coinKey] : undefined)
 		const tokenPrice: { price?: number; symbol?: string } = {}

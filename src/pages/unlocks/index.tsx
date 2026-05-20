@@ -93,7 +93,8 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const metadataCache = metadataModule.default
 	const data = await getAllProtocolEmissions({
 		endDate: generatedAtSec + 30 * 24 * 60 * 60,
-		tokenlist: metadataCache.tokenlist
+		tokenlist: metadataCache.tokenlist,
+		emissionsHistoricalPrices: metadataCache.emissionsHistoricalPrices
 	})
 	return {
 		props: {

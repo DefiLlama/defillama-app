@@ -149,6 +149,13 @@ export interface ITokenListEntry {
 	max_supply: number | null
 }
 
+export interface IEmissionsHistoricalPricePoint {
+	timestamp: number
+	price: number
+}
+
+export type IEmissionsHistoricalPrices = Record<string, { prices: Array<IEmissionsHistoricalPricePoint> }>
+
 export interface IProtocolLlamaswapChain {
 	chain: string
 	address: string
