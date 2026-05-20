@@ -38,6 +38,7 @@ function responseForUrl(url: string): unknown {
 	if (url.includes('/config/smol/token.json')) return {}
 	if (url.includes('/liquidations/all?zz=16')) return { data: {}, tokens: {}, validThresholds: [], timestamp: 0 }
 	if (url.includes('/bridges?includeChains=true')) return { bridges: [], chains: [] }
+	if (url.endsWith('/emissions')) return []
 	throw new Error(`unexpected URL: ${url}`)
 }
 
@@ -74,6 +75,7 @@ describe('metadata source adapters', () => {
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://bridges.llama.fi/bridges?includeChains=true', {
 			timeout: 1234
 		})
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://api.llama.fi/emissions', { timeout: 1234 })
 		expect(fetchEmissionsProtocolsListMock).toHaveBeenCalledWith({ timeout: 1234 })
 	})
 
@@ -94,6 +96,9 @@ describe('metadata source adapters', () => {
 			'https://pro-api.llama.fi/secret-key/api/config/smol/token.json',
 			expect.anything()
 		)
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://pro-api.llama.fi/secret-key/api/emissions', {
+			timeout: 180_000
+		})
 	})
 
 	it('logs the named metadata source when an upstream request fails', async () => {
