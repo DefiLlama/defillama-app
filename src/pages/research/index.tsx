@@ -19,7 +19,11 @@ import { ResearchTrustedByCarousel } from '~/containers/Articles/landing/Researc
 import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/landing/ResearchWidgetWithScrollbar'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { useResearchSearchParams } from '~/containers/Articles/landing/useResearchSearchParams'
-import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
+import {
+	RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT,
+	RESEARCH_LANDING_SECTION_LIMITS,
+	takeUniqueArticles
+} from '~/containers/Articles/landing/utils'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
@@ -45,6 +49,8 @@ type ArticlesPageProps = {
 }
 
 async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
+	const collectionsLimit = RESEARCH_LANDING_SECTION_LIMITS.collections
+
 	const settled = await Promise.allSettled([
 		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportsHero),
 		listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest),
@@ -64,7 +70,10 @@ async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
 			limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn,
 			skip: 4
 		}),
-		listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections, skip: 15 })
+		listArticles({
+			sort: 'newest',
+			limit: RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT
+		})
 	])
 
 	const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
@@ -74,16 +83,40 @@ async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
 		throw firstRejected?.reason ?? new Error('Failed to load research')
 	}
 
+	const heroReports = itemsOrEmpty(0)
+	const latest = itemsOrEmpty(1)
+	const spotlight = itemsOrEmpty(2)
+	const interviews = itemsOrEmpty(3)
+	const highlight = itemsOrEmpty(4)
+	const insights = itemsOrEmpty(5)
+	const moreReports = itemsOrEmpty(6)
+	const spotlightColumn = itemsOrEmpty(7)
+
+	const usedIds = new Set(
+		[
+			...heroReports,
+			...latest,
+			...spotlight,
+			...interviews,
+			...highlight,
+			...insights,
+			...moreReports,
+			...spotlightColumn
+		].map((article) => article.id)
+	)
+
+	const collections = takeUniqueArticles(itemsOrEmpty(8), usedIds, collectionsLimit)
+
 	return {
-		heroReports: itemsOrEmpty(0),
-		latest: itemsOrEmpty(1),
-		spotlight: itemsOrEmpty(2),
-		interviews: itemsOrEmpty(3),
-		highlight: itemsOrEmpty(4),
-		insights: itemsOrEmpty(5),
-		moreReports: itemsOrEmpty(6),
-		spotlightColumn: itemsOrEmpty(7),
-		collections: itemsOrEmpty(8)
+		heroReports,
+		latest,
+		spotlight,
+		interviews,
+		highlight,
+		insights,
+		moreReports,
+		spotlightColumn,
+		collections
 	}
 }
 
