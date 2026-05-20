@@ -424,8 +424,14 @@ export function ConversationView({
 				return
 			}
 
-			const previousMessage =
-				anchoredUserMessages.filter((item) => item.top < upThreshold).at(-1) ?? anchoredUserMessages[0]
+			const previousMessage = anchoredUserMessages.filter((item) => item.top < upThreshold).at(-1)
+			const firstMessage = anchoredUserMessages[0]
+			const isAtFirstRenderedMessage =
+				previousMessage?.anchorId === firstMessage.anchorId && firstMessage.top >= containerTop - 8
+			if (!previousMessage || isAtFirstRenderedMessage) {
+				container.scrollTo({ top: 0, behavior: 'smooth' })
+				return
+			}
 			previousMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
 			highlightAnchorNode(previousMessage.node)
 		}

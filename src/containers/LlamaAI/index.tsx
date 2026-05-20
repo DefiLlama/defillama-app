@@ -546,11 +546,6 @@ function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, ti
 	])
 }
 
-function replaceCurrentHistoryPath(path: string) {
-	if (typeof window === 'undefined') return
-	window.history.replaceState(window.history.state, '', path)
-}
-
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
@@ -2123,7 +2118,11 @@ export function AgenticChat({
 								if (previousSessionId && previousSessionId !== id) {
 									registerSessionAlias(previousSessionId, id)
 									if (sharedSession) {
-										replaceCurrentHistoryPath(`/ai/chat/${id}`)
+										void router.replace(
+											{ pathname: '/ai/chat/[sessionId]', query: { sessionId: id } },
+											`/ai/chat/${id}`,
+											{ shallow: true, scroll: false }
+										)
 									}
 								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
@@ -2293,6 +2292,7 @@ export function AgenticChat({
 			routeProjectId,
 			currentSessionProjectId,
 			registerSessionAlias,
+			router,
 			hasUser,
 			onForkSubmit
 		]
