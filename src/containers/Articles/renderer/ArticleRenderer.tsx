@@ -8,6 +8,7 @@ import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from '../entityLinks'
 import { getTiptapNodeText } from '../extractors'
+import { pushResearchAnalyticsEvent } from '../landing/Analytics'
 import { DownloadPdfLink } from '../landing/DownloadPdfLink'
 import { getArticleBylineAuthorEntries } from '../landing/utils'
 import type {
@@ -33,6 +34,10 @@ const lowlight = createLowlight(common)
 
 type RenderContext = {
 	figureCount: { value: number }
+}
+
+function isPdfLink(href: string) {
+	return /\.pdf($|[?#])/i.test(href)
 }
 
 function tableCellAttrs(node: TiptapJson) {
@@ -128,15 +133,18 @@ function applyMark(children: ReactNode, mark: TiptapMark, key: string) {
 		const href = stringAttr(mark.attrs, 'href')
 		if (!href) return children
 		const sameTab = stringAttr(mark.attrs, 'target') === '_self'
+		const onClick = isPdfLink(href)
+			? () => pushResearchAnalyticsEvent(null, 'export-pdf-research', 'Article body link')
+			: undefined
 		if (sameTab) {
 			return (
-				<a key={key} href={href}>
+				<a key={key} href={href} onClick={onClick}>
 					{children}
 				</a>
 			)
 		}
 		return (
-			<a key={key} href={href} target="_blank" rel="noreferrer noopener">
+			<a key={key} href={href} target="_blank" rel="noreferrer noopener" onClick={onClick}>
 				{children}
 			</a>
 		)
