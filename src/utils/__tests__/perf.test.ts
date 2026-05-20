@@ -43,6 +43,25 @@ describe('withPerformanceLogging', () => {
 		expect(readCacheJitterMeta(result)).toEqual({ cache_jitter_seconds: expected.offsetSeconds })
 	})
 
+	it('can skip numeric getStaticProps revalidate jitter', async () => {
+		vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '1200')
+		vi.stubEnv('NEXT_BUILD_ID', 'build-a')
+		const { withPerformanceLogging } = await import('../perf')
+
+		const wrapped = withPerformanceLogging(
+			'index',
+			async () => ({
+				props: { ok: true },
+				revalidate: 60
+			}),
+			{ jitterRevalidate: false }
+		)
+		const result = await wrapped({ params: {} } satisfies GetStaticPropsContext)
+
+		expect(result).toEqual({ props: { ok: true }, revalidate: 60 })
+		expect(readCacheJitterMeta(result)).toBeUndefined()
+	})
+
 	it('stops retrying transient page build failures once the cumulative budget is exceeded', async () => {
 		vi.stubEnv('PAGE_BUILD_MAX_RETRIES', '3')
 		vi.stubEnv('PAGE_BUILD_RETRY_BUDGET_MS', '1')
