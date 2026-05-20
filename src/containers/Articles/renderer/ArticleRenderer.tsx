@@ -8,10 +8,12 @@ import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from '../entityLinks'
 import { getTiptapNodeText } from '../extractors'
+import { DownloadPdfLink } from '../landing/DownloadPdfLink'
 import { getArticleBylineAuthorEntries } from '../landing/utils'
 import type {
 	ArticleCalloutTone,
 	ArticleCitation,
+	ArticleDocument,
 	ArticleEntityType,
 	LocalArticleDocument,
 	TiptapJson,
@@ -935,10 +937,10 @@ export function ArticleRenderer({
 					) : null}
 					{article.section === 'report' && article.reportPdf ? (
 						<div>
-							<a
-								href={article.reportPdf.url}
-								target="_blank"
-								rel="noopener noreferrer"
+							<DownloadPdfLink
+								article={article as ArticleDocument}
+								pdfUrl={article.reportPdf.url}
+								widgetLabel="Article page"
 								className="inline-flex items-center gap-2 rounded-md bg-(--link-text) px-3.5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
 							>
 								<svg
@@ -956,7 +958,7 @@ export function ArticleRenderer({
 									<line x1="12" y1="15" x2="12" y2="3" />
 								</svg>
 								Download PDF
-							</a>
+							</DownloadPdfLink>
 						</div>
 					) : null}
 				</header>

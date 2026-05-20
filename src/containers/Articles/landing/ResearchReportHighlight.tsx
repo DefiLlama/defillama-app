@@ -1,4 +1,5 @@
 import React, { type CSSProperties } from 'react'
+import { DownloadPdfLink } from '~/containers/Articles/landing/DownloadPdfLink'
 import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
@@ -74,14 +75,12 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 
 					<div className="mt-auto flex items-center justify-end gap-4 pt-[8px]">
 						{pdfUrl ? (
-							<a
-								href={pdfUrl}
-								target="_blank"
-								rel="noopener noreferrer"
+							<DownloadPdfLink
+								article={highlight}
+								pdfUrl={pdfUrl}
+								widgetLabel="Report highlight"
 								className="text-[13px] font-medium text-[#0c2956] underline-offset-4 hover:underline dark:text-white"
-							>
-								Download PDF
-							</a>
+							/>
 						) : null}
 						<ReadMoreLink url={articleHref(highlight)} title="Read this report" />
 					</div>
