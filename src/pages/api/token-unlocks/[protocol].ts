@@ -26,7 +26,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
-		const data = await getProtocolEmissons(slug(protocol), { skipAvailabilityCheck: true })
+		const metadataModule = await import('~/utils/metadata')
+		metadataModule.refreshMetadataInBackgroundIfStale()
+		const data = await getProtocolEmissons(slug(protocol), {
+			skipAvailabilityCheck: true,
+			tokenlist: metadataModule.default.tokenlist
+		})
 		if (isEmptyProtocolEmissionResult(data)) {
 			res.setHeader('Cache-Control', 'private, no-store')
 			return res.status(404).json({ error: 'Protocol emissions not found' })
