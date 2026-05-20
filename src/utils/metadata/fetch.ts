@@ -26,26 +26,46 @@ const dedupeNonEmpty = (values: string[]): string[] => {
 	return [...seen]
 }
 
+const EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE = 50
+
 async function fetchEmissionsHistoricalPrices(
 	emissions: UnlockHistoricalPriceProtocol[]
 ): Promise<IEmissionsHistoricalPrices> {
-	try {
-		const { priceReqs, hasPriceRequests } = buildUnlocksHistoricalPriceRequests(emissions)
-		if (!hasPriceRequests) return {}
+	const { priceReqs, hasPriceRequests } = buildUnlocksHistoricalPriceRequests(emissions)
+	if (!hasPriceRequests) return {}
 
-		const response = await fetchMetadataJson<{ coins?: IEmissionsHistoricalPrices }>(
-			`${COINS_SERVER_URL}/pro/prices/historical`,
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ coins: priceReqs, searchWidth: '6h' })
-			}
-		)
-		return response.coins ?? {}
-	} catch (error) {
-		console.log('Failed to precompute emissions historical prices', error)
-		return {}
+	const prices: IEmissionsHistoricalPrices = {}
+	let batchReqs: Record<string, number[]> = {}
+	let batchCount = 0
+
+	for (const coin in priceReqs) {
+		batchReqs[coin] = priceReqs[coin]
+		batchCount++
+		if (batchCount < EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE) continue
+
+		Object.assign(prices, await fetchEmissionsHistoricalPriceBatch(batchReqs))
+		batchReqs = {}
+		batchCount = 0
 	}
+
+	if (batchCount > 0) {
+		Object.assign(prices, await fetchEmissionsHistoricalPriceBatch(batchReqs))
+	}
+
+	return prices
+}
+
+async function fetchEmissionsHistoricalPriceBatch(coins: Record<string, number[]>) {
+	const response = await fetchMetadataJson<{ coins?: IEmissionsHistoricalPrices }>(
+		`${COINS_SERVER_URL}/pro/prices/historical`,
+		{
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ coins, searchWidth: '6h' })
+		}
+	)
+	if (!response.coins) throw new Error('Emissions historical prices response did not include coins')
+	return response.coins
 }
 
 export async function fetchCoreMetadata({

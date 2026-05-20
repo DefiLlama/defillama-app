@@ -104,7 +104,7 @@ describe('fetchCoreMetadata', () => {
 		expect(fetchMetadataJsonMock).not.toHaveBeenCalled()
 	})
 
-	it('precomputes emissions historical prices with a single 6h POST', async () => {
+	it('precomputes emissions historical prices with a 6h POST', async () => {
 		const day = 86_400
 		const nowSec = 1_700_000_000
 		const lastPastEvent = nowSec - 8 * day
@@ -153,12 +153,55 @@ describe('fetchCoreMetadata', () => {
 		})
 	})
 
-	it('keeps metadata pulls successful when emissions historical prices fail', async () => {
+	it('batches emissions historical price precomputes', async () => {
+		const day = 86_400
+		const nowSec = 1_700_000_000
+		const lastPastEvent = nowSec - 8 * day
+		const emissions = Array.from({ length: 51 }, (_, index) => ({
+			name: `Token ${index}`,
+			token: `coingecko:token-${index}`,
+			gecko_id: `token-${index}`,
+			events: [
+				{ timestamp: nowSec - 60 * day, noOfTokens: [1], category: 'team' },
+				{ timestamp: lastPastEvent, noOfTokens: [10], category: 'team' }
+			]
+		}))
+		vi.spyOn(Date, 'now').mockReturnValue(nowSec * 1000)
+		fetchCoreMetadataSourcesMock.mockResolvedValue(createCoreMetadataSources({ emissions }))
+		fetchMetadataJsonMock.mockImplementation(async (_url: string, options: RequestInit) => {
+			const body = JSON.parse(options.body as string)
+			const coins: Record<string, { prices: Array<{ timestamp: number; price: number }> }> = {}
+			for (const coin in body.coins) {
+				coins[coin] = { prices: [{ timestamp: lastPastEvent, price: 2 }] }
+			}
+			return { coins }
+		})
+		const { fetchCoreMetadata } = await import('../fetch')
+
+		const payload = await fetchCoreMetadata()
+		const firstRequestBody = JSON.parse(fetchMetadataJsonMock.mock.calls[0][1].body)
+		const secondRequestBody = JSON.parse(fetchMetadataJsonMock.mock.calls[1][1].body)
+		let firstRequestCoins = 0
+		let secondRequestCoins = 0
+		let resultCoins = 0
+		for (const _coin in firstRequestBody.coins) firstRequestCoins++
+		for (const _coin in secondRequestBody.coins) secondRequestCoins++
+		for (const _coin in payload.emissionsHistoricalPrices) resultCoins++
+
+		expect(fetchMetadataJsonMock).toHaveBeenCalledTimes(2)
+		expect(firstRequestCoins).toBe(50)
+		expect(secondRequestCoins).toBe(1)
+		expect(resultCoins).toBe(51)
+		expect(payload.emissionsHistoricalPrices['coingecko:token-50']).toEqual({
+			prices: [{ timestamp: lastPastEvent, price: 2 }]
+		})
+	})
+
+	it('fails metadata generation when emissions historical prices fail', async () => {
 		const day = 86_400
 		const nowSec = 1_700_000_000
 		const lastPastEvent = nowSec - 8 * day
 		vi.spyOn(Date, 'now').mockReturnValue(nowSec * 1000)
-		const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {})
 		fetchCoreMetadataSourcesMock.mockResolvedValue(
 			createCoreMetadataSources({
 				emissions: [
@@ -177,9 +220,6 @@ describe('fetchCoreMetadata', () => {
 		fetchMetadataJsonMock.mockRejectedValue(new Error('coins unavailable'))
 		const { fetchCoreMetadata } = await import('../fetch')
 
-		const payload = await fetchCoreMetadata()
-
-		expect(payload.emissionsHistoricalPrices).toEqual({})
-		expect(consoleLog).toHaveBeenCalledWith('Failed to precompute emissions historical prices', expect.any(Error))
+		await expect(fetchCoreMetadata()).rejects.toThrow('coins unavailable')
 	})
 })

@@ -312,6 +312,49 @@ describe('getAllProtocolEmissions', () => {
 		])
 	})
 
+	it('falls back to network historical prices when the artifact cache is empty', async () => {
+		const day = 86_400
+		const nowSec = 1_700_000_000
+		const lastPastEvent = Math.floor((nowSec - 8 * day) / 1800) * 1800
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(nowSec * 1000)
+
+		batchFetchHistoricalPricesMock.mockResolvedValueOnce({
+			results: {
+				'coingecko:chainlink': {
+					prices: [{ timestamp: lastPastEvent, price: 2 }]
+				}
+			}
+		})
+		fetchAllProtocolEmissionsMock.mockResolvedValue([
+			{
+				name: 'Chainlink',
+				token: 'coingecko:chainlink',
+				gecko_id: 'chainlink',
+				events: [
+					{ timestamp: nowSec - 60 * day, noOfTokens: [1], category: 'team' },
+					{ timestamp: lastPastEvent, noOfTokens: [10], category: 'team' }
+				]
+			}
+		])
+
+		const result = await getAllProtocolEmissions({
+			tokenlist: {
+				chainlink: {
+					current_price: 7.89,
+					symbol: 'link'
+				}
+			},
+			emissionsHistoricalPrices: {}
+		})
+
+		dateNow.mockRestore()
+
+		expect(batchFetchHistoricalPricesMock).toHaveBeenCalledWith({
+			'coingecko:chainlink': expect.any(Array)
+		})
+		expect(result[0].historicalPrice).toEqual([[lastPastEvent * 1000, 2]])
+	})
+
 	it('falls back to network current and historical prices when cache options are omitted', async () => {
 		const day = 86_400
 		const nowSec = 1_700_000_000

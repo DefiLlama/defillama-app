@@ -732,9 +732,24 @@ export const getAllProtocolEmissions = async ({
 		let historicalPrices: UnlockHistoricalPricesByCoin = {}
 		if (getHistoricalPrices) {
 			if (emissionsHistoricalPrices !== undefined) {
-				historicalPrices = emissionsHistoricalPrices
-			} else if (hasPriceRequests) {
-				historicalPrices = (await batchFetchHistoricalPrices(priceReqs)).results
+				for (const coin in emissionsHistoricalPrices) {
+					historicalPrices[coin] = emissionsHistoricalPrices[coin]
+				}
+			}
+
+			if (hasPriceRequests) {
+				const missingPriceReqs: Record<string, number[]> = {}
+				let hasMissingPriceRequests = false
+
+				for (const coin in priceReqs) {
+					if (historicalPrices[coin]?.prices?.length) continue
+					missingPriceReqs[coin] = priceReqs[coin]
+					hasMissingPriceRequests = true
+				}
+
+				if (hasMissingPriceRequests) {
+					Object.assign(historicalPrices, (await batchFetchHistoricalPrices(missingPriceReqs)).results)
+				}
 			}
 		}
 

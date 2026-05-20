@@ -32,7 +32,7 @@ describe('preparation command', () => {
 		expect(calls).toEqual(['metadata', 'dataset', 'robots'])
 	})
 
-	it('stops later preparation steps after a failure', async () => {
+	it('keeps running later preparation steps after a failure', async () => {
 		const dataset = vi.fn()
 		const steps: PreparationStep[] = [
 			{
@@ -47,7 +47,7 @@ describe('preparation command', () => {
 		const result = await runPreparationCommand({ logger: { log: vi.fn() }, steps })
 
 		expect(result.exitCode).toBe(9)
-		expect(dataset).not.toHaveBeenCalled()
+		expect(dataset).toHaveBeenCalledTimes(1)
 	})
 
 	it('uses the requested log prefix for build preparation', async () => {

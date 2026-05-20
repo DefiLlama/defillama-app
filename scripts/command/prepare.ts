@@ -86,13 +86,18 @@ export async function runPreparationCommand({
 }: PreparationOptions = {}): Promise<PreparationResult> {
 	logger.log(`${prefix} Preparing local data before Next.js starts`)
 
+	let exitCode = 0
 	for (const step of steps) {
 		const result = await timedStep(step.name, step.run, { logger, now, prefix })
 		if (result.status === 'failure') {
-			return { exitCode: getErrorExitCode(result.error) }
+			exitCode = exitCode || getErrorExitCode(result.error)
 		}
 	}
 
-	logger.log(`${prefix} Preparation complete; starting Next.js dev server`)
-	return { exitCode: 0 }
+	if (exitCode === 0) {
+		logger.log(`${prefix} Preparation complete; starting Next.js dev server`)
+	} else {
+		logger.log(`${prefix} Preparation finished with errors`)
+	}
+	return { exitCode }
 }
