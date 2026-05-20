@@ -100,7 +100,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								<TwitterIcon />
 							</Link>
 							<Link
-								href="https://t.me/defillama_res"
+								href="https://t.me/defillama_research"
 								aria-label="Follow us on Telegram"
 								rel="noopener noreferrer"
 								target="_blank"
