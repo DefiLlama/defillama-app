@@ -205,19 +205,25 @@ const matchesToken = (symbol, tokenToMatch) => {
 	return false
 }
 
+const excludedOptimizerProjects = new Set(['silo-v2'])
+
 export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoutes }) => {
 	if (!tokenToLend && !tokenToBorrow) return []
+	const optimizerCdpRoutes = cdpRoutes.filter((pool) => !excludedOptimizerProjects.has(pool.project))
+
 	const availableToLend = pools.filter(({ symbol, ltv }) => {
 		if (!tokenToLend || isStable(tokenToLend)) return true
 
 		return matchesToken(symbol, tokenToLend) && ltv > 0 && !matchesToken(symbol, 'AMM')
 	})
+	const availableCollateralPools = availableToLend.filter((pool) => !excludedOptimizerProjects.has(pool.project))
 
 	const availableProjectsSet = new Set(availableToLend.map(({ project }) => project))
 	const availableChainsSet = new Set(availableToLend.map(({ chain }) => chain))
 
 	const lendBorrowPairs = pools.reduce((acc, pool) => {
 		if (
+			excludedOptimizerProjects.has(pool.project) ||
 			!availableProjectsSet.has(pool.project) ||
 			!availableChainsSet.has(pool.chain) ||
 			(tokenToBorrow && (isStable(tokenToBorrow) ? false : !matchesToken(pool.symbol, tokenToBorrow))) ||
@@ -232,7 +238,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 			return acc
 		}
 
-		const collatteralPools = availableToLend.filter((collateralPool) => {
+		const collatteralPools = availableCollateralPools.filter((collateralPool) => {
 			if (!tokenToBorrow) return true
 
 			return (
@@ -259,7 +265,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 	// add cdp pairs
 	const cdpPairs =
 		tokenToLend && tokenToBorrow
-			? cdpRoutes.filter(
+			? optimizerCdpRoutes.filter(
 					(p) =>
 						(isStable(tokenToLend) ? p.stablecoin : matchesToken(p.symbol, tokenToLend)) &&
 						// tokenToBorrow in the context of cdps -> minted stablecoin -> always true
