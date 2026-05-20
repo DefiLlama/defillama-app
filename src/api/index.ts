@@ -115,7 +115,7 @@ export async function fetchCoinPrices(
 		return {}
 	}
 
-	const batchSize = 5000
+	const batchSize = 100000
 	const batches: Array<Array<string>> = []
 	for (let i = 0; i < coins.length; i += batchSize) {
 		batches.push(coins.slice(i, i + batchSize))

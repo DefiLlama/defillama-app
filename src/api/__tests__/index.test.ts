@@ -27,7 +27,7 @@ describe('fetchCoinPrices', () => {
 		vi.resetModules()
 	})
 
-	it('uses POST batches of 5000 and preserves merged output order', async () => {
+	it('uses POST batches of 100000 and preserves merged output order', async () => {
 		fetchJsonMock.mockImplementation(async (_url: string, options?: RequestInit) => {
 			const body = JSON.parse(String(options?.body))
 			return {
@@ -35,7 +35,7 @@ describe('fetchCoinPrices', () => {
 			}
 		})
 		const { fetchCoinPrices } = await import('../index')
-		const coins = Array.from({ length: 5001 }, (_, i) => `coingecko:token-${i}`)
+		const coins = Array.from({ length: 100001 }, (_, i) => `coingecko:token-${i}`)
 
 		const prices = await fetchCoinPrices(coins, { searchWidth: '4h' })
 
@@ -45,7 +45,7 @@ describe('fetchCoinPrices', () => {
 			'https://coins.llama.fi/pro/prices/current',
 			expect.objectContaining({
 				method: 'POST',
-				body: JSON.stringify({ coins: coins.slice(0, 5000), searchWidth: '4h' })
+				body: JSON.stringify({ coins: coins.slice(0, 100000), searchWidth: '4h' })
 			})
 		)
 		expect(fetchJsonMock).toHaveBeenNthCalledWith(
@@ -53,11 +53,11 @@ describe('fetchCoinPrices', () => {
 			'https://coins.llama.fi/pro/prices/current',
 			expect.objectContaining({
 				method: 'POST',
-				body: JSON.stringify({ coins: coins.slice(5000), searchWidth: '4h' })
+				body: JSON.stringify({ coins: coins.slice(100000), searchWidth: '4h' })
 			})
 		)
 		expect(Object.keys(prices)).toEqual(coins)
-		expect(prices['coingecko:token-5000']).toEqual(priceFor('coingecko:token-5000'))
+		expect(prices['coingecko:token-100000']).toEqual(priceFor('coingecko:token-100000'))
 	})
 
 	it('falls back to legacy GET chunks only for missing POST endpoint errors', async () => {
