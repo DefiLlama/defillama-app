@@ -24,6 +24,7 @@ Allow: /
 
 # Sitemap
 Sitemap: ${normalizedSiteUrl}/sitemap.xml
+Sitemap: ${normalizedSiteUrl}/research/sitemap.xml
 `
 		: `User-agent: *
 Allow: /.well-known/
