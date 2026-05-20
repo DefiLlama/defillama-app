@@ -5,9 +5,10 @@ import { externalLinkHostname } from './externalLink'
 interface ExternalLinkInterstitialProps {
 	href: string | null
 	onClose: () => void
+	onAllowPermanently?: (hostname: string, href: string) => void
 }
 
-export function ExternalLinkInterstitial({ href, onClose }: ExternalLinkInterstitialProps) {
+export function ExternalLinkInterstitial({ href, onClose, onAllowPermanently }: ExternalLinkInterstitialProps) {
 	const hostname = externalLinkHostname(href)
 	const isOpen = href !== null && hostname !== null
 
@@ -43,6 +44,18 @@ export function ExternalLinkInterstitial({ href, onClose }: ExternalLinkIntersti
 					<Ariakit.DialogDismiss className="rounded-md border pro-border pro-hover-bg px-4 py-2 text-sm pro-text2 transition-colors hover:pro-text1">
 						Cancel
 					</Ariakit.DialogDismiss>
+					{hostname && href && onAllowPermanently ? (
+						<button
+							type="button"
+							onClick={() => {
+								onAllowPermanently(hostname, href)
+								onClose()
+							}}
+							className="rounded-md border pro-border pro-hover-bg px-4 py-2 text-sm pro-text2 transition-colors hover:pro-text1"
+						>
+							Always allow
+						</button>
+					) : null}
 					<a
 						href={href ?? '#'}
 						target="_blank"

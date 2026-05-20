@@ -54,8 +54,8 @@ export function useSessionList() {
 		initialPageParam: 0,
 		getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextOffset : undefined),
 		enabled: isAuthenticated && !!user,
-		refetchOnWindowFocus: false,
-		staleTime: 30000
+		refetchOnWindowFocus: true,
+		staleTime: 10000
 	})
 
 	const data = useMemo(() => flattenSessionListData(queryData), [queryData])

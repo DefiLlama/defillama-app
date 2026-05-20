@@ -1,5 +1,6 @@
 import { AI_SERVER } from '~/constants'
 import type {
+	GitHubBranch,
 	GitHubInstallation,
 	GitHubRepo,
 	ImportResult,
@@ -187,6 +188,21 @@ export async function listInstallationRepos(fetcher: AuthedFetch, installationId
 		'Failed to list repositories'
 	)
 	return data.repos ?? []
+}
+
+export async function listInstallationRepoBranches(
+	fetcher: AuthedFetch,
+	installationId: number,
+	owner: string,
+	repo: string
+): Promise<GitHubBranch[]> {
+	const data = await unwrap<GitHubBranch[]>(
+		fetcher(
+			`${AI_SERVER}/github/installations/${installationId}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches`
+		),
+		'Failed to list branches'
+	)
+	return Array.isArray(data) ? data : []
 }
 
 export async function connectGithubSource(

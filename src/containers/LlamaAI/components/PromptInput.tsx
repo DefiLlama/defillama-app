@@ -40,7 +40,7 @@ interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: undefined,
 		isSuggestedQuestion?: boolean
 	) => void | Promise<void>
@@ -256,15 +256,16 @@ export function PromptInput({
 		setSubmitError((current) => (current ? null : current))
 	}, [])
 
-	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File }>) => {
-		const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
+	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File; isPasted?: boolean }>) => {
+		const imagePromises: Promise<{ data: string; mimeType: string; filename: string; isPasted?: boolean }>[] = []
 		for (let i = 0; i < imagesToSend.length; i++) {
 			const file = imagesToSend[i].file
 			imagePromises.push(
 				fileToBase64(file).then((data) => ({
 					data,
 					mimeType: file.type,
-					filename: file.name
+					filename: file.name,
+					...(imagesToSend[i].isPasted ? { isPasted: true } : {})
 				}))
 			)
 		}

@@ -44,4 +44,47 @@ describe('settingsIntent', () => {
 			nextQuery: { chain: 'Ethereum' }
 		})
 	})
+
+	it('parses Slack callback intent for integrations and removes callback query params', () => {
+		expect(
+			getSettingsIntentFromQuery({
+				slack: 'connected',
+				team: 'Llama Labs',
+				detail: 'ok',
+				modal: 'settings',
+				tab: 'app',
+				chain: 'Ethereum'
+			})
+		).toEqual({
+			initialState: {
+				tab: 'integrations',
+				tgloginToken: null,
+				slackResult: 'connected',
+				slackTeamName: 'Llama Labs',
+				slackErrorDetail: 'ok'
+			},
+			nextQuery: { chain: 'Ethereum' }
+		})
+	})
+
+	it('stashes and consumes unauthenticated Slack callback intent after login', () => {
+		const storage = new MemoryStorage()
+
+		stashSettingsIntent(storage, {
+			tab: 'integrations',
+			tgloginToken: null,
+			slackResult: 'slack_failed',
+			slackTeamName: 'Llama Labs',
+			slackErrorDetail: 'access_denied'
+		})
+
+		expect(readPendingSettingsIntent(storage)).toEqual({
+			tab: 'integrations',
+			tgloginToken: null,
+			slackResult: 'slack_failed',
+			slackTeamName: 'Llama Labs',
+			slackErrorDetail: 'access_denied'
+		})
+		expect(readPendingSettingsIntent(storage)).toBeNull()
+	})
 })
