@@ -4,6 +4,10 @@ import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from './types'
 
 const SITE_ORIGIN = 'https://defillama.com'
 
+function toSafeJsonLd(data: unknown): string {
+	return JSON.stringify(data).replace(/</g, '\\u003c')
+}
+
 const PUBLISHER = {
 	'@context': 'https://schema.org',
 	'@type': 'Organization',
@@ -124,7 +128,7 @@ function buildBreadcrumbJsonLd(article: LocalArticleDocument): Record<string, un
 			{
 				'@type': 'ListItem',
 				position: 2,
-				name: article.section,
+				name: article.section ? ARTICLE_SECTION_LABELS[article.section] : 'Research',
 				item: articleSectionCanonicalUrl(article)
 			},
 			{
@@ -178,11 +182,11 @@ export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
 				<>
 					<script
 						type="application/ld+json"
-						dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleJsonLd(article)) }}
+						dangerouslySetInnerHTML={{ __html: toSafeJsonLd(buildArticleJsonLd(article)) }}
 					/>
 					<script
 						type="application/ld+json"
-						dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd(article)) }}
+						dangerouslySetInnerHTML={{ __html: toSafeJsonLd(buildBreadcrumbJsonLd(article)) }}
 					/>
 				</>
 			) : null}

@@ -108,7 +108,7 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 			{imgUrl ? (
 				<img
 					src={imgUrl}
-					alt={article.coverImage.alt}
+					alt={article.carouselImage?.alt ?? article.coverImage?.alt ?? article.title}
 					className="h-full w-full object-cover md:h-full md:w-full md:object-fill"
 				/>
 			) : (
