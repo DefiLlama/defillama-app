@@ -35,7 +35,7 @@ let client: AxiomClient | null = null
 let clientPromise: Promise<AxiomClient | null> | null = null
 
 function axiomDataset(): string {
-	return process.env.AXIOM_DATASET || 'defillama-app-usage'
+	return process.env.AXIOM_DATASET || 'frontend-requests'
 }
 
 async function getClient(): Promise<AxiomClient | null> {

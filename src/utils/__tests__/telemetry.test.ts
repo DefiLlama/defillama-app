@@ -800,7 +800,7 @@ describe('telemetry client', () => {
 		await fetchWithPoolingOnServer('https://pro-api.llama.fi/pro-secret/api/v2/chains?api_key=leaky')
 
 		await vi.waitFor(() => {
-			expect(axiomMock.ingest).toHaveBeenCalledWith('defillama-app-usage', [
+			expect(axiomMock.ingest).toHaveBeenCalledWith('frontend-requests', [
 				expect.objectContaining({
 					source: 'app',
 					domain: 'pro-api.llama.fi',
