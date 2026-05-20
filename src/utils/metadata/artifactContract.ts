@@ -4,6 +4,7 @@ import type {
 	ICategoriesAndTags,
 	ICexItem,
 	IChainMetadata,
+	IEmissionsHistoricalPrices,
 	IProtocolMetadata,
 	ProtocolLlamaswapMetadata,
 	IRWAList,
@@ -24,6 +25,7 @@ export type CoreMetadataPayload = {
 	chainDisplayNames: Record<string, string>
 	liquidationsTokenSymbols: string[]
 	emissionsProtocolsList: string[]
+	emissionsHistoricalPrices: IEmissionsHistoricalPrices
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -45,6 +47,7 @@ export type MetadataCache = {
 	liquidationsTokenSymbols: string[]
 	liquidationsTokenSymbolsSet: Set<string>
 	emissionsProtocolsList: string[]
+	emissionsHistoricalPrices: IEmissionsHistoricalPrices
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -65,6 +68,7 @@ export const METADATA_ARTIFACT_FILES = {
 	chainDisplayNames: 'chainDisplayNames.json',
 	liquidationsTokenSymbols: 'liquidationsTokenSymbols.json',
 	emissionsProtocolsList: 'emissionsProtocolsList.json',
+	emissionsHistoricalPrices: 'emissionsHistoricalPrices.json',
 	cgExchangeIdentifiers: 'cgExchangeIdentifiers.json',
 	bridgeProtocolSlugs: 'bridgeProtocolSlugs.json',
 	bridgeChainSlugs: 'bridgeChainSlugs.json',
@@ -85,6 +89,7 @@ export const METADATA_CI_STUBS = {
 	chainDisplayNames: {},
 	liquidationsTokenSymbols: [],
 	emissionsProtocolsList: [],
+	emissionsHistoricalPrices: {},
 	cgExchangeIdentifiers: [],
 	bridgeProtocolSlugs: [],
 	bridgeChainSlugs: [],
@@ -116,6 +121,7 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 		liquidationsTokenSymbols: payload.liquidationsTokenSymbols,
 		liquidationsTokenSymbolsSet: new Set(payload.liquidationsTokenSymbols),
 		emissionsProtocolsList: payload.emissionsProtocolsList,
+		emissionsHistoricalPrices: payload.emissionsHistoricalPrices,
 		cgExchangeIdentifiers: payload.cgExchangeIdentifiers,
 		bridgeProtocolSlugs: payload.bridgeProtocolSlugs,
 		bridgeChainSlugs: payload.bridgeChainSlugs,
@@ -146,6 +152,7 @@ export function applyMetadataRefresh(metadataCache: MetadataCache, payload: Core
 	metadataCache.liquidationsTokenSymbols = payload.liquidationsTokenSymbols
 	metadataCache.liquidationsTokenSymbolsSet = new Set(payload.liquidationsTokenSymbols)
 	metadataCache.emissionsProtocolsList = payload.emissionsProtocolsList
+	metadataCache.emissionsHistoricalPrices = payload.emissionsHistoricalPrices
 	metadataCache.bridgeProtocolSlugs = payload.bridgeProtocolSlugs
 	metadataCache.bridgeChainSlugs = payload.bridgeChainSlugs
 	metadataCache.bridgeChainSlugToName = payload.bridgeChainSlugToName

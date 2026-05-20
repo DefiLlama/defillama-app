@@ -7,6 +7,7 @@ import cexs from '../../../.cache/cexs.json'
 import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json'
 import chainDisplayNamesRaw from '../../../.cache/chainDisplayNames.json'
 import chainMetadata from '../../../.cache/chains.json'
+import emissionsHistoricalPricesRaw from '../../../.cache/emissionsHistoricalPrices.json'
 import emissionsProtocolsListRaw from '../../../.cache/emissionsProtocolsList.json'
 import liquidationsTokenSymbolsRaw from '../../../.cache/liquidationsTokenSymbols.json'
 import protocolLlamaswapDatasetRaw from '../../../.cache/llamaswap-protocols.json'
@@ -20,6 +21,7 @@ import { createMetadataCacheFromArtifacts, type CoreMetadataPayload, type Metada
 import type {
 	ICategoriesAndTags,
 	ICexItem,
+	IEmissionsHistoricalPrices,
 	ProtocolLlamaswapMetadata,
 	IRWAList,
 	IRWAPerpsList,
@@ -39,6 +41,7 @@ const artifactPayload: CoreMetadataPayload = {
 	chainDisplayNames: chainDisplayNamesRaw as Record<string, string>,
 	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
 	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
+	emissionsHistoricalPrices: emissionsHistoricalPricesRaw as IEmissionsHistoricalPrices,
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
 	bridgeChainSlugs: bridgeChainSlugsRaw as string[],

@@ -12,8 +12,8 @@ export function getMetadataFetchTimeoutMs(): number {
 	return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_METADATA_FETCH_TIMEOUT_MS
 }
 
-export async function fetchMetadataJson<T>(url: string): Promise<T> {
-	const res = await fetchWithPoolingOnServer(url, { timeout: getMetadataFetchTimeoutMs() })
+export async function fetchMetadataJson<T>(url: string, options?: RequestInit): Promise<T> {
+	const res = await fetchWithPoolingOnServer(url, { ...options, timeout: getMetadataFetchTimeoutMs() })
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
 	const urlToLog = sanitizeDefiLlamaProApiUrl(url)

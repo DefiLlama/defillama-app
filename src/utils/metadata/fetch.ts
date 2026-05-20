@@ -1,10 +1,15 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
+import { COINS_SERVER_URL, ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
+import {
+	buildUnlocksHistoricalPriceRequests,
+	type UnlockHistoricalPriceProtocol
+} from '~/utils/unlocks/historicalPriceRequests'
 import type { CoreMetadataPayload } from './artifactContract'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
+import { fetchMetadataJson } from './http'
 import { extractLiquidationsTokenSymbols } from './liquidations'
 import { fetchCoreMetadataSources } from './sources'
-import type { ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
+import type { IEmissionsHistoricalPrices, ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
 
 const normalizeSlug = (value: unknown): string =>
 	String(value ?? '')
@@ -19,6 +24,48 @@ const dedupeNonEmpty = (values: string[]): string[] => {
 		seen.add(value)
 	}
 	return [...seen]
+}
+
+const EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE = 50
+
+async function fetchEmissionsHistoricalPrices(
+	emissions: UnlockHistoricalPriceProtocol[]
+): Promise<IEmissionsHistoricalPrices> {
+	const { priceReqs, hasPriceRequests } = buildUnlocksHistoricalPriceRequests(emissions)
+	if (!hasPriceRequests) return {}
+
+	const prices: IEmissionsHistoricalPrices = {}
+	let batchReqs: Record<string, number[]> = {}
+	let batchCount = 0
+
+	for (const coin in priceReqs) {
+		batchReqs[coin] = priceReqs[coin]
+		batchCount++
+		if (batchCount < EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE) continue
+
+		Object.assign(prices, await fetchEmissionsHistoricalPriceBatch(batchReqs))
+		batchReqs = {}
+		batchCount = 0
+	}
+
+	if (batchCount > 0) {
+		Object.assign(prices, await fetchEmissionsHistoricalPriceBatch(batchReqs))
+	}
+
+	return prices
+}
+
+async function fetchEmissionsHistoricalPriceBatch(coins: Record<string, number[]>) {
+	const response = await fetchMetadataJson<{ coins?: IEmissionsHistoricalPrices }>(
+		`${COINS_SERVER_URL}/pro/prices/historical`,
+		{
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ coins, searchWidth: '6h' })
+		}
+	)
+	if (!response.coins) throw new Error('Emissions historical prices response did not include coins')
+	return response.coins
 }
 
 export async function fetchCoreMetadata({
@@ -37,7 +84,8 @@ export async function fetchCoreMetadata({
 		tokenDirectory,
 		liquidationsResponse,
 		bridgesResponse,
-		emissionsProtocolsList
+		emissionsProtocolsList,
+		emissions
 	} = await fetchCoreMetadataSources()
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
@@ -92,6 +140,7 @@ export async function fetchCoreMetadata({
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
 	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse)
+	const emissionsHistoricalPrices = await fetchEmissionsHistoricalPrices(emissions)
 
 	return {
 		protocols,
@@ -107,6 +156,7 @@ export async function fetchCoreMetadata({
 		chainDisplayNames,
 		liquidationsTokenSymbols,
 		emissionsProtocolsList,
+		emissionsHistoricalPrices,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,

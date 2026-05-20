@@ -44,6 +44,7 @@ function createPayload(): CoreMetadataPayload {
 		chainDisplayNames: { ethereum: 'Ethereum' },
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
+		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: [],
 		bridgeProtocolSlugs: [],
 		bridgeChainSlugs: [],

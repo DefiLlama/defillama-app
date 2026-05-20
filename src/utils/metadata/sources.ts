@@ -5,6 +5,7 @@ import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api
 import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
+import type { UnlockHistoricalPriceProtocol } from '~/utils/unlocks/historicalPriceRequests'
 import { fetchMetadataJson, getMetadataFetchTimeoutMs } from './http'
 import type {
 	ICategoriesAndTags,
@@ -30,6 +31,7 @@ export type CoreMetadataSources = {
 	liquidationsResponse: RawAllLiquidationsResponse
 	bridgesResponse: RawBridgesResponse
 	emissionsProtocolsList: string[]
+	emissions: UnlockHistoricalPriceProtocol[]
 }
 
 async function fetchNamedMetadataSource<T>(name: string, promise: Promise<T>): Promise<T> {
@@ -57,7 +59,8 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		tokenDirectory,
 		liquidationsResponse,
 		bridgesResponse,
-		emissionsProtocolsList
+		emissionsProtocolsList,
+		emissions
 	] = await Promise.all([
 		fetchNamedMetadataSource(
 			'protocols API',
@@ -98,6 +101,10 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		fetchNamedMetadataSource(
 			'emissions protocols API',
 			fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() })
+		),
+		fetchNamedMetadataSource(
+			'emissions API',
+			fetchMetadataJson<UnlockHistoricalPriceProtocol[]>(`${coreApiBase}/emissions`)
 		)
 	])
 
@@ -112,6 +119,7 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		tokenDirectory,
 		liquidationsResponse,
 		bridgesResponse,
-		emissionsProtocolsList
+		emissionsProtocolsList,
+		emissions
 	}
 }

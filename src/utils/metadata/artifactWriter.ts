@@ -1,6 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { METADATA_CI_STUBS, getMetadataArtifactEntries, type CoreMetadataPayload } from './artifactContract'
+import {
+	METADATA_ARTIFACT_FILES,
+	METADATA_CI_STUBS,
+	getMetadataArtifactEntries,
+	type CoreMetadataPayload
+} from './artifactContract'
 import {
 	METADATA_MANIFEST_FILE,
 	createMetadataArtifactManifest,
@@ -30,11 +35,11 @@ export async function readMetadataArtifactManifest(cacheDir: string): Promise<Me
 
 export async function getMissingMetadataArtifacts(
 	cacheDir: string,
-	manifest: MetadataArtifactManifest
+	_manifest: MetadataArtifactManifest
 ): Promise<string[]> {
 	const missingArtifacts: string[] = []
 
-	for (const artifact of manifest.artifacts) {
+	for (const artifact of Object.values(METADATA_ARTIFACT_FILES)) {
 		if (!(await fileExists(path.join(cacheDir, artifact)))) {
 			missingArtifacts.push(artifact)
 		}

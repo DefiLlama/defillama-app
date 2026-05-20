@@ -46,6 +46,7 @@ function createPayload(): CoreMetadataPayload {
 		chainDisplayNames: {},
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
+		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: [],
 		bridgeProtocolSlugs: [],
 		bridgeChainSlugs: [],
@@ -111,6 +112,28 @@ describe('metadata artifact manifest', () => {
 
 		expect(await hasMetadataArtifactFiles(cacheDir, manifest)).toBe(false)
 		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([METADATA_ARTIFACT_FILES.cexs])
+	})
+
+	it('detects current artifacts missing from an older manifest artifact list', async () => {
+		const cacheDir = await createTempDir()
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 123)
+		await fs.rm(path.join(cacheDir, METADATA_ARTIFACT_FILES.emissionsHistoricalPrices))
+		await fs.writeFile(
+			getMetadataManifestPath(cacheDir),
+			JSON.stringify({
+				...createMetadataArtifactManifest('ready', 123),
+				artifacts: Object.values(METADATA_ARTIFACT_FILES).filter(
+					(artifact) => artifact !== METADATA_ARTIFACT_FILES.emissionsHistoricalPrices
+				)
+			})
+		)
+		const manifest = await readMetadataArtifactManifest(cacheDir)
+		if (!manifest) throw new Error('missing manifest')
+
+		expect(await hasMetadataArtifactFiles(cacheDir, manifest)).toBe(false)
+		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([
+			METADATA_ARTIFACT_FILES.emissionsHistoricalPrices
+		])
 	})
 
 	it('treats only fresh ready manifests as pull skips', () => {
