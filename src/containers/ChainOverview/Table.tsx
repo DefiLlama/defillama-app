@@ -10,7 +10,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -36,6 +36,7 @@ import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
+import { filterProtocolsByFork, getAvailableForks } from './filterProtocolsByFork'
 
 const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
 
@@ -95,6 +96,41 @@ const ChainProtocolsTableInner = ({
 	const finalProtocols = useMemo(() => {
 		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
+
+	// Fork filter — reads selection from URL (?fork=...), filters table data, exposes available forks for the dropdown.
+	// Defer the URL read until after the first client render so SSR and initial CSR HTML match (page is statically generated, so query params aren't in the SSR HTML).
+	const [hasMountedForFork, setHasMountedForFork] = useState(false)
+	useEffect(() => {
+		setHasMountedForFork(true)
+	}, [])
+	const forkParam = hasMountedForFork
+		? (() => {
+				const q = router.query.fork
+				if (typeof q === 'string') return q || null
+				if (Array.isArray(q)) return q[0] ?? null
+				return null
+			})()
+		: null
+
+	const availableForks = useMemo(() => getAvailableForks(finalProtocols), [finalProtocols])
+
+	const protocolsForTable = useMemo(
+		() => filterProtocolsByFork(finalProtocols, forkParam),
+		[finalProtocols, forkParam]
+	)
+
+	const handleForkChange = (next: string | null) => {
+		const nextQuery = { ...router.query }
+		if (next) {
+			nextQuery.fork = next
+		} else {
+			delete nextQuery.fork
+		}
+		router.replace({ pathname: router.pathname, query: nextQuery }, undefined, {
+			shallow: true,
+			scroll: false
+		})
+	}
 
 	const rawColumnsInStorage = useStorageItem(tableColumnOptionsKey, defaultColumns)
 	const columnsInStorage = useDeferredValue(rawColumnsInStorage)
@@ -297,7 +333,7 @@ const ChainProtocolsTableInner = ({
 	}, [customColumns])
 
 	const instance = useReactTable({
-		data: finalProtocols,
+		data: protocolsForTable,
 		columns: allColumns,
 		state: {
 			sorting,
@@ -365,6 +401,26 @@ const ChainProtocolsTableInner = ({
 					variant="responsive"
 				/>
 
+				{(forkParam || availableForks.length > 0) && (
+					<SelectWithCombobox
+						allValues={
+							forkParam && !availableForks.includes(forkParam)
+								? [forkParam, ...availableForks]
+								: availableForks
+						}
+						selectedValues={forkParam ? [forkParam] : []}
+						setSelectedValues={(updater) => {
+							const next = typeof updater === 'function' ? updater(forkParam ? [forkParam] : []) : updater
+							const lastValue = next[next.length - 1] ?? null
+							handleForkChange(lastValue)
+						}}
+						singleSelect
+						nestedMenu={false}
+						label="Forked from"
+						labelType="smol"
+						variant="filter"
+					/>
+				)}
 				<SelectWithCombobox
 					allValues={mergedColumns}
 					selectedValues={selectedColumns}

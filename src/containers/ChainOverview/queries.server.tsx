@@ -892,6 +892,10 @@ export const getProtocolsByChain = async ({
 			childStore.deprecated = true
 		}
 
+		if (protocol.forkedFrom?.length) {
+			childStore.forkedFrom = protocol.forkedFrom
+		}
+
 		if (dimensionProtocols[protocol.defillamaId]?.fees) {
 			childStore.fees = dimensionProtocols[protocol.defillamaId].fees
 			childStore.fees.pf = protocol.mcap
@@ -1148,6 +1152,21 @@ export const getProtocolsByChain = async ({
 			}
 			if (parentEmissions) {
 				protocolsStore[parentProtocol.id].emissions = parentEmissions
+			}
+
+			// Aggregate child forks onto the parent so the table-level fork filter, which operates on top-level rows, also catches grouped fork families. Dedupe by slug to collapse case/whitespace variants.
+			const parentForksBySlug = new Map<string, string>()
+			for (const child of parentStore[parentProtocol.id]) {
+				if (!child.forkedFrom) continue
+				for (const f of child.forkedFrom) {
+					const trimmed = f.trim()
+					const key = slug(trimmed)
+					if (!key) continue
+					if (!parentForksBySlug.has(key)) parentForksBySlug.set(key, trimmed)
+				}
+			}
+			if (parentForksBySlug.size > 0) {
+				protocolsStore[parentProtocol.id].forkedFrom = Array.from(parentForksBySlug.values())
 			}
 		}
 	}

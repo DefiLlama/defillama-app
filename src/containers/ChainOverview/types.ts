@@ -206,6 +206,7 @@ export interface IChildProtocol {
 		totalAllTime: number | null
 	}
 	deprecated?: boolean
+	forkedFrom?: Array<string>
 }
 
 export interface IProtocol extends IChildProtocol {
