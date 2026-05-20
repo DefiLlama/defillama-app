@@ -1,13 +1,95 @@
 import { useQuery } from '@tanstack/react-query'
+import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { ArticleApiError, listArticles } from '~/containers/Articles/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { ArticleApiError, getSectionBanner, listArticles } from '~/containers/Articles/api'
+import type { ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
-import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
+import type { ArticleDocument, ArticleSection, BannerLookupResult } from '~/containers/Articles/types'
+import {
+	ARTICLE_SECTION_FROM_SLUG,
+	ARTICLE_SECTION_LABELS,
+	ARTICLE_SECTION_SLUGS,
+	ARTICLE_SECTIONS
+} from '~/containers/Articles/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
+
+type SectionRouteParams = {
+	section: string
+}
+
+type SectionLandingPageProps = {
+	section: ArticleSection
+	initialArticles: ArticleListResponse
+	sectionBanner: BannerLookupResult | null
+}
+
+async function loadSectionLandingData(section: ArticleSection): Promise<SectionLandingPageProps> {
+	const [articlesResult, bannerResult] = await Promise.allSettled([
+		listArticles({ section, sort: 'newest', limit: 60 }),
+		getSectionBanner(section)
+	])
+
+	if (articlesResult.status === 'rejected') {
+		throw articlesResult.reason
+	}
+
+	return {
+		section,
+		initialArticles: articlesResult.value,
+		sectionBanner: bannerResult.status === 'fulfilled' ? bannerResult.value : null
+	}
+}
+
+export const getStaticPaths: GetStaticPaths<SectionRouteParams> = async () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const paths = ARTICLE_SECTIONS.map((section) => ({
+		params: { section: ARTICLE_SECTION_SLUGS[section] }
+	}))
+
+	return {
+		paths,
+		fallback: 'blocking'
+	}
+}
+
+export const getStaticProps = withPerformanceLogging<SectionLandingPageProps, SectionRouteParams>(
+	'research/[section]',
+	async ({ params }: GetStaticPropsContext<SectionRouteParams>) => {
+		const sectionSlug = params?.section
+		if (!sectionSlug) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
+		const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
+		if (!section) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
+		const props = await loadSectionLandingData(section)
+
+		return {
+			props,
+			revalidate: maxAgeForNext([22])
+		}
+	}
+)
 
 function formatDate(value: string | null) {
 	if (!value) return 'Draft'
@@ -127,11 +209,19 @@ function GenericCard({ article }: { article: ArticleDocument }) {
 	)
 }
 
-function SectionLandingContent({ section }: { section: ArticleSection }) {
+function SectionLandingContent({
+	section,
+	initialData
+}: {
+	section: ArticleSection
+	initialData: Pick<SectionLandingPageProps, 'initialArticles' | 'sectionBanner'>
+}) {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['research', 'section-index', section],
 		queryFn: () => listArticles({ section, sort: 'newest', limit: 60 }),
-		retry: false
+		initialData: initialData.initialArticles,
+		retry: false,
+		staleTime: 60_000
 	})
 
 	if (isLoading) return <ResearchLoader />
@@ -153,7 +243,7 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 
 	return (
 		<>
-			<ArticleBannerStrip scope="section" section={section} />
+			<ArticleBannerStrip scope="section" section={section} initialData={{ section: initialData.sectionBanner }} />
 			<div className="mx-auto grid w-full max-w-[1180px] gap-8 px-4 pt-8 pb-24 sm:px-6">
 				<header className="grid gap-3 border-b border-(--cards-border) pb-6">
 					<div className="flex items-center justify-between gap-3">
@@ -200,15 +290,16 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 	)
 }
 
-export default function SectionLandingPage() {
-	const router = useRouter()
-	const sectionSlug = typeof router.query.section === 'string' ? router.query.section : ''
-	const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-	const canonical = section ? `/research/${ARTICLE_SECTION_SLUGS[section]}` : '/research'
+export default function SectionLandingPage({
+	section,
+	initialArticles,
+	sectionBanner
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+	const canonical = `/research/${ARTICLE_SECTION_SLUGS[section]}`
 
 	return (
 		<Layout
-			title={section ? `${ARTICLE_SECTION_LABELS[section]} — DefiLlama Research` : 'Research — DefiLlama'}
+			title={`${ARTICLE_SECTION_LABELS[section]} — DefiLlama Research`}
 			description={
 				section === 'interview'
 					? 'Interviews with the people building, funding, and using DeFi — by DefiLlama Research.'
@@ -218,16 +309,7 @@ export default function SectionLandingPage() {
 			hideDesktopSearch
 		>
 			<ArticleProxyAuthProvider>
-				{section ? (
-					<SectionLandingContent section={section} />
-				) : (
-					<div className="mx-auto grid max-w-xl gap-3 px-4 py-10">
-						<h1 className="text-xl font-semibold text-(--text-primary)">Section not found</h1>
-						<Link href="/research" className="text-sm text-(--link-text) hover:underline">
-							Browse all research →
-						</Link>
-					</div>
-				)}
+				<SectionLandingContent section={section} initialData={{ initialArticles, sectionBanner }} />
 			</ArticleProxyAuthProvider>
 		</Layout>
 	)

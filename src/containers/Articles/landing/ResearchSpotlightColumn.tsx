@@ -54,7 +54,7 @@ export function ResearchSpotlightColumn({ title, articles, sharedHeight }: Resea
 											{article.coverImage?.url ? (
 												<img
 													src={article.coverImage.url}
-													alt=""
+													alt={article.coverImage.alt}
 													className="h-full w-full object-cover"
 													loading="lazy"
 													decoding="async"

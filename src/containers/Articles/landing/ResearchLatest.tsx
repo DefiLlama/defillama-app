@@ -58,6 +58,7 @@ type NormalizedItem = {
 	label: string
 	title: string
 	image?: string
+	alt?: string
 	href: string
 }
 
@@ -68,6 +69,7 @@ function normalizeItem(article: ArticleDocument, index: number): NormalizedItem 
 		label: label.toUpperCase(),
 		title: article.title,
 		image: article.coverImage?.url,
+		alt: article.coverImage?.alt,
 		href: articleHref(article)
 	}
 }
@@ -87,7 +89,7 @@ const ContentCard = ({
 				<div className="relative h-full w-full">
 					<img
 						src={item.image}
-						alt=""
+						alt={item.alt}
 						className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 						loading="lazy"
 						decoding="async"
