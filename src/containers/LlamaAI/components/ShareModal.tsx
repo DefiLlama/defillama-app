@@ -27,11 +27,16 @@ function buildShareLink(origin: string, shareToken: string, messageId?: string |
 	return messageId ? `${baseLink}#msg-${messageId}` : baseLink
 }
 
+function canWriteClipboard() {
+	return typeof navigator !== 'undefined' && typeof navigator.clipboard?.writeText === 'function'
+}
+
 export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, messageId }: ShareModalProps) {
 	const { authorizedFetch } = useAuthContext()
 	const hasStartedRef = useRef(false)
 	const [shareResult, setShareResult] = useState<ShareResult | null>(null)
 	const [copied, setCopied] = useState(false)
+	const [shareError, setShareError] = useState<string | null>(null)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const shareLinkInputId = useId()
 
@@ -40,6 +45,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 		hasStartedRef.current = false
 		setShareResult(null)
 		setCopied(false)
+		setShareError(null)
 	}, [open])
 
 	const shareMutation = useMutation<ShareResult>({
@@ -61,7 +67,12 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 		},
 		onSuccess: (data) => {
 			setShareResult(data)
+			setShareError(null)
 			const nextShareLink = buildShareLink(window.location.origin, data.shareToken, messageId)
+			if (!canWriteClipboard()) {
+				toast.error('Clipboard unavailable. Copy the share link manually.')
+				return
+			}
 			void navigator.clipboard
 				.writeText(nextShareLink)
 				.then(() => {
@@ -73,8 +84,10 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 					toast.error('Failed to copy share link')
 				})
 		},
-		onError: () => {
-			toast.error('Failed to share conversation')
+		onError: (error) => {
+			const message = error instanceof Error ? error.message : 'Failed to share conversation'
+			setShareError(message)
+			toast.error(message)
 		}
 	})
 
@@ -103,6 +116,10 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 
 	const handleCopyLink = useCallback(async () => {
 		if (!shareLink) return
+		if (!canWriteClipboard()) {
+			toast.error('Clipboard unavailable. Copy the share link manually.')
+			return
+		}
 		try {
 			await navigator.clipboard.writeText(shareLink)
 			setCopied(true)
@@ -222,10 +239,35 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 						</div>
 					</div>
 				) : (
-					<div className="flex items-center gap-3 py-2 text-sm text-[#666] dark:text-[#919296]">
-						<LoadingSpinner size={16} />
-						<span>Creating and copying your share link...</span>
-					</div>
+					<>
+						{shareError ? (
+							<div className="flex flex-col gap-4">
+								<p className="m-0 text-sm text-[#666] dark:text-[#919296]">{shareError}</p>
+								<div className="flex items-center justify-end gap-3">
+									<Ariakit.DialogDismiss className="rounded px-3 py-2 text-xs text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]">
+										Close
+									</Ariakit.DialogDismiss>
+									<button
+										type="button"
+										onClick={() => {
+											setShareError(null)
+											shareMutation.mutate()
+										}}
+										disabled={shareMutation.isPending}
+										className="flex items-center gap-2 rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
+									>
+										{shareMutation.isPending ? <LoadingSpinner size={14} /> : null}
+										<span>Retry</span>
+									</button>
+								</div>
+							</div>
+						) : (
+							<div className="flex items-center gap-3 py-2 text-sm text-[#666] dark:text-[#919296]">
+								<LoadingSpinner size={16} />
+								<span>Creating and copying your share link...</span>
+							</div>
+						)}
+					</>
 				)}
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
