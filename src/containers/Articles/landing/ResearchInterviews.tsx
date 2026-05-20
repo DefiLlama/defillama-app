@@ -58,7 +58,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 				{article.coverImage?.url ? (
 					<img
 						src={article.coverImage.url}
-						alt=""
+						alt={article.coverImage.alt}
 						className="mx-auto h-full w-full object-cover"
 						loading="lazy"
 						decoding="async"
@@ -120,7 +120,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 										<div className="relative h-[75px] w-[75px] shrink-0 overflow-hidden rounded-full transition-all duration-300 group-hover:brightness-[0.8] lg:h-[105px] lg:w-[105px]">
 											<img
 												src={article.coverImage.url}
-												alt=""
+												alt={article.coverImage.alt}
 												className="h-full w-full object-cover"
 												loading="lazy"
 												decoding="async"

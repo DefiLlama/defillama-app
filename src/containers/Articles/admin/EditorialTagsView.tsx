@@ -6,6 +6,7 @@ import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
 import {
 	ArticleApiError,
 	listArticlesByTag,
+	revalidateResearchLanding,
 	setEditorialTag,
 	unsetEditorialTag,
 	updateEditorialTagMetadata,
@@ -58,6 +59,9 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 		queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'editorial-tag', definition.slug] })
 		queryClient.invalidateQueries({ queryKey: ['research', 'by-tag', definition.slug] })
 		queryClient.invalidateQueries({ queryKey: ['research-landing'] })
+		void revalidateResearchLanding(authorizedFetch).catch((err) => {
+			console.error('Failed to revalidate research landing', err)
+		})
 	}
 
 	const setMutation = useMutation({

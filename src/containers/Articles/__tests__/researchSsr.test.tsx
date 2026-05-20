@@ -14,6 +14,7 @@ import {
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import ArticlesPage, { getStaticProps as getResearchStaticProps } from '~/pages/research'
+import SectionLandingPage, { getStaticProps as getSectionLandingStaticProps } from '~/pages/research/[section]'
 import SectionArticlePage, {
 	articlePathsToStaticPaths,
 	getStaticProps as getArticleStaticProps
@@ -221,6 +222,30 @@ describe('research ISR data loading', () => {
 				}
 			}
 		])
+	})
+
+	it('loads section landing props for ISR and renders articles immediately', async () => {
+		const result = await getSectionLandingStaticProps({
+			params: { section: 'report' }
+		} as never)
+
+		expect(result).toMatchObject({ revalidate: expect.any(Number) })
+		if (!('props' in result)) throw new Error('expected props')
+		expect(result.props.section).toBe('report')
+		expect(result.props.initialArticles.items[0]?.title).toBe('Canonical Research')
+		expect(getSectionBanner).toHaveBeenCalledWith('report')
+
+		const html = renderWithQueryClient(<SectionLandingPage {...result.props} />)
+		expect(html).toContain('Canonical Research')
+		expect(html).toContain('Report')
+	})
+
+	it('returns notFound for invalid section slugs', async () => {
+		await expect(
+			getSectionLandingStaticProps({
+				params: { section: 'not-a-section' }
+			} as never)
+		).resolves.toMatchObject({ notFound: true })
 	})
 
 	it('loads article props for ISR and renders article body immediately', async () => {

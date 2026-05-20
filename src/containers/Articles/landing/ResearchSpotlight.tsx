@@ -40,7 +40,15 @@ function getSpotlightGridCols(itemsCount: number) {
 function SnapshotImage({ article }: Readonly<{ article: ArticleDocument }>) {
 	const url = article.coverImage?.url
 	if (!url) return null
-	return <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+	return (
+		<img
+			src={url}
+			alt={article.coverImage.alt}
+			className="h-full w-full object-cover"
+			loading="lazy"
+			decoding="async"
+		/>
+	)
 }
 
 interface ResearchSpotlightProps {

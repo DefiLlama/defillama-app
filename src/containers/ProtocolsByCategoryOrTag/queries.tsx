@@ -2,13 +2,14 @@ import { ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
+import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
-import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ICategoriesAndTags, ICategoriesAndTagsConfig, IChainMetadata } from '~/utils/metadata/types'
 import { fetchCategoriesSummary, fetchCategoryChart, fetchTagChart } from './api'
 import {
 	categoriesPageExcludedExtraTvls,
@@ -27,6 +28,7 @@ import type {
 
 type GetProtocolsByCategoryOrTagParams = {
 	chain?: string
+	categoriesAndTags: ICategoriesAndTags
 	chainMetadata: Record<string, IChainMetadata>
 } & (
 	| {
@@ -290,10 +292,47 @@ type ChainTvlPoint = {
 	tvlPrevMonth: number | null
 }
 
+function getCategoryOrTagConfig({
+	categoriesAndTags,
+	category,
+	tag,
+	tagCategory
+}: {
+	categoriesAndTags: ICategoriesAndTags
+	category?: string | null
+	tag?: string | null
+	tagCategory?: string | null
+}): ICategoriesAndTagsConfig | null {
+	if (category) return categoriesAndTags.configs[category] ?? null
+	if (!tag) return null
+	return categoriesAndTags.configs[tag] ?? (tagCategory ? (categoriesAndTags.configs[tagCategory] ?? null) : null)
+}
+
+function hasCategoryMetric({
+	config,
+	chain,
+	chainMetadata,
+	adapterType,
+	dataType
+}: {
+	config: ICategoriesAndTagsConfig | null
+	chain?: string
+	chainMetadata: IChainMetadata
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+}): boolean {
+	if (chain && config?.chains != null && !config.chains.includes(chainMetadata.id)) return false
+
+	const dataKey = ADAPTER_DATA_TYPE_KEYS[dataType]
+	if (config?.dimAgg == null || dataKey == null) return true
+
+	return config.dimAgg[adapterType]?.[dataKey] != null
+}
+
 export async function getProtocolsByCategoryOrTag(
 	params: GetProtocolsByCategoryOrTagParams
 ): Promise<IProtocolByCategoryOrTagPageData | null> {
-	const { chain, chainMetadata } = params
+	const { chain, chainMetadata, categoriesAndTags } = params
 	const category = params.kind === 'category' ? params.category : undefined
 	const tag = params.kind === 'tag' ? params.tag : undefined
 	// For tag pages, we use the tag's parent category for category-specific logic.
@@ -302,6 +341,12 @@ export async function getProtocolsByCategoryOrTag(
 	const config = effectiveCategory ? protocolCategoryConfig[effectiveCategory] : null
 	const categoryMetrics: ProtocolCategoryMetrics | undefined = config?.metrics
 	const chartMetrics = getProtocolCategoryChartMetrics(effectiveCategory)
+	const categoryOrTagConfig = getCategoryOrTagConfig({
+		categoriesAndTags,
+		category,
+		tag,
+		tagCategory: params.kind === 'tag' ? params.tagCategory : null
+	})
 
 	const currentChainMetadata: IChainMetadata = chain
 		? chainMetadata[slug(chain)]
@@ -320,6 +365,63 @@ export async function getProtocolsByCategoryOrTag(
 	if (!currentChainMetadata) {
 		return null
 	}
+
+	const hasFees = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.FEES,
+		dataType: ADAPTER_DATA_TYPES.DAILY_FEES
+	})
+	const hasRevenue = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.FEES,
+		dataType: ADAPTER_DATA_TYPES.DAILY_REVENUE
+	})
+	const hasDexVolume = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.DEXS,
+		dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME
+	})
+	const hasDexAggregatorsVolume = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.AGGREGATORS,
+		dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME
+	})
+	const hasPerpVolume = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.PERPS,
+		dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME
+	})
+	const hasOpenInterest = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.OPEN_INTEREST,
+		dataType: ADAPTER_DATA_TYPES.OPEN_INTEREST_AT_END
+	})
+	const hasOptionsPremiumVolume = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.OPTIONS,
+		dataType: ADAPTER_DATA_TYPES.DAILY_PREMIUM_VOLUME
+	})
+	const hasOptionsNotionalVolume = hasCategoryMetric({
+		config: categoryOrTagConfig,
+		chain,
+		chainMetadata: currentChainMetadata,
+		adapterType: ADAPTER_TYPES.OPTIONS,
+		dataType: ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME
+	})
 
 	const [
 		{ protocols, parentProtocols },
@@ -357,91 +459,88 @@ export async function getProtocolsByCategoryOrTag(
 		Record<string, Array<string>> | null
 	] = await Promise.all([
 		fetchProtocols(),
-		currentChainMetadata?.fees
+		hasFees && currentChainMetadata?.fees
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
 					category: dimensionCategory
-				})
+				}).catch(() => null)
 			: null,
-		currentChainMetadata?.fees
+		hasRevenue && currentChainMetadata?.fees
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
 					category: dimensionCategory
-				})
+				}).catch(() => null)
 			: null,
-		categoryMetrics?.dexVolume && currentChainMetadata?.dexs
+		hasDexVolume && categoryMetrics?.dexVolume && currentChainMetadata?.dexs
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
 					category: dimensionCategory
-				})
-			: categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
+				}).catch(() => null)
+			: hasDexAggregatorsVolume && categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
 				? fetchAdapterChainMetrics({
 						chain: chain ?? 'All',
 						adapterType: 'aggregators',
 						category: dimensionCategory
-					})
+					}).catch(() => null)
 				: null,
-		categoryMetrics?.perpVolume && currentChainMetadata?.perps
+		hasPerpVolume && categoryMetrics?.perpVolume && currentChainMetadata?.perps
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
 					category: dimensionCategory
-				})
+				}).catch(() => null)
 			: null,
-		categoryMetrics?.openInterest && currentChainMetadata?.openInterest
+		hasOpenInterest && categoryMetrics?.openInterest && currentChainMetadata?.openInterest
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
 					dataType: 'openInterestAtEnd',
 					category: dimensionCategory
-				}).catch((err) => {
-					console.log(err)
-					return null
-				})
+				}).catch(() => null)
 			: null,
-		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
+		hasOptionsPremiumVolume && categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
 					category: dimensionCategory
-				})
+				}).catch(() => null)
 			: null,
-		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
+		hasOptionsNotionalVolume && categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
 					category: dimensionCategory
-				})
+				}).catch(() => null)
 			: null,
 		tag ? fetchTagChart({ tag, chain }) : fetchCategoryChart({ category: category ?? '', chain }),
-		categoryMetrics?.dexVolume && currentChainMetadata?.dexs
+		hasDexVolume && categoryMetrics?.dexVolume && currentChainMetadata?.dexs
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
+		hasDexAggregatorsVolume && categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'aggregators',
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.perpVolume && currentChainMetadata?.perps
+		hasPerpVolume && categoryMetrics?.perpVolume && currentChainMetadata?.perps
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.openInterest && currentChainMetadata?.openInterest
+		hasOpenInterest && categoryMetrics?.openInterest && currentChainMetadata?.openInterest
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -449,7 +548,7 @@ export async function getProtocolsByCategoryOrTag(
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
+		hasOptionsPremiumVolume && categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -457,7 +556,7 @@ export async function getProtocolsByCategoryOrTag(
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
+		hasOptionsNotionalVolume && categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'options',

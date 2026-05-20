@@ -33,6 +33,7 @@ interface ProjectLandingProps {
 	onSubmit: (prompt: string) => void
 	isStreaming: boolean
 	onPickSession: (sessionId: string) => void
+	enterToSend: boolean
 }
 
 export function ProjectLanding({
@@ -41,7 +42,8 @@ export function ProjectLanding({
 	initialTab = 'chats',
 	onSubmit,
 	isStreaming,
-	onPickSession
+	onPickSession,
+	enterToSend
 }: ProjectLandingProps) {
 	const router = useRouter()
 	const usage = useProjectUsage()
@@ -98,7 +100,7 @@ export function ProjectLanding({
 	}
 
 	const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === 'Enter' && e.shiftKey !== enterToSend && !e.nativeEvent.isComposing) {
 			e.preventDefault()
 			handleSubmit()
 		}

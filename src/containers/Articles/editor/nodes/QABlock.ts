@@ -1,6 +1,16 @@
 import { mergeAttributes, Node } from '@tiptap/core'
 import { TextSelection } from '@tiptap/pm/state'
 
+function createQAPairNode(type: string) {
+	return {
+		type,
+		content: [
+			{ type: 'qaQuestion', content: [] },
+			{ type: 'qaAnswer', content: [{ type: 'paragraph' }] }
+		]
+	}
+}
+
 declare module '@tiptap/core' {
 	interface Commands<ReturnType> {
 		qaBlock: {
@@ -82,25 +92,34 @@ export const QABlock = Node.create({
 		return {
 			insertQAPair:
 				() =>
-				({ chain }) => {
-					return chain()
-						.insertContent({
-							type: this.name,
-							content: [
-								{ type: 'qaQuestion', content: [] },
-								{ type: 'qaAnswer', content: [{ type: 'paragraph' }] }
-							]
-						})
-						.command(({ tr, dispatch }) => {
+				({ chain, tr: currentTr }) => {
+					const $from = currentTr.selection.$from
+					let enclosingQADepth: number | null = null
+					for (let depth = 1; depth <= $from.depth; depth++) {
+						if ($from.node(depth).type.name === this.name) {
+							enclosingQADepth = depth
+							break
+						}
+					}
+
+					const pair = createQAPairNode(this.name)
+					const insertPos = enclosingQADepth === null ? null : $from.after(enclosingQADepth)
+					const command = insertPos === null ? chain().insertContent(pair) : chain().insertContentAt(insertPos, pair)
+
+					return command
+						.command(({ tr: nextTr, dispatch }) => {
 							if (!dispatch) return true
-							const $from = tr.selection.$from
-							for (let depth = $from.depth; depth >= 0; depth--) {
-								if ($from.node(depth).type.name === 'qa') {
-									const qaStart = $from.before(depth)
-									const questionInside = qaStart + 2
-									tr.setSelection(TextSelection.near(tr.doc.resolve(questionInside)))
-									return true
-								}
+							if (insertPos !== null) {
+								nextTr.setSelection(TextSelection.near(nextTr.doc.resolve(insertPos + 2)))
+								return true
+							}
+							const $selectionFrom = nextTr.selection.$from
+							for (let depth = $selectionFrom.depth; depth >= 0; depth--) {
+								if ($selectionFrom.node(depth).type.name !== this.name) continue
+								const qaStart = $selectionFrom.before(depth)
+								const questionInside = qaStart + 2
+								nextTr.setSelection(TextSelection.near(nextTr.doc.resolve(questionInside)))
+								return true
 							}
 							return true
 						})

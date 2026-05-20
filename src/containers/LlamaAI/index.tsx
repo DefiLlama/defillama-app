@@ -82,6 +82,7 @@ import type {
 	DashboardArtifact,
 	DashboardItem,
 	Message,
+	TodoItem,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
@@ -185,6 +186,7 @@ interface SharedSessionMessage {
 
 interface SessionRestoreResult {
 	messages?: PersistedMessage[]
+	todos?: TodoItem[]
 	activeLeafMessageId?: string
 	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
 	projectId?: string | null
@@ -642,6 +644,16 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.toolExecutions.push(data)
 			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
+			if (data.name === 'todo' && data.success) {
+				const todos = (data.toolData as { todos?: TodoItem[] } | undefined)?.todos
+				if (Array.isArray(todos)) {
+					dispatch({ type: 'SET_TODOS', value: todos })
+				}
+			}
+		},
+		onTodos: (todos) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_TODOS', value: todos })
 		},
 		onMessageMetadata: (data) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -921,6 +933,8 @@ export function AgenticChat({
 		spawnProgress,
 		spawnStartTime,
 		spawnIsResearchMode,
+		todos: streamingTodos,
+		todosStartTime,
 		executionStartedAt,
 		recovery,
 		error,
@@ -1514,6 +1528,7 @@ export function AgenticChat({
 			}
 
 			setMessages(restored)
+			dispatchStream({ type: 'SET_TODOS', value: Array.isArray(result.todos) ? result.todos : [] })
 			setActiveLeafMessageId(
 				'activeLeafMessageId' in result
 					? (result.activeLeafMessageId ?? restored[restored.length - 1]?.id ?? null)
@@ -1766,15 +1781,53 @@ export function AgenticChat({
 		setPaginationState({ hasMore: false, cursor: null })
 	}, [abortActiveRequest, attach, clearConversationRuntimeState])
 
-	// Start a brand-new chat, or route away from a session page back to the base chat route.
+	// Start a brand-new chat, keeping project-owned sessions inside their project.
 	const handleNewChat = useCallback(async () => {
+		const projectIdForNewChat = route.kind === 'project' ? route.projectId : currentSessionProjectId
+		if (projectIdForNewChat && !sharedSession) {
+			await clearConversationState()
+			const nextSessionId = createFakeSession(projectIdForNewChat)
+			setSessionId(nextSessionId)
+			setSessionTitle('New Chat')
+			setCurrentSessionProjectId(projectIdForNewChat)
+			restoredSessionIdRef.current = nextSessionId
+			isFirstMessageRef.current = false
+			const persistSession = createSession({
+				sessionId: nextSessionId,
+				title: 'New Chat',
+				projectId: projectIdForNewChat
+			})
+			if (route.kind !== 'project') {
+				try {
+					await persistSession
+					void navigate.toSession(nextSessionId)
+				} catch (createSessionError) {
+					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+				}
+			} else {
+				void persistSession.catch((createSessionError) => {
+					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+				})
+			}
+			promptInputRef.current?.focus()
+			return
+		}
+
 		if (route.kind !== 'chat-new' || sharedSession) {
 			void navigate.toNewChat()
 			return
 		}
 		await clearConversationState()
 		promptInputRef.current?.focus()
-	}, [clearConversationState, navigate, route.kind, sharedSession])
+	}, [
+		clearConversationState,
+		createFakeSession,
+		createSession,
+		currentSessionProjectId,
+		navigate,
+		route,
+		sharedSession
+	])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
@@ -1938,7 +1991,7 @@ export function AgenticChat({
 		(
 			prompt: string,
 			entities?: Array<{ term: string; slug: string; type?: string }>,
-			images?: Array<{ data: string; mimeType: string; filename?: string }>,
+			images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 			pageContext?: ChatPageContext,
 			isSuggestedQuestion?: boolean
 		) => {
@@ -2645,6 +2698,7 @@ export function AgenticChat({
 							initialTab={route.initialTab}
 							onSubmit={api.handleSubmit}
 							isStreaming={api.isStreaming}
+							enterToSend={settings.enterToSend}
 							onPickSession={(nextSessionId) => {
 								void navigate.toSession(nextSessionId)
 							}}
@@ -2789,6 +2843,8 @@ export function AgenticChat({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={streamingTodos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										spawnIsResearchMode={spawnIsResearchMode}
 										streamingThinking={streamingThinking}
@@ -2859,6 +2915,8 @@ export function AgenticChat({
 								activeToolCalls={activeToolCalls}
 								spawnProgress={spawnProgress}
 								spawnStartTime={spawnStartTime}
+								todos={streamingTodos}
+								todosStartTime={todosStartTime}
 								executionStartedAt={executionStartedAt}
 								streamingThinking={streamingThinking}
 								spawnIsResearchMode={spawnIsResearchMode}

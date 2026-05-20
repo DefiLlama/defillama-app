@@ -9,6 +9,7 @@ import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import trendingPages from '~/public/trending.json'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { fetchJson } from '~/utils/async'
 import { TagGroup } from './TagGroup'
 import { Tooltip } from './Tooltip'
@@ -340,6 +341,16 @@ const getTotalTracked = (totalTrackedByMetric: Record<string, unknown>, totalTra
 export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
 	const dialogStore = Ariakit.useDialogStore()
 	const hasScrolledToCategoryRef = useRef('')
+	const router = useRouter()
+
+	const trackDialogOpen = (trigger: 'pill' | 'browse-search', metric?: string) => {
+		trackUmamiEvent('metrics-and-tools-open', {
+			page: router.asPath,
+			trigger,
+			metric
+		})
+	}
+
 	return (
 		<>
 			<Ariakit.DialogProvider store={dialogStore}>
@@ -365,13 +376,19 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 								{i === 1 ? (
 									<span>{metric}</span>
 								) : (
-									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-2.5 py-1 font-semibold hover:bg-(--link-button-hover)">
+									<Ariakit.DialogDisclosure
+										className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-2.5 py-1 font-semibold hover:bg-(--link-button-hover)"
+										onClick={() => trackDialogOpen('pill', metric)}
+									>
 										{metric}
 									</Ariakit.DialogDisclosure>
 								)}
 							</Fragment>
 						))}
-						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-1.5 py-1 text-xs text-(--text-form)">
+						<Ariakit.DialogDisclosure
+							className="z-10 flex items-center gap-1 px-1.5 py-1 text-xs text-(--text-form)"
+							onClick={() => trackDialogOpen('browse-search')}
+						>
 							<Icon name="search" height={12} width={12} />
 							<span className="hidden sm:block">Click to browse & search</span>
 						</Ariakit.DialogDisclosure>

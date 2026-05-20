@@ -174,6 +174,14 @@ export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<Arti
 	return parseResponse(await fetchFn(articleUrl('/articles/paths')))
 }
 
+export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch): Promise<void> {
+	await parseResponse(
+		await authorizedFetch(`/api/research/revalidate-landing?_n=${Date.now()}`, {
+			method: 'GET'
+		})
+	)
+}
+
 export async function setEditorialTag(
 	articleId: string,
 	tag: string,

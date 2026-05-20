@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	ArticleApiError,
 	getAllArticlesBanner,
@@ -6,6 +6,7 @@ import {
 	listArticles,
 	listArticlesByTag,
 	publishArticle,
+	revalidateResearchLanding,
 	updateEditorialTagMetadata,
 	updateReportHighlightSponsorLogo
 } from '../api'
@@ -14,6 +15,10 @@ import { EDITORIAL_TAGS } from '../editorialTags'
 const createFetchMock = (response: Response) => vi.fn(async (_url: string, _options?: RequestInit) => response.clone())
 
 describe('articles api client', () => {
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
 	it('builds discovery query parameters', async () => {
 		const fetchFn = createFetchMock(
 			new Response(JSON.stringify({ items: [], page: 1, perPage: 20, totalItems: 0, totalPages: 1 }))
@@ -102,6 +107,21 @@ describe('articles api client', () => {
 
 		const [url, options] = fetchFn.mock.calls[0]
 		expect(url).toBe('/api/research/articles/article-id/publish?_n=1779199500000')
+		expect(options?.method).toBe('GET')
+	})
+
+	it('requests research landing revalidation with a nonce', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(1779199600000)
+		const fetchFn = createFetchMock(
+			new Response(
+				JSON.stringify({ cloudflare: { status: 'skipped' }, revalidateErrors: [], revalidated: ['/research'] })
+			)
+		)
+
+		await revalidateResearchLanding(fetchFn)
+
+		const [url, options] = fetchFn.mock.calls[0]
+		expect(url).toBe('/api/research/revalidate-landing?_n=1779199600000')
 		expect(options?.method).toBe('GET')
 	})
 

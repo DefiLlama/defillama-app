@@ -38,7 +38,11 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 							<div className="text-[9px] tracking-[0.18em] text-[#1D1D1D]/60 uppercase dark:text-white/60">
 								Sponsored by
 							</div>
-							<img src={sponsorLogoUrl} alt="" className="h-7 w-auto max-w-[120px] object-contain" />
+							<img
+								src={sponsorLogoUrl}
+								alt={highlight.sponsorLogo.alt}
+								className="h-7 w-auto max-w-[120px] object-contain"
+							/>
 						</div>
 					) : null}
 					<h2 className="text-[24px] leading-[150%] font-medium text-[#0c2956] dark:text-white">{highlight.title}</h2>
@@ -46,7 +50,7 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 						<div className="w-full">
 							<img
 								src={coverUrl}
-								alt=""
+								alt={highlight?.coverImage?.alt}
 								className="h-full w-full rounded-[6px] object-cover"
 								loading="lazy"
 								decoding="async"

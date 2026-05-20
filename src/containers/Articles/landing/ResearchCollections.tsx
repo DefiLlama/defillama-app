@@ -64,7 +64,7 @@ export const ResearchCollections: React.FC<ResearchCollectionsProps> = ({ title,
 									{article.coverImage?.url ? (
 										<img
 											src={article.coverImage.url}
-											alt=""
+											alt={article.coverImage.alt}
 											className="absolute inset-0 h-full w-full object-cover"
 											loading="lazy"
 											decoding="async"

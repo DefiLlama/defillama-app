@@ -49,3 +49,27 @@ export const RESEARCH_LANDING_SECTION_LIMITS = {
 	spotlightColumn: 20,
 	collections: 15
 } as const
+
+/**
+ * Size of the collections API fetch: sum of all landing section limits.
+ * Collections should show N articles not already shown elsewhere; this fetch size
+ * ensures enough candidates remain after dedup against every other landing section.
+ */
+export const RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT = Object.values(RESEARCH_LANDING_SECTION_LIMITS).reduce(
+	(sum, limit) => sum + limit,
+	0
+)
+
+export function takeUniqueArticles<T extends { id: string }>(
+	articles: T[],
+	excludedIds: ReadonlySet<string>,
+	limit: number
+): T[] {
+	const result: T[] = []
+	for (const article of articles) {
+		if (excludedIds.has(article.id)) continue
+		result.push(article)
+		if (result.length >= limit) break
+	}
+	return result
+}

@@ -193,7 +193,7 @@ function ResultCard({ article }: { article: ArticleDocument }) {
 					{cover ? (
 						<img
 							src={cover}
-							alt=""
+							alt={article.coverImage?.alt}
 							loading="lazy"
 							decoding="async"
 							className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"

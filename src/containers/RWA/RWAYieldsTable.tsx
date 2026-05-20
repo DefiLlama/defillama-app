@@ -1,4 +1,10 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table'
 import { useMemo } from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
@@ -6,11 +12,10 @@ import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useVolatility } from '~/containers/Yields/queries/client'
 import { NameYield, NameYieldPool } from '~/containers/Yields/Tables/Name'
-import { YieldsTableWrapper } from '~/containers/Yields/Tables/shared'
 import { StabilityCell, StabilityHeader } from '~/containers/Yields/Tables/StabilityCell'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
@@ -182,39 +187,16 @@ function createColumns({
 	]
 }
 
-const COL_IDS = [
-	'pool',
-	'project',
-	'chains',
-	'tvl',
-	'apy',
-	'apyBase',
-	'apyReward',
-	'apyMean30d',
-	'cv30d',
-	'apyChart30d'
-]
-
-const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyMean30d', 'cv30d', 'apyChart30d'],
-	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'apyMean30d', 'cv30d', 'apyChart30d'],
-	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'apyMean30d', 'cv30d', 'apyChart30d'],
-	1280: COL_IDS
-}
 const COMPACT_COL_IDS = ['pool', 'project', 'chains', 'tvl', 'apy']
+const RWA_YIELDS_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
 
-const compactColumnOrders: ColumnOrdersByBreakpoint = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains'],
-	400: ['pool', 'project', 'apy', 'tvl', 'chains'],
-	640: COMPACT_COL_IDS
-}
 export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; compact?: boolean }) {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 	const { data: volatility } = useVolatility()
 	const { onRequestUpgrade, modal } = useYieldsUpgradePrompt()
 	const hasPremiumAccess = isClient && hasActiveSubscription
-	const rows = useMemo(
+	const rows = useMemo<IYieldTableRow[]>(
 		() =>
 			data.map((row) => {
 				const volatilityEntry = row.configID ? volatility?.[row.configID] : undefined
@@ -231,16 +213,28 @@ export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; comp
 		() => createColumns({ hasPremiumAccess, onRequestUpgrade, compact }),
 		[hasPremiumAccess, onRequestUpgrade, compact]
 	)
+	const visibleColumns = useMemo(
+		() => (compact ? columns.filter((column) => COMPACT_COL_IDS.includes(column.id!)) : columns),
+		[columns, compact]
+	)
+	const table = useReactTable({
+		data: rows,
+		columns: visibleColumns,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			},
+			sorting: [{ id: 'tvl', desc: true }]
+		},
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
+	})
 
 	return (
 		<>
-			<YieldsTableWrapper
-				data={rows}
-				columns={compact ? columns.filter((c) => COMPACT_COL_IDS.includes(c.id!)) : columns}
-				columnOrders={compact ? compactColumnOrders : columnOrders}
-				sortingState={[{ id: 'tvl', desc: true }]}
-				skipVirtualization
-			/>
+			<PaginatedTable table={table} pageSizeOptions={RWA_YIELDS_PAGE_SIZE_OPTIONS} />
 			{modal}
 		</>
 	)

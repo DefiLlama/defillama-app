@@ -10,6 +10,7 @@ import {
 	updateSessionInInfiniteData
 } from '~/containers/LlamaAI/hooks/sessionListCache'
 import { isProjectSessionsQueryKey, projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
+import type { ProjectChatSession } from '~/containers/LlamaAI/projects/types'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -89,6 +90,25 @@ export function useSessionMutations() {
 		void queryClient.invalidateQueries({ predicate: (query) => isProjectSessionsQueryKey(query.queryKey) })
 	}
 
+	const prependProjectSession = useCallback(
+		(projectId: string, session: ProjectChatSession) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) => {
+				const sessions = old?.filter((item) => item.sessionId !== session.sessionId) ?? []
+				return [session, ...sessions]
+			})
+		},
+		[queryClient]
+	)
+
+	const removeProjectSession = useCallback(
+		(projectId: string, sessionId: string) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+				old?.filter((item) => item.sessionId !== sessionId)
+			)
+		},
+		[queryClient]
+	)
+
 	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
 		mutationFn: async ({
@@ -119,6 +139,14 @@ export function useSessionMutations() {
 		onSuccess: (_data, variables) => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 			if (variables.projectId) invalidateProjectSessions(variables.projectId)
+		},
+		onError: (_error, variables) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					removeSessionFromInfiniteData(old, variables.sessionId)
+				)
+			}
+			if (variables.projectId) removeProjectSession(variables.projectId, variables.sessionId)
 		}
 	})
 
@@ -321,6 +349,7 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			invalidateProjectSessions()
 		}
 	})
 
@@ -329,13 +358,14 @@ export function useSessionMutations() {
 		(projectId?: string | null) => {
 			const sessionId = crypto.randomUUID()
 			const title = 'New Chat'
+			const now = new Date().toISOString()
 
 			if (user) {
 				const fakeSession: ChatSession = {
 					sessionId,
 					title,
-					createdAt: new Date().toISOString(),
-					lastActivity: new Date().toISOString(),
+					createdAt: now,
+					lastActivity: now,
 					isActive: true,
 					isOptimistic: true,
 					projectId: projectId ?? null
@@ -344,11 +374,24 @@ export function useSessionMutations() {
 				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
 					prependSessionToInfiniteData(old, fakeSession)
 				)
+
+				if (projectId) {
+					prependProjectSession(projectId, {
+						sessionId,
+						title,
+						createdAt: now,
+						lastActivity: now,
+						isPinned: false,
+						pinnedAt: null,
+						isPublic: false,
+						shareToken: null
+					})
+				}
 			}
 
 			return sessionId
 		},
-		[user, queryClient]
+		[user, queryClient, prependProjectSession]
 	)
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
@@ -371,6 +414,7 @@ export function useSessionMutations() {
 						newerCursor: result.newerCursor
 					},
 					streaming: result.streaming,
+					todos: result.todos,
 					projectId: result.projectId ?? null
 				}
 			} catch (error) {

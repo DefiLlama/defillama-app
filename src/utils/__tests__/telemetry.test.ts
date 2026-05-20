@@ -17,6 +17,17 @@ import {
 	type TelemetryEvent
 } from '../telemetry'
 
+const axiomMock = vi.hoisted(() => {
+	const ingest = vi.fn(async (_dataset: string, _events: Record<string, unknown>[]) => undefined)
+	const flush = vi.fn(async () => undefined)
+	const Axiom = vi.fn(function () {
+		return { ingest, flush }
+	})
+	return { Axiom, ingest, flush }
+})
+
+vi.mock('@axiomhq/js', () => ({ Axiom: axiomMock.Axiom }))
+
 function runtimeError(message: string): TelemetryEvent {
 	return {
 		type: 'runtime_error',
@@ -51,6 +62,11 @@ function sentEvents(fetchMock: ReturnType<typeof vi.fn>): TelemetryEvent[] {
 	return batches.flatMap((batch) => batch.events)
 }
 
+async function flushPromises() {
+	await Promise.resolve()
+	await Promise.resolve()
+}
+
 function ssrContext(path: string, statusCode = 200, params?: Record<string, string>, query?: Record<string, string>) {
 	return {
 		req: { method: 'GET' },
@@ -80,6 +96,9 @@ describe('telemetry client', () => {
 		telemetryTest.reset()
 		vi.unstubAllEnvs()
 		vi.unstubAllGlobals()
+		axiomMock.Axiom.mockClear()
+		axiomMock.ingest.mockClear()
+		axiomMock.flush.mockClear()
 	})
 
 	it('drops oldest queued events when the queue cap is exceeded', async () => {
@@ -390,6 +409,47 @@ describe('telemetry client', () => {
 			attributes: { api_group: 'api.llama.fi/test', response_bytes: 11 }
 		})
 		expect(outbound).not.toHaveProperty('apiGroup')
+	})
+
+	it('does not record malformed outbound content-length values as response bytes', async () => {
+		const responseHeadersByUrl = new Map([
+			['https://api.llama.fi/negative-length', '-1'],
+			['https://api.llama.fi/decimal-length', '1.5'],
+			['https://api.llama.fi/nan-length', 'not-a-number']
+		])
+		const fetchMock = vi.fn(async (url: string) => {
+			const contentLength = responseHeadersByUrl.get(url)
+			if (contentLength) {
+				return new Response('{}', {
+					status: 200,
+					headers: { 'content-length': contentLength }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withRouteTelemetry(
+			{
+				route: 'malformed-content-length-route',
+				operationType: 'apiRoute',
+				runtime: 'node',
+				flushTimeoutMs: 1000
+			},
+			async () => {
+				for (const url of responseHeadersByUrl.keys()) {
+					await fetchWithPoolingOnServer(url)
+				}
+				return 'ok'
+			}
+		)
+
+		const outbound = sentEvents(fetchMock).filter((event) => event.type === 'outbound_http_request')
+		expect(outbound).toHaveLength(3)
+		for (const event of outbound) {
+			expect(event.attributes).not.toHaveProperty('response_bytes')
+		}
 	})
 
 	it('resolves relative server fetch URLs before pooling and telemetry', async () => {
@@ -720,5 +780,58 @@ describe('telemetry client', () => {
 				singleflight_role: 'leader'
 			}
 		})
+	})
+
+	it('logs completed outbound responses to Axiom without an active route context', async () => {
+		vi.stubEnv('AXIOM_TOKEN', 'axiom-token')
+		vi.stubEnv('API_KEY', 'pro-secret')
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === 'https://pro-api.llama.fi/pro-secret/api/v2/chains?api_key=leaky') {
+				return new Response('fail', {
+					status: 500,
+					headers: { 'content-length': '4' }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await fetchWithPoolingOnServer('https://pro-api.llama.fi/pro-secret/api/v2/chains?api_key=leaky')
+
+		await vi.waitFor(() => {
+			expect(axiomMock.ingest).toHaveBeenCalledWith('frontend-requests', [
+				expect.objectContaining({
+					source: 'app',
+					domain: 'pro-api.llama.fi',
+					section: 'api',
+					subRoute: 'chains',
+					method: 'GET',
+					responseBytes: 4,
+					httpStatus: 500,
+					status: 'http_error'
+				})
+			])
+		})
+		const ingestCall = axiomMock.ingest.mock.calls[0]
+		if (!ingestCall) throw new Error('missing Axiom ingest call')
+		const event = ingestCall[1][0]
+		expect(event).not.toHaveProperty('url')
+		expect(JSON.stringify(event)).not.toContain('pro-secret')
+		expect(JSON.stringify(event)).not.toContain('leaky')
+		expect(JSON.stringify(event)).not.toContain('[REDACTED]')
+	})
+
+	it('does not log thrown outbound failures to Axiom', async () => {
+		vi.stubEnv('AXIOM_TOKEN', 'axiom-token')
+		const fetchMock = vi.fn(async () => {
+			throw new TypeError('network down')
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(fetchWithPoolingOnServer('https://api.llama.fi/fail')).rejects.toThrow('network down')
+		await flushPromises()
+
+		expect(axiomMock.ingest).not.toHaveBeenCalled()
 	})
 })
