@@ -42,6 +42,15 @@ const TelegramIcon = () => (
 	</svg>
 )
 
+const LinkedInIcon = () => (
+	<svg xmlns="http://www.w3.org/2000/svg" width={36} height={36} fill="none">
+		<path
+			fill="#fff"
+			d="M18 0C8.059 0 0 8.059 0 18s8.059 18 18 18 18-8.059 18-18S27.941 0 18 0m-4.406 25.46H9.949V13.73h3.645zm-1.845-13.17c-1.152 0-1.896-.815-1.896-1.824 0-1.03.767-1.82 1.943-1.82 1.175 0 1.895.79 1.918 1.82 0 1.009-.743 1.825-1.965 1.825m15.157 13.17h-3.645v-6.5c0-1.513-.528-2.54-1.847-2.54-1.007 0-1.605.695-1.869 1.364-.098.239-.122.576-.122.912v6.763h-3.647V17.47a78 78 0 0 0-.095-3.742h3.167l.166 1.63h.073c.48-.766 1.656-1.895 3.623-1.895 2.398 0 4.196 1.607 4.196 5.061z"
+		/>
+	</svg>
+)
+
 const BookCallIcon = () => (
 	<svg xmlns="http://www.w3.org/2000/svg" width={28} height={29} fill="none">
 		<g fill="#fff" clipPath="url(#a)">
@@ -106,6 +115,14 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								target="_blank"
 							>
 								<TelegramIcon />
+							</Link>
+							<Link
+								href="https://www.linkedin.com/company/defillama/"
+								aria-label="Follow us on LinkedIn"
+								rel="noopener noreferrer"
+								target="_blank"
+							>
+								<LinkedInIcon />
 							</Link>
 						</div>
 					</div>
