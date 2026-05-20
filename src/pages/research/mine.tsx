@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { deleteArticle as deleteArticleApi, listMyArticles, type ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
@@ -64,6 +65,7 @@ function StatusDot({ status }: { status: ArticleDocument['status'] }) {
 function MyArticlesContent() {
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
 	const queryClient = useQueryClient()
+	const revalidateLanding = useResearchLandingRevalidation()
 
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 	const [sectionFilter, setSectionFilter] = useState<SectionFilter>('all')
@@ -86,6 +88,7 @@ function MyArticlesContent() {
 			queryClient.setQueryData<ArticleListResponse | undefined>(myArticlesQueryKey, (current) =>
 				current ? { ...current, items: current.items.filter((a) => a.id !== articleId) } : current
 			)
+			revalidateLanding()
 			toast.success('Deleted')
 		},
 		onError: (err) => {

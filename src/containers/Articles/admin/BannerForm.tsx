@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { ArticleApiError, createBanner, deleteBanner, updateBanner } from '~/containers/Articles/api'
 import type { ArticleSection, Banner, BannerKind, BannerPayload, BannerScope } from '~/containers/Articles/types'
 import {
@@ -151,6 +152,7 @@ type Props = {
 export function BannerForm({ banner }: Props) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const [state, setState] = useState<FormState>(() => bannerToForm(banner))
 	const initial = useMemo(() => bannerToForm(banner), [banner])
 
@@ -202,6 +204,7 @@ export function BannerForm({ banner }: Props) {
 		if (hasError) return
 		try {
 			const saved = await saveMutation.mutateAsync()
+			revalidateLanding()
 			toast.success(banner ? 'Banner saved' : 'Banner created')
 			if (!banner && saved?.id) {
 				router.push(`/research/admin/banners/${saved.id}`)
@@ -216,6 +219,7 @@ export function BannerForm({ banner }: Props) {
 		if (!window.confirm('Delete this banner? This cannot be undone.')) return
 		try {
 			await deleteMutation.mutateAsync()
+			revalidateLanding()
 			toast.success('Banner deleted')
 			router.push('/research/admin/banners')
 		} catch (err) {

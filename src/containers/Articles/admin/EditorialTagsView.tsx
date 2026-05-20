@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import {
 	ArticleApiError,
 	listArticlesByTag,
-	revalidateResearchLanding,
 	setEditorialTag,
 	unsetEditorialTag,
 	updateEditorialTagMetadata,
@@ -47,6 +47,7 @@ export function EditorialTagsView() {
 function EditorialTagSection({ definition }: { definition: EditorialTagDefinition }) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const limit = definition.cardinality === 'singleton' ? 1 : 30
 
 	const { data, isLoading, error } = useQuery<ArticleByTagResponse>({
@@ -58,10 +59,7 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 	const invalidate = () => {
 		queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'editorial-tag', definition.slug] })
 		queryClient.invalidateQueries({ queryKey: ['research', 'by-tag', definition.slug] })
-		queryClient.invalidateQueries({ queryKey: ['research-landing'] })
-		void revalidateResearchLanding(authorizedFetch).catch((err) => {
-			console.error('Failed to revalidate research landing', err)
-		})
+		revalidateLanding()
 	}
 
 	const setMutation = useMutation({

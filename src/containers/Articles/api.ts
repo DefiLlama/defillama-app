@@ -61,6 +61,14 @@ function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
 
+/** Temporary CDN cache bust; remove when Cloudflare purge covers these routes. */
+function articleUrlWithCacheNonce(path: string) {
+	const base = FEATURES_SERVER.replace(/\/$/, '')
+	const url = new URL(path.startsWith('/') ? path : `/${path}`, `${base}/`)
+	url.searchParams.set('_n', String(Date.now()))
+	return url.toString()
+}
+
 function nullableText(value: string | null | undefined): string | null {
 	if (typeof value !== 'string') return null
 	const trimmed = value.trim()
@@ -140,7 +148,7 @@ export async function listArticles(
 	appendSearchParam(search, 'entitySlug', params.entitySlug)
 	appendSearchParam(search, 'section', params.section)
 	appendSearchParam(search, 'sort', params.sort)
-	return parseResponse(await fetchFn(articleUrl(`/articles?${search}`)))
+	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles?${search}`)))
 }
 
 export type ArticleSectionListResponse = {
@@ -167,7 +175,9 @@ export async function listArticlesByTag(
 ): Promise<ArticleByTagResponse> {
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'limit', limit)
-	return parseResponse(await fetchFn(articleUrl(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
+	return parseResponse(
+		await fetchFn(articleUrlWithCacheNonce(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`))
+	)
 }
 
 export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<ArticlePathsResponse> {
@@ -557,12 +567,16 @@ export async function deleteBanner(id: string, authorizedFetch: AuthorizedFetch)
 const EMPTY_BANNER_LOOKUP: BannerLookupResult = { text: null, image: null, imageHorizontal: null }
 
 export async function getLandingBanner(fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
-	const data = await parseResponse<BannerLookupResult | null>(await fetchFn(articleUrl('/banners/lookup/landing')))
+	const data = await parseResponse<BannerLookupResult | null>(
+		await fetchFn(articleUrlWithCacheNonce('/banners/lookup/landing'))
+	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
 export async function getAllArticlesBanner(fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
-	const data = await parseResponse<BannerLookupResult | null>(await fetchFn(articleUrl('/banners/lookup/all-articles')))
+	const data = await parseResponse<BannerLookupResult | null>(
+		await fetchFn(articleUrlWithCacheNonce('/banners/lookup/all-articles'))
+	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
@@ -571,14 +585,14 @@ export async function getSectionBanner(
 	fetchFn: FetchLike = fetch
 ): Promise<BannerLookupResult> {
 	const data = await parseResponse<BannerLookupResult | null>(
-		await fetchFn(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
+		await fetchFn(articleUrlWithCacheNonce(`/banners/lookup/section/${encodeURIComponent(section)}`))
 	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
 export async function getArticleBanner(articleId: string, fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
 	const data = await parseResponse<BannerLookupResult | null>(
-		await fetchFn(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
+		await fetchFn(articleUrlWithCacheNonce(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
 	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
