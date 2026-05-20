@@ -12,13 +12,7 @@ export interface UnlockHistoricalPriceProtocol {
 }
 
 function roundToNearestHalfHour(timestamp: number): number {
-	const date = new Date(timestamp * 1000)
-	const minutes = date.getMinutes()
-	const roundedMinutes = minutes >= 30 ? 30 : 0
-	date.setMinutes(roundedMinutes)
-	date.setSeconds(0)
-	date.setMilliseconds(0)
-	return Math.floor(date.getTime() / 1000)
+	return Math.floor(timestamp / 1800) * 1800
 }
 
 export function buildUnlocksHistoricalPriceRequests(

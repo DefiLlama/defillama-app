@@ -280,6 +280,14 @@ describe('getAllProtocolEmissions', () => {
 			}
 		])
 
+		const emissionsHistoricalPrices = {
+			'coingecko:chainlink': {
+				prices: [
+					{ timestamp: lastPastEvent + day, price: 10 },
+					{ timestamp: lastPastEvent - day, price: 5 }
+				]
+			}
+		}
 		const result = await getAllProtocolEmissions({
 			tokenlist: {
 				chainlink: {
@@ -287,14 +295,7 @@ describe('getAllProtocolEmissions', () => {
 					symbol: 'link'
 				}
 			},
-			emissionsHistoricalPrices: {
-				'coingecko:chainlink': {
-					prices: [
-						{ timestamp: lastPastEvent + day, price: 10 },
-						{ timestamp: lastPastEvent - day, price: 5 }
-					]
-				}
-			}
+			emissionsHistoricalPrices
 		})
 
 		dateNow.mockRestore()
@@ -304,6 +305,10 @@ describe('getAllProtocolEmissions', () => {
 		expect(result[0].historicalPrice).toEqual([
 			[(lastPastEvent - day) * 1000, 5],
 			[(lastPastEvent + day) * 1000, 10]
+		])
+		expect(emissionsHistoricalPrices['coingecko:chainlink'].prices).toEqual([
+			{ timestamp: lastPastEvent + day, price: 10 },
+			{ timestamp: lastPastEvent - day, price: 5 }
 		])
 	})
 
