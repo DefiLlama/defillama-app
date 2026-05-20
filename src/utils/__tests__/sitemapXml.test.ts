@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSitemapXml, escapeXml } from '../sitemapXml'
+import { buildSitemapXml, encodeSitemapPath, escapeXml } from '../sitemapXml'
 
 describe('sitemapXml', () => {
 	it('escapes XML special characters', () => {
@@ -34,5 +34,24 @@ describe('sitemapXml', () => {
 		])
 
 		expect(xml).not.toContain('<lastmod>')
+	})
+
+	it('does not double-encode pre-encoded path segments', () => {
+		expect(encodeSitemapPath('rwa/asset/ondo%2Fusdy')).toBe('rwa/asset/ondo%2Fusdy')
+	})
+
+	it('encodes raw special characters in path segments', () => {
+		expect(encodeSitemapPath('rwa/asset/foo bar')).toBe('rwa/asset/foo%20bar')
+	})
+
+	it('encodes malformed percent sequences without throwing', () => {
+		expect(encodeSitemapPath('rwa/asset/100%')).toBe('rwa/asset/100%25')
+	})
+
+	it('renders pre-encoded RWA asset paths in sitemap loc', () => {
+		const xml = buildSitemapXml('https://defillama.com', [{ path: 'rwa/asset/ondo%2Fusdy' }])
+
+		expect(xml).toContain('<loc>https://defillama.com/rwa/asset/ondo%2Fusdy</loc>')
+		expect(xml).not.toContain('ondo%252Fusdy')
 	})
 })

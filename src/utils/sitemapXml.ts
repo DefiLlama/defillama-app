@@ -14,11 +14,24 @@ export function escapeXml(value: string): string {
 		.replace(/'/g, '&apos;')
 }
 
+// Some sitemap routes pre-encode a segment (e.g. rwa/asset/ondo%2Fusdy when the market id
+// contains "/"). encodeSitemapPath always encodes at render time, so decode-then-encode
+// normalizes each segment once instead of double-encoding % while still encoding raw slugs.
+function encodeSitemapSegment(segment: string): string {
+	let decoded = segment
+	try {
+		decoded = decodeURIComponent(segment)
+	} catch {
+		// malformed percent-sequences: encode the raw segment
+	}
+	return encodeURIComponent(decoded)
+}
+
 export function encodeSitemapPath(path: string): string {
 	const [pathPart, ...queryParts] = path.split('?')
 	const encodedPath = pathPart
 		.split('/')
-		.map((segment) => encodeURIComponent(segment))
+		.map((segment) => encodeSitemapSegment(segment))
 		.join('/')
 	const query = queryParts.join('?')
 	const encodedQuery = query ? `?${encodeURI(query)}` : ''
