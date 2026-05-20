@@ -83,9 +83,14 @@ export interface IProtocolsCategoriesTableRow {
 
 export type IProtocolsCategoriesChartRow = Record<string, number | null> & { timestamp: number }
 
+export type ChainTypeFilter = 'all' | 'evm' | 'non-evm'
+
 export interface IProtocolsCategoriesPageData {
 	categories: Array<string>
 	tableData: Array<IProtocolsCategoriesTableRow>
+	tableDataEvm: Array<IProtocolsCategoriesTableRow>
+	tableDataNonEvm: Array<IProtocolsCategoriesTableRow>
+	isEvmFilterAvailable: boolean
 	chartSource: Array<IProtocolsCategoriesChartRow>
 	categoryColors: Record<string, string>
 	extraTvlCharts: Record<string, Record<string, Record<number, number>>>
