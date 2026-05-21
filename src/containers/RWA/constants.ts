@@ -5,6 +5,7 @@ export type RWAOverviewMode = 'chain' | 'category' | 'platform' | 'assetGroup'
 export type RWAOverviewInclusionDefaults = {
 	includeStablecoins: boolean
 	includeGovernance: boolean
+	includeRwaPerps: boolean
 }
 
 export type RWAOverviewInclusionContext = {
@@ -46,7 +47,8 @@ export function getDefaultRWAOverviewInclusion({
 
 	return {
 		includeStablecoins: path ? STABLECOINS_DEFAULT_RWA_PATHS.has(path) : false,
-		includeGovernance: path ? GOVERNANCE_DEFAULT_RWA_PATHS.has(path) : false
+		includeGovernance: path ? GOVERNANCE_DEFAULT_RWA_PATHS.has(path) : false,
+		includeRwaPerps: false
 	}
 }
 

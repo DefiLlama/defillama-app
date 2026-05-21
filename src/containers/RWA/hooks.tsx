@@ -250,7 +250,7 @@ export const useRWATableQueryParams = ({
 
 		const includeStablecoins = resolveRWAOverviewInclusionFlag(stablecoinsQ, defaultInclusion.includeStablecoins)
 		const includeGovernance = resolveRWAOverviewInclusionFlag(governanceQ, defaultInclusion.includeGovernance)
-		const includeRwaPerps = resolveRWAOverviewInclusionFlag(rwaPerpsQ, true)
+		const includeRwaPerps = resolveRWAOverviewInclusionFlag(rwaPerpsQ, defaultInclusion.includeRwaPerps)
 
 		// Build selected arrays with correct "exclude" semantics:
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
@@ -413,6 +413,7 @@ export const useRWATableQueryParams = ({
 		rwaPerpsQ,
 		defaultInclusion.includeStablecoins,
 		defaultInclusion.includeGovernance,
+		defaultInclusion.includeRwaPerps,
 		assetNames,
 		types,
 		categories,
@@ -459,7 +460,7 @@ export const useRWATableQueryParams = ({
 
 	const setIncludeRwaPerps = (value: boolean) => {
 		void pushShallowQuery(router, {
-			includeRwaPerps: value ? undefined : 'false'
+			includeRwaPerps: value === defaultInclusion.includeRwaPerps ? undefined : value ? 'true' : 'false'
 		})
 	}
 

@@ -1192,33 +1192,42 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		</div>
 	)
 
+	const overviewStatCards = [
+		...(assetClassFilter == null
+			? [
+					{
+						label: d.totalOpenInterest.label,
+						tooltip: d.totalOpenInterest.description,
+						value: formattedNum(displayTotals.openInterest, true),
+						change: displayTotals.openInterestChange24h,
+						changeTooltip: d.openInterestChange24h.description
+					}
+				]
+			: []),
+		{
+			label: d.totalVolume24h.label,
+			tooltip: d.totalVolume24h.description,
+			value: formattedNum(displayTotals.volume24h, true),
+			change: displayTotals.volume24hChange24h,
+			changeTooltip: d.volume24hChange24h.description
+		},
+		...(assetClassFilter == null
+			? [
+					{
+						label: d.totalMarkets.label,
+						tooltip: d.totalMarkets.description,
+						value: formattedNum(displayTotals.markets, false)
+					}
+				]
+			: []),
+		{
+			label: d.estimatedProtocolFees24h.label,
+			tooltip: d.estimatedProtocolFees24h.description,
+			value: formattedNum(displayTotals.protocolFees24h, true)
+		}
+	]
 	const statCards = isOverviewMode
-		? [
-				{
-					label: d.totalOpenInterest.label,
-					tooltip: d.totalOpenInterest.description,
-					value: formattedNum(displayTotals.openInterest, true),
-					change: displayTotals.openInterestChange24h,
-					changeTooltip: d.openInterestChange24h.description
-				},
-				{
-					label: d.totalVolume24h.label,
-					tooltip: d.totalVolume24h.description,
-					value: formattedNum(displayTotals.volume24h, true),
-					change: displayTotals.volume24hChange24h,
-					changeTooltip: d.volume24hChange24h.description
-				},
-				{
-					label: d.totalMarkets.label,
-					tooltip: d.totalMarkets.description,
-					value: formattedNum(displayTotals.markets, false)
-				},
-				{
-					label: d.estimatedProtocolFees24h.label,
-					tooltip: d.estimatedProtocolFees24h.description,
-					value: formattedNum(displayTotals.protocolFees24h, true)
-				}
-			]
+		? overviewStatCards
 		: [
 				{
 					label: d.openInterest.label,
@@ -1254,8 +1263,14 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				<RowLinksWithDropdown links={props.data.assetGroupLinks} activeLink={props.data.assetGroup} />
 			) : null}
 			{showForexToggle ? (
-				<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-sm text-(--text-label) md:flex-row md:items-center md:justify-between">
+					<p>
+						The RWA Perpetuals Dashboard only covers real world assets such as stocks, RWA tokens, forex, and other
+						significant financial indices on decentralized exchanges. This excludes digital assets such as BTC or ETH
+						perpetual contracts and all RWA perpetual contracts on centralized exchanges.
+					</p>
 					<Switch
+						className="shrink-0 justify-end"
 						label="Forex Perps"
 						value="includeForex"
 						checked={includeForex}
