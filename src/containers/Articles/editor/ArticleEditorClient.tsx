@@ -4,6 +4,7 @@ import { useEditor } from '@tiptap/react'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { canManageResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
@@ -51,6 +52,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
 	const routeView = Array.isArray(router.query.view) ? router.query.view[0] : router.query.view
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const queryClient = useQueryClient()
 	const [article, setArticle] = useState<LocalArticleDocument>(() => createEmptyLocalArticle())
 	const [isDirty, setIsDirty] = useState(false)
@@ -562,6 +564,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const deleteArticleMutation = useMutation({
 		mutationFn: (targetArticleId: string) => deleteArticle(targetArticleId, authorizedFetch),
 		onSuccess: () => {
+			revalidateLanding()
 			void router.replace('/research')
 		},
 		onError: (error) => {
@@ -619,6 +622,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
 			setSavedAt(merged.updatedAt)
+			revalidateLanding()
 			toast.success(article.status === 'published' ? 'Update published' : 'Published')
 			return true
 		} catch (error) {
@@ -640,6 +644,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setArticle(merged)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
+			revalidateLanding()
 			toast.success('Moved to drafts')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to unpublish')
