@@ -10,6 +10,8 @@ const capabilities: ChartCapabilities = {
 	allowGrouping: false,
 	allowHallmarks: false,
 	allowLabels: false,
+	allowLogScale: false,
+	logEligibleYAxes: [],
 	groupingOptions: []
 }
 
@@ -19,7 +21,8 @@ const viewState: ChartViewState = {
 	cumulative: false,
 	grouping: 'day',
 	showHallmarks: false,
-	showLabels: false
+	showLabels: false,
+	logScale: false
 }
 
 function makeMixedAxisChart(axisType: 'time' | 'category'): AdaptedLlamaAICartesianChart {

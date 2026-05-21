@@ -260,7 +260,7 @@ function ConversationLiveStatus({
 
 			{recovery.status === 'reconnecting' && !(spawnProgress.size > 0 && spawnIsResearchMode) ? (
 				<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting&hellip;</p>
 					<p className="text-sm text-amber-800 dark:text-amber-200">
 						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
 					</p>
@@ -560,7 +560,7 @@ export function ConversationView({
 							<div className="flex flex-col gap-2.5">
 								{paginationState.isLoadingMore ? (
 									<div className="flex justify-center py-2">
-										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages&hellip;</p>
 									</div>
 								) : null}
 
@@ -598,7 +598,7 @@ export function ConversationView({
 
 								{paginationState.isLoadingNewer ? (
 									<div className="flex justify-center py-2">
-										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages...</p>
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages&hellip;</p>
 									</div>
 								) : null}
 
@@ -697,7 +697,7 @@ export function ConversationView({
 				<Tooltip
 					content="Scroll to bottom"
 					render={<button onClick={scrollToBottom} />}
-					className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] ${showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'}`}
+					className={`mx-auto flex size-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] ${showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'}`}
 				>
 					<Icon name="arrow-down" height={16} width={16} />
 					<span className="sr-only">Scroll to bottom</span>
@@ -726,7 +726,7 @@ export function ConversationView({
 						handleStopRequest={handleStopRequest}
 						isStreaming={isStreaming}
 						restoreRequest={null}
-						placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+						placeholder="Reply to LlamaAI&hellip; Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}

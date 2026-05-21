@@ -342,7 +342,7 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 				}
 			>
 				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
-				<span>{hackerMode ? '> decrypting...' : 'Reasoning'}</span>
+				<span>{hackerMode ? <>{'>'} decrypting&hellip;</> : 'Reasoning'}</span>
 			</summary>
 			<div
 				ref={contentRef}
@@ -372,9 +372,9 @@ function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }
 export function TypingIndicator() {
 	return (
 		<div className="flex items-center gap-1.5 py-2">
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:0ms] dark:bg-[#919296]" />
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:150ms] dark:bg-[#919296]" />
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:300ms] dark:bg-[#919296]" />
+			<span className="size-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:0ms] dark:bg-[#919296]" />
+			<span className="size-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:150ms] dark:bg-[#919296]" />
+			<span className="size-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:300ms] dark:bg-[#919296]" />
 		</div>
 	)
 }
@@ -410,7 +410,7 @@ export function ToolProgressIndicator({
 			<img
 				src={hackerMode ? LLAMA_AI_HACKER_ANIMATION_SRC : LLAMA_AI_ANIMATION_SRC}
 				alt=""
-				className={`h-16 w-16 shrink-0 ${hackerMode ? 'rounded-lg drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]' : ''}`}
+				className={`size-16 shrink-0 ${hackerMode ? 'rounded-lg drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]' : ''}`}
 				loading="eager"
 				fetchPriority="high"
 			/>
@@ -423,7 +423,7 @@ export function ToolProgressIndicator({
 								: 'm-0 text-base font-semibold text-[#555] dark:text-[#919296]'
 						}
 					>
-						{hackerMode ? '> infiltrating mainframe...' : 'LlamaAI is thinking...'}
+						{hackerMode ? <>{'>'} infiltrating mainframe&hellip;</> : <>LlamaAI is thinking&hellip;</>}
 					</p>
 					<ElapsedTimeLabel startedAt={executionStartedAt} />
 				</div>
@@ -437,7 +437,7 @@ export function ToolProgressIndicator({
 							className="shrink-0 animate-pulse opacity-70"
 							style={{ color: '#8b5cf6' }}
 						/>
-						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory...</span>
+						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory&hellip;</span>
 					</p>
 				) : null}
 				{toolCalls.length > 0 ? (
@@ -468,7 +468,7 @@ export function ToolProgressIndicator({
 					<div className="flex flex-col gap-1.5">
 						<p className="m-0 flex items-center gap-2 text-xs font-medium text-[#444] dark:text-[#ccc]">
 							<Icon name="users" height={14} width={14} className="shrink-0 opacity-70" style={{ color: '#f472b6' }} />
-							Working in herd...
+							Working in herd&hellip;
 						</p>
 						<ul className="flex flex-col gap-1 pl-5">
 							{[...spawnProgress!.values()].map((agent) => (
@@ -478,14 +478,14 @@ export function ToolProgressIndicator({
 									) : agent.status === 'error' ? (
 										<span className="text-[10px] text-red-500">✗</span>
 									) : (
-										<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
+										<span className="size-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
 									)}
 									<span className="text-xs text-[#666] dark:text-[#919296]">
 										{agent.id}
 										{agent.status === 'tool_call' && agent.tool ? (
 											<span className="opacity-60"> — {getToolLabel(agent.tool)}</span>
 										) : null}
-										{agent.status === 'thinking' ? <span className="opacity-60"> — Thinking...</span> : null}
+										{agent.status === 'thinking' ? <span className="opacity-60"> — Thinking&hellip;</span> : null}
 										{agent.status === 'completed' ? <span className="opacity-60"> — Done</span> : null}
 									</span>
 								</li>
@@ -531,10 +531,10 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 				onClick={() => setIsExpanded(!isExpanded)}
 				className="flex items-center gap-2 text-left sm:gap-3"
 			>
-				<img src={LLAMA_AI_ANIMATION_SRC} alt="" className="h-6 w-6 shrink-0" loading="eager" fetchPriority="high" />
+				<img src={LLAMA_AI_ANIMATION_SRC} alt="" className="size-6 shrink-0" loading="eager" fetchPriority="high" />
 
 				<p className="m-0 flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
-					{isResearchMode ? 'Researching in parallel...' : 'Working in herd...'}
+					{isResearchMode ? <>Researching in parallel&hellip;</> : <>Working in herd&hellip;</>}
 				</p>
 
 				<p className="m-0 flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
@@ -597,7 +597,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 									<line x1="6" y1="6" x2="18" y2="18" />
 								</svg>
 							) : (
-								<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
+								<span className="size-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
 							)}
 							<p className="m-0 text-xs text-[#666] dark:text-[#919296]">
 								{agent.id}
@@ -616,7 +616,10 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 									</span>
 								) : null}
 								{agent.status === 'started' || agent.status === 'thinking' ? (
-									<span className="opacity-60"> - {agent.status === 'thinking' ? 'Thinking...' : 'Starting...'}</span>
+									<span className="opacity-60">
+										{' '}
+										- {agent.status === 'thinking' ? <>Thinking&hellip;</> : <>Starting&hellip;</>}
+									</span>
 								) : null}
 								{agent.status === 'error' ? <span className="opacity-60"> - Error</span> : null}
 							</p>
@@ -642,7 +645,8 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 						<path d="M21 12a9 9 0 1 1-6.219-8.56" />
 					</svg>
 					<p className="m-0 flex-1 text-xs text-amber-700 dark:text-amber-300">
-						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}...
+						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}
+						&hellip;
 					</p>
 					{onReconnect ? (
 						<button
@@ -671,7 +675,7 @@ function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
 		return (
 			<span
 				aria-hidden="true"
-				className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-green-500 bg-green-500 text-[10px] font-bold text-white"
+				className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-sm border border-green-500 bg-green-500 text-[10px] font-bold text-white"
 			>
 				✓
 			</span>
@@ -681,9 +685,9 @@ function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
 		return (
 			<span
 				aria-hidden="true"
-				className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-(--old-blue)"
+				className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-sm border border-(--old-blue)"
 			>
-				<span className="h-1.5 w-1.5 animate-pulse rounded-full bg-(--old-blue)" />
+				<span className="size-1.5 animate-pulse rounded-full bg-(--old-blue)" />
 			</span>
 		)
 	}
@@ -691,7 +695,7 @@ function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
 		return (
 			<span
 				aria-hidden="true"
-				className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#d1d5db] text-[10px] text-[#9ca3af] line-through dark:border-[#3f3f46]"
+				className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-sm border border-[#d1d5db] text-[10px] text-[#9ca3af] line-through dark:border-[#3f3f46]"
 			>
 				✕
 			</span>
@@ -700,7 +704,7 @@ function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
 	return (
 		<span
 			aria-hidden="true"
-			className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#d1d5db] dark:border-[#3f3f46]"
+			className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-sm border border-[#d1d5db] dark:border-[#3f3f46]"
 		/>
 	)
 }

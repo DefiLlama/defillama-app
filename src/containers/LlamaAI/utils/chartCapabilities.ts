@@ -149,11 +149,7 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 	}
 }
 
-export function normalizeViewState(
-	chartState: ChartViewState,
-	capabilities: ChartCapabilities,
-	_config: ChartConfiguration
-): ChartViewState {
+export function normalizeViewState(chartState: ChartViewState, capabilities: ChartCapabilities): ChartViewState {
 	// Normalize backend defaults and user toggles into a state the chart can actually represent.
 	// This keeps impossible combinations out of the transformer layer entirely.
 	const normalized: ChartViewState = {
@@ -175,6 +171,10 @@ export function normalizeViewState(
 		normalized.percentage = false
 	}
 
+	if (normalized.percentage) {
+		normalized.logScale = false
+	}
+
 	return normalized
 }
 
@@ -192,7 +192,7 @@ export function buildControlsModel(
 		showCumulative: capabilities.allowCumulative,
 		showHallmarks: capabilities.allowHallmarks,
 		showLabels: capabilities.allowLabels,
-		showLogScale: capabilities.allowLogScale,
+		showLogScale: capabilities.allowLogScale && !state.percentage,
 		groupingOptions: capabilities.groupingOptions
 	}
 }

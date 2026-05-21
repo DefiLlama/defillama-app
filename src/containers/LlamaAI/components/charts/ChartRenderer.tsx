@@ -95,7 +95,7 @@ function buildChartPresentation(config: ChartConfiguration, data: any[], chartSt
 	// adapt base data -> derive intrinsic capabilities -> normalize view state -> transform -> render plan.
 	const baseAdaptedChart = removeAdaptedChartTitle(adaptChartData(config, data))
 	const capabilities = deriveCapabilities(config, baseAdaptedChart)
-	const normalizedState = normalizeViewState(chartState, capabilities, config)
+	const normalizedState = normalizeViewState(chartState, capabilities)
 	const transformedChart = ChartDataTransformer.applyViewState(baseAdaptedChart, normalizedState, capabilities)
 	return buildRenderPlan(config, transformedChart, normalizedState, capabilities)
 }
@@ -317,15 +317,19 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 	)
 }
 
-const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
+const ChartLoadingSpinner = () => <div className="size-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
 const ChartLoadingPlaceholder = ({ chartTypes }: { chartTypes?: string[] }) => (
 	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
 		<p className="text-[#666] dark:text-[#919296]">
-			{chartTypes?.length
-				? `Creating ${chartTypes.join(', ')} visualization${chartTypes.length > 1 ? 's' : ''}...`
-				: 'Creating visualization...'}
+			{chartTypes?.length ? (
+				<>
+					Creating {chartTypes.join(', ')} visualization{chartTypes.length > 1 ? 's' : ''}&hellip;
+				</>
+			) : (
+				<>Creating visualization&hellip;</>
+			)}
 		</p>
 	</div>
 )

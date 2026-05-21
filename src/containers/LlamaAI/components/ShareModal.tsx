@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
+import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -33,6 +34,7 @@ function canWriteClipboard() {
 
 export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, messageId }: ShareModalProps) {
 	const { authorizedFetch } = useAuthContext()
+	const queryClient = useQueryClient()
 	const hasStartedRef = useRef(false)
 	const [shareResult, setShareResult] = useState<ShareResult | null>(null)
 	const [copied, setCopied] = useState(false)
@@ -40,15 +42,43 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const shareLinkInputId = useId()
 
+	const markCopied = useCallback(() => {
+		setCopied(true)
+		if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
+	}, [])
+
+	const copyShareLink = useCallback(
+		async (link: string, failureMessage: string) => {
+			if (!canWriteClipboard()) {
+				toast.error('Clipboard unavailable. Copy the share link manually.')
+				return
+			}
+			try {
+				await navigator.clipboard.writeText(link)
+				markCopied()
+				trackUmamiEvent('llamaai-copy-share-link')
+			} catch (error) {
+				console.error(error)
+				toast.error(failureMessage)
+			}
+		},
+		[markCopied]
+	)
+
 	useEffect(() => {
 		if (open) return
+		if (copiedTimeoutRef.current) {
+			clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = null
+		}
 		hasStartedRef.current = false
 		setShareResult(null)
 		setCopied(false)
 		setShareError(null)
 	}, [open])
 
-	const shareMutation = useMutation<ShareResult>({
+	const { mutate: createShareLink, isPending } = useMutation<ShareResult>({
 		mutationFn: async () => {
 			if (!sessionId) throw new Error('No session to share')
 
@@ -68,21 +98,9 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 		onSuccess: (data) => {
 			setShareResult(data)
 			setShareError(null)
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 			const nextShareLink = buildShareLink(window.location.origin, data.shareToken, messageId)
-			if (!canWriteClipboard()) {
-				toast.error('Clipboard unavailable. Copy the share link manually.')
-				return
-			}
-			void navigator.clipboard
-				.writeText(nextShareLink)
-				.then(() => {
-					setCopied(true)
-					trackUmamiEvent('llamaai-copy-share-link')
-				})
-				.catch((error) => {
-					console.error(error)
-					toast.error('Failed to copy share link')
-				})
+			void copyShareLink(nextShareLink, 'Failed to copy share link')
 		},
 		onError: (error) => {
 			const message = error instanceof Error ? error.message : 'Failed to share conversation'
@@ -102,8 +120,8 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 		}
 
 		trackUmamiEvent('llamaai-share-conversation')
-		shareMutation.mutate()
-	}, [open, sessionId, setOpen, shareMutation])
+		createShareLink()
+	}, [open, sessionId, setOpen, createShareLink])
 
 	useEffect(() => {
 		return () => {
@@ -116,21 +134,8 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 
 	const handleCopyLink = useCallback(async () => {
 		if (!shareLink) return
-		if (!canWriteClipboard()) {
-			toast.error('Clipboard unavailable. Copy the share link manually.')
-			return
-		}
-		try {
-			await navigator.clipboard.writeText(shareLink)
-			setCopied(true)
-			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
-			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
-			trackUmamiEvent('llamaai-copy-share-link')
-		} catch (error) {
-			console.error(error)
-			toast.error('Failed to copy link')
-		}
-	}, [shareLink])
+		await copyShareLink(shareLink, 'Failed to copy link')
+	}, [copyShareLink, shareLink])
 
 	const handleShareToX = useCallback(() => {
 		if (!shareLink) return
@@ -155,6 +160,13 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 	}, [shareLink])
 
 	const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+	const heading = shareResult
+		? copied
+			? 'Share Link Copied'
+			: 'Share Link Ready'
+		: shareError
+			? 'Share Link Failed'
+			: 'Creating Share Link'
 
 	return (
 		<Ariakit.DialogProvider open={open} setOpen={setOpen}>
@@ -165,9 +177,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 				hideOnInteractOutside
 			>
 				<div className="mb-4 flex items-center justify-between">
-					<Ariakit.DialogHeading className="text-lg font-semibold">
-						{shareResult ? 'Share Link Copied' : 'Creating Share Link'}
-					</Ariakit.DialogHeading>
+					<Ariakit.DialogHeading className="text-lg font-semibold">{heading}</Ariakit.DialogHeading>
 					<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
 						<Icon name="x" height={16} width={16} />
 					</Ariakit.DialogDismiss>
@@ -176,7 +186,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 				{shareResult ? (
 					<div className="flex flex-col gap-4">
 						<div className="flex flex-col items-center gap-2 py-2 text-center">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--success)/12 text-(--success)">
+							<div className="flex size-10 items-center justify-center rounded-full bg-(--success)/12 text-(--success)">
 								<Icon name="check-circle" height={24} width={24} />
 							</div>
 							<p className="m-0 text-sm font-medium">
@@ -225,7 +235,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 									data-umami-event="llamaai-native-share"
 									className="rounded border border-[#e6e6e6] px-3 py-2 text-xs hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 								>
-									Share...
+									Share&hellip;
 								</button>
 							) : null}
 							<button
@@ -251,12 +261,12 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 										type="button"
 										onClick={() => {
 											setShareError(null)
-											shareMutation.mutate()
+											createShareLink()
 										}}
-										disabled={shareMutation.isPending}
+										disabled={isPending}
 										className="flex items-center gap-2 rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
 									>
-										{shareMutation.isPending ? <LoadingSpinner size={14} /> : null}
+										{isPending ? <LoadingSpinner size={14} /> : null}
 										<span>Retry</span>
 									</button>
 								</div>
@@ -264,7 +274,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 						) : (
 							<div className="flex items-center gap-3 py-2 text-sm text-[#666] dark:text-[#919296]">
 								<LoadingSpinner size={16} />
-								<span>Creating and copying your share link...</span>
+								<span>Creating and copying your share link&hellip;</span>
 							</div>
 						)}
 					</>

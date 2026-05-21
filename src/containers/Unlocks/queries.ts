@@ -172,7 +172,10 @@ export async function fetchUnlockTokenlistPrices(): Promise<UnlockTokenlist> {
 	return unlockTokenlistPromise
 }
 
-function getTokenlistCurrentPrice(geckoId: string | null | undefined, tokenlist?: UnlockTokenlist): UnlockCurrentPrice | null {
+function getTokenlistCurrentPrice(
+	geckoId: string | null | undefined,
+	tokenlist?: UnlockTokenlist
+): UnlockCurrentPrice | null {
 	if (!geckoId || !tokenlist) return null
 	const token = tokenlist[geckoId]
 	if (!isFinitePositiveNumber(token?.current_price)) return null
@@ -1007,11 +1010,11 @@ export const getProtocolEmissons = async (
 		const tokenlistPrice = getTokenlistCurrentPrice(geckoId, tokenlistPrices)
 		const prices =
 			coinKey && !tokenlistPrice
-			? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
-					console.log(err)
-					return {}
-				})
-			: {}
+				? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
+						console.log(err)
+						return {}
+					})
+				: {}
 
 		const tokenPriceData = tokenlistPrice ?? (coinKey ? prices[coinKey] : undefined)
 		const tokenPrice: { price?: number; symbol?: string } = {}

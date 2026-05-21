@@ -25,10 +25,13 @@ export function useLlamaAINavigate() {
 	return useMemo(
 		() => ({
 			toNewChat: () => Router.push('/ai/chat'),
-			toSession: (id: string, opts?: { replace?: boolean; around?: string }) => {
+			toSession: (id: string, opts?: { replace?: boolean; around?: string; shallow?: boolean; scroll?: boolean }) => {
 				const hash = opts?.around ? `#msg-${opts.around}` : ''
 				const url = `/ai/chat/${id}${hash}`
-				return opts?.replace ? Router.replace(url) : Router.push(url)
+				const routerOptions = { shallow: opts?.shallow, scroll: opts?.scroll }
+				return opts?.replace
+					? Router.replace(url, undefined, routerOptions)
+					: Router.push(url, undefined, routerOptions)
 			},
 			toProject: (id: string, tab?: 'chats' | 'sources') => {
 				// Always bump the project-home signal so AgenticChat resets to the project landing
