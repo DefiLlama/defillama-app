@@ -8,9 +8,11 @@ import { LoadingDots } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
 import { LlamaAIAnimationPreloads } from '~/containers/LlamaAI/components/status/LlamaAIAnimationPreloads'
+import { buildForkedSharedRoute, replaceSharedForkHistoryPath } from '~/containers/LlamaAI/sharedForkRoute'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setReferrer } from '~/containers/Subscription/referrer'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { LlamaAIRouteProvider, type LlamaAIRouteState } from '~/contexts/LlamaAIRouteState'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
@@ -83,6 +85,7 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 	const shareToken = (router.query.shareToken as string) || ssrToken
 	const { user } = useAuthContext()
 	const [pendingMessage, setPendingMessage] = useState<string | null>(null)
+	const [routeOverride, setRouteOverride] = useState<LlamaAIRouteState>({ kind: 'unknown' })
 	const signInDialogStore = Ariakit.useDialogStore()
 
 	const ogImageUrl = `${AI_SERVER}/user/og/${shareToken}`
@@ -119,6 +122,10 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 
 	// After login, hand the saved message to AgenticChat as initialPrompt so it auto-submits in-place.
 	const initialPrompt = user && pendingMessage ? pendingMessage : undefined
+	const handleSharedSessionFork = useCallback((sessionId: string) => {
+		replaceSharedForkHistoryPath(sessionId)
+		setRouteOverride(buildForkedSharedRoute(sessionId))
+	}, [])
 
 	if (isLoading || !router.isReady) {
 		return (
@@ -165,12 +172,15 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 				<meta name="twitter:card" content="summary_large_image" />
 				<meta name="twitter:image" content={ogImageUrl} />
 			</Head>
-			<AgenticChat
-				sharedSession={session as any}
-				shareToken={shareToken}
-				onForkSubmit={handleForkSubmit}
-				initialPrompt={initialPrompt}
-			/>
+			<LlamaAIRouteProvider value={routeOverride}>
+				<AgenticChat
+					sharedSession={session as any}
+					shareToken={shareToken}
+					onForkSubmit={handleForkSubmit}
+					onSharedSessionFork={handleSharedSessionFork}
+					initialPrompt={initialPrompt}
+				/>
+			</LlamaAIRouteProvider>
 			<SignInModal store={signInDialogStore} hideWhenAuthenticated={false} />
 		</Layout>
 	)

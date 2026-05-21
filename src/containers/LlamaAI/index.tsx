@@ -450,6 +450,7 @@ interface AgenticChatProps {
 	sharedSession?: SharedSession
 	readOnly?: boolean
 	onForkSubmit?: (prompt: string) => void
+	onSharedSessionFork?: (sessionId: string) => void
 	initialPrompt?: string
 	shareToken?: string
 	rightPanel?: React.ReactNode
@@ -738,6 +739,7 @@ export function AgenticChat({
 	sharedSession,
 	readOnly = false,
 	onForkSubmit,
+	onSharedSessionFork,
 	initialPrompt,
 	shareToken,
 	rightPanel
@@ -838,7 +840,8 @@ export function AgenticChat({
 		isUpdatingTitle,
 		bulkDeleteSessions,
 		pinSession,
-		isSwitchingActiveLeaf
+		isSwitchingActiveLeaf,
+		replaceOptimisticSessionId
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
@@ -2117,9 +2120,10 @@ export function AgenticChat({
 								activeSessionIdRef.current = id
 								if (previousSessionId && previousSessionId !== id) {
 									registerSessionAlias(previousSessionId, id)
+									replaceOptimisticSessionId(previousSessionId, id, submitProjectId)
 								}
 								if (sharedSession) {
-									void navigate.toSession(id, { replace: true, shallow: true, scroll: false })
+									onSharedSessionFork?.(id)
 								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
 									void createSession({
@@ -2288,7 +2292,8 @@ export function AgenticChat({
 			routeProjectId,
 			currentSessionProjectId,
 			registerSessionAlias,
-			navigate,
+			replaceOptimisticSessionId,
+			onSharedSessionFork,
 			hasUser,
 			onForkSubmit
 		]
