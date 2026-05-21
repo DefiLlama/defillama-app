@@ -5,6 +5,7 @@ import {
 	prependSessionToInfiniteData,
 	removeSessionFromInfiniteData,
 	removeSessionsFromInfiniteData,
+	replaceSessionIdInInfiniteData,
 	SESSIONS_QUERY_KEY,
 	type SessionListInfiniteData,
 	updateSessionInInfiniteData
@@ -107,6 +108,27 @@ export function useSessionMutations() {
 			)
 		},
 		[queryClient]
+	)
+
+	const replaceOptimisticSessionId = useCallback(
+		(previousSessionId: string, nextSessionId: string, projectId?: string | null) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					replaceSessionIdInInfiniteData(old, previousSessionId, nextSessionId)
+				)
+			}
+
+			if (projectId) {
+				queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+					old?.map((session) =>
+						session.sessionId === previousSessionId
+							? { ...session, sessionId: nextSessionId, isOptimistic: false }
+							: session
+					)
+				)
+			}
+		},
+		[user, queryClient]
 	)
 
 	// Persist a newly-created chat session once the backend assigns it a real identity.
@@ -474,6 +496,7 @@ export function useSessionMutations() {
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
+		replaceOptimisticSessionId,
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,

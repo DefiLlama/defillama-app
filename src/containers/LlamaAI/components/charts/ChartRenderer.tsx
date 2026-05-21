@@ -49,6 +49,7 @@ type ChartAction =
 	| { type: 'SET_GROUPING'; payload: ChartViewState['grouping'] }
 	| { type: 'SET_HALLMARKS'; payload: boolean }
 	| { type: 'SET_LABELS'; payload: boolean }
+	| { type: 'SET_LOG_SCALE'; payload: boolean }
 
 const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewState => {
 	switch (action.type) {
@@ -64,6 +65,8 @@ const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewStat
 			return { ...state, showHallmarks: action.payload }
 		case 'SET_LABELS':
 			return { ...state, showLabels: action.payload }
+		case 'SET_LOG_SCALE':
+			return { ...state, logScale: action.payload }
 		default:
 			return state
 	}
@@ -76,7 +79,8 @@ function createInitialChartState(config: ChartConfiguration): ChartViewState {
 		cumulative: false,
 		grouping: 'day',
 		showHallmarks: true,
-		showLabels: config.displayOptions?.showLabels || false
+		showLabels: config.displayOptions?.showLabels || false,
+		logScale: config.displayOptions?.defaultLogScale || false
 	}
 }
 
@@ -91,7 +95,7 @@ function buildChartPresentation(config: ChartConfiguration, data: any[], chartSt
 	// adapt base data -> derive intrinsic capabilities -> normalize view state -> transform -> render plan.
 	const baseAdaptedChart = removeAdaptedChartTitle(adaptChartData(config, data))
 	const capabilities = deriveCapabilities(config, baseAdaptedChart)
-	const normalizedState = normalizeViewState(chartState, capabilities, config)
+	const normalizedState = normalizeViewState(chartState, capabilities)
 	const transformedChart = ChartDataTransformer.applyViewState(baseAdaptedChart, normalizedState, capabilities)
 	return buildRenderPlan(config, transformedChart, normalizedState, capabilities)
 }
@@ -232,6 +236,10 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
 		[]
 	)
+	const handleLogScaleChange = useCallback(
+		(logScale: boolean) => dispatch({ type: 'SET_LOG_SCALE', payload: logScale }),
+		[]
+	)
 
 	const presentation = useMemo(
 		() => (config.type === 'candlestick' ? null : tryBuildPresentation(config, data, chartState)),
@@ -279,7 +287,7 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 	const normalizedState = renderPlan.controls.state
 	const exportModel = renderPlan.exportModel
 	const chartTitle = title ?? config.title
-	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
+	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}-${normalizedState.logScale}`
 	const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
 
 	return (
@@ -292,6 +300,7 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 				onGroupingChange={handleGroupingChange}
 				onHallmarksChange={handleHallmarksChange}
 				onLabelsChange={handleLabelsChange}
+				onLogScaleChange={handleLogScaleChange}
 			>
 				<ChartExportButtonsSlot
 					chartInstance={chartInstance}
@@ -308,15 +317,19 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 	)
 }
 
-const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
+const ChartLoadingSpinner = () => <div className="size-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
 const ChartLoadingPlaceholder = ({ chartTypes }: { chartTypes?: string[] }) => (
 	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
 		<p className="text-[#666] dark:text-[#919296]">
-			{chartTypes?.length
-				? `Creating ${chartTypes.join(', ')} visualization${chartTypes.length > 1 ? 's' : ''}...`
-				: 'Creating visualization...'}
+			{chartTypes?.length ? (
+				<>
+					Creating {chartTypes.join(', ')} visualization{chartTypes.length > 1 ? 's' : ''}&hellip;
+				</>
+			) : (
+				<>Creating visualization&hellip;</>
+			)}
 		</p>
 	</div>
 )

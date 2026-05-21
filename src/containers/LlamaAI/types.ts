@@ -51,6 +51,7 @@ export interface ChartConfiguration {
 	}
 
 	hallmarks?: Array<[number] | [number, string]>
+	hallmarkStyle?: 'event-rail' | 'mark-line'
 
 	displayOptions?: {
 		canStack: boolean
@@ -59,6 +60,7 @@ export interface ChartConfiguration {
 		supportsGrouping: boolean
 		defaultStacked?: boolean
 		defaultPercentage?: boolean
+		defaultLogScale?: boolean
 		showLabels?: boolean
 	}
 }

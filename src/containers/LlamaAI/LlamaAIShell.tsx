@@ -1,6 +1,7 @@
 import { type ReactElement, type ReactNode } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { AgenticChat } from '~/containers/LlamaAI'
+import { LlamaAIAnimationPreloads } from '~/containers/LlamaAI/components/status/LlamaAIAnimationPreloads'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { LlamaAINavigateProvider } from '~/contexts/LlamaAINavigate'
 import { LlamaAIRouteProvider, useLlamaAIRouteState, type LlamaAIRouteState } from '~/contexts/LlamaAIRouteState'
@@ -53,6 +54,7 @@ export function LlamaAIShell({ children }: { children: ReactNode }) {
 
 	return (
 		<Layout {...seoFromRoute(route)} hideDesktopSearchLlamaAiButton>
+			<LlamaAIAnimationPreloads />
 			<LlamaAINavigateProvider>
 				<SessionAliasProvider userId={userId}>
 					<LlamaAIRouteProvider value={route}>

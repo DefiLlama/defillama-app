@@ -450,6 +450,7 @@ interface AgenticChatProps {
 	sharedSession?: SharedSession
 	readOnly?: boolean
 	onForkSubmit?: (prompt: string) => void
+	onSharedSessionFork?: (sessionId: string) => void
 	initialPrompt?: string
 	shareToken?: string
 	rightPanel?: React.ReactNode
@@ -738,6 +739,7 @@ export function AgenticChat({
 	sharedSession,
 	readOnly = false,
 	onForkSubmit,
+	onSharedSessionFork,
 	initialPrompt,
 	shareToken,
 	rightPanel
@@ -838,7 +840,8 @@ export function AgenticChat({
 		isUpdatingTitle,
 		bulkDeleteSessions,
 		pinSession,
-		isSwitchingActiveLeaf
+		isSwitchingActiveLeaf,
+		replaceOptimisticSessionId
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
@@ -2029,7 +2032,6 @@ export function AgenticChat({
 						const seeded = sharedSession.messages.map((msg, i) => mapSharedSessionMessage(msg, i))
 						setMessages(seeded)
 						isFirstMessageRef.current = false
-						void navigate.toSession(currentSessionId, { replace: true })
 					} else if (isFirstMessageRef.current && !currentSessionId) {
 						currentSessionId = createFakeSession(submitProjectId)
 						setSessionId(currentSessionId)
@@ -2118,9 +2120,10 @@ export function AgenticChat({
 								activeSessionIdRef.current = id
 								if (previousSessionId && previousSessionId !== id) {
 									registerSessionAlias(previousSessionId, id)
-									if (sharedSession) {
-										void navigate.toSession(id, { replace: true })
-									}
+									replaceOptimisticSessionId(previousSessionId, id, submitProjectId)
+								}
+								if (sharedSession) {
+									onSharedSessionFork?.(id)
 								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
 									void createSession({
@@ -2288,8 +2291,9 @@ export function AgenticChat({
 			effectiveShareToken,
 			routeProjectId,
 			currentSessionProjectId,
-			navigate,
 			registerSessionAlias,
+			replaceOptimisticSessionId,
+			onSharedSessionFork,
 			hasUser,
 			onForkSubmit
 		]
@@ -3080,7 +3084,7 @@ const ChatControls = memo(function ChatControls({
 							data-umami-event-source="collapsed_controls"
 						/>
 					}
-					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+					className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="panel-left-open" height={16} width={16} />
 					<span className="sr-only">Open Chat History</span>
@@ -3088,7 +3092,7 @@ const ChatControls = memo(function ChatControls({
 				<Tooltip
 					content="New Chat"
 					render={<button onClick={handleNewChat} />}
-					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue) max-lg:ml-auto"
+					className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue) max-lg:ml-auto"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span className="sr-only">New Chat</span>
@@ -3115,7 +3119,7 @@ const ChatControls = memo(function ChatControls({
 								data-umami-event-source="collapsed_controls"
 							/>
 						}
-						className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+						className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 					>
 						<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
 						<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
@@ -3125,12 +3129,12 @@ const ChatControls = memo(function ChatControls({
 			<Tooltip
 				content="Settings"
 				render={<button onClick={onOpenSettings} />}
-				className="absolute bottom-2.5 left-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white max-lg:hidden"
+				className="absolute bottom-2.5 left-2.5 z-10 flex size-6 items-center justify-center rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white max-lg:hidden"
 			>
 				<div className="relative">
 					<Icon name="settings" height={16} width={16} />
 					{hasCustomInstructions ? (
-						<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+						<span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
 					) : null}
 				</div>
 				<span className="sr-only">Settings</span>

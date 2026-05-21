@@ -206,6 +206,18 @@ export function updateSessionInInfiniteData(
 	return { ...data, pages }
 }
 
+export function replaceSessionIdInInfiniteData(
+	data: SessionListInfiniteData | undefined,
+	previousSessionId: string,
+	nextSessionId: string
+): SessionListInfiniteData | undefined {
+	return updateSessionInInfiniteData(data, previousSessionId, (session) => ({
+		...session,
+		sessionId: nextSessionId,
+		isOptimistic: false
+	}))
+}
+
 export function moveSessionToTopInInfiniteData(
 	data: SessionListInfiniteData | undefined,
 	sessionId: string,
