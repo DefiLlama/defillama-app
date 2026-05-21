@@ -248,8 +248,23 @@ describe('research ISR data loading', () => {
 		).resolves.toMatchObject({ notFound: true })
 	})
 
-	it('loads article props for ISR and renders article body immediately', async () => {
-		const publicArticle = article()
+	it('loads sanitized article props for ISR and renders article body immediately', async () => {
+		const publicArticle = article({
+			author: 'Internal Admin',
+			coAuthors: [
+				{
+					id: 'coauthor-profile-id',
+					pbUserId: 'coauthor-pb-id',
+					slug: 'internal-admin',
+					displayName: 'Internal Admin',
+					bio: null,
+					avatarUrl: null,
+					socials: {},
+					createdAt: '2026-05-15T00:00:00.000Z',
+					updatedAt: '2026-05-15T00:00:00.000Z'
+				}
+			]
+		})
 		vi.mocked(getArticleBySlug).mockResolvedValue(publicArticle)
 
 		const result = await getArticleStaticProps({
@@ -259,6 +274,9 @@ describe('research ISR data loading', () => {
 		expect(result).toMatchObject({ revalidate: expect.any(Number) })
 		if (!('props' in result)) throw new Error('expected props')
 		expect(result.props.initialArticle.title).toBe('Canonical Research')
+		expect(result.props.initialArticle.author).toBe('DefiLlama Research')
+		expect(result.props.initialArticle).not.toHaveProperty('authorProfile')
+		expect(result.props.initialArticle).not.toHaveProperty('coAuthors')
 		expect(getArticleBanner).toHaveBeenCalledWith('article-id')
 
 		routerMock.mockReturnValue({
@@ -270,6 +288,7 @@ describe('research ISR data loading', () => {
 		const html = renderWithQueryClient(<SectionArticlePage {...result.props} />)
 		expect(html).toContain('Canonical Research')
 		expect(html).toContain('Server rendered body')
+		expect(html).not.toContain('Internal Admin')
 	})
 
 	it('does not render legacy draft preview controls on the public article page', () => {

@@ -37,8 +37,37 @@ type ArticleRouteParams = {
 }
 
 type SectionArticlePageProps = {
-	initialArticle: ArticleDocument
+	initialArticle: PublicArticleDocument
 	initialBanners: ArticleBannerStripInitialData
+}
+
+type PublicArticleDocument = Omit<
+	ArticleDocument,
+	'authorProfile' | 'coAuthors' | 'viewerRole' | 'pending' | 'pendingUpdatedAt' | 'pendingActorPbUserId'
+> & {
+	authorProfile?: ArticleDocument['authorProfile']
+	viewerRole?: ArticleDocument['viewerRole']
+}
+
+function sanitizePublicArticle(article: ArticleDocument): PublicArticleDocument {
+	const {
+		coAuthors: _coAuthors,
+		viewerRole: _viewerRole,
+		pending: _pending,
+		pendingUpdatedAt: _pendingUpdatedAt,
+		pendingActorPbUserId: _pendingActorPbUserId,
+		...publicArticle
+	} = article
+
+	if (article.brandByline === true) {
+		const { author: _author, authorProfile: _authorProfile, ...brandArticle } = publicArticle
+		return {
+			...brandArticle,
+			author: 'DefiLlama Research'
+		}
+	}
+
+	return publicArticle
 }
 
 async function loadArticleBannerData(article: ArticleDocument): Promise<ArticleBannerStripInitialData> {
@@ -126,7 +155,7 @@ export const getStaticProps = withPerformanceLogging<SectionArticlePageProps, Ar
 
 		return {
 			props: {
-				initialArticle: article,
+				initialArticle: sanitizePublicArticle(article),
 				initialBanners: await loadArticleBannerData(article)
 			},
 			revalidate: maxAgeForNext([22])
@@ -134,7 +163,7 @@ export const getStaticProps = withPerformanceLogging<SectionArticlePageProps, Ar
 	}
 )
 
-function OwnerEditChip({ article }: { article: ArticleDocument }) {
+function OwnerEditChip({ article }: { article: PublicArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
 	const canEdit = canEditResearchArticle({ article, isAuthenticated, user })
 	if (!canEdit) return null
@@ -170,7 +199,7 @@ function SectionArticleContent({
 }: {
 	slug: string
 	sectionSlug: string
-	initialArticle?: ArticleDocument | null
+	initialArticle?: PublicArticleDocument | null
 	initialBanners?: ArticleBannerStripInitialData | null
 }) {
 	const router = useRouter()
@@ -181,7 +210,10 @@ function SectionArticleContent({
 		error
 	} = useQuery({
 		queryKey: ['research', 'article', slug],
-		queryFn: () => getArticleBySlug(slug),
+		queryFn: async () => {
+			const nextArticle = await getArticleBySlug(slug)
+			return nextArticle ? sanitizePublicArticle(nextArticle) : null
+		},
 		enabled: !!slug && !!expectedSection,
 		initialData: initialArticle?.slug === slug ? initialArticle : undefined,
 		staleTime: 60_000,
