@@ -9,15 +9,21 @@ import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { addRouteTelemetryAttributes } from '~/utils/telemetry'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
+			addRouteTelemetryAttributes({ not_found_reason: 'missing_protocol_param' })
 			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
+		if (normalizedName === 'null' || normalizedName === 'undefined') {
+			addRouteTelemetryAttributes({ not_found_reason: 'invalid_protocol_param', protocol_slug: normalizedName })
+			return { notFound: true }
+		}
 		const metadataModule = await import('~/utils/metadata')
 		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
@@ -30,6 +36,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata) {
+			addRouteTelemetryAttributes({ not_found_reason: 'unknown_protocol_slug', protocol_slug: normalizedName })
 			return { notFound: true }
 		}
 

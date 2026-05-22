@@ -4,6 +4,7 @@ import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 import { fetchJson } from '../async'
 import { fetchWithPoolingOnServer } from '../http-client'
 import {
+	addRouteTelemetryAttributes,
 	buildStaticRouteRequestPath,
 	flushTelemetry,
 	recordDomainEvent,
@@ -190,6 +191,48 @@ describe('telemetry client', () => {
 			attributes: { params: { chain: 'ethereum' } }
 		})
 		expect(ticks[1]).toMatchObject({ parent_span_id: routes[1].span_id, route: '/second' })
+	})
+
+	it('records static notFound results as successful 404s with reasons', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry(
+			'protocol/[protocol]',
+			async () => {
+				addRouteTelemetryAttributes({ not_found_reason: 'unknown_protocol_slug', protocol_slug: 'missing' })
+				return { notFound: true }
+			},
+			staticRouteTelemetryAttributes({ protocol: 'missing' }),
+			buildStaticRouteRequestPath('protocol/[protocol]', { protocol: 'missing' })
+		)
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution')
+		const tick = events.find((event) => event.type === 'page_build_finish_tick')
+
+		expect(route).toMatchObject({
+			route: 'protocol/[protocol]',
+			request_path: '/protocol/missing',
+			status: 'success',
+			http_status: 404,
+			attributes: {
+				params: { protocol: 'missing' },
+				result: 'not_found',
+				not_found_reason: 'unknown_protocol_slug',
+				protocol_slug: 'missing'
+			}
+		})
+		expect(tick).toMatchObject({
+			route: 'protocol/[protocol]',
+			status: 'success',
+			attributes: {
+				params: { protocol: 'missing' },
+				result: 'not_found',
+				not_found_reason: 'unknown_protocol_slug',
+				protocol_slug: 'missing'
+			}
+		})
 	})
 
 	it('marks large page build finish gaps', async () => {

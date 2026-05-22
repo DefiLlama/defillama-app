@@ -551,7 +551,7 @@ export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, r
 		})
 
 		if (options.operationType === 'getStaticProps') {
-			recordPageBuildFinishTick(options.route, context, status, durationMs)
+			recordPageBuildFinishTick(options.route, context, status, durationMs, extraAttributes)
 		}
 
 		void flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
@@ -602,7 +602,8 @@ function recordPageBuildFinishTick(
 	route: string,
 	context: RouteTelemetryContext,
 	status: RouteStatus,
-	durationMs: number
+	durationMs: number,
+	attributes?: TelemetryAttributes
 ): void {
 	const finishedAt = nowIso()
 	const previousFinishedAt = previousPageBuildFinishedAt
@@ -620,6 +621,7 @@ function recordPageBuildFinishTick(
 		status,
 		attributes: {
 			...context.attributes,
+			...attributes,
 			duration_ms: durationMs,
 			...(gapMs !== undefined && gapMs > largePageBuildFinishGapMs() ? { large_gap: true } : null)
 		}
@@ -1194,13 +1196,29 @@ export async function withOutboundTelemetry(
 }
 
 function staticPropsStatus<T>(result: GetStaticPropsResult<T>, durationMs: number): RouteStatus {
-	if ('notFound' in result && result.notFound) return 'error'
 	if (durationMs > slowRouteThresholdMs()) return 'slow'
 	return 'success'
 }
 
+function staticPropsHttpStatus<T>(result: GetStaticPropsResult<T>): number | undefined {
+	if ('notFound' in result && result.notFound) return 404
+	if ('redirect' in result) {
+		if ('statusCode' in result.redirect) return result.redirect.statusCode
+		return result.redirect.permanent ? 308 : 307
+	}
+	return undefined
+}
+
 export function getStaticPropsTelemetryAttributes<T>(result: GetStaticPropsResult<T>): TelemetryAttributes {
 	const attributes: TelemetryAttributes = {}
+
+	if ('notFound' in result && result.notFound) {
+		attributes.result = 'not_found'
+	} else if ('redirect' in result) {
+		attributes.result = 'redirect'
+	} else {
+		attributes.result = 'props'
+	}
 
 	if ('props' in result) {
 		const bytes = getPayloadBytes(result.props)
@@ -1238,6 +1256,7 @@ export async function withStaticRouteTelemetry<T>(
 			...(requestPath ? { requestPath } : null),
 			attributes,
 			getResultAttributes: getStaticPropsTelemetryAttributes,
+			getHttpStatus: staticPropsHttpStatus,
 			getStatus: staticPropsStatus
 		},
 		run
