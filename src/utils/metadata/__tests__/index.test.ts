@@ -26,6 +26,7 @@ vi.mock('../../../.cache/app-metadata/chainDisplayNames.json', () => ({ default:
 vi.mock('../../../.cache/app-metadata/chains.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/emissionsHistoricalPrices.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/emissionsProtocolsList.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/emissionsSupplyMetrics.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/liquidationsTokenSymbols.json', () => ({ default: [] }))
 vi.mock('../../../.cache/app-metadata/llamaswap-protocols.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/protocolDisplayNames.json', () => ({ default: {} }))
@@ -105,6 +106,7 @@ function createMetadataPayload(overrides: Partial<CoreMetadataPayload> = {}): Co
 		},
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
+		emissionsSupplyMetrics: {},
 		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: [],
 		bridgeProtocolSlugs: [],

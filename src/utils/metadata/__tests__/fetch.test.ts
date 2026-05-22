@@ -73,6 +73,7 @@ function createCoreMetadataSources(overrides: Record<string, unknown> = {}) {
 			chains: []
 		},
 		emissionsProtocolsList: ['aave'],
+		emissionsSupplyMetrics: {},
 		emissions: [],
 		...overrides
 	}
@@ -100,6 +101,7 @@ describe('fetchCoreMetadata', () => {
 		expect(payload.bridgeChainSlugs).toEqual(['ethereum', 'arbitrum'])
 		expect(payload.liquidationsTokenSymbols).toContain('ETH')
 		expect(payload.emissionsProtocolsList).toEqual(['aave'])
+		expect(payload.emissionsSupplyMetrics).toEqual({})
 		expect(payload.emissionsHistoricalPrices).toEqual({})
 		expect(fetchMetadataJsonMock).not.toHaveBeenCalled()
 	})

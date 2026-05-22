@@ -85,6 +85,7 @@ export async function fetchCoreMetadata({
 		liquidationsResponse,
 		bridgesResponse,
 		emissionsProtocolsList,
+		emissionsSupplyMetrics,
 		emissions
 	} = await fetchCoreMetadataSources()
 
@@ -156,6 +157,7 @@ export async function fetchCoreMetadata({
 		chainDisplayNames,
 		liquidationsTokenSymbols,
 		emissionsProtocolsList,
+		emissionsSupplyMetrics,
 		emissionsHistoricalPrices,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,

@@ -46,6 +46,7 @@ function createPayload(): CoreMetadataPayload {
 		chainDisplayNames: {},
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
+		emissionsSupplyMetrics: {},
 		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: [],
 		bridgeProtocolSlugs: [],

@@ -6,6 +6,7 @@ import { getTokenRiskData } from '~/containers/Token/queries'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
 import { DatasetCacheIntegrityError } from '~/server/datasetCache/core'
@@ -114,6 +115,7 @@ const state: {
 	hasTokenLiquidationsData: boolean
 	hasTokenMarkets: boolean
 	emissionsProtocolsList: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
 	tokenRiskTimelineData: RiskTimelineResponse | null
@@ -133,6 +135,7 @@ const state: {
 	hasTokenLiquidationsData: false,
 	hasTokenMarkets: false,
 	emissionsProtocolsList: [],
+	emissionsSupplyMetrics: {},
 	incomeStatementData: null,
 	tokenRiskData: null,
 	tokenRiskTimelineData: null,
@@ -171,6 +174,7 @@ function resetState() {
 	state.hasTokenLiquidationsData = false
 	state.hasTokenMarkets = false
 	state.emissionsProtocolsList = []
+	state.emissionsSupplyMetrics = {}
 	state.incomeStatementData = null
 	state.tokenRiskData = null
 	state.tokenRiskTimelineData = null
@@ -354,6 +358,9 @@ vi.mock('~/utils/metadata', () => ({
 		},
 		get emissionsProtocolsList() {
 			return state.emissionsProtocolsList
+		},
+		get emissionsSupplyMetrics() {
+			return state.emissionsSupplyMetrics
 		},
 		get protocolDisplayNames() {
 			return new Map<string, string>()

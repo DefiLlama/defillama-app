@@ -9,6 +9,7 @@ import chainDisplayNamesRaw from '../../../.cache/app-metadata/chainDisplayNames
 import chainMetadata from '../../../.cache/app-metadata/chains.json'
 import emissionsHistoricalPricesRaw from '../../../.cache/app-metadata/emissionsHistoricalPrices.json'
 import emissionsProtocolsListRaw from '../../../.cache/app-metadata/emissionsProtocolsList.json'
+import emissionsSupplyMetricsRaw from '../../../.cache/app-metadata/emissionsSupplyMetrics.json'
 import liquidationsTokenSymbolsRaw from '../../../.cache/app-metadata/liquidationsTokenSymbols.json'
 import protocolLlamaswapDatasetRaw from '../../../.cache/app-metadata/llamaswap-protocols.json'
 import protocolDisplayNamesRaw from '../../../.cache/app-metadata/protocolDisplayNames.json'
@@ -41,6 +42,7 @@ const artifactPayload: CoreMetadataPayload = {
 	chainDisplayNames: chainDisplayNamesRaw as Record<string, string>,
 	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
 	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
+	emissionsSupplyMetrics: emissionsSupplyMetricsRaw,
 	emissionsHistoricalPrices: emissionsHistoricalPricesRaw as IEmissionsHistoricalPrices,
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],

@@ -1,3 +1,4 @@
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildChainDisplayNameLookupRecord, createStringLookupMap } from './displayLookups'
 import type {
@@ -25,6 +26,7 @@ export type CoreMetadataPayload = {
 	chainDisplayNames: Record<string, string>
 	liquidationsTokenSymbols: string[]
 	emissionsProtocolsList: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	emissionsHistoricalPrices: IEmissionsHistoricalPrices
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -47,6 +49,7 @@ export type MetadataCache = {
 	liquidationsTokenSymbols: string[]
 	liquidationsTokenSymbolsSet: Set<string>
 	emissionsProtocolsList: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	emissionsHistoricalPrices: IEmissionsHistoricalPrices
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -68,6 +71,7 @@ export const METADATA_ARTIFACT_FILES = {
 	chainDisplayNames: 'chainDisplayNames.json',
 	liquidationsTokenSymbols: 'liquidationsTokenSymbols.json',
 	emissionsProtocolsList: 'emissionsProtocolsList.json',
+	emissionsSupplyMetrics: 'emissionsSupplyMetrics.json',
 	emissionsHistoricalPrices: 'emissionsHistoricalPrices.json',
 	cgExchangeIdentifiers: 'cgExchangeIdentifiers.json',
 	bridgeProtocolSlugs: 'bridgeProtocolSlugs.json',
@@ -89,6 +93,7 @@ export const METADATA_CI_STUBS = {
 	chainDisplayNames: {},
 	liquidationsTokenSymbols: [],
 	emissionsProtocolsList: [],
+	emissionsSupplyMetrics: {},
 	emissionsHistoricalPrices: {},
 	cgExchangeIdentifiers: [],
 	bridgeProtocolSlugs: [],
@@ -121,6 +126,7 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 		liquidationsTokenSymbols: payload.liquidationsTokenSymbols,
 		liquidationsTokenSymbolsSet: new Set(payload.liquidationsTokenSymbols),
 		emissionsProtocolsList: payload.emissionsProtocolsList,
+		emissionsSupplyMetrics: payload.emissionsSupplyMetrics,
 		emissionsHistoricalPrices: payload.emissionsHistoricalPrices,
 		cgExchangeIdentifiers: payload.cgExchangeIdentifiers,
 		bridgeProtocolSlugs: payload.bridgeProtocolSlugs,
@@ -152,6 +158,7 @@ export function applyMetadataRefresh(metadataCache: MetadataCache, payload: Core
 	metadataCache.liquidationsTokenSymbols = payload.liquidationsTokenSymbols
 	metadataCache.liquidationsTokenSymbolsSet = new Set(payload.liquidationsTokenSymbols)
 	metadataCache.emissionsProtocolsList = payload.emissionsProtocolsList
+	metadataCache.emissionsSupplyMetrics = payload.emissionsSupplyMetrics
 	metadataCache.emissionsHistoricalPrices = payload.emissionsHistoricalPrices
 	metadataCache.bridgeProtocolSlugs = payload.bridgeProtocolSlugs
 	metadataCache.bridgeChainSlugs = payload.bridgeChainSlugs

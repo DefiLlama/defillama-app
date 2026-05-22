@@ -39,6 +39,7 @@ export const getStaticProps = withPerformanceLogging(
 			chainMetadata: metadataCache.chainMetadata,
 			tokenlist: metadataCache.tokenlist,
 			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers,
+			emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics,
 			protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
 		})
 

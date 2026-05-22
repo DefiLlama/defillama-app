@@ -72,7 +72,8 @@ export const getStaticProps = withPerformanceLogging(
 			isCEX: true,
 			chainMetadata: metadataCache.chainMetadata,
 			tokenlist: metadataCache.tokenlist,
-			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers,
+			emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
 		})
 
 		if (!data) {

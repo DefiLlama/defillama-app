@@ -368,6 +368,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				protocolMetadata,
 				cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers ?? [],
 				llamaswapChains,
+				emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics,
 				source: {
 					kind: 'prefetched',
 					raises,

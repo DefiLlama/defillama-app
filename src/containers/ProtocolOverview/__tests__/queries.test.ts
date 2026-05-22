@@ -43,10 +43,6 @@ vi.mock('~/containers/Treasuries/api', () => ({
 	fetchTreasuries: vi.fn().mockResolvedValue([])
 }))
 
-vi.mock('~/containers/Unlocks/api', () => ({
-	fetchProtocolEmissionFromDatasets: vi.fn().mockResolvedValue(null)
-}))
-
 vi.mock('~/utils/async', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('~/utils/async')>()
 	return {
@@ -60,6 +56,7 @@ vi.mock('../api', () => ({
 	fetchProtocolOverviewMetrics: vi.fn().mockResolvedValue({
 		id: 'test-protocol',
 		name: 'Test Protocol',
+		gecko_id: 'test-token',
 		category: 'Dexes',
 		chains: ['Ethereum'],
 		currentChainTvls: {}
@@ -93,6 +90,7 @@ describe('getProtocolOverviewPageData', () => {
 			chainMetadata: {},
 			tokenlist: {},
 			cgExchangeIdentifiers: [],
+			emissionsSupplyMetrics: {},
 			protocolLlamaswapDataset: {}
 		})
 
@@ -118,6 +116,7 @@ describe('getProtocolOverviewPageData', () => {
 			chainMetadata: {},
 			tokenlist: {},
 			cgExchangeIdentifiers: [],
+			emissionsSupplyMetrics: {},
 			protocolLlamaswapDataset: {}
 		})
 
@@ -145,6 +144,7 @@ describe('getProtocolOverviewPageData', () => {
 				chainMetadata: {},
 				tokenlist: {},
 				cgExchangeIdentifiers: [],
+				emissionsSupplyMetrics: {},
 				protocolLlamaswapDataset: {}
 			})
 
@@ -155,5 +155,52 @@ describe('getProtocolOverviewPageData', () => {
 		} finally {
 			logSpy.mockRestore()
 		}
+	})
+
+	it('calculates outstanding FDV from cached emissions supply metrics', async () => {
+		const { getProtocolOverviewPageData } = await import('../queries')
+
+		const data = await getProtocolOverviewPageData({
+			protocolId: 'test-protocol',
+			currentProtocolMetadata: {
+				displayName: 'Test Protocol',
+				emissions: true
+			} as never,
+			chainMetadata: {},
+			tokenlist: {
+				'test-token': {
+					symbol: 'test',
+					current_price: 2,
+					price_change_24h: null,
+					price_change_percentage_24h: null,
+					ath: null,
+					ath_date: null,
+					atl: null,
+					atl_date: null,
+					market_cap: null,
+					fully_diluted_valuation: null,
+					total_volume: null,
+					total_supply: null,
+					circulating_supply: null,
+					max_supply: null
+				}
+			},
+			cgExchangeIdentifiers: [],
+			emissionsSupplyMetrics: {
+				'test-protocol': {
+					name: 'Test Protocol',
+					supplyMetrics: {
+						maxSupply: 1000,
+						adjustedSupply: 500,
+						tbdAmount: 0,
+						incentiveAmount: 0,
+						nonIncentiveAmount: 500
+					}
+				}
+			},
+			protocolLlamaswapDataset: {}
+		})
+
+		expect(data.outstandingFDV).toBe(1000)
 	})
 })

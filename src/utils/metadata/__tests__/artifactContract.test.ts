@@ -39,6 +39,7 @@ function createPayload(overrides: Partial<CoreMetadataPayload> = {}): CoreMetada
 		chainDisplayNames: { ethereum: 'Ethereum' },
 		liquidationsTokenSymbols: ['ETH'],
 		emissionsProtocolsList: ['aave'],
+		emissionsSupplyMetrics: {},
 		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: ['binance'],
 		bridgeProtocolSlugs: ['stargate'],

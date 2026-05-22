@@ -15,7 +15,7 @@ import { fetchRaisesByDefillamaId } from '~/containers/Raises/api'
 import type { RawRaise } from '~/containers/Raises/api.types'
 import { fetchTreasuryById } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
-import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { fetchYieldConfig, type YieldConfigResponse } from '~/containers/Yields/queries/index'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -117,6 +117,43 @@ function needsCoinDetailFallback(tokenEntry: ITokenListEntry | null): boolean {
 	if (!tokenEntry) return true
 
 	return tokenEntry.circulating_supply == null || tokenEntry.total_supply == null || tokenEntry.total_volume == null
+}
+
+function resolveTokenProtocolSlug(
+	protocolDefiLlamaId: string | null,
+	protocolMetadata: IProtocolMetadata | null
+): string | null {
+	const idSlug = protocolDefiLlamaId?.replace(/^parent#/, '') ?? null
+	if (idSlug && !/^\d+$/.test(idSlug)) return slug(idSlug)
+
+	const metadataSlug = slug(protocolMetadata?.name ?? protocolMetadata?.displayName)
+	return metadataSlug || null
+}
+
+function resolveEmissionsProtocolSlug({
+	protocolSlug,
+	protocolMetadata,
+	chainId,
+	emissionsSupplyMetrics
+}: {
+	protocolSlug: string | null
+	protocolMetadata: IProtocolMetadata | null
+	chainId: string | undefined
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
+}): string | null {
+	const candidates = [
+		protocolSlug,
+		protocolMetadata?.name,
+		protocolMetadata?.displayName,
+		protocolSlug ? undefined : chainId
+	]
+
+	for (const candidate of candidates) {
+		const candidateSlug = slug(candidate)
+		if (candidateSlug && emissionsSupplyMetrics[candidateSlug]) return candidateSlug
+	}
+
+	return null
 }
 
 type TokenOverviewCoinDetail = CoinGeckoCoinDetailResultForOptions<{
@@ -455,6 +492,7 @@ export async function getTokenOverviewData({
 	protocolMetadata,
 	cgExchangeIdentifiers,
 	llamaswapChains,
+	emissionsSupplyMetrics,
 	source,
 	prefetchedCharts = TOKEN_OVERVIEW_ALL_CHARTS
 }: {
@@ -465,52 +503,48 @@ export async function getTokenOverviewData({
 	protocolMetadata: IProtocolMetadata | null
 	cgExchangeIdentifiers: string[]
 	llamaswapChains: IProtocolLlamaswapChain[] | null
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	source: TokenOverviewDataSource
 	prefetchedCharts?: TokenOverviewChartLabel[]
 }): Promise<TokenOverviewData> {
 	const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
 	const protocolDefiLlamaId = record.protocolId ?? protocolMetadata?.name ?? null
-	const protocolSlug = protocolDefiLlamaId ? slug(protocolDefiLlamaId.replace(/^parent#/, '')) : null
+	const protocolSlug = resolveTokenProtocolSlug(protocolDefiLlamaId, protocolMetadata)
+	const emissionsProtocolSlug = resolveEmissionsProtocolSlug({
+		protocolSlug,
+		protocolMetadata,
+		chainId: record.chainId,
+		emissionsSupplyMetrics
+	})
+	const adjustedSupply = emissionsProtocolSlug
+		? (emissionsSupplyMetrics[emissionsProtocolSlug]?.supplyMetrics?.adjustedSupply ?? null)
+		: null
 
 	const shouldFetchProtocolData = Boolean(protocolSlug)
 	const shouldFetchTreasury = Boolean(!record.chainId && protocolDefiLlamaId)
 	const shouldFetchRaises = Boolean(chainDefiLlamaId || protocolDefiLlamaId)
 	const shouldFetchLiquidity = Boolean(shouldFetchProtocolData && protocolMetadata?.liquidity)
-	const shouldFetchOutstandingFdv = Boolean(shouldFetchProtocolData && protocolMetadata?.emissions)
 	const shouldFetchCoinDetail = Boolean(geckoId && needsCoinDetailFallback(tokenEntry))
 	const totalSupply = tokenEntry?.max_supply ?? tokenEntry?.total_supply ?? null
 
-	const [
-		cgChart,
-		coinDetail,
-		currentPriceViaLlama,
-		protocolData,
-		raisesData,
-		treasuries,
-		adjustedSupply,
-		fetchedTotalSupply
-	] = await Promise.all([
-		geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
-		shouldFetchCoinDetail ? fetchTokenOverviewCoinDetail(geckoId) : Promise.resolve(null),
-		geckoId ? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null) : Promise.resolve(null),
-		shouldFetchProtocolData ? fetchProtocolOverviewMetrics(protocolSlug!).catch(() => null) : Promise.resolve(null),
-		source.kind === 'prefetched'
-			? Promise.resolve(source.raises)
-			: shouldFetchRaises
-				? fetchRaisesByDefillamaId(chainDefiLlamaId ?? protocolDefiLlamaId!).catch(() => [] as RawRaise[])
-				: Promise.resolve(null),
-		source.kind === 'prefetched'
-			? Promise.resolve(source.treasury)
-			: shouldFetchTreasury
-				? fetchTreasuryById(`${protocolDefiLlamaId}-treasury`).catch(() => null)
-				: Promise.resolve(null),
-		shouldFetchOutstandingFdv
-			? fetchProtocolEmissionFromDatasets(protocolSlug!)
-					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
-					.catch(() => null)
-			: Promise.resolve(null),
-		geckoId ? fetchTotalSupply(geckoId) : Promise.resolve(null)
-	])
+	const [cgChart, coinDetail, currentPriceViaLlama, protocolData, raisesData, treasuries, fetchedTotalSupply] =
+		await Promise.all([
+			geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
+			shouldFetchCoinDetail ? fetchTokenOverviewCoinDetail(geckoId) : Promise.resolve(null),
+			geckoId ? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null) : Promise.resolve(null),
+			shouldFetchProtocolData ? fetchProtocolOverviewMetrics(protocolSlug!).catch(() => null) : Promise.resolve(null),
+			source.kind === 'prefetched'
+				? Promise.resolve(source.raises)
+				: shouldFetchRaises
+					? fetchRaisesByDefillamaId(chainDefiLlamaId ?? protocolDefiLlamaId!).catch(() => [] as RawRaise[])
+					: Promise.resolve(null),
+			source.kind === 'prefetched'
+				? Promise.resolve(source.treasury)
+				: shouldFetchTreasury
+					? fetchTreasuryById(`${protocolDefiLlamaId}-treasury`).catch(() => null)
+					: Promise.resolve(null),
+			geckoId ? fetchTotalSupply(geckoId) : Promise.resolve(null)
+		])
 
 	const [yieldsConfig, liquidityInfo] =
 		source.kind === 'prefetched'

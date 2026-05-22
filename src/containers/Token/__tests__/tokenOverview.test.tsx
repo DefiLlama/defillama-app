@@ -30,7 +30,6 @@ const mocks = vi.hoisted(() => ({
 	fetchProtocolOverviewMetrics: vi.fn(),
 	fetchRaisesByDefillamaId: vi.fn(),
 	fetchTreasuryById: vi.fn(),
-	fetchProtocolEmissionFromDatasets: vi.fn(),
 	fetchLiquidityDatasetEntryByProtocolId: vi.fn(),
 	fetchJson: vi.fn(),
 	useFetchTokenOverviewChartData: vi.fn()
@@ -72,10 +71,6 @@ vi.mock('~/containers/Raises/api', () => ({
 
 vi.mock('~/containers/Treasuries/api', () => ({
 	fetchTreasuryById: mocks.fetchTreasuryById
-}))
-
-vi.mock('~/containers/Unlocks/api', () => ({
-	fetchProtocolEmissionFromDatasets: mocks.fetchProtocolEmissionFromDatasets
 }))
 
 vi.mock('~/api', () => ({
@@ -120,6 +115,39 @@ const protocolMetadataFixture = {
 	liquidity: true,
 	emissions: true
 } as IProtocolMetadata
+
+const emissionsSupplyMetricsFixture = {
+	'test-protocol': {
+		name: 'Test Protocol',
+		supplyMetrics: {
+			maxSupply: 1000,
+			adjustedSupply: 900,
+			tbdAmount: 0,
+			incentiveAmount: 0,
+			nonIncentiveAmount: 900
+		}
+	},
+	uniswap: {
+		name: 'Uniswap',
+		supplyMetrics: {
+			maxSupply: 1000,
+			adjustedSupply: 900,
+			tbdAmount: 0,
+			incentiveAmount: 0,
+			nonIncentiveAmount: 900
+		}
+	},
+	'pudgy-penguins': {
+		name: 'Pudgy Penguins',
+		supplyMetrics: {
+			maxSupply: 1000,
+			adjustedSupply: 900,
+			tbdAmount: 0,
+			incentiveAmount: 0,
+			nonIncentiveAmount: 900
+		}
+	}
+}
 
 const cgChartFixture = {
 	data: {
@@ -312,11 +340,6 @@ beforeEach(() => {
 		},
 		mcap: null
 	} satisfies RawTreasuriesResponse[number])
-	mocks.fetchProtocolEmissionFromDatasets.mockResolvedValue({
-		supplyMetrics: {
-			adjustedSupply: 900
-		}
-	})
 	mocks.fetchLiquidityDatasetEntryByProtocolId.mockResolvedValue({
 		id: 'proto-data',
 		tokenPools: [
@@ -357,6 +380,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -391,6 +415,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: overviewFixture.llamaswapChains,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -424,6 +449,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: {
 				kind: 'prefetched',
 				raises: [
@@ -524,15 +550,84 @@ describe('tokenOverview helpers', () => {
 			} as IProtocolMetadata,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
 		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('uniswap')
-		expect(mocks.fetchProtocolEmissionFromDatasets).toHaveBeenCalledWith('uniswap')
 		expect(result.rawChartData.FDV).toEqual([
 			[1711929600000, 2100000],
 			[1712016000000, 2310000]
 		])
+	})
+
+	it('resolves numeric protocol IDs through metadata before reading emissions supply metrics', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Pudgy Penguins',
+				symbol: 'PENGU',
+				protocolId: '6146'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'PENGU',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: {
+				displayName: 'Pudgy Penguins',
+				emissions: true
+			} as IProtocolMetadata,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
+			source: { kind: 'network' }
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('pudgy-penguins')
+		expect(result.outstandingFDV).toBe(99900)
+	})
+
+	it('skips emissions adjusted supply when the resolved slug is absent from the cached emissions list', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Missing Protocol',
+				symbol: 'MISS',
+				protocolId: '9876'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'MISS',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: {
+				displayName: 'Missing Protocol',
+				emissions: true
+			} as IProtocolMetadata,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
+			source: { kind: 'network' }
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('missing-protocol')
+		expect(result.outstandingFDV).toBeNull()
+	})
+
+	it('does not call protocol metrics with a numeric protocol ID when metadata is missing', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Unknown Protocol',
+				symbol: 'MISS',
+				protocolId: '9876'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'MISS',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
+			source: { kind: 'network' }
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).not.toHaveBeenCalled()
+		expect(result.outstandingFDV).toBeNull()
 	})
 
 	it('can limit server-prefetched chart data to only the default price series', async () => {
@@ -547,6 +642,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' },
 			prefetchedCharts: ['Token Price']
 		})
@@ -584,6 +680,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -609,6 +706,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -639,6 +737,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -664,6 +763,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -695,6 +795,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -715,6 +816,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
