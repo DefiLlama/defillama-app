@@ -184,53 +184,54 @@ function ResultCard({ article }: { article: ArticleDocument }) {
 	const cover = resolveCover(article)
 	const sectionLabel = article.section ? humanizeTag(article.section) : null
 	return (
-		<li>
+		<li className="group relative top-0 grid grid-cols-1 gap-[14px] py-[22px] transition-all duration-200 ease-out hover:top-[-2px] sm:grid-cols-[clamp(180px,28vw,260px)_minmax(0,1fr)] sm:gap-[24px]">
 			<Link
 				href={articleHref(article)}
-				className="group relative top-0 grid grid-cols-1 gap-[14px] py-[22px] transition-all duration-200 ease-out hover:top-[-2px] sm:grid-cols-[clamp(180px,28vw,260px)_minmax(0,1fr)] sm:gap-[24px]"
+				aria-label={article.title}
+				className="relative aspect-[16/10] w-full overflow-hidden rounded-[7.2px] bg-[#0c2956]/5 dark:bg-white/5"
 			>
-				<div className="relative aspect-[16/10] w-full overflow-hidden rounded-[7.2px] bg-[#0c2956]/5 dark:bg-white/5">
-					{cover ? (
-						<img
-							src={cover}
-							alt={article.coverImage?.alt}
-							loading="lazy"
-							decoding="async"
-							className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-						/>
-					) : (
-						<div className="grid h-full w-full place-items-center text-[#0c2956]/20 dark:text-white/20">
-							<svg
-								viewBox="0 0 32 32"
-								className="h-6 w-6"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="1.5"
-								aria-hidden
-							>
-								<path d="M4 10h24v18H4z" />
-								<path d="M9 6h14v4" />
-							</svg>
-						</div>
-					)}
-					{sectionLabel ? (
-						<span className="absolute top-[10px] left-[10px] z-[1]">
-							<ResultBadge>{sectionLabel}</ResultBadge>
-						</span>
-					) : null}
-				</div>
-				<div className="grid content-start gap-[10px]">
+				{cover ? (
+					<img
+						src={cover}
+						alt={article.coverImage?.alt}
+						loading="lazy"
+						decoding="async"
+						className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+					/>
+				) : (
+					<div className="grid h-full w-full place-items-center text-[#0c2956]/20 dark:text-white/20">
+						<svg
+							viewBox="0 0 32 32"
+							className="h-6 w-6"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.5"
+							aria-hidden
+						>
+							<path d="M4 10h24v18H4z" />
+							<path d="M9 6h14v4" />
+						</svg>
+					</div>
+				)}
+				{sectionLabel ? (
+					<span className="absolute top-[10px] left-[10px] z-[1]">
+						<ResultBadge>{sectionLabel}</ResultBadge>
+					</span>
+				) : null}
+			</Link>
+			<div className="grid content-start gap-[10px]">
+				<Link href={articleHref(article)} className="block">
 					<h3 className="text-[19px] leading-[130%] font-semibold tracking-tight text-[#0c2956] transition-colors group-hover:text-[#237BFF] sm:text-[22px] dark:text-white dark:group-hover:text-[#9ec5ff]">
 						{article.title}
 					</h3>
 					{article.excerpt || article.subtitle ? (
-						<p className="line-clamp-2 text-[14px] leading-[150%] text-[#0c2956]/70 dark:text-white/70">
+						<p className="mt-[10px] line-clamp-2 text-[14px] leading-[150%] text-[#0c2956]/70 dark:text-white/70">
 							{article.excerpt || article.subtitle}
 						</p>
 					) : null}
-					<ByLine article={article} />
-				</div>
-			</Link>
+				</Link>
+				<ByLine article={article} />
+			</div>
 		</li>
 	)
 }
