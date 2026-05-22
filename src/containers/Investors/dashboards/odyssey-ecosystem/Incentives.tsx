@@ -12,7 +12,18 @@ const VENUE_COLORS: Record<string, string> = {
 	Merkl: '#10b981',
 	Lithos: '#34d399'
 }
-const PALETTE = ['#6366f1', '#3fb950', '#fb923c', '#a78bfa', '#38bdf8', '#fbbf24', '#f87171', '#34d399', '#60a5fa', '#e879f9']
+const PALETTE = [
+	'#6366f1',
+	'#3fb950',
+	'#fb923c',
+	'#a78bfa',
+	'#38bdf8',
+	'#fbbf24',
+	'#f87171',
+	'#34d399',
+	'#60a5fa',
+	'#e879f9'
+]
 const VENUES = [
 	{ id: 'aerodrome', label: 'Aerodrome' },
 	{ id: 'velodrome', label: 'Velodrome' },
@@ -21,7 +32,15 @@ const VENUES = [
 	{ id: 'lithos', label: 'Lithos' }
 ]
 
-function TabBtns({ active, onChange, options }: { active: string; onChange: (v: string) => void; options: { id: string; label: string }[] }) {
+function TabBtns({
+	active,
+	onChange,
+	options
+}: {
+	active: string
+	onChange: (v: string) => void
+	options: { id: string; label: string }[]
+}) {
 	return (
 		<div className="mb-3 flex flex-wrap gap-1">
 			{options.map((o) => (
@@ -61,8 +80,15 @@ function epochCols(id: string) {
 			{ key: 'monthSoFarUsd', label: 'MTD', right: true, render: (r: any) => fmtUsd(r.monthSoFarUsd) },
 			{ key: 'previousMonthUsd', label: 'Prev Month', right: true, render: (r: any) => fmtUsd(r.previousMonthUsd) }
 		]
-	if (id === 'merkl') return [{ key: 'period', label: 'Period' }, { key: 'spend', label: 'Spend (USD)', right: true }]
-	return [{ key: 'period', label: 'Period' }, { key: 'spend', label: 'Spend (USDT0)', right: true }]
+	if (id === 'merkl')
+		return [
+			{ key: 'period', label: 'Period' },
+			{ key: 'spend', label: 'Spend (USD)', right: true }
+		]
+	return [
+		{ key: 'period', label: 'Period' },
+		{ key: 'spend', label: 'Spend (USDT0)', right: true }
+	]
 }
 
 export default function Incentives() {

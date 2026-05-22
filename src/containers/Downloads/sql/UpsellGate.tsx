@@ -316,7 +316,7 @@ function TabStrip({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: 
 		<div
 			role="tablist"
 			aria-label="SQL Studio sample tabs"
-			className="thin-scrollbar flex items-stretch gap-1 overflow-x-auto border-b border-(--divider) bg-(--app-bg)/40 px-2 pt-2"
+			className="flex thin-scrollbar items-stretch gap-1 overflow-x-auto border-b border-(--divider) bg-(--app-bg)/40 px-2 pt-2"
 		>
 			{TABS.map((t) => {
 				const isActive = activeTab === t.key
@@ -327,7 +327,7 @@ function TabStrip({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: 
 						role="tab"
 						aria-selected={isActive}
 						onClick={() => onTabChange(t.key)}
-						className={`group -mb-px flex h-8 min-w-[148px] max-w-[220px] shrink-0 items-center gap-2 rounded-t-md border border-b-0 px-2.5 transition-colors ${
+						className={`group -mb-px flex h-8 max-w-[220px] min-w-[148px] shrink-0 items-center gap-2 rounded-t-md border border-b-0 px-2.5 transition-colors ${
 							isActive
 								? 'border-(--divider) bg-(--cards-bg) text-(--text-primary)'
 								: 'border-transparent text-(--text-secondary) hover:bg-(--link-hover-bg)/40 hover:text-(--text-primary)'
@@ -442,8 +442,8 @@ function MarkdownCell() {
 				</h4>
 				<p className="mt-1.5 text-[12.5px] leading-relaxed text-(--text-secondary)">
 					Which protocols earn the most fees, and how much do they keep as revenue? Joining{' '}
-					<InlineCode>fees</InlineCode> and <InlineCode>revenue</InlineCode> highlights the high-volume,
-					low-capture protocols.
+					<InlineCode>fees</InlineCode> and <InlineCode>revenue</InlineCode> highlights the high-volume, low-capture
+					protocols.
 				</p>
 			</div>
 		</CellShell>
@@ -569,15 +569,7 @@ function CellShell({ focused, children }: { focused: boolean; children: ReactNod
 	)
 }
 
-function CellHeader({
-	name,
-	badge,
-	action
-}: {
-	name: string
-	badge: 'sql' | 'md' | 'chart'
-	action?: ReactNode
-}) {
+function CellHeader({ name, badge, action }: { name: string; badge: 'sql' | 'md' | 'chart'; action?: ReactNode }) {
 	return (
 		<div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
 			<Icon name="menu" className="h-3 w-3 shrink-0 text-(--text-tertiary)/35" />

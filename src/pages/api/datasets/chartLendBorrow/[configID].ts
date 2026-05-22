@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELDS_SERVER_URL } from '~/constants'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,7 +17,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		const data = await upstream.json()
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, s-maxage=3600, stale-while-revalidate=600', req.url ?? configID)
+		)
 		return res.status(200).json(data)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')

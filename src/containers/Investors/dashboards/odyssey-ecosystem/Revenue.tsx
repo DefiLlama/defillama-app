@@ -35,7 +35,7 @@ function SubSectionCard({
 				{total != null && (
 					<div className="text-right">
 						<div className="text-[10px] font-medium tracking-wider text-(--text-label) uppercase">Subtotal</div>
-						<div className="text-lg font-semibold tabular-nums text-(--text-primary)">{fmtUsd(total)}</div>
+						<div className="text-lg font-semibold text-(--text-primary) tabular-nums">{fmtUsd(total)}</div>
 					</div>
 				)}
 			</div>
@@ -84,13 +84,20 @@ export default function Revenue() {
 		.filter((r: any) => !/total/i.test(r.type || '') && r.isClaimable)
 		.reduce((s: number, r: any) => s + (r.usd || 0), 0)
 	const synthDaily = (data?.synthInterestDetail || []).reduce((s: number, r: any) => s + (r.estimatedDailyUsd || 0), 0)
-	const synthMonthly = (data?.synthInterestDetail || []).reduce((s: number, r: any) => s + (r.estimatedMonthlyUsd || 0), 0)
+	const synthMonthly = (data?.synthInterestDetail || []).reduce(
+		(s: number, r: any) => s + (r.estimatedMonthlyUsd || 0),
+		0
+	)
 
 	return (
 		<div className="flex flex-col gap-6">
 			{/* Headline KPIs */}
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-				<KpiCard label="Ecosystem Revenue (All-time)" value={ra.ecosystem?.formatted} sub="Claimed + unclaimed pipeline" />
+				<KpiCard
+					label="Ecosystem Revenue (All-time)"
+					value={ra.ecosystem?.formatted}
+					sub="Claimed + unclaimed pipeline"
+				/>
 				<KpiCard label="Metronome" value={ra.metronome?.formatted} sub="All-time" />
 				<KpiCard label="Vesper" value={ra.vesper?.formatted} sub="All-time" />
 				<KpiCard label="Odyssey" value={ra.odyssey?.formatted} sub="All-time" />
@@ -145,7 +152,12 @@ export default function Revenue() {
 						cols={[
 							{ key: 'chain', label: 'Chain' },
 							{ key: 'token', label: 'Token' },
-							{ key: 'amount', label: 'Amount', right: true, render: (r) => r.amount?.toLocaleString(undefined, { maximumFractionDigits: 4 }) },
+							{
+								key: 'amount',
+								label: 'Amount',
+								right: true,
+								render: (r) => r.amount?.toLocaleString(undefined, { maximumFractionDigits: 4 })
+							},
 							{ key: 'priceUsd', label: 'Price', right: true, render: (r) => fmtUsd(r.priceUsd) },
 							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) },
 							{ key: 'claims', label: 'Claims', right: true },
@@ -173,7 +185,9 @@ export default function Revenue() {
 						height="320px"
 						showLegend
 						legendPosition={{ orient: 'vertical', left: 'right', top: 'middle' }}
-						stackColors={Object.fromEntries(up.pie.map((p: any, i: number) => [p.name, PIE_COLORS[i % PIE_COLORS.length]]))}
+						stackColors={Object.fromEntries(
+							up.pie.map((p: any, i: number) => [p.name, PIE_COLORS[i % PIE_COLORS.length]])
+						)}
 					/>
 				)}
 			</div>
@@ -207,7 +221,11 @@ export default function Revenue() {
 						rows={up.ethUniv3}
 						cols={[
 							{ key: 'position', label: 'Position' },
-							{ key: 'rewards', label: 'Unclaimed', render: (r) => <span dangerouslySetInnerHTML={{ __html: r.rewards }} /> },
+							{
+								key: 'rewards',
+								label: 'Unclaimed',
+								render: (r) => <span dangerouslySetInnerHTML={{ __html: r.rewards }} />
+							},
 							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
 						]}
 					/>
@@ -276,7 +294,12 @@ export default function Revenue() {
 						{ key: 'asset', label: 'Asset' },
 						{ key: 'assetsUsd', label: 'NAV', right: true, render: (r) => fmtUsd(r.assetsUsd) },
 						{ key: 'pnlUsd', label: 'Unrealised PnL', right: true, render: (r) => fmtUsd(r.pnlUsd) },
-						{ key: 'allTimeHarvestedUsd', label: 'All-time Harvested', right: true, render: (r) => fmtUsd(r.allTimeHarvestedUsd) },
+						{
+							key: 'allTimeHarvestedUsd',
+							label: 'All-time Harvested',
+							right: true,
+							render: (r) => fmtUsd(r.allTimeHarvestedUsd)
+						},
 						{ key: 'lastHarvestDate', label: 'Last Harvest', right: true }
 					]}
 				/>

@@ -1,7 +1,13 @@
 import { lazy } from 'react'
 import type { IChartProps, IHBarChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
-import { useEcosystemData, chartToTimeSeries, type BreakdownChart, type ChannelBreakdown, type ChartData } from './ecosystemApi'
+import {
+	useEcosystemData,
+	chartToTimeSeries,
+	type BreakdownChart,
+	type ChannelBreakdown,
+	type ChartData
+} from './ecosystemApi'
 import { NearIcon } from './NearHeader'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -10,9 +16,26 @@ const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 
 const BREAKDOWN_PALETTE = [
-	'#00C1DE', '#4cae4f', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
-	'#3b82f6', '#a855f7', '#10b981', '#eab308', '#06b6d4', '#dc2626', '#22c55e', '#0ea5e9',
-	'#d946ef', '#84cc16', '#f43f5e', '#6366f1'
+	'#00C1DE',
+	'#4cae4f',
+	'#f59e0b',
+	'#ef4444',
+	'#8b5cf6',
+	'#ec4899',
+	'#14b8a6',
+	'#f97316',
+	'#3b82f6',
+	'#a855f7',
+	'#10b981',
+	'#eab308',
+	'#06b6d4',
+	'#dc2626',
+	'#22c55e',
+	'#0ea5e9',
+	'#d946ef',
+	'#84cc16',
+	'#f43f5e',
+	'#6366f1'
 ]
 
 function aggregateBreakdown(chart: BreakdownChart, topN: number): { name: string; value: number }[] {
@@ -122,7 +145,11 @@ export default function Ecosystem() {
 	const eco = data?.ecosystem
 	const token = data?.tokenEconomics
 
-	const buildDailyCumulativeSeries = (chart: typeof intents.volumeChart | undefined, dailyName: string, cumulativeName: string) => {
+	const buildDailyCumulativeSeries = (
+		chart: typeof intents.volumeChart | undefined,
+		dailyName: string,
+		cumulativeName: string
+	) => {
 		if (!chart) return undefined
 		const ts = chartToTimeSeries(chart)
 		const daily = ts.find((s) => s.name === dailyName)
@@ -154,8 +181,7 @@ export default function Ecosystem() {
 	const channelBars = intents ? channelsToBars(intents.channelBreakdown) : undefined
 
 	const dailyVolumeRaw = lastSeriesValue(intents?.volumeChart, 'Daily Volume')
-	const dailyVolumeFormatted =
-		dailyVolumeRaw != null ? formattedNum(dailyVolumeRaw, true) : undefined
+	const dailyVolumeFormatted = dailyVolumeRaw != null ? formattedNum(dailyVolumeRaw, true) : undefined
 
 	const txnsSeries = eco ? chartToTimeSeries(eco.txnsChart)[0]?.data : undefined
 	const activeAccountsSeries = eco ? chartToTimeSeries(eco.activeAccountsChart)[0]?.data : undefined

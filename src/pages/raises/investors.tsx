@@ -55,12 +55,14 @@ const columns = [
 				</BasicLink>
 			)
 		},
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('deals', {
 		header: 'Deals',
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -68,8 +70,8 @@ const columns = [
 		id: 'medianAmount',
 		header: 'Median Amount',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		}
 	}),
@@ -77,8 +79,8 @@ const columns = [
 		header: 'Chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue())} />,
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -86,12 +88,16 @@ const columns = [
 	columnHelper.accessor('topCategory', {
 		header: 'Top Project Category',
 		enableSorting: false,
-		size: 180
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('topRound', {
 		header: 'Top Round Type',
 		enableSorting: false,
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
 	columnHelper.accessor('projects', {
 		header: 'Projects',
@@ -103,7 +109,9 @@ const columns = [
 				</Tooltip>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	})
 ]
 

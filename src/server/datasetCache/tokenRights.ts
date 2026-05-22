@@ -1,22 +1,35 @@
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
-import { findProtocolEntry } from '~/containers/TokenRights/utils'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
+import { normalizeTokenRightsProtocolName } from './tokenRightsIndex'
 
-function getTokenRightsDomainDir(): string {
-	return getDatasetDomainDir('token-rights')
-}
+const TOKEN_RIGHTS_FILES = DATASET_DOMAIN_ARTIFACTS['token-rights'].files
 
 export async function fetchTokenRightsEntriesFromCache(): Promise<IRawTokenRightsEntry[]> {
-	await readDatasetManifest()
-	return readJsonFile(`${getTokenRightsDomainDir()}/full.json`)
+	return readDatasetDomainJson<IRawTokenRightsEntry[]>('token-rights', TOKEN_RIGHTS_FILES.full)
 }
 
 export async function fetchTokenRightsEntryFromCache(defillamaId: string): Promise<IRawTokenRightsEntry | null> {
-	await readDatasetManifest()
 	if (!defillamaId) {
 		return null
 	}
 
-	const entries = await fetchTokenRightsEntriesFromCache()
-	return findProtocolEntry(entries, defillamaId)
+	const byDefillamaId = await readDatasetDomainJson<Record<string, IRawTokenRightsEntry>>(
+		'token-rights',
+		TOKEN_RIGHTS_FILES.byDefillamaId
+	)
+	return byDefillamaId[defillamaId] ?? null
+}
+
+export async function fetchTokenRightsEntryByNameFromCache(protocolName: string): Promise<IRawTokenRightsEntry | null> {
+	const normalizedName = normalizeTokenRightsProtocolName(protocolName)
+	if (!normalizedName) {
+		return null
+	}
+
+	const byProtocolName = await readDatasetDomainJson<Record<string, IRawTokenRightsEntry>>(
+		'token-rights',
+		TOKEN_RIGHTS_FILES.byProtocolName
+	)
+	return byProtocolName[normalizedName] ?? null
 }

@@ -1,0 +1,500 @@
+import { validateArticleChartConfig } from './chartAdapters'
+import { extractArticleContent } from './extractors'
+import type {
+	ArticleImage,
+	ArticleInterviewee,
+	ArticlePdf,
+	ArticleSection,
+	ArticleSnapshotPayload,
+	LocalArticleDocument,
+	TiptapJson,
+	ValidationResult
+} from './types'
+import { ARTICLE_SECTIONS } from './types'
+
+export const ARTICLE_CONTENT_VERSION = 1
+export const ARTICLE_RENDERER_VERSION = 1
+export const ARTICLE_EDITOR_SCHEMA_VERSION = 1
+
+const FORBIDDEN_NODE_TYPES = new Set(['dashboardEmbed', 'dashboard-embed'])
+
+export const EMPTY_ARTICLE_CONTENT: TiptapJson = {
+	type: 'doc',
+	content: [
+		{
+			type: 'heading',
+			attrs: { level: 2 },
+			content: [{ type: 'text', text: 'Start with a research question' }]
+		},
+		{
+			type: 'paragraph',
+			content: [{ type: 'text', text: 'Write the first paragraph, then link entities or insert a DefiLlama chart.' }]
+		}
+	]
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function optionalString(value: unknown): string | undefined {
+	return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
+}
+
+function normalizeSlug(value: string) {
+	return value
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.slice(0, 120)
+}
+
+export const DRAFT_SLUG_PREFIX = 'draft-'
+
+export function generateDraftSlug() {
+	const random =
+		typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+			? crypto.randomUUID().replace(/-/g, '').slice(0, 10)
+			: Math.random().toString(36).slice(2, 12)
+	return `${DRAFT_SLUG_PREFIX}${random}`
+}
+
+export function isDraftPlaceholderSlug(slug: string) {
+	return slug.startsWith(DRAFT_SLUG_PREFIX)
+}
+
+function normalizeDate(value: unknown, fallback: string) {
+	if (typeof value !== 'string') return fallback
+	const date = new Date(value)
+	return Number.isNaN(date.getTime()) ? fallback : date.toISOString()
+}
+
+function normalizeSection(value: unknown): ArticleSection | null {
+	if (typeof value !== 'string') return null
+	const lower = value
+		.trim()
+		.toLowerCase()
+		.replace(/[\s-]+/g, '_')
+	return ARTICLE_SECTIONS.includes(lower as ArticleSection) ? (lower as ArticleSection) : null
+}
+
+function normalizeOptionalDate(value: unknown): string | null {
+	if (typeof value !== 'string' || !value.trim()) return null
+	const date = new Date(value)
+	return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+function normalizeTags(value: unknown): string[] {
+	if (!Array.isArray(value)) return []
+	const seen = new Set<string>()
+	const tags: string[] = []
+	for (const item of value) {
+		if (typeof item !== 'string') continue
+		const normalized = normalizeSlug(item)
+		if (!normalized || seen.has(normalized)) continue
+		seen.add(normalized)
+		tags.push(normalized)
+		if (tags.length >= 12) break
+	}
+	return tags
+}
+
+function normalizeOptionalString(value: unknown): string | null {
+	if (typeof value !== 'string') return null
+	const trimmed = value.trim()
+	return trimmed.length > 0 ? trimmed : null
+}
+
+function normalizeInterviewUrl(value: unknown): string | null {
+	const trimmed = normalizeOptionalString(value)
+	if (!trimmed) return null
+	if (/^(https?:\/\/|mailto:)/i.test(trimmed)) return trimmed
+	return `https://${trimmed}`
+}
+
+function normalizeInterviewees(value: unknown): ArticleInterviewee[] | undefined {
+	if (!Array.isArray(value)) return undefined
+	const out: ArticleInterviewee[] = []
+	for (const entry of value) {
+		if (!isRecord(entry)) continue
+		const name = normalizeOptionalString(entry.name)
+		if (!name) continue
+		const interviewee: ArticleInterviewee = { name }
+		const avatarUrl = normalizeOptionalString(entry.avatarUrl)
+		if (avatarUrl) interviewee.avatarUrl = avatarUrl
+		const bio = normalizeOptionalString(entry.bio)
+		if (bio) interviewee.bio = bio
+		const role = normalizeOptionalString(entry.role)
+		if (role) interviewee.role = role
+		const authorSlug = normalizeOptionalString(entry.authorSlug)
+		if (authorSlug) interviewee.authorSlug = authorSlug
+		const externalUrl = normalizeInterviewUrl(entry.externalUrl)
+		if (externalUrl) interviewee.externalUrl = externalUrl
+		out.push(interviewee)
+		if (out.length >= 12) break
+	}
+	return out.length > 0 ? out : undefined
+}
+
+function normalizeReportPdf(value: unknown): ArticlePdf | null | undefined {
+	if (value == null) return null
+	if (!isRecord(value)) return undefined
+	const id = optionalString(value.id)
+	const url = optionalString(value.url)
+	if (!id || !url) return undefined
+	const sizeBytes =
+		typeof value.sizeBytes === 'number' && Number.isFinite(value.sizeBytes)
+			? Math.max(0, Math.floor(value.sizeBytes))
+			: 0
+	const originalName = optionalString(value.originalName)
+	const pageCount =
+		typeof value.pageCount === 'number' && Number.isFinite(value.pageCount)
+			? Math.max(0, Math.floor(value.pageCount))
+			: undefined
+	return {
+		id,
+		url,
+		sizeBytes,
+		...(originalName ? { originalName } : {}),
+		...(pageCount != null ? { pageCount } : {})
+	}
+}
+
+function normalizeCoverImage(value: unknown): ArticleImage | null | undefined {
+	if (value == null) return null
+	if (!isRecord(value)) return undefined
+	const url = optionalString(value.url)
+	if (!url) return undefined
+	return {
+		url,
+		...(optionalString(value.alt) ? { alt: optionalString(value.alt) } : {}),
+		...(optionalString(value.caption) ? { caption: optionalString(value.caption) } : {}),
+		...(optionalString(value.credit) ? { credit: optionalString(value.credit) } : {}),
+		...(optionalString(value.copyright) ? { copyright: optionalString(value.copyright) } : {}),
+		...(optionalString(value.headline) ? { headline: optionalString(value.headline) } : {}),
+		...(typeof value.width === 'number' && Number.isFinite(value.width) ? { width: value.width } : {}),
+		...(typeof value.height === 'number' && Number.isFinite(value.height) ? { height: value.height } : {})
+	}
+}
+
+function hasForbiddenDashboardEmbed(node: unknown): boolean {
+	if (!isRecord(node)) return false
+	const type = typeof node.type === 'string' ? node.type : undefined
+	if (type && FORBIDDEN_NODE_TYPES.has(type)) return true
+
+	const attrs = isRecord(node.attrs) ? node.attrs : null
+	const config = isRecord(attrs?.config) ? attrs.config : null
+	if (config?.kind === 'dashboard-embed' || config?.kind === 'dashboardEmbed') return true
+	if (Array.isArray(attrs?.items) || Array.isArray(attrs?.dashboardItems)) return true
+
+	const chartConfig = type === 'defillamaChart' ? validateArticleChartConfig(attrs?.config) : null
+	if (type === 'defillamaChart' && !chartConfig) return true
+
+	if (Array.isArray(node.content)) {
+		return node.content.some(hasForbiddenDashboardEmbed)
+	}
+
+	return false
+}
+
+type NormalizedContentNode = {
+	node: TiptapJson
+	hoisted: TiptapJson[]
+}
+
+type StrippedQAAnswerNode = {
+	node: TiptapJson | null
+	hoisted: TiptapJson[]
+}
+
+const EMPTY_QA_QUESTION: TiptapJson = { type: 'qaQuestion', content: [] }
+const EMPTY_QA_ANSWER_CONTENT: TiptapJson[] = [{ type: 'paragraph' }]
+
+function normalizeQANode(node: TiptapJson): NormalizedContentNode {
+	const children = node.content ?? []
+	const question = children.find((child) => child?.type === 'qaQuestion')
+	const answer = children.find((child) => child?.type === 'qaAnswer')
+	const normalizedAnswer = normalizeQAAnswerNode(answer)
+	const hoisted = [...normalizedAnswer.hoisted]
+
+	for (const child of children) {
+		if (!child || child === question || child === answer || child.type !== 'qa') continue
+		const normalized = normalizeQANode(child)
+		hoisted.push(normalized.node, ...normalized.hoisted)
+	}
+
+	return {
+		node: {
+			...node,
+			content: [question ?? EMPTY_QA_QUESTION, normalizedAnswer.node]
+		},
+		hoisted
+	}
+}
+
+function normalizeQAAnswerNode(node: TiptapJson | undefined): { node: TiptapJson; hoisted: TiptapJson[] } {
+	const hoisted: TiptapJson[] = []
+	const content: TiptapJson[] = []
+
+	for (const child of node?.content ?? []) {
+		const stripped = stripNestedQAsFromAnswer(child)
+		if (stripped.node) content.push(stripped.node)
+		hoisted.push(...stripped.hoisted)
+	}
+
+	return {
+		node: {
+			...(node ?? { type: 'qaAnswer' }),
+			content: content.length > 0 ? content : EMPTY_QA_ANSWER_CONTENT
+		},
+		hoisted
+	}
+}
+
+function stripNestedQAsFromAnswer(node: TiptapJson): StrippedQAAnswerNode {
+	if (node.type === 'qa') {
+		const normalized = normalizeQANode(node)
+		return { node: null, hoisted: [normalized.node, ...normalized.hoisted] }
+	}
+
+	if (!node.content) return { node, hoisted: [] }
+
+	const hoisted: TiptapJson[] = []
+	const content: TiptapJson[] = []
+	for (const child of node.content) {
+		const stripped = stripNestedQAsFromAnswer(child)
+		if (stripped.node) content.push(stripped.node)
+		hoisted.push(...stripped.hoisted)
+	}
+
+	if (node.content.length > 0 && content.length === 0 && node.type !== 'paragraph') {
+		return { node: null, hoisted }
+	}
+
+	return {
+		node: {
+			...node,
+			content
+		},
+		hoisted
+	}
+}
+
+function normalizeArticleContentNode(node: TiptapJson): NormalizedContentNode {
+	if (node.type === 'qa') return normalizeQANode(node)
+	if (!node.content) return { node, hoisted: [] }
+
+	const content: TiptapJson[] = []
+	for (const child of node.content) {
+		const normalized = normalizeArticleContentNode(child)
+		content.push(normalized.node, ...normalized.hoisted)
+	}
+
+	return {
+		node: {
+			...node,
+			content
+		},
+		hoisted: []
+	}
+}
+
+export function normalizeArticleContentJson(value: unknown): TiptapJson {
+	if (!isRecord(value) || value.type !== 'doc') return EMPTY_ARTICLE_CONTENT
+	const normalized = normalizeArticleContentNode(value as TiptapJson)
+	return normalized.hoisted.length > 0
+		? { ...normalized.node, content: [...(normalized.node.content ?? []), ...normalized.hoisted] }
+		: normalized.node
+}
+
+export function normalizeLocalArticleDocument(
+	input: unknown,
+	existing?: LocalArticleDocument | null,
+	now = new Date().toISOString()
+): ValidationResult<LocalArticleDocument> {
+	if (!isRecord(input)) return { ok: false, error: 'Article payload must be an object' }
+
+	const title = optionalString(input.title) || 'Untitled research'
+	const seoTitle = optionalString(input.seoTitle)
+	const slugSource = optionalString(input.slug) || seoTitle || title
+	const slug = normalizeSlug(slugSource) || generateDraftSlug()
+	const status = input.status === 'published' ? 'published' : 'draft'
+	const contentJson = normalizeArticleContentJson(input.contentJson)
+
+	if (hasForbiddenDashboardEmbed(contentJson)) {
+		return { ok: false, error: 'Dashboard embeds are not supported in articles' }
+	}
+
+	const coverImage = normalizeCoverImage(input.coverImage)
+	if (coverImage === undefined) {
+		return { ok: false, error: 'coverImage must be null or an object with a url' }
+	}
+	const carouselImage = normalizeCoverImage(input.carouselImage)
+	if (carouselImage === undefined) {
+		return { ok: false, error: 'carouselImage must be null or an object with a url' }
+	}
+	const sponsorLogo = normalizeCoverImage(input.sponsorLogo)
+	if (sponsorLogo === undefined) {
+		return { ok: false, error: 'sponsorLogo must be null or an object with a url' }
+	}
+	const reportPdf = normalizeReportPdf(input.reportPdf)
+	if (reportPdf === undefined) {
+		return { ok: false, error: 'reportPdf must be null or an object with id and url' }
+	}
+	const reportDescriptionRaw = optionalString(input.reportDescription)
+	const reportDescription = reportDescriptionRaw ? reportDescriptionRaw.slice(0, 2000) : null
+
+	const createdAt = normalizeDate(input.createdAt, existing?.createdAt ?? now)
+	const updatedAt = now
+	const previousPublishedAt = existing?.publishedAt ?? null
+	const incomingPublishedAt = typeof input.publishedAt === 'string' ? input.publishedAt : null
+	const publishedAt =
+		status === 'published' ? normalizeDate(incomingPublishedAt, previousPublishedAt ?? now) : previousPublishedAt
+	const firstPublishedAt = normalizeOptionalDate(input.firstPublishedAt) ?? existing?.firstPublishedAt ?? null
+	const lastPublishedAt = normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
+	const displayDate = normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
+	const section = normalizeSection(input.section) ?? existing?.section ?? null
+	const brandByline = typeof input.brandByline === 'boolean' ? input.brandByline : (existing?.brandByline ?? false)
+	const editorialTags = Array.isArray(input.editorialTags)
+		? input.editorialTags.filter((value): value is string => typeof value === 'string')
+		: (existing?.editorialTags ?? [])
+	const interviewees =
+		'interviewees' in input ? normalizeInterviewees(input.interviewees) : (existing?.interviewees ?? undefined)
+	const extracted = extractArticleContent(contentJson)
+	const trimmedPlain = extracted.plainText.trim()
+	const firstSentenceMatch = trimmedPlain.match(/^[\s\S]*?[.!?](?:\s|$)/)
+	const derivedExcerpt = (firstSentenceMatch ? firstSentenceMatch[0] : trimmedPlain).trim().slice(0, 240)
+	const derivedSeo = trimmedPlain.replace(/\s+/g, ' ').slice(0, 160)
+	const excerpt = optionalString(input.excerpt) ?? (derivedExcerpt || undefined)
+	const seoDescription = optionalString(input.seoDescription) ?? (derivedSeo || undefined)
+
+	const pending = isRecord(input.pending) ? (input.pending as ArticleSnapshotPayload) : null
+	const pendingUpdatedAt = optionalString(input.pendingUpdatedAt) ? normalizeDate(input.pendingUpdatedAt, now) : null
+	const pendingActorPbUserId = optionalString(input.pendingActorPbUserId) ?? null
+
+	return {
+		ok: true,
+		value: {
+			contentVersion: ARTICLE_CONTENT_VERSION,
+			rendererVersion: ARTICLE_RENDERER_VERSION,
+			editorSchemaVersion: ARTICLE_EDITOR_SCHEMA_VERSION,
+			...(optionalString(input.id) ? { id: optionalString(input.id) } : {}),
+			title,
+			...(optionalString(input.subtitle) ? { subtitle: optionalString(input.subtitle) } : {}),
+			slug,
+			status,
+			...(optionalString(input.author) ? { author: optionalString(input.author) } : {}),
+			...(isRecord(input.authorProfile)
+				? { authorProfile: input.authorProfile as LocalArticleDocument['authorProfile'] }
+				: {}),
+			...(optionalString(input.seoTitle) ? { seoTitle: optionalString(input.seoTitle) } : {}),
+			...(seoDescription ? { seoDescription } : {}),
+			...(excerpt ? { excerpt } : {}),
+			coverImage,
+			carouselImage,
+			sponsorLogo,
+			reportDescription,
+			reportPdf,
+			contentJson,
+			plainText: extracted.plainText,
+			entities: extracted.entities,
+			charts: extracted.charts,
+			citations: extracted.citations,
+			embeds: extracted.embeds,
+			tags: normalizeTags(input.tags),
+			editorialTags,
+			...(interviewees && interviewees.length > 0 ? { interviewees } : {}),
+			section,
+			displayDate,
+			brandByline,
+			...(typeof input.featuredRank === 'number' && Number.isInteger(input.featuredRank)
+				? { featuredRank: input.featuredRank }
+				: {}),
+			...(optionalString(input.featuredUntil) ? { featuredUntil: normalizeDate(input.featuredUntil, now) } : {}),
+			createdAt,
+			updatedAt,
+			publishedAt,
+			firstPublishedAt,
+			lastPublishedAt,
+			pending,
+			pendingUpdatedAt,
+			pendingActorPbUserId
+		}
+	}
+}
+
+export type ArticlePublishValidationError = {
+	field: string
+	message: string
+}
+
+export function validateLocalArticleForPublish(doc: LocalArticleDocument): ArticlePublishValidationError[] {
+	const errors: ArticlePublishValidationError[] = []
+	if (!doc.section) errors.push({ field: 'section', message: 'Section is required' })
+	if (!doc.title || doc.title.trim() === '' || doc.title === 'Untitled research') {
+		errors.push({ field: 'title', message: 'Headline is required' })
+	}
+	if (!doc.coverImage || !doc.coverImage.url) {
+		errors.push({ field: 'coverImage', message: 'Cover image is required' })
+	} else {
+		if (!doc.coverImage.caption) errors.push({ field: 'coverImage.caption', message: 'Cover caption is required' })
+		if (!doc.coverImage.copyright)
+			errors.push({ field: 'coverImage.copyright', message: 'Cover copyright is required' })
+		if (!doc.coverImage.credit) errors.push({ field: 'coverImage.credit', message: 'Cover credit is required' })
+	}
+	if (!doc.tags || doc.tags.length === 0) {
+		errors.push({ field: 'tags', message: 'At least one topic is required' })
+	}
+	if (!doc.displayDate) {
+		errors.push({ field: 'displayDate', message: 'Display date is required' })
+	}
+	return errors
+}
+
+export function applyPendingToLocalArticle(
+	live: LocalArticleDocument,
+	pending: ArticleSnapshotPayload | null | undefined
+): LocalArticleDocument {
+	if (!pending) return live
+	const merged: LocalArticleDocument = {
+		...live,
+		...(pending as Partial<LocalArticleDocument>),
+		id: live.id,
+		status: live.status,
+		authorProfile: live.authorProfile,
+		coAuthors: live.coAuthors,
+		viewerRole: live.viewerRole,
+		publishedAt: live.publishedAt,
+		createdAt: live.createdAt,
+		updatedAt: pending.updatedAt ?? live.updatedAt,
+		pending: live.pending ?? null,
+		pendingUpdatedAt: live.pendingUpdatedAt ?? null,
+		pendingActorPbUserId: live.pendingActorPbUserId ?? null
+	}
+	return merged
+}
+
+export function createEmptyLocalArticle(now = new Date().toISOString()): LocalArticleDocument {
+	const normalized = normalizeLocalArticleDocument(
+		{
+			title: 'Untitled research',
+			slug: generateDraftSlug(),
+			status: 'draft',
+			coverImage: null,
+			tags: [],
+			contentJson: EMPTY_ARTICLE_CONTENT,
+			createdAt: now,
+			updatedAt: now,
+			publishedAt: null
+		},
+		null,
+		now
+	)
+
+	if (normalized.ok === false) {
+		throw new Error(normalized.error)
+	}
+
+	return normalized.value
+}

@@ -4,8 +4,8 @@ import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchAllProtocolEmissions } from '~/containers/Unlocks/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
-
-const baseUrl = `https://defillama.com`
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import { buildSitemapXmlFromPaths, normalizeSitemapRoute, SITEMAP_BASE_URL } from '~/utils/sitemapXml'
 
 // First path segment after `protocols/` for URLs that permanently redirect (see redirects in next.config.ts)
 const REDIRECTED_PROTOCOLS_LISTING_SLUGS = new Set([
@@ -58,42 +58,6 @@ const REDIRECTED_PROTOCOLS_LISTING_SLUGS = new Set([
 // 	{ prefix: 'options/premium-volume/chain', flag: 'optionsNotionalVolume' }
 // ]
 
-function encodeUrl(urlToAdd) {
-	// Encode each path segment but keep "/" separators intact.
-	const [path, ...queryParts] = urlToAdd.split('?')
-	const encodedPath = path
-		.split('/')
-		.map((segment) => encodeURIComponent(segment))
-		.join('/')
-	const query = queryParts.join('?')
-	const encodedQuery = query ? `?${encodeURI(query)}` : ''
-
-	return encodedPath + encodedQuery
-}
-
-function escapeXml(value) {
-	return String(value)
-		.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-f]+;)/gi, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&apos;')
-}
-
-function url(urlToAdd) {
-	return `
-    <url>
-        <loc>${escapeXml(`${baseUrl}/${urlToAdd}`)}</loc>
-    </url>
-    `
-}
-
-function normalizeRoute(route) {
-	if (typeof route !== 'string') return null
-	if (route === '/') return ''
-	return route.replace(/^\/+/, '').replace(/\/+$/, '')
-}
-
 function stripQuery(route) {
 	return String(route).split('?')[0]
 }
@@ -105,7 +69,7 @@ function getNavRoutes() {
 		for (const page of defillamaPages[category]) {
 			if (typeof page.route !== 'string') continue
 			if (page.route.startsWith('https://') || page.route.startsWith('http://')) continue
-			const normalizedRoute = normalizeRoute(stripQuery(page.route))
+			const normalizedRoute = normalizeSitemapRoute(stripQuery(page.route))
 			if (normalizedRoute != null) routes.push(normalizedRoute)
 		}
 	}
@@ -286,15 +250,7 @@ async function buildDATRoutes() {
 }
 
 function generateSiteMap(routes) {
-	const dedupedRoutes = Array.from(
-		new Set(routes.map((route) => normalizeRoute(route)).filter((route) => route != null))
-	)
-
-	return `<?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-		${dedupedRoutes.map((route) => url(encodeUrl(route))).join('')}
-   </urlset>
- `
+	return buildSitemapXmlFromPaths(SITEMAP_BASE_URL, routes)
 }
 
 function SiteMap() {
@@ -333,7 +289,10 @@ export async function getServerSideProps({ res }) {
 	])
 
 	res.setHeader('Content-Type', 'text/xml')
-	res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600')
+	res.setHeader(
+		'Cache-Control',
+		jitterCacheControlHeader('public, max-age=300, s-maxage=1800, stale-while-revalidate=3600', 'sitemap.xml')
+	)
 	// we send the XML to the browser
 	res.write(sitemap)
 	res.end()

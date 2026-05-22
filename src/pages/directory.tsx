@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -61,14 +61,13 @@ const saveRecent = (protocol: { name: string; logo?: string; route: string }) =>
 
 export default function Protocols({ protocols }: { protocols: Array<{ name: string; logo: string; route: string }> }) {
 	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		if (!deferredSearchValue) return protocols
-		return matchSorter(protocols, deferredSearchValue, {
+		if (!searchValue) return protocols
+		return matchSorter(protocols, searchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [protocols, deferredSearchValue])
+	}, [protocols, searchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 

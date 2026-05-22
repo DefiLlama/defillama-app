@@ -116,5 +116,17 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ['/api/:path*', '/', '/all', '/etherfi', '/spark', '/maple', '/berachain', '/aave', '/sonic', '/near', '/flare']
+	matcher: [
+		'/api/:path*',
+		'/',
+		'/all',
+		'/etherfi',
+		'/spark',
+		'/maple',
+		'/berachain',
+		'/aave',
+		'/sonic',
+		'/near',
+		'/flare'
+	]
 }

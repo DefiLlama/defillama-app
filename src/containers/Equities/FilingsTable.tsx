@@ -11,24 +11,29 @@ const DEFAULT_SORTING_STATE = [{ id: 'filingDate', desc: true }]
 const columns = [
 	columnHelper.accessor('filingDate', {
 		header: 'Filing Date',
-		size: 120,
 		cell: ({ getValue }) => formatEquitiesDate(getValue()),
-		meta: { align: 'start' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'start'
+		}
 	}),
 	columnHelper.accessor('reportDate', {
 		header: 'Report Date',
-		size: 120,
 		cell: ({ getValue }) => formatEquitiesDate(getValue()),
-		meta: { align: 'start' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'start'
+		}
 	}),
 	columnHelper.accessor('form', {
 		header: 'Form',
-		size: 84,
-		meta: { align: 'start' }
+		meta: {
+			headerClassName: 'w-[84px]',
+			align: 'start'
+		}
 	}),
 	columnHelper.accessor('documentDescription', {
 		header: 'Description',
-		size: 520,
 		filterFn: (row, _columnId, filterValue) => {
 			const query = String(filterValue).trim().toLowerCase()
 			if (!query) return true
@@ -37,11 +42,13 @@ const columns = [
 				row.original.form.toLowerCase().includes(query)
 			)
 		},
-		meta: { align: 'start' }
+		meta: {
+			headerClassName: 'w-[min(520px,40vw)]',
+			align: 'start'
+		}
 	}),
 	columnHelper.accessor('primaryDocumentUrl', {
 		header: 'Source URL',
-		size: 120,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<span className="flex w-full max-w-[80px] items-center justify-end">
@@ -56,7 +63,10 @@ const columns = [
 				</a>
 			</span>
 		),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	})
 ]
 

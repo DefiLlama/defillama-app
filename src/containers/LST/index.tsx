@@ -65,39 +65,41 @@ const LSDColumn = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('stakedEth', {
 		header: 'Staked ETH',
 		cell: (info) => formattedNum(info.getValue()),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('stakedEthInUsd', {
 		header: 'TVL',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	}),
 	columnHelper.accessor('stakedEthPctChange7d', {
 		header: '7d Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	}),
 	columnHelper.accessor('stakedEthPctChange30d', {
 		header: '30d Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('marketShare', {
 		header: 'Market Share',
@@ -106,9 +108,9 @@ const LSDColumn = [
 			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
+			headerClassName: 'w-[125px]',
 			align: 'end'
-		},
-		size: 125
+		}
 	}),
 	columnHelper.accessor('lsdSymbol', {
 		header: 'LST',
@@ -124,9 +126,9 @@ const LSDColumn = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
-		},
-		size: 100
+		}
 	}),
 	columnHelper.accessor('ethPeg', {
 		header: 'ETH Peg',
@@ -146,11 +148,11 @@ const LSDColumn = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[115px]',
 			align: 'end',
 			headerHelperText:
 				'Market Rate (pulled from 1inch) divided by Expected Rate. Hover for Market Rate and Expected Rate Info.'
-		},
-		size: 115
+		}
 	}),
 	columnHelper.accessor('mcapOverTvl', {
 		header: 'Mcap/TVL',
@@ -165,26 +167,26 @@ const LSDColumn = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	}),
 	columnHelper.accessor('apy', {
 		header: 'LST APR',
 		cell: (info) => (info.getValue() != null ? `${info.getValue().toFixed(2)}%` : null),
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
-		},
-		size: 100
+		}
 	}),
 	columnHelper.accessor('fee', {
 		header: 'Fee',
 		cell: (info) => (info.getValue() != null ? `${info.getValue().toFixed(2)}%` : null),
 		meta: {
+			headerClassName: 'w-[90px]',
 			align: 'end',
 			headerHelperText: 'Protocol Fee'
-		},
-		size: 90
+		}
 	})
 ]
 

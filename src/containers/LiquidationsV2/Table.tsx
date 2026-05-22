@@ -45,29 +45,43 @@ const protocolColumns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
 		}
 	}),
 	protocolColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.chainCount ?? undefined, {
 		id: 'chainCount',
 		header: 'Chains',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[90px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
 		header: 'Tokens',
-		size: 80,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[80px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 
@@ -84,29 +98,43 @@ const overviewChainColumns = [
 				</span>
 			)
 		},
-		enableSorting: false
+		enableSorting: false,
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]'
+		}
 	}),
 	overviewChainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	overviewChainColumnHelper.accessor((row) => row.protocolCount ?? undefined, {
 		id: 'protocolCount',
 		header: 'Protocols',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	overviewChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
 		header: 'Tokens',
-		size: 80,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[80px]',
+			align: 'end'
+		}
 	}),
 	overviewChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 
@@ -128,24 +156,35 @@ const protocolChainColumns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]'
 		}
 	}),
 	protocolChainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	protocolChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
 		header: 'Tokens',
-		size: 80,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[80px]',
+			align: 'end'
+		}
 	}),
 	protocolChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 
@@ -164,6 +203,9 @@ const positionColumns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
 		}
 	}),
 	positionColumnHelper.accessor('chainName', {
@@ -183,38 +225,55 @@ const positionColumns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[140px]'
 		}
 	}),
 	positionColumnHelper.accessor('ownerName', {
 		id: 'ownerName',
 		header: 'Owner',
 		enableSorting: false,
-		cell: ({ row }) => <LiquidationsOwnerLink position={row.original} />
+		cell: ({ row }) => <LiquidationsOwnerLink position={row.original} />,
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	positionColumnHelper.accessor((row) => row.collateral ?? undefined, {
 		id: 'collateral',
 		header: 'Token',
 		enableSorting: false,
-		size: 80,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[80px]',
+			align: 'end'
+		}
 	}),
 	positionColumnHelper.accessor((row) => row.collateralAmountUsd ?? undefined, {
 		id: 'collateralAmountUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	}),
 	positionColumnHelper.accessor((row) => row.collateralAmount ?? undefined, {
 		id: 'collateralAmount',
 		header: 'Raw Amount',
 		cell: ({ getValue }) => formattedNum(getValue()),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end'
+		}
 	}),
 	positionColumnHelper.accessor((row) => row.liqPrice ?? undefined, {
 		id: 'liqPrice',
 		header: 'Liquidation Price',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[160px]',
+			align: 'end'
+		}
 	})
 ]
 

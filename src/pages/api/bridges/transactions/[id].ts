@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchBridgeTransactions } from '~/containers/Bridges/api'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
@@ -42,7 +43,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	try {
 		const data = await fetchBridgeTransactions(idParam, startTimestamp, endTimestamp)
-		res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, s-maxage=300, stale-while-revalidate=60', req.url ?? idParam)
+		)
 		return res.status(200).json(data)
 	} catch (error) {
 		res.setHeader('Cache-Control', 'no-store')

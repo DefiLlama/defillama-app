@@ -20,7 +20,15 @@ const SPEND_VENUES = [
 	{ id: 'votemarket', label: 'VoteMarket' }
 ]
 
-function TabBtns({ active, onChange, options }: { active: string; onChange: (v: string) => void; options: { id: string; label: string }[] }) {
+function TabBtns({
+	active,
+	onChange,
+	options
+}: {
+	active: string
+	onChange: (v: string) => void
+	options: { id: string; label: string }[]
+}) {
 	return (
 		<div className="mb-3 flex flex-wrap gap-1">
 			{options.map((o) => (
@@ -197,7 +205,10 @@ export default function Growth() {
 			{marketComboSeries && (
 				<>
 					<SectionHeader>Ecosystem TVL vs ETH Change %</SectionHeader>
-					<ChartCard title="Relative performance" subtitle="Combined ecosystem TVL change vs ETH/USD change since reference date">
+					<ChartCard
+						title="Relative performance"
+						subtitle="Combined ecosystem TVL change vs ETH/USD change since reference date"
+					>
 						<MultiSeriesChart series={marketComboSeries as any} valueSymbol="%" height="320px" />
 					</ChartCard>
 				</>
@@ -211,7 +222,10 @@ export default function Growth() {
 			</div>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				{siusdVsIusd && (
-					<ChartCard title="siUSD vs iUSD TVL" subtitle={cs.kelpExploitDate ? `Reference: Kelp exploit ${cs.kelpExploitDate}` : undefined}>
+					<ChartCard
+						title="siUSD vs iUSD TVL"
+						subtitle={cs.kelpExploitDate ? `Reference: Kelp exploit ${cs.kelpExploitDate}` : undefined}
+					>
 						<MultiSeriesChart series={siusdVsIusd as any} valueSymbol="$" height="320px" />
 					</ChartCard>
 				)}
@@ -230,12 +244,7 @@ export default function Growth() {
 						title="Featured Morpho market"
 						subtitle={`Latest borrow ${fmtUsd(csk.morphoBorrowLatest)} · utilization ${csk.morphoUtilization?.toFixed?.(1) ?? '—'}%`}
 					>
-						<MultiSeriesChart
-							series={morphoMarket as any}
-							valueSymbol="$"
-							yAxisSymbols={['$', '%']}
-							height="340px"
-						/>
+						<MultiSeriesChart series={morphoMarket as any} valueSymbol="$" yAxisSymbols={['$', '%']} height="340px" />
 					</ChartCard>
 				</>
 			)}
@@ -266,7 +275,10 @@ export default function Growth() {
 			{spendVsTvlBlock && (
 				<>
 					<SectionHeader>Incentive Spend vs Pool TVL · Efficiency</SectionHeader>
-					<ChartCard title={`${spendVenue} — weekly spend vs pool TVL`} subtitle="Compare incentive outlay against the TVL it attracted">
+					<ChartCard
+						title={`${spendVenue} — weekly spend vs pool TVL`}
+						subtitle="Compare incentive outlay against the TVL it attracted"
+					>
 						<TabBtns active={spendVenue} onChange={setSpendVenue} options={SPEND_VENUES} />
 						<MultiSeriesChart
 							key={spendVenue}

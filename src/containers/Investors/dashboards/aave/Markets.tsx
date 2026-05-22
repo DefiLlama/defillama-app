@@ -177,7 +177,7 @@ export default function Markets() {
 			numAssets: assetSet.size,
 			avgSupplyApy: `${avgSupplyApy.toFixed(2)}%`
 		}
-	}, [markets, reserves, isLoading])
+	}, [markets, reserves])
 
 	const marketSizeByChain = useMemo(() => {
 		const chainMap = new Map<string, number>()

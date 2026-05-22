@@ -30,4 +30,3 @@ export function chartToData(chart: UpstreamChart | undefined): Array<Record<stri
 		return point
 	})
 }
-

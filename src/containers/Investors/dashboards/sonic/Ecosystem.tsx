@@ -424,10 +424,7 @@ export default function Ecosystem() {
 											key={coin.name}
 											className="flex items-center gap-2 border-b border-(--cards-border) py-2.5 last:border-b-0"
 										>
-											<span
-												className="inline-block h-2 w-2 shrink-0 rounded-full"
-												style={{ background: color }}
-											/>
+											<span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
 											<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary)">{coin.name}</span>
 											<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{coin.formatted}</span>
 											<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{coin.pct}%</span>
@@ -437,7 +434,9 @@ export default function Ecosystem() {
 							</div>
 							<div className="mt-3 flex items-center justify-between border-t border-(--cards-border) pt-3">
 								<span className="text-sm text-(--text-label)">Total</span>
-								<span className="text-sm font-bold text-(--text-primary)">{data.stablecoins.breakdownTotalFormatted}</span>
+								<span className="text-sm font-bold text-(--text-primary)">
+									{data.stablecoins.breakdownTotalFormatted}
+								</span>
 							</div>
 						</div>
 					</div>

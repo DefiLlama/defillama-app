@@ -297,9 +297,7 @@ export default function FeeM() {
 				<div className="mt-2.5 flex items-start text-sm">
 					<div className="flex-1">
 						<span className="font-medium text-(--text-primary)">App / Builder</span>
-						<span className="ml-2 text-xs text-(--text-label)">
-							Direct revenue, app incentives, or gas subsidies
-						</span>
+						<span className="ml-2 text-xs text-(--text-label)">Direct revenue, app incentives, or gas subsidies</span>
 					</div>
 					<div className="text-right" style={{ minWidth: '80px' }}>
 						<span className="font-medium text-(--text-primary)">Validators</span>

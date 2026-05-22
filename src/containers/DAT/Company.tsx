@@ -321,7 +321,10 @@ const columns = [
 	columnHelper.accessor('assetName', {
 		header: 'Asset',
 		enableSorting: false,
-		cell: (info) => info.getValue()
+		cell: (info) => info.getValue(),
+		meta: {
+			headerClassName: 'w-[160px]'
+		}
 	}),
 	columnHelper.accessor(
 		(row) => {
@@ -339,6 +342,7 @@ const columns = [
 				)
 			},
 			meta: {
+				headerClassName: 'w-[160px]',
 				align: 'end'
 			}
 		}
@@ -347,6 +351,7 @@ const columns = [
 		header: 'Avg Purchase Price',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[168px]',
 			align: 'end'
 		}
 	}),
@@ -354,6 +359,7 @@ const columns = [
 		header: 'USD Value',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end'
 		}
 	}),
@@ -361,6 +367,7 @@ const columns = [
 		header: 'Report Date',
 		cell: (info) => (info.getValue() != null ? dayjs(info.getValue()).format('MMM D, YYYY') : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -369,6 +376,7 @@ const columns = [
 		cell: (info) => getType(info.getValue()),
 		enableSorting: false,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -377,6 +385,7 @@ const columns = [
 		cell: (info) => getSourceType(info.getValue()),
 		enableSorting: false,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end'
 		}
 	}),
@@ -397,7 +406,10 @@ const columns = [
 				</a>
 			)
 		},
-		enableSorting: false
+		enableSorting: false,
+		meta: {
+			headerClassName: 'w-[100px]'
+		}
 	}),
 	columnHelper.accessor('source_note', {
 		header: 'Source Note',
@@ -410,7 +422,9 @@ const columns = [
 			)
 		},
 		enableSorting: false,
-		size: 1000
+		meta: {
+			headerClassName: 'w-[min(1000px,40vw)]'
+		}
 	})
 ]
 

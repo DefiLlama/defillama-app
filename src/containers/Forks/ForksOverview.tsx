@@ -44,21 +44,33 @@ const forksColumn = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
 		}
 	}),
 	columnHelper.accessor('forkedProtocols', {
 		header: 'Forked Protocols',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[150px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'Forks TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('ftot', {
 		header: 'Forks TVL / Original TVL',
 		cell: (info) => (info.getValue() != null ? `${formattedNum(info.getValue())}%` : null),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[min(210px,40vw)]',
+			align: 'end'
+		}
 	})
 ]
 

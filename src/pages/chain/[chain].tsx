@@ -21,7 +21,6 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 
 	const normalizedChain = chain === 'all' ? 'All' : chain
 	const metadataModule = await import('~/utils/metadata')
-	await metadataModule.refreshMetadataIfStale()
 	const metadataCache = metadataModule.default
 
 	if (normalizedChain !== 'All' && !metadataCache.chainMetadata[slug(normalizedChain)]) {

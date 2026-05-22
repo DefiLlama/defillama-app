@@ -355,15 +355,18 @@ function ProDashboardContent() {
 			{items.length > 0 ? <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} /> : null}
 
 			<Suspense fallback={<></>}>
-				<AddChartModal
-					isOpen={showAddModal}
-					onClose={() => {
-						setShowAddModal(false)
-						setEditModalState({ item: null, focusSection: undefined })
-					}}
-					editItem={editModalState.item}
-					initialUnifiedFocusSection={editModalState.focusSection}
-				/>
+				{showAddModal ? (
+					<AddChartModal
+						key={editModalState.item?.id ?? 'new-dashboard-item'}
+						isOpen
+						onClose={() => {
+							setShowAddModal(false)
+							setEditModalState({ item: null, focusSection: undefined })
+						}}
+						editItem={editModalState.item}
+						initialUnifiedFocusSection={editModalState.focusSection}
+					/>
+				) : null}
 			</Suspense>
 
 			{!protocolsLoading && items.length === 0 ? (

@@ -14,7 +14,15 @@ export function KpiCard({ label, value, sub }: { label: string; value?: string |
 	)
 }
 
-export function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+export function ChartCard({
+	title,
+	subtitle,
+	children
+}: {
+	title: string
+	subtitle?: string
+	children: React.ReactNode
+}) {
 	return (
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
 			<h3 className="mb-1 text-sm font-medium text-(--text-label)">{title}</h3>
@@ -46,7 +54,15 @@ export interface Col {
 	render?: (row: any) => React.ReactNode
 }
 
-export function SimpleTable({ rows, cols, empty = 'No data' }: { rows: any[] | undefined; cols: Col[]; empty?: string }) {
+export function SimpleTable({
+	rows,
+	cols,
+	empty = 'No data'
+}: {
+	rows: any[] | undefined
+	cols: Col[]
+	empty?: string
+}) {
 	if (!rows || rows.length === 0) return <div className="px-2 py-4 text-xs text-(--text-secondary)">{empty}</div>
 	return (
 		<div className="overflow-x-auto">
@@ -74,7 +90,7 @@ export function SimpleTable({ rows, cols, empty = 'No data' }: { rows: any[] | u
 								return (
 									<td
 										key={c.key}
-										className={`px-3 py-2.5 ${c.right ? 'text-right font-medium tabular-nums text-(--text-primary)' : 'text-(--text-secondary)'}`}
+										className={`px-3 py-2.5 ${c.right ? 'text-right font-medium text-(--text-primary) tabular-nums' : 'text-(--text-secondary)'}`}
 									>
 										{v == null || v === '' ? '—' : v}
 									</td>

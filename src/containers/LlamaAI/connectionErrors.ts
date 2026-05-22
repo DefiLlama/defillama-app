@@ -11,6 +11,7 @@ export const CONNECTIVITY_ERROR_PATTERNS = [
 	'err_name_not_resolved',
 	'name not resolved',
 	'stream heartbeat timeout',
+	'stream ended without done event',
 	'http error status: 502',
 	'http error status: 503',
 	'http error status: 504',

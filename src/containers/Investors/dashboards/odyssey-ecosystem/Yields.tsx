@@ -5,14 +5,33 @@ import { KpiCard, ChartCard, SectionHeader, SimpleTable, fmtUsd } from './ui'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart')) as React.FC<IMultiSeriesChartProps>
 
-const PALETTE = ['#6366f1', '#3fb950', '#fb923c', '#a78bfa', '#38bdf8', '#fbbf24', '#f87171', '#34d399', '#60a5fa', '#e879f9']
+const PALETTE = [
+	'#6366f1',
+	'#3fb950',
+	'#fb923c',
+	'#a78bfa',
+	'#38bdf8',
+	'#fbbf24',
+	'#f87171',
+	'#34d399',
+	'#60a5fa',
+	'#e879f9'
+]
 const VENUES = [
 	{ id: 'aerodrome', label: 'Aerodrome' },
 	{ id: 'velodrome', label: 'Velodrome' },
 	{ id: 'curve', label: 'Curve' }
 ]
 
-function TabBtns({ active, onChange, options }: { active: string; onChange: (v: string) => void; options: { id: string; label: string }[] }) {
+function TabBtns({
+	active,
+	onChange,
+	options
+}: {
+	active: string
+	onChange: (v: string) => void
+	options: { id: string; label: string }[]
+}) {
 	return (
 		<div className="mb-3 flex flex-wrap gap-1">
 			{options.map((o) => (
@@ -87,8 +106,18 @@ export default function Yields() {
 						{ key: 'name', label: 'Strategy' },
 						{ key: 'chain', label: 'Chain' },
 						{ key: 'openPositions', label: 'Positions', right: true },
-						{ key: 'collateralApyPct', label: 'Coll APY', right: true, render: (r) => `${(r.collateralApyPct ?? 0).toFixed(2)}%` },
-						{ key: 'borrowApyPct', label: 'Borrow APY', right: true, render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%` },
+						{
+							key: 'collateralApyPct',
+							label: 'Coll APY',
+							right: true,
+							render: (r) => `${(r.collateralApyPct ?? 0).toFixed(2)}%`
+						},
+						{
+							key: 'borrowApyPct',
+							label: 'Borrow APY',
+							right: true,
+							render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%`
+						},
 						{ key: 'netApyPct', label: 'Net APY', right: true, render: (r) => `${(r.netApyPct ?? 0).toFixed(2)}%` },
 						{ key: 'totalDepositedUsd', label: 'Deposited', right: true, render: (r) => fmtUsd(r.totalDepositedUsd) },
 						{ key: 'totalNetEquityUsd', label: 'Net Equity', right: true, render: (r) => fmtUsd(r.totalNetEquityUsd) }

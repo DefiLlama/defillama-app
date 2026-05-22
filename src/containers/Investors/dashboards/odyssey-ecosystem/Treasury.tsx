@@ -13,7 +13,11 @@ export default function Treasury() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-				<KpiCard label="Treasury LP Total" value={tlp?.totalFormatted} sub={`Unclaimed ${tlp?.unclaimedRewardsFormatted || ''}`} />
+				<KpiCard
+					label="Treasury LP Total"
+					value={tlp?.totalFormatted}
+					sub={`Unclaimed ${tlp?.unclaimedRewardsFormatted || ''}`}
+				/>
 				<KpiCard label="Plasma UniV3 Total" value={plasma?.totalFormatted} />
 				<KpiCard label="veAERO Locks" value={aero?.rows?.length != null ? String(aero.rows.length) : undefined} />
 			</div>

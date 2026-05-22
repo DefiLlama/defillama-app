@@ -236,9 +236,7 @@ export default function Tokenomics() {
 					chartOptions={lastNDaysZoom(e.burnVsEmitData.length)}
 				/>
 			</ChartCard>
-			{e.burnVsEmitSubtitle && (
-				<p className="text-xs leading-relaxed text-(--text-label)">{e.burnVsEmitSubtitle}</p>
-			)}
+			{e.burnVsEmitSubtitle && <p className="text-xs leading-relaxed text-(--text-label)">{e.burnVsEmitSubtitle}</p>}
 
 			<SectionHeader>FIRE Pool (FIP.16)</SectionHeader>
 			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">

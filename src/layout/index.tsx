@@ -16,6 +16,7 @@ interface ILayoutProps extends ISEOProps {
 	pageName?: Array<string>
 	announcement?: React.ReactNode
 	hideDesktopSearchLlamaAiButton?: boolean
+	hideDesktopSearch?: boolean
 }
 
 function Layout({
@@ -29,6 +30,7 @@ function Layout({
 	metricFiltersLabel,
 	announcement,
 	hideDesktopSearchLlamaAiButton = false,
+	hideDesktopSearch = false,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
@@ -40,13 +42,15 @@ function Layout({
 				{...props}
 				className="app-main-shell isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-dvh lg:p-4 lg:pl-0"
 			>
-				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
-					<DesktopSearch hideLlamaAiCta={hideDesktopSearchLlamaAiButton} />
+				{hideDesktopSearch ? null : (
+					<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
+						<DesktopSearch hideLlamaAiCta={hideDesktopSearchLlamaAiButton} />
 
-					{!metricFilters || metricFilters.length === 0 ? null : (
-						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
-					)}
-				</span>
+						{!metricFilters || metricFilters.length === 0 ? null : (
+							<MetricFilters options={metricFilters} label={metricFiltersLabel} />
+						)}
+					</span>
+				)}
 				{announcement ?? null}
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}

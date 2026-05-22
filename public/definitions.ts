@@ -8,7 +8,7 @@ export const definitions = {
       "1y": "Total fees paid by users when using the protocol in the last 12 months",
       "monthlyAverage1y": "Average monthly fees paid by users in the last 12 months",
       "cumulative": "Total fees paid by users since the protocol was launched",
-      "annualized": "Total fees paid by users when using the protocol in the last 30 days, multiplied by 12 to annualize it",
+      "annualized": "Trailing 12-month (TTM) fees when available, otherwise 30-day fees annualized (×12.2)",
       "pf": "Market cap / annualized fees",
       "change1d": "Day-over-day percentage change in fees",
       "change7d": "Week-over-week percentage change in fees",
@@ -33,7 +33,7 @@ export const definitions = {
       "1y": "Total Revenue earned by the protocol in the last 12 months",
       "monthlyAverage1y": "Average monthly revenue earned by the protocol in the last 12 months",
       "cumulative": "Total Revenue earned by the protocol since the protocol was launched",
-      "annualized": "Total Revenue earned by the protocol in the last 30 days, multiplied by 12 to annualize it",
+      "annualized": "Trailing 12-month (TTM) revenue when available, otherwise 30-day revenue annualized (×12.2)",
       "ps": "Market cap / annualized revenue",
       "change1d": "Day-over-day percentage change in revenue",
       "change7d": "Week-over-week percentage change in revenue",
@@ -76,7 +76,7 @@ export const definitions = {
       "1y": "Total revenue earned by token holders of the protocol in the last 12 months",
       "monthlyAverage1y": "Average monthly revenue earned by token holders of the protocol in the last 12 months",
       "cumulative": "Total revenue earned by token holders of the protocol since the protocol was launched",
-      "annualized": "Total revenue earned by token holders of the protocol in the last 30 days, multiplied by 12 to annualize it",
+      "annualized": "Trailing 12-month (TTM) holders revenue when available, otherwise 30-day holders revenue annualized (×12.2)",
       "change1d": "Day-over-day percentage change in revenue earned by token holders of the protocol",
       "change7d": "Week-over-week percentage change in revenue earned by token holders of the protocol",
       "change1m": "Month-over-month percentage change in revenue earned by token holders of the protocol",
@@ -109,7 +109,7 @@ export const definitions = {
       "1y": "Net protocol earnings (Revenue - Incentives) by the protocol in the last 12 months",
       "monthlyAverage1y": "Average monthly net protocol earnings by the protocol in the last 12 months",
       "cumulative": "Total net protocol earnings by the protocol since it was launched",
-      "annualized": "Total net protocol earnings by the protocol in the last 30 days, multiplied by 12 to annualize it",
+      "annualized": "Trailing 12-month (TTM) net earnings when available, otherwise 30-day earnings annualized (×12.2)",
       "change1d": "Day-over-day percentage change in net protocol earnings by the protocol",
       "change7d": "Week-over-week percentage change in net protocol earnings by the protocol",
       "change1m": "Month-over-month percentage change in net protocol earnings by the protocol",
@@ -133,7 +133,7 @@ export const definitions = {
       "1y": "Total incentives distributed to users in the last 12 months through liquidity mining or incentive programs",
       "monthlyAverage1y": "Average monthly incentives distributed to users in the last 12 months",
       "cumulative": "Total incentives distributed to users since the protocol was launched",
-      "annualized": "Total incentives distributed to users in the last 30 days, multiplied by 12 to annualize it"
+      "annualized": "Trailing 12-month (TTM) incentives when available, otherwise 30-day incentives annualized (×12.2)"
     }
   },
   "dexs": {

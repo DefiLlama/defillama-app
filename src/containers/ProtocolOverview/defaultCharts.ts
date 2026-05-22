@@ -116,28 +116,19 @@ export function buildDefaultToggledCharts({
 		}
 	}
 
-	const protocolCategoriesMap = protocolCategoryConfig as Record<string, { description: string; defaultChart?: string }>
-	const protocolChartsMap = protocolCharts as Record<string, string>
-	const categoryDefaultChart = category ? protocolCategoriesMap[category]?.defaultChart : null
-	const isCategoryDefaultChartValue =
-		typeof categoryDefaultChart === 'string' &&
-		(Object.values(protocolCharts) as Array<string>).includes(categoryDefaultChart)
+	const categoryDefaultChart = category ? protocolCategoryConfig[category]?.defaultChart : null
+	const categoryDefaultChartLabel = categoryDefaultChart
+		? (Object.keys(protocolCharts) as ProtocolChartsLabels[]).find(
+				(chartLabel) => protocolCharts[chartLabel] === categoryDefaultChart
+			)
+		: null
 
 	if (
-		categoryDefaultChart &&
-		isCategoryDefaultChartValue &&
-		availableCharts.some((chartLabel) => protocolChartsMap[chartLabel] === categoryDefaultChart)
+		categoryDefaultChartLabel &&
+		isProtocolChartsLabel(categoryDefaultChartLabel) &&
+		availableCharts.includes(categoryDefaultChartLabel)
 	) {
-		let defaultChartLabel = null
-		for (const chartLabel in protocolCharts) {
-			if (protocolChartsMap[chartLabel] === categoryDefaultChart) {
-				defaultChartLabel = chartLabel
-				break
-			}
-		}
-		if (defaultChartLabel && isProtocolChartsLabel(defaultChartLabel) && availableCharts.includes(defaultChartLabel)) {
-			pushUniqueIfAvailable(defaultChartLabel)
-		}
+		pushUniqueIfAvailable(categoryDefaultChartLabel)
 	} else if (!isCEX) {
 		const cannotShowAsDefault = new Set<ProtocolChartsLabels>([
 			'TVL',
@@ -153,7 +144,7 @@ export function buildDefaultToggledCharts({
 			'Max Votes'
 		])
 		const fallbackLabel = availableCharts.find((chart) => !cannotShowAsDefault.has(chart))
-		if (fallbackLabel) defaultToggledCharts.push(fallbackLabel)
+		if (fallbackLabel) pushUniqueIfAvailable(fallbackLabel)
 	}
 
 	return defaultToggledCharts

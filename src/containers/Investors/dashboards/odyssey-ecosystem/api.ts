@@ -37,12 +37,16 @@ export interface ChartData {
 
 /* ──────────────────────────── chart helpers ──────────────────────────── */
 
-export function chartToTs(c: ChartData | undefined): Array<{ name: string; data: Array<[number, number | null]>; color?: string }> {
+export function chartToTs(
+	c: ChartData | undefined
+): Array<{ name: string; data: Array<[number, number | null]>; color?: string }> {
 	if (!c?.dates) return []
 	return c.series.map((s) => ({
 		name: s.name,
 		color: s.color,
-		data: c.dates.map((d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), s.data[i] ?? null] as [number, number | null])
+		data: c.dates.map(
+			(d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), s.data[i] ?? null] as [number, number | null]
+		)
 	}))
 }
 
@@ -51,7 +55,9 @@ export function seriesPairs(
 	vals: Array<number | null> | undefined
 ): Array<[number, number | null]> {
 	if (!dates || !vals) return []
-	return dates.map((d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), vals[i] ?? null] as [number, number | null])
+	return dates.map(
+		(d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), vals[i] ?? null] as [number, number | null]
+	)
 }
 
 export function zoomStartPct(dates: string[] | undefined, fromDate: string): number {
@@ -63,7 +69,12 @@ export function zoomStartPct(dates: string[] | undefined, fromDate: string): num
 
 export function defaultZoomOptions(start: number): any {
 	if (start <= 0) return undefined
-	return { dataZoom: [{ start, end: 100 }, { start, end: 100 }] }
+	return {
+		dataZoom: [
+			{ start, end: 100 },
+			{ start, end: 100 }
+		]
+	}
 }
 
 export function assignColors(names: string[]): Record<string, string> {
@@ -131,7 +142,12 @@ export interface TvlResponse {
 	marketOverlay: ChartData
 	protocolByChain: Array<ChartData & { protocol: string }>
 	utilization?: {
-		kpis: { supply: FormattedValue; borrows: FormattedValue; avgUtilization: FormattedValue; idleLiquidity: FormattedValue }
+		kpis: {
+			supply: FormattedValue
+			borrows: FormattedValue
+			avgUtilization: FormattedValue
+			idleLiquidity: FormattedValue
+		}
 		vaults: MorphoVault[]
 		marketsByChain: Array<{ chain: string; markets: MorphoMarket[] }>
 	}
@@ -156,7 +172,14 @@ interface UnclaimedPipeline {
 	asOf: string
 	note: string
 	pie: Array<{ name: string; value: number }>
-	treasuryLps: Array<{ pool: string; treasury: string; stakedLp: string; rewards: string; rewardsUsd: number; value: string }>
+	treasuryLps: Array<{
+		pool: string
+		treasury: string
+		stakedLp: string
+		rewards: string
+		rewardsUsd: number
+		value: string
+	}>
 	ethUniv3: Array<{ position: string; balance: string; rewards: string; usd: number }>
 	plasmaUniv3: Array<{ pool: string; token: string; amount: number; usd: number }>
 	lithosGauge: Array<{ gauge: string; rewards: string; usd: number }>
@@ -179,14 +202,29 @@ export interface RevenueResponse {
 	metronomeClaimed: {
 		mtdTotalUsd: number
 		claimedTotalUsd: number
-		items: Array<{ id: string; label: string; chain: string; detail: string; amountUsd: number; amountFormatted: string }>
+		items: Array<{
+			id: string
+			label: string
+			chain: string
+			detail: string
+			amountUsd: number
+			amountFormatted: string
+		}>
 	}
 	metbasisDetail?: {
 		monthLabel: string
 		totalUsd: number
 		totalFormatted: string
 		chainTotals: Record<string, number>
-		rows: Array<{ chain: string; token: string; amount: number; priceUsd: number; usd: number; claims: number; lastClaim: string }>
+		rows: Array<{
+			chain: string
+			token: string
+			amount: number
+			priceUsd: number
+			usd: number
+			claims: number
+			lastClaim: string
+		}>
 	}
 	unclaimedPipeline: UnclaimedPipeline
 	synthInterestDetail: Array<{
@@ -316,7 +354,14 @@ export interface TreasuryResponse {
 	treasuryLps: {
 		totalFormatted: string
 		unclaimedRewardsFormatted: string
-		rows: Array<{ pool: string; stakedLp: string; rewards: string; rewardsUsd: number; value: string; valueUsd: number }>
+		rows: Array<{
+			pool: string
+			stakedLp: string
+			rewards: string
+			rewardsUsd: number
+			value: string
+			valueUsd: number
+		}>
 	}
 	plasmaUniv3: { totalFormatted: string; rows: Array<{ pool: string; token: string; amount: number; usd: number }> }
 	vlCvx: { rows: Array<{ type: string; status: string; balance: string; unlock: string }> }
@@ -330,7 +375,12 @@ export const useTreasuryData = () => useTab<TreasuryResponse>('treasury')
 /* ──────────────────────────── Growth tab ──────────────────────────── */
 
 interface LooprMetric {
-	chains: Array<{ chain: string; dates: string[]; values: number[]; daily_active?: Array<{ date: string; count: number }> }>
+	chains: Array<{
+		chain: string
+		dates: string[]
+		values: number[]
+		daily_active?: Array<{ date: string; count: number }>
+	}>
 	combined: { dates: string[]; values: number[] }
 }
 

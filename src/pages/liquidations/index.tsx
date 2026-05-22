@@ -15,7 +15,6 @@ export const getStaticProps = withPerformanceLogging(
 		revalidate: number
 	}> => {
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const protocolsResponse = await fetchProtocolsList()
 		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
 		const protocolLinks = [

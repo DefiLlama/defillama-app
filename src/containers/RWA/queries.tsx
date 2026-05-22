@@ -236,7 +236,13 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				: selectedCategory
 					? 'category'
 					: 'chain'
-		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
+		const defaultInclusion = getDefaultRWAOverviewInclusion({
+			mode,
+			chainSlug: selectedChain,
+			categorySlug: selectedCategory,
+			platformSlug: selectedPlatform,
+			assetGroupSlug: selectedAssetGroup
+		})
 
 		const [data, perpsMarkets, chartData, openInterestChartRows]: [
 			Array<IFetchedRWAProject>,
@@ -436,6 +442,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				detailHref: item.canonicalMarketId ? `/rwa/asset/${encodeURIComponent(item.canonicalMarketId)}` : '',
 				canonicalMarketId: item.canonicalMarketId ?? '',
 				assetName: item.assetName ?? '',
+				logo: item.logo ?? null,
 				ticker: item.ticker,
 				primaryChain: item.primaryChain ?? null,
 				chain: item.chain ?? null,

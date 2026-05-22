@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -12,7 +12,7 @@ import { LiquidationsTableTabs } from '~/containers/LiquidationsV2/TableTabs'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { formattedNum } from '~/utils'
-import { fetchTokenLiquidationsClient } from '../LiquidationsV2/api'
+import { fetchTokenLiquidationsForAliases } from '../LiquidationsV2/api'
 import type { OverviewChainRow, OverviewProtocolRow, TokenLiquidationsSectionData } from '../LiquidationsV2/api.types'
 
 const TOKEN_LIQUIDATIONS_SECTION_ID = 'token-liquidations'
@@ -64,23 +64,35 @@ const protocolColumns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
 		}
 	}),
 	protocolColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.chainCount ?? undefined, {
 		id: 'chainCount',
 		header: 'Chains',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[90px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 
@@ -98,31 +110,43 @@ const chainColumns = [
 					<span>{chain}</span>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]'
 		}
 	}),
 	chainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	chainColumnHelper.accessor((row) => row.protocolCount ?? undefined, {
 		id: 'protocolCount',
 		header: 'Protocols',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	chainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 
 async function fetchTokenLiquidationsRows(
 	tokenSymbol: string,
 	authorizedFetch: (url: string) => Promise<Response | null>
-): Promise<TokenLiquidationsSectionData> {
-	return fetchTokenLiquidationsClient(tokenSymbol, authorizedFetch)
+): Promise<TokenLiquidationsSectionData | null> {
+	return fetchTokenLiquidationsForAliases(tokenSymbol, authorizedFetch)
 }
 
 export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string }) {
@@ -156,11 +180,6 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 		</div>
-	)
-
-	const tabs = useMemo(
-		() => <LiquidationsTableTabs tabs={TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />,
-		[activeTab]
 	)
 
 	if (loaders.userLoading || isLoading) {
@@ -221,6 +240,8 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 		return null
 	}
 
+	const tabs = <LiquidationsTableTabs tabs={TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
+
 	return (
 		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			{sectionHeader}
@@ -240,6 +261,7 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 					title={`${data.tokenSymbol} Liquidation Distribution`}
 					defaultBreakdownMode="protocol"
 					hideTokenSelector
+					tokenStateMode="local"
 				/>
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

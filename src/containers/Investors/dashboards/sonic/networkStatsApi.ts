@@ -66,28 +66,42 @@ export function useNetworkStatsData() {
 		return {
 			data: {
 				network: {
-					blockNumber: d.blockNumber != null ? { value: d.blockNumber, formatted: d.blockNumber.toLocaleString('en-US') } : null,
-					gasPrice: d.gasPrice != null ? { value: d.gasPrice.gwei, formatted: `${d.gasPrice.gwei.toFixed(0)} Gwei` } : null,
+					blockNumber:
+						d.blockNumber != null ? { value: d.blockNumber, formatted: d.blockNumber.toLocaleString('en-US') } : null,
+					gasPrice:
+						d.gasPrice != null ? { value: d.gasPrice.gwei, formatted: `${d.gasPrice.gwei.toFixed(0)} Gwei` } : null,
 					price: burn != null ? { value: burn.price, formatted: `$${burn.price.toFixed(4)}` } : null,
 					totalSupply: burn != null ? { value: burn.totalSupply, formatted: formatNumber(burn.totalSupply) } : null
 				},
-				tokenomics: burn != null ? {
-					initialSupply: { value: burn.initialSupply, formatted: formatNumber(burn.initialSupply) },
-					netIssuance: { value: burn.netIssuance, formatted: formatNumber(burn.netIssuance) },
-					burnPerDay: { value: burn.permanentBurnPerDay, formatted: formatS(burn.permanentBurnPerDay) },
-					burnPerYear: { value: burn.permanentBurnPerYear, formatted: formatS(burn.permanentBurnPerYear) }
-				} : null,
-				fees: burn != null ? {
-					feesPerDay: { value: burn.feesPerDay, formatted: formatS(burn.feesPerDay) },
-					feeMPerDay: { value: burn.feeMPerDay, formatted: formatS(burn.feeMPerDay) },
-					validatorFeesPerDay: { value: burn.validatorFeesPerDay, formatted: formatS(burn.validatorFeesPerDay) },
-					burnRate: { value: burn.burnRatePercent, formatted: `${(burn.burnRatePercent * 100).toFixed(2)}%` }
-				} : null,
-				epoch: burn != null ? {
-					current: { value: burn.currentEpoch, formatted: burn.currentEpoch.toLocaleString('en-US') },
-					avgDuration: { value: burn.avgEpochDuration, formatted: `~${Math.round(burn.avgEpochDuration / 60)} min` },
-					lastFee: { value: burn.lastEpochFee, formatted: `${burn.lastEpochFee.toFixed(2)} S` }
-				} : null,
+				tokenomics:
+					burn != null
+						? {
+								initialSupply: { value: burn.initialSupply, formatted: formatNumber(burn.initialSupply) },
+								netIssuance: { value: burn.netIssuance, formatted: formatNumber(burn.netIssuance) },
+								burnPerDay: { value: burn.permanentBurnPerDay, formatted: formatS(burn.permanentBurnPerDay) },
+								burnPerYear: { value: burn.permanentBurnPerYear, formatted: formatS(burn.permanentBurnPerYear) }
+							}
+						: null,
+				fees:
+					burn != null
+						? {
+								feesPerDay: { value: burn.feesPerDay, formatted: formatS(burn.feesPerDay) },
+								feeMPerDay: { value: burn.feeMPerDay, formatted: formatS(burn.feeMPerDay) },
+								validatorFeesPerDay: { value: burn.validatorFeesPerDay, formatted: formatS(burn.validatorFeesPerDay) },
+								burnRate: { value: burn.burnRatePercent, formatted: `${(burn.burnRatePercent * 100).toFixed(2)}%` }
+							}
+						: null,
+				epoch:
+					burn != null
+						? {
+								current: { value: burn.currentEpoch, formatted: burn.currentEpoch.toLocaleString('en-US') },
+								avgDuration: {
+									value: burn.avgEpochDuration,
+									formatted: `~${Math.round(burn.avgEpochDuration / 60)} min`
+								},
+								lastFee: { value: burn.lastEpochFee, formatted: `${burn.lastEpochFee.toFixed(2)} S` }
+							}
+						: null,
 				uptimeUrl: d.uptimeUrl
 			},
 			isLoading: false

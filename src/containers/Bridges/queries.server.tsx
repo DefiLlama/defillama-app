@@ -26,6 +26,10 @@ import { formatBridgesData, formatChainsData } from './utils'
 
 const EMPTY_DAY_STATS: RawBridgeDayStats = {
 	date: 0,
+	totalDepositedUSD: 0,
+	totalWithdrawnUSD: 0,
+	totalDepositTxs: 0,
+	totalWithdrawalTxs: 0,
 	totalTokensDeposited: {},
 	totalTokensWithdrawn: {},
 	totalAddressDeposited: {},
@@ -170,22 +174,39 @@ function buildPrevDayDataByChain({
 
 	for (let index = 0; index < statsOnPrevDay.length; index++) {
 		const data = statsOnPrevDay[index]
+		const allChainsData = prevDayDataByChain['All Chains']
 		prevDayDataByChain['All Chains'] = {
-			date: Math.max(prevDayDataByChain['All Chains']?.date ?? 0, data.date),
+			date: Math.max(allChainsData?.date ?? 0, data.date),
+			totalDepositedUSD:
+				allChainsData?.totalDepositedUSD == null && data.totalDepositedUSD == null
+					? undefined
+					: (allChainsData?.totalDepositedUSD ?? 0) + (data.totalDepositedUSD ?? 0),
+			totalWithdrawnUSD:
+				allChainsData?.totalWithdrawnUSD == null && data.totalWithdrawnUSD == null
+					? undefined
+					: (allChainsData?.totalWithdrawnUSD ?? 0) + (data.totalWithdrawnUSD ?? 0),
+			totalDepositTxs:
+				allChainsData?.totalDepositTxs == null && data.totalDepositTxs == null
+					? undefined
+					: (allChainsData?.totalDepositTxs ?? 0) + (data.totalDepositTxs ?? 0),
+			totalWithdrawalTxs:
+				allChainsData?.totalWithdrawalTxs == null && data.totalWithdrawalTxs == null
+					? undefined
+					: (allChainsData?.totalWithdrawalTxs ?? 0) + (data.totalWithdrawalTxs ?? 0),
 			totalTokensDeposited: {
-				...(prevDayDataByChain['All Chains']?.totalTokensDeposited ?? {}),
+				...(allChainsData?.totalTokensDeposited ?? {}),
 				...data.totalTokensDeposited
 			},
 			totalTokensWithdrawn: {
-				...(prevDayDataByChain['All Chains']?.totalTokensWithdrawn ?? {}),
+				...(allChainsData?.totalTokensWithdrawn ?? {}),
 				...data.totalTokensWithdrawn
 			},
 			totalAddressDeposited: {
-				...(prevDayDataByChain['All Chains']?.totalAddressDeposited ?? {}),
+				...(allChainsData?.totalAddressDeposited ?? {}),
 				...data.totalAddressDeposited
 			},
 			totalAddressWithdrawn: {
-				...(prevDayDataByChain['All Chains']?.totalAddressWithdrawn ?? {}),
+				...(allChainsData?.totalAddressWithdrawn ?? {}),
 				...data.totalAddressWithdrawn
 			}
 		}
@@ -349,7 +370,11 @@ function buildTableDataByChain({
 			addressesTableData,
 			tokenDeposits,
 			tokenWithdrawals,
-			tokenColor
+			tokenColor,
+			totalDepositedUSD: prevDayData?.totalDepositedUSD,
+			totalWithdrawnUSD: prevDayData?.totalWithdrawnUSD,
+			totalDepositTxs: prevDayData?.totalDepositTxs,
+			totalWithdrawalTxs: prevDayData?.totalWithdrawalTxs
 		}
 	}
 
@@ -388,6 +413,24 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds: Record<strin
 		})
 		return { formatted: formattedChart, raw: chart }
 	}
+}
+
+export const getBridgeChainNetInflows = async (chain: string): Promise<{ netInflows: number | null } | null> => {
+	const { chainCoingeckoIds } = await fetchJson<LlamaConfigResponse>(CONFIG_API)
+	if (!chainCoingeckoIds[chain]) return null
+
+	const chart = await retryAsync(() => fetchBridgeVolumeByChain(chain), {
+		context: `fetchBridgeVolumeByChain(${chain})`,
+		throwOnFailure: true,
+		onFailureError: () => new Error(`bridge volume for chain ${chain} is broken`)
+	})
+	const netInflows = chart.length ? (chart[chart.length - 1].depositUSD ?? null) : null
+
+	if (netInflows === 0) {
+		return null
+	}
+
+	return { netInflows }
 }
 
 const getLargeTransactionsData = async (chain: string, startTimestamp: number, endTimestamp: number) => {
@@ -659,7 +702,7 @@ export async function getBridgePageData(bridge: string): Promise<BridgePageData 
 		return null
 	}
 
-	const { id, chains, icon, displayName, destinationChain } = bridgeData
+	const { id, chains, icon, displayName, destinationChain, name } = bridgeData
 
 	const [iconType, iconName] = icon.split(':')
 	// get logo based on icon type (chain or protocol)
@@ -676,12 +719,11 @@ export async function getBridgePageData(bridge: string): Promise<BridgePageData 
 	const volumeDataByChain = buildVolumeDataByChain({ volume, chains, destinationChain })
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000 / 3600) * 3600
-	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
-	const prevDayTimestamp = currentTimestamp - 86400 - 3600
+	const rollingHours = name === 'wormhole' ? 28 : 24
 
 	const statsOnPrevDay: RawBridgeDayStats[] = await Promise.all(
 		chains.map(async (chain) => {
-			const stats = await retryAsync(() => fetchBridgeDayStats(prevDayTimestamp, chain, id), {
+			const stats = await retryAsync(() => fetchBridgeDayStats(currentTimestamp, chain, { id, rollingHours }), {
 				context: `fetchBridgeDayStats(${chain},${id})`,
 				throwOnFailure: true,
 				onFailureError: () => new Error(`bridgedaystats for chain ${chain} is broken`)

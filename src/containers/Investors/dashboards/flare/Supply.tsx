@@ -80,7 +80,9 @@ export default function Supply() {
 					<KpiCard
 						label="FLR Price"
 						value={k.price.formatted}
-						change={k.priceChange24h ? { value: k.priceChange24h.value, formatted: k.priceChange24h.formatted } : undefined}
+						change={
+							k.priceChange24h ? { value: k.priceChange24h.value, formatted: k.priceChange24h.formatted } : undefined
+						}
 					/>
 				)}
 				{k.marketCap && <KpiCard label="Market Cap" value={k.marketCap.formatted} />}

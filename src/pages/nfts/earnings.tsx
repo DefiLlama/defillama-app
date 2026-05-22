@@ -114,40 +114,42 @@ const earningsColumns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('totalMintEarnings', {
 		header: 'Mint Earnings',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
-		},
-		size: 100
+		}
 	}),
 	columnHelper.accessor('totalRoyaltyEarnings', {
 		header: 'Lifetime Royalty Earnings',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('total30d', {
 		header: 'Royalties 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[80px]',
 			align: 'end'
-		},
-		size: 80
+		}
 	}),
 	columnHelper.accessor('totalEarnings', {
 		header: 'Total Lifetime Earnings',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'mint + royalties'
-		},
-		size: 120
+		}
 	})
 ]
 

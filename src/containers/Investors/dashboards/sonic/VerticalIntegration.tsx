@@ -1,16 +1,7 @@
 import { useEffect } from 'react'
 import { useContentReady } from '~/containers/Investors/index'
 
-const PRODUCTS = [
-	'Native Swap',
-	'Native Perps',
-	'Lending',
-	'LST',
-	'Concentrated Liquidity',
-	'Vault',
-	'USSD',
-	'Perps'
-]
+const PRODUCTS = ['Native Swap', 'Native Perps', 'Lending', 'LST', 'Concentrated Liquidity', 'Vault', 'USSD', 'Perps']
 
 const SKELETON_WIDTHS = [
 	['w-16', 'w-2/3', 'w-12', 'w-24', 'w-10'],
@@ -38,8 +29,8 @@ export default function VerticalIntegration() {
 					disconnected teams or external tokens.
 				</p>
 				<p className="mt-3 text-base leading-relaxed text-(--text-secondary)">
-					Rather than depending on gas fees alone, the goal is to own or integrate the key economic primitives across the
-					network so that adoption, usage, and revenue translate into more durable value creation for Sonic.
+					Rather than depending on gas fees alone, the goal is to own or integrate the key economic primitives across
+					the network so that adoption, usage, and revenue translate into more durable value creation for Sonic.
 				</p>
 				<a
 					href="https://blog.soniclabs.com/vertical-integration-the-missing-link-in-l1-value-creation/"

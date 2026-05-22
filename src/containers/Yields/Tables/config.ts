@@ -1,6 +1,6 @@
 import type { ColumnDef, VisibilityState } from '@tanstack/react-table'
 import type { SortingState } from '@tanstack/react-table'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 
 export type YieldsRendererKind = 'virtual' | 'paginated'
 export type YieldsTableKind = 'pools' | 'borrow' | 'loop' | 'optimizer' | 'strategy' | 'strategyFr'
@@ -12,7 +12,6 @@ export interface YieldsTableConfig<TRow, TColumnId extends string, TContext = un
 	columnIds: readonly TColumnId[]
 	columns: MaybeFactory<Array<ColumnDef<TRow, any>>, TContext>
 	columnOrders: Record<number, readonly TColumnId[]>
-	columnSizes: Record<number, Partial<Record<TColumnId, number>>>
 	columnVisibility?: MaybeFactory<VisibilityState | undefined, TContext>
 	defaultSorting?: SortingState
 	rowSize?: number
@@ -50,10 +49,6 @@ export function preparePaginatedYieldsColumns<TRow, TColumnId extends string, TC
 	const columns = resolveFactoryValue(config.columns, context)
 	const columnVisibility = config.columnVisibility ? resolveFactoryValue(config.columnVisibility, context) : undefined
 	const responsiveOrder = width != null ? (getResponsiveYieldsValue(config.columnOrders, width) ?? []) : []
-	const responsiveSizing =
-		width != null
-			? ((getResponsiveYieldsValue(config.columnSizes, width) ?? {}) as Partial<Record<TColumnId, number>>)
-			: ({} as Partial<Record<TColumnId, number>>)
 	const orderIndexes = new Map(responsiveOrder.map((columnId, index) => [columnId, index]))
 
 	return columns
@@ -68,10 +63,7 @@ export function preparePaginatedYieldsColumns<TRow, TColumnId extends string, TC
 			if (rightOrder != null) return 1
 			return left.index - right.index
 		})
-		.map(({ column, id }) => {
-			const size = id != null ? responsiveSizing[id as TColumnId] : undefined
-			return size != null ? { ...column, size } : column
-		})
+		.map(({ column }) => column)
 }
 
 export function resolveVirtualYieldsTableConfig<TRow, TColumnId extends string, TContext>(
@@ -81,7 +73,6 @@ export function resolveVirtualYieldsTableConfig<TRow, TColumnId extends string, 
 	columns: Array<ColumnDef<TRow, any>>
 	columnVisibility?: VisibilityState
 	columnOrders: ColumnOrdersByBreakpoint
-	columnSizes: ColumnSizesByBreakpoint
 	defaultSorting?: SortingState
 	rowSize?: number
 } {
@@ -89,7 +80,6 @@ export function resolveVirtualYieldsTableConfig<TRow, TColumnId extends string, 
 		columns: resolveFactoryValue(config.columns, context),
 		columnVisibility: config.columnVisibility ? resolveFactoryValue(config.columnVisibility, context) : undefined,
 		columnOrders: config.columnOrders as unknown as ColumnOrdersByBreakpoint,
-		columnSizes: config.columnSizes as unknown as ColumnSizesByBreakpoint,
 		defaultSorting: config.defaultSorting,
 		rowSize: config.rowSize
 	}
@@ -119,16 +109,6 @@ export function validateYieldsTableConfig<TRow, TColumnId extends string, TConte
 			if (!declaredColumnIds.has(columnId)) {
 				throw new Error(
 					`Unknown column id "${columnId}" in column order for yields table kind "${config.kind}" at breakpoint ${breakpoint}`
-				)
-			}
-		}
-	}
-
-	for (const [breakpoint, sizes] of Object.entries(config.columnSizes)) {
-		for (const columnId in sizes) {
-			if (!declaredColumnIds.has(columnId)) {
-				throw new Error(
-					`Unknown column id "${columnId}" in column sizes for yields table kind "${config.kind}" at breakpoint ${breakpoint}`
 				)
 			}
 		}

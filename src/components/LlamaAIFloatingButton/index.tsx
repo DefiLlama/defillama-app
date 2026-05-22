@@ -9,6 +9,23 @@ import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
 const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
+const PENDING_PROJECT_ID_KEY = 'llamaai-pending-project-id'
+
+export function setPendingProjectId(projectId: string | null) {
+	if (typeof window === 'undefined') return
+	if (projectId) {
+		localStorage.setItem(PENDING_PROJECT_ID_KEY, projectId)
+	} else {
+		localStorage.removeItem(PENDING_PROJECT_ID_KEY)
+	}
+}
+
+export function consumePendingProjectId(): string | null {
+	if (typeof window === 'undefined') return null
+	const id = localStorage.getItem(PENDING_PROJECT_ID_KEY)
+	if (id) localStorage.removeItem(PENDING_PROJECT_ID_KEY)
+	return id
+}
 
 const FALLBACK_SUGGESTIONS = [
 	'Which protocols have growing TVL and revenue but declining token prices?',

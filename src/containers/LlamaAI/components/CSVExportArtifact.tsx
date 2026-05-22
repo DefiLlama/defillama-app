@@ -1,5 +1,6 @@
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 export interface CSVExport {
 	id: string
@@ -11,9 +12,11 @@ export interface CSVExport {
 
 interface CSVExportArtifactProps {
 	csvExport: CSVExport
+	sessionId?: string | null
+	messageId?: string
 }
 
-export function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
+export function CSVExportArtifact({ csvExport, sessionId, messageId }: CSVExportArtifactProps) {
 	const { hasActiveSubscription } = useAuthContext()
 
 	if (!hasActiveSubscription) {
@@ -40,6 +43,16 @@ export function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
 		<a
 			href={csvExport.url}
 			download={csvExport.filename}
+			onClick={() =>
+				trackUmamiEvent('llamaai-download', {
+					kind: 'artifact-csv',
+					filename: csvExport.filename,
+					title: csvExport.title,
+					artifactId: csvExport.id,
+					sessionId: sessionId ?? '',
+					messageId: messageId ?? ''
+				})
+			}
 			className="flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 transition-colors hover:border-[#2172E5] hover:bg-[#2172E5]/5 dark:border-[#222324] dark:bg-[#181A1C] dark:hover:border-[#2172E5]"
 		>
 			<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2172E5]/10">

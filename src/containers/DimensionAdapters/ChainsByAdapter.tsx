@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -16,8 +15,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
-import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
+import type {} from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -52,7 +51,6 @@ export function ChainsByAdapter(props: IProps) {
 
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
 	const chains = useMemo(() => {
@@ -84,7 +82,6 @@ export function ChainsByAdapter(props: IProps) {
 		state: {
 			sorting,
 			columnFilters,
-			columnSizing,
 			columnOrder
 		},
 		defaultColumn: {
@@ -94,7 +91,6 @@ export function ChainsByAdapter(props: IProps) {
 		filterFromLeafRows: true,
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
-		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -103,9 +99,8 @@ export function ChainsByAdapter(props: IProps) {
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({
-		instance,
-		columnSizes
+	useSortColumnOrders({
+		instance
 	})
 	const showChartPanel = props.adapterType !== 'fees' || FEES_CHART_PAGE_TYPES.includes(props.type)
 
@@ -158,9 +153,6 @@ export function ChainsByAdapter(props: IProps) {
 		</>
 	)
 }
-
-const columnSizes: ColumnSizesByBreakpoint = { 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }
-
 type ChainRow = IChainsByAdapterPageData['chains'][0]
 
 const columnHelper = createColumnHelper<ChainRow>()
@@ -193,8 +185,20 @@ const NameColumn = (route: string) =>
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[180px] sm:w-[240px] md:w-[280px]'
+		}
 	})
+
+const metricColumnWidthClassBySize: Record<number, string> = {
+	128: 'w-[128px]',
+	152: 'w-[152px]',
+	160: 'w-[160px]',
+	180: 'w-[min(180px,40vw)]',
+	200: 'w-[min(200px,40vw)]'
+}
+
+const getMetricColumnWidthClass = (size: number) => metricColumnWidthClassBySize[size] ?? 'w-[160px]'
 
 const metricColumn = (
 	id: string,
@@ -209,11 +213,11 @@ const metricColumn = (
 		header,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: getMetricColumnWidthClass(size),
 			align: 'center',
 			headerHelperText,
 			...(csvHeader ? { csvHeader } : {})
-		},
-		size
+		}
 	})
 
 const columnsByType = {

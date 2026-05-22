@@ -1,4 +1,3 @@
-import { lazy, Suspense } from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -6,9 +5,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
+import { ChainProtocolsTable } from './Table'
 import type { IChainOverviewData } from './types'
-
-const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
 export function ChainOverview(props: IChainOverviewData) {
 	return (
@@ -67,23 +65,23 @@ export function ChainOverview(props: IChainOverviewData) {
 					))}
 				</div>
 			) : null}
-			{props.protocols.length > 0 ? (
-				<Suspense
-					fallback={
-						<div
-							style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-							className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
-						/>
-					}
-				>
-					<Table protocols={props.protocols} />
-				</Suspense>
-			) : null}
+			{props.protocols.length > 0 ? <ChainProtocolsTable protocols={props.protocols} /> : null}
 		</>
 	)
 }
 
 const linksToOtherLlamaApps = [
+	{
+		name: '',
+		description: '',
+		href: '/research',
+		icon: (
+			<svg aria-label="DefiLlama Research" role="img" height={44} width={128} className="z-10 object-contain">
+				<use href="/assets/defillama-research.svg#defillama-research-logo" />
+			</svg>
+		),
+		background: <span className="llama-app-background" />
+	},
 	{
 		name: 'LlamaSearch',
 		description: 'Find official links to projects',
@@ -110,15 +108,6 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
-		name: 'LlamaFeed',
-		description: 'The ultimate crypto feed',
-		href: 'https://llamafeed.io/',
-		icon: (
-			<img src="/assets/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
-		),
-		background: <span className="llama-app-background" />
-	},
-	{
 		name: 'DefiLlama API',
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
@@ -128,35 +117,11 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
-		name: '2025 DeFi Report',
-		description: '',
-		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
+		name: 'LlamaFeed',
+		description: 'The ultimate crypto feed',
+		href: 'https://llamafeed.io/',
 		icon: (
-			<svg width={44} height={44}>
-				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
-			</svg>
-		),
-		background: <span className="llama-app-background" />
-	},
-	{
-		name: 'DLNews',
-		description: '',
-		href: 'https://www.dlnews.com',
-		icon: (
-			<svg width={44} height={44}>
-				<use href={`/assets/dlnews-smol.svg#dlnews-logo`} />
-			</svg>
-		),
-		background: <span className="llama-app-background" />
-	},
-	{
-		name: 'DL Research',
-		description: '',
-		href: 'https://www.dlnews.com/research',
-		icon: (
-			<svg width={44} height={44}>
-				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
-			</svg>
+			<img src="/assets/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	}

@@ -142,10 +142,25 @@ export default function Tvl() {
 									{ key: 'supplyUsd', label: 'Supply', right: true, render: (r) => fmtUsd(r.supplyUsd) },
 									{ key: 'borrowUsd', label: 'Borrow', right: true, render: (r) => fmtUsd(r.borrowUsd) },
 									{ key: 'borrowableUsd', label: 'Borrowable', right: true, render: (r) => fmtUsd(r.borrowableUsd) },
-									{ key: 'utilizationPct', label: 'Utilization', right: true, render: (r) => <UtilBar pct={r.utilizationPct} /> },
+									{
+										key: 'utilizationPct',
+										label: 'Utilization',
+										right: true,
+										render: (r) => <UtilBar pct={r.utilizationPct} />
+									},
 									{ key: 'lltvPct', label: 'LLTV', right: true, render: (r) => `${(r.lltvPct ?? 0).toFixed(1)}%` },
-									{ key: 'supplyApyPct', label: 'Supply APY', right: true, render: (r) => `${(r.supplyApyPct ?? 0).toFixed(2)}%` },
-									{ key: 'borrowApyPct', label: 'Borrow APY', right: true, render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%` }
+									{
+										key: 'supplyApyPct',
+										label: 'Supply APY',
+										right: true,
+										render: (r) => `${(r.supplyApyPct ?? 0).toFixed(2)}%`
+									},
+									{
+										key: 'borrowApyPct',
+										label: 'Borrow APY',
+										right: true,
+										render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%`
+									}
 								]}
 							/>
 						</ChartCard>

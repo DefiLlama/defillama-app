@@ -74,19 +74,19 @@ function ValidatorTable({ validators }: { validators: ValidatorEntry[] }) {
 								<td className="px-4 py-2.5 text-sm font-medium text-(--text-primary)">
 									{v.name && v.name !== v.address ? v.name : `${v.address.slice(0, 6)}…${v.address.slice(-4)}`}
 								</td>
-								<td className="px-4 py-2.5 text-right text-sm tabular-nums text-(--text-primary)">
+								<td className="px-4 py-2.5 text-right text-sm text-(--text-primary) tabular-nums">
 									{v.totalStakeFormatted ?? formatNumber(v.totalStake)}
 								</td>
-								<td className="px-4 py-2.5 text-right text-sm tabular-nums text-(--text-label)">
+								<td className="px-4 py-2.5 text-right text-sm text-(--text-label) tabular-nums">
 									{`${formatNumber(v.totalSelfBond)} FLR`}
 								</td>
-								<td className="px-4 py-2.5 text-right text-sm tabular-nums text-(--text-label)">
+								<td className="px-4 py-2.5 text-right text-sm text-(--text-label) tabular-nums">
 									{`${formatNumber(v.totalDelegated)} FLR`}
 								</td>
-								<td className="px-4 py-2.5 text-right text-sm tabular-nums text-(--text-label)">
+								<td className="px-4 py-2.5 text-right text-sm text-(--text-label) tabular-nums">
 									{formatNumber(v.totalDelegators, 0)}
 								</td>
-								<td className="px-4 py-2.5 text-right text-sm tabular-nums text-(--text-label)">
+								<td className="px-4 py-2.5 text-right text-sm text-(--text-label) tabular-nums">
 									{formatPct(uptime, 2)}
 								</td>
 							</tr>

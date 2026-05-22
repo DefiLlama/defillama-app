@@ -175,12 +175,15 @@ const columns = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -188,6 +191,7 @@ const columns = [
 		header: '24h Fees',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -195,6 +199,7 @@ const columns = [
 		header: '24h Revenue',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[125px]',
 			align: 'end'
 		}
 	}),
@@ -202,6 +207,7 @@ const columns = [
 		header: '24h DEX Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -220,6 +226,7 @@ const columns = [
 			</a>
 		),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

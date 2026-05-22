@@ -5,7 +5,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
-import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
+import { getBridgeChainNetInflows } from '~/containers/Bridges/queries.server'
 import { fetchChainChart } from '~/containers/Chains/api'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
 import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
@@ -27,8 +27,6 @@ import type { StablecoinsListResponse } from '~/containers/Stablecoins/api.types
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
-import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
-import type { ProtocolEmissionWithHistory } from '~/containers/Unlocks/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -39,7 +37,9 @@ import type {
 	IProtocolMetadata,
 	ProtocolLlamaswapMetadata
 } from '~/utils/metadata/types'
+import type { RoutePhaseTimer } from '~/utils/perf'
 import type { ChainChartLabels } from './constants'
+import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
@@ -72,18 +72,35 @@ export function shouldFetchChainDexs({
 	return categoriesAndTagsMetadata?.configs?.Dexs?.chains?.includes(currentChainMetadata.id) ?? false
 }
 
+export function shouldFetchChainPerps({
+	chain,
+	currentChainMetadata,
+	categoriesAndTagsMetadata
+}: {
+	chain: string
+	currentChainMetadata: IChainMetadata
+	categoriesAndTagsMetadata?: ICategoriesAndTags
+}): boolean {
+	if (!currentChainMetadata.perps) return false
+	if (chain === 'All' || currentChainMetadata.id === 'all') return true
+
+	return categoriesAndTagsMetadata?.configs?.Derivatives?.chains?.includes(currentChainMetadata.id) ?? false
+}
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
 	protocolMetadata,
 	categoriesAndTagsMetadata,
-	protocolLlamaswapDataset = null
+	protocolLlamaswapDataset = null,
+	phaseTimer
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	categoriesAndTagsMetadata: ICategoriesAndTags
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
+	phaseTimer?: RoutePhaseTimer
 }): Promise<IChainOverviewData | null> {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -93,6 +110,10 @@ export async function getChainOverviewData({
 	if (!currentChainMetadata) return null
 
 	const shouldFetchDexs = shouldFetchChainDexs({ chain, currentChainMetadata, categoriesAndTagsMetadata })
+	const shouldFetchPerps = shouldFetchChainPerps({ chain, currentChainMetadata, categoriesAndTagsMetadata })
+	function timePhase<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>> {
+		return phaseTimer ? phaseTimer.time(label, run) : (Promise.resolve().then(run) as Promise<Awaited<T>>)
+	}
 
 	try {
 		const [
@@ -115,7 +136,7 @@ export async function getChainOverviewData({
 			perps,
 			cexVolume,
 			etfData,
-			upcomingUnlocks,
+			homepageUnlocks,
 			chainIncentives,
 			datInflows,
 			stablecoinsData,
@@ -140,139 +161,164 @@ export async function getChainOverviewData({
 			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
-			ProtocolEmissionWithHistory[] | null,
+			IChainOverviewData['unlocks'],
 			ChainIncentivesSummary | null,
 			{ chart: Array<[number, number]>; total30d: number } | null,
 			StablecoinsListResponse | null,
 			Array<string> | null
 		] = await Promise.all([
-			fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {
-				console.log(err)
-				return {
-					tvl: [],
-					staking: [],
-					borrowed: [],
-					pool2: [],
-					vesting: [],
-					offers: [],
-					doublecounted: [],
-					liquidstaking: [],
-					dcAndLsOverlap: []
-				}
-			}),
-			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset, shouldFetchDexs }),
-			currentChainMetadata.stablecoins
-				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
-				: Promise.resolve(null),
-			!currentChainMetadata.inflows
-				? Promise.resolve(null)
-				: getBridgeOverviewPageData(currentChainMetadata.name).then((data) => {
-						const netInflows = data?.chainVolumeData?.length
-							? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
-							: null
-
-						if (netInflows === 0) {
-							return null
-						}
-
-						return {
-							netInflows
-						}
-					}),
-			!currentChainMetadata.chainActiveUsers
-				? Promise.resolve(null)
-				: fetchAdapterChainMetrics({
-						chain: currentChainMetadata.name,
-						adapterType: 'active-users'
-					}).then((data) => data?.total24h ?? null),
-			!currentChainMetadata.txCount
-				? Promise.resolve(null)
-				: fetchAdapterChainMetrics({
-						chain: currentChainMetadata.name,
-						adapterType: 'active-users',
-						dataType: 'dailyTransactionsCount'
-					}).then((data) => data?.total24h ?? null),
-			!currentChainMetadata.chainNewUsers
-				? Promise.resolve(null)
-				: fetchAdapterChainMetrics({
-						chain: currentChainMetadata.name,
-						adapterType: 'new-users'
-					}).then((data) => data?.total24h ?? null),
-			fetchRaises(),
-			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
-			currentChainMetadata.gecko_id
-				? fetchCoinGeckoCoinById(currentChainMetadata.gecko_id)
-				: Promise.resolve({} as CoinGeckoCoinDetailResult),
-			chain && chain !== 'All'
-				? fetchJson<Record<string, number>>(`https://defillama-datasets.llama.fi/temp/chainNfts`)
-				: Promise.resolve(null),
-			fetchChainsAssets()
-				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
-				.catch(() => null),
-			currentChainMetadata.revenue && chain !== 'All'
-				? fetchAdapterChainMetrics({
-						adapterType: 'fees',
-						chain: currentChainMetadata.name,
-						dataType: 'dailyAppRevenue'
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.fees && chain !== 'All'
-				? fetchAdapterChainMetrics({
-						adapterType: 'fees',
-						chain: currentChainMetadata.name,
-						dataType: 'dailyAppFees'
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.chainFees
-				? fetchAdapterProtocolMetrics({
-						adapterType: 'fees',
-						protocol: currentChainMetadata.name
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.chainRevenue
-				? fetchAdapterProtocolMetrics({
-						adapterType: 'fees',
-						protocol: currentChainMetadata.name,
-						dataType: 'dailyRevenue'
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.perps
-				? fetchAdapterChainMetrics({
-						adapterType: 'derivatives',
-						chain: currentChainMetadata.name
-					})
-				: Promise.resolve(null),
-			fetchCexVolume(),
-			chain === 'All'
-				? getETFData()
-						.then((data) => {
-							const recentFlows = Object.entries(data.flows)
-								.slice(-14)
-								.map((item) => [
-									+item[0] * 1000,
-									Object.entries(item[1]).reduce((acc, curr) => {
-										if (curr[0] !== 'date') {
-											acc += curr[1]
-										}
-										return acc
-									}, 0)
-								])
-							return recentFlows
+			timePhase('chain_chart', () =>
+				fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {
+					console.log(err)
+					return {
+						tvl: [],
+						staking: [],
+						borrowed: [],
+						pool2: [],
+						vesting: [],
+						offers: [],
+						doublecounted: [],
+						liquidstaking: [],
+						dcAndLsOverlap: []
+					}
+				})
+			),
+			timePhase('protocols_by_chain', () =>
+				getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset, shouldFetchDexs })
+			),
+			timePhase('stablecoins', () =>
+				currentChainMetadata.stablecoins
+					? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
+					: Promise.resolve(null)
+			),
+			timePhase('inflows', () =>
+				!currentChainMetadata.inflows ? Promise.resolve(null) : getBridgeChainNetInflows(currentChainMetadata.name)
+			),
+			timePhase('active_users', () =>
+				!currentChainMetadata.chainActiveUsers
+					? Promise.resolve(null)
+					: fetchAdapterChainMetrics({
+							chain: currentChainMetadata.name,
+							adapterType: 'active-users'
+						}).then((data) => data?.total24h ?? null)
+			),
+			timePhase('transactions', () =>
+				!currentChainMetadata.txCount
+					? Promise.resolve(null)
+					: fetchAdapterChainMetrics({
+							chain: currentChainMetadata.name,
+							adapterType: 'active-users',
+							dataType: 'dailyTransactionsCount'
+						}).then((data) => data?.total24h ?? null)
+			),
+			timePhase('new_users', () =>
+				!currentChainMetadata.chainNewUsers
+					? Promise.resolve(null)
+					: fetchAdapterChainMetrics({
+							chain: currentChainMetadata.name,
+							adapterType: 'new-users'
+						}).then((data) => data?.total24h ?? null)
+			),
+			timePhase('raises', () => fetchRaises()),
+			timePhase('treasuries', () => (chain === 'All' ? Promise.resolve(null) : fetchTreasuries())),
+			timePhase('coingecko', () =>
+				currentChainMetadata.gecko_id
+					? fetchCoinGeckoCoinById(currentChainMetadata.gecko_id)
+					: Promise.resolve({} as CoinGeckoCoinDetailResult)
+			),
+			timePhase('nft_volumes', () =>
+				chain && chain !== 'All'
+					? fetchJson<Record<string, number>>(`https://defillama-datasets.llama.fi/temp/chainNfts`)
+					: Promise.resolve(null)
+			),
+			timePhase('chain_assets', () =>
+				fetchChainsAssets()
+					.then((assets) => (chain !== 'All' ? (assets[currentChainMetadata.name] ?? null) : null))
+					.catch(() => null)
+			),
+			timePhase('app_revenue', () =>
+				currentChainMetadata.revenue && chain !== 'All'
+					? fetchAdapterChainMetrics({
+							adapterType: 'fees',
+							chain: currentChainMetadata.name,
+							dataType: 'dailyAppRevenue'
 						})
-						.catch(() => null)
-				: Promise.resolve(null),
-			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
-			currentChainMetadata.incentives && chain !== 'All'
-				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
-				: Promise.resolve(null),
-			chain === 'All' ? getDATInflows() : Promise.resolve(null),
-			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
-			chain !== 'All'
-				? fetchLlamaConfig()
-						.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
-						.catch(() => null)
-				: Promise.resolve(null)
+					: Promise.resolve(null)
+			),
+			timePhase('app_fees', () =>
+				currentChainMetadata.fees && chain !== 'All'
+					? fetchAdapterChainMetrics({
+							adapterType: 'fees',
+							chain: currentChainMetadata.name,
+							dataType: 'dailyAppFees'
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('chain_fees', () =>
+				currentChainMetadata.chainFees
+					? fetchAdapterProtocolMetrics({
+							adapterType: 'fees',
+							protocol: currentChainMetadata.name
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('chain_revenue', () =>
+				currentChainMetadata.chainRevenue
+					? fetchAdapterProtocolMetrics({
+							adapterType: 'fees',
+							protocol: currentChainMetadata.name,
+							dataType: 'dailyRevenue'
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('perps', () =>
+				shouldFetchPerps
+					? fetchAdapterChainMetrics({
+							adapterType: 'derivatives',
+							chain: currentChainMetadata.name
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('cex_volume', () => fetchCexVolume()),
+			timePhase('etf_data', () =>
+				chain === 'All'
+					? getETFData()
+							.then((data) => {
+								const recentFlows = Object.entries(data.flows)
+									.slice(-14)
+									.map((item) => [
+										+item[0] * 1000,
+										Object.entries(item[1]).reduce((acc, curr) => {
+											if (curr[0] !== 'date') {
+												acc += curr[1]
+											}
+											return acc
+										}, 0)
+									])
+								return recentFlows
+							})
+							.catch(() => null)
+					: Promise.resolve(null)
+			),
+			timePhase('homepage_unlocks', () => (chain === 'All' ? fetchHomepageUnlocksSummary() : Promise.resolve(null))),
+			timePhase('chain_incentives', () =>
+				currentChainMetadata.incentives && chain !== 'All'
+					? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
+					: Promise.resolve(null)
+			),
+			timePhase('dat_inflows', () => (chain === 'All' ? getDATInflows() : Promise.resolve(null))),
+			timePhase('stablecoin_assets', () =>
+				chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null)
+			),
+			timePhase('chain_stablecoins', () =>
+				chain !== 'All'
+					? fetchLlamaConfig()
+							.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
+							.catch(() => null)
+					: Promise.resolve(null)
+			)
 		])
+		const stopOverviewTransform = phaseTimer?.start('overview_transform')
 
 		const {
 			tvl = [],
@@ -362,43 +408,6 @@ export async function getChainOverviewData({
 		const feesGenerated24h =
 			fees?.protocols?.length > 0 ? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0) : null
 
-		const uniqueUnlockTokens = new Set<string>()
-		let total14dUnlocks = 0
-		const unlocksChart =
-			upcomingUnlocks?.reduce(
-				(acc, protocol) => {
-					if (protocol.tPrice && protocol.events) {
-						for (const event of protocol.events) {
-							if (
-								+event.timestamp * 1e3 > Date.now() &&
-								+event.timestamp * 1e3 < Date.now() + 14 * 24 * 60 * 60 * 1000
-							) {
-								const date = new Date(event.timestamp * 1000)
-								const utcTimestamp = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-								const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-								const valueUSD = Number((Number(totalTokens.toFixed(2)) * protocol.tPrice).toFixed(2))
-								acc[utcTimestamp] = { ...(acc[utcTimestamp] || {}), [protocol.tSymbol]: valueUSD }
-								uniqueUnlockTokens.add(protocol.tSymbol)
-								total14dUnlocks += valueUSD
-							}
-						}
-					}
-					return acc
-				},
-				{} as Record<string, Record<string, number>>
-			) ?? {}
-		const finalUnlocksChart = Object.entries(unlocksChart)
-			.sort(([a], [b]) => Number(a) - Number(b))
-			.map(([date, tokens]) => {
-				const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
-				const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
-				if (others) {
-					uniqueUnlockTokens.add('Others')
-				}
-				const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
-				return [+date, finalTokens]
-			}) as Array<[number, Record<string, number>]>
-
 		const chainRevProtocols = new Set(REV_PROTOCOLS[slug(currentChainMetadata.name)] ?? [])
 
 		const chainREV =
@@ -411,22 +420,6 @@ export async function getChainOverviewData({
 						}
 						return acc
 					}, 0) ?? 0)
-
-		const precomputedUnlocksChart = finalUnlocksChart.map(([date, tokensInDate]) => {
-			const entries = Object.entries(tokensInDate).sort((a, b) => b[1] - a[1])
-			const total = entries.reduce((sum, [, v]) => sum + v, 0)
-			return {
-				date,
-				total,
-				breakdown: entries
-					.filter(([, v]) => v > 0)
-					.map(([token, value]) => ({
-						token,
-						value,
-						pct: total > 0 ? ((value / total) * 100).toFixed(2) : '0'
-					}))
-			}
-		})
 
 		const charts: ChainChartLabels[] = []
 
@@ -446,7 +439,7 @@ export async function getChainOverviewData({
 		if (shouldFetchDexs && dexs?.total24h != null) {
 			charts.push('DEXs Volume')
 		}
-		if (perps?.total24h != null) {
+		if (shouldFetchPerps && perps?.total24h != null) {
 			charts.push('Perps Volume')
 		}
 		if (chainIncentives?.emissions24h != null) {
@@ -497,7 +490,7 @@ export async function getChainOverviewData({
 
 		const isDataAvailable = charts.length > 0 || protocols.length > 0
 
-		return {
+		const result: IChainOverviewData = {
 			chain,
 			metadata: currentChainMetadata,
 			protocols,
@@ -552,12 +545,7 @@ export async function getChainOverviewData({
 					: null,
 			etfs: etfData,
 			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` }))),
-			unlocks: upcomingUnlocks
-				? {
-						chart: precomputedUnlocksChart,
-						total14d: total14dUnlocks
-					}
-				: null,
+			unlocks: homepageUnlocks,
 			chainIncentives: chainIncentives ?? {
 				emissions24h: null,
 				emissions7d: null,
@@ -579,6 +567,8 @@ export async function getChainOverviewData({
 					return { name: coinData?.name ?? coin, url: `/stablecoin/${coin}`, symbol: coinData?.symbol ?? null }
 				}) ?? null
 		}
+		stopOverviewTransform?.()
+		return result
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		const errorWithContext = new Error(msg, { cause: error })

@@ -13,7 +13,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import { slug } from '~/utils'
 import { useRaisesData } from './hooks'
@@ -25,8 +25,6 @@ const MultiSeriesChart2 = React.lazy(
 ) as React.FC<IMultiSeriesChart2Props>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-
-const columnResizeMode = 'onChange'
 
 const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
@@ -40,7 +38,6 @@ function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 	const instance = useReactTable({
 		data: raises,
 		columns: raisesColumns,
-		columnResizeMode,
 		state: {
 			columnFilters,
 			columnOrder,
@@ -59,7 +56,7 @@ function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({ instance, columnOrders: raisesColumnOrders })
+	useSortColumnOrders({ instance, columnOrders: raisesColumnOrders })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -84,7 +81,7 @@ function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 					Download.json
 				</CSVDownloadButton>
 			</div>
-			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
+			<VirtualTable instance={instance} />
 		</div>
 	)
 }

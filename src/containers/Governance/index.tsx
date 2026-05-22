@@ -86,26 +86,36 @@ const governanceColumns = [
 				</span>
 			)
 		},
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('proposalsCount', {
 		header: 'Proposals',
-		size: 100,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[100px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('successfulProposals', {
 		header: 'Successful Proposals',
-		size: 180,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('proposalsInLast30Days', {
 		header: 'Proposals in last 30 days',
-		size: 200,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('successfulProposalsInLast30Days', {
 		header: 'Successful Proposals in last 30 days',
-		size: 280,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]',
+			align: 'end'
+		}
 	})
 ]

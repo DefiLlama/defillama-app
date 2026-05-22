@@ -5,7 +5,7 @@ import type {
 	CexAnalyticsView
 } from '~/containers/ProDashboard/types'
 import { llamaDb } from '~/server/db/llama'
-import metadataCache, { refreshMetadataIfStale } from '~/utils/metadata'
+import metadataCache from '~/utils/metadata'
 
 type SnapshotSourceRow = {
 	loaded_at: string | null
@@ -51,8 +51,6 @@ function fallbackCexName(raw: string) {
 }
 
 async function getCexNameLookup() {
-	await refreshMetadataIfStale()
-
 	const lookup = new Map<string, string>()
 	for (const cex of metadataCache.cexs) {
 		if (cex.slug) lookup.set(toCexKey(cex.slug), cex.name)

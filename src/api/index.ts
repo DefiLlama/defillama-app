@@ -6,7 +6,7 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, getFastJsonTimeoutMs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { recordRuntimeError } from '~/utils/telemetry'
 import type {
@@ -43,6 +43,7 @@ export async function searchApi<T = Record<string, unknown>>(query: SearchQuery)
 
 const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
 const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
+const COINS_CURRENT_PRICES_POST_API_URL = `${COINS_SERVER_URL}/pro/prices/current`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
@@ -54,7 +55,58 @@ export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
 	return fetchJson<LlamaConfigResponse>(CONFIG_API)
 }
 
-/** Fetch current prices for a list of coin identifiers, batched in groups of 10. */
+function shouldFallbackToLegacyCurrentPricesGet(error: unknown): boolean {
+	return error instanceof Error && /\[(404|405)\]/.test(error.message)
+}
+
+async function fetchCoinPricesGetBatch(
+	coins: Array<string>,
+	options?: { searchWidth?: string }
+): Promise<Record<string, PriceObject>> {
+	const legacyBatchSize = 10
+	const batches: Array<Array<string>> = []
+	for (let i = 0; i < coins.length; i += legacyBatchSize) {
+		batches.push(coins.slice(i, i + legacyBatchSize))
+	}
+	const results = await Promise.all(
+		batches.map(async (batch) => {
+			try {
+				const searchParams = new URLSearchParams()
+				if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
+				const queryString = searchParams.toString()
+				const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
+				const response = await fetchJson<CoinsPricesResponse>(url)
+				return response.coins ?? {}
+			} catch (err) {
+				recordRuntimeError(err, 'outboundFetch', {
+					target: `${COINS_PRICES_API_URL}/current`,
+					coin_count: batch.length,
+					first_coin: batch[0],
+					search_width: options?.searchWidth ?? 'default'
+				})
+				return {}
+			}
+		})
+	)
+	return Object.assign({}, ...results)
+}
+
+async function fetchCoinPricesPostBatch(
+	batch: Array<string>,
+	options?: { searchWidth?: string }
+): Promise<Record<string, PriceObject>> {
+	const response = await fetchJson<CoinsPricesResponse>(COINS_CURRENT_PRICES_POST_API_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			coins: batch,
+			...(options?.searchWidth ? { searchWidth: options.searchWidth } : {})
+		})
+	})
+	return response.coins ?? {}
+}
+
+/** Fetch current prices for a list of coin identifiers, batched for the bulk POST endpoint. */
 export async function fetchCoinPrices(
 	coins: Array<string>,
 	options?: { searchWidth?: string }
@@ -63,7 +115,7 @@ export async function fetchCoinPrices(
 		return {}
 	}
 
-	const batchSize = 10
+	const batchSize = 100000
 	const batches: Array<Array<string>> = []
 	for (let i = 0; i < coins.length; i += batchSize) {
 		batches.push(coins.slice(i, i + batchSize))
@@ -72,17 +124,20 @@ export async function fetchCoinPrices(
 	const batchResults = await runBatchPromises(
 		batches,
 		async (batch) => {
-			const searchParams = new URLSearchParams()
-			if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
-			const queryString = searchParams.toString()
-			const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
-			const response = await fetchJson<CoinsPricesResponse>(url)
-			return response.coins ?? {}
+			try {
+				return await fetchCoinPricesPostBatch(batch, options)
+			} catch (error) {
+				if (shouldFallbackToLegacyCurrentPricesGet(error)) {
+					return fetchCoinPricesGetBatch(batch, options)
+				}
+				throw error
+			}
 		},
 		(batch, err) => {
 			recordRuntimeError(err, 'outboundFetch', {
-				target: `${COINS_PRICES_API_URL}/current`,
-				coins: batch,
+				target: COINS_CURRENT_PRICES_POST_API_URL,
+				coin_count: batch.length,
+				first_coin: batch[0],
 				search_width: options?.searchWidth ?? 'default'
 			})
 			return {}
@@ -165,5 +220,5 @@ const BLOCK_EXPLORERS_API_URL = `${DATASETS_SERVER_URL}/blockExplorers.json`
 
 /** Fetch block explorer URLs for all chains from the datasets server. */
 export async function fetchBlockExplorers(): Promise<BlockExplorersResponse> {
-	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL)
+	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL, { timeout: getFastJsonTimeoutMs() })
 }

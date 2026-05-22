@@ -349,5 +349,5 @@ export function useFinancialsData() {
 			},
 			isLoading: false
 		}
-	}, [query.data, query.isLoading])
+	}, [query.data, query.isLoading, query.isPending])
 }

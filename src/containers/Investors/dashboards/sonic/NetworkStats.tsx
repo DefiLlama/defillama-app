@@ -141,13 +141,13 @@ function BurnCounter({ totalBurnedS, price }: { totalBurnedS: number; price: num
 
 	return (
 		<div>
-			<div className="text-4xl font-bold tabular-nums text-(--text-primary) sm:text-5xl">
+			<div className="text-4xl font-bold text-(--text-primary) tabular-nums sm:text-5xl">
 				{intPart}
 				<span className="text-(--text-secondary)">.{decPart}</span>
 				<span className="ml-2 text-xl font-semibold text-(--text-label)">S</span>
 			</div>
 			{price != null && displayValue > 0 && (
-				<span className="mt-1 block text-sm tabular-nums text-(--text-label)">
+				<span className="mt-1 block text-sm text-(--text-label) tabular-nums">
 					${(displayValue * price).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD
 				</span>
 			)}
@@ -180,21 +180,16 @@ export default function NetworkStats() {
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<div className="flex items-center gap-3">
-							<span className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">
-								Total S Burned
-							</span>
+							<span className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">Total S Burned</span>
 							{stream.connected && (
 								<span className="flex items-center gap-1.5 text-[11px] text-green-500">
-									<span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+									<span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
 									Live
 								</span>
 							)}
 						</div>
 						<div className="mt-3">
-							<BurnCounter
-								totalBurnedS={stream.totalBurnedS}
-								price={data.network.price?.value ?? null}
-							/>
+							<BurnCounter totalBurnedS={stream.totalBurnedS} price={data.network.price?.value ?? null} />
 						</div>
 					</div>
 				</div>
@@ -205,9 +200,12 @@ export default function NetworkStats() {
 							const w = burnWindows[key]
 							if (!w) return null
 							return (
-								<div key={key} className="flex items-baseline gap-1.5 rounded-md border border-(--cards-border) px-3 py-1.5">
+								<div
+									key={key}
+									className="flex items-baseline gap-1.5 rounded-md border border-(--cards-border) px-3 py-1.5"
+								>
 									<span className="text-xs text-(--text-label)">{key}</span>
-									<span className="text-sm font-semibold tabular-nums text-(--text-primary)">
+									<span className="text-sm font-semibold text-(--text-primary) tabular-nums">
 										{formatBurnValue(w.burned_s)} S
 									</span>
 								</div>
@@ -223,7 +221,7 @@ export default function NetworkStats() {
 				<div className="grid grid-cols-3 gap-4">
 					<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
 						<span className="text-xs font-medium tracking-wide text-(--text-label)">Latest Block</span>
-						<span className="text-2xl font-semibold tabular-nums text-(--text-primary)">
+						<span className="text-2xl font-semibold text-(--text-primary) tabular-nums">
 							{liveBlock ? liveBlock.toLocaleString('en-US') : '—'}
 						</span>
 					</div>
@@ -239,7 +237,7 @@ export default function NetworkStats() {
 							<span className="text-2xl font-semibold text-(--text-primary)">{data.network.price.formatted}</span>
 						</div>
 					)}
-					</div>
+				</div>
 			</div>
 
 			{/* Recent Blocks */}
@@ -273,14 +271,14 @@ export default function NetworkStats() {
 										key={block.block_number}
 										className="border-b border-(--cards-border) last:border-b-0 hover:bg-(--sl-hover-bg)"
 									>
-										<td className="px-4 py-2.5 text-sm font-medium tabular-nums text-(--text-primary)">
+										<td className="px-4 py-2.5 text-sm font-medium text-(--text-primary) tabular-nums">
 											{block.block_number.toLocaleString('en-US')}
 										</td>
-										<td className="px-4 py-2.5 text-sm tabular-nums text-(--text-primary)">{block.tx_count}</td>
-										<td className="px-4 py-2.5 text-sm tabular-nums text-(--text-primary)">
+										<td className="px-4 py-2.5 text-sm text-(--text-primary) tabular-nums">{block.tx_count}</td>
+										<td className="px-4 py-2.5 text-sm text-(--text-primary) tabular-nums">
 											{formatGas(block.gas_used)}
 										</td>
-										<td className="px-4 py-2.5 text-sm tabular-nums text-(--text-primary)">
+										<td className="px-4 py-2.5 text-sm text-(--text-primary) tabular-nums">
 											{parseFloat(block.block_burn_s).toFixed(6)} S
 										</td>
 										<td className="hidden px-4 py-2.5 text-right text-xs text-(--text-label) sm:table-cell">
@@ -348,7 +346,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex items-center justify-between px-4 py-3">
 			<span className="text-sm text-(--text-label)">{label}</span>
-			<span className="text-sm font-semibold tabular-nums text-(--text-primary)">{value}</span>
+			<span className="text-sm font-semibold text-(--text-primary) tabular-nums">{value}</span>
 		</div>
 	)
 }

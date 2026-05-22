@@ -4,27 +4,44 @@ import { ChainOverviewAnnouncement } from '~/containers/ChainOverview/Announceme
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { withPerformanceLogging } from '~/utils/perf'
+import { createRoutePhaseTimer, withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']
 
-export const getStaticProps = withPerformanceLogging('index', async () => {
-	const metadataModule = await import('~/utils/metadata')
-	await metadataModule.refreshMetadataIfStale()
-	const metadataCache = metadataModule.default
-	const data = await getChainOverviewData({
-		chain: 'All',
-		chainMetadata: metadataCache.chainMetadata,
-		protocolMetadata: metadataCache.protocolMetadata,
-		categoriesAndTagsMetadata: metadataCache.categoriesAndTags,
-		protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
-	})
+export const getStaticProps = withPerformanceLogging(
+	'index',
+	async () => {
+		const phaseTimer = createRoutePhaseTimer()
+		const stopGetStaticProps = phaseTimer.start('get_static_props_total')
 
-	return {
-		props: data,
-		revalidate: maxAgeForNext([22])
-	}
-})
+		try {
+			const metadataModule = await phaseTimer.time('metadata_import', () => import('~/utils/metadata'))
+			await phaseTimer.time('metadata_refresh_dispatch', () =>
+				metadataModule.refreshMetadataInBackgroundIfStale('homepage')
+			)
+			const metadataCache = metadataModule.default
+			const data = await phaseTimer.time('chain_overview_total', () =>
+				getChainOverviewData({
+					chain: 'All',
+					chainMetadata: metadataCache.chainMetadata,
+					protocolMetadata: metadataCache.protocolMetadata,
+					categoriesAndTagsMetadata: metadataCache.categoriesAndTags,
+					protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
+					phaseTimer
+				})
+			)
+
+			return {
+				props: data,
+				revalidate: maxAgeForNext([22])
+			}
+		} finally {
+			stopGetStaticProps()
+			phaseTimer.record()
+		}
+	},
+	{ jitterRevalidate: false }
+)
 
 export default function HomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (

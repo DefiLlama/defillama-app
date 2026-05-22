@@ -39,11 +39,7 @@ const LINK_LABELS: Record<string, string> = {
 
 export function FlareIcon({ className = 'h-7 w-7' }: { className?: string }) {
 	return (
-		<svg
-			viewBox="0 0 200 200"
-			xmlns="http://www.w3.org/2000/svg"
-			className={className}
-		>
+		<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className={className}>
 			<defs>
 				<linearGradient id="flare-brand-a" x1="0%" y1="0%" x2="100%" y2="100%">
 					<stop offset="0%" stopColor="#FF7A1A" />
@@ -52,10 +48,7 @@ export function FlareIcon({ className = 'h-7 w-7' }: { className?: string }) {
 				</linearGradient>
 			</defs>
 			<circle cx="100" cy="100" r="92" fill="url(#flare-brand-a)" />
-			<path
-				d="M62 64h82l-8 22H78l-4 14h54l-8 22H66l-12 34h-22z"
-				fill="#fff"
-			/>
+			<path d="M62 64h82l-8 22H78l-4 14h54l-8 22H66l-12 34h-22z" fill="#fff" />
 		</svg>
 	)
 }
