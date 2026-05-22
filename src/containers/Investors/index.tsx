@@ -9,7 +9,7 @@ import {
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { INVESTORS_PROJECTS } from './config'
+import { INVESTORS_PROJECTS, isInvestorsEnabled } from './config'
 import { CustomServerDataContext } from './CustomServerDataContext'
 import { Logo } from './Logo'
 import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
@@ -18,6 +18,7 @@ const ContentReadyContext = createContext<() => void>(() => {})
 export const useContentReady = () => useContext(ContentReadyContext)
 
 const NOOP = () => {}
+const HIDE_DUPLICATE_BUTTON = isInvestorsEnabled()
 
 const ALL_PROJECTS = [
 	...INVESTORS_PROJECTS.map((p) => ({ ...p, comingSoon: false })),
@@ -201,7 +202,11 @@ function InvestorsContent({
 			)}
 
 			{dashboardVisited && (
-				<ProDashboardAPIProvider key={dashboardId} initialDashboardId={dashboardId}>
+				<ProDashboardAPIProvider
+					key={dashboardId}
+					initialDashboardId={dashboardId}
+					hideDuplicateButton={HIDE_DUPLICATE_BUTTON}
+				>
 					<DashboardTabInner visible={activeTab === 'dashboard'} />
 				</ProDashboardAPIProvider>
 			)}
@@ -272,7 +277,11 @@ function CustomOnlyContent({
 				if (tab.proDashboardId) {
 					return (
 						<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
-							<ProDashboardAPIProvider key={tab.proDashboardId} initialDashboardId={tab.proDashboardId}>
+							<ProDashboardAPIProvider
+								key={tab.proDashboardId}
+								initialDashboardId={tab.proDashboardId}
+								hideDuplicateButton={HIDE_DUPLICATE_BUTTON}
+							>
 								<DashboardTabInner visible={activeTab === tab.id} />
 							</ProDashboardAPIProvider>
 						</div>

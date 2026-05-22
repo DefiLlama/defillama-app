@@ -95,6 +95,7 @@ interface ProDashboardCatalogContextType {
 interface ProDashboardPermissionsContextType {
 	isReadOnly: boolean
 	dashboardOwnerId: string | null
+	hideDuplicateButton: boolean
 }
 
 interface ProDashboardDashboardContextType {
@@ -285,11 +286,13 @@ const ProDashboardServerAppMetadataContext = createContext<
 export function ProDashboardAPIProvider({
 	children,
 	initialDashboardId,
-	initialItems
+	initialItems,
+	hideDuplicateButton = false
 }: {
 	children: ReactNode
 	initialDashboardId?: string
 	initialItems?: DashboardItemConfig[]
+	hideDuplicateButton?: boolean
 }) {
 	const stream = useDashboardStream(initialDashboardId)
 	const streamDone = !initialDashboardId || stream.isDone
@@ -304,6 +307,7 @@ export function ProDashboardAPIProvider({
 					streamDone={streamDone}
 					initialDashboardId={initialDashboardId}
 					initialItems={initialItems}
+					hideDuplicateButton={hideDuplicateButton}
 				>
 					{children}
 				</ProDashboardAPIProviderInner>
@@ -317,13 +321,15 @@ function ProDashboardAPIProviderInner({
 	stream,
 	streamDone,
 	initialDashboardId,
-	initialItems
+	initialItems,
+	hideDuplicateButton = false
 }: {
 	children: ReactNode
 	stream: ReturnType<typeof useDashboardStream>
 	streamDone: boolean
 	initialDashboardId?: string
 	initialItems?: DashboardItemConfig[]
+	hideDuplicateButton?: boolean
 }) {
 	const queryClient = useQueryClient()
 
@@ -1124,9 +1130,10 @@ function ProDashboardAPIProviderInner({
 	const permissionsContextValue = useMemo(
 		() => ({
 			isReadOnly: isReadOnlyUntilDashboardLoaded,
-			dashboardOwnerId
+			dashboardOwnerId,
+			hideDuplicateButton
 		}),
-		[isReadOnlyUntilDashboardLoaded, dashboardOwnerId]
+		[isReadOnlyUntilDashboardLoaded, dashboardOwnerId, hideDuplicateButton]
 	)
 
 	const dashboardContextValue = useMemo(

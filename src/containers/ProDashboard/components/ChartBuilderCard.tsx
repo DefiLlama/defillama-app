@@ -117,7 +117,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handleEditItem,
 		handleDuplicateChartBuilder
 	} = useProDashboardEditorActions()
-	const { isReadOnly } = useProDashboardPermissions()
+	const { isReadOnly, hideDuplicateButton } = useProDashboardPermissions()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chartInstance, handleChartReady } = useChartImageExport()
@@ -705,7 +705,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							variant="pro"
 						/>
 					) : null}
-					{!isReadOnly ? (
+					{!isReadOnly && !hideDuplicateButton ? (
 						<button
 							type="button"
 							onClick={() => setShowDuplicateConfirm(true)}
