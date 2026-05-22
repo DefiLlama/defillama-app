@@ -20,6 +20,7 @@ import {
 	TOOL_ICONS,
 	useHackerMode
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TrialUpgradeCard } from '~/containers/LlamaAI/components/TrialUpgradeCard'
 import {
 	parseMessageToRenderModel,
 	type ArtifactRecord,
@@ -589,6 +590,8 @@ function InlineContent({
 					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
 				</>
 			) : null}
+
+			{message.upgradeOffer ? <TrialUpgradeCard offer={message.upgradeOffer} /> : null}
 		</div>
 	)
 }

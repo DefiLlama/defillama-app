@@ -227,6 +227,11 @@ export interface MessageMetadata {
 	x402CostUsd?: string
 }
 
+export interface UpgradeOffer {
+	code: 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	resetTime?: string | null
+}
+
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
@@ -258,6 +263,7 @@ export interface Message {
 	thinking?: string
 	quotedText?: string
 	messageMetadata?: MessageMetadata
+	upgradeOffer?: UpgradeOffer
 }
 
 export interface ChartSet {

@@ -2,11 +2,13 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
+import { useMedia } from '~/hooks/useMedia'
 import { CreateProjectModal } from './CreateProjectModal'
 import { useProjectList, useProjectSessions } from './hooks'
 import { getProjectTier } from './tier'
@@ -72,6 +74,8 @@ export function ProjectsSidebarSection({
 	}, [activeProjectSessions, currentSessionId])
 
 	const navigate = useLlamaAINavigate()
+	const { hideSidebar } = useLlamaAIChrome()
+	const isDrawer = useMedia('(max-width: 1023px)')
 
 	useEffect(() => {
 		const activeProjectId = currentProjectId ?? currentSessionProjectId
@@ -205,7 +209,10 @@ export function ProjectsSidebarSection({
 													<li>
 														<button
 															type="button"
-															onClick={() => goToProject(p.id)}
+															onClick={() => {
+																goToProject(p.id)
+																if (isDrawer) hideSidebar()
+															}}
 															className="rounded-md px-2 py-1 text-left text-[10px] text-[#999] hover:underline dark:text-[#555]"
 														>
 															Show more
