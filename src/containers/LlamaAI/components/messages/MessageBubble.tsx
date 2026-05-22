@@ -586,7 +586,10 @@ function InlineContent({
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
 				<>
-					<FrozenTodoChecklist toolExecutions={toolExecutions} />
+					<FrozenTodoChecklist
+						toolExecutions={toolExecutions}
+						completionReason={message.messageMetadata?.completionReason}
+					/>
 					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
 				</>
 			) : null}
@@ -596,10 +599,17 @@ function InlineContent({
 	)
 }
 
-function FrozenTodoChecklist({ toolExecutions }: { toolExecutions: ToolExecution[] }) {
+function FrozenTodoChecklist({
+	toolExecutions,
+	completionReason
+}: {
+	toolExecutions: ToolExecution[]
+	completionReason?: string
+}) {
 	const todos = useMemo(() => deriveTodosFromToolExecutions(toolExecutions), [toolExecutions])
 	if (todos.length === 0) return null
-	return <TodoChecklistPanel todos={todos} />
+	const interrupted = !!completionReason && completionReason !== 'natural'
+	return <TodoChecklistPanel todos={todos} interrupted={interrupted} />
 }
 
 const formatStepDuration = (ms: number): string => {

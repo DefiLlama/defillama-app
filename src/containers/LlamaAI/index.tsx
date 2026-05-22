@@ -148,7 +148,13 @@ interface PersistedMessage {
 	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
-	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
+	messageMetadata?: {
+		inputTokens?: number
+		outputTokens?: number
+		executionTimeMs?: number
+		x402CostUsd?: string
+		completionReason?: string
+	}
 	messageId?: string
 	parentId?: string
 	siblingInfo?: Message['siblingInfo']

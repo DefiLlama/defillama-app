@@ -225,6 +225,7 @@ export interface MessageMetadata {
 	outputTokens?: number
 	executionTimeMs?: number
 	x402CostUsd?: string
+	completionReason?: string
 }
 
 export interface UpgradeOffer {
