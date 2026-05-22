@@ -3031,9 +3031,7 @@ export function AgenticChat({
 						<TextSelectionPopup
 							onSelect={(text) => {
 								setQuotedText(text)
-								requestAnimationFrame(() => {
-									promptInputRef.current?.focus()
-								})
+								promptInputRef.current?.focus()
 							}}
 						/>
 					) : null}
