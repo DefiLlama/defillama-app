@@ -1,4 +1,4 @@
-import { AUTH_SERVER, POCKETBASE_URL } from '~/constants'
+import { AUTH_SERVER, FEATURES_SERVER, POCKETBASE_URL } from '~/constants'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 
 type ValidationSuccess = { valid: true; isTrial: boolean }
@@ -56,7 +56,7 @@ export async function getTrialCsvDownloadCount(authHeader: string): Promise<numb
 }
 
 export async function trackCsvDownload(authHeader: string): Promise<void> {
-	await fetchWithPoolingOnServer(`${AUTH_SERVER}/user/track-csv-download`, {
+	await fetchWithPoolingOnServer(`${FEATURES_SERVER}/user/track-csv-download`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

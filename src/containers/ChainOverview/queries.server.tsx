@@ -41,6 +41,7 @@ import type {
 	ProtocolLlamaswapMetadata
 } from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
+import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
@@ -154,7 +155,7 @@ export async function getChainOverviewData({
 			perps,
 			cexVolume,
 			etfData,
-			upcomingUnlocks,
+			homepageUnlocks,
 			chainIncentives,
 			datInflows,
 			stablecoinsData,
@@ -179,7 +180,7 @@ export async function getChainOverviewData({
 			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
-			ProtocolEmissionWithHistory[] | null,
+			IChainOverviewData['unlocks'],
 			ChainIncentivesSummary | null,
 			{ chart: Array<[number, number]>; total30d: number } | null,
 			StablecoinsListResponse | null,
@@ -286,7 +287,7 @@ export async function getChainOverviewData({
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
+			chain === 'All' ? fetchHomepageUnlocksSummary() : Promise.resolve(null),
 			currentChainMetadata.incentives && chain !== 'All'
 				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
 				: Promise.resolve(null),
@@ -390,43 +391,6 @@ export async function getChainOverviewData({
 		const feesGenerated24h =
 			fees?.protocols?.length > 0 ? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0) : null
 
-		const uniqueUnlockTokens = new Set<string>()
-		let total14dUnlocks = 0
-		const unlocksChart =
-			upcomingUnlocks?.reduce(
-				(acc, protocol) => {
-					if (protocol.tPrice && protocol.events) {
-						for (const event of protocol.events) {
-							if (
-								+event.timestamp * 1e3 > Date.now() &&
-								+event.timestamp * 1e3 < Date.now() + 14 * 24 * 60 * 60 * 1000
-							) {
-								const date = new Date(event.timestamp * 1000)
-								const utcTimestamp = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-								const totalTokens = event.noOfTokens.reduce((sum, amount) => sum + amount, 0)
-								const valueUSD = Number((Number(totalTokens.toFixed(2)) * protocol.tPrice).toFixed(2))
-								acc[utcTimestamp] = { ...(acc[utcTimestamp] || {}), [protocol.tSymbol]: valueUSD }
-								uniqueUnlockTokens.add(protocol.tSymbol)
-								total14dUnlocks += valueUSD
-							}
-						}
-					}
-					return acc
-				},
-				{} as Record<string, Record<string, number>>
-			) ?? {}
-		const finalUnlocksChart = Object.entries(unlocksChart)
-			.sort(([a], [b]) => Number(a) - Number(b))
-			.map(([date, tokens]) => {
-				const topTokens = Object.entries(tokens).sort((a, b) => b[1] - a[1]) as Array<[string, number]>
-				const others = topTokens.slice(10).reduce((acc, curr) => (acc += curr[1]), 0)
-				if (others) {
-					uniqueUnlockTokens.add('Others')
-				}
-				const finalTokens = Object.fromEntries(topTokens.slice(0, 10).concat(others ? [['Others', others]] : []))
-				return [+date, finalTokens]
-			}) as Array<[number, Record<string, number>]>
-
 		const chainRevProtocols = new Set(REV_PROTOCOLS[slug(currentChainMetadata.name)] ?? [])
 
 		const chainREV =
@@ -439,22 +403,6 @@ export async function getChainOverviewData({
 						}
 						return acc
 					}, 0) ?? 0)
-
-		const precomputedUnlocksChart = finalUnlocksChart.map(([date, tokensInDate]) => {
-			const entries = Object.entries(tokensInDate).sort((a, b) => b[1] - a[1])
-			const total = entries.reduce((sum, [, v]) => sum + v, 0)
-			return {
-				date,
-				total,
-				breakdown: entries
-					.filter(([, v]) => v > 0)
-					.map(([token, value]) => ({
-						token,
-						value,
-						pct: total > 0 ? ((value / total) * 100).toFixed(2) : '0'
-					}))
-			}
-		})
 
 		const charts: ChainChartLabels[] = []
 
@@ -580,12 +528,7 @@ export async function getChainOverviewData({
 					: null,
 			etfs: etfData,
 			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` }))),
-			unlocks: upcomingUnlocks
-				? {
-						chart: precomputedUnlocksChart,
-						total14d: total14dUnlocks
-					}
-				: null,
+			unlocks: homepageUnlocks,
 			chainIncentives: chainIncentives ?? {
 				emissions24h: null,
 				emissions7d: null,

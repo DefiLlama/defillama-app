@@ -7,6 +7,7 @@ import {
 } from '~/containers/RWA/api'
 import type { RWAChartMetricKey, RWAOverviewBreakdownRequest } from '~/containers/RWA/api.types'
 import { toOverviewBreakdownChartDataset } from '~/containers/RWA/breakdownDataset'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function assertNever(value: never): never {
@@ -84,7 +85,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 		}
 
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader(
+				'public, s-maxage=3600, stale-while-revalidate=1800',
+				req.url ?? '/api/rwa/overview-breakdown'
+			)
+		)
 		return res.status(200).json(toOverviewBreakdownChartDataset(rows, request))
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')

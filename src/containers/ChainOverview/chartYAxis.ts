@@ -10,6 +10,7 @@ type AxisBuilderContext = {
 	chartColors: Record<string, string>
 	chartsInSeries: Set<string>
 	isThemeDark: boolean
+	gasUsedValueSymbol: string
 }
 
 type AxisConfig = {
@@ -71,7 +72,7 @@ const AXIS_CONFIG_BY_TYPE: Partial<Record<ChainChartLabels, AxisConfig>> = {
 		resolveColor: ({ chartColors }) => chartColors['Transactions']
 	},
 	'Gas Used': {
-		formatter: (value) => formattedNum(value),
+		formatter: (value, { gasUsedValueSymbol }) => formatTooltipValue(value, gasUsedValueSymbol),
 		resolveColor: ({ chartColors }) => chartColors['Gas Used']
 	},
 	'Net Inflows': {
@@ -107,16 +108,18 @@ export function buildChainYAxis({
 	baseYAxis,
 	chartColors,
 	chartsInSeries,
-	isThemeDark
+	isThemeDark,
+	gasUsedValueSymbol
 }: {
 	allYAxis: Array<[ChainChartLabels, number | undefined]>
 	baseYAxis: Record<string, unknown>
 	chartColors: Record<string, string>
 	chartsInSeries: Set<string>
 	isThemeDark: boolean
+	gasUsedValueSymbol: string
 }) {
 	const finalYAxis: Array<Record<string, unknown>> = []
-	const context: AxisBuilderContext = { chartColors, chartsInSeries, isThemeDark }
+	const context: AxisBuilderContext = { chartColors, chartsInSeries, isThemeDark, gasUsedValueSymbol }
 	const noOffset = allYAxis.length < 3
 
 	for (const [type, index] of allYAxis) {

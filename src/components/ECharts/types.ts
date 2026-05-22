@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
-type EChartsFormatterParams = Record<string, unknown>
+type EChartsFormatterParams = unknown
 
 type ChartDataItem = any
 
@@ -306,6 +306,7 @@ export interface IScatterChartProps {
 	tooltipFormatter?: (params: EChartsFormatterParams) => string
 	showLabels?: boolean
 	entityType?: 'protocol' | 'chain'
+	logScale?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 

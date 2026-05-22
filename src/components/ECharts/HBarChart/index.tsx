@@ -170,6 +170,7 @@ export default function HBarChart({
 				const url = logos![i]
 				const row = document.createElement('div')
 				row.style.cssText = `position:absolute;left:${LEFT_PAD}px;top:${y - LOGO_SIZE / 2}px;height:${LOGO_SIZE}px;pointer-events:none;white-space:nowrap;`
+				const spacerCss = `display:inline-block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;vertical-align:middle;`
 				if (url) {
 					const img = document.createElement('img')
 					img.src = url
@@ -177,10 +178,15 @@ export default function HBarChart({
 					img.loading = 'lazy'
 					img.decoding = 'async'
 					img.style.cssText = `width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;border-radius:50%;object-fit:cover;background:${isThemeDark ? '#1a1a1a' : '#fff'};display:inline-block;vertical-align:middle;`
+					img.onerror = () => {
+						const spacer = document.createElement('span')
+						spacer.style.cssText = spacerCss
+						img.replaceWith(spacer)
+					}
 					row.appendChild(img)
 				} else {
 					const spacer = document.createElement('span')
-					spacer.style.cssText = `display:inline-block;width:${LOGO_SIZE}px;height:${LOGO_SIZE}px;vertical-align:middle;`
+					spacer.style.cssText = spacerCss
 					row.appendChild(spacer)
 				}
 				const text = document.createElement('span')

@@ -55,16 +55,18 @@ const columns = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('total24h', {
 		id: 'total24h',
 		header: 'NFT Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end',
 			headerHelperText: 'Sum of volume across all NFT exchanges on the chain in the last 24 hours'
-		},
-		size: 128
+		}
 	})
 ]

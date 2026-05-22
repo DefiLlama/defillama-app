@@ -46,15 +46,18 @@ export const BridgeInfo = ({
 	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
-	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = tableDataByChain[currentChain]
+	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals, totalDepositedUSD, totalWithdrawnUSD } =
+		tableDataByChain[currentChain]
 
 	const volumeChartDataByChain = volumeDataByChain[currentChain]
 	const prevDayChart = volumeChartDataByChain[volumeChartDataByChain.length - 2]
-	const currentDepositsUSD = prevDayChart?.Deposited ?? 0
-	const currentWithdrawalsUSD = -(prevDayChart?.Withdrawn ?? 0)
-	const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
+	const currentDepositsUSD = totalDepositedUSD ?? prevDayChart?.Deposited ?? 0
+	const currentWithdrawalsUSD = totalWithdrawnUSD ?? -(prevDayChart?.Withdrawn ?? 0)
+	const currentDailyVolume = (prevDayChart?.Deposited ?? 0) + -(prevDayChart?.Withdrawn ?? 0)
 
 	const isAllChains = currentChain === 'All Chains'
+	const rollingHours = config.name === 'wormhole' ? 28 : 24
+	const windowLabel = rollingHours === 24 ? '24h' : `${rollingHours}h`
 
 	let volPercentChange = '0 '
 
@@ -64,7 +67,7 @@ export const BridgeInfo = ({
 		const prevWithdrawalsUSD = -(prev2DayChart.Withdrawn ?? 0)
 		const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
 		if (prevVolume > 0) {
-			volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
+			volPercentChange = getPercentChange(currentDailyVolume, prevVolume)?.toFixed(2)
 		}
 	}
 
@@ -95,11 +98,14 @@ export const BridgeInfo = ({
 
 	const prevDayVolumeValue = React.useMemo(() => {
 		if (!isAllChains) return 0
+		if (Number.isFinite(totalDepositedUSD) || Number.isFinite(totalWithdrawnUSD)) {
+			return (Number(totalDepositedUSD ?? 0) + Number(totalWithdrawnUSD ?? 0)) / 2
+		}
 		const arr = allChainsVolumePairs as Array<[number, number]>
 		if (arr.length > 1) return arr[arr.length - 2][1]
 		if (arr.length === 1) return arr[0][1]
 		return 0
-	}, [isAllChains, allChainsVolumePairs])
+	}, [isAllChains, allChainsVolumePairs, totalDepositedUSD, totalWithdrawnUSD])
 
 	const chartTypes = (
 		isAllChains ? (['Volume', 'Tokens To', 'Tokens From'] as const) : (['Inflows', 'Tokens To', 'Tokens From'] as const)
@@ -173,10 +179,10 @@ export const BridgeInfo = ({
 						<>
 							<p className="flex flex-col gap-1 text-base">
 								<span className="inline-flex items-center gap-1 text-(--text-label)">
-									Total Volume (prev day, UTC)
+									Total Volume ({windowLabel})
 									<Tooltip
 										content={
-											'Daily volume equals (Deposited + Withdrawn)/2 for the previous UTC day to avoid double counting.'
+											'Volume equals (Deposited + Withdrawn)/2 over the same rolling window used by the bridges overview.'
 										}
 									>
 										<Icon name="help-circle" height={14} width={14} />
@@ -190,14 +196,18 @@ export const BridgeInfo = ({
 					) : (
 						<>
 							<p className="flex flex-col gap-1 text-base">
-								<span className="text-(--text-label)">Deposited to {currentChain} (prev day, UTC)</span>
+								<span className="text-(--text-label)">
+									Deposited to {currentChain} ({windowLabel})
+								</span>
 								<span className="font-jetbrains text-2xl font-semibold">
 									{formattedNum(currentDepositsUSD || '0', true)}
 								</span>
 							</p>
 
 							<p className="flex flex-col gap-1 text-base">
-								<span className="text-(--text-label)">Withdrawn from {currentChain} (prev day, UTC)</span>
+								<span className="text-(--text-label)">
+									Withdrawn from {currentChain} ({windowLabel})
+								</span>
 								<span className="font-jetbrains text-2xl font-semibold">
 									{formattedNum(currentWithdrawalsUSD || '0', true)}
 								</span>
@@ -277,7 +287,7 @@ export const BridgeInfo = ({
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-end justify-between gap-2 p-3">
 					<AddressesTableSwitch />
-					<p className="text-sm italic opacity-60">All stats in table are for the previous day.</p>
+					<p className="text-sm italic opacity-60">All stats in table use the same rolling window.</p>
 				</div>
 				{isBridgesShowingAddresses ? (
 					<BridgeAddressesTable data={addressesTableData} />

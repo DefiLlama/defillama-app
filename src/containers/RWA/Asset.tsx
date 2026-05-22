@@ -1,3 +1,10 @@
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CopyHelper } from '~/components/Copy'
@@ -6,6 +13,8 @@ import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData } from '~/containers/Yields/queries/client'
@@ -110,6 +119,72 @@ const SectionCard = ({ title, children }: { title: React.ReactNode; children: Re
 		{children}
 	</div>
 )
+
+type DefiActiveTvlBreakdownRow = {
+	protocol: string
+	tvl: number
+	share: number
+}
+
+const defiActiveTvlBreakdownColumnHelper = createColumnHelper<DefiActiveTvlBreakdownRow>()
+const DEFI_ACTIVE_TVL_BREAKDOWN_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
+
+const defiActiveTvlBreakdownColumns = [
+	defiActiveTvlBreakdownColumnHelper.accessor('protocol', {
+		header: 'Protocol',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			const protocol = getValue()
+
+			return (
+				<span className="flex items-center gap-2">
+					<TokenLogo name={protocol} kind="token" alt={`Logo of ${protocol}`} size={20} />
+					<span>{protocol}</span>
+				</span>
+			)
+		}
+	}),
+	defiActiveTvlBreakdownColumnHelper.accessor('tvl', {
+		header: 'DeFi Active TVL',
+		cell: ({ getValue }) => formattedNum(getValue(), true),
+		meta: {
+			align: 'end' as const
+		}
+	}),
+	defiActiveTvlBreakdownColumnHelper.accessor('share', {
+		header: 'Share',
+		cell: ({ getValue }) => `${getValue().toFixed(2)}%`,
+		meta: {
+			align: 'end' as const
+		}
+	})
+]
+
+function DefiActiveTvlBreakdownTable({ breakdown, total }: { breakdown: Array<[string, number]>; total: number }) {
+	const data = useMemo(() => {
+		const rows: DefiActiveTvlBreakdownRow[] = []
+		for (const [protocol, tvl] of breakdown) {
+			rows.push({ protocol, tvl, share: total > 0 ? (tvl / total) * 100 : 0 })
+		}
+		return rows
+	}, [breakdown, total])
+	const table = useReactTable({
+		data,
+		columns: defiActiveTvlBreakdownColumns,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			},
+			sorting: [{ id: 'tvl', desc: true }]
+		},
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={DEFI_ACTIVE_TVL_BREAKDOWN_PAGE_SIZE_OPTIONS} />
+}
 
 const ContractItem = ({ address, explorerUrl }: { address: string; explorerUrl?: string }) => {
 	const truncatedAddress = address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address
@@ -282,6 +357,28 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								Twitter
 							</a>
 						)
+					) : null}
+					{asset.linkedin ? (
+						<a
+							href={asset.linkedin}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							LinkedIn
+						</a>
+					) : null}
+					{asset.docs ? (
+						<a
+							href={asset.docs}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							Docs
+						</a>
 					) : null}
 					{asset.rwaGithub != null ? (
 						<a
@@ -715,6 +812,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							<li key={`${keyBase}-note-${idx}-${note.slice(0, 50)}`}>{note}</li>
 						))}
 					</ul>
+				</SectionCard>
+			) : null}
+
+			{defiActiveTv?.breakdown != null && defiActiveTv.breakdown.length > 0 ? (
+				<SectionCard title="DeFi Active TVL by Protocol">
+					<DefiActiveTvlBreakdownTable breakdown={defiActiveTv.breakdown} total={defiActiveTv.total} />
 				</SectionCard>
 			) : null}
 

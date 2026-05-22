@@ -67,40 +67,42 @@ const topGainersAndLosersColumns = [
 				</span>
 			)
 		},
-		size: 260
+		meta: {
+			headerClassName: 'w-[min(260px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
 		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
-		},
-		size: 200
+		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
-		},
-		size: 100
+		}
 	}),
 	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
-		},
-		size: 140
+		}
 	}),
 	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap/TVL',
 		cell: (info) => info.getValue(),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

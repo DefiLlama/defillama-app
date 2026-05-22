@@ -9,23 +9,27 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']
 
-export const getStaticProps = withPerformanceLogging('index', async () => {
-	const metadataModule = await import('~/utils/metadata')
-	await metadataModule.refreshMetadataIfStale()
-	const metadataCache = metadataModule.default
-	const data = await getChainOverviewData({
-		chain: 'All',
-		chainMetadata: metadataCache.chainMetadata,
-		protocolMetadata: metadataCache.protocolMetadata,
-		categoriesAndTagsMetadata: metadataCache.categoriesAndTags,
-		protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
-	})
+export const getStaticProps = withPerformanceLogging(
+	'index',
+	async () => {
+		const metadataModule = await import('~/utils/metadata')
+		metadataModule.refreshMetadataInBackgroundIfStale()
+		const metadataCache = metadataModule.default
+		const data = await getChainOverviewData({
+			chain: 'All',
+			chainMetadata: metadataCache.chainMetadata,
+			protocolMetadata: metadataCache.protocolMetadata,
+			categoriesAndTagsMetadata: metadataCache.categoriesAndTags,
+			protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
+		})
 
-	return {
-		props: data,
-		revalidate: maxAgeForNext([22])
-	}
-})
+		return {
+			props: data,
+			revalidate: maxAgeForNext([22])
+		}
+	},
+	{ jitterRevalidate: false }
+)
 
 export default function HomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const metricFiltersLabel = getMetricFiltersLabel(props.tvlAndFeesOptions)

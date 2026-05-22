@@ -16,13 +16,11 @@ import { IconsRow } from '~/components/IconsRow'
 import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, toNiceDayMonthYear } from '~/utils'
 import type { IRaise } from './types'
 import { formatRaiseAmount } from './utils'
-
-const columnResizeMode = 'onChange'
 
 const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
@@ -34,10 +32,14 @@ export const raisesColumns = [
 	columnHelper.accessor('name', {
 		header: 'Name',
 		enableSorting: false,
-		size: 180
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('date', {
-		size: 120,
+		meta: {
+			headerClassName: 'w-[120px]'
+		},
 		header: 'Date',
 		cell: (info) => toNiceDayMonthYear(info.getValue())
 	}),
@@ -45,24 +47,38 @@ export const raisesColumns = [
 		id: 'amount',
 		header: 'Amount Raised',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
-	columnHelper.accessor('round', { header: 'Round', enableSorting: false, size: 140 }),
+	columnHelper.accessor('round', {
+		header: 'Round',
+		enableSorting: false,
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
+	}),
 	columnHelper.accessor('category', {
 		header: 'Category',
-		size: 160,
+		meta: {
+			headerClassName: 'w-[160px]'
+		},
 		enableSorting: false,
 		cell: (info) => <Tooltip content={info.getValue()}>{info.getValue()}</Tooltip>
 	}),
 	columnHelper.accessor('sector', {
 		header: 'Description',
-		size: 140,
+		meta: {
+			headerClassName: 'w-[140px]'
+		},
 		enableSorting: false,
 		cell: (info) => <Tooltip content={info.getValue()}>{info.getValue()}</Tooltip>
 	}),
 	columnHelper.accessor('leadInvestors', {
 		header: 'Lead Investor',
-		size: 120,
+		meta: {
+			headerClassName: 'w-[120px]'
+		},
 		enableSorting: false,
 		cell: (info) => <Tooltip content={info.getValue().join(', ')}>{info.getValue().join(', ')}</Tooltip>
 	}),
@@ -70,17 +86,23 @@ export const raisesColumns = [
 		id: 'valuation',
 		header: 'Valuation',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 100
+		meta: {
+			headerClassName: 'w-[100px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
-		size: 80
+		meta: {
+			headerClassName: 'w-[80px]'
+		}
 	}),
 	columnHelper.accessor('otherInvestors', {
 		header: 'Other Investors',
-		size: 400,
+		meta: {
+			headerClassName: 'w-[min(400px,40vw)]'
+		},
 		enableSorting: false,
 		cell: (info) => <Tooltip content={info.getValue().join(', ')}>{info.getValue().join(', ')}</Tooltip>
 	})
@@ -151,7 +173,6 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 	const instance = useReactTable({
 		data: raises,
 		columns: raisesColumns,
-		columnResizeMode,
 		state: {
 			columnFilters,
 			columnOrder,
@@ -170,7 +191,7 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({
+	useSortColumnOrders({
 		instance,
 		columnOrders: raisesColumnOrders
 	})
@@ -208,7 +229,7 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 				<CSVDownloadButton prepareCsv={() => prepareRaisesCsv(instance)} smol />
 			</div>
 
-			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
+			<VirtualTable instance={instance} />
 		</div>
 	)
 }

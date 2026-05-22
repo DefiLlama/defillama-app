@@ -3,11 +3,14 @@ import { fetchRWAPerpsOverviewBreakdownChartData } from '~/containers/RWA/Perps/
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
 import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsOverviewBreakdownRequest } from '~/containers/RWA/Perps/types'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ParsedOverviewBreakdownRequest = IRWAPerpsOverviewBreakdownRequest & {
 	venue?: string
 	assetGroup?: string
+	assetClass?: string
+	excludeAssetClass?: string
 }
 
 export function parseOverviewBreakdownRequest(
@@ -19,15 +22,24 @@ export function parseOverviewBreakdownRequest(
 
 	const venue = parseOptionalTarget(req.query.venue)
 	const assetGroup = parseOptionalTarget(req.query.assetGroup)
-	if (venue === null || assetGroup === null) return null
-	if (venue && assetGroup) return null
+	const assetClass = parseOptionalTarget(req.query.assetClass)
+	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
+	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
+	const targetCount =
+		Number(Boolean(venue)) +
+		Number(Boolean(assetGroup)) +
+		Number(Boolean(assetClass)) +
+		Number(Boolean(excludeAssetClass))
+	if (targetCount > 1) return null
 
 	if (breakdown === 'venue' || breakdown === 'assetClass' || breakdown === 'assetGroup' || breakdown === 'baseAsset') {
 		return {
 			breakdown,
 			key,
 			...(venue ? { venue } : {}),
-			...(assetGroup ? { assetGroup } : {})
+			...(assetGroup ? { assetGroup } : {}),
+			...(assetClass ? { assetClass } : {}),
+			...(excludeAssetClass ? { excludeAssetClass } : {})
 		}
 	}
 
@@ -50,7 +62,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 		}
 
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader(
+				'public, s-maxage=3600, stale-while-revalidate=1800',
+				req.url ?? '/api/rwa/perps/overview-breakdown'
+			)
+		)
 		return res.status(200).json(toRWAPerpsBreakdownChartDataset(rows))
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')

@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -18,8 +17,8 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { VirtualTable } from '~/components/Table/Table'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { useCalcCirculating } from '~/containers/Stablecoins/hooks'
@@ -90,7 +89,9 @@ const stablecoinsColumns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[180px] lg:w-[240px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
@@ -98,8 +99,8 @@ const stablecoinsColumns = [
 		cell: ({ getValue }) => (
 			<IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/stablecoins', chain))} />
 		),
-		size: 200,
 		meta: {
+			headerClassName: 'w-[180px] lg:w-[200px]',
 			align: 'end',
 			headerHelperText: 'Chains are ordered by stablecoin issuance on each chain'
 		}
@@ -107,7 +108,6 @@ const stablecoinsColumns = [
 	columnHelper.accessor((row) => (row.yieldBearing ? null : row.pegDeviation), {
 		id: 'pegDeviation',
 		header: '% Off Peg',
-		size: 120,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
 			const rowValues = row.original
@@ -122,13 +122,13 @@ const stablecoinsColumns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor((row) => (row.yieldBearing ? null : row.pegDeviation_1m), {
 		id: 'pegDeviation_1m',
 		header: '1m % Off Peg',
-		size: 132,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
 			const rowValues = row.original
@@ -143,13 +143,13 @@ const stablecoinsColumns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[132px]',
 			align: 'end',
 			headerHelperText: 'Shows greatest % price deviation from peg over the past month'
 		}
 	}),
 	columnHelper.accessor('price', {
 		header: 'Price',
-		size: 110,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
 			const rowValues = row.original
@@ -161,6 +161,7 @@ const stablecoinsColumns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
 		}
 	}),
@@ -179,8 +180,8 @@ const stablecoinsColumns = [
 			) : (
 				'-'
 			),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -199,8 +200,8 @@ const stablecoinsColumns = [
 			) : (
 				'-'
 			),
-		size: 160,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -219,16 +220,16 @@ const stablecoinsColumns = [
 			) : (
 				'-'
 			),
-		size: 160,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})
@@ -238,43 +239,6 @@ const assetsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['name', 'mcap', 'change_1d', 'change_7d', 'change_1m', 'price', 'pegDeviation', 'pegDeviation_1m', 'chains'],
 	1024: ['name', 'chains', 'pegDeviation', 'pegDeviation_1m', 'price', 'change_1d', 'change_7d', 'change_1m', 'mcap']
 }
-
-const assetsColumnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		name: 180,
-		chains: 180,
-		pegDeviation: 120,
-		pegDeviation_1m: 132,
-		price: 110,
-		change_1d: 120,
-		change_7d: 120,
-		change_1m: 120,
-		mcap: 120
-	},
-	480: {
-		name: 180,
-		chains: 180,
-		pegDeviation: 120,
-		pegDeviation_1m: 132,
-		price: 110,
-		change_1d: 120,
-		change_7d: 120,
-		change_1m: 120,
-		mcap: 120
-	},
-	1024: {
-		name: 240,
-		chains: 200,
-		pegDeviation: 120,
-		pegDeviation_1m: 132,
-		price: 110,
-		change_1d: 120,
-		change_7d: 120,
-		change_1m: 120,
-		mcap: 120
-	}
-}
-
 function formattedPeggedPercent(percent: unknown, noSign = false) {
 	if (!percent && percent !== 0) {
 		return null
@@ -349,7 +313,6 @@ function pegDeviationText(pegDeviationInfo: { timestamp: number; price: number; 
 export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const instance = useReactTable({
@@ -358,7 +321,6 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 		state: {
 			sorting,
 			columnOrder,
-			columnSizing,
 			columnFilters
 		},
 		defaultColumn: {
@@ -367,7 +329,6 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 		enableSortingRemoval: false,
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -375,7 +336,7 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({ instance, columnSizes: assetsColumnSizes, columnOrders: assetsColumnOrders })
+	useSortColumnOrders({ instance, columnOrders: assetsColumnOrders })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

@@ -29,6 +29,11 @@ const LABEL_OPTIONS = [
 	{ name: 'Hide labels', key: 'Hide' }
 ]
 
+const SCALE_OPTIONS = [
+	{ name: 'Linear scale', key: 'Linear' },
+	{ name: 'Log scale', key: 'Log' }
+]
+
 interface ChartControlsProps {
 	controls: ChartControlsModel
 	onStackedChange: (stacked: boolean) => void
@@ -37,6 +42,7 @@ interface ChartControlsProps {
 	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
 	onHallmarksChange: (showHallmarks: boolean) => void
 	onLabelsChange: (showLabels: boolean) => void
+	onLogScaleChange: (logScale: boolean) => void
 	children?: React.ReactNode
 }
 
@@ -48,6 +54,7 @@ export function ChartControls({
 	onGroupingChange,
 	onHallmarksChange,
 	onLabelsChange,
+	onLogScaleChange,
 	children
 }: ChartControlsProps) {
 	const hasControls =
@@ -56,7 +63,8 @@ export function ChartControls({
 		controls.showStack ||
 		controls.showPercentage ||
 		controls.showHallmarks ||
-		controls.showLabels
+		controls.showLabels ||
+		controls.showLogScale
 
 	if (!hasControls && !children && !controls.title) return null
 
@@ -124,6 +132,20 @@ export function ChartControls({
 						onPercentageChange(value === '% Percentage')
 					}}
 					label={controls.state.percentage ? '% Percentage' : '$ Absolute'}
+					labelType="none"
+					variant="filter"
+				/>
+			) : null}
+
+			{controls.showLogScale ? (
+				<Select
+					allValues={SCALE_OPTIONS}
+					selectedValues={controls.state.logScale ? 'Log' : 'Linear'}
+					setSelectedValues={(value: string) => {
+						trackUmamiEvent('llamaai-chart-control', { control: 'scale', selection: value })
+						onLogScaleChange(value === 'Log')
+					}}
+					label={controls.state.logScale ? 'Scale: Log' : 'Scale: Linear'}
 					labelType="none"
 					variant="filter"
 				/>

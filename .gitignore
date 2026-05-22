@@ -49,3 +49,4 @@ next-env.d.ts
 /public/robots.txt
 
 .codex/
+.claude/

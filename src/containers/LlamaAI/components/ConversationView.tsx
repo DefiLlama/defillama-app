@@ -1,5 +1,7 @@
 import {
 	useEffect,
+	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 	type Dispatch,
@@ -11,20 +13,23 @@ import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWarningBanner'
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
 import {
 	SpawnProgressCard,
-	ToolProgressIndicator,
-	TypingIndicator
+	TodoChecklistPanel,
+	ToolProgressIndicator
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
+import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
-import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
 
 interface ConversationViewProps {
 	readOnly: boolean
+	isSharedView?: boolean
 	messages: Message[]
 	sessionId: string | null
 	isLlama: boolean
@@ -32,6 +37,8 @@ interface ConversationViewProps {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -52,17 +59,21 @@ interface ConversationViewProps {
 	scrollContainerRef: RefObject<HTMLDivElement | null>
 	messagesEndRef: RefObject<HTMLDivElement | null>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
+	isScrollAttached: boolean
 	showScrollToBottom: boolean
 	scrollToBottom: () => void
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
 		isSuggestedQuestion?: boolean
 	) => void
 	handleStopRequest: () => void
 	handleActionClick: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
@@ -70,13 +81,17 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 	onTableFullscreenOpen?: () => void
 	onShare?: (messageId?: string) => void
+	contextWarning?: ContextWarningPayload | null
+	onDismissContextWarning?: () => void
+	onStartNewChat?: () => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
 // submitted prompt slightly below the top edge on both mobile and desktop.
-const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
+const ACTIVE_EXCHANGE_TOP_OFFSET_PX = 12
 
 function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, Message | null] {
 	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
@@ -99,9 +114,13 @@ function ConversationMessageItem({
 	isLlama,
 	isLatestAssistant,
 	onActionClick,
+	onEditMessage,
+	onBranchSwitch,
+	isBranchSwitching,
 	onTableFullscreenOpen,
 	anchorId,
-	anchorRef
+	anchorRef,
+	enterToSend
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -111,9 +130,13 @@ function ConversationMessageItem({
 	isLlama: boolean
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
+	enterToSend: boolean
 }) {
 	return (
 		<MessageBubble
@@ -123,12 +146,16 @@ function ConversationMessageItem({
 			isLlama={isLlama}
 			isLatestAssistant={isLatestAssistant}
 			onActionClick={onActionClick}
+			onEditMessage={onEditMessage}
+			onBranchSwitch={onBranchSwitch}
+			isBranchSwitching={isBranchSwitching}
 			nextUserMessage={nextUserMessage}
 			onShare={onShare}
 			onTableFullscreenOpen={onTableFullscreenOpen}
 			anchorId={anchorId}
 			anchorRef={anchorRef}
 			anchorClassName={anchorId ? 'message-anchor' : undefined}
+			enterToSend={enterToSend}
 		/>
 	)
 }
@@ -138,6 +165,8 @@ function ConversationLiveStatus({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -158,6 +187,8 @@ function ConversationLiveStatus({
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -174,18 +205,14 @@ function ConversationLiveStatus({
 	isLlama: boolean
 	onTableFullscreenOpen?: () => void
 }) {
+	const hasTodos = todos.length > 0
 	return (
 		<>
-			{isStreaming &&
-			activeToolCalls.length === 0 &&
-			spawnProgress.size === 0 &&
-			!streamingDraft?.content &&
-			!streamingThinking &&
-			!isCompacting &&
-			!hasStreamingCharts(streamingDraft?.charts) ? (
-				<TypingIndicator />
+			{hasTodos ? (
+				<div style={{ overflowAnchor: 'none' }}>
+					<TodoChecklistPanel todos={todos} startTime={todosStartTime} isLive />
+				</div>
 			) : null}
-
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -194,6 +221,7 @@ function ConversationLiveStatus({
 						isResearchMode
 						recovery={recovery}
 						onReconnect={onReconnectNow}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				) : (
 					<ToolProgressIndicator
@@ -201,7 +229,17 @@ function ConversationLiveStatus({
 						thinking={streamingThinking}
 						isCompacting={isCompacting}
 						spawnProgress={spawnProgress.size > 0 ? spawnProgress : undefined}
+						isWaiting={
+							isStreaming &&
+							activeToolCalls.length === 0 &&
+							spawnProgress.size === 0 &&
+							!streamingDraft?.content &&
+							!streamingThinking &&
+							!isCompacting &&
+							!hasStreamingCharts(streamingDraft?.charts)
+						}
 						executionStartedAt={executionStartedAt}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				)}
 			</div>
@@ -222,7 +260,7 @@ function ConversationLiveStatus({
 
 			{recovery.status === 'reconnecting' && !(spawnProgress.size > 0 && spawnIsResearchMode) ? (
 				<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting&hellip;</p>
 					<p className="text-sm text-amber-800 dark:text-amber-200">
 						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
 					</p>
@@ -259,6 +297,7 @@ function ConversationLiveStatus({
 
 export function ConversationView({
 	readOnly,
+	isSharedView = false,
 	messages,
 	sessionId,
 	isLlama,
@@ -266,6 +305,8 @@ export function ConversationView({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -281,11 +322,15 @@ export function ConversationView({
 	scrollContainerRef,
 	messagesEndRef,
 	promptInputRef,
+	isScrollAttached,
 	showScrollToBottom,
 	scrollToBottom,
 	handleSubmit,
 	handleStopRequest,
 	handleActionClick,
+	onEditMessage,
+	onBranchSwitch,
+	isBranchSwitching,
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
@@ -293,15 +338,107 @@ export function ConversationView({
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
+	enterToSend,
 	onTableFullscreenOpen,
-	onShare
+	onShare,
+	contextWarning,
+	onDismissContextWarning,
+	onStartNewChat
 }: ConversationViewProps) {
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const handledAnchorIdRef = useRef<string | null>(null)
 	const highlightTimeoutRef = useRef<number | null>(null)
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
+	const [activeExchangeMinHeight, setActiveExchangeMinHeight] = useState<number | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+	const userMessageAnchorIds = useMemo(
+		() =>
+			messages
+				.map((message) => (message.role === 'user' ? getMessageAnchorId(message.id) : undefined))
+				.filter((anchorId): anchorId is string => Boolean(anchorId)),
+		[messages]
+	)
+
+	const highlightAnchorNode = (node: HTMLElement) => {
+		node.classList.remove('anchor-highlight')
+		void node.offsetWidth
+		node.classList.add('anchor-highlight')
+		if (highlightTimeoutRef.current !== null) {
+			window.clearTimeout(highlightTimeoutRef.current)
+		}
+		highlightTimeoutRef.current = window.setTimeout(() => {
+			node.classList.remove('anchor-highlight')
+			highlightTimeoutRef.current = null
+		}, 2000)
+	}
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (
+				!event.shiftKey ||
+				event.altKey ||
+				event.ctrlKey ||
+				event.metaKey ||
+				(event.key !== 'ArrowUp' && event.key !== 'ArrowDown') ||
+				userMessageAnchorIds.length === 0
+			) {
+				return
+			}
+
+			const target = event.target instanceof HTMLElement ? event.target : null
+			const editableTarget =
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				target instanceof HTMLSelectElement ||
+				target instanceof HTMLButtonElement ||
+				target?.isContentEditable ||
+				!!target?.closest('input, textarea, select, button, [contenteditable]:not([contenteditable="false"])')
+			const isInsideConversation = !!target && !!scrollContainerRef.current?.contains(target)
+			const isPageShortcut = target === document.body || (isInsideConversation && !editableTarget)
+			if (!isPageShortcut) return
+
+			const container = scrollContainerRef.current
+			if (!container) return
+
+			const containerTop = container.getBoundingClientRect().top
+			const upThreshold = containerTop + 40
+			const downThreshold = containerTop + 96
+			const anchoredUserMessages = userMessageAnchorIds
+				.map((anchorId) => {
+					const node = document.getElementById(anchorId)
+					return node ? { anchorId, node, top: node.getBoundingClientRect().top } : null
+				})
+				.filter((item): item is { anchorId: string; node: HTMLElement; top: number } => item != null)
+			if (anchoredUserMessages.length === 0) return
+
+			event.preventDefault()
+			if (event.key === 'ArrowDown') {
+				const nextMessage = anchoredUserMessages.find((item) => item.top > downThreshold)
+				if (!nextMessage) {
+					scrollToBottom()
+					return
+				}
+				nextMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+				highlightAnchorNode(nextMessage.node)
+				return
+			}
+
+			const previousMessage = anchoredUserMessages.filter((item) => item.top < upThreshold).at(-1)
+			const firstMessage = anchoredUserMessages[0]
+			const isAtFirstRenderedMessage =
+				previousMessage?.anchorId === firstMessage.anchorId && firstMessage.top >= containerTop - 8
+			if (!previousMessage || isAtFirstRenderedMessage) {
+				container.scrollTo({ top: 0, behavior: 'smooth' })
+				return
+			}
+			previousMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+			highlightAnchorNode(previousMessage.node)
+		}
+
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [scrollContainerRef, scrollToBottom, userMessageAnchorIds])
 
 	useEffect(() => {
 		return () => {
@@ -331,16 +468,7 @@ export function ConversationView({
 					}
 					container?.removeEventListener('scrollend', applyHighlight)
 					pendingScrollHighlightRef.current = null
-					node.classList.remove('anchor-highlight')
-					void node.offsetWidth
-					node.classList.add('anchor-highlight')
-					if (highlightTimeoutRef.current !== null) {
-						window.clearTimeout(highlightTimeoutRef.current)
-					}
-					highlightTimeoutRef.current = window.setTimeout(() => {
-						node.classList.remove('anchor-highlight')
-						highlightTimeoutRef.current = null
-					}, 2000)
+					highlightAnchorNode(node)
 				}
 
 				pendingScrollHighlightRef.current?.()
@@ -391,6 +519,33 @@ export function ConversationView({
 		return null
 	})()
 
+	useLayoutEffect(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		const updateMinHeight = () => {
+			const paddingBottom = Number.parseFloat(window.getComputedStyle(container).paddingBottom) || 0
+			setActiveExchangeMinHeight(Math.max(0, container.clientHeight - paddingBottom - ACTIVE_EXCHANGE_TOP_OFFSET_PX))
+		}
+
+		updateMinHeight()
+		const resizeObserver = new ResizeObserver(updateMinHeight)
+		resizeObserver.observe(container)
+		window.addEventListener('resize', updateMinHeight)
+		return () => {
+			resizeObserver.disconnect()
+			window.removeEventListener('resize', updateMinHeight)
+		}
+	}, [scrollContainerRef])
+
+	useLayoutEffect(() => {
+		if (!shouldSpaceLastExchange || !isScrollAttached || activeExchangeMinHeight == null) return
+		const container = scrollContainerRef.current
+		if (container) {
+			container.scrollTop = container.scrollHeight
+		}
+	}, [activeExchangeMinHeight, isScrollAttached, scrollContainerRef, shouldSpaceLastExchange])
+
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
@@ -405,7 +560,7 @@ export function ConversationView({
 							<div className="flex flex-col gap-2.5">
 								{paginationState.isLoadingMore ? (
 									<div className="flex justify-center py-2">
-										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages&hellip;</p>
 									</div>
 								) : null}
 
@@ -430,26 +585,31 @@ export function ConversationView({
 											isLlama={isLlama}
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+											onEditMessage={!readOnly ? onEditMessage : undefined}
+											onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+											isBranchSwitching={isBranchSwitching}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+											enterToSend={enterToSend}
 										/>
 									)
 								})}
 
 								{paginationState.isLoadingNewer ? (
 									<div className="flex justify-center py-2">
-										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages...</p>
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages&hellip;</p>
 									</div>
 								) : null}
 
 								{shouldSpaceLastExchange ? (
 									<div
-										className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
+										className={`flex flex-col gap-2.5 ${
 											animateActiveExchange && isLiveExchange
-												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
+												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.18s_ease-out_both]'
 												: ''
 										}`}
+										style={activeExchangeMinHeight != null ? { minHeight: activeExchangeMinHeight } : undefined}
 									>
 										{lastExchangeMessages.map((message, i) => (
 											<ConversationMessageItem
@@ -461,9 +621,13 @@ export function ConversationView({
 												isLlama={isLlama}
 												isLatestAssistant={message.id === lastAssistantId}
 												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+												onEditMessage={!readOnly ? onEditMessage : undefined}
+												onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+												isBranchSwitching={isBranchSwitching}
 												onTableFullscreenOpen={onTableFullscreenOpen}
 												anchorId={getMessageAnchorId(message.id)}
 												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+												enterToSend={enterToSend}
 											/>
 										))}
 
@@ -473,6 +637,8 @@ export function ConversationView({
 												activeToolCalls={activeToolCalls}
 												spawnProgress={spawnProgress}
 												spawnStartTime={spawnStartTime}
+												todos={todos}
+												todosStartTime={todosStartTime}
 												executionStartedAt={executionStartedAt}
 												spawnIsResearchMode={spawnIsResearchMode}
 												streamingThinking={streamingThinking}
@@ -497,6 +663,8 @@ export function ConversationView({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={todos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										streamingThinking={streamingThinking}
 										spawnIsResearchMode={spawnIsResearchMode}
@@ -529,7 +697,7 @@ export function ConversationView({
 				<Tooltip
 					content="Scroll to bottom"
 					render={<button onClick={scrollToBottom} />}
-					className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] ${showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'}`}
+					className={`mx-auto flex size-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] ${showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'}`}
 				>
 					<Icon name="arrow-down" height={16} width={16} />
 					<span className="sr-only">Scroll to bottom</span>
@@ -538,8 +706,19 @@ export function ConversationView({
 
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
-					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-					<TipOrNotifyBanner />
+					<div className="pointer-events-none absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+					{!isSharedView && contextWarning && onStartNewChat && onDismissContextWarning ? (
+						<ContextWarningBanner
+							warning={contextWarning}
+							onStartNewChat={onStartNewChat}
+							onDismiss={onDismissContextWarning}
+						/>
+					) : null}
+					{!isSharedView && !contextWarning ? (
+						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
+							<TipOrNotifyBanner />
+						</div>
+					) : null}
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}
@@ -547,13 +726,14 @@ export function ConversationView({
 						handleStopRequest={handleStopRequest}
 						isStreaming={isStreaming}
 						restoreRequest={null}
-						placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+						placeholder="Reply to LlamaAI&hellip; Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}
+						enterToSend={enterToSend}
 					/>
 				</div>
 			) : null}

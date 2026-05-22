@@ -34,6 +34,7 @@ import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
@@ -59,7 +60,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	res.setHeader('X-Accel-Buffering', 'no')
 	res.setHeader(
 		'Cache-Control',
-		authToken ? 'private, no-cache, no-store, must-revalidate' : 'public, s-maxage=300, stale-while-revalidate=3600'
+		authToken
+			? 'private, no-cache, no-store, must-revalidate'
+			: jitterCacheControlHeader(
+					'public, s-maxage=300, stale-while-revalidate=3600',
+					`pro-dashboard-stream:${dashboardId}`
+				)
 	)
 
 	const writeLine = (chunk: object) => {

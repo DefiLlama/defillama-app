@@ -48,7 +48,9 @@ const columns = [
 				</span>
 			)
 		},
-		size: 400
+		meta: {
+			headerClassName: 'w-[250px] min-[812px]:w-[300px]'
+		}
 	}),
 	columnHelper.accessor((row) => row.totalApy ?? undefined, {
 		id: 'totalApy',
@@ -90,8 +92,8 @@ const columns = [
 				</>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end',
 			headerHelperText: 'Total Strategy APY defined as: Supply APY + Borrow APY * LTV + Farm APY * LTV'
 		}
@@ -103,8 +105,8 @@ const columns = [
 		cell: (info) => {
 			return <ColoredAPY data-variant="borrow">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end',
 			headerHelperText: 'APY Increase by following this strategy compared to just supplying the collateral token'
 		}
@@ -124,8 +126,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'Available Borrow Liquidity for the debt token'
 		}
@@ -145,8 +147,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end',
 			headerHelperText: 'Total Value Locked for the farm token in the last part of the strategy'
 		}
@@ -166,8 +168,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[90px]',
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
@@ -180,32 +182,11 @@ const columnOrders: Record<number, readonly StrategyColumnId[]> = {
 	640: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
 	1280: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
 }
-
-const columnSizes: Record<number, Partial<Record<StrategyColumnId, number>>> = {
-	0: {
-		strategy: 250,
-		totalApy: 150,
-		delta: 100,
-		ltv: 90,
-		borrowAvailableUsd: 120,
-		farmTvlUsd: 100
-	},
-	812: {
-		strategy: 300,
-		totalApy: 150,
-		delta: 100,
-		ltv: 90,
-		borrowAvailableUsd: 120,
-		farmTvlUsd: 100
-	}
-}
-
 export const STRATEGY_TABLE_CONFIG: YieldsTableConfig<IYieldsStrategyTableRow, StrategyColumnId> = {
 	kind: 'strategy',
 	columnIds: STRATEGY_COLUMN_IDS,
 	columns,
 	columnOrders,
-	columnSizes,
 	rowSize: 80
 }
 
@@ -215,7 +196,6 @@ export function YieldsStrategyTable({ data }) {
 		<YieldsTableWrapper
 			data={data}
 			columns={resolvedConfig.columns}
-			columnSizes={resolvedConfig.columnSizes}
 			columnOrders={resolvedConfig.columnOrders}
 			rowSize={resolvedConfig.rowSize}
 		/>

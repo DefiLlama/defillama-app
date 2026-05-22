@@ -6,6 +6,7 @@ import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = unknown[] | Record<string, unknown> | { error: string } | null
@@ -16,8 +17,8 @@ const NO_STORE_CACHE_CONTROL = 'no-store'
 const getQueryParam = (value: string | string[] | undefined): string | undefined =>
 	Array.isArray(value) ? value[0] : value
 
-const setSuccessCacheHeaders = (res: NextApiResponse<ResponseData>) => {
-	res.setHeader('Cache-Control', SUCCESS_CACHE_CONTROL)
+const setSuccessCacheHeaders = (req: NextApiRequest, res: NextApiResponse<ResponseData>) => {
+	res.setHeader('Cache-Control', jitterCacheControlHeader(SUCCESS_CACHE_CONTROL, req.url ?? '/api/charts/chain'))
 }
 
 const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
@@ -72,7 +73,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				...(dataType ? { dataType: dataType as Parameters<typeof fetchAdapterChainChartData>[0]['dataType'] } : {}),
 				...(category ? { category } : {})
 			})
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -91,7 +92,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				protocol,
 				...(dataType ? { dataType: dataType as Parameters<typeof fetchAdapterProtocolChartData>[0]['dataType'] } : {})
 			})
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -103,7 +104,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			}
 
 			const data = await fetchChainAssetsChart(chain)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -124,7 +125,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return chart
 			})
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -141,7 +142,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -172,7 +173,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -190,7 +191,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			}
 
 			const nonZeroIndex = chart.findIndex((point) => Array.isArray(point) && Number(point[1]) > 0)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(chart.slice(nonZeroIndex >= 0 ? nonZeroIndex : 0))
 		}
 

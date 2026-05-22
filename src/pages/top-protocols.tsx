@@ -146,7 +146,9 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						</span>
 					)
 				},
-				size: 200
+				meta: {
+					headerClassName: 'w-[min(200px,40vw)]'
+				}
 			})
 		]
 
@@ -163,8 +165,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						</BasicLink>
 					) : null
 				},
-				size: 200,
 				meta: {
+					headerClassName: 'w-[min(200px,40vw)]',
 					headerHelperText: protocolCategoryConfig[cat as string]?.description ?? ''
 				}
 			})

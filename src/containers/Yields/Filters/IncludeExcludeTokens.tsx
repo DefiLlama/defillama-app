@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
@@ -99,17 +99,17 @@ export function IncludeExcludeTokens({
 	}
 
 	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
+	const [searchResetKey, setSearchResetKey] = useState(0)
 	const matches = useMemo(() => {
-		if (!deferredSearchValue) return tokens
-		return matchSorter(tokens, deferredSearchValue, {
+		if (!searchValue) return tokens
+		return matchSorter(tokens, searchValue, {
 			keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [tokens, deferredSearchValue])
+	}, [tokens, searchValue])
 
 	const pairHint = useMemo(() => {
-		const v = deferredSearchValue.trim()
+		const v = searchValue.trim()
 		const sep = v.includes('/') ? '/' : v.includes('-') ? '-' : null
 		if (!sep) return null
 		const parts = v
@@ -124,12 +124,19 @@ export function IncludeExcludeTokens({
 			return { type: 'ready' as const, pair: parts.join('-') }
 		}
 		return { type: 'partial' as const, pair: null }
-	}, [deferredSearchValue, tokens])
+	}, [searchValue, tokens])
 
 	const [tokensViewableMatches, setTokensViewableMatches] = useState(20)
 	const [pairsViewableMatches, setPairsViewableMatches] = useState(20)
 
 	const [newPairTokens, setNewPairTokens] = useState<Array<string>>([])
+
+	const resetSearch = () => {
+		startTransition(() => {
+			setSearchValue('')
+			setSearchResetKey((key) => key + 1)
+		})
+	}
 
 	const handlePairTokens = (pair: string, action?: 'delete') => {
 		const pairQueryParams = action === 'delete' ? pairTokens.filter((x) => x !== pair) : [...pairTokens, pair]
@@ -245,7 +252,7 @@ export function IncludeExcludeTokens({
 							<button
 								onClick={() => {
 									setTab(dataType as 'Tokens' | 'Pairs')
-									setSearchValue('')
+									resetSearch()
 								}}
 								className="shrink-0 rounded-md px-2.5 py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={tab === dataType}
@@ -261,7 +268,7 @@ export function IncludeExcludeTokens({
 						onClick={() => {
 							setNewPairTokens([])
 							startTransition(() => setTab('Tokens'))
-							startTransition(() => setSearchValue(''))
+							resetSearch()
 						}}
 					>
 						<Icon name="x" height={20} width={20} />
@@ -270,7 +277,7 @@ export function IncludeExcludeTokens({
 				{tab === 'Tokens' ? (
 					<>
 						<Ariakit.ComboboxProvider
-							value={searchValue}
+							key={`tokens-${searchResetKey}`}
 							setValue={(value) => {
 								startTransition(() => setSearchValue(value))
 							}}
@@ -294,7 +301,7 @@ export function IncludeExcludeTokens({
 									onClick={() => {
 										handlePairTokens(pairHint.pair!)
 										dialogStore.toggle()
-										startTransition(() => setSearchValue(''))
+										resetSearch()
 									}}
 									className="flex items-center gap-2 rounded-md bg-[#fff7ed] px-3 py-2 text-sm text-[#ea580c] hover:bg-[#fed7aa]/40 dark:bg-[#1f1b1b] dark:text-[#fb923c] dark:hover:bg-[#2a2020]"
 								>
@@ -409,7 +416,7 @@ export function IncludeExcludeTokens({
 												dialogStore.toggle()
 												setNewPairTokens([])
 												startTransition(() => setTab('Tokens'))
-												startTransition(() => setSearchValue(''))
+												resetSearch()
 											}}
 											className="rounded-md border border-(--form-control-border) px-2.5 py-1 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg)"
 										>
@@ -420,7 +427,7 @@ export function IncludeExcludeTokens({
 							</div>
 						)}
 						<Ariakit.ComboboxProvider
-							value={searchValue}
+							key={`pairs-${searchResetKey}`}
 							setValue={(value) => {
 								startTransition(() => setSearchValue(value))
 							}}
@@ -446,7 +453,7 @@ export function IncludeExcludeTokens({
 											key={token.name}
 											onClick={() => {
 												setNewPairTokens((prev) => [...prev, token.symbol])
-												startTransition(() => setSearchValue(''))
+												resetSearch()
 												// scroll to top of dialog
 												const dialogElement = dialogStore.getState().contentElement
 												if (dialogElement) {
@@ -483,7 +490,7 @@ export function IncludeExcludeTokens({
 											dialogStore.toggle()
 											setNewPairTokens([])
 											startTransition(() => setTab('Tokens'))
-											startTransition(() => setSearchValue(''))
+											resetSearch()
 										}}
 										disabled={newPairTokens.length < 2}
 									>

@@ -510,9 +510,6 @@
       "route": "/rwa",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs)",
-      "tags": [
-        "New"
-      ],
       "searchKeywords": [
         "rwa",
         "rwas",
@@ -543,21 +540,6 @@
       ]
     },
     {
-      "name": "RWA: Perps",
-      "route": "/rwa/perps",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) perps",
-      "tags": [
-        "New"
-      ],
-      "searchKeywords": [
-        "rwa perps",
-        "rwa perp",
-        "real world asset perps",
-        "real world assets perps"
-      ]
-    },
-    {
       "name": "RWA by Category",
       "route": "/rwa/categories",
       "category": "RWA",
@@ -566,6 +548,18 @@
         "rwa categories",
         "rwas by category",
         "real world assets by category"
+      ]
+    },
+    {
+      "name": "RWA: Perps",
+      "route": "/rwa/perps",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps",
+      "searchKeywords": [
+        "rwa perps",
+        "rwa perp",
+        "real world asset perps",
+        "real world assets perps"
       ]
     },
     {
@@ -602,6 +596,22 @@
       ]
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -620,22 +630,6 @@
       "tab": "Chains",
       "oldCategory": "Bridges",
       "oldName": "Chains"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
     },
     {
       "name": "NFTs: Marketplaces",
@@ -673,6 +667,31 @@
       "oldName": "Volume (Chains)"
     },
     {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
       "category": "Equities, ETFs & DATs",
@@ -701,31 +720,6 @@
       "category": "Equities, ETFs & DATs",
       "description": "Live company rankings by market cap, price, volume, and price change",
       "oldName": "Equities"
-    },
-    {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
     },
     {
       "name": "Raises: Overview",
@@ -838,10 +832,7 @@
       "name": "Dashboard Builder",
       "route": "/pro",
       "category": "Combined Metrics",
-      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics",
-      "tags": [
-        "New"
-      ]
+      "description": "Custom no-code dashboards with TVL, Fees, Volume, and other metrics"
     },
     {
       "name": "Correlations Matrix by Coin",
@@ -997,15 +988,6 @@
       "description": "Browser extension for safe crypto domain search and scam prevention"
     },
     {
-      "name": "DLNews",
-      "route": "https://www.dlnews.com",
-      "category": "Tools",
-      "description": "An independent news organisation that provides in-depth reporting on the largely misunderstood world of cryptocurrency and decentralised finance",
-      "keys": [
-        "news"
-      ]
-    },
-    {
       "name": "DefiLlama for Investors",
       "route": "https://investors.defillama.com",
       "category": "Tools",
@@ -1054,7 +1036,6 @@
       "name": "RWA",
       "route": "/rwa",
       "icon": "banknote",
-      "isNew": true,
       "searchKeywords": [
         "rwa",
         "rwas",
@@ -1081,6 +1062,11 @@
       "name": "Investor Relations",
       "route": "https://investors.defillama.com",
       "icon": "trending-up",
+      "isNew": true
+    },
+    {
+      "name": "DefiLlama Research",
+      "route": "/research",
       "isNew": true
     }
   ],

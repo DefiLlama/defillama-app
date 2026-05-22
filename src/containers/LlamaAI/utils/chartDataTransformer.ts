@@ -1,6 +1,7 @@
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import type { AdaptedLlamaAICartesianChart, LlamaAICartesianDatasetRow } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
+import { createCategoryTooltipFormatter, createTimeTooltipFormatter } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { ChartCapabilities, ChartViewState } from '~/containers/LlamaAI/utils/chartCapabilities'
 
 type GroupingInterval = 'day' | 'week' | 'month' | 'quarter' | 'year'
@@ -147,6 +148,28 @@ function createRowsFromFormattedSeries(
 	return Array.from(rowsByTimestamp.values()).sort((a, b) => Number(a.timestamp ?? 0) - Number(b.timestamp ?? 0))
 }
 
+// Mark the eligible y-axes as logarithmic. Only axes in `eligibleAxes` are switched, so a
+// dual-axis chart can keep a zero/negative-bearing axis linear while the other goes log.
+function applyLogScaleToYAxis(
+	chartOptions: Record<string, any> | undefined,
+	eligibleAxes: number[]
+): Record<string, any> | undefined {
+	if (!chartOptions || eligibleAxes.length === 0) return chartOptions
+	const eligible = new Set(eligibleAxes)
+	const yAxis = chartOptions.yAxis
+
+	if (Array.isArray(yAxis)) {
+		return {
+			...chartOptions,
+			yAxis: yAxis.map((axis, index) => (eligible.has(index) ? { ...axis, type: 'log' } : axis))
+		}
+	}
+
+	// Single-object form represents axis 0.
+	if (!eligible.has(0)) return chartOptions
+	return { ...chartOptions, yAxis: { ...(yAxis ?? {}), type: 'log' } }
+}
+
 export class ChartDataTransformer {
 	static applyViewState(
 		adaptedChart: AdaptedChartData,
@@ -193,9 +216,19 @@ export class ChartDataTransformer {
 						return typeof v !== 'number' || (v >= 0 && v <= 100)
 					})
 			)
+		const percentageTooltipFormatter = isPercentage
+			? (() => {
+					const charts = transformedChart.props.charts ?? []
+					return transformedChart.axisType === 'category'
+						? createCategoryTooltipFormatter('%', charts)
+						: createTimeTooltipFormatter('%', charts)
+				})()
+			: undefined
+
 		const percentageChartOptions: Record<string, any> | undefined = isPercentage
 			? {
 					grid: { top: 24, right: 12, bottom: 68, left: 12 },
+					tooltip: { formatter: percentageTooltipFormatter },
 					...(!hasSecondaryAxis
 						? {
 								yAxis: {
@@ -207,15 +240,23 @@ export class ChartDataTransformer {
 				}
 			: undefined
 
+		const mergedChartOptions = percentageChartOptions
+			? { ...transformedChart.props.chartOptions, ...percentageChartOptions }
+			: transformedChart.props.chartOptions
+
+		// Log scale is an axis-only concern; skip it in percentage mode (share is already bounded).
+		const finalChartOptions =
+			state.logScale && !isPercentage
+				? applyLogScaleToYAxis(mergedChartOptions, capabilities.logEligibleYAxes)
+				: mergedChartOptions
+
 		return {
 			...transformedChart,
 			props: {
 				...transformedChart.props,
 				valueSymbol: state.percentage && capabilities.allowPercentage ? '%' : adaptedChart.props.valueSymbol,
 				hallmarks: state.showHallmarks ? transformedChart.props.hallmarks : undefined,
-				chartOptions: percentageChartOptions
-					? { ...transformedChart.props.chartOptions, ...percentageChartOptions }
-					: transformedChart.props.chartOptions
+				chartOptions: finalChartOptions
 			}
 		}
 	}
@@ -376,16 +417,22 @@ export class ChartDataTransformer {
 			})
 		)
 
+		// Time-series charts use the legacy stacked-area convention for percentages.
+		// Category-axis charts keep their native primitive (bars stay bars).
+		const isCategoryAxis = nextChart.axisType === 'category'
+
 		nextChart.props.charts =
 			nextChart.props.charts?.map((series) => {
 				if (!primarySeriesNames.has(series.name)) return series
 
 				const { hideAreaStyle: _hideAreaStyle, stack: _stack, ...rest } = series
+				const nextType = isCategoryAxis ? series.type : ('line' as const)
+				const isLineType = nextType === 'line'
 				return {
 					...rest,
-					type: 'line' as const,
+					type: nextType,
 					valueSymbol: '%',
-					...(shouldStack && allPositive ? { stack: 'total' } : { hideAreaStyle: true })
+					...(shouldStack && allPositive ? { stack: 'total' } : isLineType ? { hideAreaStyle: true } : {})
 				}
 			}) ?? []
 

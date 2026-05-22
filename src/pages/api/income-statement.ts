@@ -18,7 +18,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const normalized = slug(protocol)
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const { protocolMetadata } = metadataModule.default
 		let metadata: IProtocolMetadata | null = null
 

@@ -32,16 +32,16 @@ const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
-const columnResizeMode = 'onChange'
-
 function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
+	const router = useRouter()
+	const searchInputRef = React.useRef<HTMLInputElement | null>(null)
+	const initialSearchAppliedRef = React.useRef(false)
 
 	const instance = useReactTable({
 		data,
 		columns: hacksColumns,
-		columnResizeMode,
 		state: {
 			columnFilters,
 			sorting
@@ -59,6 +59,17 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
+	React.useEffect(() => {
+		if (!router.isReady || initialSearchAppliedRef.current) return
+		const raw = router.query.search
+		const value = Array.isArray(raw) ? raw[0] : raw
+		if (typeof value === 'string' && value.trim()) {
+			initialSearchAppliedRef.current = true
+			setProjectName(value.trim())
+			if (searchInputRef.current) searchInputRef.current.value = value.trim()
+		}
+	}, [router.isReady, router.query.search, setProjectName])
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
@@ -71,6 +82,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
+						ref={searchInputRef}
 						name="search"
 						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."
@@ -80,7 +92,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol free />
 			</div>
-			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
+			<VirtualTable instance={instance} />
 		</div>
 	)
 }
@@ -379,29 +391,37 @@ const hacksColumns = [
 	columnHelper.accessor('name', {
 		header: 'Name',
 		enableSorting: false,
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('date', {
 		cell: ({ getValue }) => toNiceDayMonthAndYear(getValue()),
-		size: 120,
+		meta: {
+			headerClassName: 'w-[120px]'
+		},
 		header: 'Date'
 	}),
 	columnHelper.accessor('amount', {
 		header: 'Amount lost',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
-		size: 60
+		meta: {
+			headerClassName: 'w-[60px]'
+		}
 	}),
 	columnHelper.accessor('classification', {
 		header: 'Classification',
 		enableSorting: false,
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			headerHelperText:
 				'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 		},
@@ -417,7 +437,9 @@ const hacksColumns = [
 	columnHelper.accessor('technique', {
 		header: 'Technique',
 		enableSorting: false,
-		size: 200,
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		},
 		cell: ({ getValue }) => {
 			const value = getValue()
 			return (
@@ -429,6 +451,8 @@ const hacksColumns = [
 	}),
 	columnHelper.accessor('language', {
 		header: 'Language',
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	})
 ]

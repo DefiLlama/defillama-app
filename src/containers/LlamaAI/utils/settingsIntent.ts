@@ -1,0 +1,131 @@
+export const SETTINGS_TAB_IDS = ['persona', 'app', 'capabilities', 'integrations', 'lab'] as const
+
+export type SettingsTabId = (typeof SETTINGS_TAB_IDS)[number]
+
+export const SLACK_RESULT_VALUES = [
+	'connected',
+	'link_expired',
+	'slack_failed',
+	'approval_pending',
+	'enterprise_not_supported',
+	'invalid_request',
+	'internal_error'
+] as const
+
+export type SlackResult = (typeof SLACK_RESULT_VALUES)[number]
+
+export type SettingsInitialState = {
+	tab?: SettingsTabId
+	tgloginToken?: string | null
+	slackResult?: SlackResult | null
+	slackTeamName?: string | null
+	slackErrorDetail?: string | null
+}
+
+export function isSlackResult(value: unknown): value is SlackResult {
+	return typeof value === 'string' && SLACK_RESULT_VALUES.includes(value as SlackResult)
+}
+
+type RouterQuery = Record<string, string | string[] | undefined>
+type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+
+const PENDING_TGLOGIN_KEY = 'pending_tglogin'
+const PENDING_SETTINGS_TAB_KEY = 'pending_settings_tab'
+const PENDING_SLACK_RESULT_KEY = 'pending_slack_result'
+const PENDING_SLACK_TEAM_KEY = 'pending_slack_team'
+const PENDING_SLACK_ERROR_KEY = 'pending_slack_error'
+
+export function isSettingsTabId(tab: unknown): tab is SettingsTabId {
+	return typeof tab === 'string' && SETTINGS_TAB_IDS.includes(tab as SettingsTabId)
+}
+
+function firstQueryValue(value: string | string[] | undefined) {
+	return Array.isArray(value) ? value[0] : value
+}
+
+function withoutQueryKeys(query: RouterQuery, keys: Array<string>): RouterQuery {
+	const next: RouterQuery = {}
+	for (const key in query) {
+		if (!keys.includes(key)) next[key] = query[key]
+	}
+	return next
+}
+
+export function getSettingsIntentFromQuery(query: RouterQuery): {
+	initialState: SettingsInitialState
+	nextQuery: RouterQuery
+} | null {
+	const tgloginToken = firstQueryValue(query.tglogin)
+	if (tgloginToken) {
+		return {
+			initialState: { tab: 'integrations', tgloginToken },
+			nextQuery: withoutQueryKeys(query, ['tglogin', 'modal', 'tab'])
+		}
+	}
+
+	const slackResultRaw = firstQueryValue(query.slack)
+	if (slackResultRaw && isSlackResult(slackResultRaw)) {
+		return {
+			initialState: {
+				tab: 'integrations',
+				tgloginToken: null,
+				slackResult: slackResultRaw,
+				slackTeamName: firstQueryValue(query.team) ?? null,
+				slackErrorDetail: firstQueryValue(query.detail) ?? null
+			},
+			nextQuery: withoutQueryKeys(query, ['slack', 'team', 'detail', 'modal', 'tab'])
+		}
+	}
+
+	if (firstQueryValue(query.modal) !== 'settings') return null
+	const tab = firstQueryValue(query.tab)
+	return {
+		initialState: { tab: isSettingsTabId(tab) ? tab : undefined, tgloginToken: null },
+		nextQuery: withoutQueryKeys(query, ['modal', 'tab'])
+	}
+}
+
+export function stashSettingsIntent(storage: StorageLike, initialState: SettingsInitialState) {
+	if (initialState.tgloginToken) {
+		storage.setItem(PENDING_TGLOGIN_KEY, initialState.tgloginToken)
+		return
+	}
+	if (initialState.tab) storage.setItem(PENDING_SETTINGS_TAB_KEY, initialState.tab)
+	if (initialState.slackResult) storage.setItem(PENDING_SLACK_RESULT_KEY, initialState.slackResult)
+	if (initialState.slackTeamName) storage.setItem(PENDING_SLACK_TEAM_KEY, initialState.slackTeamName)
+	if (initialState.slackErrorDetail) storage.setItem(PENDING_SLACK_ERROR_KEY, initialState.slackErrorDetail)
+}
+
+export function readPendingSettingsIntent(storage: StorageLike): SettingsInitialState | null {
+	const tgloginToken = storage.getItem(PENDING_TGLOGIN_KEY)
+	if (tgloginToken) {
+		storage.removeItem(PENDING_TGLOGIN_KEY)
+		storage.removeItem(PENDING_SETTINGS_TAB_KEY)
+		storage.removeItem(PENDING_SLACK_RESULT_KEY)
+		storage.removeItem(PENDING_SLACK_TEAM_KEY)
+		storage.removeItem(PENDING_SLACK_ERROR_KEY)
+		return { tab: 'integrations', tgloginToken }
+	}
+
+	const tab = storage.getItem(PENDING_SETTINGS_TAB_KEY)
+	storage.removeItem(PENDING_SETTINGS_TAB_KEY)
+	const slackResult = storage.getItem(PENDING_SLACK_RESULT_KEY)
+	const slackTeamName = storage.getItem(PENDING_SLACK_TEAM_KEY)
+	const slackErrorDetail = storage.getItem(PENDING_SLACK_ERROR_KEY)
+	storage.removeItem(PENDING_SLACK_RESULT_KEY)
+	storage.removeItem(PENDING_SLACK_TEAM_KEY)
+	storage.removeItem(PENDING_SLACK_ERROR_KEY)
+
+	if (isSlackResult(slackResult)) {
+		return {
+			tab: isSettingsTabId(tab) ? tab : 'integrations',
+			tgloginToken: null,
+			slackResult,
+			slackTeamName: slackTeamName || null,
+			slackErrorDetail: slackErrorDetail || null
+		}
+	}
+
+	if (!isSettingsTabId(tab)) return null
+	return { tab, tgloginToken: null }
+}

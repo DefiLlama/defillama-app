@@ -34,6 +34,7 @@ const visualMin = -100
 const visualMax = 100
 const visualMinBound = -40
 const visualMaxBound = 40
+const TREEMAP_CHART_INSET_PX = 12
 
 function normalizeTreemapNodes(nodes: any[]): any[] {
 	return (nodes ?? []).map((node) => ({
@@ -211,10 +212,10 @@ export default function TreemapChart({
 					type: 'treemap',
 					...(isRwaVariant
 						? {
-								top: 12,
-								left: 12,
-								right: 12,
-								bottom: 12
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0
 							}
 						: isNarrativeVariant
 							? {
@@ -420,8 +421,35 @@ export default function TreemapChart({
 			]
 		}
 		instance.setOption(option, { notMerge: true, lazyUpdate: true })
+		const handleTreemapClick = (params: any) => {
+			if (params?.seriesType !== 'treemap') return
+			const seriesModel = (instance as any).getModel?.()?.getSeriesByIndex?.(params.seriesIndex ?? 0)
+			const node = seriesModel?.getData?.()?.tree?.getNodeByDataIndex?.(params.dataIndex)
+			const nodeId = node?.getId?.()
+			const nodePath = node
+				?.getAncestors?.(true)
+				?.map((ancestor: any) => ancestor?.name)
+				?.filter((name: any) => typeof name === 'string' && name)
+			if (typeof nodeId === 'string' && nodeId) {
+				const chartWithTreemapFocus = instance as echarts.ECharts & {
+					__llamaTreemapFocusNode?: { id: string; path?: string[] }
+				}
+				chartWithTreemapFocus.__llamaTreemapFocusNode = {
+					id: nodeId,
+					...(Array.isArray(nodePath) && nodePath.length > 0 ? { path: nodePath } : {})
+				}
+			}
+		}
+		const handleRestore = () => {
+			delete (instance as any).__llamaTreemapFocusNode
+			delete (instance as any).__llamaTreemapFocusNodeId
+		}
+		instance.on('click', handleTreemapClick)
+		instance.on('restore', handleRestore)
 
 		return () => {
+			instance.off('click', handleTreemapClick)
+			instance.off('restore', handleRestore)
 			chartRef.current = null
 			onReadyRef.current?.(null)
 			instance.dispose()
@@ -453,14 +481,21 @@ export default function TreemapChart({
 	}, [height])
 
 	const resolvedHeight = height ?? (variant === 'narrative' ? '533px' : '800px')
-
-	if (isNarrativeLike) {
-		return <div id={id} className="my-auto w-full" style={{ height: resolvedHeight }} />
-	}
-
-	return (
-		<div className="relative flex flex-col items-end rounded-md bg-(--cards-bg) p-3">
-			<div id={id} className="w-full" style={{ height: resolvedHeight }} />
+	const chart = (
+		<div
+			className="my-auto w-full overflow-hidden"
+			style={{
+				height: resolvedHeight,
+				padding: TREEMAP_CHART_INSET_PX
+			}}
+		>
+			<div id={id} className="h-full w-full" />
 		</div>
 	)
+
+	if (isNarrativeLike) {
+		return chart
+	}
+
+	return <div className="relative flex flex-col items-end rounded-md bg-(--cards-bg)">{chart}</div>
 }

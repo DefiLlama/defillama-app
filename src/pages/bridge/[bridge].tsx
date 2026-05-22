@@ -6,7 +6,7 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import metadataCache, { refreshMetadataIfStale } from '~/utils/metadata'
+import metadataCache from '~/utils/metadata'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type BridgePageProps =
@@ -26,8 +26,6 @@ export const getStaticProps = withPerformanceLogging(
 		if (!params?.bridge) {
 			return { notFound: true }
 		}
-
-		await refreshMetadataIfStale()
 
 		const bridge = slug(params.bridge)
 		const supportedBridgeSlugs = metadataCache.bridgeProtocolSlugs ?? []

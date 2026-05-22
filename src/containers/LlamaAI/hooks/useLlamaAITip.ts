@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AI_SERVER } from '~/constants'
 import {
 	LLAMA_AI_SETTINGS_QUERY_KEY,
@@ -14,21 +14,62 @@ const seenTipIds = new Set<string>()
 type TipMutationKind = 'seen' | 'dismiss' | 'click'
 type TipMutationInput = { tipId: string; kind: TipMutationKind }
 
+const CACHED_TIP_KEY_PREFIX = 'llamaai-last-tip:'
+
+function readCachedTip(userId: string | null): TipDTO | null {
+	if (!userId || typeof window === 'undefined') return null
+	try {
+		const raw = window.localStorage.getItem(`${CACHED_TIP_KEY_PREFIX}${userId}`)
+		if (!raw) return null
+		const parsed = JSON.parse(raw)
+		if (!parsed || typeof parsed !== 'object' || typeof parsed.id !== 'string') return null
+		return parsed as TipDTO
+	} catch {
+		return null
+	}
+}
+
+function writeCachedTip(userId: string | null, tip: TipDTO | null) {
+	if (!userId || typeof window === 'undefined') return
+	const key = `${CACHED_TIP_KEY_PREFIX}${userId}`
+	try {
+		if (tip) window.localStorage.setItem(key, JSON.stringify(tip))
+		else window.localStorage.removeItem(key)
+	} catch {}
+}
+
 export function useActiveTip(): {
 	tip: TipDTO | null
+	isResolved: boolean
 	markSeen: (tip: TipDTO) => void
 	dismissTip: (tip: TipDTO) => Promise<void>
 	clickTip: (tip: TipDTO, action: string) => Promise<void>
 } {
-	const { tip } = useLlamaAISettings()
+	const { tip: serverTip, queryState } = useLlamaAISettings()
+	const isResolved = !queryState.isPending
 	const queryClient = useQueryClient()
-	const { authorizedFetch } = useAuthContext()
+	const { authorizedFetch, user } = useAuthContext()
+	const userId = user?.id ?? null
+
+	const [cachedTip, setCachedTip] = useState<TipDTO | null>(() => readCachedTip(userId))
+	const tip = isResolved ? serverTip : cachedTip
+
+	useEffect(() => {
+		if (!isResolved) return
+		writeCachedTip(userId, serverTip)
+	}, [isResolved, serverTip, userId])
+
+	useEffect(() => {
+		setCachedTip(readCachedTip(userId))
+	}, [userId])
 
 	const clearTipInCache = useCallback(() => {
 		queryClient.setQueriesData({ queryKey: LLAMA_AI_SETTINGS_QUERY_KEY }, (old?: SettingsQueryResult | null) =>
 			old ? { ...old, tip: null } : old
 		)
-	}, [queryClient])
+		setCachedTip(null)
+		writeCachedTip(userId, null)
+	}, [queryClient, userId])
 
 	const { mutate: postTip, mutateAsync: postTipAsync } = useMutation({
 		mutationFn: async ({ tipId, kind }: TipMutationInput) => {
@@ -88,5 +129,5 @@ export function useActiveTip(): {
 		markSeen(tip)
 	}, [tip, markSeen])
 
-	return { tip, markSeen, dismissTip, clickTip }
+	return { tip, isResolved, markSeen, dismissTip, clickTip }
 }

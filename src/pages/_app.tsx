@@ -3,11 +3,12 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import Router from 'next/router'
-import '~/tailwind.css'
-import '~/nprogress.css'
 import Script from 'next/script'
-import NProgress from 'nprogress'
+import '@rainbow-me/rainbowkit/styles.css'
+import '~/tailwind.css'
+import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
+import { RouteProgressIndicator } from '~/components/RouteProgressIndicator'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
@@ -15,7 +16,13 @@ import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useReferrer } from '~/hooks/useReferrer'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
-NProgress.configure({ showSpinner: false })
+type NextPageWithLayout = AppProps['Component'] & {
+	getLayout?: (page: ReactElement) => ReactElement
+}
+
+type AppPropsWithLayout = AppProps & {
+	Component: NextPageWithLayout
+}
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
 
@@ -33,37 +40,8 @@ const isChunkLoadError = (error: unknown) => {
 
 const client = new QueryClient()
 
-function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppPropsWithLayout) {
 	const reloadInProgressRef = useRef(false)
-
-	useEffect(() => {
-		const handleRouteChange = () => {
-			NProgress.start()
-		}
-
-		Router.events.on('routeChangeStart', handleRouteChange)
-
-		// If the component is unmounted, unsubscribe
-		// from the event with the `off` method:
-		return () => {
-			Router.events.off('routeChangeStart', handleRouteChange)
-		}
-	}, [])
-
-	useEffect(() => {
-		const handleRouteChange = () => {
-			NProgress.done()
-			reloadInProgressRef.current = false
-		}
-
-		Router.events.on('routeChangeComplete', handleRouteChange)
-
-		// If the component is unmounted, unsubscribe
-		// from the event with the `off` method:
-		return () => {
-			Router.events.off('routeChangeComplete', handleRouteChange)
-		}
-	}, [])
 
 	useEffect(() => {
 		const reloadOnce = (url?: string) => {
@@ -84,9 +62,13 @@ function App({ Component, pageProps }: AppProps) {
 		}
 
 		const handleRouteChangeError = (error: unknown, url: string) => {
-			NProgress.done()
 			if (!isChunkLoadError(error)) return
 			reloadOnce(url)
+		}
+
+		const handleRouteChangeComplete = () => {
+			reloadInProgressRef.current = false
+			sessionStorage.removeItem(CHUNK_LOAD_ERROR_KEY)
 		}
 
 		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -99,30 +81,16 @@ function App({ Component, pageProps }: AppProps) {
 			reloadOnce()
 		}
 
+		Router.events.on('routeChangeComplete', handleRouteChangeComplete)
 		Router.events.on('routeChangeError', handleRouteChangeError)
 		window.addEventListener('unhandledrejection', handleUnhandledRejection)
 		window.addEventListener('error', handleError)
 
 		return () => {
+			Router.events.off('routeChangeComplete', handleRouteChangeComplete)
 			Router.events.off('routeChangeError', handleRouteChangeError)
 			window.removeEventListener('unhandledrejection', handleUnhandledRejection)
 			window.removeEventListener('error', handleError)
-		}
-	}, [])
-
-	// Scroll restoration for complete route changes (not shallow)
-	useEffect(() => {
-		const handleRouteChange = (url: string, { shallow }: { shallow: boolean }) => {
-			// Only restore scroll for complete route changes, not shallow ones
-			if (!shallow && typeof window !== 'undefined' && !url.includes('#')) {
-				window.scrollTo({ top: 0, behavior: 'smooth' })
-			}
-		}
-
-		Router.events.on('routeChangeComplete', handleRouteChange)
-
-		return () => {
-			Router.events.off('routeChangeComplete', handleRouteChange)
 		}
 	}, [])
 
@@ -130,6 +98,7 @@ function App({ Component, pageProps }: AppProps) {
 	useParentAuthTracker()
 	useUmamiIdentityTracker()
 	useReferrer()
+	const getLayout = Component.getLayout ?? ((page: ReactElement) => page)
 
 	return (
 		<>
@@ -147,12 +116,13 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			<Component {...pageProps} />
+			<RouteProgressIndicator />
+			{getLayout(<Component {...pageProps} />)}
 		</>
 	)
 }
 
-const AppWrapper = (props: AppProps) => {
+const AppWrapper = (props: AppPropsWithLayout) => {
 	return (
 		<>
 			<QueryClientProvider client={client}>

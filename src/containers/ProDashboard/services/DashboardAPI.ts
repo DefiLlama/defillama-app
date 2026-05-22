@@ -1,4 +1,4 @@
-import { AUTH_SERVER } from '../../../constants'
+import { FEATURES_SERVER } from '../../../constants'
 import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
 import type { DashboardItemConfig } from '../types'
 
@@ -75,7 +75,7 @@ class DashboardAPIService {
 	}
 
 	async listDashboards(authorizedFetch: (url: string, options?: any) => Promise<Response>): Promise<Dashboard[]> {
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards`)
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards`)
 		const data = await this.handleResponse<{ items: Dashboard[] }>(response)
 		return data.items || []
 	}
@@ -83,7 +83,7 @@ class DashboardAPIService {
 	async listLiteDashboards(
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<LiteDashboard[]> {
-		const response = await authorizedFetch(`${AUTH_SERVER}/lite/dashboards`)
+		const response = await authorizedFetch(`${FEATURES_SERVER}/lite/dashboards`)
 		const data = await this.handleResponse<{ items: LiteDashboard[] }>(response)
 		return data.items || []
 	}
@@ -96,7 +96,7 @@ class DashboardAPIService {
 		if (params.page) searchParams.append('page', params.page.toString())
 		if (params.limit) searchParams.append('limit', params.limit.toString())
 
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards?${searchParams.toString()}`)
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards?${searchParams.toString()}`)
 		return this.handleResponse(response)
 	}
 
@@ -104,7 +104,7 @@ class DashboardAPIService {
 		id: string,
 		authorizedFetch?: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const url = `${AUTH_SERVER}/dashboards/${id}`
+		const url = `${FEATURES_SERVER}/dashboards/${id}`
 		const response = authorizedFetch ? await authorizedFetch(url) : await fetch(url)
 		return this.handleResponse<Dashboard>(response)
 	}
@@ -123,7 +123,7 @@ class DashboardAPIService {
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
 		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards`, {
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -155,7 +155,7 @@ class DashboardAPIService {
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
 		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}`, {
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/${id}`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -176,7 +176,7 @@ class DashboardAPIService {
 		id: string,
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<{ message: string }> {
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/delete/${id}`, {
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/delete/${id}`, {
 			method: 'POST'
 		})
 
@@ -191,7 +191,7 @@ class DashboardAPIService {
 		if (params?.page) queryParams.append('page', params.page.toString())
 		if (params?.limit) queryParams.append('limit', params.limit.toString())
 
-		const url = `${AUTH_SERVER}/dashboards/discover?${queryParams.toString()}`
+		const url = `${FEATURES_SERVER}/dashboards/discover?${queryParams.toString()}`
 		const response = authorizedFetch ? await authorizedFetch(url) : await fetch(url)
 		return this.handleResponse(response)
 	}
@@ -224,7 +224,7 @@ class DashboardAPIService {
 		if (params.page) queryParams.append('page', params.page.toString())
 		if (params.limit) queryParams.append('limit', params.limit.toString())
 
-		const url = `${AUTH_SERVER}/dashboards/search?${queryParams.toString()}`
+		const url = `${FEATURES_SERVER}/dashboards/search?${queryParams.toString()}`
 		const response = authorizedFetch ? await authorizedFetch(url) : await fetch(url)
 		return this.handleResponse(response)
 	}
@@ -233,7 +233,7 @@ class DashboardAPIService {
 		id: string,
 		authorizedFetch?: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const url = `${AUTH_SERVER}/dashboards/${id}/view`
+		const url = `${FEATURES_SERVER}/dashboards/${id}/view`
 		const response = authorizedFetch ? await authorizedFetch(url) : await fetch(url)
 		return this.handleResponse<Dashboard>(response)
 	}
@@ -242,7 +242,7 @@ class DashboardAPIService {
 		id: string,
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<{ liked: boolean; likeCount: number }> {
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}/like`, {
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/${id}/like`, {
 			method: 'POST'
 		})
 		return this.handleResponse(response)
@@ -265,7 +265,7 @@ class DashboardAPIService {
 		if (params.page) searchParams.append('page', params.page.toString())
 		if (params.limit) searchParams.append('limit', params.limit.toString())
 
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/liked?${searchParams}`)
+		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/liked?${searchParams}`)
 		return this.handleResponse(response)
 	}
 }

@@ -46,6 +46,7 @@ interface ChainChartPanelProps {
 	hasBarChart: boolean
 	groupBy: ChartTimeGroupingWithCumulative
 	chainGeckoId: string | null
+	gasUsedValueSymbol: string
 	finalCharts: any
 	valueSymbol: string
 	isFetchingChartData: boolean
@@ -64,6 +65,7 @@ export function ChainChartPanel({
 	hasBarChart,
 	groupBy,
 	chainGeckoId,
+	gasUsedValueSymbol,
 	finalCharts,
 	valueSymbol,
 	isFetchingChartData,
@@ -75,9 +77,10 @@ export function ChainChartPanel({
 	const chartRenderModel = useMemo(
 		() => ({
 			chartData: finalCharts,
-			valueSymbol
+			valueSymbol,
+			gasUsedValueSymbol
 		}),
-		[finalCharts, valueSymbol]
+		[finalCharts, valueSymbol, gasUsedValueSymbol]
 	)
 	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 
@@ -160,7 +163,7 @@ export function ChainChartPanel({
 										autoFocus
 										value={metricsSearchValue}
 										className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
-										onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+										onChange={(e) => setMetricsSearchValue(e.currentTarget.value)}
 									/>
 								</label>
 								<div className="flex flex-wrap gap-2">
@@ -277,6 +280,7 @@ export function ChainChartPanel({
 						<ChainCoreChart
 							chartData={deferredChartRenderModel.chartData}
 							valueSymbol={deferredChartRenderModel.valueSymbol}
+							gasUsedValueSymbol={deferredChartRenderModel.gasUsedValueSymbol}
 							isThemeDark={darkMode}
 							groupBy={groupBy}
 							onReady={handleChartReady}

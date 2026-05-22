@@ -4,6 +4,7 @@ import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -49,6 +50,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const exchangeData = cexs.find((cex) => cex.slug && cex.slug.toLowerCase() === exchangeName.toLowerCase())
 		if (!exchangeData) {
+			console.warn(`[cex/assets/[cex]] ${exchangeName} not found in metadata cache (${cexs.length} CEX entries loaded)`)
 			return {
 				notFound: true
 			}
@@ -57,6 +59,7 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
+			console.warn(`[cex/assets/[cex]] ${exchangeName} matched metadata but protocol overview metrics were unavailable`)
 			return { notFound: true }
 		}
 
@@ -193,21 +196,27 @@ function TokenValuesUSDChartCard({
 }
 
 function TokensBreakdownPieChartCard({
-	chartData,
+	tokenBreakdownLatest,
 	protocolName
 }: {
-	chartData: Array<{ name: string; value: number }>
+	tokenBreakdownLatest: Record<string, number>
 	protocolName: string
 }) {
-	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
+	const allTokens = React.useMemo(
+		() =>
+			Object.keys(tokenBreakdownLatest).sort((a, b) => (tokenBreakdownLatest[b] ?? 0) - (tokenBreakdownLatest[a] ?? 0)),
+		[tokenBreakdownLatest]
+	)
 	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(() => allTokens)
 
-	const selectedTokensSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
-
-	const filteredChartData = React.useMemo(() => {
+	const chartData = React.useMemo(() => {
 		if (selectedTokens.length === 0) return []
-		return chartData.filter((d) => selectedTokensSet.has(d.name))
-	}, [chartData, selectedTokens.length, selectedTokensSet])
+		const selectedBreakdown: Record<string, number> = {}
+		for (const token of selectedTokens) {
+			selectedBreakdown[token] = tokenBreakdownLatest[token] ?? 0
+		}
+		return preparePieChartData({ data: selectedBreakdown, limit: 15 })
+	}, [selectedTokens, tokenBreakdownLatest])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
@@ -232,7 +241,7 @@ function TokensBreakdownPieChartCard({
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
+				<PieChart chartData={chartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -392,6 +401,8 @@ export default function Protocols(props: CexAssetsPageProps) {
 		tokenRawDataset,
 		tokenRawCharts,
 		tokenBreakdownUSD,
+		tokenBreakdownLatest,
+		tokenBreakdownLatestKey,
 		tokenBreakdownPieChart,
 		usdInflowsDataset,
 		tokenInflowsDataset,
@@ -471,8 +482,8 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
 						<TokensBreakdownPieChartCard
-							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
-							chartData={tokenBreakdownPieChart}
+							key={tokenBreakdownLatestKey}
+							tokenBreakdownLatest={tokenBreakdownLatest}
 							protocolName={props.name}
 						/>
 					) : null}

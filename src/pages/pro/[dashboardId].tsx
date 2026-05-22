@@ -11,6 +11,7 @@ import { fetchDashboardConfig } from '~/containers/ProDashboard/queries.server'
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
@@ -26,7 +27,9 @@ const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 	const authToken = getAuthTokenFromRequest(context.req)
 	context.res.setHeader(
 		'Cache-Control',
-		authToken ? 'private, no-cache, no-store, must-revalidate' : 'public, s-maxage=300, stale-while-revalidate=3600'
+		authToken
+			? 'private, no-cache, no-store, must-revalidate'
+			: jitterCacheControlHeader('public, s-maxage=300, stale-while-revalidate=3600', `pro-dashboard:${dashboardId}`)
 	)
 
 	try {

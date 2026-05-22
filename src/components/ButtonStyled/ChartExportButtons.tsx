@@ -14,6 +14,8 @@ interface ChartExportButtonsProps {
 	showPng?: boolean
 	prepareCsvDirect?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 	pngProfile?: PngExportProfile
+	onCsvExport?: (info: { filename: string }) => void
+	onPngExport?: (info: { kind: 'download' | 'copy'; filename: string }) => void
 }
 
 export function ChartExportButtons({
@@ -27,7 +29,9 @@ export function ChartExportButtons({
 	showCsv = true,
 	showPng = true,
 	prepareCsvDirect,
-	pngProfile
+	pngProfile,
+	onCsvExport,
+	onPngExport
 }: ChartExportButtonsProps) {
 	return (
 		<>
@@ -38,6 +42,7 @@ export function ChartExportButtons({
 					className={className}
 					smol={smol}
 					prepareCsvDirect={prepareCsvDirect}
+					onExport={onCsvExport}
 				/>
 			) : null}
 			{showPng ? (
@@ -50,6 +55,7 @@ export function ChartExportButtons({
 					className={className}
 					smol={smol}
 					pngProfile={pngProfile}
+					onExport={onPngExport}
 				/>
 			) : null}
 		</>
