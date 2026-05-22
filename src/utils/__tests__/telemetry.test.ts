@@ -219,6 +219,19 @@ describe('telemetry client', () => {
 		const success = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ props: { id: 'abc' } }))
 		await success(ssrContext('/ssr/abc?tab=one', 202, { id: 'abc' }, { id: 'abc', tab: 'one' }))
 
+		const notFound = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ notFound: true }))
+		await notFound(ssrContext('/ssr/missing', 200, { id: 'missing' }, { id: 'missing' }))
+
+		const redirect = withServerSidePropsTelemetry('/ssr/redirect', async () => ({
+			redirect: { destination: '/next', permanent: true }
+		}))
+		await redirect(ssrContext('/ssr/redirect'))
+
+		const temporaryRedirect = withServerSidePropsTelemetry('/ssr/temporary-redirect', async () => ({
+			redirect: { destination: '/next', statusCode: 302 }
+		}))
+		await temporaryRedirect(ssrContext('/ssr/temporary-redirect'))
+
 		const failure = withServerSidePropsTelemetry('/ssr/error', async () => {
 			throw new Error('ssr failed')
 		})
@@ -226,6 +239,13 @@ describe('telemetry client', () => {
 
 		const events = sentEvents(fetchMock)
 		const successRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/[id]')
+		const notFoundRoute = events.find(
+			(event) => event.type === 'route_execution' && event.route === '/ssr/[id]' && event.http_status === 404
+		)
+		const redirectRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/redirect')
+		const temporaryRedirectRoute = events.find(
+			(event) => event.type === 'route_execution' && event.route === '/ssr/temporary-redirect'
+		)
 		const errorRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/error')
 		const ssrRuntimeError = events.find((event) => event.type === 'runtime_error' && event.route === '/ssr/error')
 
@@ -235,6 +255,23 @@ describe('telemetry client', () => {
 			http_status: 202,
 			status: 'success',
 			attributes: { params: { id: 'abc' }, query: { id: 'abc', tab: 'one' }, props_bytes: 12 }
+		})
+		expect(notFoundRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			request_path: '/ssr/missing',
+			http_status: 404,
+			status: 'success',
+			attributes: { params: { id: 'missing' }, query: { id: 'missing' } }
+		})
+		expect(redirectRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			http_status: 308,
+			status: 'success'
+		})
+		expect(temporaryRedirectRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			http_status: 302,
+			status: 'success'
 		})
 		expect(errorRoute).toMatchObject({
 			operation_type: 'getServerSideProps',

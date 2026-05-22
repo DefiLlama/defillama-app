@@ -1,9 +1,21 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getServerSideProps, getYieldPoolAssetTokens } from '~/pages/yields/pool/[pool]'
 import { ProtocolInformationCard } from '../ProtocolInformationCard'
 
+const { getYieldPoolPageDataMock } = vi.hoisted(() => ({
+	getYieldPoolPageDataMock: vi.fn()
+}))
+
+vi.mock('~/server/datasetCache/runtime/yields', () => ({
+	getYieldPoolPageData: getYieldPoolPageDataMock
+}))
+
 describe('YieldPoolPage', () => {
+	beforeEach(() => {
+		getYieldPoolPageDataMock.mockReset()
+	})
+
 	it('renders an internal protocol link in the protocol information card', () => {
 		const html = renderToStaticMarkup(
 			<ProtocolInformationCard category="Dexs" projectName="Aerodrome" projectSlug="aerodrome" config={{}} url="" />
@@ -44,6 +56,24 @@ describe('YieldPoolPage', () => {
 		} as any)
 
 		expect(result).toEqual({ notFound: true })
+		expect(res.setHeader).not.toHaveBeenCalled()
+		expect(getYieldPoolPageDataMock).not.toHaveBeenCalled()
+	})
+
+	it('returns not found for valid missing pool ids after checking data', async () => {
+		const poolId = '79e042b5-e55d-4a4e-b0b0-6661a570470b'
+		const res = { setHeader: vi.fn() }
+		getYieldPoolPageDataMock.mockResolvedValue({ source: 'cache', data: null })
+
+		const result = await getServerSideProps({
+			req: { method: 'GET' },
+			resolvedUrl: `/yields/pool/${poolId}`,
+			params: { pool: poolId },
+			res
+		} as any)
+
+		expect(result).toEqual({ notFound: true })
+		expect(getYieldPoolPageDataMock).toHaveBeenCalledWith(poolId)
 		expect(res.setHeader).not.toHaveBeenCalled()
 	})
 })

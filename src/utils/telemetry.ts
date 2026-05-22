@@ -1245,9 +1245,17 @@ export async function withStaticRouteTelemetry<T>(
 }
 
 function serverSidePropsStatus<T>(result: GetServerSidePropsResult<T>, durationMs: number): RouteStatus {
-	if ('notFound' in result && result.notFound) return 'error'
 	if (durationMs > slowRouteThresholdMs()) return 'slow'
 	return 'success'
+}
+
+function serverSidePropsHttpStatus<T>(result: GetServerSidePropsResult<T>, fallbackStatus: number): number {
+	if ('notFound' in result && result.notFound) return 404
+	if ('redirect' in result) {
+		if ('statusCode' in result.redirect) return result.redirect.statusCode
+		return result.redirect.permanent ? 308 : 307
+	}
+	return fallbackStatus
 }
 
 export function getServerSidePropsTelemetryAttributes<T>(result: GetServerSidePropsResult<T>): TelemetryAttributes {
@@ -1279,7 +1287,7 @@ export function withServerSidePropsTelemetry<T extends { [key: string]: any }>(
 				requestPath: sanitizeRequestPathString(context.resolvedUrl),
 				flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_SSR_FLUSH_MS', 200),
 				attributes,
-				getHttpStatus: () => context.res.statusCode,
+				getHttpStatus: (result) => serverSidePropsHttpStatus(result, context.res.statusCode),
 				getResultAttributes: getServerSidePropsTelemetryAttributes,
 				getStatus: serverSidePropsStatus
 			},

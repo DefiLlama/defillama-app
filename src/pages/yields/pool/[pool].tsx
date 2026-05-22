@@ -39,6 +39,7 @@ import type { YieldPoolPageData } from '~/server/datasetCache/runtime/yields.typ
 import { formattedNum } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { jitterCacheControlHeader, maxAgeForNext } from '~/utils/maxAgeForNext'
+import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const MultiSeriesChart2 = lazy(
@@ -55,6 +56,10 @@ const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async 
 	const poolId = typeof poolParam === 'string' ? poolParam : Array.isArray(poolParam) ? poolParam[0] : null
 
 	if (!poolId) {
+		return { notFound: true }
+	}
+
+	if (!YIELD_POOL_CONFIG_ID_REGEX.test(poolId)) {
 		return { notFound: true }
 	}
 

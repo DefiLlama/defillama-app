@@ -7,6 +7,7 @@ import { fetchYieldConfigFromNetwork, getLendBorrowData, getYieldPageData } from
 import type { YieldConfigResponse } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { fetchJson } from '~/utils/async'
+import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
 import {
 	getProtocolYieldRowsFromCache,
 	getTokenBorrowRoutesFromCache,
@@ -17,8 +18,6 @@ import {
 } from '../yields'
 import { readThroughDatasetCache } from './source'
 import type { YieldPoolPageData, YieldPoolPageDataResult } from './yields.types'
-
-const YIELD_POOL_CONFIG_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 async function getProtocolYieldRowsFromNetwork(protocolSlugs: string[]): Promise<IYieldTableRow[]> {
 	const yieldsData = await getYieldPageData()
