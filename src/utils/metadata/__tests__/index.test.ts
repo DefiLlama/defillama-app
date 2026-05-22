@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CoreMetadataPayload } from '../artifactContract'
 
-const { fetchCoreMetadataMock } = vi.hoisted(() => ({
-	fetchCoreMetadataMock: vi.fn()
+const { fetchCoreMetadataMock, runOutsideRouteTelemetryMock } = vi.hoisted(() => ({
+	fetchCoreMetadataMock: vi.fn(),
+	runOutsideRouteTelemetryMock: vi.fn((run: () => unknown) => run())
 }))
 
 vi.mock('../fetch', () => ({
 	fetchCoreMetadata: fetchCoreMetadataMock
+}))
+
+vi.mock('~/utils/telemetry', () => ({
+	runOutsideRouteTelemetry: runOutsideRouteTelemetryMock
 }))
 
 vi.mock('../../../.cache/app-metadata/bridgeChainSlugs.json', () => ({ default: [] }))
@@ -127,6 +132,8 @@ describe('metadata refresh', () => {
 		vi.unstubAllEnvs()
 		vi.resetModules()
 		fetchCoreMetadataMock.mockReset()
+		runOutsideRouteTelemetryMock.mockReset()
+		runOutsideRouteTelemetryMock.mockImplementation((run: () => unknown) => run())
 	})
 
 	it('applies an empty token directory refresh payload directly', async () => {
@@ -245,6 +252,17 @@ describe('metadata refresh', () => {
 		expect(metadata.protocolDisplayNames.get('morpho')).toBe('Morpho')
 		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
 	}, 15_000)
+
+	it('detaches every background refresh caller from active route telemetry', async () => {
+		fetchCoreMetadataMock.mockResolvedValue(createMetadataPayload())
+		const metadataModule = await import('../index')
+
+		metadataModule.refreshMetadataInBackgroundIfStale()
+		metadataModule.refreshMetadataInBackgroundIfStale('homepage')
+
+		expect(runOutsideRouteTelemetryMock).toHaveBeenCalledTimes(2)
+		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
+	})
 
 	it('applies the refresh cooldown after failed refreshes', async () => {
 		vi.stubEnv('NODE_ENV', 'production')

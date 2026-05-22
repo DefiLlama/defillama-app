@@ -6,6 +6,7 @@ import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from '.
 import { normalizeError } from './error'
 import { fetchWithPoolingOnServer } from './http-client'
 import {
+	addRouteTelemetryAttributes,
 	buildStaticRouteRequestPath,
 	staticRouteTelemetryAttributes,
 	recordRuntimeError,
@@ -19,6 +20,42 @@ const PAGE_BUILD_RETRY_BUDGET_MS = Math.max(0, getEnvNumber('PAGE_BUILD_RETRY_BU
 
 type PerformanceLoggingOptions = {
 	jitterRevalidate?: boolean
+}
+
+export type RoutePhaseTimer = {
+	time<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>>
+	start(label: string): () => void
+	record(): void
+	timings(): Record<string, number>
+}
+
+export function createRoutePhaseTimer(): RoutePhaseTimer {
+	const phases: Record<string, number> = {}
+
+	const recordElapsed = (label: string, startedAt: number) => {
+		phases[label] = Math.max(0, Math.round(Date.now() - startedAt))
+	}
+
+	return {
+		async time<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>> {
+			const startedAt = Date.now()
+			try {
+				return await run()
+			} finally {
+				recordElapsed(label, startedAt)
+			}
+		},
+		start(label: string): () => void {
+			const startedAt = Date.now()
+			return () => recordElapsed(label, startedAt)
+		},
+		record(): void {
+			addRouteTelemetryAttributes({ route_phases_ms: { ...phases } })
+		},
+		timings(): Record<string, number> {
+			return { ...phases }
+		}
+	}
 }
 
 export const withPerformanceLogging = <T extends { [key: string]: any }, P extends ParsedUrlQuery = ParsedUrlQuery>(

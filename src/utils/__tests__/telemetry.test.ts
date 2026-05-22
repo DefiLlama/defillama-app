@@ -8,6 +8,7 @@ import {
 	flushTelemetry,
 	recordDomainEvent,
 	recordTelemetry,
+	runOutsideRouteTelemetry,
 	staticRouteTelemetryAttributes,
 	telemetryTest,
 	withApiRouteTelemetry,
@@ -719,6 +720,30 @@ describe('telemetry client', () => {
 				parent_span_id: route?.span_id
 			})
 		}
+	})
+
+	it('does not link outbound spans started outside route telemetry', async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.startsWith('https://api.llama.fi/')) return new Response('{}', { status: 200 })
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry('/detached-page', async () => {
+			await fetchWithPoolingOnServer('https://api.llama.fi/attached')
+			await runOutsideRouteTelemetry(() => fetchWithPoolingOnServer('https://api.llama.fi/detached'))
+			return { props: {} }
+		})
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution' && event.route === '/detached-page')
+		const outbounds = events.filter((event) => event.type === 'outbound_http_request')
+		expect(outbounds).toHaveLength(1)
+		expect(outbounds[0]).toMatchObject({
+			trace_id: route?.trace_id,
+			parent_span_id: route?.span_id,
+			url: 'https://api.llama.fi/attached'
+		})
 	})
 
 	it('records retry attempt metadata for each outbound fetch attempt', async () => {

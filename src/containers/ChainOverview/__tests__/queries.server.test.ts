@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ICategoriesAndTags, IChainMetadata } from '~/utils/metadata/types'
-import { shouldFetchChainDexs, shouldFetchChainPerps } from '../queries.server'
+import { createRoutePhaseTimer } from '~/utils/perf'
+import { getChainOverviewData, shouldFetchChainDexs, shouldFetchChainPerps } from '../queries.server'
 
 const categoriesAndTagsMetadata = {
 	categories: ['Dexs', 'Derivatives', 'OTC Marketplace'],
@@ -29,6 +30,21 @@ const categoriesAndTagsMetadata = {
 } satisfies ICategoriesAndTags
 
 describe('shouldFetchChainDexs', () => {
+	it('accepts an optional phase timer without changing missing-chain results', async () => {
+		const phaseTimer = createRoutePhaseTimer()
+
+		await expect(
+			getChainOverviewData({
+				chain: 'missing',
+				chainMetadata: {},
+				protocolMetadata: {},
+				categoriesAndTagsMetadata,
+				phaseTimer
+			})
+		).resolves.toBeNull()
+		expect(phaseTimer.timings()).toEqual({})
+	})
+
 	it('skips dexs when the chain has the metadata flag but is not in the default Dexs category', () => {
 		const provenance = {
 			name: 'Provenance',

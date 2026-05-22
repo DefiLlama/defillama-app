@@ -1,3 +1,4 @@
+import { runOutsideRouteTelemetry } from '~/utils/telemetry'
 import { applyMetadataRefresh } from './artifactContract'
 import { createMetadataCacheFromGeneratedArtifacts } from './artifacts'
 import { fetchCoreMetadata } from './fetch'
@@ -10,7 +11,7 @@ const REFRESH_TTL_MS = 60 * 60 * 1000
 let lastRefreshMs = 0
 let refreshInFlight: Promise<void> | null = null
 
-async function doRefresh(): Promise<void> {
+async function doRefresh(source?: string): Promise<void> {
 	try {
 		const payload = await fetchCoreMetadata({
 			existingProtocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
@@ -19,7 +20,12 @@ async function doRefresh(): Promise<void> {
 		lastRefreshMs = Date.now()
 	} catch (err) {
 		lastRefreshMs = Date.now()
-		console.error('[metadata] refresh failed, keeping stale cache:', err)
+		console.error(
+			source
+				? `[metadata] refresh failed from ${source}, keeping stale cache:`
+				: '[metadata] refresh failed, keeping stale cache:',
+			err
+		)
 	}
 }
 
@@ -27,7 +33,7 @@ async function doRefresh(): Promise<void> {
  * Start a metadata refresh if stale (older than TTL).
  * Safe to call from multiple concurrent requests: only one refresh runs at a time.
  */
-function startMetadataRefreshIfStale(): Promise<void> | null {
+function startMetadataRefreshIfStale(source?: string): Promise<void> | null {
 	// Local contributors without an API key should still be able to boot dev
 	// from generated or stub artifacts; affected pages can resolve to 404s.
 	if (shouldSkipMetadataRefresh()) {
@@ -43,7 +49,7 @@ function startMetadataRefreshIfStale(): Promise<void> | null {
 		return refreshInFlight
 	}
 
-	refreshInFlight = doRefresh().finally(() => {
+	refreshInFlight = doRefresh(source).finally(() => {
 		refreshInFlight = null
 	})
 
@@ -60,8 +66,8 @@ export async function refreshMetadataIfStale(): Promise<void> {
 /**
  * Start refreshing stale metadata in the background while callers continue using the current cache.
  */
-export function refreshMetadataInBackgroundIfStale(): void {
-	void startMetadataRefreshIfStale()
+export function refreshMetadataInBackgroundIfStale(source?: string): void {
+	void runOutsideRouteTelemetry(() => startMetadataRefreshIfStale(source))
 }
 
 export default metadataCache

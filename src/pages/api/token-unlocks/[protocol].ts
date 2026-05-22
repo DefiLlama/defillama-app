@@ -27,7 +27,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-		metadataModule.refreshMetadataInBackgroundIfStale()
+		metadataModule.refreshMetadataInBackgroundIfStale('token_unlocks_api')
 		const data = await getProtocolEmissons(slug(protocol), {
 			skipAvailabilityCheck: true,
 			tokenlist: metadataModule.default.tokenlist

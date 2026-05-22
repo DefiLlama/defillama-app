@@ -154,8 +154,9 @@ type AsyncLocalStorageLike<T> = {
 	run<R>(store: T, callback: () => R): R
 	getStore(): T | undefined
 }
+type TelemetryStore = RouteTelemetryContext | undefined
 
-let telemetryContext: AsyncLocalStorageLike<RouteTelemetryContext> | null = null
+let telemetryContext: AsyncLocalStorageLike<TelemetryStore> | null = null
 const queue: TelemetryEvent[] = []
 
 let retryBatch: PendingBatch | null = null
@@ -303,16 +304,21 @@ function mergeRuntimeErrorAttributes(
 	return hasAttributes(merged) ? merged : undefined
 }
 
-async function getTelemetryContextStorage(): Promise<AsyncLocalStorageLike<RouteTelemetryContext>> {
+async function getTelemetryContextStorage(): Promise<AsyncLocalStorageLike<TelemetryStore>> {
 	if (telemetryContext) return telemetryContext
 
 	const { AsyncLocalStorage } = await import(/* webpackIgnore: true */ 'async_hooks')
-	telemetryContext = new AsyncLocalStorage<RouteTelemetryContext>()
+	telemetryContext = new AsyncLocalStorage<TelemetryStore>()
 	return telemetryContext
 }
 
 export function currentTelemetryContext(): RouteTelemetryContext | undefined {
 	return telemetryContext?.getStore()
+}
+
+export function runOutsideRouteTelemetry<T>(run: () => T): T {
+	if (!telemetryContext) return run()
+	return telemetryContext.run(undefined, run)
 }
 
 export function addRouteTelemetryAttributes(attributes: TelemetryAttributes): void {

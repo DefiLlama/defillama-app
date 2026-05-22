@@ -89,7 +89,7 @@ const buildChartProtocols = (protocols: any[]) => {
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 	const generatedAtSec = Math.floor(Date.now() / 1000)
 	const metadataModule = await import('~/utils/metadata')
-	metadataModule.refreshMetadataInBackgroundIfStale()
+	metadataModule.refreshMetadataInBackgroundIfStale('unlocks_index')
 	const metadataCache = metadataModule.default
 	const data = await getAllProtocolEmissions({
 		endDate: generatedAtSec + 30 * 24 * 60 * 60,

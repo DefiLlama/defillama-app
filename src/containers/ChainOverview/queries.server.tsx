@@ -37,6 +37,7 @@ import type {
 	IProtocolMetadata,
 	ProtocolLlamaswapMetadata
 } from '~/utils/metadata/types'
+import type { RoutePhaseTimer } from '~/utils/perf'
 import type { ChainChartLabels } from './constants'
 import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
@@ -91,13 +92,15 @@ export async function getChainOverviewData({
 	chainMetadata,
 	protocolMetadata,
 	categoriesAndTagsMetadata,
-	protocolLlamaswapDataset = null
+	protocolLlamaswapDataset = null,
+	phaseTimer
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	categoriesAndTagsMetadata: ICategoriesAndTags
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
+	phaseTimer?: RoutePhaseTimer
 }): Promise<IChainOverviewData | null> {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -108,6 +111,9 @@ export async function getChainOverviewData({
 
 	const shouldFetchDexs = shouldFetchChainDexs({ chain, currentChainMetadata, categoriesAndTagsMetadata })
 	const shouldFetchPerps = shouldFetchChainPerps({ chain, currentChainMetadata, categoriesAndTagsMetadata })
+	function timePhase<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>> {
+		return phaseTimer ? phaseTimer.time(label, run) : (Promise.resolve().then(run) as Promise<Awaited<T>>)
+	}
 
 	try {
 		const [
@@ -161,119 +167,158 @@ export async function getChainOverviewData({
 			StablecoinsListResponse | null,
 			Array<string> | null
 		] = await Promise.all([
-			fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {
-				console.log(err)
-				return {
-					tvl: [],
-					staking: [],
-					borrowed: [],
-					pool2: [],
-					vesting: [],
-					offers: [],
-					doublecounted: [],
-					liquidstaking: [],
-					dcAndLsOverlap: []
-				}
-			}),
-			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset, shouldFetchDexs }),
-			currentChainMetadata.stablecoins
-				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
-				: Promise.resolve(null),
-			!currentChainMetadata.inflows ? Promise.resolve(null) : getBridgeChainNetInflows(currentChainMetadata.name),
-			!currentChainMetadata.chainActiveUsers
-				? Promise.resolve(null)
-				: fetchAdapterChainMetrics({
-						chain: currentChainMetadata.name,
-						adapterType: 'active-users'
-					}).then((data) => data?.total24h ?? null),
-			!currentChainMetadata.txCount
-				? Promise.resolve(null)
-				: fetchAdapterChainMetrics({
-						chain: currentChainMetadata.name,
-						adapterType: 'active-users',
-						dataType: 'dailyTransactionsCount'
-					}).then((data) => data?.total24h ?? null),
-			!currentChainMetadata.chainNewUsers
-				? Promise.resolve(null)
-				: fetchAdapterChainMetrics({
-						chain: currentChainMetadata.name,
-						adapterType: 'new-users'
-					}).then((data) => data?.total24h ?? null),
-			fetchRaises(),
-			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
-			currentChainMetadata.gecko_id
-				? fetchCoinGeckoCoinById(currentChainMetadata.gecko_id)
-				: Promise.resolve({} as CoinGeckoCoinDetailResult),
-			chain && chain !== 'All'
-				? fetchJson<Record<string, number>>(`https://defillama-datasets.llama.fi/temp/chainNfts`)
-				: Promise.resolve(null),
-			fetchChainsAssets()
-				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
-				.catch(() => null),
-			currentChainMetadata.revenue && chain !== 'All'
-				? fetchAdapterChainMetrics({
-						adapterType: 'fees',
-						chain: currentChainMetadata.name,
-						dataType: 'dailyAppRevenue'
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.fees && chain !== 'All'
-				? fetchAdapterChainMetrics({
-						adapterType: 'fees',
-						chain: currentChainMetadata.name,
-						dataType: 'dailyAppFees'
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.chainFees
-				? fetchAdapterProtocolMetrics({
-						adapterType: 'fees',
-						protocol: currentChainMetadata.name
-					})
-				: Promise.resolve(null),
-			currentChainMetadata.chainRevenue
-				? fetchAdapterProtocolMetrics({
-						adapterType: 'fees',
-						protocol: currentChainMetadata.name,
-						dataType: 'dailyRevenue'
-					})
-				: Promise.resolve(null),
-			shouldFetchPerps
-				? fetchAdapterChainMetrics({
-						adapterType: 'derivatives',
-						chain: currentChainMetadata.name
-					})
-				: Promise.resolve(null),
-			fetchCexVolume(),
-			chain === 'All'
-				? getETFData()
-						.then((data) => {
-							const recentFlows = Object.entries(data.flows)
-								.slice(-14)
-								.map((item) => [
-									+item[0] * 1000,
-									Object.entries(item[1]).reduce((acc, curr) => {
-										if (curr[0] !== 'date') {
-											acc += curr[1]
-										}
-										return acc
-									}, 0)
-								])
-							return recentFlows
+			timePhase('chain_chart', () =>
+				fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {
+					console.log(err)
+					return {
+						tvl: [],
+						staking: [],
+						borrowed: [],
+						pool2: [],
+						vesting: [],
+						offers: [],
+						doublecounted: [],
+						liquidstaking: [],
+						dcAndLsOverlap: []
+					}
+				})
+			),
+			timePhase('protocols_by_chain', () =>
+				getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset, shouldFetchDexs })
+			),
+			timePhase('stablecoins', () =>
+				currentChainMetadata.stablecoins
+					? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
+					: Promise.resolve(null)
+			),
+			timePhase('inflows', () =>
+				!currentChainMetadata.inflows ? Promise.resolve(null) : getBridgeChainNetInflows(currentChainMetadata.name)
+			),
+			timePhase('active_users', () =>
+				!currentChainMetadata.chainActiveUsers
+					? Promise.resolve(null)
+					: fetchAdapterChainMetrics({
+							chain: currentChainMetadata.name,
+							adapterType: 'active-users'
+						}).then((data) => data?.total24h ?? null)
+			),
+			timePhase('transactions', () =>
+				!currentChainMetadata.txCount
+					? Promise.resolve(null)
+					: fetchAdapterChainMetrics({
+							chain: currentChainMetadata.name,
+							adapterType: 'active-users',
+							dataType: 'dailyTransactionsCount'
+						}).then((data) => data?.total24h ?? null)
+			),
+			timePhase('new_users', () =>
+				!currentChainMetadata.chainNewUsers
+					? Promise.resolve(null)
+					: fetchAdapterChainMetrics({
+							chain: currentChainMetadata.name,
+							adapterType: 'new-users'
+						}).then((data) => data?.total24h ?? null)
+			),
+			timePhase('raises', () => fetchRaises()),
+			timePhase('treasuries', () => (chain === 'All' ? Promise.resolve(null) : fetchTreasuries())),
+			timePhase('coingecko', () =>
+				currentChainMetadata.gecko_id
+					? fetchCoinGeckoCoinById(currentChainMetadata.gecko_id)
+					: Promise.resolve({} as CoinGeckoCoinDetailResult)
+			),
+			timePhase('nft_volumes', () =>
+				chain && chain !== 'All'
+					? fetchJson<Record<string, number>>(`https://defillama-datasets.llama.fi/temp/chainNfts`)
+					: Promise.resolve(null)
+			),
+			timePhase('chain_assets', () =>
+				fetchChainsAssets()
+					.then((assets) => (chain !== 'All' ? (assets[currentChainMetadata.name] ?? null) : null))
+					.catch(() => null)
+			),
+			timePhase('app_revenue', () =>
+				currentChainMetadata.revenue && chain !== 'All'
+					? fetchAdapterChainMetrics({
+							adapterType: 'fees',
+							chain: currentChainMetadata.name,
+							dataType: 'dailyAppRevenue'
 						})
-						.catch(() => null)
-				: Promise.resolve(null),
-			chain === 'All' ? fetchHomepageUnlocksSummary() : Promise.resolve(null),
-			currentChainMetadata.incentives && chain !== 'All'
-				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
-				: Promise.resolve(null),
-			chain === 'All' ? getDATInflows() : Promise.resolve(null),
-			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
-			chain !== 'All'
-				? fetchLlamaConfig()
-						.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
-						.catch(() => null)
-				: Promise.resolve(null)
+					: Promise.resolve(null)
+			),
+			timePhase('app_fees', () =>
+				currentChainMetadata.fees && chain !== 'All'
+					? fetchAdapterChainMetrics({
+							adapterType: 'fees',
+							chain: currentChainMetadata.name,
+							dataType: 'dailyAppFees'
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('chain_fees', () =>
+				currentChainMetadata.chainFees
+					? fetchAdapterProtocolMetrics({
+							adapterType: 'fees',
+							protocol: currentChainMetadata.name
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('chain_revenue', () =>
+				currentChainMetadata.chainRevenue
+					? fetchAdapterProtocolMetrics({
+							adapterType: 'fees',
+							protocol: currentChainMetadata.name,
+							dataType: 'dailyRevenue'
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('perps', () =>
+				shouldFetchPerps
+					? fetchAdapterChainMetrics({
+							adapterType: 'derivatives',
+							chain: currentChainMetadata.name
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('cex_volume', () => fetchCexVolume()),
+			timePhase('etf_data', () =>
+				chain === 'All'
+					? getETFData()
+							.then((data) => {
+								const recentFlows = Object.entries(data.flows)
+									.slice(-14)
+									.map((item) => [
+										+item[0] * 1000,
+										Object.entries(item[1]).reduce((acc, curr) => {
+											if (curr[0] !== 'date') {
+												acc += curr[1]
+											}
+											return acc
+										}, 0)
+									])
+								return recentFlows
+							})
+							.catch(() => null)
+					: Promise.resolve(null)
+			),
+			timePhase('homepage_unlocks', () => (chain === 'All' ? fetchHomepageUnlocksSummary() : Promise.resolve(null))),
+			timePhase('chain_incentives', () =>
+				currentChainMetadata.incentives && chain !== 'All'
+					? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
+					: Promise.resolve(null)
+			),
+			timePhase('dat_inflows', () => (chain === 'All' ? getDATInflows() : Promise.resolve(null))),
+			timePhase('stablecoin_assets', () =>
+				chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null)
+			),
+			timePhase('chain_stablecoins', () =>
+				chain !== 'All'
+					? fetchLlamaConfig()
+							.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
+							.catch(() => null)
+					: Promise.resolve(null)
+			)
 		])
+		const stopOverviewTransform = phaseTimer?.start('overview_transform')
 
 		const {
 			tvl = [],
@@ -445,7 +490,7 @@ export async function getChainOverviewData({
 
 		const isDataAvailable = charts.length > 0 || protocols.length > 0
 
-		return {
+		const result: IChainOverviewData = {
 			chain,
 			metadata: currentChainMetadata,
 			protocols,
@@ -522,6 +567,8 @@ export async function getChainOverviewData({
 					return { name: coinData?.name ?? coin, url: `/stablecoin/${coin}`, symbol: coinData?.symbol ?? null }
 				}) ?? null
 		}
+		stopOverviewTransform?.()
+		return result
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
 		const errorWithContext = new Error(msg, { cause: error })

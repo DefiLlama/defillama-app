@@ -7,6 +7,7 @@ describe('withPerformanceLogging', () => {
 		vi.restoreAllMocks()
 		vi.resetModules()
 		vi.unstubAllEnvs()
+		vi.unstubAllGlobals()
 	})
 
 	it('jitters numeric getStaticProps revalidate values on props results', async () => {
@@ -97,5 +98,39 @@ describe('withPerformanceLogging', () => {
 			{ params: { cex: 'bybit' } },
 			'overview API failed'
 		)
+	})
+
+	it('records route phase timings as route telemetry attributes', async () => {
+		vi.stubEnv('OPS_TELEMETRY_URL', 'test-ingest-url')
+		vi.stubEnv('OPS_TELEMETRY_TOKEN', 'secret')
+		vi.stubEnv('OPS_TELEMETRY_BATCH_SIZE', '100')
+		vi.stubEnv('OPS_TELEMETRY_QUEUE_MAX', '100')
+		vi.stubEnv('OPS_TELEMETRY_SEND_TIMEOUT_MS', '100')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+		const { createRoutePhaseTimer } = await import('../perf')
+		const { telemetryTest, withStaticRouteTelemetry } = await import('../telemetry')
+
+		try {
+			await withStaticRouteTelemetry('phase-route', async () => {
+				const timer = createRoutePhaseTimer()
+				const stopTotal = timer.start('total')
+				await timer.time('async_phase', async () => 'ok')
+				stopTotal()
+				timer.record()
+				return { props: { ok: true } }
+			})
+
+			const events = fetchMock.mock.calls
+				.filter(([url]) => url === process.env.OPS_TELEMETRY_URL)
+				.flatMap(([, init]) => JSON.parse(String((init as RequestInit).body)).events)
+			const route = events.find((event) => event.type === 'route_execution' && event.route === 'phase-route')
+			expect(route?.attributes?.route_phases_ms).toMatchObject({
+				async_phase: expect.any(Number),
+				total: expect.any(Number)
+			})
+		} finally {
+			telemetryTest.reset()
+		}
 	})
 })
