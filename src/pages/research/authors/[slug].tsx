@@ -240,7 +240,7 @@ function AuthorContent({ slug }: { slug: string }) {
 									<div className="flex items-center gap-2 text-[11px] tracking-wide text-(--text-tertiary) uppercase">
 										<span className="font-jetbrains">Latest</span>
 										<span aria-hidden>·</span>
-										<span>{formatDate(lead.publishedAt)}</span>
+										<span>{formatDate(lead.displayDate ?? lead.publishedAt)}</span>
 										<span aria-hidden>·</span>
 										<span>{readingMinutes(lead)} min read</span>
 									</div>

@@ -76,7 +76,7 @@ function ByLine({ article }: { article: ArticleDocument }) {
 				</span>
 			) : null}
 			{authorEntries?.length ? <span aria-hidden>·</span> : null}
-			<span>{formatDate(article.publishedAt)}</span>
+			<span>{formatDate(article.displayDate ?? article.publishedAt)}</span>
 			<span aria-hidden>·</span>
 			<span>{readingMinutes(article)} min read</span>
 		</div>

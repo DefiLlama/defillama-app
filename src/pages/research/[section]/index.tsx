@@ -160,7 +160,7 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 				</p>
 			) : null}
 			<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
-				{formatDate(article.publishedAt)}
+				{formatDate(article.displayDate ?? article.publishedAt)}
 			</span>
 		</Link>
 	)
@@ -203,7 +203,7 @@ function GenericCard({ article }: { article: ArticleDocument }) {
 						<span aria-hidden>·</span>
 					</>
 				) : null}
-				<span>{formatDate(article.publishedAt)}</span>
+				<span>{formatDate(article.displayDate ?? article.publishedAt)}</span>
 			</span>
 		</Link>
 	)

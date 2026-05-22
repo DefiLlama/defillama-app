@@ -74,7 +74,7 @@ export function ResearchSpotlightColumn({ title, articles, sharedHeight }: Resea
 												{article.title}
 											</div>
 											<div className="text-[12px] font-bold text-[#3A8BFF] dark:text-white/80">
-												{formatDate(article.publishedAt)}
+												{formatDate(article.displayDate ?? article.publishedAt)}
 											</div>
 										</div>
 									</Link>

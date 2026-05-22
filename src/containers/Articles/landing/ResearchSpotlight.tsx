@@ -99,7 +99,7 @@ export const ResearchSpotlight: React.FC<ResearchSpotlightProps> = ({ title, art
 								{article.title}
 							</div>
 							<time className="mt-[10px] hidden text-[14px] font-medium text-[#787878] lg:block dark:text-white">
-								{formatDate(article.publishedAt)}
+								{formatDate(article.displayDate ?? article.publishedAt)}
 							</time>
 						</div>
 					</Link>

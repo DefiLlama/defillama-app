@@ -89,7 +89,7 @@ function ResearchGridWithScrollbarScroller({ articles, pageWidget, onHeightChang
 									{article.title}
 								</div>
 								<div className="mt-[5px] text-[14px] font-medium text-[#787878] dark:text-white/80">
-									{formatDate(article.publishedAt)}
+									{formatDate(article.displayDate ?? article.publishedAt)}
 								</div>
 							</div>
 						</Link>
