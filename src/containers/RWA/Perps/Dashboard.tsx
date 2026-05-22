@@ -1192,42 +1192,33 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		</div>
 	)
 
-	const overviewStatCards = [
-		...(assetClassFilter == null
-			? [
-					{
-						label: d.totalOpenInterest.label,
-						tooltip: d.totalOpenInterest.description,
-						value: formattedNum(displayTotals.openInterest, true),
-						change: displayTotals.openInterestChange24h,
-						changeTooltip: d.openInterestChange24h.description
-					}
-				]
-			: []),
-		{
-			label: d.totalVolume24h.label,
-			tooltip: d.totalVolume24h.description,
-			value: formattedNum(displayTotals.volume24h, true),
-			change: displayTotals.volume24hChange24h,
-			changeTooltip: d.volume24hChange24h.description
-		},
-		...(assetClassFilter == null
-			? [
-					{
-						label: d.totalMarkets.label,
-						tooltip: d.totalMarkets.description,
-						value: formattedNum(displayTotals.markets, false)
-					}
-				]
-			: []),
-		{
-			label: d.estimatedProtocolFees24h.label,
-			tooltip: d.estimatedProtocolFees24h.description,
-			value: formattedNum(displayTotals.protocolFees24h, true)
-		}
-	]
 	const statCards = isOverviewMode
-		? overviewStatCards
+		? [
+				{
+					label: d.totalOpenInterest.label,
+					tooltip: d.totalOpenInterest.description,
+					value: formattedNum(displayTotals.openInterest, true),
+					change: displayTotals.openInterestChange24h,
+					changeTooltip: d.openInterestChange24h.description
+				},
+				{
+					label: d.totalVolume24h.label,
+					tooltip: d.totalVolume24h.description,
+					value: formattedNum(displayTotals.volume24h, true),
+					change: displayTotals.volume24hChange24h,
+					changeTooltip: d.volume24hChange24h.description
+				},
+				{
+					label: d.totalMarkets.label,
+					tooltip: d.totalMarkets.description,
+					value: formattedNum(displayTotals.markets, false)
+				},
+				{
+					label: d.estimatedProtocolFees24h.label,
+					tooltip: d.estimatedProtocolFees24h.description,
+					value: formattedNum(displayTotals.protocolFees24h, true)
+				}
+			]
 		: [
 				{
 					label: d.openInterest.label,
