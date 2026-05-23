@@ -209,6 +209,7 @@ interface MessageMetadataEvent {
 		outputTokens?: number
 		executionTimeMs?: number
 		x402CostUsd?: string
+		completionReason?: string
 	}
 }
 

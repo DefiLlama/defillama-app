@@ -1,9 +1,12 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { Tooltip } from '~/components/Tooltip'
+import { useClearUnseenCompletion } from '~/containers/LlamaAI/hooks/useClearUnseenCompletion'
+import type { ChatSession } from '~/containers/LlamaAI/types'
 import { AddSourcesMenu } from './AddSourcesMenu'
 import { CreateProjectModal } from './CreateProjectModal'
 import { DeleteProjectModal } from './DeleteProjectModal'
@@ -30,6 +33,7 @@ interface ProjectLandingProps {
 	projectId: string
 	tier: ProjectTier
 	initialTab?: 'chats' | 'sources'
+	sessionList?: ChatSession[]
 	onSubmit: (prompt: string) => void
 	isStreaming: boolean
 	onPickSession: (sessionId: string) => void
@@ -40,6 +44,7 @@ export function ProjectLanding({
 	projectId,
 	tier,
 	initialTab = 'chats',
+	sessionList = [],
 	onSubmit,
 	isStreaming,
 	onPickSession,
@@ -51,9 +56,19 @@ export function ProjectLanding({
 	const projectSessions = useProjectSessions(projectId)
 	const renameStore = Ariakit.useDialogStore()
 	const deleteStore = Ariakit.useDialogStore()
+	const clearUnseenCompletion = useClearUnseenCompletion()
 	const tab = initialTab
 	const [prompt, setPrompt] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const sessionById = useMemo(() => new Map(sessionList.map((session) => [session.sessionId, session])), [sessionList])
+	const sessions = useMemo(
+		() =>
+			(projectSessions.data ?? []).map((session) => ({
+				...session,
+				hasUnseenCompletion: session.hasUnseenCompletion ?? sessionById.get(session.sessionId)?.hasUnseenCompletion
+			})),
+		[projectSessions.data, sessionById]
+	)
 
 	useEffect(() => {
 		const el = textareaRef.current
@@ -99,6 +114,11 @@ export function ProjectLanding({
 		setPrompt('')
 	}
 
+	const handlePickSession = (session: (typeof sessions)[number]) => {
+		if (session.hasUnseenCompletion) clearUnseenCompletion(session.sessionId, projectId)
+		onPickSession(session.sessionId)
+	}
+
 	const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === 'Enter' && e.shiftKey !== enterToSend && !e.nativeEvent.isComposing) {
 			e.preventDefault()
@@ -121,7 +141,6 @@ export function ProjectLanding({
 	const projectFileLimit = usage.data?.limits.project_files ?? null
 	const projectBytesUsed = project.data.total_bytes ?? 0
 	const projectFileCount = project.data.file_count ?? 0
-	const sessions = projectSessions.data ?? []
 	const connectGithubQuery = router.query.connectGithub
 	const connectGithubValue = Array.isArray(connectGithubQuery) ? connectGithubQuery[0] : connectGithubQuery
 
@@ -257,10 +276,20 @@ export function ProjectLanding({
 										<li key={s.sessionId}>
 											<button
 												type="button"
-												onClick={() => onPickSession(s.sessionId)}
+												onClick={() => handlePickSession(s)}
 												className="group/row -mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-[#f6f6f7] dark:hover:bg-[#161718]"
 											>
-												<span className="min-w-0 flex-1 truncate text-[13px]">{s.title || 'Untitled chat'}</span>
+												<span className="flex min-w-0 flex-1 items-center gap-1.5">
+													{s.hasUnseenCompletion ? (
+														<Tooltip content="New response ready">
+															<span
+																className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--old-blue)"
+																aria-label="Unseen completion"
+															/>
+														</Tooltip>
+													) : null}
+													<span className="min-w-0 flex-1 truncate text-[13px]">{s.title || 'Untitled chat'}</span>
+												</span>
 												<span className="shrink-0 text-xs text-[#999] tabular-nums dark:text-[#555]">
 													{relativeTime(s.lastActivity ?? s.createdAt)}
 												</span>

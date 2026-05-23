@@ -20,6 +20,7 @@ import {
 	TOOL_ICONS,
 	useHackerMode
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TrialUpgradeCard } from '~/containers/LlamaAI/components/TrialUpgradeCard'
 import {
 	parseMessageToRenderModel,
 	type ArtifactRecord,
@@ -585,18 +586,30 @@ function InlineContent({
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
 				<>
-					<FrozenTodoChecklist toolExecutions={toolExecutions} />
+					<FrozenTodoChecklist
+						toolExecutions={toolExecutions}
+						completionReason={message.messageMetadata?.completionReason}
+					/>
 					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
 				</>
 			) : null}
+
+			{message.upgradeOffer ? <TrialUpgradeCard offer={message.upgradeOffer} /> : null}
 		</div>
 	)
 }
 
-function FrozenTodoChecklist({ toolExecutions }: { toolExecutions: ToolExecution[] }) {
+function FrozenTodoChecklist({
+	toolExecutions,
+	completionReason
+}: {
+	toolExecutions: ToolExecution[]
+	completionReason?: string
+}) {
 	const todos = useMemo(() => deriveTodosFromToolExecutions(toolExecutions), [toolExecutions])
 	if (todos.length === 0) return null
-	return <TodoChecklistPanel todos={todos} />
+	const interrupted = !!completionReason && completionReason !== 'natural'
+	return <TodoChecklistPanel todos={todos} interrupted={interrupted} />
 }
 
 const formatStepDuration = (ms: number): string => {

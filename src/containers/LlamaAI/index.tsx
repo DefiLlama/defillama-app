@@ -83,7 +83,8 @@ import type {
 	DashboardItem,
 	Message,
 	TodoItem,
-	ToolExecution
+	ToolExecution,
+	UpgradeOffer
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
 import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
@@ -95,6 +96,7 @@ import { useLlamaAINavigate, useProjectHomeSignal } from '~/contexts/LlamaAINavi
 import { useLlamaAIRouteContext } from '~/contexts/LlamaAIRouteState'
 import { useOptionalSessionAliases } from '~/contexts/SessionAliasRegistry'
 import { useMedia } from '~/hooks/useMedia'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import {
 	isSameAgenticRouteTransition,
 	shouldSkipCurrentSessionRouteRestore,
@@ -146,7 +148,13 @@ interface PersistedMessage {
 	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
-	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
+	messageMetadata?: {
+		inputTokens?: number
+		outputTokens?: number
+		executionTimeMs?: number
+		x402CostUsd?: string
+		completionReason?: string
+	}
 	messageId?: string
 	parentId?: string
 	siblingInfo?: Message['siblingInfo']
@@ -201,6 +209,36 @@ interface UsageLimitError extends Error {
 	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
 	details?: Partial<RateLimitDetails>
 	upgradeUrl?: string
+}
+
+const FREE_LIMIT_CODES = ['FREE_QUESTION_LIMIT', 'FREE_FORM_LIMIT', 'FREE_DAILY_LIMIT'] as const
+
+type FreeLimitError = UsageLimitError & { code: UpgradeOffer['code'] }
+
+function isFreeLimitError(err: UsageLimitError | null | undefined): err is FreeLimitError {
+	return !!err?.code && (FREE_LIMIT_CODES as readonly string[]).includes(err.code)
+}
+
+function buildFreeLimitMessage(err: FreeLimitError): Message {
+	const isDaily = err.code === 'FREE_DAILY_LIMIT'
+	let content = isDaily ? "You've reached today's free question limit." : "You've reached your free question limit."
+	if (err.details?.resetTime) {
+		const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
+		if (resetMs > 0) {
+			const hours = Math.floor(resetMs / 3600000)
+			const minutes = Math.floor((resetMs % 3600000) / 60000)
+			const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
+			content += ` Resets in ${timeStr}.`
+		}
+	}
+	return {
+		role: 'assistant',
+		content,
+		upgradeOffer: {
+			code: err.code,
+			resetTime: err.details?.resetTime ?? null
+		}
+	}
 }
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'branch' | 'idle'
@@ -2156,22 +2194,8 @@ export function AgenticChat({
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (
-								err?.code === 'FREE_QUESTION_LIMIT' ||
-								err?.code === 'FREE_FORM_LIMIT' ||
-								err?.code === 'FREE_DAILY_LIMIT'
-							) {
-								let msg = err.message || "You've reached the free question limit. Subscribe for unlimited access."
-								if (err.details?.resetTime) {
-									const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
-									if (resetMs > 0) {
-										const hours = Math.floor(resetMs / 3600000)
-										const minutes = Math.floor((resetMs % 3600000) / 60000)
-										const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
-										msg += `\n\nResets in ${timeStr}.`
-									}
-								}
-								appendMessage({ role: 'assistant', content: msg })
+							if (isFreeLimitError(err)) {
+								appendMessage(buildFreeLimitMessage(err))
 								dispatchStream({ type: 'RESET_STREAM' })
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
@@ -2436,6 +2460,14 @@ export function AgenticChat({
 						return
 					}
 				}
+				if (isFreeLimitError(editError)) {
+					setMessages(messagesSnapshot)
+					setActiveLeafMessageId(activeLeafSnapshot)
+					appendMessage(buildFreeLimitMessage(editError))
+					dispatchStream({ type: 'RESET_STREAM' })
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+					return
+				}
 				setMessages(messagesSnapshot)
 				setActiveLeafMessageId(activeLeafSnapshot)
 				setViewError(getErrorMessage(editError))
@@ -2573,15 +2605,38 @@ export function AgenticChat({
 	)
 
 	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
+	const deepLinkPrompt = route.kind === 'chat-new' ? route.initialPrompt?.trim() || undefined : undefined
+	const deepLinkUtmSource = typeof router.query.utm_source === 'string' ? router.query.utm_source : null
+	const deepLinkUtmCampaign = typeof router.query.utm_campaign === 'string' ? router.query.utm_campaign : null
+	const deepLinkConsumedKeyRef = useRef<string | null>(null)
+
 	useEffect(() => {
 		if (route.kind !== 'chat-new' || sharedSession) return
+
+		// Shareable deep link (/ai/chat?prompt=...): hold until the account is verified,
+		// then submit once and strip the param so a reload/back can't re-run it.
+		if (deepLinkPrompt) {
+			if (!user?.verified) return
+			const deepLinkKey = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+			if (deepLinkConsumedKeyRef.current === deepLinkKey) return
+			deepLinkConsumedKeyRef.current = deepLinkKey
+			trackUmamiEvent('llamaai-deeplink-run', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+			void navigate.refineCurrent('/ai/chat')
+			submitPendingPromptEvent(deepLinkPrompt)
+			return
+		}
+
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		const isSuggested = consumePendingSuggestedFlag()
 		if (pendingPrompt) {
 			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
 		}
-	}, [route.kind, sharedSession])
+	}, [route.kind, deepLinkPrompt, deepLinkUtmSource, deepLinkUtmCampaign, user?.verified, sharedSession, navigate])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
 	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
@@ -2699,6 +2754,7 @@ export function AgenticChat({
 						<ProjectLanding
 							projectId={route.projectId}
 							tier={projectTier}
+							sessionList={sessions}
 							initialTab={route.initialTab}
 							onSubmit={api.handleSubmit}
 							isStreaming={api.isStreaming}
@@ -2984,9 +3040,7 @@ export function AgenticChat({
 						<TextSelectionPopup
 							onSelect={(text) => {
 								setQuotedText(text)
-								requestAnimationFrame(() => {
-									promptInputRef.current?.focus()
-								})
+								promptInputRef.current?.focus()
 							}}
 						/>
 					) : null}

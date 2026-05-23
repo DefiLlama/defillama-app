@@ -81,6 +81,21 @@ export function WelcomeOnboarding() {
 		}
 	}, [isAuthenticated, hasActiveSubscription, loaders.userLoading, queryClient])
 
+	const trialActivationFiredRef = useRef(false)
+	useEffect(() => {
+		if (trialActivationFiredRef.current || !hasActiveSubscription) return
+		try {
+			const raw = sessionStorage.getItem('llamaai_checkout')
+			if (!raw) return
+			sessionStorage.removeItem('llamaai_checkout')
+			const marker = JSON.parse(raw) as { variant?: string; ts?: number }
+			if (marker.ts && Date.now() - marker.ts < 60 * 60 * 1000) {
+				trialActivationFiredRef.current = true
+				trackUmamiEvent('llamaai-trial-activated', { variant: marker.variant ?? 'trial' })
+			}
+		} catch {}
+	}, [hasActiveSubscription])
+
 	const toggleFeature = useCallback((id: string) => {
 		setSelectedFeatures((prev) => {
 			if (prev.has(id)) {
