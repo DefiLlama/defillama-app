@@ -2752,6 +2752,7 @@ export function AgenticChat({
 						<ProjectLanding
 							projectId={route.projectId}
 							tier={projectTier}
+							sessionList={sessions}
 							initialTab={route.initialTab}
 							onSubmit={api.handleSubmit}
 							isStreaming={api.isStreaming}
