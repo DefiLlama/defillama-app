@@ -37,6 +37,7 @@ function createPayload(overrides: Partial<CoreMetadataPayload> = {}): CoreMetada
 		tokenDirectory: { aave: { name: 'Aave', symbol: 'AAVE' } },
 		protocolDisplayNames: { aave: 'Aave' },
 		chainDisplayNames: { ethereum: 'Ethereum' },
+		chainCategories: ['EVM'],
 		liquidationsTokenSymbols: ['ETH'],
 		emissionsProtocolsList: ['aave'],
 		emissionsSupplyMetrics: {},
@@ -75,6 +76,7 @@ describe('metadata artifact contract', () => {
 		expect(metadata.protocolMetadata['parent#aave'].displayName).toBe('Aave')
 		expect(metadata.protocolDisplayNames.get('aave')).toBe('Aave')
 		expect(metadata.chainDisplayNames.get('ethereum')).toBe('Ethereum')
+		expect(metadata.chainCategories).toEqual(['EVM'])
 		expect(metadata.liquidationsTokenSymbolsSet.has('ETH')).toBe(true)
 	})
 

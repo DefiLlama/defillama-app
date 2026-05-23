@@ -24,6 +24,7 @@ export type CoreMetadataPayload = {
 	tokenDirectory: TokenDirectory
 	protocolDisplayNames: Record<string, string>
 	chainDisplayNames: Record<string, string>
+	chainCategories: string[]
 	liquidationsTokenSymbols: string[]
 	emissionsProtocolsList: string[]
 	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
@@ -46,6 +47,7 @@ export type MetadataCache = {
 	tokenDirectory: TokenDirectory
 	protocolDisplayNames: Map<string, string>
 	chainDisplayNames: Map<string, string>
+	chainCategories: string[]
 	liquidationsTokenSymbols: string[]
 	liquidationsTokenSymbolsSet: Set<string>
 	emissionsProtocolsList: string[]
@@ -69,6 +71,7 @@ export const METADATA_ARTIFACT_FILES = {
 	tokenDirectory: 'tokens.json',
 	protocolDisplayNames: 'protocolDisplayNames.json',
 	chainDisplayNames: 'chainDisplayNames.json',
+	chainCategories: 'chainCategories.json',
 	liquidationsTokenSymbols: 'liquidationsTokenSymbols.json',
 	emissionsProtocolsList: 'emissionsProtocolsList.json',
 	emissionsSupplyMetrics: 'emissionsSupplyMetrics.json',
@@ -91,6 +94,7 @@ export const METADATA_CI_STUBS = {
 	tokenDirectory: {},
 	protocolDisplayNames: {},
 	chainDisplayNames: {},
+	chainCategories: [],
 	liquidationsTokenSymbols: [],
 	emissionsProtocolsList: [],
 	emissionsSupplyMetrics: {},
@@ -123,6 +127,7 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 		tokenDirectory: payload.tokenDirectory,
 		protocolDisplayNames: createStringLookupMap(payload.protocolDisplayNames),
 		chainDisplayNames: createChainDisplayNameMap(payload),
+		chainCategories: payload.chainCategories,
 		liquidationsTokenSymbols: payload.liquidationsTokenSymbols,
 		liquidationsTokenSymbolsSet: new Set(payload.liquidationsTokenSymbols),
 		emissionsProtocolsList: payload.emissionsProtocolsList,
@@ -148,6 +153,7 @@ export function applyMetadataRefresh(metadataCache: MetadataCache, payload: Core
 	metadataCache.protocolDisplayNames = createStringLookupMap(payload.protocolDisplayNames)
 	metadataCache.chainMetadata = payload.chains
 	metadataCache.chainDisplayNames = createChainDisplayNameMap(payload)
+	metadataCache.chainCategories = payload.chainCategories
 	metadataCache.categoriesAndTags = payload.categoriesAndTags
 	metadataCache.cexs = payload.cexs
 	metadataCache.rwaList = payload.rwaList

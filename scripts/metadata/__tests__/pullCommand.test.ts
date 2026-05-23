@@ -42,6 +42,7 @@ function createPayload(): CoreMetadataPayload {
 		tokenDirectory: {},
 		protocolDisplayNames: { aave: 'Aave' },
 		chainDisplayNames: { ethereum: 'Ethereum' },
+		chainCategories: ['EVM'],
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
 		emissionsSupplyMetrics: {},

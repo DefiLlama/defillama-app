@@ -22,6 +22,7 @@ vi.mock('../../../.cache/app-metadata/categoriesAndTags.json', () => ({
 }))
 vi.mock('../../../.cache/app-metadata/cexs.json', () => ({ default: [] }))
 vi.mock('../../../.cache/app-metadata/cgExchangeIdentifiers.json', () => ({ default: [] }))
+vi.mock('../../../.cache/app-metadata/chainCategories.json', () => ({ default: [] }))
 vi.mock('../../../.cache/app-metadata/chainDisplayNames.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/chains.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/emissionsHistoricalPrices.json', () => ({ default: {} }))
@@ -104,6 +105,7 @@ function createMetadataPayload(overrides: Partial<CoreMetadataPayload> = {}): Co
 		chainDisplayNames: {
 			ethereum: 'Ethereum'
 		},
+		chainCategories: [],
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
 		emissionsSupplyMetrics: {},

@@ -44,6 +44,7 @@ function createPayload(): CoreMetadataPayload {
 		tokenDirectory: {},
 		protocolDisplayNames: {},
 		chainDisplayNames: {},
+		chainCategories: [],
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
 		emissionsSupplyMetrics: {},

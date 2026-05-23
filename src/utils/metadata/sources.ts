@@ -24,6 +24,7 @@ export type CoreMetadataSources = {
 	protocols: Record<string, IProtocolMetadata>
 	chains: Record<string, IChainMetadata>
 	categoriesAndTags: ICategoriesAndTags
+	chainCategories: string[]
 	cexsResponse: RawCexsResponse
 	rwaList: IRWAList
 	rwaPerpsList: IRWAPerpsList
@@ -54,6 +55,7 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		protocols,
 		chains,
 		categoriesAndTags,
+		chainCategoriesResponse,
 		cexsResponse,
 		rwaList,
 		rwaPerpsList,
@@ -78,6 +80,10 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		fetchNamedMetadataSource(
 			'categories and tags API',
 			fetchMetadataJson<ICategoriesAndTags>(`${coreApiBase}/config/smol/appMetadata-categoriesAndTags.json?zz=16`)
+		),
+		fetchNamedMetadataSource(
+			'chain categories API',
+			fetchMetadataJson<{ categories: string[] }>(`${coreApiBase}/chains2`)
 		),
 		fetchNamedMetadataSource('CEX metadata API', fetchMetadataJson<RawCexsResponse>(`${coreApiBase}/cexs?zz=16`)),
 		fetchNamedMetadataSource(
@@ -119,6 +125,7 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		protocols,
 		chains,
 		categoriesAndTags,
+		chainCategories: chainCategoriesResponse.categories,
 		cexsResponse,
 		rwaList,
 		rwaPerpsList,

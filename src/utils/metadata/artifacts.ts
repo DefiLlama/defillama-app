@@ -5,6 +5,7 @@ import bridgeProtocolSlugsRaw from '../../../.cache/app-metadata/bridgeProtocolS
 import categoriesAndTags from '../../../.cache/app-metadata/categoriesAndTags.json'
 import cexs from '../../../.cache/app-metadata/cexs.json'
 import cgExchangeIdentifiersRaw from '../../../.cache/app-metadata/cgExchangeIdentifiers.json'
+import chainCategoriesRaw from '../../../.cache/app-metadata/chainCategories.json'
 import chainDisplayNamesRaw from '../../../.cache/app-metadata/chainDisplayNames.json'
 import chainMetadata from '../../../.cache/app-metadata/chains.json'
 import emissionsHistoricalPricesRaw from '../../../.cache/app-metadata/emissionsHistoricalPrices.json'
@@ -40,6 +41,7 @@ const artifactPayload: CoreMetadataPayload = {
 	tokenDirectory: tokenDirectoryRaw as TokenDirectory,
 	protocolDisplayNames: protocolDisplayNamesRaw as Record<string, string>,
 	chainDisplayNames: chainDisplayNamesRaw as Record<string, string>,
+	chainCategories: chainCategoriesRaw as string[],
 	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
 	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
 	emissionsSupplyMetrics: emissionsSupplyMetricsRaw,
