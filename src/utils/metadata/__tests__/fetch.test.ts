@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { fetchCoreMetadataSourcesMock, fetchMetadataJsonMock } = vi.hoisted(() => ({
+const { fetchCoreMetadataSourcesMock, fetchMetadataJsonMock, fetchMetadataRouteIndexesMock } = vi.hoisted(() => ({
 	fetchCoreMetadataSourcesMock: vi.fn(),
-	fetchMetadataJsonMock: vi.fn()
+	fetchMetadataJsonMock: vi.fn(),
+	fetchMetadataRouteIndexesMock: vi.fn()
 }))
 
 vi.mock('../sources', () => ({
@@ -11,6 +12,10 @@ vi.mock('../sources', () => ({
 
 vi.mock('../http', () => ({
 	fetchMetadataJson: fetchMetadataJsonMock
+}))
+
+vi.mock('../routeIndexes', () => ({
+	fetchMetadataRouteIndexes: fetchMetadataRouteIndexesMock
 }))
 
 function createCoreMetadataSources(overrides: Record<string, unknown> = {}) {
@@ -85,6 +90,13 @@ describe('fetchCoreMetadata', () => {
 		vi.resetModules()
 		fetchCoreMetadataSourcesMock.mockReset()
 		fetchMetadataJsonMock.mockReset()
+		fetchMetadataRouteIndexesMock.mockReset()
+		fetchMetadataRouteIndexesMock.mockResolvedValue({
+			narrativeCategories: { ids: ['ai'], nameById: { ai: 'AI' } },
+			oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
+			digitalAssetTreasuryRoutes: { assetSlugs: ['bitcoin'], companySlugs: ['mstr'] },
+			stablecoinPeggedAssetSlugs: ['tether']
+		})
 	})
 
 	it('returns the core metadata payload shape from upstream sources', async () => {
@@ -103,6 +115,9 @@ describe('fetchCoreMetadata', () => {
 		expect(payload.emissionsProtocolsList).toEqual(['aave'])
 		expect(payload.emissionsSupplyMetrics).toEqual({})
 		expect(payload.emissionsHistoricalPrices).toEqual({})
+		expect(payload.narrativeCategories.ids).toEqual(['ai'])
+		expect(payload.digitalAssetTreasuryRoutes.assetSlugs).toEqual(['bitcoin'])
+		expect(payload.stablecoinPeggedAssetSlugs).toEqual(['tether'])
 		expect(fetchMetadataJsonMock).not.toHaveBeenCalled()
 	})
 

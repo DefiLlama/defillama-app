@@ -12,6 +12,12 @@ export const getStaticProps = withPerformanceLogging('category-performance', asy
 	if (typeof categoryId !== 'string' || categoryId.length === 0) {
 		return { notFound: true }
 	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	if (metadataCache.narrativeCategoryIdsSet.size > 0 && !metadataCache.narrativeCategoryIdsSet.has(categoryId)) {
+		return { notFound: true }
+	}
+
 	const data = await getCoinPerformance(categoryId)
 
 	return {
@@ -34,11 +40,13 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const info = await getCategoryInfo()
-
-	const paths = info.map((i) => ({
-		params: { category: i.id.toString() }
-	}))
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const paths =
+		metadataCache.narrativeCategories.ids.length > 0
+			? metadataCache.narrativeCategories.ids.map((id) => ({ params: { category: id } }))
+			: (await getCategoryInfo()).map((i) => ({
+					params: { category: i.id.toString() }
+				}))
 
 	return { paths, fallback: 'blocking' }
 }

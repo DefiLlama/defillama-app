@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type { LiquidationsChainShell } from '~/containers/LiquidationsV2/api.types'
 import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsChainRouteContent } from '~/containers/LiquidationsV2/RouteContent'
@@ -29,7 +28,8 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolParam = slug(params.protocol)
 		const chainParam = slug(params.chain)
 
-		const protocolsResponse = await fetchProtocolsList()
+		const { getLiquidationsProtocolsList } = await import('~/server/datasetCache/runtime/liquidations')
+		const protocolsResponse = await getLiquidationsProtocolsList()
 		if (!protocolsResponse.protocols.includes(protocolParam)) {
 			return { notFound: true }
 		}

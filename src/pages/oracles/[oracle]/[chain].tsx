@@ -15,8 +15,27 @@ export const getStaticProps = withPerformanceLogging('oracles/[oracle]/[chain]',
 		return { notFound: true }
 	}
 
-	const oracle = Array.isArray(params.oracle) ? params.oracle[0] : params.oracle
-	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
+	let oracle = Array.isArray(params.oracle) ? params.oracle[0] : params.oracle
+	let chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const oracleRoutes = metadataCache.oracleRoutes
+	const oracleSlug = slug(oracle)
+	const canonicalOracle = oracleRoutes.oracleNameBySlug[oracleSlug]
+	if (canonicalOracle) {
+		const chainSlug = slug(chain)
+		const validChainSlugs = oracleRoutes.chainSlugsByOracleSlug[oracleSlug] ?? []
+		if (!validChainSlugs.includes(chainSlug)) {
+			return { notFound: true }
+		}
+
+		oracle = canonicalOracle
+		chain = oracleRoutes.chainNameBySlug[chainSlug] ?? chain
+	} else {
+		for (const routeOracleSlug in oracleRoutes.oracleNameBySlug) {
+			if (routeOracleSlug) return { notFound: true }
+		}
+	}
+
 	const data = await getOracleDetailPageData({ oracle, chain })
 
 	if (!data) {

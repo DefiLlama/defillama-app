@@ -1,6 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type { LiquidationsProtocolShell } from '~/containers/LiquidationsV2/api.types'
 import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsProtocolRouteContent } from '~/containers/LiquidationsV2/RouteContent'
@@ -17,7 +16,8 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const protocolsResponse = await fetchProtocolsList()
+	const { getLiquidationsProtocolsList } = await import('~/server/datasetCache/runtime/liquidations')
+	const protocolsResponse = await getLiquidationsProtocolsList()
 
 	return {
 		paths: protocolsResponse.protocols.map((protocolId) => {
@@ -40,7 +40,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolParam = slug(params.protocol)
 
-		const protocolsResponse = await fetchProtocolsList()
+		const { getLiquidationsProtocolsList } = await import('~/server/datasetCache/runtime/liquidations')
+		const protocolsResponse = await getLiquidationsProtocolsList()
 		if (!protocolsResponse.protocols.includes(protocolParam)) {
 			return { notFound: true }
 		}

@@ -14,7 +14,16 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const props = await getDATCompanyData(params.company)
+		const company = slug(params.company)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		if (
+			metadataCache.digitalAssetTreasuryCompanySlugsSet.size > 0 &&
+			!metadataCache.digitalAssetTreasuryCompanySlugsSet.has(company)
+		) {
+			return { notFound: true }
+		}
+
+		const props = await getDATCompanyData(company)
 
 		if (!props) {
 			return { notFound: true }
@@ -35,7 +44,11 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const slugs = await getDATCompanyPaths()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const slugs =
+		metadataCache.digitalAssetTreasuryRoutes.companySlugs.length > 0
+			? metadataCache.digitalAssetTreasuryRoutes.companySlugs
+			: await getDATCompanyPaths()
 	const paths = slugs.map((company) => ({ params: { company } }))
 	return { paths, fallback: false }
 }

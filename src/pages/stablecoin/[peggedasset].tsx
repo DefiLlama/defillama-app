@@ -21,7 +21,16 @@ export const getStaticProps = withPerformanceLogging<PeggedAssetPageProps>(
 			return { notFound: true }
 		}
 
-		const data = await getStablecoinAssetPageData(peggedasset)
+		const peggedAssetSlug = slug(peggedasset)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		if (
+			metadataCache.stablecoinPeggedAssetSlugsSet.size > 0 &&
+			!metadataCache.stablecoinPeggedAssetSlugsSet.has(peggedAssetSlug)
+		) {
+			return { notFound: true }
+		}
+
+		const data = await getStablecoinAssetPageData(peggedAssetSlug)
 		if (!data) {
 			return {
 				notFound: true,
@@ -47,11 +56,13 @@ export const getStaticPaths: GetStaticPaths<StablecoinAssetRouteParams> = async 
 		}
 	}
 
-	const res = await fetchStablecoinAssetsApi()
-
-	const paths = res.peggedAssets.map(({ name }) => ({
-		params: { peggedasset: slug(name) }
-	}))
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const paths =
+		metadataCache.stablecoinPeggedAssetSlugs.length > 0
+			? metadataCache.stablecoinPeggedAssetSlugs.map((peggedasset) => ({ params: { peggedasset } }))
+			: (await fetchStablecoinAssetsApi()).peggedAssets.map(({ name }) => ({
+					params: { peggedasset: slug(name) }
+				}))
 
 	return { paths: paths.slice(0, 1), fallback: 'blocking' }
 }

@@ -51,7 +51,11 @@ function createPayload(): CoreMetadataPayload {
 		bridgeProtocolSlugs: [],
 		bridgeChainSlugs: [],
 		bridgeChainSlugToName: {},
-		protocolLlamaswapDataset: {}
+		protocolLlamaswapDataset: {},
+		narrativeCategories: { ids: [], nameById: {} },
+		oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
+		digitalAssetTreasuryRoutes: { assetSlugs: [], companySlugs: [] },
+		stablecoinPeggedAssetSlugs: []
 	}
 }
 

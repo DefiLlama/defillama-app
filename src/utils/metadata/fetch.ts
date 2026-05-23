@@ -8,6 +8,7 @@ import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
 import { fetchMetadataJson } from './http'
 import { extractLiquidationsTokenSymbols } from './liquidations'
+import { fetchMetadataRouteIndexes } from './routeIndexes'
 import { fetchCoreMetadataSources } from './sources'
 import type { IEmissionsHistoricalPrices, ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
 
@@ -73,22 +74,25 @@ export async function fetchCoreMetadata({
 }: {
 	existingProtocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 } = {}): Promise<CoreMetadataPayload> {
-	const {
-		protocols,
-		chains,
-		categoriesAndTags,
-		chainCategories,
-		cexsResponse,
-		rwaList,
-		rwaPerpsList,
-		tokenlistArray,
-		tokenDirectory,
-		liquidationsResponse,
-		bridgesResponse,
-		emissionsProtocolsList,
-		emissionsSupplyMetrics,
-		emissions
-	} = await fetchCoreMetadataSources()
+	const [
+		{
+			protocols,
+			chains,
+			categoriesAndTags,
+			chainCategories,
+			cexsResponse,
+			rwaList,
+			rwaPerpsList,
+			tokenlistArray,
+			tokenDirectory,
+			liquidationsResponse,
+			bridgesResponse,
+			emissionsProtocolsList,
+			emissionsSupplyMetrics,
+			emissions
+		},
+		routeIndexes
+	] = await Promise.all([fetchCoreMetadataSources(), fetchMetadataRouteIndexes()])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -164,6 +168,10 @@ export async function fetchCoreMetadata({
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,
-		protocolLlamaswapDataset
+		protocolLlamaswapDataset,
+		narrativeCategories: routeIndexes.narrativeCategories,
+		oracleRoutes: routeIndexes.oracleRoutes,
+		digitalAssetTreasuryRoutes: routeIndexes.digitalAssetTreasuryRoutes,
+		stablecoinPeggedAssetSlugs: routeIndexes.stablecoinPeggedAssetSlugs
 	}
 }

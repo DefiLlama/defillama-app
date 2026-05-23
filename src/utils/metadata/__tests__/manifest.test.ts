@@ -53,7 +53,11 @@ function createPayload(): CoreMetadataPayload {
 		bridgeProtocolSlugs: [],
 		bridgeChainSlugs: [],
 		bridgeChainSlugToName: {},
-		protocolLlamaswapDataset: {}
+		protocolLlamaswapDataset: {},
+		narrativeCategories: { ids: [], nameById: {} },
+		oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
+		digitalAssetTreasuryRoutes: { assetSlugs: [], companySlugs: [] },
+		stablecoinPeggedAssetSlugs: []
 	}
 }
 
@@ -116,26 +120,25 @@ describe('metadata artifact manifest', () => {
 		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([METADATA_ARTIFACT_FILES.cexs])
 	})
 
-	it('detects current artifacts missing from an older manifest artifact list', async () => {
+	it('checks newly declared artifacts even when an older manifest artifact list omits them', async () => {
 		const cacheDir = await createTempDir()
 		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 123)
-		await fs.rm(path.join(cacheDir, METADATA_ARTIFACT_FILES.emissionsHistoricalPrices))
+		await fs.rm(path.join(cacheDir, METADATA_ARTIFACT_FILES.narrativeCategories))
 		await fs.writeFile(
 			getMetadataManifestPath(cacheDir),
 			JSON.stringify({
 				...createMetadataArtifactManifest('ready', 123),
 				artifacts: Object.values(METADATA_ARTIFACT_FILES).filter(
-					(artifact) => artifact !== METADATA_ARTIFACT_FILES.emissionsHistoricalPrices
+					(artifact) => artifact !== METADATA_ARTIFACT_FILES.narrativeCategories
 				)
 			})
 		)
 		const manifest = await readMetadataArtifactManifest(cacheDir)
 		if (!manifest) throw new Error('missing manifest')
 
+		expect(manifest.artifacts).not.toContain(METADATA_ARTIFACT_FILES.narrativeCategories)
 		expect(await hasMetadataArtifactFiles(cacheDir, manifest)).toBe(false)
-		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([
-			METADATA_ARTIFACT_FILES.emissionsHistoricalPrices
-		])
+		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([METADATA_ARTIFACT_FILES.narrativeCategories])
 	})
 
 	it('treats only fresh ready manifests as pull skips', () => {

@@ -47,6 +47,14 @@ function createPayload(overrides: Partial<CoreMetadataPayload> = {}): CoreMetada
 		bridgeChainSlugs: ['ethereum'],
 		bridgeChainSlugToName: { ethereum: 'Ethereum' },
 		protocolLlamaswapDataset: {},
+		narrativeCategories: { ids: ['ai'], nameById: { ai: 'AI' } },
+		oracleRoutes: {
+			oracleNameBySlug: { chainlink: 'Chainlink' },
+			chainNameBySlug: { ethereum: 'Ethereum' },
+			chainSlugsByOracleSlug: { chainlink: ['ethereum'] }
+		},
+		digitalAssetTreasuryRoutes: { assetSlugs: ['bitcoin'], companySlugs: ['mstr'] },
+		stablecoinPeggedAssetSlugs: ['tether'],
 		...overrides
 	}
 }
@@ -78,6 +86,11 @@ describe('metadata artifact contract', () => {
 		expect(metadata.chainDisplayNames.get('ethereum')).toBe('Ethereum')
 		expect(metadata.chainCategories).toEqual(['EVM'])
 		expect(metadata.liquidationsTokenSymbolsSet.has('ETH')).toBe(true)
+		expect(metadata.narrativeCategoryIdsSet.has('ai')).toBe(true)
+		expect(metadata.oracleRoutes.oracleNameBySlug.chainlink).toBe('Chainlink')
+		expect(metadata.digitalAssetTreasuryAssetSlugsSet.has('bitcoin')).toBe(true)
+		expect(metadata.digitalAssetTreasuryCompanySlugsSet.has('mstr')).toBe(true)
+		expect(metadata.stablecoinPeggedAssetSlugsSet.has('tether')).toBe(true)
 	})
 
 	it('applies refresh payloads directly', () => {
@@ -89,7 +102,9 @@ describe('metadata artifact contract', () => {
 				protocols: {},
 				protocolDisplayNames: {},
 				tokenDirectory: {},
-				tokenlist: {}
+				tokenlist: {},
+				narrativeCategories: { ids: ['meme'], nameById: { meme: 'Meme' } },
+				stablecoinPeggedAssetSlugs: ['usd-coin']
 			})
 		)
 
@@ -97,6 +112,8 @@ describe('metadata artifact contract', () => {
 		expect(metadata.protocolDisplayNames.size).toBe(0)
 		expect(metadata.tokenDirectory).toEqual({})
 		expect(metadata.tokenlist).toEqual({})
+		expect(metadata.narrativeCategoryIdsSet.has('meme')).toBe(true)
+		expect(metadata.stablecoinPeggedAssetSlugsSet.has('usd-coin')).toBe(true)
 	})
 
 	it('rebuilds chain display-name fallbacks during refresh', () => {

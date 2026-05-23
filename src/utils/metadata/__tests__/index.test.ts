@@ -30,6 +30,10 @@ vi.mock('../../../.cache/app-metadata/emissionsProtocolsList.json', () => ({ def
 vi.mock('../../../.cache/app-metadata/emissionsSupplyMetrics.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/liquidationsTokenSymbols.json', () => ({ default: [] }))
 vi.mock('../../../.cache/app-metadata/llamaswap-protocols.json', () => ({ default: {} }))
+vi.mock('../../../.cache/app-metadata/narrativeCategories.json', () => ({ default: { ids: [], nameById: {} } }))
+vi.mock('../../../.cache/app-metadata/oracleRoutes.json', () => ({
+	default: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} }
+}))
 vi.mock('../../../.cache/app-metadata/protocolDisplayNames.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/protocols.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/rwa.json', () => ({
@@ -38,6 +42,10 @@ vi.mock('../../../.cache/app-metadata/rwa.json', () => ({
 vi.mock('../../../.cache/app-metadata/rwaPerps.json', () => ({
 	default: { contracts: [], venues: [], categories: [], assetGroups: [], total: 0 }
 }))
+vi.mock('../../../.cache/app-metadata/digitalAssetTreasuryRoutes.json', () => ({
+	default: { assetSlugs: [], companySlugs: [] }
+}))
+vi.mock('../../../.cache/app-metadata/stablecoinPeggedAssetSlugs.json', () => ({ default: [] }))
 vi.mock('../../../.cache/app-metadata/tokenlist.json', () => ({ default: {} }))
 vi.mock('../../../.cache/app-metadata/tokens.json', () => ({ default: {} }))
 
@@ -115,6 +123,10 @@ function createMetadataPayload(overrides: Partial<CoreMetadataPayload> = {}): Co
 		bridgeChainSlugs: [],
 		bridgeChainSlugToName: {},
 		protocolLlamaswapDataset: {},
+		narrativeCategories: { ids: [], nameById: {} },
+		oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
+		digitalAssetTreasuryRoutes: { assetSlugs: [], companySlugs: [] },
+		stablecoinPeggedAssetSlugs: [],
 		...overrides
 	}
 }

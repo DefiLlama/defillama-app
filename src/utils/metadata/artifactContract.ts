@@ -2,6 +2,11 @@ import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildChainDisplayNameLookupRecord, createStringLookupMap } from './displayLookups'
 import type {
+	DigitalAssetTreasuryRoutesMetadata,
+	NarrativeCategoriesMetadata,
+	OracleRoutesMetadata
+} from './routeIndexes'
+import type {
 	ICategoriesAndTags,
 	ICexItem,
 	IChainMetadata,
@@ -34,6 +39,10 @@ export type CoreMetadataPayload = {
 	bridgeChainSlugs: string[]
 	bridgeChainSlugToName: Record<string, string>
 	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
+	narrativeCategories: NarrativeCategoriesMetadata
+	oracleRoutes: OracleRoutesMetadata
+	digitalAssetTreasuryRoutes: DigitalAssetTreasuryRoutesMetadata
+	stablecoinPeggedAssetSlugs: string[]
 }
 
 export type MetadataCache = {
@@ -58,6 +67,14 @@ export type MetadataCache = {
 	bridgeChainSlugs: string[]
 	bridgeChainSlugToName: Record<string, string>
 	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
+	narrativeCategories: NarrativeCategoriesMetadata
+	narrativeCategoryIdsSet: Set<string>
+	oracleRoutes: OracleRoutesMetadata
+	digitalAssetTreasuryRoutes: DigitalAssetTreasuryRoutesMetadata
+	digitalAssetTreasuryAssetSlugsSet: Set<string>
+	digitalAssetTreasuryCompanySlugsSet: Set<string>
+	stablecoinPeggedAssetSlugs: string[]
+	stablecoinPeggedAssetSlugsSet: Set<string>
 }
 
 export const METADATA_ARTIFACT_FILES = {
@@ -80,7 +97,11 @@ export const METADATA_ARTIFACT_FILES = {
 	bridgeProtocolSlugs: 'bridgeProtocolSlugs.json',
 	bridgeChainSlugs: 'bridgeChainSlugs.json',
 	bridgeChainSlugToName: 'bridgeChainSlugToName.json',
-	protocolLlamaswapDataset: 'llamaswap-protocols.json'
+	protocolLlamaswapDataset: 'llamaswap-protocols.json',
+	narrativeCategories: 'narrativeCategories.json',
+	oracleRoutes: 'oracleRoutes.json',
+	digitalAssetTreasuryRoutes: 'digitalAssetTreasuryRoutes.json',
+	stablecoinPeggedAssetSlugs: 'stablecoinPeggedAssetSlugs.json'
 } as const satisfies Record<keyof CoreMetadataPayload, string>
 
 export const METADATA_CI_STUBS = {
@@ -103,7 +124,11 @@ export const METADATA_CI_STUBS = {
 	bridgeProtocolSlugs: [],
 	bridgeChainSlugs: [],
 	bridgeChainSlugToName: {},
-	protocolLlamaswapDataset: {}
+	protocolLlamaswapDataset: {},
+	narrativeCategories: { ids: [], nameById: {} },
+	oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
+	digitalAssetTreasuryRoutes: { assetSlugs: [], companySlugs: [] },
+	stablecoinPeggedAssetSlugs: []
 } satisfies CoreMetadataPayload
 
 export function getMetadataArtifactEntries(payload: CoreMetadataPayload): Array<[string, unknown]> {
@@ -137,7 +162,15 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 		bridgeProtocolSlugs: payload.bridgeProtocolSlugs,
 		bridgeChainSlugs: payload.bridgeChainSlugs,
 		bridgeChainSlugToName: payload.bridgeChainSlugToName,
-		protocolLlamaswapDataset: payload.protocolLlamaswapDataset
+		protocolLlamaswapDataset: payload.protocolLlamaswapDataset,
+		narrativeCategories: payload.narrativeCategories,
+		narrativeCategoryIdsSet: new Set(payload.narrativeCategories.ids),
+		oracleRoutes: payload.oracleRoutes,
+		digitalAssetTreasuryRoutes: payload.digitalAssetTreasuryRoutes,
+		digitalAssetTreasuryAssetSlugsSet: new Set(payload.digitalAssetTreasuryRoutes.assetSlugs),
+		digitalAssetTreasuryCompanySlugsSet: new Set(payload.digitalAssetTreasuryRoutes.companySlugs),
+		stablecoinPeggedAssetSlugs: payload.stablecoinPeggedAssetSlugs,
+		stablecoinPeggedAssetSlugsSet: new Set(payload.stablecoinPeggedAssetSlugs)
 	}
 }
 
@@ -170,4 +203,12 @@ export function applyMetadataRefresh(metadataCache: MetadataCache, payload: Core
 	metadataCache.bridgeChainSlugs = payload.bridgeChainSlugs
 	metadataCache.bridgeChainSlugToName = payload.bridgeChainSlugToName
 	metadataCache.protocolLlamaswapDataset = payload.protocolLlamaswapDataset
+	metadataCache.narrativeCategories = payload.narrativeCategories
+	metadataCache.narrativeCategoryIdsSet = new Set(payload.narrativeCategories.ids)
+	metadataCache.oracleRoutes = payload.oracleRoutes
+	metadataCache.digitalAssetTreasuryRoutes = payload.digitalAssetTreasuryRoutes
+	metadataCache.digitalAssetTreasuryAssetSlugsSet = new Set(payload.digitalAssetTreasuryRoutes.assetSlugs)
+	metadataCache.digitalAssetTreasuryCompanySlugsSet = new Set(payload.digitalAssetTreasuryRoutes.companySlugs)
+	metadataCache.stablecoinPeggedAssetSlugs = payload.stablecoinPeggedAssetSlugs
+	metadataCache.stablecoinPeggedAssetSlugsSet = new Set(payload.stablecoinPeggedAssetSlugs)
 }

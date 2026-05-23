@@ -17,6 +17,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const asset = slug(params.asset)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		if (
+			metadataCache.digitalAssetTreasuryAssetSlugsSet.size > 0 &&
+			!metadataCache.digitalAssetTreasuryAssetSlugsSet.has(asset)
+		) {
+			return { notFound: true }
+		}
 
 		const props = await getDATOverviewDataByAsset(asset)
 
@@ -39,7 +46,11 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const slugs = await getDATAssetPaths()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const slugs =
+		metadataCache.digitalAssetTreasuryRoutes.assetSlugs.length > 0
+			? metadataCache.digitalAssetTreasuryRoutes.assetSlugs
+			: await getDATAssetPaths()
 	const paths = slugs.map((asset) => ({ params: { asset } }))
 
 	return { paths, fallback: false }
