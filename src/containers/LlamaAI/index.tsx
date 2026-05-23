@@ -2608,7 +2608,7 @@ export function AgenticChat({
 	const deepLinkPrompt = route.kind === 'chat-new' ? route.initialPrompt?.trim() || undefined : undefined
 	const deepLinkUtmSource = typeof router.query.utm_source === 'string' ? router.query.utm_source : null
 	const deepLinkUtmCampaign = typeof router.query.utm_campaign === 'string' ? router.query.utm_campaign : null
-	const deepLinkConsumedRef = useRef(false)
+	const deepLinkConsumedKeyRef = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (route.kind !== 'chat-new' || sharedSession) return
@@ -2616,8 +2616,10 @@ export function AgenticChat({
 		// Shareable deep link (/ai/chat?prompt=...): hold until the account is verified,
 		// then submit once and strip the param so a reload/back can't re-run it.
 		if (deepLinkPrompt) {
-			if (deepLinkConsumedRef.current || !user?.verified) return
-			deepLinkConsumedRef.current = true
+			if (!user?.verified) return
+			const deepLinkKey = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+			if (deepLinkConsumedKeyRef.current === deepLinkKey) return
+			deepLinkConsumedKeyRef.current = deepLinkKey
 			trackUmamiEvent('llamaai-deeplink-run', {
 				source: deepLinkUtmSource,
 				campaign: deepLinkUtmCampaign,
