@@ -101,7 +101,7 @@ type DomainEvent = {
 	span_id?: string
 	parent_span_id?: string
 	route?: string
-	event_name: 'token_rights.alert'
+	event_name: 'token_rights.alert' | 'build.complete' | 'metadata.refresh'
 	level: 'info' | 'warn' | 'error'
 	occurred_at: string
 	subject?: string
@@ -164,6 +164,7 @@ let flushPromise: Promise<void> | null = null
 let consecutiveFailures = 0
 let circuitOpenUntil = 0
 let previousPageBuildFinishedAt: string | undefined
+const defaultTelemetryTargetId = 'defillama'
 
 function getEnvNumber(name: string, fallback: number): number {
 	const raw = process.env[name]
@@ -227,8 +228,35 @@ function nowIso(): string {
 	return new Date().toISOString()
 }
 
+function telemetryTargetId(): string {
+	return process.env.OPS_TELEMETRY_TARGET_ID?.trim() || defaultTelemetryTargetId
+}
+
+function firstProcessEnvValue(keys: readonly string[]): string | undefined {
+	for (const key of keys) {
+		const value = process.env[key]?.trim()
+		if (value) return value
+	}
+	return undefined
+}
+
+function withTelemetryTargetAttribute(event: TelemetryEvent): TelemetryEvent {
+	return {
+		...event,
+		attributes: {
+			...event.attributes,
+			telemetry_target_id: telemetryTargetId()
+		}
+	}
+}
+
 function producer(runtime: TelemetryRuntime) {
-	const serviceVersion = process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+	const serviceVersion = firstProcessEnvValue([
+		'SOURCE_COMMIT',
+		'VERCEL_GIT_COMMIT_SHA',
+		'NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA',
+		'GITHUB_SHA'
+	])
 
 	return {
 		app: 'defillama-app',
@@ -338,7 +366,7 @@ export function recordTelemetry(event: TelemetryEvent): void {
 			queue.shift()
 		}
 
-		queue.push(event)
+		queue.push(withTelemetryTargetAttribute(event))
 
 		if (queue.length >= batchSize() && !isCircuitOpen()) {
 			void flushTelemetry({ timeoutMs: getEnvNumber('OPS_TELEMETRY_BACKGROUND_FLUSH_MS', 1000) })

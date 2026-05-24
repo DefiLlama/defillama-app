@@ -1,4 +1,4 @@
-import { runOutsideRouteTelemetry } from '~/utils/telemetry'
+import { recordDomainEvent, runOutsideRouteTelemetry } from '~/utils/telemetry'
 import { hydrateMetadataCache, replaceMetadataCacheContents, validateCoreMetadataPayload } from './artifactContract'
 import { loadMetadataArtifactsForBoot } from './artifacts'
 import {
@@ -56,7 +56,44 @@ function isRetrySuppressed(now: number): boolean {
 	return lastAttemptMs > 0 && now - lastAttemptMs < getMetadataCacheRetryMs()
 }
 
+function recordMetadataRefreshTelemetry({
+	durationMs,
+	error,
+	source,
+	staleAgeMs,
+	status
+}: {
+	durationMs: number
+	error?: unknown
+	source?: string
+	staleAgeMs?: number
+	status: 'failure' | 'success'
+}): void {
+	const subject = source ?? 'manual'
+	const attributes = {
+		duration_ms: durationMs,
+		source: subject,
+		status,
+		...(staleAgeMs === undefined ? null : { stale_age_ms: staleAgeMs }),
+		...(error instanceof Error
+			? { error_message: error.message, error_name: error.name }
+			: error === undefined
+				? null
+				: { error_message: String(error) })
+	}
+
+	recordDomainEvent(
+		'metadata.refresh',
+		status === 'success' ? 'info' : 'warn',
+		subject,
+		status === 'success' ? 'Metadata refresh completed' : 'Metadata refresh failed',
+		attributes
+	)
+}
+
 async function doRefresh(source?: string): Promise<void> {
+	const startedAt = Date.now()
+	const staleAgeMs = lastSuccessfulRefreshMs === 0 ? undefined : startedAt - lastSuccessfulRefreshMs
 	try {
 		const payload = validateCoreMetadataPayload(await fetchCoreMetadata())
 		replaceMetadataCacheContents(metadataCache, payload)
@@ -64,9 +101,23 @@ async function doRefresh(source?: string): Promise<void> {
 		lastSuccessfulRefreshMs = now
 		lastAttemptMs = now
 		refreshStatus.successfulRefreshes += 1
+		recordMetadataRefreshTelemetry({
+			durationMs: now - startedAt,
+			source,
+			staleAgeMs,
+			status: 'success'
+		})
 	} catch (err) {
-		lastAttemptMs = Date.now()
+		const now = Date.now()
+		lastAttemptMs = now
 		refreshStatus.failedRefreshes += 1
+		recordMetadataRefreshTelemetry({
+			durationMs: now - startedAt,
+			error: err,
+			source,
+			staleAgeMs,
+			status: 'failure'
+		})
 		console.error(
 			source
 				? `[metadata] refresh failed from ${source}, keeping stale cache:`
@@ -146,7 +197,7 @@ function startRuntimeRefreshLoop(): void {
  * Refresh metadata cache if stale, waiting for the refresh to complete.
  */
 export async function refreshMetadataIfStale(): Promise<void> {
-	await startMetadataRefreshIfStale()
+	await runOutsideRouteTelemetry(() => startMetadataRefreshIfStale())
 }
 
 /**

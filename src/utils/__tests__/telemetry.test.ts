@@ -128,6 +128,52 @@ describe('telemetry client', () => {
 		})
 	})
 
+	it('uses the Coolify source commit as the producer service version', async () => {
+		vi.stubEnv('GITHUB_SHA', 'github-sha')
+		vi.stubEnv('SOURCE_COMMIT', 'coolify-sha')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordTelemetry(runtimeError('versioned event'))
+		await flushTelemetry({ runtime: 'build', timeoutMs: 1000 })
+
+		expect(sentBatch(fetchMock).producer).toMatchObject({
+			app: 'defillama-app',
+			runtime: 'build',
+			serviceVersion: 'coolify-sha'
+		})
+		expect(sentEvents(fetchMock)[0]?.attributes).toMatchObject({
+			telemetry_target_id: 'defillama'
+		})
+	})
+
+	it('skips blank source commit env vars in producer service version fallback', async () => {
+		vi.stubEnv('GITHUB_SHA', 'github-sha')
+		vi.stubEnv('SOURCE_COMMIT', '')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordTelemetry(runtimeError('versioned event'))
+		await flushTelemetry({ runtime: 'build', timeoutMs: 1000 })
+
+		expect(sentBatch(fetchMock).producer).toMatchObject({
+			serviceVersion: 'github-sha'
+		})
+	})
+
+	it('uses the configured telemetry target id on emitted events', async () => {
+		vi.stubEnv('OPS_TELEMETRY_TARGET_ID', 'defillama-ayo3')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordDomainEvent('metadata.refresh', 'info', 'runtime_loop', 'Metadata refresh completed')
+		await flushTelemetry({ timeoutMs: 1000 })
+
+		expect(sentEvents(fetchMock)[0]?.attributes).toMatchObject({
+			telemetry_target_id: 'defillama-ayo3'
+		})
+	})
+
 	it('reuses the idempotency key for retries and opens the circuit after failures', async () => {
 		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 500 }))
 		vi.stubGlobal('fetch', fetchMock)
@@ -441,6 +487,38 @@ describe('telemetry client', () => {
 			message: 'Skipped token rights entries',
 			attributes: { skipped_count: 1 }
 		})
+	})
+
+	it('records build and metadata marker domain events outside route traces', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordDomainEvent('build.complete', 'info', 'main', 'Build completed on main', {
+			branch: 'main',
+			commit_sha: 'abcdef123456'
+		})
+		recordDomainEvent('metadata.refresh', 'info', 'runtime_loop', 'Metadata refresh completed', {
+			duration_ms: 250,
+			source: 'runtime_loop'
+		})
+		await flushTelemetry({ timeoutMs: 1000 })
+
+		expect(sentEvents(fetchMock)).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					event_name: 'build.complete',
+					level: 'info',
+					message: 'Build completed on main',
+					subject: 'main'
+				}),
+				expect.objectContaining({
+					event_name: 'metadata.refresh',
+					level: 'info',
+					message: 'Metadata refresh completed',
+					subject: 'runtime_loop'
+				})
+			])
+		)
 	})
 
 	it('links outbound fetch events to the active route span', async () => {
