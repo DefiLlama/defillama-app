@@ -120,7 +120,7 @@ describe('metadata artifact manifest', () => {
 		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([METADATA_ARTIFACT_FILES.cexs])
 	})
 
-	it('checks newly declared artifacts even when an older manifest artifact list omits them', async () => {
+	it('rejects manifests whose artifact list does not match the registry', async () => {
 		const cacheDir = await createTempDir()
 		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 123)
 		await fs.rm(path.join(cacheDir, METADATA_ARTIFACT_FILES.narrativeCategories))
@@ -133,12 +133,40 @@ describe('metadata artifact manifest', () => {
 				)
 			})
 		)
-		const manifest = await readMetadataArtifactManifest(cacheDir)
-		if (!manifest) throw new Error('missing manifest')
 
-		expect(manifest.artifacts).not.toContain(METADATA_ARTIFACT_FILES.narrativeCategories)
-		expect(await hasMetadataArtifactFiles(cacheDir, manifest)).toBe(false)
-		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([METADATA_ARTIFACT_FILES.narrativeCategories])
+		await expect(readMetadataArtifactManifest(cacheDir)).rejects.toThrow(/artifact list does not match registry/)
+	})
+
+	it('rejects old artifact versions as invalid caches', async () => {
+		const cacheDir = await createTempDir()
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 123)
+		await fs.writeFile(
+			getMetadataManifestPath(cacheDir),
+			JSON.stringify({
+				...createMetadataArtifactManifest('ready', 123),
+				artifactVersion: METADATA_ARTIFACT_VERSION - 1
+			})
+		)
+
+		await expect(readMetadataArtifactManifest(cacheDir)).rejects.toThrow(/version mismatch/)
+	})
+
+	it('publishes parsed JSON payloads without semantic artifact validation', async () => {
+		const cacheDir = await createTempDir()
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 123)
+
+		await writeMetadataArtifacts(
+			cacheDir,
+			{
+				...createPayload(),
+				chains: [] as unknown as CoreMetadataPayload['chains']
+			},
+			'ready',
+			456
+		)
+
+		expect((await readMetadataArtifactManifest(cacheDir))?.pulledAt).toBe(456)
+		expect(JSON.parse(await fs.readFile(path.join(cacheDir, METADATA_ARTIFACT_FILES.chains), 'utf8'))).toEqual([])
 	})
 
 	it('treats only fresh ready manifests as pull skips', () => {

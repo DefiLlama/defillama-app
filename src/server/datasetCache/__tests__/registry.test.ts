@@ -59,6 +59,7 @@ describe('dataset cache registry', () => {
 
 	it('uses registry trace helpers for configured standalone routes', () => {
 		const includes = nextConfig.outputFileTracingIncludes as Record<string, string[]>
+		expect(includes['/*']).toContain('./.cache/app-metadata/**/*')
 		const expectedRouteDomains: Record<string, DatasetDomain[]> = {
 			'/cex/*': ['markets'],
 			'/cex/markets/*': ['markets'],

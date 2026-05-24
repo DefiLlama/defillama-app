@@ -6,6 +6,7 @@ const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTra
 const nextConfig: NextConfig = {
 	output: 'standalone',
 	outputFileTracingIncludes: {
+		'/*': ['./.cache/app-metadata/**/*'],
 		'/cex/*': datasetCacheIncludes('markets'),
 		'/cex/markets/*': datasetCacheIncludes('markets'),
 		'/token/*': datasetCacheIncludes(

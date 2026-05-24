@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CoreMetadataPayload } from '../artifactContract'
 
-const { fetchCoreMetadataMock, runOutsideRouteTelemetryMock } = vi.hoisted(() => ({
+const { bootArtifactsMock, fetchCoreMetadataMock, runOutsideRouteTelemetryMock } = vi.hoisted(() => ({
+	bootArtifactsMock: vi.fn(),
 	fetchCoreMetadataMock: vi.fn(),
 	runOutsideRouteTelemetryMock: vi.fn((run: () => unknown) => run())
 }))
@@ -14,40 +15,9 @@ vi.mock('~/utils/telemetry', () => ({
 	runOutsideRouteTelemetry: runOutsideRouteTelemetryMock
 }))
 
-vi.mock('../../../.cache/app-metadata/bridgeChainSlugs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/bridgeChainSlugToName.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/bridgeProtocolSlugs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/categoriesAndTags.json', () => ({
-	default: { categories: [], tags: [], tagCategoryMap: {}, configs: {} }
+vi.mock('../artifacts', () => ({
+	loadMetadataArtifactsForBoot: bootArtifactsMock
 }))
-vi.mock('../../../.cache/app-metadata/cexs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/cgExchangeIdentifiers.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/chainCategories.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/chainDisplayNames.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/chains.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/emissionsHistoricalPrices.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/emissionsProtocolsList.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/emissionsSupplyMetrics.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/liquidationsTokenSymbols.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/llamaswap-protocols.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/narrativeCategories.json', () => ({ default: { ids: [], nameById: {} } }))
-vi.mock('../../../.cache/app-metadata/oracleRoutes.json', () => ({
-	default: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} }
-}))
-vi.mock('../../../.cache/app-metadata/protocolDisplayNames.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/protocols.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/rwa.json', () => ({
-	default: { canonicalMarketIds: [], platforms: [], chains: [], categories: [], assetGroups: [], idMap: {} }
-}))
-vi.mock('../../../.cache/app-metadata/rwaPerps.json', () => ({
-	default: { contracts: [], venues: [], categories: [], assetGroups: [], total: 0 }
-}))
-vi.mock('../../../.cache/app-metadata/digitalAssetTreasuryRoutes.json', () => ({
-	default: { assetSlugs: [], companySlugs: [] }
-}))
-vi.mock('../../../.cache/app-metadata/stablecoinPeggedAssetSlugs.json', () => ({ default: [] }))
-vi.mock('../../../.cache/app-metadata/tokenlist.json', () => ({ default: {} }))
-vi.mock('../../../.cache/app-metadata/tokens.json', () => ({ default: {} }))
 
 const defaultTokenListEntry = {
 	symbol: 'AAVE',
@@ -145,9 +115,13 @@ function createDeferred<T>() {
 
 describe('metadata refresh', () => {
 	beforeEach(() => {
+		vi.useRealTimers()
 		vi.unstubAllEnvs()
+		vi.restoreAllMocks()
 		vi.resetModules()
 		fetchCoreMetadataMock.mockReset()
+		bootArtifactsMock.mockReset()
+		bootArtifactsMock.mockReturnValue({ manifest: null, payload: createMetadataPayload() })
 		runOutsideRouteTelemetryMock.mockReset()
 		runOutsideRouteTelemetryMock.mockImplementation((run: () => unknown) => run())
 	})
@@ -294,6 +268,26 @@ describe('metadata refresh', () => {
 		consoleErrorSpy.mockRestore()
 	})
 
+	it('applies refresh payloads without semantic artifact validation', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		fetchCoreMetadataMock.mockResolvedValue(
+			createMetadataPayload({
+				chainCategories: {} as CoreMetadataPayload['chainCategories']
+			})
+		)
+		const metadataModule = await import('../index')
+		const metadata = metadataModule.default
+
+		await metadataModule.refreshMetadataIfStale()
+
+		expect(metadata.chainCategories).toEqual({})
+		expect(metadataModule.getMetadataRefreshStatus().successfulRefreshes).toBe(1)
+		expect(metadataModule.getMetadataRefreshStatus().failedRefreshes).toBe(0)
+		expect(consoleErrorSpy).not.toHaveBeenCalled()
+		consoleErrorSpy.mockRestore()
+	})
+
 	it('skips refresh in local development without an API key', async () => {
 		vi.stubEnv('NODE_ENV', 'development')
 		vi.stubEnv('API_KEY', '')
@@ -301,6 +295,51 @@ describe('metadata refresh', () => {
 
 		await metadataModule.refreshMetadataIfStale()
 		metadataModule.refreshMetadataInBackgroundIfStale()
+
+		expect(fetchCoreMetadataMock).not.toHaveBeenCalled()
+	})
+
+	it('runs the runtime refresh loop with initial and per-fetch jitter', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(1_000)
+		vi.stubEnv('NODE_ENV', 'production')
+		bootArtifactsMock.mockReturnValue({
+			manifest: {
+				artifactVersion: 2,
+				pulledAt: 0,
+				status: 'ready',
+				artifacts: []
+			},
+			payload: createMetadataPayload()
+		})
+		const randomSpy = vi.spyOn(Math, 'random')
+		randomSpy.mockReturnValueOnce(0.5).mockReturnValueOnce(0.25)
+		fetchCoreMetadataMock.mockResolvedValue(createMetadataPayload())
+
+		await import('../index')
+		await vi.advanceTimersByTimeAsync(150_000 - 1)
+		expect(fetchCoreMetadataMock).not.toHaveBeenCalled()
+
+		await vi.advanceTimersByTimeAsync(1)
+		expect(fetchCoreMetadataMock).not.toHaveBeenCalled()
+
+		await vi.advanceTimersByTimeAsync(75_000 - 1)
+		expect(fetchCoreMetadataMock).not.toHaveBeenCalled()
+
+		await vi.advanceTimersByTimeAsync(1)
+		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
+		const metadataModule = await import('../index')
+		expect(metadataModule.getMetadataRefreshStatus().jitteredRefreshAttempts).toBe(1)
+	})
+
+	it('does not start the runtime refresh loop in tests', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(1_000)
+		bootArtifactsMock.mockReturnValue({ manifest: null, payload: createMetadataPayload() })
+		fetchCoreMetadataMock.mockResolvedValue(createMetadataPayload())
+
+		await import('../index')
+		await vi.advanceTimersByTimeAsync(60 * 60 * 1000)
 
 		expect(fetchCoreMetadataMock).not.toHaveBeenCalled()
 	})

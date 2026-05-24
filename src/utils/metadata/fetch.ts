@@ -1,15 +1,15 @@
-import { COINS_SERVER_URL, ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
+import { COINS_SERVER_URL } from '~/constants'
 import {
 	buildUnlocksHistoricalPriceRequests,
 	type UnlockHistoricalPriceProtocol
 } from '~/utils/unlocks/historicalPriceRequests'
 import type { CoreMetadataPayload } from './artifactContract'
-import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
 import { fetchMetadataJson } from './http'
 import { extractLiquidationsTokenSymbols } from './liquidations'
 import { fetchMetadataRouteIndexes } from './routeIndexes'
 import { fetchCoreMetadataSources } from './sources'
+import { dedupeNonEmpty } from './strings'
 import type { IEmissionsHistoricalPrices, ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
 
 const normalizeSlug = (value: unknown): string =>
@@ -17,15 +17,6 @@ const normalizeSlug = (value: unknown): string =>
 		.toLowerCase()
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
-
-const dedupeNonEmpty = (values: string[]): string[] => {
-	const seen = new Set<string>()
-	for (const value of values) {
-		if (!value) continue
-		seen.add(value)
-	}
-	return [...seen]
-}
 
 const EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE = 50
 
@@ -69,11 +60,7 @@ async function fetchEmissionsHistoricalPriceBatch(coins: Record<string, number[]
 	return response.coins
 }
 
-export async function fetchCoreMetadata({
-	existingProtocolLlamaswapDataset
-}: {
-	existingProtocolLlamaswapDataset?: ProtocolLlamaswapMetadata
-} = {}): Promise<CoreMetadataPayload> {
+export async function fetchCoreMetadata(): Promise<CoreMetadataPayload> {
 	const [
 		{
 			protocols,
@@ -139,9 +126,7 @@ export async function fetchCoreMetadata({
 		})
 	)
 
-	const protocolLlamaswapDataset = ENABLE_LLAMASWAP_PROTOCOLS_CHAINS
-		? await buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset })
-		: ({} as ProtocolLlamaswapMetadata)
+	const protocolLlamaswapDataset = {} as ProtocolLlamaswapMetadata
 
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)

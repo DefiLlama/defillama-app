@@ -6,7 +6,12 @@ import { buildChainMatchSet } from '~/utils/chainNormalizer'
 import { getErrorMessage } from '~/utils/error'
 import { mergeProtocolLlamaswapChains, normalizeProtocolLlamaswapChains } from '~/utils/llamaswapChains'
 import { getSupportedCoinGeckoPlatformsForLlamaswap, normalizeEvmContractAddress } from '~/utils/llamaswapCoingecko'
-import type { IChainMetadata, IProtocolLlamaswapChain, IProtocolMetadata, ProtocolLlamaswapMetadata } from './types'
+import type {
+	IChainMetadata,
+	IProtocolLlamaswapChain,
+	IProtocolMetadata,
+	ProtocolLlamaswapMetadata
+} from '~/utils/metadata/types'
 
 const CHAIN_NATIVE_TOKEN_FALLBACKS: Record<string, IProtocolLlamaswapChain[]> = {
 	hyperliquid: [
