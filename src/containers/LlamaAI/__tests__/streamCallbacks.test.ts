@@ -48,7 +48,7 @@ describe('createAgenticCallbacks', () => {
 		expect(buffer.citations).toEqual(['https://example.com'])
 		expect(dispatch).toHaveBeenCalledWith({ type: 'CLEAR_ACTIVITY' })
 		expect(dispatch).toHaveBeenCalledWith({ type: 'APPEND_TOKEN', value: '[REPORT_START]hello' })
-		expect(dispatch).toHaveBeenCalledWith({ type: 'RESET_STREAM' })
+		expect(dispatch).toHaveBeenCalledWith({ type: 'COMMIT_STREAM' })
 		expect(appendMessage).toHaveBeenCalledWith(
 			expect.objectContaining({
 				role: 'assistant',
@@ -66,7 +66,7 @@ describe('createAgenticCallbacks', () => {
 		callbacks.onDone()
 
 		expect(appendMessage).not.toHaveBeenCalled()
-		expect(dispatch).not.toHaveBeenCalledWith({ type: 'RESET_STREAM' })
+		expect(dispatch).not.toHaveBeenCalledWith({ type: 'COMMIT_STREAM' })
 		expect(notify).not.toHaveBeenCalled()
 	})
 })

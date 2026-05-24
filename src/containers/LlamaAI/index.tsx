@@ -56,6 +56,7 @@ import { useSettingsRouteIntent } from '~/containers/LlamaAI/hooks/useSettingsRo
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
+import { toSessionId } from '~/containers/LlamaAI/ids'
 import {
 	mapPersistedMessage,
 	mapPersistedMessages,
@@ -70,12 +71,12 @@ import { getProjectTier } from '~/containers/LlamaAI/projects/tier'
 import {
 	beginRequest,
 	completeRequest,
-	createRequestSettleState,
 	isActiveRequest,
 	waitForRequestSettle,
 	type RequestKind,
 	type RequestSettleState
 } from '~/containers/LlamaAI/requestLifecycle'
+import { isFreeLimitError, runAgenticRequest, type UsageLimitError } from '~/containers/LlamaAI/runAgenticRequest'
 import { appendBufferedAssistantMessage, createAgenticCallbacks } from '~/containers/LlamaAI/streamCallbacks'
 import {
 	createInitialStreamState,
@@ -84,7 +85,6 @@ import {
 	streamReducer,
 	type ChatPageContext,
 	type FailedRequest,
-	type RateLimitDetails,
 	type StreamBuffer
 } from '~/containers/LlamaAI/streamState'
 import type { Message, UpgradeOffer } from '~/containers/LlamaAI/types'
@@ -116,21 +116,7 @@ interface RestoreSessionSnapshotResult {
 	recoveredResponse: boolean
 }
 
-interface UsageLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
-	details?: Partial<RateLimitDetails>
-	upgradeUrl?: string
-}
-
-const FREE_LIMIT_CODES = ['FREE_QUESTION_LIMIT', 'FREE_FORM_LIMIT', 'FREE_DAILY_LIMIT'] as const
-
-type FreeLimitError = UsageLimitError & { code: UpgradeOffer['code'] }
-
-function isFreeLimitError(err: UsageLimitError | null | undefined): err is FreeLimitError {
-	return !!err?.code && (FREE_LIMIT_CODES as readonly string[]).includes(err.code)
-}
-
-function buildFreeLimitMessage(err: FreeLimitError): Message {
+function buildFreeLimitMessage(err: UsageLimitError & { code: UpgradeOffer['code'] }): Message {
 	const isDaily = err.code === 'FREE_DAILY_LIMIT'
 	let content = isDaily ? "You've reached today's free question limit." : "You've reached your free question limit."
 	if (err.details?.resetTime) {
@@ -774,19 +760,98 @@ export function AgenticChat({
 						dispatchStream({ type: 'START_STREAM' })
 						currentMessageIdRef.current = null
 					}
-					const replayRequestId = beginRequest(
+					let replaySucceeded = true
+					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
+
+					await runAgenticRequest({
+						mode: 'replay',
+						sessionId: toSessionId(targetSessionId),
+						requestKind: 'resume',
 						activeRequestIdRef,
 						activeRequestKindRef,
 						activeSessionIdRef,
-						'resume',
-						targetSessionId
-					)
-					const replayController = new AbortController()
-					abortControllerRef.current = replayController
-					const replaySettleState = createRequestSettleState(replayRequestId)
-					activeRequestSettleRef.current = replaySettleState
-					const replayCallbacks = createAgenticCallbacks({
-						requestId: replayRequestId,
+						abortControllerRef,
+						activeRequestSettleRef,
+						initialEventCount: buffer.receivedEventCount,
+						createCallbacks: ({ requestId }) =>
+							createAgenticCallbacks({
+								requestId,
+								activeRequestIdRef,
+								buffer,
+								dispatch: dispatchStream,
+								currentMessageIdRef,
+								toolCallIdRef,
+								appendMessage,
+								replaceLocalUserMessageId,
+								setMessageSiblingInfo,
+								notify,
+								onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
+								onTokenLimit: () => setShowTokenLimitModal(true),
+								onTitle: (title) => {
+									setSessionTitle(title)
+									updateSessionTitle({
+										sessionId: targetSessionId,
+										title,
+										projectId: currentSessionProjectIdRef.current
+									}).catch(() => {})
+									moveSessionToTop(targetSessionId)
+								}
+							}),
+						execute: ({ callbacks, signal, eventCounter }) =>
+							resumeAgenticStream({
+								sessionId: targetSessionId,
+								callbacks,
+								abortSignal: signal,
+								fetchFn: authorizedFetchCompat,
+								from: replayFrom,
+								eventCounter
+							}),
+						onSuccess: () => {
+							// Clear the recovery controller so that tab-return / visibility-change
+							// handlers don't re-trigger a replay for the already-completed execution.
+							const rc = recoveryControllerRef.current
+							if (rc?.sessionId === targetSessionId) {
+								clearRecoveryController()
+							}
+						},
+						onError: () => {
+							replaySucceeded = false
+							// Buffer expired — reset streaming state so the UI doesn't get stuck.
+							if (resetStream) {
+								dispatchStream({ type: 'RESET_STREAM' })
+							}
+						}
+					})
+					return replaySucceeded
+				}
+				return false
+			}
+
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'SET_ERROR', value: null })
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+			dispatchStream({ type: 'RESET_RECOVERY' })
+
+			if (resetStream) {
+				dispatchStream({ type: 'START_STREAM' })
+				currentMessageIdRef.current = null
+			}
+
+			await runAgenticRequest({
+				mode: 'resume',
+				sessionId: toSessionId(targetSessionId),
+				requestKind: 'resume',
+				activeRequestIdRef,
+				activeRequestKindRef,
+				activeSessionIdRef,
+				abortControllerRef,
+				activeRequestSettleRef,
+				initialEventCount: buffer.receivedEventCount,
+				detached: true,
+				createCallbacks: ({ requestId }) =>
+					createAgenticCallbacks({
+						requestId,
 						activeRequestIdRef,
 						buffer,
 						dispatch: dispatchStream,
@@ -807,113 +872,25 @@ export function AgenticChat({
 							}).catch(() => {})
 							moveSessionToTop(targetSessionId)
 						}
-					})
-					const replayEventCounter = { count: buffer.receivedEventCount }
-					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
-
-					return resumeAgenticStream({
+					}),
+				execute: ({ callbacks, signal, eventCounter }) =>
+					resumeAgenticStream({
 						sessionId: targetSessionId,
-						callbacks: replayCallbacks,
-						abortSignal: replayController.signal,
+						callbacks,
+						abortSignal: signal,
 						fetchFn: authorizedFetchCompat,
-						from: replayFrom,
-						eventCounter: replayEventCounter
-					})
-						.then(() => {
-							// Clear the recovery controller so that tab-return / visibility-change
-							// handlers don't re-trigger a replay for the already-completed execution.
-							const rc = recoveryControllerRef.current
-							if (rc?.sessionId === targetSessionId) {
-								clearRecoveryController()
-							}
-							return true
-						})
-						.catch(() => {
-							// Buffer expired — reset streaming state so the UI doesn't get stuck.
-							if (resetStream) {
-								dispatchStream({ type: 'RESET_STREAM' })
-							}
-							return false
-						})
-						.finally(() => {
-							if (abortControllerRef.current === replayController) {
-								abortControllerRef.current = null
-							}
-							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
-							replaySettleState.resolve()
-							if (activeRequestSettleRef.current?.requestId === replayRequestId) {
-								activeRequestSettleRef.current = null
-							}
-						})
-				}
-				return false
-			}
-
-			setViewError(null)
-			setPaginationError(null)
-			dispatchStream({ type: 'SET_ERROR', value: null })
-			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
-			dispatchStream({ type: 'RESET_RECOVERY' })
-
-			if (resetStream) {
-				dispatchStream({ type: 'START_STREAM' })
-				currentMessageIdRef.current = null
-			}
-
-			const resumeRequestId = beginRequest(
-				activeRequestIdRef,
-				activeRequestKindRef,
-				activeSessionIdRef,
-				'resume',
-				targetSessionId
-			)
-			const controller = new AbortController()
-			abortControllerRef.current = controller
-			const settleState = createRequestSettleState(resumeRequestId)
-			activeRequestSettleRef.current = settleState
-
-			const callbacks = createAgenticCallbacks({
-				requestId: resumeRequestId,
-				activeRequestIdRef,
-				buffer,
-				dispatch: dispatchStream,
-				currentMessageIdRef,
-				toolCallIdRef,
-				appendMessage,
-				replaceLocalUserMessageId,
-				setMessageSiblingInfo,
-				notify,
-				onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
-				onTokenLimit: () => setShowTokenLimitModal(true),
-				onTitle: (title) => {
-					setSessionTitle(title)
-					updateSessionTitle({
-						sessionId: targetSessionId,
-						title,
-						projectId: currentSessionProjectIdRef.current
-					}).catch(() => {})
-					moveSessionToTop(targetSessionId)
-				}
-			})
-
-			const resumeEventCounter = { count: buffer.receivedEventCount }
-			void resumeAgenticStream({
-				sessionId: targetSessionId,
-				callbacks,
-				abortSignal: controller.signal,
-				fetchFn: authorizedFetchCompat,
-				from: buffer.receivedEventCount,
-				eventCounter: resumeEventCounter
-			})
-				.catch((resumeError: Error) => {
-					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
-					if (resumeError?.name === 'AbortError') {
+						from: buffer.receivedEventCount,
+						eventCounter
+					}),
+				onError: ({ kind, error: resumeError }, { requestId, eventCounter }) => {
+					if (!isActiveRequest(activeRequestIdRef, requestId)) return
+					if (kind === 'abort') {
 						appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 						dispatchStream({ type: 'RESET_STREAM' })
 						return
 					}
-					if (onTemporaryDisconnect && isTemporaryConnectivityError(resumeError)) {
-						buffer.receivedEventCount = resumeEventCounter.count
+					if (onTemporaryDisconnect && kind === 'temporary-connectivity') {
+						buffer.receivedEventCount = eventCounter.count
 						onTemporaryDisconnect(resumeError, buffer)
 						return
 					}
@@ -923,21 +900,14 @@ export function AgenticChat({
 						value: 'Lost connection while waiting for the running execution. Retry to reconnect.'
 					})
 					dispatchStream({ type: 'RESET_STREAM' })
-				})
-				.then(() => {
+				},
+				onSuccess: () => {
 					const recoveryController = recoveryControllerRef.current
 					if (recoveryController?.sessionId === targetSessionId && recoveryController.streamAttached) {
 						clearRecoveryController()
 					}
-					if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
-						abortControllerRef.current = null
-						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
-					}
-					settleState.resolve()
-					if (activeRequestSettleRef.current?.requestId === resumeRequestId) {
-						activeRequestSettleRef.current = null
-					}
-				})
+				}
+			})
 
 			return true
 		},
@@ -1499,19 +1469,6 @@ export function AgenticChat({
 					attach()
 
 					const buffer = createStreamBuffer()
-					const controller = new AbortController()
-					abortControllerRef.current = controller
-					const requestId = beginRequest(
-						activeRequestIdRef,
-						activeRequestKindRef,
-						activeSessionIdRef,
-						'prompt',
-						currentSessionId
-					)
-					const settleState = createRequestSettleState(requestId)
-					activeRequestSettleRef.current = settleState
-
-					const eventCounter = { count: 0 }
 					const currentShareToken = !shareTokenConsumedRef.current ? effectiveShareToken : undefined
 					if (currentShareToken) shareTokenConsumedRef.current = true
 					const failedRequest: FailedRequest = {
@@ -1520,92 +1477,100 @@ export function AgenticChat({
 						images: images?.length ? images : undefined,
 						pageContext
 					}
-					let didFetchResolve = false
 
-					void fetchAgenticResponse({
-						message: trimmed,
-						sessionId: currentSessionId,
-						researchMode: isResearchMode,
-						entities: entities?.length ? entities : undefined,
-						images: images?.length ? images : undefined,
-						pageContext,
-						quotedText: currentQuotedText || undefined,
-						customInstructions: settings.customInstructions || undefined,
-						enablePremiumTools: settings.enablePremiumTools,
-						model: settings.model || undefined,
-						effort: settings.effort || undefined,
-						isSuggestedQuestion,
-						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
-						shareToken: currentShareToken,
-						projectId: submitProjectId,
-						abortSignal: controller.signal,
-						fetchFn: authorizedFetchCompat,
-						eventCounter,
-						callbacks: createAgenticCallbacks({
-							requestId,
-							activeRequestIdRef,
-							buffer,
-							dispatch: dispatchStream,
-							currentMessageIdRef,
-							toolCallIdRef,
-							appendMessage,
-							replaceLocalUserMessageId,
-							setMessageSiblingInfo,
-							deferEmptyDone: true,
-							notify,
-							onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
-							onTokenLimit: () => setShowTokenLimitModal(true),
-							onSessionId: (id) => {
-								if (!isActiveRequest(activeRequestIdRef, requestId)) return
-								const previousSessionId = currentSessionId
-								setSessionId(id)
-								currentSessionId = id
-								activeSessionIdRef.current = id
-								if (previousSessionId && previousSessionId !== id) {
-									registerSessionAlias(previousSessionId, id)
-									replaceOptimisticSessionId(previousSessionId, id, submitProjectId)
+					void runAgenticRequest({
+						mode: 'prompt',
+						sessionId: currentSessionId ? toSessionId(currentSessionId) : null,
+						requestKind: 'prompt',
+						activeRequestIdRef,
+						activeRequestKindRef,
+						activeSessionIdRef,
+						abortControllerRef,
+						activeRequestSettleRef,
+						createCallbacks: ({ requestId }) =>
+							createAgenticCallbacks({
+								requestId,
+								activeRequestIdRef,
+								buffer,
+								dispatch: dispatchStream,
+								currentMessageIdRef,
+								toolCallIdRef,
+								appendMessage,
+								replaceLocalUserMessageId,
+								setMessageSiblingInfo,
+								deferEmptyDone: true,
+								notify,
+								onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
+								onTokenLimit: () => setShowTokenLimitModal(true),
+								onSessionId: (id) => {
+									if (!isActiveRequest(activeRequestIdRef, requestId)) return
+									const previousSessionId = currentSessionId
+									setSessionId(id)
+									currentSessionId = id
+									activeSessionIdRef.current = id
+									if (previousSessionId && previousSessionId !== id) {
+										registerSessionAlias(previousSessionId, id)
+										replaceOptimisticSessionId(previousSessionId, id, submitProjectId)
+									}
+									if (sharedSession) {
+										onSharedSessionFork?.(id)
+									}
+									if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
+										void createSession({
+											sessionId: id,
+											title: sessionTitle ?? undefined,
+											projectId: submitProjectId
+										}).catch((createSessionError) => {
+											console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+										})
+									}
+								},
+								onTitle: (title) => {
+									if (!isActiveRequest(activeRequestIdRef, requestId)) return
+									setSessionTitle(title)
+									if (currentSessionId) {
+										updateSessionTitle({ sessionId: currentSessionId, title, projectId: submitProjectId }).catch(
+											() => {}
+										)
+										moveSessionToTop(currentSessionId)
+									}
 								}
-								if (sharedSession) {
-									onSharedSessionFork?.(id)
-								}
-								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
-									void createSession({
-										sessionId: id,
-										title: sessionTitle ?? undefined,
-										projectId: submitProjectId
-									}).catch((createSessionError) => {
-										console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
-									})
-								}
-							},
-							onTitle: (title) => {
-								if (!isActiveRequest(activeRequestIdRef, requestId)) return
-								setSessionTitle(title)
-								if (currentSessionId) {
-									updateSessionTitle({ sessionId: currentSessionId, title, projectId: submitProjectId }).catch(() => {})
-									moveSessionToTop(currentSessionId)
-								}
-							}
-						})
-					})
-						.then(() => {
-							didFetchResolve = true
-						})
-						.catch(async (err: UsageLimitError) => {
+							}),
+						execute: ({ callbacks, signal, eventCounter }) =>
+							fetchAgenticResponse({
+								message: trimmed,
+								sessionId: currentSessionId,
+								researchMode: isResearchMode,
+								entities: entities?.length ? entities : undefined,
+								images: images?.length ? images : undefined,
+								pageContext,
+								quotedText: currentQuotedText || undefined,
+								customInstructions: settings.customInstructions || undefined,
+								enablePremiumTools: settings.enablePremiumTools,
+								model: settings.model || undefined,
+								effort: settings.effort || undefined,
+								isSuggestedQuestion,
+								blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
+								shareToken: currentShareToken,
+								projectId: submitProjectId,
+								abortSignal: signal,
+								fetchFn: authorizedFetchCompat,
+								eventCounter,
+								callbacks
+							}),
+						onError: async ({ kind, error: err }, { requestId, eventCounter }) => {
 							if (!isActiveRequest(activeRequestIdRef, requestId)) return
-							if (err?.name === 'AbortError') {
+							if (kind === 'abort') {
 								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 								dispatchStream({ type: 'RESET_STREAM' })
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (isFreeLimitError(err)) {
+							if (kind === 'free-limit' && isFreeLimitError(err)) {
 								appendMessage(buildFreeLimitMessage(err))
 								dispatchStream({ type: 'RESET_STREAM' })
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (err?.code === 'USAGE_LIMIT_EXCEEDED') {
+							if (kind === 'usage-limit') {
 								dispatchStream({
 									type: 'SET_RATE_LIMIT_DETAILS',
 									value: {
@@ -1616,36 +1581,33 @@ export function AgenticChat({
 								})
 								dispatchStream({ type: 'RESET_STREAM' })
 								researchModalStore.show()
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && isTemporaryConnectivityError(err)) {
+							if (kind === 'temporary-connectivity' && currentSessionId) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
 										targetSessionId: currentSessionId,
 										buffer,
 										failedRequest,
-										error: err instanceof Error ? err : new Error(getErrorMessage(err))
+										error: err
 									})
 								) {
 									return
 								}
 							}
-							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
+							dispatchStream({ type: 'SET_ERROR', value: err.message || 'Failed to get response' })
 							dispatchStream({
 								type: 'SET_LAST_FAILED_REQUEST',
 								value: failedRequest
 							})
 							appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 							dispatchStream({ type: 'RESET_STREAM' })
-							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-						})
-						.then(async () => {
+						},
+						onSuccess: async ({ requestId, eventCounter }) => {
 							let handedOffToResume = false
 							let recoveryStarted = false
 							if (
-								didFetchResolve &&
 								isActiveRequest(activeRequestIdRef, requestId) &&
 								currentSessionId &&
 								!buffer.error &&
@@ -1673,15 +1635,12 @@ export function AgenticChat({
 
 							if (!handedOffToResume && isActiveRequest(activeRequestIdRef, requestId)) {
 								setActiveLeafMessageId(currentMessageIdRef.current)
-								abortControllerRef.current = null
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 							}
-							settleState.resolve()
-							if (activeRequestSettleRef.current?.requestId === requestId) {
-								activeRequestSettleRef.current = null
-							}
+						},
+						onFinally: () => {
 							promptSubmissionLockRef.current = false
-						})
+						}
+					})
 				})
 				.catch(() => {
 					promptSubmissionLockRef.current = false
@@ -1769,30 +1728,20 @@ export function AgenticChat({
 			attach()
 
 			const buffer = createStreamBuffer()
-			const controller = new AbortController()
-			abortControllerRef.current = controller
-			const requestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'prompt', sessionId)
-			const settleState = createRequestSettleState(requestId)
-			activeRequestSettleRef.current = settleState
-			const eventCounter = { count: 0 }
+			let shouldThrowEditError: UsageLimitError | null = null
+			let handedOffToResume = false
 
-			try {
-				await fetchAgenticResponse({
-					message: trimmed,
-					sessionId,
-					editMessageId: isBranchingEdit ? messageId : undefined,
-					researchMode: isResearchMode,
-					quotedText: original.quotedText || undefined,
-					customInstructions: settings.customInstructions || undefined,
-					enablePremiumTools: settings.enablePremiumTools,
-					model: settings.model || undefined,
-					effort: settings.effort || undefined,
-					blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
-					projectId: currentSessionProjectId,
-					abortSignal: controller.signal,
-					fetchFn: authorizedFetchCompat,
-					eventCounter,
-					callbacks: createAgenticCallbacks({
+			await runAgenticRequest({
+				mode: 'edit',
+				sessionId: toSessionId(sessionId),
+				requestKind: 'prompt',
+				activeRequestIdRef,
+				activeRequestKindRef,
+				activeSessionIdRef,
+				abortControllerRef,
+				activeRequestSettleRef,
+				createCallbacks: ({ requestId }) =>
+					createAgenticCallbacks({
 						requestId,
 						activeRequestIdRef,
 						buffer,
@@ -1810,84 +1759,98 @@ export function AgenticChat({
 							setSessionTitle(title)
 							updateSessionTitle({ sessionId, title, projectId: currentSessionProjectId }).catch(() => {})
 						}
-					})
-				})
-				if (isActiveRequest(activeRequestIdRef, requestId) && !buffer.error && !hasStreamBufferContent(buffer)) {
-					buffer.receivedEventCount = eventCounter.count
-					let recoveryStarted = false
-					const handedOffToResume = await resumeRunningExecution({
-						targetSessionId: sessionId,
-						buffer,
-						resetStream: false,
-						onTemporaryDisconnect: (disconnectError, streamBuffer) => {
-							recoveryStarted = startRecoveryCycle({
-								targetSessionId: sessionId,
-								buffer: streamBuffer,
-								failedRequest: null,
-								error: disconnectError
-							})
-						}
-					})
-					if (handedOffToResume) return
-					if (recoveryStarted) {
-						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-						return
-					}
-					if (isActiveRequest(activeRequestIdRef, requestId)) {
-						dispatchStream({ type: 'RESET_STREAM' })
-					}
-				}
-				if (isActiveRequest(activeRequestIdRef, requestId)) {
-					setActiveLeafMessageId(currentMessageIdRef.current)
-					abortControllerRef.current = null
-					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-				}
-				// siblingInfo arrives via SSE `sibling_info` mid-stream — no extra restore call needed
-			} catch (err) {
-				const editError = err as UsageLimitError
-				if (controller.signal.aborted || editError?.name === 'AbortError') {
-					appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
-					dispatchStream({ type: 'RESET_STREAM' })
-					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-					return
-				}
-				if (isTemporaryConnectivityError(editError)) {
-					buffer.receivedEventCount = eventCounter.count
-					if (
-						startRecoveryCycle({
+					}),
+				execute: ({ callbacks, signal, eventCounter }) =>
+					fetchAgenticResponse({
+						message: trimmed,
+						sessionId,
+						editMessageId: isBranchingEdit ? messageId : undefined,
+						researchMode: isResearchMode,
+						quotedText: original.quotedText || undefined,
+						customInstructions: settings.customInstructions || undefined,
+						enablePremiumTools: settings.enablePremiumTools,
+						model: settings.model || undefined,
+						effort: settings.effort || undefined,
+						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
+						projectId: currentSessionProjectId,
+						abortSignal: signal,
+						fetchFn: authorizedFetchCompat,
+						eventCounter,
+						callbacks
+					}),
+				onSuccess: async ({ requestId, eventCounter }) => {
+					if (isActiveRequest(activeRequestIdRef, requestId) && !buffer.error && !hasStreamBufferContent(buffer)) {
+						buffer.receivedEventCount = eventCounter.count
+						let recoveryStarted = false
+						handedOffToResume = await resumeRunningExecution({
 							targetSessionId: sessionId,
 							buffer,
-							failedRequest: null,
-							error: editError instanceof Error ? editError : new Error(getErrorMessage(editError))
+							resetStream: false,
+							onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+								recoveryStarted = startRecoveryCycle({
+									targetSessionId: sessionId,
+									buffer: streamBuffer,
+									failedRequest: null,
+									error: disconnectError
+								})
+							}
 						})
-					) {
-						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						if (handedOffToResume || recoveryStarted) return
+						if (isActiveRequest(activeRequestIdRef, requestId)) {
+							dispatchStream({ type: 'RESET_STREAM' })
+						}
+					}
+					if (isActiveRequest(activeRequestIdRef, requestId)) {
+						setActiveLeafMessageId(currentMessageIdRef.current)
+					}
+					// siblingInfo arrives via SSE `sibling_info` mid-stream — no extra restore call needed
+				},
+				onError: ({ kind, error: editError }, { eventCounter }) => {
+					if (kind === 'abort') {
+						appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+						dispatchStream({ type: 'RESET_STREAM' })
 						return
 					}
-				}
-				if (isFreeLimitError(editError)) {
+					if (kind === 'temporary-connectivity') {
+						buffer.receivedEventCount = eventCounter.count
+						if (
+							startRecoveryCycle({
+								targetSessionId: sessionId,
+								buffer,
+								failedRequest: null,
+								error: editError
+							})
+						) {
+							return
+						}
+					}
+					if (kind === 'free-limit' && isFreeLimitError(editError)) {
+						setMessages(messagesSnapshot)
+						setActiveLeafMessageId(activeLeafSnapshot)
+						appendMessage(buildFreeLimitMessage(editError))
+						dispatchStream({ type: 'RESET_STREAM' })
+						return
+					}
 					setMessages(messagesSnapshot)
 					setActiveLeafMessageId(activeLeafSnapshot)
-					appendMessage(buildFreeLimitMessage(editError))
+					setViewError(getErrorMessage(editError))
 					dispatchStream({ type: 'RESET_STREAM' })
-					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-					return
+					shouldThrowEditError = editError
+				},
+				onFinally: () => {
+					promptSubmissionLockRef.current = false
 				}
-				setMessages(messagesSnapshot)
-				setActiveLeafMessageId(activeLeafSnapshot)
-				setViewError(getErrorMessage(editError))
-				dispatchStream({ type: 'RESET_STREAM' })
-				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-				throw err
-			} finally {
-				if (abortControllerRef.current === controller) {
-					abortControllerRef.current = null
-				}
-				settleState.resolve()
-				if (activeRequestSettleRef.current?.requestId === requestId) {
-					activeRequestSettleRef.current = null
-				}
-				promptSubmissionLockRef.current = false
+			})
+			if (!handedOffToResume && shouldThrowEditError) {
+				const editError = new Error(shouldThrowEditError.message)
+				editError.name = shouldThrowEditError.name
+				Object.assign(editError, {
+					code: shouldThrowEditError.code,
+					details: shouldThrowEditError.details,
+					upgradeUrl: shouldThrowEditError.upgradeUrl,
+					cause: shouldThrowEditError
+				})
+				throw editError
 			}
 		},
 		[

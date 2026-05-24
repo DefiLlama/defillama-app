@@ -1,8 +1,16 @@
 import { AI_SERVER } from '~/constants'
+import {
+	normalizeChartDataByKey,
+	normalizeDashboardChartData,
+	normalizeDashboardItems
+} from '~/containers/LlamaAI/chartPayloads'
 import type {
 	AlertProposedData,
 	ChartConfiguration,
+	ChartDataByKey,
 	DashboardArtifact,
+	DashboardChartData,
+	DashboardItem,
 	GeneratedImage,
 	MessageMetadata,
 	TodoItem,
@@ -38,7 +46,7 @@ export interface SpawnProgressData {
 
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
-	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
+	onCharts: (charts: ChartConfiguration[], chartData: ChartDataByKey) => void
 	onGeneratedImages?: (images: GeneratedImage[]) => void
 	onProgress: (toolName: string, isPremium?: boolean) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
@@ -83,7 +91,7 @@ interface ResponseChunkEvent {
 interface ChartsEvent {
 	type: 'charts'
 	charts?: ChartConfiguration[]
-	chartData?: Record<string, unknown[]>
+	chartData?: ChartDataByKey
 }
 
 interface GeneratedImagesEvent {
@@ -110,20 +118,20 @@ interface DashboardEvent {
 	dashboard_id?: string
 	dashboardConfig?: {
 		dashboardName?: string
-		items?: any[]
+		items?: DashboardItem[]
 		timePeriod?: string
 		sourceDashboardId?: string
 	}
-	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	chartData?: DashboardChartData
 	content?: {
 		dashboard_id?: string
 		dashboardConfig?: {
 			dashboardName?: string
-			items?: any[]
+			items?: DashboardItem[]
 			timePeriod?: string
 			sourceDashboardId?: string
 		}
-		chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+		chartData?: DashboardChartData
 	}
 }
 
@@ -330,7 +338,7 @@ export function parseSSEStream(
 					break
 				}
 				case 'charts':
-					callbacks.onCharts(data.charts || [], data.chartData || {})
+					callbacks.onCharts(data.charts || [], normalizeChartDataByKey(data.chartData))
 					break
 				case 'generated_images':
 					callbacks.onGeneratedImages?.(data.images || [])
@@ -348,6 +356,7 @@ export function parseSSEStream(
 					const config = data.dashboardConfig || data.content?.dashboardConfig
 					const chartData = data.chartData || data.content?.chartData
 					if (config && callbacks.onDashboard) {
+						const dashboardChartData = normalizeDashboardChartData(chartData)
 						const stableId =
 							data.dashboard_id ||
 							data.content?.dashboard_id ||
@@ -355,10 +364,10 @@ export function parseSSEStream(
 						callbacks.onDashboard({
 							id: stableId,
 							dashboardName: config.dashboardName || 'Dashboard',
-							items: config.items || [],
+							items: normalizeDashboardItems(config.items),
 							timePeriod: config.timePeriod,
 							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
-							...(chartData && { chartData })
+							...(dashboardChartData && { chartData: dashboardChartData })
 						})
 					}
 					break

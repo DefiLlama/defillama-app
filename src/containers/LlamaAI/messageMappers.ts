@@ -1,6 +1,7 @@
 import type { CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type {
 	ChartConfiguration,
+	ChartDataByKey,
 	DashboardArtifact,
 	DashboardItem,
 	Message,
@@ -32,7 +33,7 @@ export interface PersistedMessage {
 	role: 'user' | 'assistant'
 	content?: string
 	charts?: ChartConfiguration[]
-	chartData?: Record<string, unknown[]>
+	chartData?: ChartDataByKey
 	citations?: string[]
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
@@ -77,7 +78,7 @@ export interface SharedSessionMessage {
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	charts?: ChartConfiguration[]
-	chartData?: unknown[] | Record<string, unknown[]>
+	chartData?: unknown[] | ChartDataByKey
 	citations?: string[]
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
@@ -174,7 +175,7 @@ export function mapPersistedMessages(messages: PersistedMessage[] | undefined): 
 export function normalizeSharedChartDataByChartId(
 	charts: ChartConfiguration[] | undefined,
 	chartData: SharedSessionMessage['chartData']
-): Record<string, unknown[]> | undefined {
+): ChartDataByKey | undefined {
 	if (!charts || charts.length === 0 || !chartData) return undefined
 	if (!Array.isArray(chartData)) return chartData
 
@@ -193,7 +194,7 @@ export function mapSharedSessionMessage(message: SharedSessionMessage, index?: n
 				? [
 						{
 							charts: message.charts,
-							chartData: normalizeSharedChartDataByChartId(message.charts, message.chartData) as Record<string, any[]>
+							chartData: normalizeSharedChartDataByChartId(message.charts, message.chartData) ?? {}
 						}
 					]
 				: undefined,

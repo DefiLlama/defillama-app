@@ -1,6 +1,7 @@
 import type {
 	AlertProposedData,
 	ChartConfiguration,
+	ChartDataByKey,
 	DashboardArtifact,
 	GeneratedImage,
 	Message
@@ -11,7 +12,7 @@ export type ChartArtifactRecord = {
 	type: 'chart'
 	id: string
 	charts: ChartConfiguration[]
-	chartData: Record<string, any[]>
+	chartData: ChartDataByKey
 }
 
 export type CsvArtifactRecord = {

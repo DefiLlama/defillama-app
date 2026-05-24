@@ -1,5 +1,4 @@
 import type { RefObject } from 'react'
-import { getToolLabel } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import type { AgenticSSECallbacks, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { isActiveRequest } from '~/containers/LlamaAI/requestLifecycle'
 import {
@@ -8,7 +7,9 @@ import {
 	type StreamBuffer,
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
+import { getToolLabel } from '~/containers/LlamaAI/toolMetadata'
 import type { DashboardArtifact, Message, TodoItem } from '~/containers/LlamaAI/types'
+import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 // Consume the current streamed message id once the buffered assistant message is committed.
 function takeCurrentMessageId(ref: RefObject<string | null>) {
@@ -76,16 +77,12 @@ export function createAgenticCallbacks({
 				buffer.hasStartedText = true
 				dispatch({ type: 'CLEAR_ACTIVITY' })
 			}
-			buffer.text += content
-			const reportIdx = buffer.text.indexOf('[REPORT_START]')
-			if (reportIdx !== -1) {
-				buffer.text = buffer.text.slice(reportIdx + '[REPORT_START]'.length).trimStart()
-			}
+			buffer.text = stripBeforeReportStart(buffer.text + content)
 			dispatch({ type: 'APPEND_TOKEN', value: content })
 		}),
 		onCharts: guard((charts, chartData) => {
 			dispatch({ type: 'CLEAR_ACTIVITY' })
-			const chartSet = { charts, chartData: chartData as Record<string, any[]> }
+			const chartSet = { charts, chartData }
 			buffer.charts.push(chartSet)
 			dispatch({ type: 'APPEND_CHARTS', value: chartSet })
 		}),
@@ -194,7 +191,7 @@ export function createAgenticCallbacks({
 		onDone: guard(() => {
 			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
-			dispatch({ type: 'RESET_STREAM' })
+			dispatch({ type: 'COMMIT_STREAM' })
 			notify()
 		})
 	}

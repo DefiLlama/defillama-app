@@ -8,6 +8,7 @@ import { LoadingDots } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
 import { LlamaAIAnimationPreloads } from '~/containers/LlamaAI/components/status/LlamaAIAnimationPreloads'
+import { toSessionId } from '~/containers/LlamaAI/ids'
 import { buildForkedSharedRoute, replaceSharedForkHistoryPath } from '~/containers/LlamaAI/sharedForkRoute'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setReferrer } from '~/containers/Subscription/referrer'
@@ -123,8 +124,9 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 	// After login, hand the saved message to AgenticChat as initialPrompt so it auto-submits in-place.
 	const initialPrompt = user && pendingMessage ? pendingMessage : undefined
 	const handleSharedSessionFork = useCallback((sessionId: string) => {
-		replaceSharedForkHistoryPath(sessionId)
-		setRouteOverride(buildForkedSharedRoute(sessionId))
+		const forkedSessionId = toSessionId(sessionId)
+		replaceSharedForkHistoryPath(forkedSessionId)
+		setRouteOverride(buildForkedSharedRoute(forkedSessionId))
 	}, [])
 
 	if (isLoading || !router.isReady) {

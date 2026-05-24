@@ -12,6 +12,7 @@ import type {
 	ToolCall,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
+import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 export interface ChatPageContext {
 	entitySlug?: string
@@ -39,7 +40,15 @@ export interface RecoveryState {
 	lastErrorMessage: string | null
 }
 
+export type StreamPhase =
+	| { status: 'idle' }
+	| { status: 'streaming' }
+	| { status: 'reconnecting'; startedAt: number; attemptCount: number; lastErrorMessage: string | null }
+	| { status: 'failed'; error: string }
+	| { status: 'committed' }
+
 export interface StreamState {
+	phase: StreamPhase
 	isStreaming: boolean
 	isCompacting: boolean
 	text: string
@@ -67,7 +76,7 @@ export interface StreamState {
 	contextWarning: ContextWarningPayload | null
 }
 
-export interface StreamBuffer {
+export interface StreamAccumulator {
 	text: string
 	charts: ChartSet[]
 	csvExports: CsvExport[]
@@ -85,9 +94,12 @@ export interface StreamBuffer {
 	messageMetadata?: MessageMetadata
 }
 
+export type StreamBuffer = StreamAccumulator
+
 export type StreamAction =
 	| { type: 'START_STREAM' }
 	| { type: 'RESET_STREAM' }
+	| { type: 'COMMIT_STREAM' }
 	| { type: 'SET_COMPACTING'; value: boolean }
 	| { type: 'SET_ERROR'; value: string | null }
 	| { type: 'SET_LAST_FAILED_REQUEST'; value: FailedRequest | null }
@@ -146,6 +158,7 @@ const createEmptyRuntimeState = () => ({
 
 // Full stream state starts from the empty runtime snapshot plus error/retry metadata.
 export const createInitialStreamState = (): StreamState => ({
+	phase: { status: 'idle' },
 	...createEmptyRuntimeState(),
 	error: null,
 	lastFailedRequest: null,
@@ -154,7 +167,7 @@ export const createInitialStreamState = (): StreamState => ({
 })
 
 // Keep a mutable buffer while SSE events arrive, then commit it as one assistant message at the end.
-export const createStreamBuffer = (): StreamBuffer => ({
+export const createStreamAccumulator = (): StreamAccumulator => ({
 	text: '',
 	charts: [],
 	csvExports: [],
@@ -170,6 +183,8 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	spawnStarted: false,
 	receivedEventCount: 0
 })
+
+export const createStreamBuffer = createStreamAccumulator
 
 export function hasStreamBufferContent(buffer: StreamBuffer) {
 	return Boolean(
@@ -193,27 +208,34 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return {
 				...state,
 				...createEmptyRuntimeState(),
+				phase: { status: 'streaming' },
 				isStreaming: true,
 				error: null,
 				lastFailedRequest: null,
 				rateLimitDetails: null
 			}
 		case 'RESET_STREAM':
-			return { ...state, ...createEmptyRuntimeState() }
+			return { ...state, ...createEmptyRuntimeState(), phase: { status: 'idle' } }
+		case 'COMMIT_STREAM':
+			return { ...state, ...createEmptyRuntimeState(), phase: { status: 'committed' } }
 		case 'SET_COMPACTING':
 			return { ...state, isCompacting: action.value }
 		case 'SET_ERROR':
-			return { ...state, error: action.value }
+			return {
+				...state,
+				error: action.value,
+				phase: action.value
+					? { status: 'failed', error: action.value }
+					: state.phase.status === 'failed'
+						? { status: 'idle' }
+						: state.phase
+			}
 		case 'SET_LAST_FAILED_REQUEST':
 			return { ...state, lastFailedRequest: action.value }
 		case 'SET_RATE_LIMIT_DETAILS':
 			return { ...state, rateLimitDetails: action.value }
 		case 'APPEND_TOKEN': {
-			let newText = state.text + action.value
-			const reportIdx = newText.indexOf('[REPORT_START]')
-			if (reportIdx !== -1) {
-				newText = newText.slice(reportIdx + '[REPORT_START]'.length).trimStart()
-			}
+			const newText = stripBeforeReportStart(state.text + action.value)
 			return { ...state, text: newText }
 		}
 		case 'APPEND_CHARTS':
@@ -277,6 +299,12 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					startedAt: action.startedAt,
 					attemptCount: 0,
 					lastErrorMessage: action.lastErrorMessage
+				},
+				phase: {
+					status: 'reconnecting',
+					startedAt: action.startedAt,
+					attemptCount: 0,
+					lastErrorMessage: action.lastErrorMessage
 				}
 			}
 		case 'UPDATE_RECOVERY':
@@ -285,6 +313,12 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 				recovery: {
 					...state.recovery,
 					status: 'reconnecting',
+					attemptCount: action.attemptCount,
+					lastErrorMessage: action.lastErrorMessage
+				},
+				phase: {
+					status: 'reconnecting',
+					startedAt: state.recovery.startedAt ?? Date.now(),
 					attemptCount: action.attemptCount,
 					lastErrorMessage: action.lastErrorMessage
 				}
@@ -297,7 +331,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					startedAt: null,
 					attemptCount: 0,
 					lastErrorMessage: null
-				}
+				},
+				phase: state.phase.status === 'reconnecting' ? { status: 'idle' } : state.phase
 			}
 		case 'SET_CONTEXT_WARNING':
 			return { ...state, contextWarning: action.value }

@@ -3,228 +3,42 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { AI_SERVER } from '~/constants'
+import {
+	deleteAlert,
+	fetchAlertExecutionDetail,
+	fetchAlertExecutions,
+	fetchAlerts,
+	setAlertEnabled,
+	updateAlert
+} from '~/containers/LlamaAI/components/alerts/api'
+import {
+	DAYS_OF_WEEK,
+	formatScheduleExpression,
+	getBlockedLocalHours,
+	getTimezoneLabel,
+	getUserTimezone,
+	getValidHourForTimezone,
+	GMT_OFFSETS,
+	parseScheduleExpression
+} from '~/containers/LlamaAI/components/alerts/schedule'
+import type {
+	Alert,
+	AlertConfig,
+	AlertExecution,
+	AlertExecutionDetail,
+	DeliveryChannel,
+	UpdateAlertInput
+} from '~/containers/LlamaAI/components/alerts/types'
 import { useSlackChannels } from '~/containers/LlamaAI/hooks/useSlackChannels'
 import { useSlackWorkspaces } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
 import { sanitizeAlertSummary, sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
-interface Alert {
-	id: string
-	title: string
-	original_query: string
-	schedule_expression: string
-	next_run_at: string
-	last_run_at: string | null
-	last_run_status: 'success' | 'error' | null
-	enabled: boolean
-	run_count: number
-	created_at: string
-	delivery_channel?: 'email' | 'telegram' | 'slack'
-	condition?: string | null
-	slack_team_id?: string | null
-	slack_channel_id?: string | null
-	slack_channel_name?: string | null
-	test_sent?: boolean
-}
-
-type DeliveryChannel = 'email' | 'telegram' | 'slack'
-
-interface AlertExecution {
-	id: string
-	executed_at: string
-	status: string
-	duration_ms: number
-	chart_count: number
-}
-
-interface AlertExecutionDetail extends AlertExecution {
-	alertTitle: string
-	generated_summary: string | null
-	generated_charts: { id: string; type: string; title: string; url: string }[] | null
-	citations: string[] | null
-}
-
 interface AlertsModalProps {
 	dialogStore: Ariakit.DialogStore
 }
-
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const BLOCKED_HOURS_UTC = [0, 1, 2]
-const GMT_OFFSETS = [
-	{ label: 'UTC-12', value: 'Etc/GMT+12' },
-	{ label: 'UTC-11', value: 'Etc/GMT+11' },
-	{ label: 'UTC-10', value: 'Etc/GMT+10' },
-	{ label: 'UTC-9', value: 'Etc/GMT+9' },
-	{ label: 'UTC-8', value: 'Etc/GMT+8' },
-	{ label: 'UTC-7', value: 'Etc/GMT+7' },
-	{ label: 'UTC-6', value: 'Etc/GMT+6' },
-	{ label: 'UTC-5', value: 'Etc/GMT+5' },
-	{ label: 'UTC-4', value: 'Etc/GMT+4' },
-	{ label: 'UTC-3', value: 'Etc/GMT+3' },
-	{ label: 'UTC-2', value: 'Etc/GMT+2' },
-	{ label: 'UTC-1', value: 'Etc/GMT+1' },
-	{ label: 'UTC', value: 'UTC' },
-	{ label: 'UTC+1', value: 'Etc/GMT-1' },
-	{ label: 'UTC+2', value: 'Etc/GMT-2' },
-	{ label: 'UTC+3', value: 'Etc/GMT-3' },
-	{ label: 'UTC+4', value: 'Etc/GMT-4' },
-	{ label: 'UTC+5', value: 'Etc/GMT-5' },
-	{ label: 'UTC+6', value: 'Etc/GMT-6' },
-	{ label: 'UTC+7', value: 'Etc/GMT-7' },
-	{ label: 'UTC+8', value: 'Etc/GMT-8' },
-	{ label: 'UTC+9', value: 'Etc/GMT-9' },
-	{ label: 'UTC+10', value: 'Etc/GMT-10' },
-	{ label: 'UTC+11', value: 'Etc/GMT-11' },
-	{ label: 'UTC+12', value: 'Etc/GMT-12' },
-	{ label: 'UTC+13', value: 'Etc/GMT-13' },
-	{ label: 'UTC+14', value: 'Etc/GMT-14' }
-]
 const ALERTS_QUERY_KEY = 'llamaai-alerts'
-
-const parseOffsetHours = (value: string): number | null => {
-	const normalized = value.replace('UTC', 'GMT')
-	if (normalized === 'GMT') return 0
-	const match = normalized.match(/GMT([+-]\d{1,2})/)
-	if (!match) return null
-	const hours = parseInt(match[1], 10)
-	return Number.isNaN(hours) ? null : hours
-}
-
-const getOffsetHoursFromTimezone = (timezone: string): number | null => {
-	try {
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
-		const parts = formatter.formatToParts(new Date())
-		const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value
-		return tzPart ? parseOffsetHours(tzPart) : null
-	} catch {
-		return null
-	}
-}
-
-const offsetHoursToEtc = (offsetHours: number): string | undefined => {
-	if (offsetHours === 0) return 'UTC'
-	const sign = offsetHours > 0 ? '-' : '+'
-	const etcValue = `Etc/GMT${sign}${Math.abs(offsetHours)}`
-	return GMT_OFFSETS.some((g) => g.value === etcValue) ? etcValue : undefined
-}
-
-const parseTimezoneFromExpression = (expression: string): string | undefined => {
-	const etcMatch = expression.match(/\bEtc\/GMT[+-]\d{1,2}\b/)
-	if (etcMatch && GMT_OFFSETS.some((g) => g.value === etcMatch[0])) return etcMatch[0]
-
-	const offsetMatch = expression.match(/\b(?:GMT|UTC)[+-]\d{1,2}\b/)
-	if (offsetMatch) {
-		const offsetHours = parseOffsetHours(offsetMatch[0])
-		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
-	}
-
-	if (/\bUTC\b/.test(expression)) return 'UTC'
-
-	const ianaMatch = expression.match(/\b[A-Za-z]+\/[A-Za-z_]+\b/)
-	if (ianaMatch) {
-		const offsetHours = getOffsetHoursFromTimezone(ianaMatch[0])
-		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
-	}
-
-	return undefined
-}
-
-const parseScheduleExpression = (
-	expression: string
-): {
-	hour?: number
-	dayOfWeek?: number
-	timezone?: string
-} => {
-	const hourMatch = expression.match(/at (\d+)/)
-	const dayMatch = expression.match(/on (\w+)/)
-	const hour = hourMatch ? parseInt(hourMatch[1], 10) : undefined
-	let dayOfWeek: number | undefined
-	if (dayMatch) {
-		const idx = DAYS_OF_WEEK.findIndex((d) => d.toLowerCase() === dayMatch[1].toLowerCase())
-		if (idx >= 0) dayOfWeek = idx
-	}
-	const timezone = parseTimezoneFromExpression(expression)
-	return { hour, dayOfWeek, timezone }
-}
-
-const getUserTimezone = (): string => {
-	try {
-		const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-		const offset = new Date().getTimezoneOffset()
-		const hours = Math.floor(Math.abs(offset) / 60)
-		const sign = offset <= 0 ? '-' : '+'
-		const etcTz = `Etc/GMT${sign}${hours}`
-		if (GMT_OFFSETS.some((g) => g.value === etcTz)) return etcTz
-		if (GMT_OFFSETS.some((g) => g.value === tz)) return tz
-		return 'UTC'
-	} catch {
-		return 'UTC'
-	}
-}
-
-const convertHourToUTC = (localHour: number, timezone: string): number => {
-	if (timezone === 'UTC') return localHour
-	const match = timezone.match(/Etc\/GMT([+-])(\d+)/)
-	if (match) {
-		const sign = match[1] === '+' ? -1 : 1
-		const offset = parseInt(match[2], 10)
-		let utcHour = localHour - sign * offset
-		if (utcHour < 0) utcHour += 24
-		if (utcHour >= 24) utcHour -= 24
-		return utcHour
-	}
-	return localHour
-}
-
-const getBlockedLocalHours = (timezone: string): number[] => {
-	const blocked: number[] = []
-	for (let h = 0; h < 24; h++) {
-		const utcHour = convertHourToUTC(h, timezone)
-		if (BLOCKED_HOURS_UTC.includes(utcHour)) {
-			blocked.push(h)
-		}
-	}
-	return blocked
-}
-
-const getFirstAvailableHour = (blockedHours: number[]): number | undefined => {
-	for (let h = 0; h < 24; h++) {
-		if (!blockedHours.includes(h)) return h
-	}
-	return undefined
-}
-
-const getValidHourForTimezone = (hour: number, timezone: string): number => {
-	const blockedHours = getBlockedLocalHours(timezone)
-	if (!blockedHours.includes(hour)) return hour
-	const firstAvailable = getFirstAvailableHour(blockedHours)
-	return firstAvailable ?? hour
-}
-
-const getTimezoneLabel = (timezone: string): string => {
-	if (timezone === 'UTC') return 'UTC'
-	const found = GMT_OFFSETS.find((g) => g.value === timezone)
-	if (found) return found.label
-	try {
-		const now = new Date()
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
-		const parts = formatter.formatToParts(now)
-		const tzPart = parts.find((p) => p.type === 'timeZoneName')
-		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'UTC')
-		}
-	} catch {}
-	return timezone
-}
-
-const formatScheduleExpression = (expression: string): string => {
-	return expression.replace(/([A-Za-z]+\/[A-Za-z_]+)/g, (match) => {
-		return getTimezoneLabel(match)
-	})
-}
 
 export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModalProps) {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
@@ -243,13 +57,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			const res = await authorizedFetch(`${AI_SERVER}/alerts`)
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to fetch alerts')
-			}
-			const data = await res.json()
-			return Array.isArray(data.alerts) ? data.alerts : []
+			return fetchAlerts(authorizedFetch)
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})
@@ -352,10 +160,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const executionsQuery = useQuery<AlertExecution[]>({
 		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions'],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alert.id}/executions`)
-			if (!res?.ok) throw new Error('Failed to fetch executions')
-			const data = await res.json()
-			return data.executions ?? []
+			if (!authorizedFetch) throw new Error('Not authenticated')
+			return fetchAlertExecutions(authorizedFetch, alert.id)
 		},
 		enabled: showExecutions && !!authorizedFetch
 	})
@@ -363,9 +169,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const execDetailQuery = useQuery<AlertExecutionDetail>({
 		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions', selectedExecId],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alert.id}/executions/${selectedExecId}`)
-			if (!res?.ok) throw new Error('Failed to fetch execution detail')
-			return res.json()
+			if (!authorizedFetch) throw new Error('Not authenticated')
+			if (!selectedExecId) throw new Error('Missing execution id')
+			return fetchAlertExecutionDetail(authorizedFetch, alert.id, selectedExecId)
 		},
 		enabled: !!selectedExecId && !!authorizedFetch
 	})
@@ -415,16 +221,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ enabled })
-			})
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to update alert')
-			}
-			return enabled
+			return setAlertEnabled(authorizedFetch, alertId, enabled)
 		},
 		onMutate: async ({ alertId, enabled }) => {
 			await queryClient.cancelQueries({ queryKey: alertsQueryKey })
@@ -450,12 +247,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to delete alert')
-			}
-			return alertId
+			return deleteAlert(authorizedFetch, alertId)
 		},
 		onMutate: async (alertId: string) => {
 			await queryClient.cancelQueries({ queryKey: alertsQueryKey })
@@ -479,66 +271,12 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		}
 	})
 
-	const updateAlertMutation = useMutation<
-		{ frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string },
-		Error,
-		{
-			alertId: string
-			title: string
-			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: DeliveryChannel
-			condition: string
-			slack_team_id?: string | null
-			slack_channel_id?: string | null
-			slack_channel_name?: string | null
-		}
-	>({
-		mutationFn: async ({
-			alertId,
-			title: nextTitle,
-			alertConfig,
-			delivery_channel,
-			condition: nextCondition,
-			slack_team_id,
-			slack_channel_id,
-			slack_channel_name
-		}: {
-			alertId: string
-			title: string
-			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: DeliveryChannel
-			condition: string
-			slack_team_id?: string | null
-			slack_channel_id?: string | null
-			slack_channel_name?: string | null
-		}) => {
+	const updateAlertMutation = useMutation<AlertConfig, Error, UpdateAlertInput>({
+		mutationFn: async (input) => {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const conditionUpdate = getConditionUpdate(nextCondition)
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					title: nextTitle,
-					alertConfig,
-					delivery_channel,
-					...(delivery_channel === 'slack'
-						? {
-								slack_team_id: slack_team_id ?? null,
-								slack_channel_id: slack_channel_id ?? null,
-								slack_channel_name: slack_channel_name ?? null
-							}
-						: {}),
-					...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
-				})
-			})
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				const errBody = await res.json().catch(() => ({ error: res.statusText }))
-				throw new Error(errBody.error || 'Failed to update alert')
-			}
-			return alertConfig
+			return updateAlert(authorizedFetch, input, getConditionUpdate(input.condition))
 		},
 		onSuccess: (_data, { alertId, title: nextTitle, alertConfig, delivery_channel, condition: nextCondition }) => {
 			const conditionUpdate = getConditionUpdate(nextCondition)
