@@ -31,7 +31,7 @@ function getStaticImportStatements(source: string): string[] {
 
 	for (const line of source.split('\n')) {
 		const trimmed = line.trim()
-		if (!statement && !trimmed.startsWith('import ')) continue
+		if (!statement && !/^import\b/.test(trimmed)) continue
 
 		statement = statement ? `${statement}\n${line}` : line
 

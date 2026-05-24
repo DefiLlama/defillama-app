@@ -34,5 +34,9 @@ describe('metadata cache config', () => {
 		vi.stubEnv('NODE_ENV', 'production')
 		vi.stubEnv('NEXT_PHASE', 'phase-production-build')
 		expect(shouldStartMetadataRuntimeRefreshLoop()).toBe(false)
+
+		vi.stubEnv('NEXT_PHASE', '')
+		vi.stubEnv('npm_lifecycle_event', 'build')
+		expect(shouldStartMetadataRuntimeRefreshLoop()).toBe(false)
 	})
 })
