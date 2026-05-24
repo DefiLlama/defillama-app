@@ -31,6 +31,18 @@ async function getLiquidationsAllResponse(): Promise<RawAllLiquidationsResponse>
 	return readDatasetDomainJson<RawAllLiquidationsResponse>('liquidations', LIQUIDATIONS_FILES.rawAll)
 }
 
+export async function getLiquidationsProtocolChainIdsFromCache(protocolId: string): Promise<string[]> {
+	const allResponse = await getLiquidationsAllResponse()
+	const protocolData = allResponse.data[protocolId]
+	if (!protocolData) return []
+
+	const chainIds: string[] = []
+	for (const chainId in protocolData) {
+		chainIds.push(chainId)
+	}
+	return chainIds
+}
+
 async function getLiquidationsBlockExplorers(): Promise<BlockExplorersResponse> {
 	return readDatasetDomainJson<BlockExplorersResponse>('liquidations', LIQUIDATIONS_FILES.rawBlockExplorers)
 }

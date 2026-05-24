@@ -1,17 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CoreMetadataPayload } from '../artifactContract'
 
-const { bootArtifactsMock, fetchCoreMetadataMock, runOutsideRouteTelemetryMock } = vi.hoisted(() => ({
-	bootArtifactsMock: vi.fn(),
-	fetchCoreMetadataMock: vi.fn(),
-	runOutsideRouteTelemetryMock: vi.fn((run: () => unknown) => run())
-}))
+const { bootArtifactsMock, fetchCoreMetadataMock, recordDomainEventMock, runOutsideRouteTelemetryMock } = vi.hoisted(
+	() => ({
+		bootArtifactsMock: vi.fn(),
+		fetchCoreMetadataMock: vi.fn(),
+		recordDomainEventMock: vi.fn(),
+		runOutsideRouteTelemetryMock: vi.fn((run: () => unknown) => run())
+	})
+)
 
 vi.mock('../fetch', () => ({
 	fetchCoreMetadata: fetchCoreMetadataMock
 }))
 
 vi.mock('~/utils/telemetry', () => ({
+	recordDomainEvent: recordDomainEventMock,
 	runOutsideRouteTelemetry: runOutsideRouteTelemetryMock
 }))
 
@@ -120,6 +124,7 @@ describe('metadata refresh', () => {
 		vi.restoreAllMocks()
 		vi.resetModules()
 		fetchCoreMetadataMock.mockReset()
+		recordDomainEventMock.mockReset()
 		bootArtifactsMock.mockReset()
 		bootArtifactsMock.mockReturnValue({ manifest: null, payload: createMetadataPayload() })
 		runOutsideRouteTelemetryMock.mockReset()
@@ -252,6 +257,59 @@ describe('metadata refresh', () => {
 
 		expect(runOutsideRouteTelemetryMock).toHaveBeenCalledTimes(2)
 		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
+	})
+
+	it('records successful metadata refresh telemetry', async () => {
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_000)
+			.mockReturnValueOnce(1_000)
+			.mockReturnValueOnce(1_250)
+			.mockReturnValue(1_250)
+		fetchCoreMetadataMock.mockResolvedValue(createMetadataPayload())
+		const metadataModule = await import('../index')
+
+		await metadataModule.refreshMetadataIfStale()
+
+		expect(recordDomainEventMock).toHaveBeenCalledWith(
+			'metadata.refresh',
+			'info',
+			'manual',
+			'Metadata refresh completed',
+			{
+				duration_ms: 250,
+				source: 'manual',
+				status: 'success'
+			}
+		)
+	})
+
+	it('records failed metadata refresh telemetry', async () => {
+		const error = new Error('metadata failed')
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_000)
+			.mockReturnValueOnce(1_000)
+			.mockReturnValueOnce(1_400)
+			.mockReturnValue(1_400)
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		fetchCoreMetadataMock.mockRejectedValue(error)
+		const metadataModule = await import('../index')
+
+		await metadataModule.refreshMetadataIfStale()
+
+		expect(recordDomainEventMock).toHaveBeenCalledWith(
+			'metadata.refresh',
+			'warn',
+			'manual',
+			'Metadata refresh failed',
+			{
+				duration_ms: 400,
+				error_message: 'metadata failed',
+				error_name: 'Error',
+				source: 'manual',
+				status: 'failure'
+			}
+		)
+		consoleErrorSpy.mockRestore()
 	})
 
 	it('applies the refresh cooldown after failed refreshes', async () => {

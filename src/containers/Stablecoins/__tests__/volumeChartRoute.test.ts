@@ -8,6 +8,16 @@ const { fetchGlobalMock, fetchChainMock, fetchTokenMock } = vi.hoisted(() => ({
 	fetchTokenMock: vi.fn()
 }))
 
+vi.mock('~/utils/metadata', () => ({
+	__esModule: true,
+	default: {
+		chainMetadata: {
+			'zksync-era': { name: 'zkSync Era', id: 'era' },
+			ethereum: { name: 'Ethereum', id: 'ethereum' }
+		}
+	}
+}))
+
 vi.mock('~/containers/Stablecoins/api', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('~/containers/Stablecoins/api')>()
 	return {
@@ -65,6 +75,20 @@ describe('/api/stablecoins/volume-chart', () => {
 
 		expect(fetchChainMock).toHaveBeenCalledWith('zkSync Era', 'currency', expect.any(Object))
 		expect(res.status).toHaveBeenCalledWith(200)
+	})
+
+	it('returns 404 for unknown chain params before fetching scoped volume data', async () => {
+		const req = {
+			method: 'GET',
+			query: { scope: 'chain', chain: 'Bad Chain', chart: 'currency' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(fetchChainMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'chain not found' })
 	})
 
 	it('uses token scoped volume fetchers', async () => {

@@ -19,11 +19,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
-	}
-
 	const body = req.body as CexInflowsBatchRequest
 	const startNum = Number(body.start)
 	const endNum = Number(body.end)
@@ -35,19 +30,37 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'cexs must be a non-empty array' })
 	}
 
-	const protocols: Array<{ protocol: string; tokensToExclude: string[] }> = []
+	const auth = await validateSubscription(req.headers.authorization)
+	if (auth.valid === false) {
+		return res.status(auth.status).json({ error: auth.error })
+	}
+
+	const cexRequests: Array<{ slug: string; tokensToExclude?: unknown }> = []
 	for (const cex of body.cexs) {
 		if (typeof cex.slug !== 'string') {
 			return res.status(400).json({ error: 'cexs must include slug values' })
 		}
-
-		protocols.push({
-			protocol: cex.slug,
-			tokensToExclude: typeof cex.tokensToExclude === 'string' && cex.tokensToExclude ? [cex.tokensToExclude] : []
-		})
+		cexRequests.push({ slug: cex.slug, tokensToExclude: cex.tokensToExclude })
 	}
 
 	try {
+		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/assets')
+		])
+		const protocols: Array<{ protocol: string; tokensToExclude: string[] }> = []
+		for (const cex of cexRequests) {
+			const cexRoute = resolveCexParamFromMetadata(cex.slug, metadataCache)
+			if (!cexRoute) {
+				return res.status(404).json({ error: 'CEX not found' })
+			}
+
+			protocols.push({
+				protocol: cexRoute.canonicalSlug,
+				tokensToExclude: typeof cex.tokensToExclude === 'string' && cex.tokensToExclude ? [cex.tokensToExclude] : []
+			})
+		}
+
 		const upstream = await fetchWithPoolingOnServer(`${SERVER_URL}/inflows/batch`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },

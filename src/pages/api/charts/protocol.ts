@@ -56,6 +56,12 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 	res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
 }
 
+async function resolveCanonicalProtocolParam(protocol: string): Promise<string | null> {
+	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
+	const protocolRoute = await resolveProtocolParam(protocol)
+	return protocolRoute?.canonicalSlug ?? null
+}
+
 const isValidAdapterType = (value: string): value is `${ADAPTER_TYPES}` => VALID_ADAPTER_TYPES.has(value)
 const isValidAdapterDataType = (value: string): value is `${ADAPTER_DATA_TYPES}` => VALID_ADAPTER_DATA_TYPES.has(value)
 const isValidAdapterBreakdownType = (value: string): value is AdapterBreakdownType =>
@@ -138,10 +144,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(400).json({ error: `Invalid dataType: ${dataType}` })
 			}
 			const validatedDataType = dataType && isValidAdapterDataType(dataType) ? dataType : undefined
+			const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+			if (!canonicalProtocol) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'protocol not found' })
+			}
 
 			const data = await fetchAdapterProtocolChartData({
 				adapterType,
-				protocol,
+				protocol: canonicalProtocol,
 				...(validatedDataType ? { dataType: validatedDataType } : {})
 			})
 			setSuccessCacheHeaders(req, res)
@@ -160,8 +171,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: parsedRequest.error })
 			}
+			const canonicalProtocol = await resolveCanonicalProtocolParam(parsedRequest.value.protocol)
+			if (!canonicalProtocol) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'protocol not found' })
+			}
 
-			const data = await fetchAdapterProtocolChartDataByBreakdownType(parsedRequest.value)
+			const data = await fetchAdapterProtocolChartDataByBreakdownType({
+				...parsedRequest.value,
+				protocol: canonicalProtocol
+			})
 			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
@@ -176,9 +195,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'protocol parameter is required' })
 			}
+			const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+			if (!canonicalProtocol) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'protocol not found' })
+			}
 
 			const chartParams = {
-				protocol,
+				protocol: canonicalProtocol,
 				...(key ? { key } : {}),
 				...(currency ? { currency } : {}),
 				...(breakdownType
@@ -241,8 +265,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'protocol parameter is required' })
 			}
+			const [{ default: metadataCache }, { resolveProtocolParam }] = await Promise.all([
+				import('~/utils/metadata'),
+				import('~/server/routeCache/protocols')
+			])
+			const protocolRoute = await resolveProtocolParam(protocol)
+			if (!protocolRoute || !metadataCache.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'protocol emissions not found' })
+			}
 
-			const result = await getProtocolEmissionsCharts(slug(protocol))
+			const result = await getProtocolEmissionsCharts(protocolRoute.canonicalSlug)
 			const data = {
 				...result,
 				unlockUsdChart: Array.isArray(result.unlockUsdChart)
@@ -268,8 +301,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'protocol parameter is required' })
 			}
+			const [{ default: metadataCache }, { resolveBridgeProtocolParamFromMetadata }] = await Promise.all([
+				import('~/utils/metadata'),
+				import('~/server/routeCache/bridges')
+			])
+			const bridgeSlug = resolveBridgeProtocolParamFromMetadata(protocol, metadataCache)
+			if (!bridgeSlug) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'bridge protocol not found' })
+			}
 
-			const data = await fetchBridgeVolumeBySlug(slug(protocol))
+			const data = await fetchBridgeVolumeBySlug(bridgeSlug)
 				.then((response) => normalizeBridgeVolumeToChartMs(response.dailyVolumes))
 				.catch(() => null)
 
@@ -288,8 +330,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'protocol parameter is required' })
 			}
+			const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+			const canonicalOracle = metadataCache.oracleRoutes.oracleNameBySlug[slug(protocol)]
+			if (!canonicalOracle) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'oracle protocol not found' })
+			}
 
-			const data = await fetchOracleProtocolChart({ protocol }).catch(() => null)
+			const data = await fetchOracleProtocolChart({ protocol: canonicalOracle }).catch(() => null)
 			if (data === null) {
 				setNoStoreHeaders(res)
 				return res.status(200).json(null)

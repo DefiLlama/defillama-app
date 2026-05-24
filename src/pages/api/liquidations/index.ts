@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { validateSubscription } from '~/utils/apiAuth'
-import metadataCache from '~/utils/metadata'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
@@ -23,7 +22,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
-		const { getLiquidationsOverviewPageData } = await import('~/server/datasetCache/runtime/liquidations')
+		const [{ getLiquidationsOverviewPageData }, { default: metadataCache }] = await Promise.all([
+			import('~/server/datasetCache/runtime/liquidations'),
+			import('~/utils/metadata')
+		])
 		const data = await getLiquidationsOverviewPageData({
 			chainMetadata: metadataCache.chainMetadata,
 			protocolMetadata: metadataCache.protocolMetadata

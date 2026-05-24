@@ -67,7 +67,10 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 		const requestPath = buildStaticRouteRequestPath(filename, context.params)
 		const run = async () =>
 			runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context, requestPath, options)
-		const attributes = staticRouteTelemetryAttributes(context.params)
+		const attributes = {
+			...(staticRouteTelemetryAttributes(context.params) ?? {}),
+			...(context.revalidateReason ? { revalidate_reason: context.revalidateReason } : null)
+		}
 		return withStaticRouteTelemetry(filename, run, attributes, requestPath)
 	}
 }

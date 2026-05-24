@@ -4,10 +4,8 @@ import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 import { addRouteTelemetryAttributes } from '~/utils/telemetry'
 
@@ -24,25 +22,20 @@ export const getStaticProps = withPerformanceLogging(
 			addRouteTelemetryAttributes({ not_found_reason: 'invalid_protocol_param', protocol_slug: normalizedName })
 			return { notFound: true }
 		}
-		const metadataModule = await import('~/utils/metadata')
-		const metadataCache = metadataModule.default
-		const { protocolMetadata } = metadataCache
-		let metadata: [string, IProtocolMetadata] | undefined
-		for (const key in protocolMetadata) {
-			if (slug(protocolMetadata[key].displayName) === normalizedName) {
-				metadata = [key, protocolMetadata[key]]
-				break
-			}
-		}
+		const [{ default: metadataCache }, { resolveProtocolParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/protocols')
+		])
+		const protocolRoute = resolveProtocolParamFromMetadata(protocol, metadataCache)
 
-		if (!metadata) {
+		if (!protocolRoute) {
 			addRouteTelemetryAttributes({ not_found_reason: 'unknown_protocol_slug', protocol_slug: normalizedName })
 			return { notFound: true }
 		}
 
 		const data = await getProtocolOverviewPageData({
-			protocolId: metadata[0],
-			currentProtocolMetadata: metadata[1],
+			protocolId: protocolRoute.id,
+			currentProtocolMetadata: protocolRoute.metadata,
 			chainMetadata: metadataCache.chainMetadata,
 			tokenlist: metadataCache.tokenlist,
 			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers,
@@ -71,26 +64,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const res = await fetchProtocols()
-	const slugs = new Set()
-	const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
-	for (const protocol of res.protocols) {
-		if (excludeCategories.has(protocol.category ?? '')) {
-			continue
-		}
-		if (protocol.name.startsWith('Uniswap')) {
-			slugs.add(slug(protocol.name))
-		}
-		if (protocol.parentProtocol) {
-			slugs.add(slug(protocol.parentProtocol.replace('parent#', '')))
-		} else {
-			slugs.add(slug(protocol.name))
-		}
-		if (slugs.size >= 35) {
-			break
-		}
-	}
-	const paths: string[] = Array.from(slugs).map((protocolSlug) => `/protocol/${protocolSlug}`)
+	const { getProtocolOverviewStaticPaths } = await import('~/server/routeCache/protocols')
+	const paths = await getProtocolOverviewStaticPaths()
 
 	return { paths, fallback: 'blocking' }
 }

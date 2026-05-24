@@ -22,9 +22,7 @@ export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({
 	if (canonicalChain) {
 		chain = canonicalChain
 	} else {
-		for (const routeChainSlug in oracleRoutes.chainNameBySlug) {
-			if (routeChainSlug) return { notFound: true }
-		}
+		return { notFound: true }
 	}
 
 	const data = await getOraclesListPageData({ chain })

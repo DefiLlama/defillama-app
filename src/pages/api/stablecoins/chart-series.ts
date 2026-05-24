@@ -47,8 +47,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			}
 			const chain = getStringParam(req.query.chain)
 			if (!chain) return res.status(400).json({ error: 'chain parameter is required' })
+			const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
+				import('~/utils/metadata'),
+				import('~/server/routeCache/chains')
+			])
+			const isAllChain = chain.toLowerCase() === 'all'
+			const chainRoute = isAllChain ? null : resolveChainParamFromMetadata(chain, metadataCache)
+			if (!isAllChain && !chainRoute) return res.status(404).json({ error: 'chain not found' })
 			const payload = await getStablecoinOverviewChartSeries({
-				chain: chain === 'All' ? null : chain,
+				chain: isAllChain ? null : chainRoute.canonicalName,
 				chart: rawChart as StablecoinOverviewChartType,
 				filters: {
 					attribute: req.query.attribute,
@@ -83,8 +90,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			}
 			const stablecoin = getStringParam(req.query.stablecoin)
 			if (!stablecoin) return res.status(400).json({ error: 'stablecoin parameter is required' })
+			const [{ default: metadataCache }, { resolveStablecoinAssetParamFromMetadata }] = await Promise.all([
+				import('~/utils/metadata'),
+				import('~/server/routeCache/assets')
+			])
+			const stablecoinSlug = resolveStablecoinAssetParamFromMetadata(stablecoin, metadataCache)
+			if (!stablecoinSlug) return res.status(404).json({ error: 'stablecoin not found' })
 			const payload = await getStablecoinAssetChartSeries({
-				peggedasset: stablecoin,
+				peggedasset: stablecoinSlug,
 				chart: rawChart as StablecoinAssetChartType,
 				includeUnreleased: isTruthyQueryParam(req.query.unreleased)
 			})

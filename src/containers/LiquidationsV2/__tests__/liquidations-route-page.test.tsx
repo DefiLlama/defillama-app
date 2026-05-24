@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('~/constants', () => ({
+vi.mock('~/constants', async (importOriginal) => ({
+	...(await importOriginal<typeof import('~/constants')>()),
 	SKIP_BUILD_STATIC_GENERATION: false
 }))
 
@@ -16,6 +17,13 @@ vi.mock('~/containers/LiquidationsV2/RouteContent', () => ({
 
 vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
 	getLiquidationsProtocolsList: vi.fn()
+}))
+
+vi.mock('~/server/datasetCache/liquidations', () => ({
+	getLiquidationsProtocolsResponseFromCache: vi.fn().mockResolvedValue({
+		protocols: ['sky']
+	}),
+	getLiquidationsProtocolChainIdsFromCache: vi.fn().mockResolvedValue(['Arbitrum One'])
 }))
 
 vi.mock('~/utils/metadata', () => ({
