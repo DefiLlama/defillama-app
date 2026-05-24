@@ -14,7 +14,7 @@ export const SITEMAP_SECTION_IDS = [
 	'static',
 	'chains',
 	'protocols',
-	'protocol-listings',
+	'protocols-by-category',
 	'stablecoins',
 	'cexs',
 	'bridges',
@@ -32,6 +32,7 @@ export const SITEMAP_SECTION_IDS = [
 export type SitemapSectionId =
 	| (typeof SITEMAP_SECTION_IDS)[number]
 	| `${(typeof SITEMAP_SECTION_IDS)[number]}-${number}`
+type BaseSitemapSectionId = (typeof SITEMAP_SECTION_IDS)[number]
 
 export type SitemapSection = {
 	id: SitemapSectionId
@@ -39,12 +40,16 @@ export type SitemapSection = {
 }
 
 const MAX_SITEMAP_URLS = 49_000
-const SITEMAP_SECTION_CACHE_TTL_MS = 10_000
+const SITEMAP_SECTION_CACHE_TTL_MS = 60 * 60 * 1000
 
-let sitemapSectionCache: {
+type SitemapSectionCache = {
 	expiresAt: number
+	sections: SitemapSection[]
 	sectionsById: Map<string, SitemapSection>
-} | null = null
+}
+
+let sitemapSectionCache: SitemapSectionCache | null = null
+let sitemapSectionRefreshPromise: Promise<void> | null = null
 
 const protocolTabRoutes = [
 	{ prefix: 'protocol/tvl', hasMetric: (meta: MetadataCache['protocolMetadata'][string]) => meta.tvl },
@@ -85,7 +90,6 @@ const standaloneProtocolRoutes = [
 ]
 
 const chainFlaggedRoutes = [
-	{ prefix: 'stablecoins', flag: 'stablecoins' },
 	{ prefix: 'bridged', flag: 'chainAssets' },
 	{ prefix: 'fees/chain', flag: 'fees' },
 	{ prefix: 'revenue/chain', flag: 'fees' },
@@ -205,6 +209,34 @@ function buildStablecoinRoutes(metadataCache: MetadataCache): string[] {
 	return routes
 }
 
+async function buildCexRoutes(metadataCache: MetadataCache): Promise<string[]> {
+	const routes: string[] = []
+	const cexSlugs = getCexSlugsFromMetadata(metadataCache)
+
+	for (const cexSlug of cexSlugs) {
+		routes.push(`cex/${cexSlug}`)
+		routes.push(`cex/assets/${cexSlug}`)
+		routes.push(`cex/stablecoins/${cexSlug}`)
+	}
+
+	const { fetchExchangeMarketsListFromCache } = await import('~/server/datasetCache/markets')
+	const marketsList = await fetchExchangeMarketsListFromCache()
+	const marketCexSlugs = new Set<string>()
+
+	for (const entries of Object.values(marketsList.cex)) {
+		for (const entry of entries) {
+			const cexSlug = slug(entry.defillama_slug ?? '')
+			if (cexSlug) marketCexSlugs.add(cexSlug)
+		}
+	}
+
+	for (const cexSlug of marketCexSlugs) {
+		routes.push(`cex/markets/${cexSlug}`)
+	}
+
+	return routes
+}
+
 function buildDATRoutes(metadataCache: MetadataCache): string[] {
 	const routes: string[] = []
 
@@ -236,7 +268,7 @@ function buildOracleRoutes(metadataCache: MetadataCache): string[] {
 }
 
 async function buildLiquidationsRoutes(metadataCache: MetadataCache): Promise<string[]> {
-	const routes: string[] = ['liquidations']
+	const routes: string[] = []
 	const { getLiquidationsProtocolsResponseFromCache, getLiquidationsProtocolChainIdsFromCache } =
 		await import('~/server/datasetCache/liquidations')
 	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
@@ -282,38 +314,97 @@ function splitLargeSection(section: SitemapSection): SitemapSection[] {
 	return sections
 }
 
-export async function buildAppSitemapSections(): Promise<SitemapSection[]> {
+async function buildBaseSitemapSection(
+	sectionId: BaseSitemapSectionId,
+	metadataCache: MetadataCache
+): Promise<SitemapSection> {
+	switch (sectionId) {
+		case 'static':
+			return { id: sectionId, entries: toEntries(getNavRoutes()) }
+		case 'chains':
+			return { id: sectionId, entries: toEntries(buildChainRoutes(metadataCache)) }
+		case 'protocols':
+			return { id: sectionId, entries: toEntries(buildProtocolRoutes(metadataCache)) }
+		case 'protocols-by-category':
+			return {
+				id: sectionId,
+				entries: toEntries(getProtocolListingSlugsFromMetadata(metadataCache).map((item) => `protocols/${item}`))
+			}
+		case 'stablecoins':
+			return { id: sectionId, entries: toEntries(buildStablecoinRoutes(metadataCache)) }
+		case 'cexs':
+			return { id: sectionId, entries: toEntries(await buildCexRoutes(metadataCache)) }
+		case 'bridges':
+			return { id: sectionId, entries: toEntries(getBridgeRoutesFromMetadata(metadataCache)) }
+		case 'rwa':
+			return { id: sectionId, entries: toEntries(getRWARoutesFromMetadata(metadataCache)) }
+		case 'dat':
+			return { id: sectionId, entries: toEntries(buildDATRoutes(metadataCache)) }
+		case 'oracles':
+			return { id: sectionId, entries: toEntries(buildOracleRoutes(metadataCache)) }
+		case 'liquidations':
+			return { id: sectionId, entries: toEntries(await buildLiquidationsRoutes(metadataCache)) }
+		case 'unlocks':
+		case 'governance':
+		case 'forks':
+			return { id: sectionId, entries: toEntries(buildStandaloneProtocolRoutes(metadataCache)[sectionId]) }
+		case 'raises':
+			return { id: sectionId, entries: toEntries(await getRaisesInvestorRoutes()) }
+		case 'narratives':
+			return { id: sectionId, entries: toEntries(buildNarrativeRoutes(metadataCache)) }
+	}
+}
+
+async function buildAppSitemapSectionsFromCacheArtifacts(): Promise<SitemapSection[]> {
 	const metadataCache = await getMetadataCache()
-	const standaloneRoutes = buildStandaloneProtocolRoutes(metadataCache)
-
-	const [liquidationsRoutes, raisesRoutes] = await Promise.all([
-		buildLiquidationsRoutes(metadataCache),
-		getRaisesInvestorRoutes()
-	])
-
-	const sections: SitemapSection[] = [
-		{ id: 'static', entries: toEntries(getNavRoutes()) },
-		{ id: 'chains', entries: toEntries(buildChainRoutes(metadataCache)) },
-		{ id: 'protocols', entries: toEntries(buildProtocolRoutes(metadataCache)) },
-		{
-			id: 'protocol-listings',
-			entries: toEntries(getProtocolListingSlugsFromMetadata(metadataCache).map((item) => `protocols/${item}`))
-		},
-		{ id: 'stablecoins', entries: toEntries(buildStablecoinRoutes(metadataCache)) },
-		{ id: 'cexs', entries: toEntries(getCexSlugsFromMetadata(metadataCache).map((cexSlug) => `cex/${cexSlug}`)) },
-		{ id: 'bridges', entries: toEntries(getBridgeRoutesFromMetadata(metadataCache)) },
-		{ id: 'rwa', entries: toEntries(getRWARoutesFromMetadata(metadataCache)) },
-		{ id: 'dat', entries: toEntries(buildDATRoutes(metadataCache)) },
-		{ id: 'oracles', entries: toEntries(buildOracleRoutes(metadataCache)) },
-		{ id: 'liquidations', entries: toEntries(liquidationsRoutes) },
-		{ id: 'unlocks', entries: toEntries(standaloneRoutes.unlocks) },
-		{ id: 'governance', entries: toEntries(standaloneRoutes.governance) },
-		{ id: 'forks', entries: toEntries(standaloneRoutes.forks) },
-		{ id: 'raises', entries: toEntries(raisesRoutes) },
-		{ id: 'narratives', entries: toEntries(buildNarrativeRoutes(metadataCache)) }
-	]
+	const sections = await Promise.all(
+		SITEMAP_SECTION_IDS.map((sectionId) => buildBaseSitemapSection(sectionId, metadataCache))
+	)
 
 	return sections.flatMap(splitLargeSection)
+}
+
+async function rebuildSitemapSectionCache(): Promise<SitemapSectionCache> {
+	const sections = await buildAppSitemapSectionsFromCacheArtifacts()
+	const nextCache = {
+		expiresAt: Date.now() + SITEMAP_SECTION_CACHE_TTL_MS,
+		sections,
+		sectionsById: new Map(sections.map((section) => [section.id, section]))
+	}
+	sitemapSectionCache = nextCache
+
+	return nextCache
+}
+
+function refreshSitemapSectionCacheInBackground(): void {
+	if (sitemapSectionRefreshPromise) {
+		return
+	}
+
+	sitemapSectionRefreshPromise = rebuildSitemapSectionCache()
+		.then(() => undefined)
+		.catch((error) => {
+			console.warn('[sitemap] failed to refresh sitemap cache; serving stale snapshot', error)
+		})
+		.finally(() => {
+			sitemapSectionRefreshPromise = null
+		})
+}
+
+async function getCachedSitemapSections(): Promise<SitemapSectionCache> {
+	if (!sitemapSectionCache) {
+		return rebuildSitemapSectionCache()
+	}
+
+	if (sitemapSectionCache.expiresAt <= Date.now()) {
+		refreshSitemapSectionCacheInBackground()
+	}
+
+	return sitemapSectionCache
+}
+
+export async function buildAppSitemapSections(): Promise<SitemapSection[]> {
+	return (await getCachedSitemapSections()).sections
 }
 
 export function getSitemapSectionPath(sectionId: SitemapSectionId): string {
@@ -324,22 +415,7 @@ export function normalizeSitemapSectionId(sectionId: string): string {
 	return sectionId.endsWith('.xml') ? sectionId.slice(0, -4) : sectionId
 }
 
-async function getCachedSitemapSectionsById(): Promise<Map<string, SitemapSection>> {
-	const now = Date.now()
-	if (sitemapSectionCache && sitemapSectionCache.expiresAt > now) {
-		return sitemapSectionCache.sectionsById
-	}
-
-	const sections = await buildAppSitemapSections()
-	sitemapSectionCache = {
-		expiresAt: Date.now() + SITEMAP_SECTION_CACHE_TTL_MS,
-		sectionsById: new Map(sections.map((section) => [section.id, section]))
-	}
-
-	return sitemapSectionCache.sectionsById
-}
-
 export async function getSitemapSection(sectionId: string): Promise<SitemapSection | null> {
 	const normalizedSectionId = normalizeSitemapSectionId(sectionId)
-	return (await getCachedSitemapSectionsById()).get(normalizedSectionId) ?? null
+	return (await getCachedSitemapSections()).sectionsById.get(normalizedSectionId) ?? null
 }

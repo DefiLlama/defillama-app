@@ -1,4 +1,5 @@
 export const SITEMAP_BASE_URL = 'https://defillama.com'
+export const SITEMAP_CACHE_CONTROL = 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600'
 
 export type SitemapUrlEntry = {
 	path: string

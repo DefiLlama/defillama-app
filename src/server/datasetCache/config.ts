@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 const DEFAULT_DATASET_CACHE_ROOT_DIR = '.cache/datasets'
-const DEFAULT_DATASET_CACHE_MAX_AGE_MS = 5 * 60 * 1000
+const DEFAULT_DATASET_CACHE_MAX_AGE_MS = 60 * 60 * 1000
 const DEFAULT_DATASET_CACHE_FETCH_TIMEOUT_MS = 180_000
 
 export type DatasetCachePolicyPhase = 'build' | 'refresh'

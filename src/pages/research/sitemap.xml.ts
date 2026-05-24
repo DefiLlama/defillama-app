@@ -4,6 +4,8 @@ import { buildResearchSitemapEntries } from '~/containers/Articles/researchSitem
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { buildSitemapXml, SITEMAP_BASE_URL } from '~/utils/sitemapXml'
 
+const RESEARCH_SITEMAP_CACHE_CONTROL = 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600'
+
 function ResearchSiteMap() {
 	// getServerSideProps will do the heavy lifting
 }
@@ -21,10 +23,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 	const sitemap = buildSitemapXml(SITEMAP_BASE_URL, buildResearchSitemapEntries(articlePaths))
 
 	res.setHeader('Content-Type', 'text/xml')
-	res.setHeader(
-		'Cache-Control',
-		jitterCacheControlHeader('public, max-age=300, s-maxage=1800, stale-while-revalidate=3600', 'research/sitemap.xml')
-	)
+	res.setHeader('Cache-Control', jitterCacheControlHeader(RESEARCH_SITEMAP_CACHE_CONTROL, 'research/sitemap.xml'))
 	res.write(sitemap)
 	res.end()
 

@@ -2,7 +2,7 @@ import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import type { MetadataCache } from '~/utils/metadata/artifactContract'
 
 export function getRWARoutesFromMetadata(metadataCache: MetadataCache): string[] {
-	const routes: string[] = []
+	const routes: string[] = ['rwa/perps/forex']
 	const { rwaList, rwaPerpsList } = metadataCache
 
 	for (const canonicalMarketId of rwaList.canonicalMarketIds) {
@@ -27,9 +27,6 @@ export function getRWARoutesFromMetadata(metadataCache: MetadataCache): string[]
 	}
 	for (const venue of rwaPerpsList.venues) {
 		routes.push(`rwa/perps/venue/${rwaSlug(venue)}`)
-	}
-	for (const category of rwaPerpsList.categories) {
-		routes.push(`rwa/perps/category/${rwaSlug(category)}`)
 	}
 	for (const assetGroup of rwaPerpsList.assetGroups) {
 		routes.push(`rwa/perps/asset-group/${rwaSlug(assetGroup)}`)
