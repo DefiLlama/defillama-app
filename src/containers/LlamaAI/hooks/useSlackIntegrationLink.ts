@@ -41,6 +41,8 @@ export function deriveSlackIntegrationState({
 	startError: Error | null
 	statusError: Error | null
 }): SlackIntegrationState {
+	// Pending OAuth state comes from the backend and should continue polling until
+	// Slack redirects back and the status endpoint reports linked workspaces.
 	if (startError) return { status: 'error', message: startError.message || 'Failed to start linking' }
 	if (isStarting) return { status: 'starting' }
 	if (status?.pending) return { status: 'pending', expiresAt: status.pending.expiresAt }

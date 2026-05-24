@@ -17,6 +17,8 @@ const CHART_TYPES = new Set<ChartConfiguration['type']>([
 
 function isChartConfiguration(value: unknown): value is ChartConfiguration {
 	if (!isRecord(value)) return false
+	// This boundary check intentionally validates the renderer-required envelope,
+	// not every nested series field owned by the backend chart contract.
 	if (typeof value.id !== 'string' || typeof value.title !== 'string' || typeof value.description !== 'string') {
 		return false
 	}
@@ -55,6 +57,8 @@ export function normalizeDashboardChartData(value: unknown): DashboardChartData 
 	for (const key in value) {
 		const entry = value[key]
 		if (!isRecord(entry) || !Array.isArray(entry.data)) continue
+		// Dashboard panels inline charts directly, so entries without a renderable
+		// config are dropped instead of being passed through as undefined config.
 		if (!isChartConfiguration(entry.config)) continue
 		chartData[key] = {
 			config: entry.config,

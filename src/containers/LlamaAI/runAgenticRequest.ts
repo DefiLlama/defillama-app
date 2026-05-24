@@ -100,6 +100,8 @@ export async function runAgenticRequest({
 	const settleState = createRequestSettleState(requestId)
 	activeRequestSettleRef.current = settleState
 	const eventCounter = { count: initialEventCount }
+	// Callback creation happens after the request id is active so every SSE handler
+	// can share the same stale-request guard.
 	const contextWithoutCallbacks = {
 		mode,
 		requestId,
@@ -120,6 +122,8 @@ export async function runAgenticRequest({
 			if (!onError) throw error
 			await onError(classifyAgenticRequestError(error, controller.signal), context)
 		} finally {
+			// A newer request may have already replaced the active controller; never
+			// clear refs owned by that newer request.
 			if (abortControllerRef.current === controller) {
 				abortControllerRef.current = null
 			}

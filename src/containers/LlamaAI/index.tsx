@@ -1096,6 +1096,8 @@ export function AgenticChat({
 		}) => {
 			const existing = recoveryControllerRef.current
 			if (existing?.sessionId === targetSessionId) {
+				// Reuse the controller for repeat drops on the same execution so timers,
+				// event offsets, and the partially accumulated buffer stay in one place.
 				existing.buffer = buffer
 				existing.failedRequest = failedRequest
 				existing.lastErrorMessage = getErrorMessage(recoveryError)
@@ -1469,6 +1471,8 @@ export function AgenticChat({
 					attach()
 
 					const buffer = createStreamBuffer()
+					// A share token forks a public snapshot exactly once; later messages
+					// continue against the newly created private session.
 					const currentShareToken = !shareTokenConsumedRef.current ? effectiveShareToken : undefined
 					if (currentShareToken) shareTokenConsumedRef.current = true
 					const failedRequest: FailedRequest = {
@@ -1613,6 +1617,8 @@ export function AgenticChat({
 								!buffer.error &&
 								!hasStreamBufferContent(buffer)
 							) {
+								// The HTTP stream can finish without local content if the result was
+								// persisted server-side first; attach to that execution before clearing UI.
 								buffer.receivedEventCount = eventCounter.count
 								const resumeSessionId = currentSessionId
 								handedOffToResume = await resumeRunningExecution({
@@ -1697,6 +1703,8 @@ export function AgenticChat({
 			const messagesSnapshot = messages
 			const activeLeafSnapshot = activeLeafMessageId
 			const truncated = messages.slice(0, idx)
+			// Backend message ids create a branch; synthetic local/persisted/shared ids
+			// can only replay from the truncated local history.
 			const isBranchingEdit = !/^(local|persisted|shared)-/.test(messageId)
 
 			// Abort any in-flight submission FIRST — its `.finally` releases the prompt lock,

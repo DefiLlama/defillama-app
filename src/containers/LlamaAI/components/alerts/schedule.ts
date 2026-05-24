@@ -52,6 +52,7 @@ const getOffsetHoursFromTimezone = (timezone: string): number | null => {
 
 const offsetHoursToEtc = (offsetHours: number): string | undefined => {
 	if (offsetHours === 0) return 'UTC'
+	// IANA `Etc/GMT` signs are inverted: UTC+8 is represented as `Etc/GMT-8`.
 	const sign = offsetHours > 0 ? '-' : '+'
 	const etcValue = `Etc/GMT${sign}${Math.abs(offsetHours)}`
 	return GMT_OFFSETS.some((g) => g.value === etcValue) ? etcValue : undefined
@@ -127,6 +128,8 @@ const convertHourToUTC = (localHour: number, timezone: string): number => {
 }
 
 export const getBlockedLocalHours = (timezone: string): number[] => {
+	// The backend blocks UTC maintenance hours; convert each selectable local
+	// hour into UTC so the modal can disable only the affected local options.
 	const blocked: number[] = []
 	for (let h = 0; h < 24; h++) {
 		const utcHour = convertHourToUTC(h, timezone)

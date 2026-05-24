@@ -63,6 +63,8 @@ export async function llamaAIRequest<T>(
 	const url = path.startsWith('http') ? path : `${AI_SERVER}${path}`
 	const response = await authorizedFetch(url, { ...init, headers: headersToRecord(headers), body })
 	if (!response) {
+		// Auth can fail before the network request is made; expose it as the same
+		// typed transport error shape as backend failures.
 		throw new LlamaAITransportError('unauthenticated', 401, { error: 'unauthenticated' })
 	}
 	if (!response.ok) {
@@ -80,6 +82,8 @@ export async function llamaAIRequest<T>(
 		return null as T
 	}
 	if (!/(^|[/+])json($|;)/i.test(contentType)) {
+		// Endpoint wrappers expect parsed DTOs; fail loudly if a proxy/login page
+		// or plain-text response reaches this shared JSON transport.
 		throw new Error(
 			`Unexpected LlamaAI response content type: status=${response.status}, content-type=${contentType || 'missing'}${
 				text ? `, body=${text.slice(0, 200)}` : ''

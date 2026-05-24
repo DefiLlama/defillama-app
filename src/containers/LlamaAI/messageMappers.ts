@@ -104,6 +104,8 @@ function buildRestoredDashboard(message: PersistedMessage): DashboardArtifact | 
 	const dashboardConfig = message.metadata?.dashboardConfig
 	if (!dashboardConfig) return null
 
+	// Historical persisted messages may not have a dashboard id, but the render
+	// model still needs a stable artifact key for fallback rendering.
 	const restoredDashboardIdSuffix =
 		message.messageId ??
 		(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -179,6 +181,8 @@ export function normalizeSharedChartDataByChartId(
 	if (!charts || charts.length === 0 || !chartData) return undefined
 	if (!Array.isArray(chartData)) return chartData
 
+	// Older shared-session payloads stored one flat row array. Attach it to the
+	// first chart's dataset key so ChartRenderer can use the normal keyed path.
 	const fallbackKey = charts[0]?.datasetName || charts[0]?.id || 'default'
 	return {
 		[fallbackKey]: chartData

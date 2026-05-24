@@ -379,6 +379,8 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
+			// Shift+Arrow navigation is page-level only; editable controls keep their
+			// native text-selection and caret movement behavior.
 			if (
 				!event.shiftKey ||
 				event.altKey ||
@@ -464,6 +466,8 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 
 			handledAnchorIdRef.current = anchorId
 			requestAnimationFrame(() => {
+				// Wait until smooth scrolling settles before flashing the target, with
+				// a timeout for browsers that do not fire `scrollend`.
 				const container = scrollContainerRef.current
 				let fallbackTimer: number | null = null
 				const applyHighlight = () => {
@@ -496,7 +500,8 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 	const hasTailChangedSinceMount =
 		currentTailSnapshot[0] !== initialTailSnapshot[0] || currentTailSnapshot[1] !== initialTailSnapshot[1]
 
-	// Find the last user message index for the exchange spacer
+	// The active exchange spacer only wraps the newest user->assistant pair so
+	// submitted prompts stay near the top while the response streams below them.
 	const lastUserIndex = (() => {
 		for (let i = messages.length - 1; i >= 0; i--) {
 			if (messages[i].role === 'user') return i
@@ -515,7 +520,8 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 	const lastExchangeMessages = shouldSpaceLastExchange ? messages.slice(lastUserIndex) : []
 	const renderedMessages = shouldSpaceLastExchange ? messages.slice(0, lastUserIndex) : messages
 
-	// Find the last assistant message to keep its controls always visible
+	// Only the newest assistant response keeps persistent controls; older controls
+	// stay available on hover/focus to reduce visual noise.
 	const lastAssistantId = (() => {
 		for (let i = messages.length - 1; i >= 0; i--) {
 			if (messages[i].role === 'assistant' && messages[i].id) return messages[i].id

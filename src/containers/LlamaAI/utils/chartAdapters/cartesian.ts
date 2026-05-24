@@ -95,6 +95,8 @@ const asRecord = (row: unknown): Record<string, unknown> =>
 	row && typeof row === 'object' ? (row as Record<string, unknown>) : {}
 
 const parseStrictDateLabelToMs = (timestamp: unknown): number | null => {
+	// Be stricter than Date.parse for labels produced by the model; ambiguous
+	// strings should stay categorical instead of becoming browser-dependent dates.
 	if (typeof timestamp === 'number') {
 		if (!Number.isFinite(timestamp)) return null
 		return timestamp.toString().length <= 10 ? timestamp * 1000 : timestamp
@@ -198,6 +200,8 @@ function inferTimeSeriesAxis(
 	const allParsed = parsedValues.every((value) => value != null)
 	const uniqueTimestamps = new Set(parsedValues.filter((value): value is number => value != null))
 
+	// Some model configs mark a date-like dimension as category. Promote only
+	// when every populated value parses and there is enough variation for a time axis.
 	if (allParsed && uniqueTimestamps.size >= 2) {
 		return {
 			axisType: 'time',

@@ -384,6 +384,8 @@ function ChartRendererImpl({
 		if (!el) return
 		let lastWidth = el.getBoundingClientRect().width
 		let timer: ReturnType<typeof setTimeout> | null = null
+		// ECharts instances listen for the shared resize event; debounce container
+		// width changes so side panels and fullscreen toggles do not thrash charts.
 		const observer = new ResizeObserver((entries) => {
 			const w = entries[0]?.contentRect.width ?? 0
 			if (Math.abs(w - lastWidth) < 1) return

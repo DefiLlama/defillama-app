@@ -12,6 +12,8 @@ function getIndexedActionKey(action: { label: string; message: string }, index: 
 }
 
 function sanitizeExternalActionHref(href: string) {
+	// Model-authored external actions must pass through the same URL sanitizer
+	// as markdown links before they can open a new tab.
 	const safeHref = sanitizeUrl(href)
 	if (!safeHref) return null
 
@@ -123,6 +125,8 @@ export function ActionButtonGroup({
 	const actionSignature = resolvedActions.map((action) => action.compositeId).join('|')
 	const primaryActionKey = (resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0])
 		?.compositeId
+	// Scope optimistic clicked state to the rendered action set plus the next user
+	// message so branch restores or regenerated suggestions do not inherit old clicks.
 	const optimisticScope = `${actionSignature}:${nextUserMessage ?? ''}`
 	const alreadyClicked = nextUserMessage
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)

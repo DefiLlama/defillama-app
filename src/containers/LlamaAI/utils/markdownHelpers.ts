@@ -118,6 +118,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		})
 	}
 
+	// Each placeholder type is scanned independently, then sorted back into source
+	// order so mixed artifacts keep their authored placement.
 	allMatches.sort((a, b) => a.index - b.index)
 
 	let lastIndex = 0

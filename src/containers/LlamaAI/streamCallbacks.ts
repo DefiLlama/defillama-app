@@ -64,6 +64,8 @@ export function createAgenticCallbacks({
 	deferEmptyDone?: boolean
 	notify: () => void
 }): AgenticSSECallbacks {
+	// One guard wraps every callback so late chunks from an aborted or superseded
+	// request cannot mutate the current chat.
 	const guard =
 		<Args extends unknown[]>(fn: (...args: Args) => void) =>
 		(...args: Args) => {
@@ -77,6 +79,8 @@ export function createAgenticCallbacks({
 				buffer.hasStartedText = true
 				dispatch({ type: 'CLEAR_ACTIVITY' })
 			}
+			// The accumulator stores committed content; the reducer receives the raw
+			// chunk so live state can apply the same report-marker utility.
 			buffer.text = stripBeforeReportStart(buffer.text + content)
 			dispatch({ type: 'APPEND_TOKEN', value: content })
 		}),
@@ -189,6 +193,8 @@ export function createAgenticCallbacks({
 			dispatch({ type: 'SET_ERROR', value: content })
 		}),
 		onDone: guard(() => {
+			// Resume probes can legitimately end with only a `done` event after the
+			// backend has already persisted the result; avoid committing an empty message.
 			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 			dispatch({ type: 'COMMIT_STREAM' })

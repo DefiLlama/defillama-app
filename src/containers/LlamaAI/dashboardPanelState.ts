@@ -23,6 +23,8 @@ export const INITIAL_DASHBOARD_PANEL_STATE: DashboardPanelState = {
 	versionIndex: 0
 }
 
+// `versions` is dashboard history; `mountedConfig` is what the side panel
+// currently renders and can stay mounted briefly after close for exit animation.
 export function dashboardPanelReducer(state: DashboardPanelState, action: DashboardPanelAction): DashboardPanelState {
 	switch (action.type) {
 		case 'APPEND': {

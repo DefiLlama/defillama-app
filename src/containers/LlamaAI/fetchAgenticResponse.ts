@@ -322,6 +322,8 @@ export function parseSSEStream(
 
 		try {
 			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
+			// Count every parsed server event, including `done`, because resume/replay
+			// cursors are expressed in backend event offsets rather than UI mutations.
 			if (eventCounter) eventCounter.count++
 			if (data.type === 'done') sawDone = true
 
@@ -356,6 +358,8 @@ export function parseSSEStream(
 					const config = data.dashboardConfig || data.content?.dashboardConfig
 					const chartData = data.chartData || data.content?.chartData
 					if (config && callbacks.onDashboard) {
+						// Dashboard events can arrive in both top-level and nested `content`
+						// forms while deployments roll; normalize both shapes here.
 						const dashboardChartData = normalizeDashboardChartData(chartData)
 						const stableId =
 							data.dashboard_id ||
@@ -423,6 +427,7 @@ export function parseSSEStream(
 		}
 	}
 
+	// A stalled reader should enter the same recovery path as a dropped stream.
 	const HEARTBEAT_TIMEOUT_MS = 15_000
 
 	const process = async () => {

@@ -215,6 +215,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 				rateLimitDetails: null
 			}
 		case 'RESET_STREAM':
+			// Clear only in-flight runtime fields. Error/rate-limit metadata is managed
+			// by separate actions so callers can reset the draft without hiding failures.
 			return { ...state, ...createEmptyRuntimeState(), phase: { status: 'idle' } }
 		case 'COMMIT_STREAM':
 			return { ...state, ...createEmptyRuntimeState(), phase: { status: 'committed' } }
@@ -285,6 +287,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, spawnProgress: next }
 		}
 		case 'SET_TODOS': {
+			// Keep the first non-empty todo timestamp stable while later snapshots
+			// update item statuses; the elapsed timer should not restart per update.
 			const todosStartTime =
 				Array.isArray(action.value) && action.value.length > 0
 					? state.todosStartTime || Date.now()

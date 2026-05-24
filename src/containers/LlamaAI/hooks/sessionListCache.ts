@@ -38,6 +38,8 @@ export function mapSessionListPage(responseData: SessionListResponse): SessionLi
 export function flattenSessionListData(data: SessionListInfiniteData | undefined): SessionListData {
 	if (!data) return { sessions: [], usage: null }
 
+	// Infinite pages can overlap after optimistic inserts, moves, or refetches.
+	// Keep the first copy because page order already encodes recency.
 	const seenSessionIds = new Set<string>()
 	const sessions: ChatSession[] = []
 
@@ -76,6 +78,8 @@ export function mergeOptimisticSessions(
 	const optimisticSessions: ChatSession[] = []
 	for (const existingPage of data.pages) {
 		for (const session of existingPage.sessions) {
+			// Keep local fake sessions visible until the backend returns the real id
+			// or the create mutation removes the failed optimistic entry.
 			if (!session.isOptimistic || realSessionIds.has(session.sessionId)) continue
 			optimisticSessions.push(session)
 		}
