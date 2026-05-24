@@ -116,7 +116,8 @@ function toEntries(routes: string[]): SitemapUrlEntry[] {
 	const paths = new Set<string>()
 
 	for (const route of routes) {
-		paths.add(normalizeSitemapRoute(route)!)
+		const path = normalizeSitemapRoute(route)
+		if (path != null) paths.add(path)
 	}
 
 	return [...paths].map((path) => ({ path }))

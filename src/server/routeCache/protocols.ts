@@ -75,7 +75,9 @@ export function getProtocolOverviewSlugsFromMetadata(metadataCache: MetadataCach
 			if (slugs.size >= limit) break
 		}
 
-		const canonicalSlug = metadata.parentProtocol ? slug(metadata.parentProtocol.replace('parent#', '')) : protocolSlug
+		const canonicalSlug = metadata.parentProtocol
+			? slug(metadata.parentProtocol.replace('parent#', '')) || protocolSlug
+			: protocolSlug
 		slugs.add(canonicalSlug)
 
 		if (slugs.size >= limit) break

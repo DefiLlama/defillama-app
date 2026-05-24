@@ -84,6 +84,21 @@ describe('route cache readers', () => {
 		expect(slugs).toEqual(['aave-v3', 'uniswap-v3', 'child'])
 	})
 
+	it('falls back to protocol slugs when parent protocol normalizes empty', () => {
+		const metadata = metadataFixture()
+		metadata.protocolMetadata.emptyParent = {
+			name: 'empty-parent',
+			displayName: 'Empty Parent',
+			tvl: true,
+			parentProtocol: 'parent#'
+		}
+
+		const slugs = getProtocolOverviewSlugsFromMetadata(metadata, 10)
+
+		expect(slugs).toContain('empty-parent')
+		expect(slugs).not.toContain('')
+	})
+
 	it('generates feature slugs from protocol metadata flags', () => {
 		expect(getProtocolFeatureSlugsFromMetadata(metadataFixture(), (metadata) => Boolean(metadata.dexs))).toEqual([
 			'uniswap-v3'
