@@ -96,21 +96,13 @@ describe('fetchMetadataRouteIndexes', () => {
 		})
 	})
 
-	it('returns empty route indexes when optional upstreams fail', async () => {
-		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+	it('rejects when route index upstreams fail', async () => {
 		fetchMetadataJsonMock.mockRejectedValue(new Error('narrative unavailable'))
 		fetchOracleMetricsMock.mockRejectedValue(new Error('oracle unavailable'))
 		fetchDATInstitutionsMock.mockRejectedValue(new Error('DAT unavailable'))
 		fetchStablecoinPeggedConfigApiMock.mockRejectedValue(new Error('stablecoin unavailable'))
 		const { fetchMetadataRouteIndexes } = await import('../routeIndexes')
 
-		await expect(fetchMetadataRouteIndexes()).resolves.toEqual({
-			narrativeCategories: { ids: [], nameById: {} },
-			oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
-			digitalAssetTreasuryRoutes: { assetSlugs: [], companySlugs: [] },
-			stablecoinPeggedAssetSlugs: []
-		})
-		expect(warnSpy).toHaveBeenCalledTimes(4)
-		warnSpy.mockRestore()
+		await expect(fetchMetadataRouteIndexes()).rejects.toThrow('narrative unavailable')
 	})
 })
