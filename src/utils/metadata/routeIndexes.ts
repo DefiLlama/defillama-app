@@ -6,6 +6,7 @@ import { fetchStablecoinPeggedConfigApi } from '~/containers/Stablecoins/api'
 import { slug } from '~/utils'
 import { getErrorMessage } from '~/utils/error'
 import { fetchMetadataJson } from './http'
+import { dedupeNonEmpty } from './strings'
 
 export type NarrativeCategoriesMetadata = {
 	ids: string[]
@@ -51,15 +52,6 @@ export const EMPTY_ROUTE_INDEXES: RouteIndexesMetadata = {
 	oracleRoutes: EMPTY_ORACLE_ROUTES,
 	digitalAssetTreasuryRoutes: EMPTY_DIGITAL_ASSET_TREASURY_ROUTES,
 	stablecoinPeggedAssetSlugs: []
-}
-
-function dedupeNonEmpty(values: string[]): string[] {
-	const seen = new Set<string>()
-	for (const value of values) {
-		if (!value) continue
-		seen.add(value)
-	}
-	return [...seen]
 }
 
 export function buildNarrativeCategoriesMetadata(info: ICategoryInfoApiItem[]): NarrativeCategoriesMetadata {

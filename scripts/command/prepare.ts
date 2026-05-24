@@ -1,5 +1,6 @@
 import { publishDatasetCache } from '../../src/server/datasetCache/publish'
 import { runPullMetadataCommand } from '../metadata/pullCommand'
+import { runSiteNavigationCommand } from '../metadata/siteNavigationCommand'
 import type { LogLike } from './logger'
 import { generateRobots } from './robots'
 import { CommandExitError, getErrorExitCode, timedStep } from './timedStep'
@@ -59,6 +60,12 @@ function createPreparationSteps({
 				if (result.exitCode !== 0) {
 					throw new CommandExitError(result.exitCode, 'Metadata cache failed')
 				}
+			}
+		},
+		{
+			name: 'Site navigation',
+			async run() {
+				await runSiteNavigationCommand({ env, logger: stepLogger, repoRoot })
 			}
 		},
 		{

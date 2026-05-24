@@ -1,16 +1,8 @@
 import { getErrorMessage } from '~/utils/error'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { sanitizeDefiLlamaProApiUrl, sanitizeResponseTextForError } from '~/utils/http-error-format'
-
-const DEFAULT_METADATA_FETCH_TIMEOUT_MS = 180_000
-
-export function getMetadataFetchTimeoutMs(): number {
-	const raw = process.env.METADATA_FETCH_TIMEOUT_MS
-	if (raw == null) return DEFAULT_METADATA_FETCH_TIMEOUT_MS
-
-	const parsed = Number(raw)
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_METADATA_FETCH_TIMEOUT_MS
-}
+export { getMetadataFetchTimeoutMs } from './config'
+import { getMetadataFetchTimeoutMs } from './config'
 
 export async function fetchMetadataJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const res = await fetchWithPoolingOnServer(url, { ...options, timeout: getMetadataFetchTimeoutMs() })

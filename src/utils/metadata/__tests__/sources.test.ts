@@ -27,6 +27,7 @@ function responseForUrl(url: string): unknown {
 	if (url.includes('appMetadata-categoriesAndTags.json')) {
 		return { categories: [], tags: [], tagCategoryMap: {}, configs: {} }
 	}
+	if (url.endsWith('/chains2')) return { categories: ['EVM'] }
 	if (url.endsWith('/cexs?zz=16')) return { cexs: [], cg_volume_cexs: ['binance'] }
 	if (url.includes('/rwa/list?zz=16')) {
 		return { canonicalMarketIds: [], platforms: [], chains: [], categories: [], assetGroups: [], idMap: {} }
@@ -55,7 +56,6 @@ describe('metadata source adapters', () => {
 
 	it('fetches metadata sources from expected public URLs with the metadata timeout', async () => {
 		vi.stubEnv('API_KEY', '')
-		vi.stubEnv('METADATA_FETCH_TIMEOUT_MS', '1234')
 		const { fetchCoreMetadataSources } = await import('../sources')
 
 		const sources = await fetchCoreMetadataSources()
@@ -63,25 +63,27 @@ describe('metadata source adapters', () => {
 		expect(sources.protocols).toEqual({ 'parent#aave': { name: 'aave', tvl: true } })
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith(
 			'https://api.llama.fi/config/smol/appMetadata-protocols.json?zz=16',
-			{ timeout: 1234 }
+			{ timeout: 180_000 }
 		)
-		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://api.llama.fi/rwa/list?zz=16', { timeout: 1234 })
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://api.llama.fi/rwa/list?zz=16', {
+			timeout: 180_000
+		})
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith(
 			'https://defillama-datasets.llama.fi/tokenlist/sorted.json?zz=16',
-			{ timeout: 1234 }
+			{ timeout: 180_000 }
 		)
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://api.llama.fi/config/smol/token.json', {
-			timeout: 1234
+			timeout: 180_000
 		})
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://bridges.llama.fi/bridges?includeChains=true', {
-			timeout: 1234
+			timeout: 180_000
 		})
-		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://api.llama.fi/emissions', { timeout: 1234 })
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://api.llama.fi/emissions', { timeout: 180_000 })
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith(
 			'https://defillama-datasets.llama.fi/emissionsSupplyMetrics',
-			{ timeout: 1234 }
+			{ timeout: 180_000 }
 		)
-		expect(fetchEmissionsProtocolsListMock).toHaveBeenCalledWith({ timeout: 1234 })
+		expect(fetchEmissionsProtocolsListMock).toHaveBeenCalledWith({ timeout: 180_000 })
 	})
 
 	it('keeps token directory on the public API when other metadata sources use pro API', async () => {

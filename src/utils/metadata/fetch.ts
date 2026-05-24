@@ -1,15 +1,16 @@
 import { COINS_SERVER_URL, ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
+import { buildProtocolLlamaswapDataset } from '~/containers/LlamaSwap/protocolDataset'
 import {
 	buildUnlocksHistoricalPriceRequests,
 	type UnlockHistoricalPriceProtocol
 } from '~/utils/unlocks/historicalPriceRequests'
 import type { CoreMetadataPayload } from './artifactContract'
-import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
 import { fetchMetadataJson } from './http'
 import { extractLiquidationsTokenSymbols } from './liquidations'
 import { fetchMetadataRouteIndexes } from './routeIndexes'
 import { fetchCoreMetadataSources } from './sources'
+import { dedupeNonEmpty } from './strings'
 import type { IEmissionsHistoricalPrices, ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
 
 const normalizeSlug = (value: unknown): string =>
@@ -17,15 +18,6 @@ const normalizeSlug = (value: unknown): string =>
 		.toLowerCase()
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
-
-const dedupeNonEmpty = (values: string[]): string[] => {
-	const seen = new Set<string>()
-	for (const value of values) {
-		if (!value) continue
-		seen.add(value)
-	}
-	return [...seen]
-}
 
 const EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE = 50
 
