@@ -70,7 +70,10 @@ export function getProtocolOverviewSlugsFromMetadata(metadataCache: MetadataCach
 		if (!name) continue
 		const protocolSlug = slug(name)
 
-		if (String(name).startsWith('Uniswap')) slugs.add(protocolSlug)
+		if (String(name).startsWith('Uniswap')) {
+			slugs.add(protocolSlug)
+			if (slugs.size >= limit) break
+		}
 
 		const canonicalSlug = metadata.parentProtocol ? slug(metadata.parentProtocol.replace('parent#', '')) : protocolSlug
 		slugs.add(canonicalSlug)

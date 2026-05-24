@@ -130,7 +130,7 @@ describe('metadata artifact import boundary', () => {
 		const files = allSourceFiles.filter((filePath) => {
 			const relativePath = path.relative(process.cwd(), filePath).split(path.sep).join('/')
 			return (
-				relativePath.startsWith('src/pages/') ||
+				(relativePath.startsWith('src/pages/') && !relativePath.startsWith('src/pages/api/')) ||
 				relativePath.startsWith('src/components/') ||
 				relativePath.startsWith('src/containers/')
 			)

@@ -26,7 +26,6 @@ export const SITEMAP_SECTION_IDS = [
 	'governance',
 	'forks',
 	'raises',
-	'tokens',
 	'narratives'
 ] as const
 
@@ -40,6 +39,12 @@ export type SitemapSection = {
 }
 
 const MAX_SITEMAP_URLS = 49_000
+const SITEMAP_SECTION_CACHE_TTL_MS = 10_000
+
+let sitemapSectionCache: {
+	expiresAt: number
+	sectionsById: Map<string, SitemapSection>
+} | null = null
 
 const protocolTabRoutes = [
 	{ prefix: 'protocol/tvl', hasMetric: (meta: MetadataCache['protocolMetadata'][string]) => meta.tvl },
@@ -235,25 +240,20 @@ async function buildLiquidationsRoutes(metadataCache: MetadataCache): Promise<st
 	const { getLiquidationsProtocolsResponseFromCache, getLiquidationsProtocolChainIdsFromCache } =
 		await import('~/server/datasetCache/liquidations')
 	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
+	const protocolChainIds = await Promise.all(
+		protocolsResponse.protocols.map(async (protocolId) => ({
+			protocolId,
+			chainIds: await getLiquidationsProtocolChainIdsFromCache(protocolId)
+		}))
+	)
 
-	for (const protocolId of protocolsResponse.protocols) {
+	for (const { protocolId, chainIds } of protocolChainIds) {
 		routes.push(`liquidations/${protocolId}`)
-		for (const chainId of await getLiquidationsProtocolChainIdsFromCache(protocolId)) {
+		for (const chainId of chainIds) {
 			const chainMetadata = metadataCache.chainMetadata[slug(chainId)]
 			const chainSlug = slug(chainMetadata?.name ?? chainId)
-			routes.push(`liquidations/${protocolId}/${chainSlug}`)
+			if (chainSlug) routes.push(`liquidations/${protocolId}/${chainSlug}`)
 		}
-	}
-
-	return routes
-}
-
-function buildTokenRoutes(metadataCache: MetadataCache): string[] {
-	const routes: string[] = []
-
-	for (const key in metadataCache.tokenDirectory) {
-		const route = metadataCache.tokenDirectory[key].route
-		if (route) routes.push(route)
 	}
 
 	return routes
@@ -310,7 +310,6 @@ export async function buildAppSitemapSections(): Promise<SitemapSection[]> {
 		{ id: 'governance', entries: toEntries(standaloneRoutes.governance) },
 		{ id: 'forks', entries: toEntries(standaloneRoutes.forks) },
 		{ id: 'raises', entries: toEntries(raisesRoutes) },
-		{ id: 'tokens', entries: toEntries(buildTokenRoutes(metadataCache)) },
 		{ id: 'narratives', entries: toEntries(buildNarrativeRoutes(metadataCache)) }
 	]
 
@@ -325,10 +324,22 @@ export function normalizeSitemapSectionId(sectionId: string): string {
 	return sectionId.endsWith('.xml') ? sectionId.slice(0, -4) : sectionId
 }
 
+async function getCachedSitemapSectionsById(): Promise<Map<string, SitemapSection>> {
+	const now = Date.now()
+	if (sitemapSectionCache && sitemapSectionCache.expiresAt > now) {
+		return sitemapSectionCache.sectionsById
+	}
+
+	const sections = await buildAppSitemapSections()
+	sitemapSectionCache = {
+		expiresAt: Date.now() + SITEMAP_SECTION_CACHE_TTL_MS,
+		sectionsById: new Map(sections.map((section) => [section.id, section]))
+	}
+
+	return sitemapSectionCache.sectionsById
+}
+
 export async function getSitemapSection(sectionId: string): Promise<SitemapSection | null> {
 	const normalizedSectionId = normalizeSitemapSectionId(sectionId)
-	for (const section of await buildAppSitemapSections()) {
-		if (section.id === normalizedSectionId) return section
-	}
-	return null
+	return (await getCachedSitemapSectionsById()).get(normalizedSectionId) ?? null
 }

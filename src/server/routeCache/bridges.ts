@@ -11,7 +11,7 @@ export function resolveBridgeChainParamFromMetadata(chain: string, metadataCache
 	const chainSlug = slug(chain)
 	if (!chainSlug) return null
 	return metadataCache.bridgeChainSlugs.includes(chainSlug)
-		? (metadataCache.bridgeChainSlugToName[chainSlug] ?? chain)
+		? (metadataCache.bridgeChainSlugToName[chainSlug] ?? chainSlug)
 		: null
 }
 

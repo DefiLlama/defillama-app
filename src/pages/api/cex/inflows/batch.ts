@@ -30,17 +30,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'cexs must be a non-empty array' })
 	}
 
+	const auth = await validateSubscription(req.headers.authorization)
+	if (auth.valid === false) {
+		return res.status(auth.status).json({ error: auth.error })
+	}
+
 	const cexRequests: Array<{ slug: string; tokensToExclude?: unknown }> = []
 	for (const cex of body.cexs) {
 		if (typeof cex.slug !== 'string') {
 			return res.status(400).json({ error: 'cexs must include slug values' })
 		}
 		cexRequests.push({ slug: cex.slug, tokensToExclude: cex.tokensToExclude })
-	}
-
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
 	}
 
 	try {

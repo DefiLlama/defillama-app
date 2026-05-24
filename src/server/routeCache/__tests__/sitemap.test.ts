@@ -97,7 +97,7 @@ describe('cache-backed sitemap sections', () => {
 		)
 		expect(entriesBySection.get('liquidations')).not.toContain('liquidations/token/WETH')
 		expect(entriesBySection.get('raises')).toEqual(expect.arrayContaining(['raises/paradigm', 'raises/a16z']))
-		expect(entriesBySection.get('tokens')).toEqual(expect.arrayContaining(['token/btc']))
+		expect(sections.map((section) => String(section.id))).not.toContain('tokens')
 		expect(entriesBySection.get('narratives')).toEqual(expect.arrayContaining(['narrative-tracker/ai']))
 	})
 

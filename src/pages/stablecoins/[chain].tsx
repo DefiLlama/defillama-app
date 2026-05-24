@@ -6,7 +6,6 @@ import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import type { PeggedOverviewPageData } from '~/containers/Stablecoins/types'
 import Layout from '~/layout'
-import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -76,7 +75,11 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 				}
 			})
 		}
-		const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', stablecoinsContext)
+		const { questions: entityQuestions } = await fetchEntityQuestions(
+			chainRoute.canonicalSlug,
+			'chain',
+			stablecoinsContext
+		)
 
 		return {
 			props: { ...props, availableBackings, availablePegTypes, entityQuestions },
