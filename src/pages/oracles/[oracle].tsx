@@ -22,9 +22,7 @@ export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async (
 	if (canonicalOracle) {
 		oracle = canonicalOracle
 	} else {
-		for (const routeOracleSlug in oracleRoutes.oracleNameBySlug) {
-			if (routeOracleSlug) return { notFound: true }
-		}
+		return { notFound: true }
 	}
 
 	const data = await getOracleDetailPageData({ oracle })

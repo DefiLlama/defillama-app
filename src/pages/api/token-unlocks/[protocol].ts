@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolEmissons, isEmptyProtocolEmissionResult } from '~/containers/Unlocks/queries'
-import { slug } from '~/utils'
 import { validateSubscription } from '~/utils/apiAuth'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -26,9 +25,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
-		const metadataModule = await import('~/utils/metadata')
+		const [metadataModule, { resolveProtocolParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/protocols')
+		])
+		const protocolRoute = resolveProtocolParamFromMetadata(protocol, metadataModule.default)
+		if (!protocolRoute || !metadataModule.default.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {
+			res.setHeader('Cache-Control', 'private, no-store')
+			return res.status(404).json({ error: 'Protocol emissions not found' })
+		}
+
 		metadataModule.refreshMetadataInBackgroundIfStale('token_unlocks_api')
-		const data = await getProtocolEmissons(slug(protocol), {
+		const data = await getProtocolEmissons(protocolRoute.canonicalSlug, {
 			skipAvailabilityCheck: true,
 			tokenlist: metadataModule.default.tokenlist
 		})

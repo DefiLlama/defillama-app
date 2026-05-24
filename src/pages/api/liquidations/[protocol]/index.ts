@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { validateSubscription } from '~/utils/apiAuth'
-import metadataCache from '~/utils/metadata'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
@@ -28,8 +27,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
-		const { getLiquidationsProtocolPageData } = await import('~/server/datasetCache/runtime/liquidations')
-		const data = await getLiquidationsProtocolPageData(protocol, {
+		const { resolveLiquidationsProtocolParam } = await import('~/server/routeCache/liquidations')
+		const protocolId = await resolveLiquidationsProtocolParam(protocol)
+		if (!protocolId) {
+			return res.status(404).json({ error: 'Liquidations protocol not found' })
+		}
+
+		const [{ getLiquidationsProtocolPageData }, { default: metadataCache }] = await Promise.all([
+			import('~/server/datasetCache/runtime/liquidations'),
+			import('~/utils/metadata')
+		])
+		const data = await getLiquidationsProtocolPageData(protocolId, {
 			chainMetadata: metadataCache.chainMetadata,
 			protocolMetadata: metadataCache.protocolMetadata
 		})

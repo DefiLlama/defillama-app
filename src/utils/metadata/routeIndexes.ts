@@ -4,7 +4,6 @@ import type { ICategoryInfoApiItem } from '~/containers/NarrativeTracker/api.typ
 import { fetchOracleMetrics } from '~/containers/Oracles/api'
 import { fetchStablecoinPeggedConfigApi } from '~/containers/Stablecoins/api'
 import { slug } from '~/utils'
-import { getErrorMessage } from '~/utils/error'
 import { fetchMetadataJson } from './http'
 import { dedupeNonEmpty } from './strings'
 
@@ -138,31 +137,17 @@ export function buildStablecoinPeggedAssetSlugs(config: Record<string, string>):
 	return dedupeNonEmpty(assetSlugs)
 }
 
-async function optionalRouteIndex<T>(name: string, fallback: T, fetcher: () => Promise<T>): Promise<T> {
-	try {
-		return await fetcher()
-	} catch (error) {
-		console.warn(`[dev:prepare] Metadata cache: optional ${name} route index failed: ${getErrorMessage(error)}`)
-		return fallback
-	}
-}
-
 export async function fetchMetadataRouteIndexes(): Promise<RouteIndexesMetadata> {
 	const [narrativeCategories, oracleRoutes, digitalAssetTreasuryRoutes, stablecoinPeggedAssetSlugs] = await Promise.all(
 		[
-			optionalRouteIndex('narrative categories', EMPTY_NARRATIVE_CATEGORIES, async () =>
-				buildNarrativeCategoriesMetadata(await fetchMetadataJson<ICategoryInfoApiItem[]>(CATEGORY_INFO_API))
-			),
-			optionalRouteIndex('oracle', EMPTY_ORACLE_ROUTES, async () => {
+			(async () =>
+				buildNarrativeCategoriesMetadata(await fetchMetadataJson<ICategoryInfoApiItem[]>(CATEGORY_INFO_API)))(),
+			(async () => {
 				const metrics = await fetchOracleMetrics()
 				return buildOracleRoutesMetadata(metrics)
-			}),
-			optionalRouteIndex('digital asset treasury', EMPTY_DIGITAL_ASSET_TREASURY_ROUTES, async () =>
-				buildDigitalAssetTreasuryRoutesMetadata(await fetchDATInstitutions())
-			),
-			optionalRouteIndex('stablecoin pegged asset', [], async () =>
-				buildStablecoinPeggedAssetSlugs(await fetchStablecoinPeggedConfigApi())
-			)
+			})(),
+			(async () => buildDigitalAssetTreasuryRoutesMetadata(await fetchDATInstitutions()))(),
+			(async () => buildStablecoinPeggedAssetSlugs(await fetchStablecoinPeggedConfigApi()))()
 		]
 	)
 

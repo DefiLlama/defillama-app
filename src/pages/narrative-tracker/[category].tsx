@@ -1,6 +1,6 @@
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
-import { getCategoryInfo, getCoinPerformance } from '~/containers/NarrativeTracker/queries'
+import { getCoinPerformance } from '~/containers/NarrativeTracker/queries'
 import type { CategoryPerformanceProps } from '~/containers/NarrativeTracker/types'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -14,7 +14,7 @@ export const getStaticProps = withPerformanceLogging('category-performance', asy
 	}
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	if (metadataCache.narrativeCategoryIdsSet.size > 0 && !metadataCache.narrativeCategoryIdsSet.has(categoryId)) {
+	if (!metadataCache.narrativeCategoryIdsSet.has(categoryId)) {
 		return { notFound: true }
 	}
 
@@ -40,13 +40,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const paths =
-		metadataCache.narrativeCategories.ids.length > 0
-			? metadataCache.narrativeCategories.ids.map((id) => ({ params: { category: id } }))
-			: (await getCategoryInfo()).map((i) => ({
-					params: { category: i.id.toString() }
-				}))
+	const { getNarrativeCategoryStaticPaths } = await import('~/server/routeCache/assets')
+	const paths = await getNarrativeCategoryStaticPaths()
 
 	return { paths, fallback: 'blocking' }
 }

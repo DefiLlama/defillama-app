@@ -5,7 +5,6 @@ import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/con
 import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
-import { slug } from '~/utils'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -23,6 +22,19 @@ const setSuccessCacheHeaders = (req: NextApiRequest, res: NextApiResponse<Respon
 
 const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 	res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
+}
+
+async function resolveCanonicalChainParam(chain: string): Promise<string | null> {
+	if (chain.toLowerCase() === 'all') return 'All'
+	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const chainRoute = await resolveChainParam(chain)
+	return chainRoute?.canonicalName ?? null
+}
+
+async function resolveCanonicalProtocolParam(protocol: string): Promise<string | null> {
+	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
+	const protocolRoute = await resolveProtocolParam(protocol)
+	return protocolRoute?.canonicalSlug ?? null
 }
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {
@@ -66,10 +78,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'adapterType and chain parameters are required' })
 			}
+			const canonicalChain = await resolveCanonicalChainParam(chain)
+			if (!canonicalChain) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'chain not found' })
+			}
 
 			const data = await fetchAdapterChainChartData({
 				adapterType: adapterType as Parameters<typeof fetchAdapterChainChartData>[0]['adapterType'],
-				chain,
+				chain: canonicalChain,
 				...(dataType ? { dataType: dataType as Parameters<typeof fetchAdapterChainChartData>[0]['dataType'] } : {}),
 				...(category ? { category } : {})
 			})
@@ -86,10 +103,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'adapterType and protocol parameters are required' })
 			}
+			const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+			if (!canonicalProtocol) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'protocol not found' })
+			}
 
 			const data = await fetchAdapterProtocolChartData({
 				adapterType: adapterType as Parameters<typeof fetchAdapterProtocolChartData>[0]['adapterType'],
-				protocol,
+				protocol: canonicalProtocol,
 				...(dataType ? { dataType: dataType as Parameters<typeof fetchAdapterProtocolChartData>[0]['dataType'] } : {})
 			})
 			setSuccessCacheHeaders(req, res)
@@ -102,8 +124,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'chain parameter is required' })
 			}
+			const canonicalChain = await resolveCanonicalChainParam(chain)
+			if (!canonicalChain) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'chain not found' })
+			}
 
-			const data = await fetchChainAssetsChart(chain)
+			const data = await fetchChainAssetsChart(canonicalChain)
 			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
@@ -136,7 +163,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(400).json({ error: 'chain parameter is required' })
 			}
 
-			const data = await buildStablecoinMcapSeries(chain)
+			const canonicalChain = await resolveCanonicalChainParam(chain)
+			if (!canonicalChain) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'chain not found' })
+			}
+
+			const data = await buildStablecoinMcapSeries(canonicalChain)
 			if (data === null) {
 				setNoStoreHeaders(res)
 				return res.status(200).json(null)
@@ -152,8 +185,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'chain parameter is required' })
 			}
+			const canonicalChain = await resolveCanonicalChainParam(chain)
+			if (!canonicalChain) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'chain not found' })
+			}
 
-			const data = await getBridgeOverviewPageData(chain)
+			const data = await getBridgeOverviewPageData(canonicalChain)
 				.then((pageData) =>
 					pageData?.chainVolumeData
 						? pageData.chainVolumeData.map((volume) => [
@@ -183,8 +221,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'protocol parameter is required' })
 			}
+			const [{ default: metadataCache }, { resolveProtocolParamFromMetadata }] = await Promise.all([
+				import('~/utils/metadata'),
+				import('~/server/routeCache/protocols')
+			])
+			const protocolRoute = resolveProtocolParamFromMetadata(protocol, metadataCache)
+			if (!protocolRoute || !metadataCache.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {
+				setNoStoreHeaders(res)
+				return res.status(404).json({ error: 'protocol emissions not found' })
+			}
 
-			const chart = await getProtocolUnlockUsdChart(slug(protocol)).catch(() => null)
+			const chart = await getProtocolUnlockUsdChart(protocolRoute.canonicalSlug).catch(() => null)
 			if (!chart) {
 				setNoStoreHeaders(res)
 				return res.status(200).json(null)

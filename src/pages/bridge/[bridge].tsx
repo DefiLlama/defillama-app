@@ -6,7 +6,6 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import metadataCache from '~/utils/metadata'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type BridgePageProps =
@@ -28,11 +27,11 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const bridge = slug(params.bridge)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const supportedBridgeSlugs = metadataCache.bridgeProtocolSlugs ?? []
-		const isBridgeCacheAvailable = supportedBridgeSlugs.length > 0
 		const isKnownBridgeRoute = supportedBridgeSlugs.includes(bridge)
 
-		if (isBridgeCacheAvailable && !isKnownBridgeRoute) {
+		if (!isKnownBridgeRoute) {
 			return {
 				notFound: true,
 				revalidate: maxAgeForNext([22])
@@ -43,13 +42,6 @@ export const getStaticProps = withPerformanceLogging(
 			const data = await getBridgePageDatanew(bridge)
 
 			if (!data) {
-				if (!isKnownBridgeRoute) {
-					return {
-						notFound: true,
-						revalidate: maxAgeForNext([22])
-					}
-				}
-
 				return {
 					props: { state: 'disabled', bridgeSlug: bridge },
 					revalidate: maxAgeForNext([22])
@@ -62,13 +54,6 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		} catch (error) {
 			console.error(`[bridge] failed to fetch data for ${bridge}:`, error)
-
-			if (!isKnownBridgeRoute) {
-				return {
-					notFound: true,
-					revalidate: maxAgeForNext([22])
-				}
-			}
 
 			return {
 				props: { state: 'disabled', bridgeSlug: bridge },

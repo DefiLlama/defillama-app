@@ -12,7 +12,6 @@ import type {
 } from '~/containers/Stablecoins/api.types'
 import { STABLECOIN_CHART_CACHE_CONTROL } from '~/containers/Stablecoins/chartSeries'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
-import metadataCache from '~/utils/metadata'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const GLOBAL_CHARTS = new Set<StablecoinVolumeGlobalChartKind>(['total', 'chain', 'token', 'currency'])
@@ -58,8 +57,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			}
 			const chain = getStringParam(req.query.chain)
 			if (!chain) return res.status(400).json({ error: 'chain parameter is required' })
+			const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
+				import('~/utils/metadata'),
+				import('~/server/routeCache/chains')
+			])
+			const chainRoute = resolveChainParamFromMetadata(chain, metadataCache)
+			if (!chainRoute) return res.status(404).json({ error: 'chain not found' })
 			chart = rawChart as StablecoinVolumeChainChartKind
-			data = await fetchStablecoinChainVolumeChartApi(chain, chart, metadataCache.chainMetadata)
+			data = await fetchStablecoinChainVolumeChartApi(chainRoute.canonicalName, chart, metadataCache.chainMetadata)
 		} else if (scope === 'token') {
 			if (!TOKEN_CHARTS.has(rawChart as StablecoinVolumeTokenChartKind)) {
 				return res.status(400).json({ error: 'unsupported token volume chart' })

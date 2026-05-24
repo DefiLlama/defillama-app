@@ -3,6 +3,7 @@ import { fetchRWAPerpsOverviewBreakdownChartData } from '~/containers/RWA/Perps/
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
 import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsOverviewBreakdownRequest } from '~/containers/RWA/Perps/types'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -46,6 +47,29 @@ export function parseOverviewBreakdownRequest(
 	return null
 }
 
+async function hasKnownPerpsTarget(request: ParsedOverviewBreakdownRequest): Promise<boolean> {
+	if (!request.venue && !request.assetGroup) return true
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	if (request.venue) {
+		const requestSlug = rwaSlug(request.venue)
+		for (const venue of metadataCache.rwaPerpsList.venues) {
+			if (rwaSlug(venue) === requestSlug) return true
+		}
+		return false
+	}
+
+	if (request.assetGroup) {
+		const requestSlug = rwaSlug(request.assetGroup)
+		for (const assetGroup of metadataCache.rwaPerpsList.assetGroups) {
+			if (rwaSlug(assetGroup) === requestSlug) return true
+		}
+		return false
+	}
+
+	return true
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' })
@@ -57,6 +81,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
+		if (!(await hasKnownPerpsTarget(request))) {
+			return res.status(404).json({ error: 'RWA perps target not found' })
+		}
+
 		const rows = await fetchRWAPerpsOverviewBreakdownChartData(request)
 		if (rows == null) {
 			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })

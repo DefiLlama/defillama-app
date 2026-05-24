@@ -27,7 +27,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		const chainLabel = chain === 'All' ? 'all-llama-app' : chain
+		const chainLabel = chain.toLowerCase() === 'all' ? 'all-llama-app' : chain
 		const data = await fetchStablecoinChartApi(chainLabel)
 
 		res.setHeader('Cache-Control', 'public, max-age=300')

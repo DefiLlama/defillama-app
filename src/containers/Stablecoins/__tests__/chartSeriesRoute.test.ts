@@ -75,6 +75,32 @@ describe('/api/stablecoins/chart-series', () => {
 		expect(res.json).toHaveBeenCalledWith(payload)
 	})
 
+	it('accepts lowercase all as the overview aggregate chain', async () => {
+		const req = {
+			method: 'GET',
+			query: { scope: 'overview', chain: 'all', chart: 'totalMcap' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(getOverviewMock).toHaveBeenCalledWith({
+			chain: null,
+			chart: 'totalMcap',
+			filters: {
+				attribute: undefined,
+				excludeAttribute: undefined,
+				pegtype: undefined,
+				excludePegtype: undefined,
+				backing: undefined,
+				excludeBacking: undefined,
+				minMcap: undefined,
+				maxMcap: undefined
+			}
+		})
+		expect(res.status).toHaveBeenCalledWith(200)
+	})
+
 	it('returns 404 when an asset chart is missing', async () => {
 		getAssetMock.mockResolvedValue(null)
 		const req = {
