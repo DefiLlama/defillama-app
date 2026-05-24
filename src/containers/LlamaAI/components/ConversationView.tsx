@@ -27,7 +27,7 @@ import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticRes
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
 
-interface ConversationViewProps {
+export interface ConversationViewModel {
 	readOnly: boolean
 	isSharedView?: boolean
 	messages: Message[]
@@ -77,7 +77,6 @@ interface ConversationViewProps {
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
-	animateActiveExchange: boolean
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
@@ -87,6 +86,11 @@ interface ConversationViewProps {
 	contextWarning?: ContextWarningPayload | null
 	onDismissContextWarning?: () => void
 	onStartNewChat?: () => void
+}
+
+interface ConversationViewProps {
+	viewModel: ConversationViewModel
+	animateActiveExchange: boolean
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -295,56 +299,56 @@ function ConversationLiveStatus({
 	)
 }
 
-export function ConversationView({
-	readOnly,
-	isSharedView = false,
-	messages,
-	sessionId,
-	isLlama,
-	isStreaming,
-	activeToolCalls,
-	spawnProgress,
-	spawnStartTime,
-	todos,
-	todosStartTime,
-	executionStartedAt,
-	spawnIsResearchMode,
-	streamingThinking,
-	streamingDraft,
-	isCompacting,
-	paginationState,
-	paginationError,
-	recovery,
-	error,
-	lastFailedPrompt,
-	onRetryLastFailedPrompt,
-	onReconnectNow,
-	scrollContainerRef,
-	messagesEndRef,
-	promptInputRef,
-	isScrollAttached,
-	showScrollToBottom,
-	scrollToBottom,
-	handleSubmit,
-	handleStopRequest,
-	handleActionClick,
-	onEditMessage,
-	onBranchSwitch,
-	isBranchSwitching,
-	isResearchMode,
-	setIsResearchMode,
-	researchUsage,
-	animateActiveExchange,
-	onOpenAlerts,
-	quotedText,
-	onClearQuotedText,
-	enterToSend,
-	onTableFullscreenOpen,
-	onShare,
-	contextWarning,
-	onDismissContextWarning,
-	onStartNewChat
-}: ConversationViewProps) {
+export function ConversationView({ viewModel, animateActiveExchange }: ConversationViewProps) {
+	const {
+		readOnly,
+		isSharedView = false,
+		messages,
+		sessionId,
+		isLlama,
+		isStreaming,
+		activeToolCalls,
+		spawnProgress,
+		spawnStartTime,
+		todos,
+		todosStartTime,
+		executionStartedAt,
+		spawnIsResearchMode,
+		streamingThinking,
+		streamingDraft,
+		isCompacting,
+		paginationState,
+		paginationError,
+		recovery,
+		error,
+		lastFailedPrompt,
+		onRetryLastFailedPrompt,
+		onReconnectNow,
+		scrollContainerRef,
+		messagesEndRef,
+		promptInputRef,
+		isScrollAttached,
+		showScrollToBottom,
+		scrollToBottom,
+		handleSubmit,
+		handleStopRequest,
+		handleActionClick,
+		onEditMessage,
+		onBranchSwitch,
+		isBranchSwitching,
+		isResearchMode,
+		setIsResearchMode,
+		researchUsage,
+		onOpenAlerts,
+		quotedText,
+		onClearQuotedText,
+		enterToSend,
+		onTableFullscreenOpen,
+		onShare,
+		contextWarning,
+		onDismissContextWarning,
+		onStartNewChat
+	} = viewModel
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const handledAnchorIdRef = useRef<string | null>(null)

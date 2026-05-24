@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { AI_SERVER } from '~/constants'
+import { llamaAIRequest } from '~/containers/LlamaAI/api/transport'
 import {
 	prependSessionToInfiniteData,
 	removeSessionFromInfiniteData,
@@ -13,9 +13,7 @@ import {
 import { isProjectSessionsQueryKey, projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
 import type { ProjectChatSession } from '~/containers/LlamaAI/projects/types'
 import type { ChatSession } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 
 type SwitchActiveLeafResponse = {
@@ -27,6 +25,19 @@ type SwitchActiveLeafResponse = {
 		hasNewer?: boolean
 		newerCursor?: number | null
 	}
+}
+
+type SessionRestoreResponse = {
+	messages?: unknown[]
+	conversationHistory?: unknown[]
+	hasMore?: boolean
+	nextCursor?: number | null
+	totalMessages?: number
+	hasNewer?: boolean
+	newerCursor?: number | null
+	streaming?: unknown
+	todos?: unknown
+	projectId?: string | null
 }
 
 function assertSwitchActiveLeafResponse(response: unknown): asserts response is SwitchActiveLeafResponse {
@@ -143,14 +154,10 @@ export function useSessionMutations() {
 			projectId?: string | null
 		}) => {
 			try {
-				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
+				const response = await llamaAIRequest(authorizedFetch, '/user/sessions', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, title, projectId })
+					json: { sessionId, title, projectId }
 				})
-					.then((res) => assertResponse(res, 'Failed to create session'))
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
 
 				return response
 			} catch (error) {
@@ -194,11 +201,11 @@ export function useSessionMutations() {
 				if (around) params.append('around', around)
 				if (afterSequence !== undefined) params.append('afterSequence', afterSequence.toString())
 
-				const url = `${AI_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
-				const response = await authorizedFetch(url)
-					.then((res) => assertResponse(res, 'Failed to restore session'))
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
+				const query = params.toString()
+				const response = await llamaAIRequest<SessionRestoreResponse>(
+					authorizedFetch,
+					`/user/sessions/${sessionId}/restore${query ? `?${query}` : ''}`
+				)
 
 				return response
 			} catch (error) {
@@ -212,14 +219,10 @@ export function useSessionMutations() {
 		mutationKey: ['llamaai', 'switch-active-leaf'],
 		mutationFn: async ({ sessionId, leafMessageId }: { sessionId: string; leafMessageId: string }) => {
 			try {
-				const response: unknown = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
+				const response: unknown = await llamaAIRequest(authorizedFetch, `/agentic/${sessionId}/active-leaf`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ leafMessageId })
+					json: { leafMessageId }
 				})
-					.then((res) => assertResponse(res, 'Failed to switch branch'))
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
 
 				assertSwitchActiveLeafResponse(response)
 				return response
@@ -234,11 +237,9 @@ export function useSessionMutations() {
 	const deleteSessionMutation = useMutation({
 		mutationFn: async ({ sessionId }: { sessionId: string; projectId?: string | null }) => {
 			try {
-				await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}`, {
+				await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
-					.then((res) => assertResponse(res, 'Failed to delete session'))
-					.then(handleSimpleFetchResponse)
 			} catch (error) {
 				console.log('Failed to delete session:', error)
 				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
@@ -273,13 +274,10 @@ export function useSessionMutations() {
 
 	const bulkDeleteSessionsMutation = useMutation({
 		mutationFn: async (sessionIds: string[]) => {
-			await authorizedFetch(`${AI_SERVER}/user/sessions/bulk`, {
+			await llamaAIRequest(authorizedFetch, '/user/sessions/bulk', {
 				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ sessionIds })
+				json: { sessionIds }
 			})
-				.then((res) => assertResponse(res, 'Failed to bulk delete sessions'))
-				.then(handleSimpleFetchResponse)
 		},
 		onMutate: async (sessionIds) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
@@ -304,14 +302,10 @@ export function useSessionMutations() {
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string; projectId?: string | null }) => {
-			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/title`, {
+			const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/title`, {
 				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title })
+				json: { title }
 			})
-				.then((res) => assertResponse(res, 'Failed to update session title'))
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
 
 			return response
 		},
@@ -343,12 +337,9 @@ export function useSessionMutations() {
 
 	const pinSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/pin`, {
+			const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/pin`, {
 				method: 'PUT'
 			})
-				.then((res) => assertResponse(res, 'Failed to toggle pin'))
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
 
 			return response
 		},
@@ -493,6 +484,20 @@ export function useSessionMutations() {
 		[deleteSessionMutation]
 	)
 
+	const updateSessionTitle = useCallback(
+		async (args: { sessionId: string; title: string; projectId?: string | null }) => {
+			await updateTitleMutation.mutateAsync(args)
+		},
+		[updateTitleMutation]
+	)
+
+	const pinSession = useCallback(
+		async (sessionId: string) => {
+			await pinSessionMutation.mutateAsync(sessionId)
+		},
+		[pinSessionMutation]
+	)
+
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
@@ -502,7 +507,7 @@ export function useSessionMutations() {
 		loadNewerMessages,
 		switchActiveLeaf: switchActiveLeafMutation.mutateAsync,
 		deleteSession,
-		updateSessionTitle: updateTitleMutation.mutateAsync,
+		updateSessionTitle,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
 		isSwitchingActiveLeaf: switchActiveLeafMutation.isPending,
@@ -510,7 +515,7 @@ export function useSessionMutations() {
 		isUpdatingTitle: updateTitleMutation.isPending,
 		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,
 		isBulkDeleting: bulkDeleteSessionsMutation.isPending,
-		pinSession: pinSessionMutation.mutateAsync,
+		pinSession,
 		isPinningSession: pinSessionMutation.isPending
 	}
 }

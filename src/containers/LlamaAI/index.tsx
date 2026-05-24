@@ -11,8 +11,7 @@ import {
 	useMemo,
 	useReducer,
 	useRef,
-	useState,
-	type RefObject
+	useState
 } from 'react'
 import { Icon } from '~/components/Icon'
 import {
@@ -21,19 +20,19 @@ import {
 	consumePendingSuggestedFlag
 } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
+import { authorizedFetchAsFetch } from '~/containers/LlamaAI/authorizedFetchAdapter'
 import { LlamaAIChromeContext, useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
-import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
+import { ChatSurface, type LandingOverrideApi } from '~/containers/LlamaAI/components/ChatSurface'
 import {
-	ConversationView,
 	EmptyConversationErrorState,
-	LoadingConversationState
+	LoadingConversationState,
+	type ConversationViewModel
 } from '~/containers/LlamaAI/components/ConversationView'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
-import { getToolLabel } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TipActionProvider } from '~/containers/LlamaAI/components/TipActionContext'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
@@ -42,17 +41,12 @@ import {
 	RECOVERY_ATTEMPT_DELAYS_MS,
 	RECOVERY_GRACE_MS
 } from '~/containers/LlamaAI/connectionErrors'
+import { dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE } from '~/containers/LlamaAI/dashboardPanelState'
 import {
 	checkActiveExecution,
 	fetchAgenticResponse,
 	resumeAgenticStream,
 	stopAgenticExecution
-} from '~/containers/LlamaAI/fetchAgenticResponse'
-import type {
-	AgenticSSECallbacks,
-	CsvExport,
-	MdExport,
-	SpawnProgressData
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useLlamaAISetting, useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
@@ -62,11 +56,28 @@ import { useSettingsRouteIntent } from '~/containers/LlamaAI/hooks/useSettingsRo
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
+import {
+	mapPersistedMessage,
+	mapPersistedMessages,
+	mapSharedSessionMessage,
+	type PersistedMessage,
+	type SessionRestoreResult,
+	type SharedSession
+} from '~/containers/LlamaAI/messageMappers'
 import { ProjectLanding } from '~/containers/LlamaAI/projects/ProjectLanding'
 import { ProjectsGrid } from '~/containers/LlamaAI/projects/ProjectsGrid'
 import { getProjectTier } from '~/containers/LlamaAI/projects/tier'
 import {
-	buildAssistantMessage,
+	beginRequest,
+	completeRequest,
+	createRequestSettleState,
+	isActiveRequest,
+	waitForRequestSettle,
+	type RequestKind,
+	type RequestSettleState
+} from '~/containers/LlamaAI/requestLifecycle'
+import { appendBufferedAssistantMessage, createAgenticCallbacks } from '~/containers/LlamaAI/streamCallbacks'
+import {
 	createInitialStreamState,
 	createStreamBuffer,
 	hasStreamBufferContent,
@@ -74,20 +85,9 @@ import {
 	type ChatPageContext,
 	type FailedRequest,
 	type RateLimitDetails,
-	type StreamBuffer,
-	type StreamDispatch
+	type StreamBuffer
 } from '~/containers/LlamaAI/streamState'
-import type {
-	ChartConfiguration,
-	DashboardArtifact,
-	DashboardItem,
-	Message,
-	TodoItem,
-	ToolExecution,
-	UpgradeOffer
-} from '~/containers/LlamaAI/types'
-import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
-import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
+import type { Message, UpgradeOffer } from '~/containers/LlamaAI/types'
 import type { SettingsInitialState, SettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
@@ -110,95 +110,6 @@ const SubscribeProModal = lazy(() =>
 const DashboardPanel = lazy(() =>
 	import('~/containers/LlamaAI/components/DashboardPanel').then((m) => ({ default: m.DashboardPanel }))
 )
-
-interface PersistedToolExecution extends ToolExecution {
-	toolName?: string
-}
-
-interface PersistedMessageMetadata extends RestoredAlertMetadata {
-	toolExecutions?: PersistedToolExecution[]
-	thinking?: string
-	quotedText?: string
-	dashboardConfig?: {
-		dashboardName?: string
-		items?: DashboardItem[]
-		timePeriod?: string
-		sourceDashboardId?: string
-	}
-	deliveryChannel?: 'email' | 'telegram'
-	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
-	x402_cost_usd?: string
-}
-
-interface PersistedMessage {
-	role: 'user' | 'assistant'
-	content?: string
-	charts?: ChartConfiguration[]
-	chartData?: Record<string, unknown[]>
-	citations?: string[]
-	csvExports?: CsvExport[]
-	mdExports?: MdExport[]
-	images?: Array<{
-		url: string
-		mimeType: string
-		filename?: string
-		originalFilename?: string
-		textContent?: string
-		size?: number
-	}>
-	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
-	metadata?: PersistedMessageMetadata
-	messageMetadata?: {
-		inputTokens?: number
-		outputTokens?: number
-		executionTimeMs?: number
-		x402CostUsd?: string
-		completionReason?: string
-	}
-	messageId?: string
-	parentId?: string
-	siblingInfo?: Message['siblingInfo']
-	timestamp?: string | number
-	savedAlertIds?: string[]
-}
-
-interface SharedSession {
-	session: { sessionId: string; title: string; createdAt: string; isPublic: boolean }
-	messages: SharedSessionMessage[]
-	activeLeafMessageId?: string
-	isPublicView: true
-}
-
-interface SharedSessionMessage {
-	role: 'user' | 'assistant'
-	content: string
-	messageId?: string
-	timestamp: number
-	images?: Array<{
-		url: string
-		mimeType: string
-		filename?: string
-		originalFilename?: string
-		textContent?: string
-		size?: number
-	}>
-	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
-	metadata?: PersistedMessageMetadata
-	charts?: ChartConfiguration[]
-	chartData?: unknown[] | Record<string, unknown[]>
-	citations?: string[]
-	csvExports?: CsvExport[]
-	mdExports?: MdExport[]
-	savedAlertIds?: string[]
-}
-
-interface SessionRestoreResult {
-	messages?: PersistedMessage[]
-	todos?: TodoItem[]
-	activeLeafMessageId?: string
-	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
-	projectId?: string | null
-}
 
 interface RestoreSessionSnapshotResult {
 	restored: boolean
@@ -241,7 +152,6 @@ function buildFreeLimitMessage(err: FreeLimitError): Message {
 	}
 }
 
-type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'branch' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
 
 type RecoveryController = {
@@ -258,155 +168,9 @@ type RecoveryController = {
 	streamAttached: boolean
 }
 
-type DashboardPanelState = {
-	isOpen: boolean
-	mountedConfig: DashboardArtifact | null
-	versions: DashboardArtifact[]
-	versionIndex: number
-}
-
-type DashboardPanelAction =
-	| { type: 'APPEND'; value: DashboardArtifact }
-	| { type: 'RESTORE'; value: DashboardArtifact[] }
-	| { type: 'RESET' }
-	| { type: 'TOGGLE' }
-	| { type: 'SELECT_VERSION'; value: number }
-	| { type: 'CLOSE' }
-	| { type: 'UNMOUNT' }
-
-const INITIAL_DASHBOARD_PANEL_STATE: DashboardPanelState = {
-	isOpen: false,
-	mountedConfig: null,
-	versions: [],
-	versionIndex: 0
-}
-
-function dashboardPanelReducer(state: DashboardPanelState, action: DashboardPanelAction): DashboardPanelState {
-	switch (action.type) {
-		case 'APPEND': {
-			const versions = [...state.versions, action.value]
-			return {
-				isOpen: true,
-				mountedConfig: action.value,
-				versions,
-				versionIndex: versions.length - 1
-			}
-		}
-		case 'RESTORE':
-			return {
-				isOpen: false,
-				mountedConfig: null,
-				versions: action.value,
-				versionIndex: action.value.length > 0 ? action.value.length - 1 : 0
-			}
-		case 'RESET':
-			return INITIAL_DASHBOARD_PANEL_STATE
-		case 'TOGGLE':
-			return {
-				...state,
-				isOpen: !state.isOpen,
-				mountedConfig: state.isOpen ? state.mountedConfig : (state.versions[state.versionIndex] ?? null)
-			}
-		case 'SELECT_VERSION':
-			if (action.value < 0 || action.value >= state.versions.length) return state
-			return {
-				...state,
-				mountedConfig: state.isOpen ? (state.versions[action.value] ?? null) : state.mountedConfig,
-				versionIndex: action.value
-			}
-		case 'CLOSE':
-			return { ...state, isOpen: false }
-		case 'UNMOUNT':
-			if (state.isOpen) return state
-			return { ...state, mountedConfig: null }
-		default:
-			return state
-	}
-}
-
 function getErrorMessage(error: unknown): string {
 	if (error instanceof Error) return error.message
 	return String(error)
-}
-
-// Normalize older persisted tool payloads that may still use `toolName`.
-function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
-	return {
-		...tool,
-		name: tool.name || tool.toolName || 'unknown'
-	}
-}
-
-// Convert a persisted API message into the UI message shape used by the chat view.
-function mapPersistedMessage(message: PersistedMessage, index?: number): Message {
-	const dashboardConfig = message.metadata?.dashboardConfig
-	return {
-		role: message.role,
-		content: message.content,
-		charts:
-			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
-		citations: message.citations,
-		csvExports: message.csvExports,
-		mdExports: message.mdExports ?? message.metadata?.mdExports,
-		dashboards: dashboardConfig
-			? [
-					(() => {
-						const restoredDashboardIdSuffix =
-							message.messageId ??
-							(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-								? crypto.randomUUID()
-								: `unknown_${Date.now()}_${Math.random().toString(36).slice(2)}`)
-						const artifact: DashboardArtifact = {
-							id: `dashboard_restored_${restoredDashboardIdSuffix}`,
-							dashboardName: dashboardConfig.dashboardName || 'Dashboard',
-							items: dashboardConfig.items ?? [],
-							timePeriod: dashboardConfig.timePeriod,
-							sourceDashboardId: dashboardConfig.sourceDashboardId
-						}
-						const chartRefs = (dashboardConfig.items ?? []).filter(
-							(item): item is Extract<DashboardItem, { kind: 'llamaai-chart' }> & { chartRef: string } =>
-								item.kind === 'llamaai-chart' && typeof item.chartRef === 'string'
-						)
-						if (chartRefs.length > 0 && message.chartData && message.charts) {
-							const chartConfigMap = new Map(message.charts.map((chart) => [chart.id, chart]))
-							const bundled: NonNullable<DashboardArtifact['chartData']> = {}
-							for (const item of chartRefs) {
-								const data = (message.chartData as Record<string, unknown[]>)[item.chartRef]
-								const config = chartConfigMap.get(item.chartRef)
-								if (data && config) {
-									bundled[item.chartRef] = { config, data, toolChain: [] }
-								}
-							}
-							if (Object.keys(bundled).length > 0) artifact.chartData = bundled
-						}
-						return artifact
-					})()
-				]
-			: undefined,
-		alerts: buildRestoredAlerts({
-			content: message.content,
-			messageId: message.messageId,
-			metadata: message.metadata,
-			savedAlertIds: message.savedAlertIds
-		}),
-		savedAlertIds: message.savedAlertIds,
-		images: message.images,
-		generatedImages: message.generatedImages,
-		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
-		thinking: message.metadata?.thinking,
-		quotedText: message.metadata?.quotedText,
-		messageMetadata: message.messageMetadata,
-		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
-		parentId: message.parentId,
-		siblingInfo: message.siblingInfo,
-		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
-	}
-}
-
-// Map an entire persisted message list into renderable chat messages.
-function mapPersistedMessages(messages: PersistedMessage[] | undefined): Message[] {
-	if (!messages || messages.length === 0) return []
-	return messages.map((msg, i) => mapPersistedMessage(msg, i))
 }
 
 // Capture the current scroll height so older messages can be prepended without jumping the viewport.
@@ -447,43 +211,6 @@ function normalizePaginationState(
 	}
 }
 
-// Shared/public sessions use a slightly different payload shape, so normalize them separately.
-function mapSharedSessionMessage(message: SharedSessionMessage, index?: number): Message {
-	return {
-		role: message.role,
-		content: message.content || undefined,
-		charts:
-			message.charts && message.chartData
-				? [
-						{
-							charts: message.charts,
-							chartData: normalizeSharedChartDataByChartId(message.charts, message.chartData) as Record<string, any[]>
-						}
-					]
-				: undefined,
-		csvExports: message.csvExports,
-		mdExports: message.mdExports ?? message.metadata?.mdExports,
-		citations: message.citations,
-		alerts: buildRestoredAlerts({
-			content: message.content,
-			messageId: message.messageId,
-			metadata: message.metadata,
-			savedAlertIds: message.savedAlertIds
-		}),
-		savedAlertIds: message.savedAlertIds,
-		images: message.images,
-		generatedImages: message.generatedImages,
-		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
-		thinking: message.metadata?.thinking,
-		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
-	}
-}
-
-export interface LandingOverrideApi {
-	handleSubmit: (prompt: string) => void
-	isStreaming: boolean
-}
-
 interface AgenticChatProps {
 	sharedSession?: SharedSession
 	readOnly?: boolean
@@ -492,285 +219,6 @@ interface AgenticChatProps {
 	initialPrompt?: string
 	shareToken?: string
 	rightPanel?: React.ReactNode
-}
-
-// Consume the current streamed message id once the buffered assistant message is committed.
-function takeCurrentMessageId(ref: RefObject<string | null>) {
-	const messageId = ref.current || undefined
-	ref.current = null
-	return messageId
-}
-
-// Shared session chart data may arrive as a flat array; remap it to the keyed shape the renderer expects.
-function normalizeSharedChartDataByChartId(
-	charts: ChartConfiguration[] | undefined,
-	chartData: SharedSessionMessage['chartData']
-): Record<string, unknown[]> | undefined {
-	if (!charts || charts.length === 0 || !chartData) return undefined
-	if (!Array.isArray(chartData)) return chartData
-
-	const fallbackKey = charts[0]?.datasetName || charts[0]?.id || 'default'
-	return {
-		[fallbackKey]: chartData
-	}
-}
-
-// Commit the in-memory streamed assistant payload only if anything meaningful was actually received.
-function appendBufferedAssistantMessage(
-	buffer: StreamBuffer,
-	currentMessageIdRef: RefObject<string | null>,
-	appendMessage: (message: Message) => void
-) {
-	if (!hasStreamBufferContent(buffer)) {
-		currentMessageIdRef.current = null
-		return
-	}
-
-	appendMessage(buildAssistantMessage(buffer, takeCurrentMessageId(currentMessageIdRef)))
-}
-
-// Start tracking a new async request and mark it as the only request allowed to update UI state.
-function beginRequest(
-	activeRequestIdRef: RefObject<number>,
-	activeRequestKindRef: RefObject<RequestKind>,
-	activeSessionIdRef: RefObject<string | null>,
-	kind: RequestKind,
-	sessionId: string | null
-) {
-	const requestId = activeRequestIdRef.current + 1
-	activeRequestIdRef.current = requestId
-	activeRequestKindRef.current = kind
-	activeSessionIdRef.current = sessionId
-	return requestId
-}
-
-// Request callbacks use this guard to ignore stale async completions.
-function isActiveRequest(activeRequestIdRef: RefObject<number>, requestId: number) {
-	return activeRequestIdRef.current === requestId
-}
-
-// Clear request bookkeeping once the current request fully settles.
-function completeRequest(
-	activeRequestIdRef: RefObject<number>,
-	activeRequestKindRef: RefObject<RequestKind>,
-	activeSessionIdRef: RefObject<string | null>,
-	requestId: number
-) {
-	if (!isActiveRequest(activeRequestIdRef, requestId)) return
-	activeRequestKindRef.current = 'idle'
-	activeSessionIdRef.current = null
-}
-
-type RequestSettleState = {
-	requestId: number
-	promise: Promise<void>
-	resolve: () => void
-} | null
-
-// Create a promise that lets abort paths wait for the active request to finish its cleanup work.
-function createRequestSettleState(requestId: number): Exclude<RequestSettleState, null> {
-	let resolve = () => {}
-	const promise = new Promise<void>((done) => {
-		resolve = done
-	})
-	return { requestId, promise, resolve }
-}
-
-function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, timeoutMs = 5000) {
-	return Promise.race([
-		settleState.promise,
-		new Promise<void>((resolve) => {
-			window.setTimeout(resolve, timeoutMs)
-		})
-	])
-}
-
-// Build one callback bundle shared by live prompt submits and resumed server-side streams.
-function createAgenticCallbacks({
-	requestId,
-	activeRequestIdRef,
-	buffer,
-	dispatch,
-	currentMessageIdRef,
-	toolCallIdRef,
-	onSessionId,
-	onTitle,
-	onTokenLimit,
-	onDashboardArtifact,
-	appendMessage,
-	replaceLocalUserMessageId,
-	setMessageSiblingInfo,
-	deferEmptyDone,
-	notify
-}: {
-	requestId: number
-	activeRequestIdRef: RefObject<number>
-	buffer: StreamBuffer
-	dispatch: StreamDispatch
-	currentMessageIdRef: RefObject<string | null>
-	toolCallIdRef: RefObject<number>
-	onSessionId?: (sessionId: string) => void
-	onTitle?: (title: string) => void
-	onTokenLimit?: () => void
-	onDashboardArtifact?: (dashboard: DashboardArtifact) => void
-	appendMessage: (message: Message) => void
-	replaceLocalUserMessageId?: (realId: string) => void
-	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
-	deferEmptyDone?: boolean
-	notify: () => void
-}): AgenticSSECallbacks {
-	return {
-		onToken: (content) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			if (!buffer.hasStartedText) {
-				buffer.hasStartedText = true
-				dispatch({ type: 'CLEAR_ACTIVITY' })
-			}
-			buffer.text += content
-			const reportIdx = buffer.text.indexOf('[REPORT_START]')
-			if (reportIdx !== -1) {
-				buffer.text = buffer.text.slice(reportIdx + '[REPORT_START]'.length).trimStart()
-			}
-			dispatch({ type: 'APPEND_TOKEN', value: content })
-		},
-		onCharts: (charts, chartData) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			dispatch({ type: 'CLEAR_ACTIVITY' })
-			const chartSet = { charts, chartData: chartData as Record<string, any[]> }
-			buffer.charts.push(chartSet)
-			dispatch({ type: 'APPEND_CHARTS', value: chartSet })
-		},
-		onGeneratedImages: (images) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			if (!images?.length) return
-			dispatch({ type: 'CLEAR_ACTIVITY' })
-			buffer.generatedImages.push(...images)
-			dispatch({ type: 'APPEND_GENERATED_IMAGES', value: images })
-		},
-		onCsvExport: (exports) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.csvExports.push(...exports)
-			dispatch({ type: 'APPEND_CSV_EXPORTS', value: exports })
-		},
-		onMdExport: (exports) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.mdExports.push(...exports)
-			dispatch({ type: 'APPEND_MD_EXPORTS', value: exports })
-		},
-		onAlertProposed: (data) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.alerts.push(data)
-			dispatch({ type: 'APPEND_ALERT', value: data })
-		},
-		onDashboard: (dashboard) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.dashboards.push(dashboard)
-			dispatch({ type: 'APPEND_DASHBOARD', value: dashboard })
-			onDashboardArtifact?.(dashboard)
-		},
-		onCitations: (citations) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.citations = [...new Set([...buffer.citations, ...citations])]
-			dispatch({ type: 'MERGE_CITATIONS', value: citations })
-		},
-		onProgress: (toolName, isPremium) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			const label = getToolLabel(toolName)
-			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label, ...(isPremium && { isPremium }) }
-			dispatch({ type: 'APPEND_TOOL_CALL', value: toolCall })
-		},
-		onToolExecution: (data) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.toolExecutions.push(data)
-			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
-			if (data.name === 'todo' && data.success) {
-				const todos = (data.toolData as { todos?: TodoItem[] } | undefined)?.todos
-				if (Array.isArray(todos)) {
-					dispatch({ type: 'SET_TODOS', value: todos })
-				}
-			}
-		},
-		onTodos: (todos) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			dispatch({ type: 'SET_TODOS', value: todos })
-		},
-		onMessageMetadata: (data) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.messageMetadata = data
-			dispatch({ type: 'SET_MESSAGE_METADATA', value: data })
-		},
-		onThinking: (content) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.thinking += content
-			dispatch({ type: 'APPEND_THINKING', value: content })
-		},
-		onSpawnProgress: (data: SpawnProgressData) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			if (data.status === 'started' && !buffer.spawnStarted) {
-				buffer.spawnStarted = true
-				dispatch({ type: 'SET_SPAWN_START_TIME', value: data.startedAt || Date.now() })
-				if (data.isResearchMode !== undefined) {
-					dispatch({ type: 'SET_SPAWN_RESEARCH_MODE', value: data.isResearchMode })
-				}
-			}
-			dispatch({
-				type: 'UPSERT_SPAWN_PROGRESS',
-				value: {
-					id: data.agentId,
-					status: data.status,
-					tool: data.tool,
-					toolCount: data.toolCount,
-					chartCount: data.chartCount,
-					findingsPreview: data.findingsPreview
-				}
-			})
-		},
-		onCompaction: (data) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			dispatch({ type: 'SET_COMPACTING', value: data.status === 'started' })
-		},
-		onSessionId: (sessionId, startedAt) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			onSessionId?.(sessionId)
-			if (startedAt) dispatch({ type: 'SET_EXECUTION_STARTED_AT', value: startedAt })
-		},
-		onMessageId: (messageId) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			currentMessageIdRef.current = messageId
-		},
-		onUserMessageId: (messageId) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			replaceLocalUserMessageId?.(messageId)
-		},
-		onSiblingInfo: (messageId, siblingInfo) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			setMessageSiblingInfo?.(messageId, siblingInfo)
-		},
-		onTitle: (title) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			onTitle?.(title)
-		},
-		onTokenLimit: () => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			onTokenLimit?.()
-		},
-		onContextWarning: (warning) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			dispatch({ type: 'SET_CONTEXT_WARNING', value: warning })
-		},
-		onError: (content) => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			buffer.error = content
-			dispatch({ type: 'SET_ERROR', value: content })
-		},
-		onDone: () => {
-			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
-			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
-			dispatch({ type: 'RESET_STREAM' })
-			notify()
-		}
-	}
 }
 
 export function AgenticChat({
@@ -807,51 +255,8 @@ export function AgenticChat({
 	// Uses a "consumed" flag so we always read the current prop but only forward it once per mount.
 	const shareTokenConsumedRef = useRef(false)
 
-	const getAuthorizedFetchInput = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
-		if (!(input instanceof Request)) {
-			const url = typeof input === 'string' ? input : input.toString()
-			return { url, init }
-		}
-
-		const mergedHeaders = new Headers(input.headers)
-		if (init?.headers) {
-			new Headers(init.headers).forEach((value, key) => {
-				mergedHeaders.set(key, value)
-			})
-		}
-
-		const mergedInit: RequestInit = {
-			method: init?.method ?? input.method,
-			headers: mergedHeaders,
-			body: init?.body ?? input.body,
-			cache: init?.cache ?? input.cache,
-			credentials: init?.credentials ?? input.credentials,
-			integrity: init?.integrity ?? input.integrity,
-			keepalive: init?.keepalive ?? input.keepalive,
-			mode: init?.mode ?? input.mode,
-			priority: init?.priority,
-			redirect: init?.redirect ?? input.redirect,
-			referrer: init?.referrer ?? input.referrer,
-			referrerPolicy: init?.referrerPolicy ?? input.referrerPolicy,
-			signal: init?.signal ?? input.signal,
-			window: init?.window
-		}
-
-		return { url: input.url, init: mergedInit }
-	}, [])
-
 	// Adapt the auth helper to the native fetch signature while preserving non-2xx responses for downstream error handling.
-	const authorizedFetchCompat = useCallback<typeof fetch>(
-		async (input: RequestInfo | URL, init?: RequestInit) => {
-			const request = getAuthorizedFetchInput(input, init)
-			const response = await authorizedFetch(request.url, request.init)
-			if (!response) {
-				throw new Error('Authorized request failed')
-			}
-			return response
-		},
-		[authorizedFetch, getAuthorizedFetchInput]
-	)
+	const authorizedFetchCompat = useMemo(() => authorizedFetchAsFetch(authorizedFetch), [authorizedFetch])
 	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
 	const isLlama = !!user?.flags?.is_llama
 	const {
@@ -2746,6 +2151,73 @@ export function AgenticChat({
 		[settingsModalStore, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
 
+	const landingProps = {
+		readOnly,
+		isSharedView,
+		title: readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?',
+		handleSubmit,
+		promptInputRef,
+		handleStopRequest,
+		isStreaming,
+		isResearchMode,
+		setIsResearchMode,
+		researchUsage,
+		onOpenAlerts: alertsModalStore.show,
+		quotedText,
+		onClearQuotedText: () => setQuotedText(null),
+		enterToSend: settings.enterToSend
+	}
+
+	const conversationViewModel: ConversationViewModel = {
+		readOnly,
+		isSharedView,
+		messages: effectiveMessages,
+		sessionId: effectiveSessionId,
+		isLlama,
+		isStreaming,
+		activeToolCalls,
+		spawnProgress,
+		spawnStartTime,
+		todos: streamingTodos,
+		todosStartTime,
+		executionStartedAt,
+		spawnIsResearchMode,
+		streamingThinking,
+		streamingDraft,
+		isCompacting,
+		paginationState: renderedPaginationState,
+		paginationError,
+		recovery,
+		error: visibleError,
+		lastFailedPrompt: viewError ? null : (lastFailedRequest?.prompt ?? null),
+		onRetryLastFailedPrompt: handleRetryLastFailedPrompt,
+		onReconnectNow: handleReconnectNow,
+		scrollContainerRef,
+		messagesEndRef,
+		promptInputRef,
+		isScrollAttached,
+		showScrollToBottom,
+		scrollToBottom,
+		handleSubmit,
+		handleStopRequest,
+		handleActionClick,
+		onEditMessage: handleEditMessage,
+		onBranchSwitch: handleBranchSwitch,
+		isBranchSwitching: isSwitchingActiveLeaf,
+		isResearchMode,
+		setIsResearchMode,
+		researchUsage,
+		onOpenAlerts: alertsModalStore.show,
+		quotedText,
+		onClearQuotedText: () => setQuotedText(null),
+		enterToSend: settings.enterToSend,
+		onTableFullscreenOpen: hideSidebar,
+		onShare: openShareModal,
+		contextWarning,
+		onDismissContextWarning: () => dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null }),
+		onStartNewChat: () => void handleNewChat()
+	}
+
 	const landingOverride =
 		route.kind === 'project-list'
 			? () => <ProjectsGrid />
@@ -2864,156 +2336,16 @@ export function AgenticChat({
 								message={visibleError}
 								onRetry={lastFailedRequest ? handleRetryLastFailedPrompt : undefined}
 							/>
-						) : shouldAnimateLandingTransition ? (
-							<div className="relative flex flex-1 overflow-hidden">
-								<div
-									aria-hidden="true"
-									className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
-								>
-									{landingOverride ? (
-										landingOverride({ handleSubmit, isStreaming })
-									) : (
-										<ChatLanding
-											readOnly={readOnly}
-											isSharedView={isSharedView}
-											title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-											handleSubmit={handleSubmit}
-											promptInputRef={promptInputRef}
-											handleStopRequest={handleStopRequest}
-											isStreaming={isStreaming}
-											isResearchMode={isResearchMode}
-											setIsResearchMode={setIsResearchMode}
-											researchUsage={researchUsage}
-											onOpenAlerts={alertsModalStore.show}
-											quotedText={quotedText}
-											onClearQuotedText={() => setQuotedText(null)}
-											enterToSend={settings.enterToSend}
-										/>
-									)}
-								</div>
-								<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
-									<ConversationView
-										key={`shared-${effectiveSessionId ?? 'snapshot'}`}
-										readOnly={readOnly}
-										isSharedView={isSharedView}
-										messages={effectiveMessages}
-										sessionId={effectiveSessionId}
-										isLlama={isLlama}
-										isStreaming={isStreaming}
-										activeToolCalls={activeToolCalls}
-										spawnProgress={spawnProgress}
-										spawnStartTime={spawnStartTime}
-										todos={streamingTodos}
-										todosStartTime={todosStartTime}
-										executionStartedAt={executionStartedAt}
-										spawnIsResearchMode={spawnIsResearchMode}
-										streamingThinking={streamingThinking}
-										streamingDraft={streamingDraft}
-										isCompacting={isCompacting}
-										paginationState={renderedPaginationState}
-										paginationError={paginationError}
-										recovery={recovery}
-										error={visibleError}
-										lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
-										onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
-										onReconnectNow={handleReconnectNow}
-										scrollContainerRef={scrollContainerRef}
-										messagesEndRef={messagesEndRef}
-										promptInputRef={promptInputRef}
-										isScrollAttached={isScrollAttached}
-										showScrollToBottom={showScrollToBottom}
-										scrollToBottom={scrollToBottom}
-										handleSubmit={handleSubmit}
-										handleStopRequest={handleStopRequest}
-										handleActionClick={handleActionClick}
-										onEditMessage={handleEditMessage}
-										onBranchSwitch={handleBranchSwitch}
-										isBranchSwitching={isSwitchingActiveLeaf}
-										isResearchMode={isResearchMode}
-										setIsResearchMode={setIsResearchMode}
-										researchUsage={researchUsage}
-										animateActiveExchange={false}
-										onOpenAlerts={alertsModalStore.show}
-										quotedText={quotedText}
-										onClearQuotedText={() => setQuotedText(null)}
-										enterToSend={settings.enterToSend}
-										onTableFullscreenOpen={hideSidebar}
-										onShare={openShareModal}
-									/>
-								</div>
-							</div>
-						) : !hasMessages && !visibleError ? (
-							landingOverride ? (
-								landingOverride({ handleSubmit, isStreaming })
-							) : (
-								<ChatLanding
-									readOnly={readOnly}
-									isSharedView={isSharedView}
-									title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-									handleSubmit={handleSubmit}
-									promptInputRef={promptInputRef}
-									handleStopRequest={handleStopRequest}
-									isStreaming={isStreaming}
-									isResearchMode={isResearchMode}
-									setIsResearchMode={setIsResearchMode}
-									researchUsage={researchUsage}
-									onOpenAlerts={alertsModalStore.show}
-									quotedText={quotedText}
-									onClearQuotedText={() => setQuotedText(null)}
-									enterToSend={settings.enterToSend}
-								/>
-							)
 						) : (
-							<ConversationView
-								key={`conversation-${conversationViewResetKey}`}
-								readOnly={readOnly}
-								isSharedView={isSharedView}
-								messages={effectiveMessages}
-								sessionId={effectiveSessionId}
-								isLlama={isLlama}
-								isStreaming={isStreaming}
-								activeToolCalls={activeToolCalls}
-								spawnProgress={spawnProgress}
-								spawnStartTime={spawnStartTime}
-								todos={streamingTodos}
-								todosStartTime={todosStartTime}
-								executionStartedAt={executionStartedAt}
-								streamingThinking={streamingThinking}
-								spawnIsResearchMode={spawnIsResearchMode}
-								streamingDraft={streamingDraft}
-								isCompacting={isCompacting}
-								paginationState={renderedPaginationState}
-								paginationError={paginationError}
-								recovery={recovery}
-								error={visibleError}
-								lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
-								onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
-								onReconnectNow={handleReconnectNow}
-								scrollContainerRef={scrollContainerRef}
-								messagesEndRef={messagesEndRef}
-								promptInputRef={promptInputRef}
-								isScrollAttached={isScrollAttached}
-								showScrollToBottom={showScrollToBottom}
-								scrollToBottom={scrollToBottom}
-								handleSubmit={handleSubmit}
-								handleStopRequest={handleStopRequest}
-								handleActionClick={handleActionClick}
-								onEditMessage={handleEditMessage}
-								onBranchSwitch={handleBranchSwitch}
-								isBranchSwitching={isSwitchingActiveLeaf}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={researchUsage}
-								animateActiveExchange={shouldAnimateConversationTransition}
-								onOpenAlerts={alertsModalStore.show}
-								quotedText={quotedText}
-								onClearQuotedText={() => setQuotedText(null)}
-								enterToSend={settings.enterToSend}
-								onTableFullscreenOpen={hideSidebar}
-								onShare={openShareModal}
-								contextWarning={contextWarning}
-								onDismissContextWarning={() => dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })}
-								onStartNewChat={() => void handleNewChat()}
+							<ChatSurface
+								showLanding={!hasMessages && !visibleError}
+								animateLandingTransition={shouldAnimateLandingTransition}
+								animateConversationTransition={shouldAnimateConversationTransition}
+								landingOverride={landingOverride}
+								landingProps={landingProps}
+								conversationViewModel={conversationViewModel}
+								conversationKey={`conversation-${conversationViewResetKey}`}
+								transitionConversationKey={`shared-${effectiveSessionId ?? 'snapshot'}`}
 							/>
 						)}
 					</div>
