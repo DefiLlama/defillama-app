@@ -60,8 +60,7 @@ export async function resolveProtocolParam(protocol: string): Promise<ProtocolRo
 }
 
 export function getProtocolOverviewSlugsFromMetadata(metadataCache: MetadataCache, limit: number): string[] {
-	const slugs: string[] = []
-	const seen = new Set<string>()
+	const slugs = new Set<string>()
 
 	for (const protocolId in metadataCache.protocolMetadata) {
 		const metadata = metadataCache.protocolMetadata[protocolId]
@@ -70,23 +69,16 @@ export function getProtocolOverviewSlugsFromMetadata(metadataCache: MetadataCach
 		const name = metadata.displayName || metadata.name
 		if (!name) continue
 		const protocolSlug = slug(name)
-		if (!protocolSlug) continue
 
-		if (String(name).startsWith('Uniswap') && !seen.has(protocolSlug)) {
-			seen.add(protocolSlug)
-			slugs.push(protocolSlug)
-		}
+		if (String(name).startsWith('Uniswap')) slugs.add(protocolSlug)
 
 		const canonicalSlug = metadata.parentProtocol ? slug(metadata.parentProtocol.replace('parent#', '')) : protocolSlug
-		if (canonicalSlug && !seen.has(canonicalSlug)) {
-			seen.add(canonicalSlug)
-			slugs.push(canonicalSlug)
-		}
+		slugs.add(canonicalSlug)
 
-		if (slugs.length >= limit) break
+		if (slugs.size >= limit) break
 	}
 
-	return slugs
+	return [...slugs].slice(0, limit)
 }
 
 export async function getProtocolOverviewStaticPaths(limit = 35): Promise<string[]> {
@@ -98,21 +90,16 @@ export function getProtocolFeatureSlugsFromMetadata(
 	metadataCache: MetadataCache,
 	hasMetric: (metadata: IProtocolMetadata) => boolean
 ): string[] {
-	const slugs: string[] = []
-	const seen = new Set<string>()
+	const slugs = new Set<string>()
 
 	for (const protocolId in metadataCache.protocolMetadata) {
 		const metadata = metadataCache.protocolMetadata[protocolId]
 		if (!hasMetric(metadata)) continue
 
-		const protocolSlug = getProtocolSlug(metadata, protocolId)
-		if (!protocolSlug || seen.has(protocolSlug)) continue
-
-		seen.add(protocolSlug)
-		slugs.push(protocolSlug)
+		slugs.add(getProtocolSlug(metadata, protocolId))
 	}
 
-	return slugs
+	return [...slugs]
 }
 
 export function getProtocolMetricSlugsFromMetadata(metadataCache: MetadataCache, metric: ProtocolMetric): string[] {

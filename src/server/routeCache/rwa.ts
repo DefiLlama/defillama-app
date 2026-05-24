@@ -6,40 +6,33 @@ export function getRWARoutesFromMetadata(metadataCache: MetadataCache): string[]
 	const { rwaList, rwaPerpsList } = metadataCache
 
 	for (const canonicalMarketId of rwaList.canonicalMarketIds) {
-		if (canonicalMarketId) routes.push(`rwa/asset/${encodeURIComponent(canonicalMarketId)}`)
+		routes.push(`rwa/asset/${encodeURIComponent(canonicalMarketId)}`)
 	}
 	for (const platform of rwaList.platforms) {
-		const platformSlug = rwaSlug(platform)
-		if (platformSlug) routes.push(`rwa/platform/${platformSlug}`)
+		routes.push(`rwa/platform/${rwaSlug(platform)}`)
 	}
 	for (const chain of rwaList.chains) {
-		const chainSlug = rwaSlug(chain)
-		if (chainSlug) routes.push(`rwa/chain/${chainSlug}`)
+		routes.push(`rwa/chain/${rwaSlug(chain)}`)
 	}
 	for (const category of rwaList.categories) {
 		const categorySlug = rwaSlug(category)
-		if (categorySlug && categorySlug !== 'rwa-perps') routes.push(`rwa/category/${categorySlug}`)
+		if (categorySlug !== 'rwa-perps') routes.push(`rwa/category/${categorySlug}`)
 	}
 	for (const assetGroup of rwaList.assetGroups) {
-		const assetGroupSlug = rwaSlug(assetGroup)
-		if (assetGroupSlug) routes.push(`rwa/asset-group/${assetGroupSlug}`)
+		routes.push(`rwa/asset-group/${rwaSlug(assetGroup)}`)
 	}
 
 	for (const contract of rwaPerpsList.contracts) {
-		const contractSlug = rwaSlug(contract)
-		if (contractSlug) routes.push(`rwa/perps/contract/${contractSlug}`)
+		routes.push(`rwa/perps/contract/${rwaSlug(contract)}`)
 	}
 	for (const venue of rwaPerpsList.venues) {
-		const venueSlug = rwaSlug(venue)
-		if (venueSlug) routes.push(`rwa/perps/venue/${venueSlug}`)
+		routes.push(`rwa/perps/venue/${rwaSlug(venue)}`)
 	}
 	for (const category of rwaPerpsList.categories) {
-		const categorySlug = rwaSlug(category)
-		if (categorySlug) routes.push(`rwa/perps/category/${categorySlug}`)
+		routes.push(`rwa/perps/category/${rwaSlug(category)}`)
 	}
 	for (const assetGroup of rwaPerpsList.assetGroups) {
-		const assetGroupSlug = rwaSlug(assetGroup)
-		if (assetGroupSlug) routes.push(`rwa/perps/asset-group/${assetGroupSlug}`)
+		routes.push(`rwa/perps/asset-group/${rwaSlug(assetGroup)}`)
 	}
 
 	return routes

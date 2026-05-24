@@ -104,17 +104,13 @@ function stripQuery(route: string): string {
 }
 
 function toEntries(routes: string[]): SitemapUrlEntry[] {
-	const entries: SitemapUrlEntry[] = []
-	const seen = new Set<string>()
+	const paths = new Set<string>()
 
 	for (const route of routes) {
-		const path = normalizeSitemapRoute(route)
-		if (path == null || seen.has(path)) continue
-		seen.add(path)
-		entries.push({ path })
+		paths.add(normalizeSitemapRoute(route)!)
 	}
 
-	return entries
+	return [...paths].map((path) => ({ path }))
 }
 
 function getNavRoutes(): string[] {
@@ -140,7 +136,6 @@ function buildProtocolRoutes(metadataCache: MetadataCache): string[] {
 		const metadata = metadataCache.protocolMetadata[protocolId]
 		if (!metadata.displayName && !metadata.name) continue
 		const protocolSlug = getProtocolSlug(metadata, protocolId)
-		if (!protocolSlug) continue
 
 		routes.push(`protocol/${protocolSlug}`)
 	}
@@ -170,7 +165,7 @@ function buildStandaloneProtocolRoutes(
 	}
 
 	for (const protocolSlug of metadataCache.emissionsProtocolsList) {
-		if (protocolSlug) routes.unlocks.push(`unlocks/${protocolSlug}`)
+		routes.unlocks.push(`unlocks/${protocolSlug}`)
 	}
 
 	return routes
@@ -196,7 +191,7 @@ function buildStablecoinRoutes(metadataCache: MetadataCache): string[] {
 	const routes: string[] = []
 
 	for (const stablecoinSlug of metadataCache.stablecoinPeggedAssetSlugs) {
-		if (stablecoinSlug) routes.push(`stablecoin/${stablecoinSlug}`)
+		routes.push(`stablecoin/${stablecoinSlug}`)
 	}
 	for (const chainSlug of getChainMetricSlugsFromMetadata(metadataCache, 'stablecoins')) {
 		routes.push(`stablecoins/${chainSlug}`)
@@ -209,10 +204,10 @@ function buildDATRoutes(metadataCache: MetadataCache): string[] {
 	const routes: string[] = []
 
 	for (const companySlug of metadataCache.digitalAssetTreasuryRoutes.companySlugs) {
-		if (companySlug) routes.push(`digital-asset-treasury/${companySlug}`)
+		routes.push(`digital-asset-treasury/${companySlug}`)
 	}
 	for (const assetSlug of metadataCache.digitalAssetTreasuryRoutes.assetSlugs) {
-		if (assetSlug) routes.push(`digital-asset-treasuries/${assetSlug}`)
+		routes.push(`digital-asset-treasuries/${assetSlug}`)
 	}
 
 	return routes
@@ -246,7 +241,7 @@ async function buildLiquidationsRoutes(metadataCache: MetadataCache): Promise<st
 		for (const chainId of await getLiquidationsProtocolChainIdsFromCache(protocolId)) {
 			const chainMetadata = metadataCache.chainMetadata[slug(chainId)]
 			const chainSlug = slug(chainMetadata?.name ?? chainId)
-			if (chainSlug) routes.push(`liquidations/${protocolId}/${chainSlug}`)
+			routes.push(`liquidations/${protocolId}/${chainSlug}`)
 		}
 	}
 
@@ -268,7 +263,7 @@ function buildNarrativeRoutes(metadataCache: MetadataCache): string[] {
 	const routes: string[] = []
 
 	for (const categoryId of metadataCache.narrativeCategories.ids) {
-		if (categoryId) routes.push(`narrative-tracker/${categoryId}`)
+		routes.push(`narrative-tracker/${categoryId}`)
 	}
 
 	return routes

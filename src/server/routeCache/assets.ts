@@ -40,17 +40,12 @@ export async function resolveCexParam(cex: string): Promise<CexRoute | null> {
 }
 
 export function getCexSlugsFromMetadata(metadataCache: MetadataCache): string[] {
-	const slugs: string[] = []
-	const seen = new Set<string>()
+	const slugs = new Set<string>()
 	for (const cex of metadataCache.cexs) {
 		if (!cex.slug) continue
-		const cexSlug = slug(cex.slug)
-		if (cexSlug && !seen.has(cexSlug)) {
-			seen.add(cexSlug)
-			slugs.push(cexSlug)
-		}
+		slugs.add(slug(cex.slug))
 	}
-	return slugs
+	return [...slugs]
 }
 
 export async function getCexStaticPaths(limit = 10): Promise<Array<StaticParamPath<'cex'>>> {
@@ -76,44 +71,28 @@ export function resolveStablecoinAssetParamFromMetadata(
 }
 
 export function getProtocolListingSlugsFromMetadata(metadataCache: MetadataCache): string[] {
-	const slugs: string[] = []
-	const seen = new Set<string>()
+	const slugs = new Set<string>()
 	const { categories, tags, tagCategoryMap } = metadataCache.categoriesAndTags
 
 	for (const category of categories) {
 		const categorySlug = slug(category)
-		if (categorySlug && !seen.has(categorySlug) && !REDIRECTED_PROTOCOLS_LISTING_SLUGS.has(categorySlug)) {
-			seen.add(categorySlug)
-			slugs.push(categorySlug)
+		if (!REDIRECTED_PROTOCOLS_LISTING_SLUGS.has(categorySlug)) {
+			slugs.add(categorySlug)
 		}
 	}
 
 	for (const tag of tags) {
 		const tagSlug = slug(tag)
-		if (
-			tagSlug &&
-			!seen.has(tagSlug) &&
-			tagCategoryMap[tag] &&
-			tagCategoryMap[tag] !== 'RWA' &&
-			!REDIRECTED_PROTOCOLS_LISTING_SLUGS.has(tagSlug)
-		) {
-			seen.add(tagSlug)
-			slugs.push(tagSlug)
+		if (tagCategoryMap[tag] && tagCategoryMap[tag] !== 'RWA' && !REDIRECTED_PROTOCOLS_LISTING_SLUGS.has(tagSlug)) {
+			slugs.add(tagSlug)
 		}
 	}
 
-	return slugs
+	return [...slugs]
 }
 
 function dedupeSlugs(slugs: string[]): string[] {
-	const deduped: string[] = []
-	const seen = new Set<string>()
-	for (const item of slugs) {
-		if (!item || seen.has(item)) continue
-		seen.add(item)
-		deduped.push(item)
-	}
-	return deduped
+	return [...new Set(slugs)]
 }
 
 export async function getProtocolListingStaticPaths(): Promise<Array<StaticParamPath<'category'>>> {

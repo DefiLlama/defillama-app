@@ -19,10 +19,10 @@ export function getBridgeRoutesFromMetadata(metadataCache: MetadataCache): strin
 	const routes: string[] = []
 
 	for (const bridgeSlug of metadataCache.bridgeProtocolSlugs) {
-		if (bridgeSlug) routes.push(`bridge/${bridgeSlug}`)
+		routes.push(`bridge/${bridgeSlug}`)
 	}
 	for (const chainSlug of metadataCache.bridgeChainSlugs) {
-		if (chainSlug) routes.push(`bridges/${chainSlug}`)
+		routes.push(`bridges/${chainSlug}`)
 	}
 
 	return routes

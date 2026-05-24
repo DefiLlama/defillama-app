@@ -49,18 +49,16 @@ export async function resolveChainParam(chain: string): Promise<ChainRoute | nul
 }
 
 export function getChainSlugsFromMetadata(metadataCache: MetadataCache): string[] {
-	const slugs: string[] = []
-	const seen = new Set<string>()
+	const slugs = new Set<string>()
 
 	for (const chainSlug in metadataCache.chainMetadata) {
 		const metadata = metadataCache.chainMetadata[chainSlug]
 		const canonicalSlug = slug(metadata.name)
-		if (!canonicalSlug || canonicalSlug === 'all' || seen.has(canonicalSlug)) continue
-		seen.add(canonicalSlug)
-		slugs.push(canonicalSlug)
+		if (canonicalSlug === 'all') continue
+		slugs.add(canonicalSlug)
 	}
 
-	return slugs
+	return [...slugs]
 }
 
 export async function getChainStaticPaths(): Promise<Array<StaticParamPath<'chain'>>> {
@@ -68,21 +66,19 @@ export async function getChainStaticPaths(): Promise<Array<StaticParamPath<'chai
 }
 
 export function getChainMetricSlugsFromMetadata(metadataCache: MetadataCache, metric: ChainMetric): string[] {
-	const slugs: string[] = []
-	const seen = new Set<string>()
+	const slugs = new Set<string>()
 
 	for (const chainSlug in metadataCache.chainMetadata) {
 		const metadata = metadataCache.chainMetadata[chainSlug]
 		if (!metadata[metric]) continue
 
 		const canonicalSlug = slug(metadata.name)
-		if (!canonicalSlug || canonicalSlug === 'all' || seen.has(canonicalSlug)) continue
+		if (canonicalSlug === 'all') continue
 
-		seen.add(canonicalSlug)
-		slugs.push(canonicalSlug)
+		slugs.add(canonicalSlug)
 	}
 
-	return slugs
+	return [...slugs]
 }
 
 export async function getStablecoinChainStaticPaths(limit = 11): Promise<Array<StaticParamPath<'chain'>>> {

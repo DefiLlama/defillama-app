@@ -7,12 +7,10 @@ export async function getRaisesInvestorRoutes(): Promise<string[]> {
 
 	for (const raise of raises) {
 		for (const investor of raise.leadInvestors ?? []) {
-			const investorSlug = slug(investor)
-			if (investorSlug) investorSlugs.add(investorSlug)
+			investorSlugs.add(slug(investor))
 		}
 		for (const investor of raise.otherInvestors ?? []) {
-			const investorSlug = slug(investor)
-			if (investorSlug) investorSlugs.add(investorSlug)
+			investorSlugs.add(slug(investor))
 		}
 	}
 
