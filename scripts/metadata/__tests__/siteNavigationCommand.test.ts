@@ -30,6 +30,7 @@ afterEach(async () => {
 describe('site navigation command', () => {
 	it('writes pages and trending data from Tasty metrics', async () => {
 		const repoRoot = await createRepoRoot()
+		const now = 1_000
 
 		await runSiteNavigationCommand({
 			fetchMetrics: vi.fn().mockResolvedValue({
@@ -37,12 +38,18 @@ describe('site navigation command', () => {
 				trendingRoutes: [['/fees', 10]]
 			}),
 			logger: { log: vi.fn() },
-			now: 1_000,
+			now,
 			repoRoot
 		})
 
 		const pages = JSON.parse(await fs.readFile(path.join(repoRoot, 'public', 'pages.json'), 'utf8'))
 		expect(pages.Metrics.map((page: { route: string }) => page.route)).toEqual(['/fees', '/revenue'])
+		expect(
+			JSON.parse(await fs.readFile(path.join(repoRoot, '.cache', 'site-navigation', 'manifest.json'), 'utf8'))
+		).toEqual({
+			artifactVersion: 1,
+			publishedAt: now
+		})
 		expect(JSON.parse(await fs.readFile(path.join(repoRoot, 'public', 'trending.json'), 'utf8'))).toEqual([
 			{
 				name: 'Fees',
@@ -66,5 +73,64 @@ describe('site navigation command', () => {
 		const pages = JSON.parse(await fs.readFile(path.join(repoRoot, 'public', 'pages.json'), 'utf8'))
 		expect(pages.Metrics[0].tastyMetrics).toBeUndefined()
 		await expect(fs.access(path.join(repoRoot, 'public', 'trending.json'))).rejects.toMatchObject({ code: 'ENOENT' })
+		await expect(fs.access(path.join(repoRoot, '.cache', 'site-navigation', 'manifest.json'))).rejects.toMatchObject({
+			code: 'ENOENT'
+		})
+	})
+
+	it('skips recently published site navigation data', async () => {
+		const repoRoot = await createRepoRoot()
+		const fetchMetrics = vi.fn()
+		const logger = { log: vi.fn() }
+		await fs.mkdir(path.join(repoRoot, '.cache', 'site-navigation'), { recursive: true })
+		await fs.writeFile(
+			path.join(repoRoot, '.cache', 'site-navigation', 'manifest.json'),
+			JSON.stringify({ artifactVersion: 1, publishedAt: 1_000 })
+		)
+
+		await runSiteNavigationCommand({
+			fetchMetrics,
+			logger,
+			now: 1_000 + 60 * 60 * 1000,
+			repoRoot
+		})
+
+		expect(fetchMetrics).not.toHaveBeenCalled()
+		expect(logger.log).toHaveBeenCalledWith('[dev:prepare] Site navigation: recently published; skipping refresh')
+	})
+
+	it('retries within the ttl after publishing without Tasty metrics', async () => {
+		const repoRoot = await createRepoRoot()
+		const fetchMetrics = vi
+			.fn()
+			.mockRejectedValueOnce(new Error('metrics failed'))
+			.mockResolvedValueOnce({
+				tastyMetrics: { '/fees': 10 },
+				trendingRoutes: [['/fees', 10]]
+			})
+		const logger = { log: vi.fn() }
+
+		await runSiteNavigationCommand({
+			fetchMetrics,
+			logger,
+			now: 1_000,
+			repoRoot
+		})
+		await runSiteNavigationCommand({
+			fetchMetrics,
+			logger,
+			now: 2_000,
+			repoRoot
+		})
+
+		expect(fetchMetrics).toHaveBeenCalledTimes(2)
+		expect(JSON.parse(await fs.readFile(path.join(repoRoot, 'public', 'trending.json'), 'utf8'))).toEqual([
+			{
+				name: 'Fees',
+				route: '/fees',
+				category: 'Trending',
+				description: ''
+			}
+		])
 	})
 })

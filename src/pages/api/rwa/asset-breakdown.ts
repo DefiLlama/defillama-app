@@ -117,6 +117,28 @@ export function parseAssetBreakdownRequest(req: Pick<NextApiRequest, 'query'>): 
 	}
 }
 
+async function isKnownAssetBreakdownTarget(target: RWAAssetChartTarget): Promise<boolean> {
+	if (target.kind === 'all') return true
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
+	const targetSlug = rwaSlug(target.slug)
+	const values =
+		target.kind === 'chain'
+			? rwaList.chains
+			: target.kind === 'category'
+				? rwaList.categories
+				: target.kind === 'platform'
+					? rwaList.platforms
+					: rwaList.assetGroups
+
+	for (const value of values) {
+		if (rwaSlug(value) === targetSlug) return true
+	}
+
+	return false
+}
+
 function buildAssetBreakdownCacheJitterKey(request: RWAAssetBreakdownRequest): string {
 	const searchParams = new URLSearchParams({
 		target: request.target.kind === 'all' ? 'all' : `${request.target.kind}:${rwaSlug(request.target.slug)}`,
@@ -139,6 +161,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
+		if (!(await isKnownAssetBreakdownTarget(request.target))) {
+			return res.status(404).json({ error: 'RWA target not found' })
+		}
+
 		const raw = await fetchJson<IRWAChartDataByAsset>(buildAssetBreakdownUrl(request), {
 			timeout: 30_000
 		})

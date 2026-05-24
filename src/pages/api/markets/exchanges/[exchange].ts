@@ -1,7 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchExchangeMarketsFromNetwork } from '~/containers/Cexs/api'
+import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
+
+function resolveMarketsExchangeParam(exchange: string, marketsList: ExchangeMarketsListResponse): string | null {
+	const normalizedExchange = exchange.toLowerCase()
+
+	for (const venue of [marketsList.cex, marketsList.dex]) {
+		for (const category in venue) {
+			for (const entry of venue[category as keyof typeof venue]) {
+				if (entry.exchange.toLowerCase() === normalizedExchange) return entry.exchange
+			}
+		}
+	}
+
+	return null
+}
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
@@ -15,7 +30,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		const data = await fetchExchangeMarketsFromNetwork(exchange)
+		const { fetchExchangeMarketsListFromCache } = await import('~/server/datasetCache/markets')
+		const marketsExchange = resolveMarketsExchangeParam(exchange, await fetchExchangeMarketsListFromCache())
+		if (!marketsExchange) {
+			return res.status(404).json({ error: 'Exchange not found' })
+		}
+
+		const data = await fetchExchangeMarketsFromNetwork(marketsExchange)
 		res.setHeader(
 			'Cache-Control',
 			jitterCacheControlHeader('public, max-age=60, s-maxage=300, stale-while-revalidate=300', req.url ?? exchange)

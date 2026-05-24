@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { validateSubscription } from '~/utils/apiAuth'
-import metadataCache from '~/utils/metadata'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
@@ -30,10 +29,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
+		const { resolveLiquidationsChainParams } = await import('~/server/routeCache/liquidations')
+		const route = await resolveLiquidationsChainParams(protocol, chain)
+		if (!route) {
+			return res.status(404).json({ error: 'Liquidations chain not found' })
+		}
+
 		const { getLiquidationsChainPageData } = await import('~/server/datasetCache/runtime/liquidations')
-		const data = await getLiquidationsChainPageData(protocol, chain, {
-			chainMetadata: metadataCache.chainMetadata,
-			protocolMetadata: metadataCache.protocolMetadata
+		const data = await getLiquidationsChainPageData(route.protocolId, route.chainId, {
+			chainMetadata: route.metadataCache.chainMetadata,
+			protocolMetadata: route.metadataCache.protocolMetadata
 		})
 
 		if (!data) {

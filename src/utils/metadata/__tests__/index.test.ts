@@ -1,17 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CoreMetadataPayload } from '../artifactContract'
 
-const {
-	bootArtifactsMock,
-	fetchCoreMetadataMock,
-	recordDomainEventMock,
-	runOutsideRouteTelemetryMock
-} = vi.hoisted(() => ({
-	bootArtifactsMock: vi.fn(),
-	fetchCoreMetadataMock: vi.fn(),
-	recordDomainEventMock: vi.fn(),
-	runOutsideRouteTelemetryMock: vi.fn((run: () => unknown) => run())
-}))
+const { bootArtifactsMock, fetchCoreMetadataMock, recordDomainEventMock, runOutsideRouteTelemetryMock } = vi.hoisted(
+	() => ({
+		bootArtifactsMock: vi.fn(),
+		fetchCoreMetadataMock: vi.fn(),
+		recordDomainEventMock: vi.fn(),
+		runOutsideRouteTelemetryMock: vi.fn((run: () => unknown) => run())
+	})
+)
 
 vi.mock('../fetch', () => ({
 	fetchCoreMetadata: fetchCoreMetadataMock

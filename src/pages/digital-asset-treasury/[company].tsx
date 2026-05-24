@@ -1,7 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { DATCompany } from '~/containers/DAT/Company'
-import { getDATCompanyData, getDATCompanyPaths } from '~/containers/DAT/queries'
+import { getDATCompanyData } from '~/containers/DAT/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -16,10 +16,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const company = slug(params.company)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		if (
-			metadataCache.digitalAssetTreasuryCompanySlugsSet.size > 0 &&
-			!metadataCache.digitalAssetTreasuryCompanySlugsSet.has(company)
-		) {
+		if (!metadataCache.digitalAssetTreasuryCompanySlugsSet.has(company)) {
 			return { notFound: true }
 		}
 
@@ -44,12 +41,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const slugs =
-		metadataCache.digitalAssetTreasuryRoutes.companySlugs.length > 0
-			? metadataCache.digitalAssetTreasuryRoutes.companySlugs
-			: await getDATCompanyPaths()
-	const paths = slugs.map((company) => ({ params: { company } }))
+	const { getDATCompanyStaticPaths } = await import('~/server/routeCache/assets')
+	const paths = await getDATCompanyStaticPaths()
 	return { paths, fallback: false }
 }
 

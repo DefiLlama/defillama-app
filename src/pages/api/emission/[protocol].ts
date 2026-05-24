@@ -12,7 +12,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		const upstream = await fetchWithPoolingOnServer(`${SERVER_URL}/emission/${encodeURIComponent(protocolName)}`)
+		const [metadataCache, { resolveProtocolParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata').then((m) => m.default),
+			import('~/server/routeCache/protocols')
+		])
+		const protocolRoute = resolveProtocolParamFromMetadata(protocolName, metadataCache)
+		if (!protocolRoute || !metadataCache.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {
+			return res.status(404).json({ error: 'Protocol emissions not found' })
+		}
+
+		const upstream = await fetchWithPoolingOnServer(
+			`${SERVER_URL}/emission/${encodeURIComponent(protocolRoute.canonicalSlug)}`
+		)
 		if (!upstream.ok) {
 			return res.status(upstream.status).json({ error: upstream.statusText })
 		}
