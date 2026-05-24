@@ -1,5 +1,4 @@
-import { COINS_SERVER_URL, ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
-import { buildProtocolLlamaswapDataset } from '~/containers/LlamaSwap/protocolDataset'
+import { COINS_SERVER_URL } from '~/constants'
 import {
 	buildUnlocksHistoricalPriceRequests,
 	type UnlockHistoricalPriceProtocol
@@ -61,11 +60,7 @@ async function fetchEmissionsHistoricalPriceBatch(coins: Record<string, number[]
 	return response.coins
 }
 
-export async function fetchCoreMetadata({
-	existingProtocolLlamaswapDataset
-}: {
-	existingProtocolLlamaswapDataset?: ProtocolLlamaswapMetadata
-} = {}): Promise<CoreMetadataPayload> {
+export async function fetchCoreMetadata(): Promise<CoreMetadataPayload> {
 	const [
 		{
 			protocols,
@@ -131,9 +126,7 @@ export async function fetchCoreMetadata({
 		})
 	)
 
-	const protocolLlamaswapDataset = ENABLE_LLAMASWAP_PROTOCOLS_CHAINS
-		? await buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset })
-		: ({} as ProtocolLlamaswapMetadata)
+	const protocolLlamaswapDataset = {} as ProtocolLlamaswapMetadata
 
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)

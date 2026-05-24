@@ -58,11 +58,7 @@ function isRetrySuppressed(now: number): boolean {
 
 async function doRefresh(source?: string): Promise<void> {
 	try {
-		const payload = validateCoreMetadataPayload(
-			await fetchCoreMetadata({
-				existingProtocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
-			})
-		)
+		const payload = validateCoreMetadataPayload(await fetchCoreMetadata())
 		replaceMetadataCacheContents(metadataCache, payload)
 		const now = Date.now()
 		lastSuccessfulRefreshMs = now
