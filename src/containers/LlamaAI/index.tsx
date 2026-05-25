@@ -489,6 +489,9 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 		generatedImages: message.generatedImages,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
 	}
 }

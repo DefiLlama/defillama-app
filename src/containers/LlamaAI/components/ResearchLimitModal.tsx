@@ -16,6 +16,8 @@ interface ResearchLimitModalProps {
 const COPY = {
 	research: {
 		titleLimit: 'Research Report Limit Reached',
+		bodyVerify: 'Verify your email to unlock research reports.',
+		bodyBlocked: 'Subscribe to Pro to use research reports.',
 		bodyLifetime: (n: number) => `You've used all ${n} research reports available on your trial plan.`,
 		bodyDaily: (n: number) => `You've used all ${n} research reports for today. Resets at midnight UTC.`,
 		proPitch: 'Get 5 research reports per day with Pro',
@@ -24,6 +26,8 @@ const COPY = {
 	},
 	fact_checked: {
 		titleLimit: 'Fact-Checked Answer Limit Reached',
+		bodyVerify: 'Verify your email to unlock fact-checked answers.',
+		bodyBlocked: 'Subscribe to Pro to use fact-checked answers.',
 		bodyLifetime: (n: number) => `You've used all ${n} fact-checked answers available on your trial plan.`,
 		bodyDaily: (n: number) => `You've used all ${n} fact-checked answers for today. Resets at midnight UTC.`,
 		proPitch: 'Get 10 fact-checked answers per day with Pro',
@@ -115,8 +119,10 @@ export function ResearchLimitModal({
 								{isBlocked && needsVerification ? 'Email Verification Required' : COPY[feature].titleLimit}
 							</h2>
 							<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
-								{isBlocked && needsVerification
-									? 'Verify your email to unlock research reports.'
+								{isBlocked
+									? needsVerification
+										? COPY[feature].bodyVerify
+										: COPY[feature].bodyBlocked
 									: isLifetime
 										? COPY[feature].bodyLifetime(limit)
 										: COPY[feature].bodyDaily(limit)}

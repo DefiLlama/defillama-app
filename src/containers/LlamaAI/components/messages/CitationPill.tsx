@@ -1,21 +1,25 @@
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import type { FactCheckReference } from '~/containers/LlamaAI/types'
+import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 interface CitationPillProps {
 	reference: FactCheckReference
 }
 
+const WEB_SOURCE_PATTERN = /web|url|article|news|http/i
+const DATA_SOURCE_PATTERN = /sql|warehouse|defillama|data/i
+
 function sourceIcon(sourceType?: string): 'layers' | 'earth' | 'sparkles' {
 	if (!sourceType) return 'sparkles'
-	if (/web|url|article|news|http/i.test(sourceType)) return 'earth'
-	if (/sql|warehouse|defillama|data/i.test(sourceType)) return 'layers'
+	if (WEB_SOURCE_PATTERN.test(sourceType)) return 'earth'
+	if (DATA_SOURCE_PATTERN.test(sourceType)) return 'layers'
 	return 'sparkles'
 }
 
 function sourceBadge(sourceType?: string): string | null {
 	if (!sourceType) return null
-	if (/web|url|article|news|http/i.test(sourceType)) return 'Web'
+	if (WEB_SOURCE_PATTERN.test(sourceType)) return 'Web'
 	if (/sql/i.test(sourceType)) return 'DB'
 	if (/tweet|twitter|x_/i.test(sourceType)) return 'X'
 	return sourceType.length <= 6 ? sourceType.toUpperCase() : 'Source'
@@ -26,6 +30,8 @@ export function CitationPill({ reference }: CitationPillProps) {
 	const hovercard = Ariakit.useHovercardStore({ placement: 'top', showTimeout: 120, hideTimeout: 180 })
 	const iconName = sourceIcon(reference.sourceType)
 	const badge = sourceBadge(reference.sourceType)
+	const safeUrl =
+		reference.url && WEB_SOURCE_PATTERN.test(reference.sourceType ?? '') ? sanitizeUrl(reference.url) : null
 
 	return (
 		<Ariakit.HovercardProvider store={hovercard}>
@@ -73,9 +79,9 @@ export function CitationPill({ reference }: CitationPillProps) {
 					</div>
 				) : null}
 
-				{reference.url ? (
+				{safeUrl ? (
 					<a
-						href={reference.url}
+						href={safeUrl}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="-mt-1 text-xs text-(--link-text) hover:underline"
