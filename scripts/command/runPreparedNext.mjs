@@ -16,6 +16,15 @@ if (!nodeEnv || !nextCommand) {
 }
 
 const env = { ...process.env, NODE_ENV: nodeEnv }
+const BUILD_OLD_SPACE_OPTION = '--max-old-space-size=4096'
+
+if (
+	nodeEnv === 'production' &&
+	nextCommand === 'build' &&
+	!/(^|\s)--max[-_]old[-_]space[-_]size=/.test(env.NODE_OPTIONS ?? '')
+) {
+	env.NODE_OPTIONS = [env.NODE_OPTIONS, BUILD_OLD_SPACE_OPTION].filter(Boolean).join(' ')
+}
 
 function packageBin(name) {
 	return path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? `${name}.cmd` : name)
