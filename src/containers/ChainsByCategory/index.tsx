@@ -1,21 +1,28 @@
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { ensureChronologicalRows, preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
+import { LocalLoader } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
 	TVL_SETTINGS_KEYS,
-	useLocalStorageSettingsManager
+	useLocalStorageSettingsManager,
+	type TvlSettingsKey
 } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { getErrorMessage } from '~/utils/error'
 import { ChainsByCategoryTable } from './Table'
 import { applyChainsTvlSettings } from './tvl'
 import type { IChain, IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+type ChainsChartData = Pick<IChainsByCategoryData, 'tvlChartsByChain' | 'totalTvlByDate'>
+const EMPTY_CHAINS_CHART_DATA: ChainsChartData = { tvlChartsByChain: { tvl: {} }, totalTvlByDate: { tvl: {} } }
 
 const getChartExtraValues = ({
 	tvlChartsByChain,
@@ -77,11 +84,37 @@ export function ChainsByCategory({
 	totalTvlByDate,
 	entityQuestions
 }: IChainsByCategoryData & { entityQuestions?: string[] }) {
-	const { pieChartData, dominanceCharts } = useFormatChartData({
-		tvlChartsByChain,
-		totalTvlByDate,
-		colorsByChain
+	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const enabledTvlSettings = React.useMemo(() => TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key]), [tvlSettings])
+	const enabledTvlSettingsKey = enabledTvlSettings.join(',')
+	const shouldFetchChartData = tvlChartsByChain.tvl == null
+	const chartDataQuery = useQuery({
+		queryKey: ['page-data', 'chains', 'charts', _category, enabledTvlSettingsKey],
+		queryFn: () => {
+			const searchParams = new URLSearchParams({
+				category: _category,
+				sampledChart: _category.toLowerCase() === 'all' ? 'true' : 'false'
+			})
+			if (enabledTvlSettingsKey) {
+				searchParams.set('extraTvlTypes', enabledTvlSettingsKey)
+			}
+			return fetchJson<ChainsChartData>(`/api/page-data/chains/charts?${searchParams.toString()}`)
+		},
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: shouldFetchChartData
 	})
+	const chartData =
+		chartDataQuery.data ?? (shouldFetchChartData ? EMPTY_CHAINS_CHART_DATA : { tvlChartsByChain, totalTvlByDate })
+	const { pieChartData, dominanceCharts } = useFormatChartData({
+		tvlChartsByChain: chartData.tvlChartsByChain,
+		totalTvlByDate: chartData.totalTvlByDate,
+		colorsByChain,
+		enabledTvlSettings
+	})
+	const chartErrorMessage = chartDataQuery.error ? getErrorMessage(chartDataQuery.error) : null
+	const showSharedChartState = (shouldFetchChartData && chartDataQuery.isLoading) || chartErrorMessage != null
 
 	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category: categoryName })
 
@@ -92,29 +125,37 @@ export function ChainsByCategory({
 				<EntityQuestionsStrip questions={entityQuestions} entitySlug="chains" entityType="page" entityName="Chains" />
 			) : null}
 
-			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[398px]" />}>
-						<PieChart
-							chartData={pieChartData}
-							stackColors={colorsByChain}
-							exportButtons={{ png: true, csv: true, filename: 'chains-tvl-pie', pngTitle: 'Chains TVL' }}
-						/>
-					</React.Suspense>
+			{showSharedChartState ? (
+				<div className="grid min-h-[398px] grid-cols-1 place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg) xl:grid-cols-2">
+					<div className="xl:col-span-2">
+						{chartErrorMessage ? <ChainsChartError message={chartErrorMessage} /> : <LocalLoader />}
+					</div>
 				</div>
-				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<React.Suspense fallback={<div className="min-h-[398px]" />}>
-						<MultiSeriesChart2
-							dataset={dominanceCharts.dataset}
-							charts={dominanceCharts.charts}
-							valueSymbol="%"
-							expandTo100Percent
-							solidChartAreaStyle
-							exportButtons={{ png: true, csv: true, filename: 'chains-dominance', pngTitle: 'Chains Dominance' }}
-						/>
-					</React.Suspense>
+			) : (
+				<div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+					<div className="relative isolate flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<React.Suspense fallback={<div className="min-h-[398px]" />}>
+							<PieChart
+								chartData={pieChartData}
+								stackColors={colorsByChain}
+								exportButtons={{ png: true, csv: true, filename: 'chains-tvl-pie', pngTitle: 'Chains TVL' }}
+							/>
+						</React.Suspense>
+					</div>
+					<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<React.Suspense fallback={<div className="min-h-[398px]" />}>
+							<MultiSeriesChart2
+								dataset={dominanceCharts.dataset}
+								charts={dominanceCharts.charts}
+								valueSymbol="%"
+								expandTo100Percent
+								solidChartAreaStyle
+								exportButtons={{ png: true, csv: true, filename: 'chains-dominance', pngTitle: 'Chains Dominance' }}
+							/>
+						</React.Suspense>
+					</div>
 				</div>
-			</div>
+			)}
 
 			<React.Suspense
 				fallback={
@@ -130,18 +171,26 @@ export function ChainsByCategory({
 	)
 }
 
+function ChainsChartError({ message }: { message: string }) {
+	return (
+		<div className="flex min-h-[398px] items-center justify-center p-4 text-center text-sm text-(--text-tertiary)">
+			Failed to load chart data: {message}
+		</div>
+	)
+}
+
 const useFormatChartData = ({
 	tvlChartsByChain,
 	totalTvlByDate,
-	colorsByChain
+	colorsByChain,
+	enabledTvlSettings
 }: {
 	tvlChartsByChain: IChainsByCategoryData['tvlChartsByChain']
 	totalTvlByDate: IChainsByCategoryData['totalTvlByDate']
 	colorsByChain: IChainsByCategoryData['colorsByChain']
+	enabledTvlSettings: readonly TvlSettingsKey[]
 }) => {
-	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const data = React.useMemo(() => {
-		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 		const recentTvlByChain: Record<string, number> = {}
 		const tvlByChain = tvlChartsByChain['tvl'] ?? {}
 		const chainNames: string[] = []
@@ -157,12 +206,12 @@ const useFormatChartData = ({
 				const value = applyChainsTvlSettings(
 					tvlChartsByChain['tvl']?.[chain]?.[date],
 					getChartExtraValues({ tvlChartsByChain, chain, date }),
-					toggledTvlSettings
+					enabledTvlSettings
 				)
 				const total = applyChainsTvlSettings(
 					totalTvlByDate['tvl'][date],
 					getTotalExtraValues({ totalTvlByDate, date }),
-					toggledTvlSettings
+					enabledTvlSettings
 				)
 				lastValue = value ?? undefined
 				const row = rowMap.get(+date) ?? { timestamp: +date }
@@ -187,7 +236,7 @@ const useFormatChartData = ({
 			dominanceCharts: { dataset: { source, dimensions }, charts: chartsConfig },
 			pieChartData: preparePieChartData({ data: recentTvlByChain, limit: 10 })
 		}
-	}, [tvlSettings, totalTvlByDate, tvlChartsByChain, colorsByChain])
+	}, [enabledTvlSettings, totalTvlByDate, tvlChartsByChain, colorsByChain])
 
 	return data
 }

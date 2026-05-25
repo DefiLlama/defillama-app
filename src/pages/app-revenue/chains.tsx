@@ -16,7 +16,8 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}
 	const data = await getChainsByAdapterPageData({
 		adapterType,
 		dataType,
-		chainMetadata: metadataCache.chainMetadata
+		chainMetadata: metadataCache.chainMetadata,
+		includeChartData: false
 	})
 
 	return {

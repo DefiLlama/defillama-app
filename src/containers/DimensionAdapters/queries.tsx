@@ -68,6 +68,52 @@ function buildChainsChartData({
 	}
 }
 
+export function getChainsByAdapterAllChains({
+	adapterType,
+	dataType,
+	chainMetadata
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+	chainMetadata: Record<string, IChainMetadata>
+}): string[] {
+	const allChains: Array<string> = []
+	const sType = getChainMetadataKey(adapterType, dataType)
+	if (!sType) return allChains
+
+	for (const chain in chainMetadata) {
+		const currentChainMetadata = chainMetadata[chain]
+		if (!currentChainMetadata[sType]) continue
+		allChains.push(currentChainMetadata.name)
+	}
+
+	return allChains
+}
+
+export async function getChainsByAdapterChartData({
+	adapterType,
+	dataType,
+	allChains,
+	allowEmptyOnError = false
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+	allChains: string[]
+	allowEmptyOnError?: boolean
+}): Promise<MultiSeriesChart2Dataset> {
+	let rawChartData: Array<[number, Record<string, number>]>
+	try {
+		rawChartData = await fetchJson<Array<[number, Record<string, number>]>>(
+			`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown${dataType ? `?dataType=${dataType}` : ''}`
+		)
+	} catch (error) {
+		if (!allowEmptyOnError) throw error
+		rawChartData = []
+	}
+
+	return buildChainsChartData({ rawChartData, allChains })
+}
+
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -780,21 +826,16 @@ export const getChainsByFeesAdapterPageData = async ({
 export const getChainsByAdapterPageData = async ({
 	adapterType,
 	dataType,
-	chainMetadata
+	chainMetadata,
+	includeChartData = true
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
 	chainMetadata: Record<string, IChainMetadata>
+	includeChartData?: boolean
 }): Promise<IChainsByAdapterPageData> => {
 	try {
-		const allChains: Array<string> = []
-
-		for (const chain in chainMetadata) {
-			const currentChainMetadata = chainMetadata[chain]
-			const sType = getChainMetadataKey(adapterType, dataType)
-			if (!sType || !currentChainMetadata[sType]) continue
-			allChains.push(currentChainMetadata.name)
-		}
+		const allChains = getChainsByAdapterAllChains({ adapterType, dataType, chainMetadata })
 
 		const getOptionalOverview = ({
 			enabled,
@@ -819,9 +860,9 @@ export const getChainsByAdapterPageData = async ({
 			}
 		}
 
-		const [chainsData, rawChartData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData]: [
+		const [chainsData, chartData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData]: [
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
-			Array<[number, Record<string, number>]>,
+			MultiSeriesChart2Dataset,
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
@@ -832,9 +873,9 @@ export const getChainsByAdapterPageData = async ({
 				dataType,
 				chainMetadata
 			}),
-			fetchJson<Array<[number, Record<string, number>]>>(
-				`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown${dataType ? `?dataType=${dataType}` : ''}`
-			).catch(() => []),
+			includeChartData
+				? getChainsByAdapterChartData({ adapterType, dataType, allChains, allowEmptyOnError: true })
+				: Promise.resolve({ dimensions: ['timestamp'], source: [] }),
 			getOptionalOverview({
 				enabled: adapterType === 'fees',
 				adapterType,
@@ -865,7 +906,6 @@ export const getChainsByAdapterPageData = async ({
 		> = {}
 		const openInterestByChain: Record<string, number | null> = {}
 		const activeLiquidityByChain: Record<string, number | null> = {}
-		const chartData = buildChainsChartData({ rawChartData, allChains })
 
 		for (const chain in bribesData) {
 			bribesByChain[chain] = {
