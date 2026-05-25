@@ -30,27 +30,32 @@ export const GMT_OFFSETS = [
 	{ label: 'UTC+14', value: 'Etc/GMT-14' }
 ]
 
-const parseOffsetHours = (value: string): number | null => {
+const parseOffsetMinutes = (value: string): number | null => {
 	const normalized = value.replace('UTC', 'GMT')
 	if (normalized === 'GMT') return 0
-	const match = normalized.match(/GMT([+-]\d{1,2})/)
+	const match = normalized.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/)
 	if (!match) return null
-	const hours = parseInt(match[1], 10)
-	return Number.isNaN(hours) ? null : hours
+	const hours = parseInt(match[2], 10)
+	const minutes = match[3] ? parseInt(match[3], 10) : 0
+	if (Number.isNaN(hours) || Number.isNaN(minutes) || minutes >= 60) return null
+	const total = hours * 60 + minutes
+	return match[1] === '-' ? -total : total
 }
 
-const getOffsetHoursFromTimezone = (timezone: string): number | null => {
+const getOffsetMinutesFromTimezone = (timezone: string): number | null => {
 	try {
 		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
 		const parts = formatter.formatToParts(new Date())
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value
-		return tzPart ? parseOffsetHours(tzPart) : null
+		return tzPart ? parseOffsetMinutes(tzPart) : null
 	} catch {
 		return null
 	}
 }
 
-const offsetHoursToEtc = (offsetHours: number): string | undefined => {
+const offsetMinutesToEtc = (offsetMinutes: number): string | undefined => {
+	if (offsetMinutes % 60 !== 0) return undefined
+	const offsetHours = offsetMinutes / 60
 	if (offsetHours === 0) return 'UTC'
 	// IANA `Etc/GMT` signs are inverted: UTC+8 is represented as `Etc/GMT-8`.
 	const sign = offsetHours > 0 ? '-' : '+'
@@ -62,18 +67,18 @@ const parseTimezoneFromExpression = (expression: string): string | undefined => 
 	const etcMatch = expression.match(/\bEtc\/GMT[+-]\d{1,2}\b/)
 	if (etcMatch && GMT_OFFSETS.some((g) => g.value === etcMatch[0])) return etcMatch[0]
 
-	const offsetMatch = expression.match(/\b(?:GMT|UTC)[+-]\d{1,2}\b/)
+	const offsetMatch = expression.match(/\b(?:GMT|UTC)[+-]\d{1,2}(?::?\d{2})?\b/)
 	if (offsetMatch) {
-		const offsetHours = parseOffsetHours(offsetMatch[0])
-		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
+		const offsetMinutes = parseOffsetMinutes(offsetMatch[0])
+		if (offsetMinutes !== null) return offsetMinutesToEtc(offsetMinutes)
 	}
 
 	if (/\bUTC\b/.test(expression)) return 'UTC'
 
-	const ianaMatch = expression.match(/\b[A-Za-z]+\/[A-Za-z_]+\b/)
+	const ianaMatch = expression.match(/\b[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+\b/)
 	if (ianaMatch) {
-		const offsetHours = getOffsetHoursFromTimezone(ianaMatch[0])
-		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
+		const offsetMinutes = getOffsetMinutesFromTimezone(ianaMatch[0])
+		if (offsetMinutes !== null) return offsetMinutesToEtc(offsetMinutes) ?? ianaMatch[0]
 	}
 
 	return undefined
@@ -86,7 +91,7 @@ export const parseScheduleExpression = (
 	dayOfWeek?: number
 	timezone?: string
 } => {
-	const hourMatch = expression.match(/at (\d+)/)
+	const hourMatch = expression.match(/\bat\s+([01]?\d|2[0-3])(?::[0-5]\d)?\b/i)
 	const dayMatch = expression.match(/on (\w+)/)
 	const hour = hourMatch ? parseInt(hourMatch[1], 10) : undefined
 	let dayOfWeek: number | undefined
@@ -102,11 +107,9 @@ export const getUserTimezone = (): string => {
 	try {
 		const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
 		const offset = new Date().getTimezoneOffset()
-		const hours = Math.floor(Math.abs(offset) / 60)
-		const sign = offset <= 0 ? '-' : '+'
-		const etcTz = `Etc/GMT${sign}${hours}`
+		const etcTz = offsetMinutesToEtc(-offset)
 		if (GMT_OFFSETS.some((g) => g.value === etcTz)) return etcTz
-		if (GMT_OFFSETS.some((g) => g.value === tz)) return tz
+		if (tz) return tz
 		return 'UTC'
 	} catch {
 		return 'UTC'
@@ -123,6 +126,13 @@ const convertHourToUTC = (localHour: number, timezone: string): number => {
 		if (utcHour < 0) utcHour += 24
 		if (utcHour >= 24) utcHour -= 24
 		return utcHour
+	}
+	const offsetMinutes = getOffsetMinutesFromTimezone(timezone)
+	if (offsetMinutes !== null) {
+		let utcMinutes = localHour * 60 - offsetMinutes
+		while (utcMinutes < 0) utcMinutes += 24 * 60
+		while (utcMinutes >= 24 * 60) utcMinutes -= 24 * 60
+		return Math.floor(utcMinutes / 60)
 	}
 	return localHour
 }
@@ -171,7 +181,10 @@ export const getTimezoneLabel = (timezone: string): string => {
 }
 
 export const formatScheduleExpression = (expression: string): string => {
-	return expression.replace(/([A-Za-z]+\/[A-Za-z_]+)/g, (match) => {
-		return getTimezoneLabel(match)
-	})
+	return expression.replace(
+		/\b(?:Etc\/GMT[+-]\d{1,2}|(?:GMT|UTC)[+-]\d{1,2}(?::?\d{2})?|[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+)\b/g,
+		(match) => {
+			return getTimezoneLabel(match)
+		}
+	)
 }

@@ -501,18 +501,11 @@ export function useSessionMutations() {
 	)
 
 	const updateSessionTitle = useCallback(
-		async (args: { sessionId: string; title: string; projectId?: string | null }) => {
-			await updateTitleMutation.mutateAsync(args)
-		},
+		(args: { sessionId: string; title: string; projectId?: string | null }) => updateTitleMutation.mutateAsync(args),
 		[updateTitleMutation]
 	)
 
-	const pinSession = useCallback(
-		async (sessionId: string) => {
-			await pinSessionMutation.mutateAsync(sessionId)
-		},
-		[pinSessionMutation]
-	)
+	const pinSession = useCallback((sessionId: string) => pinSessionMutation.mutateAsync(sessionId), [pinSessionMutation])
 
 	return {
 		createSession: createSessionMutation.mutateAsync,

@@ -91,5 +91,13 @@ export async function llamaAIRequest<T>(
 		)
 	}
 
-	return JSON.parse(text) as T
+	try {
+		return JSON.parse(text) as T
+	} catch (error) {
+		throw new LlamaAITransportError('Invalid JSON response from LlamaAI', response.status, {
+			error: 'invalid_json',
+			body: text.slice(0, 1000),
+			cause: error instanceof Error ? error.message : String(error)
+		})
+	}
 }

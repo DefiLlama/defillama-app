@@ -147,6 +147,10 @@ export async function runAgenticRequest({
 
 	if (!detached) {
 		await operation
+	} else {
+		operation.catch((error) => {
+			console.error('[llama-ai] detached request failed:', error)
+		})
 	}
 
 	return context

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { ChatLanding, type ChatLandingProps } from '~/containers/LlamaAI/components/ChatLanding'
 import { ConversationView, type ConversationViewModel } from '~/containers/LlamaAI/components/ConversationView'
 
@@ -36,10 +36,22 @@ export function ChatSurface({
 	conversationKey,
 	transitionConversationKey
 }: ChatSurfaceProps) {
+	const exitingLandingRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const node = exitingLandingRef.current as (HTMLDivElement & { inert?: boolean }) | null
+		if (!node) return
+		node.inert = true
+		return () => {
+			node.inert = false
+		}
+	}, [animateLandingTransition])
+
 	if (animateLandingTransition) {
 		return (
 			<div className="relative flex flex-1 overflow-hidden">
 				<div
+					ref={exitingLandingRef}
 					aria-hidden="true"
 					className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
 				>

@@ -280,13 +280,20 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 		case 'UPSERT_SPAWN_PROGRESS': {
 			const next = new Map(state.spawnProgress)
 			const existing = next.get(action.value.id)
-			next.set(action.value.id, {
+			const progress: SpawnAgentStatus = {
 				...existing,
-				...action.value
-			})
+				id: action.value.id,
+				status: action.value.status
+			}
+			if (action.value.tool !== undefined) progress.tool = action.value.tool
+			if (action.value.toolCount !== undefined) progress.toolCount = action.value.toolCount
+			if (action.value.chartCount !== undefined) progress.chartCount = action.value.chartCount
+			if (action.value.findingsPreview !== undefined) progress.findingsPreview = action.value.findingsPreview
+			next.set(action.value.id, progress)
 			return { ...state, spawnProgress: next }
 		}
 		case 'SET_TODOS': {
+			if (state.isStreaming && action.value.length === 0 && state.todos.length > 0) return state
 			// Keep the first non-empty todo timestamp stable while later snapshots
 			// update item statuses; the elapsed timer should not restart per update.
 			const todosStartTime =

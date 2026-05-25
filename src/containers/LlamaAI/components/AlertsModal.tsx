@@ -153,6 +153,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		channels.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
 		return channels
 	}, [slackChannels])
+	const timezoneOptions = useMemo(() => {
+		if (GMT_OFFSETS.some((option) => option.value === timezone)) return GMT_OFFSETS
+		return [...GMT_OFFSETS, { value: timezone, label: getTimezoneLabel(timezone) }]
+	}, [timezone])
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
@@ -280,11 +284,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		},
 		onSuccess: (_data, { alertId, title: nextTitle, alertConfig, delivery_channel, condition: nextCondition }) => {
 			const conditionUpdate = getConditionUpdate(nextCondition)
-			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
-					? `Weekly on ${DAYS_OF_WEEK[alertConfig.dayOfWeek]} at ${alertConfig.hour}:00 ${tzLabel}`
-					: `Daily at ${alertConfig.hour}:00 ${tzLabel}`
+					? `Weekly on ${DAYS_OF_WEEK[alertConfig.dayOfWeek]} at ${alertConfig.hour}:00 ${alertConfig.timezone}`
+					: `Daily at ${alertConfig.hour}:00 ${alertConfig.timezone}`
 			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
 				if (!old) return []
 				return old.map((item) =>
@@ -645,7 +648,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							onChange={(e) => handleTimezoneChange(e.target.value)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
-							{GMT_OFFSETS.map((tz) => (
+							{timezoneOptions.map((tz) => (
 								<option key={tz.value} value={tz.value}>
 									{tz.label}
 								</option>

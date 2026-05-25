@@ -1,5 +1,5 @@
 import type { ChartConfiguration, ChartDataSeries } from '~/containers/LlamaAI/types'
-import { buildAxisLogoUrls, parseStringNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
+import { buildAxisLogoUrls, parseFiniteNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
 import { getNDistinctColors } from '~/utils'
 
 export interface AdaptedHBarChartData {
@@ -23,14 +23,14 @@ export function adaptHBarChartData(config: ChartConfiguration, rawData: ChartDat
 		const primarySeries = config.series[0]
 		if (!primarySeries) throw new Error('No series configuration found')
 
-		const chartData = rawData
-			.map((row, index) => {
-				const record = row as Record<string, unknown>
-				const category = record[primarySeries.dataMapping.xField] || 'Unknown'
-				const value = record[primarySeries.dataMapping.yField]
-				return [String(category), parseStringNumber(value), index] as const
-			})
-			.filter(([, value]) => !Number.isNaN(value))
+		const chartData: Array<[string, number, number]> = []
+		for (let index = 0; index < rawData.length; index++) {
+			const record = rawData[index] as Record<string, unknown>
+			const category = record[primarySeries.dataMapping.xField] ?? 'Unknown'
+			const value = parseFiniteNumber(record[primarySeries.dataMapping.yField])
+			if (value === null) continue
+			chartData.push([String(category), value, index])
+		}
 
 		const colors = getNDistinctColors(chartData.length)
 		const allLogos = buildAxisLogoUrls(config.axes.x.entityType, config.axes.x.logoCategories)
@@ -50,7 +50,7 @@ export function adaptHBarChartData(config: ChartConfiguration, rawData: ChartDat
 			defaultExportKind: 'hbar'
 		}
 	} catch (error) {
-		console.log('HBar adapter error:', error)
+		console.error('HBar adapter error:', error)
 		return {
 			chartType: 'hbar',
 			data: [],

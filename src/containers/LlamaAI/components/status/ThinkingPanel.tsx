@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useHackerMode } from '~/containers/LlamaAI/components/status/useHackerMode'
 
+const HACKER_THINKING_STYLE = { textShadow: '0 0 8px rgba(0,255,65,0.4)' }
+
 export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
@@ -65,7 +67,7 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 						? 'mt-1 h-[160px] min-h-[40px] resize-y overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
 						: 'mt-1 h-[120px] min-h-[40px] resize-y overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
 				}
-				style={hackerMode ? { textShadow: '0 0 8px rgba(0,255,65,0.4)' } : undefined}
+				style={hackerMode ? HACKER_THINKING_STYLE : undefined}
 			>
 				{thinking}
 			</div>

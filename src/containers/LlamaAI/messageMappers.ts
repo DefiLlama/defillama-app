@@ -24,7 +24,7 @@ export interface PersistedMessageMetadata extends RestoredAlertMetadata {
 		timePeriod?: string
 		sourceDashboardId?: string
 	}
-	deliveryChannel?: 'email' | 'telegram'
+	deliveryChannel?: 'email' | 'telegram' | 'slack'
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	x402_cost_usd?: string
 }
@@ -67,6 +67,7 @@ export interface SharedSessionMessage {
 	content: string
 	messageId?: string
 	timestamp: number
+	quotedText?: string
 	images?: Array<{
 		url: string
 		mimeType: string
@@ -93,6 +94,12 @@ export interface SessionRestoreResult {
 	projectId?: string | null
 }
 
+const mapPersistedTimestamp = (timestamp: PersistedMessage['timestamp']): number | undefined => {
+	if (timestamp === undefined) return undefined
+	const value = typeof timestamp === 'number' ? timestamp : new Date(timestamp).getTime()
+	return Number.isFinite(value) ? value : undefined
+}
+
 function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 	return {
 		...tool,
@@ -100,17 +107,39 @@ function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 	}
 }
 
-function buildRestoredDashboard(message: PersistedMessage): DashboardArtifact | null {
+function stableHash(value: string): string {
+	let hash = 2166136261
+	for (let i = 0; i < value.length; i++) {
+		hash ^= value.charCodeAt(i)
+		hash = Math.imul(hash, 16777619)
+	}
+	return (hash >>> 0).toString(36)
+}
+
+function getRestoredDashboardIdSuffix(message: PersistedMessage, index?: number): string {
+	if (message.messageId) return message.messageId
+	const dashboardConfig = message.metadata?.dashboardConfig
+	return `fallback_${stableHash(
+		[
+			message.role,
+			message.content ?? '',
+			message.timestamp ?? '',
+			message.parentId ?? '',
+			dashboardConfig?.dashboardName ?? '',
+			dashboardConfig?.sourceDashboardId ?? '',
+			dashboardConfig?.items?.length ?? 0,
+			index ?? ''
+		].join('\u001f')
+	)}`
+}
+
+function buildRestoredDashboard(message: PersistedMessage, index?: number): DashboardArtifact | null {
 	const dashboardConfig = message.metadata?.dashboardConfig
 	if (!dashboardConfig) return null
 
 	// Historical persisted messages may not have a dashboard id, but the render
 	// model still needs a stable artifact key for fallback rendering.
-	const restoredDashboardIdSuffix =
-		message.messageId ??
-		(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-			? crypto.randomUUID()
-			: `unknown_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+	const restoredDashboardIdSuffix = getRestoredDashboardIdSuffix(message, index)
 	const artifact: DashboardArtifact = {
 		id: `dashboard_restored_${restoredDashboardIdSuffix}`,
 		dashboardName: dashboardConfig.dashboardName || 'Dashboard',
@@ -139,7 +168,7 @@ function buildRestoredDashboard(message: PersistedMessage): DashboardArtifact | 
 }
 
 export function mapPersistedMessage(message: PersistedMessage, index?: number): Message {
-	const restoredDashboard = buildRestoredDashboard(message)
+	const restoredDashboard = buildRestoredDashboard(message, index)
 	return {
 		role: message.role,
 		content: message.content,
@@ -165,7 +194,7 @@ export function mapPersistedMessage(message: PersistedMessage, index?: number): 
 		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
 		parentId: message.parentId,
 		siblingInfo: message.siblingInfo,
-		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
+		timestamp: mapPersistedTimestamp(message.timestamp)
 	}
 }
 
@@ -216,6 +245,8 @@ export function mapSharedSessionMessage(message: SharedSessionMessage, index?: n
 		generatedImages: message.generatedImages,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
-		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
+		quotedText: message.quotedText ?? message.metadata?.quotedText,
+		id: message.messageId ?? (index != null ? `shared-${index}` : undefined),
+		timestamp: mapPersistedTimestamp(message.timestamp)
 	}
 }

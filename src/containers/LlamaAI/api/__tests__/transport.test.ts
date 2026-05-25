@@ -65,4 +65,21 @@ describe('llamaAIRequest', () => {
 			})
 		await expect(llamaAIRequest(htmlFetcher, '/html')).rejects.toThrow('Unexpected LlamaAI response content type')
 	})
+
+	it('wraps invalid JSON responses with transport context', async () => {
+		const fetcher: AuthorizedFetch = async () =>
+			new Response('{bad json', {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' }
+			})
+
+		await expect(llamaAIRequest(fetcher, '/invalid-json')).rejects.toMatchObject({
+			name: 'LlamaAITransportError',
+			status: 200,
+			body: expect.objectContaining({
+				error: 'invalid_json',
+				body: '{bad json'
+			})
+		})
+	})
 })

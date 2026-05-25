@@ -23,7 +23,7 @@ export function adaptPieChartData(config: ChartConfiguration, rawData: ChartData
 		const aggregatedData = rawData.reduce(
 			(acc, row) => {
 				const record = row as Record<string, unknown>
-				const entity = String(record[entityField] || 'Unknown')
+				const entity = String(record[entityField] ?? 'Unknown')
 				const value = parseStringNumber(record[valueField])
 				acc[entity] = (acc[entity] ?? 0) + value
 				return acc
@@ -55,7 +55,7 @@ export function adaptPieChartData(config: ChartConfiguration, rawData: ChartData
 			defaultExportKind: 'pie'
 		}
 	} catch (error) {
-		console.log('PieChart adapter error:', error)
+		console.error('PieChart adapter error:', error)
 		return {
 			chartType: 'pie',
 			props: { title: 'Pie Chart Error', height: '360px' },

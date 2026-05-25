@@ -48,9 +48,11 @@ describe('requestLifecycle', () => {
 		const resolved = waitForRequestSettle(settled, 5000)
 		settled.resolve()
 		await expect(resolved).resolves.toBeUndefined()
+		expect(vi.getTimerCount()).toBe(0)
 
 		const timedOut = waitForRequestSettle(createRequestSettleState(2), 10)
 		await vi.advanceTimersByTimeAsync(10)
 		await expect(timedOut).resolves.toBeUndefined()
+		expect(vi.getTimerCount()).toBe(0)
 	})
 })

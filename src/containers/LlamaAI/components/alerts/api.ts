@@ -21,7 +21,8 @@ export async function fetchAlertExecutions(
 	authorizedFetch: AuthorizedFetch,
 	alertId: string
 ): Promise<AlertExecution[]> {
-	const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}/executions`)
+	const encodedAlertId = encodeURIComponent(alertId)
+	const res = await authorizedFetch(`${AI_SERVER}/alerts/${encodedAlertId}/executions`)
 	if (!res?.ok) throw new Error('Failed to fetch executions')
 	const data = await res.json()
 	return data.executions ?? []
@@ -32,7 +33,9 @@ export async function fetchAlertExecutionDetail(
 	alertId: string,
 	executionId: string
 ): Promise<AlertExecutionDetail> {
-	const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}/executions/${executionId}`)
+	const encodedAlertId = encodeURIComponent(alertId)
+	const encodedExecutionId = encodeURIComponent(executionId)
+	const res = await authorizedFetch(`${AI_SERVER}/alerts/${encodedAlertId}/executions/${encodedExecutionId}`)
 	if (!res?.ok) throw new Error('Failed to fetch execution detail')
 	return res.json()
 }
@@ -42,7 +45,8 @@ export async function setAlertEnabled(
 	alertId: string,
 	enabled: boolean
 ): Promise<boolean> {
-	const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
+	const encodedAlertId = encodeURIComponent(alertId)
+	const res = await authorizedFetch(`${AI_SERVER}/alerts/${encodedAlertId}`, {
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ enabled })
@@ -55,7 +59,8 @@ export async function setAlertEnabled(
 }
 
 export async function deleteAlert(authorizedFetch: AuthorizedFetch, alertId: string): Promise<string> {
-	const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+	const encodedAlertId = encodeURIComponent(alertId)
+	const res = await authorizedFetch(`${AI_SERVER}/alerts/${encodedAlertId}`, { method: 'DELETE' })
 	if (!res) throw new Error('Not authenticated')
 	if (!res.ok) {
 		throw new Error('Failed to delete alert')
@@ -76,7 +81,8 @@ export async function updateAlert(
 	}: UpdateAlertInput,
 	conditionUpdate: { shouldInclude: boolean; value: string | null }
 ) {
-	const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
+	const encodedAlertId = encodeURIComponent(alertId)
+	const res = await authorizedFetch(`${AI_SERVER}/alerts/${encodedAlertId}`, {
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({

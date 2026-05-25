@@ -25,32 +25,35 @@ function sanitizeExternalActionHref(href: string) {
 	}
 }
 
+function sanitizeInternalActionHref(href: string) {
+	const trimmed = href.trim()
+	if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('\\')) return null
+	if (Array.from(trimmed).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) return null
+	if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(trimmed)) return null
+	return trimmed.startsWith('/') || trimmed.startsWith('#') || trimmed.startsWith('?') ? trimmed : null
+}
+
 function getActionHrefProps(href: string, label: string) {
-	if (href.startsWith('http')) {
-		const safeHref = sanitizeExternalActionHref(href)
+	const safeHref = sanitizeExternalActionHref(href)
+	if (safeHref) {
 		return {
-			href: safeHref ?? '#',
-			...(safeHref
-				? {
-						target: '_blank' as const,
-						rel: 'noopener noreferrer'
-					}
-				: {}),
-			onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => {
-				if (!safeHref) {
-					event.preventDefault()
-				}
+			href: safeHref,
+			target: '_blank' as const,
+			rel: 'noopener noreferrer',
+			onClick: () => {
 				trackUmamiEvent('llamaai-action-link-click', { label })
 			}
 		}
 	}
 
+	const safeInternalHref = sanitizeInternalActionHref(href)
 	return {
-		href: `https://defillama.com${href}`,
+		href: safeInternalHref ? `https://defillama.com${safeInternalHref}` : '#',
 		onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => {
-			trackUmamiEvent('llamaai-action-link-click', { label })
 			event.preventDefault()
-			void Router.push(href)
+			if (!safeInternalHref) return
+			trackUmamiEvent('llamaai-action-link-click', { label })
+			void Router.push(safeInternalHref)
 		}
 	}
 }

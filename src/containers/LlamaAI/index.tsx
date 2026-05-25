@@ -464,6 +464,8 @@ export function AgenticChat({
 			streamingMdExports.length > 0 ||
 			streamingAlerts.length > 0 ||
 			streamingCitations.length > 0 ||
+			streamingToolExecutions.length > 0 ||
+			streamingThinking ||
 			streamingGeneratedImages.length > 0
 		if (!hasContent) return null
 		return {
@@ -475,6 +477,7 @@ export function AgenticChat({
 			alerts: streamingAlerts.length > 0 ? streamingAlerts : undefined,
 			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
 			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined,
+			thinking: streamingThinking || undefined,
 			generatedImages: streamingGeneratedImages.length > 0 ? streamingGeneratedImages : undefined
 		}
 	}, [
@@ -486,6 +489,7 @@ export function AgenticChat({
 		streamingAlerts,
 		streamingCitations,
 		streamingToolExecutions,
+		streamingThinking,
 		streamingGeneratedImages
 	])
 

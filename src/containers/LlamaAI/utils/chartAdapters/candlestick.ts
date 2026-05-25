@@ -12,7 +12,8 @@ export function adaptCandlestickData(
 		return { data, indicators }
 	}
 
-	const sample = (rawData[0] || {}) as Record<string, unknown>
+	const rows = rawData as Array<Record<string, unknown>>
+	const sample = (rows[0] || {}) as Record<string, unknown>
 	const keys = Object.keys(sample)
 	const timeField = config.dataTransformation?.timeField
 	const getTs = (row: Record<string, unknown>) => {
@@ -28,6 +29,10 @@ export function adaptCandlestickData(
 		}
 		return NaN
 	}
+	const timestampedRows = rows
+		.map((row) => ({ row, ts: getTs(row) }))
+		.filter((entry): entry is { row: Record<string, unknown>; ts: number } => Number.isFinite(entry.ts))
+	if (timestampedRows.length === 0) return { data, indicators }
 
 	const metrics = config.dataTransformation?.metrics ?? []
 	const ohlcFields = {
@@ -36,10 +41,9 @@ export function adaptCandlestickData(
 		low: metrics.find((m) => /low/i.test(m)) ?? 'low',
 		close: metrics.find((m) => /close/i.test(m)) ?? 'close'
 	}
-	const rows = rawData as Array<Record<string, unknown>>
 
-	data = rows.map((r) => [
-		getTs(r),
+	data = timestampedRows.map(({ row: r, ts }) => [
+		ts,
 		parseFloat(String(r[ohlcFields.open] ?? r.price ?? 0)),
 		parseFloat(String(r[ohlcFields.close])),
 		parseFloat(String(r[ohlcFields.low])),
@@ -51,7 +55,7 @@ export function adaptCandlestickData(
 	const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
 	const bbLower = keys.find((k) => k.includes('_bb_lower'))
 	if (bbUpper && bbMiddle && bbLower) {
-		const hasValidBB = rows.some((r) => {
+		const hasValidBB = timestampedRows.some(({ row: r }) => {
 			const u = parseFloat(String(r[bbUpper]))
 			const m = parseFloat(String(r[bbMiddle]))
 			const l = parseFloat(String(r[bbLower]))
@@ -62,12 +66,12 @@ export function adaptCandlestickData(
 				name: 'BBands',
 				category: 'overlay',
 				data: [],
-				values: rows.map((r) => {
+				values: timestampedRows.map(({ row: r, ts }) => {
 					const u = r[bbUpper] != null ? parseFloat(String(r[bbUpper])) : NaN
 					const m = r[bbMiddle] != null ? parseFloat(String(r[bbMiddle])) : NaN
 					const l = r[bbLower] != null ? parseFloat(String(r[bbLower])) : NaN
 					return [
-						getTs(r),
+						ts,
 						{
 							upper: Number.isFinite(u) && u !== 0 ? u : null,
 							middle: Number.isFinite(m) && m !== 0 ? m : null,
@@ -84,9 +88,9 @@ export function adaptCandlestickData(
 		indicators.push({
 			name: field.toUpperCase(),
 			category: 'overlay',
-			data: rows.map((r) => {
+			data: timestampedRows.map(({ row: r, ts }) => {
 				const v = parseFloat(String(r[field]))
-				return [getTs(r), Number.isFinite(v) ? v : null]
+				return [ts, Number.isFinite(v) ? v : null]
 			})
 		})
 	}
@@ -96,9 +100,9 @@ export function adaptCandlestickData(
 		indicators.push({
 			name: 'RSI',
 			category: 'panel',
-			data: rows.map((r) => {
+			data: timestampedRows.map(({ row: r, ts }) => {
 				const v = parseFloat(String(r[rsiField]))
-				return [getTs(r), Number.isFinite(v) ? v : null]
+				return [ts, Number.isFinite(v) ? v : null]
 			})
 		})
 	}
@@ -107,7 +111,7 @@ export function adaptCandlestickData(
 	const signalField = keys.find((k) => k === 'macd_signal')
 	const histField = keys.find((k) => k === 'macd_histogram')
 	if (macdField || signalField || histField) {
-		const hasValidMACD = rows.some((r) => {
+		const hasValidMACD = timestampedRows.some(({ row: r }) => {
 			const m = parseFloat(String(r[macdField as string]))
 			const s = parseFloat(String(r[signalField as string]))
 			const h = parseFloat(String(r[histField as string]))
@@ -118,12 +122,12 @@ export function adaptCandlestickData(
 				name: 'MACD',
 				category: 'panel',
 				data: [],
-				values: rows.map((r) => {
+				values: timestampedRows.map(({ row: r, ts }) => {
 					const mv = r[macdField as string] != null ? parseFloat(String(r[macdField as string])) : NaN
 					const sv = r[signalField as string] != null ? parseFloat(String(r[signalField as string])) : NaN
 					const hv = r[histField as string] != null ? parseFloat(String(r[histField as string])) : NaN
 					return [
-						getTs(r),
+						ts,
 						{
 							macd: Number.isFinite(mv) ? mv : null,
 							signal: Number.isFinite(sv) ? sv : null,
@@ -138,7 +142,7 @@ export function adaptCandlestickData(
 	const stochK = keys.find((k) => k === 'stoch_k')
 	const stochD = keys.find((k) => k === 'stoch_d')
 	if (stochK || stochD) {
-		const hasValidStoch = rows.some((r) => {
+		const hasValidStoch = timestampedRows.some(({ row: r }) => {
 			const k = parseFloat(String(r[stochK as string]))
 			const d = parseFloat(String(r[stochD as string]))
 			return Number.isFinite(k) || Number.isFinite(d)
@@ -148,10 +152,10 @@ export function adaptCandlestickData(
 				name: 'Stoch',
 				category: 'panel',
 				data: [],
-				values: rows.map((r) => {
+				values: timestampedRows.map(({ row: r, ts }) => {
 					const k = r[stochK as string] != null ? parseFloat(String(r[stochK as string])) : NaN
 					const d = r[stochD as string] != null ? parseFloat(String(r[stochD as string])) : NaN
-					return [getTs(r), { k: Number.isFinite(k) ? k : null, d: Number.isFinite(d) ? d : null }]
+					return [ts, { k: Number.isFinite(k) ? k : null, d: Number.isFinite(d) ? d : null }]
 				})
 			})
 		}

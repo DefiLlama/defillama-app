@@ -1,7 +1,7 @@
 import { formatChartValue } from '~/components/ECharts/formatters'
 import type { IScatterChartProps } from '~/components/ECharts/types'
 import type { ChartConfiguration, ChartDataSeries } from '~/containers/LlamaAI/types'
-import { parseStringNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
+import { parseFiniteNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
 
 export interface AdaptedScatterChartData {
 	chartType: 'scatter'
@@ -10,6 +10,24 @@ export interface AdaptedScatterChartData {
 	description: string
 	defaultExportKind: 'scatter'
 }
+
+const escapeHtml = (value: string) =>
+	value.replace(/[&<>"']/g, (char) => {
+		switch (char) {
+			case '&':
+				return '&amp;'
+			case '<':
+				return '&lt;'
+			case '>':
+				return '&gt;'
+			case '"':
+				return '&quot;'
+			case "'":
+				return '&#39;'
+			default:
+				return char
+		}
+	})
 
 export function adaptScatterChartData(config: ChartConfiguration, rawData: ChartDataSeries): AdaptedScatterChartData {
 	try {
@@ -23,16 +41,16 @@ export function adaptScatterChartData(config: ChartConfiguration, rawData: Chart
 		const entityField = primarySeries.dataMapping.entityFilter?.field || 'protocol'
 		const entityType = entityField === 'chain' ? 'chain' : 'protocol'
 
-		const scatterData = rawData
-			.map((row) => {
-				const record = row as Record<string, unknown>
-				const xValue = parseStringNumber(record[xField])
-				const yValue = parseStringNumber(record[yField])
-				const entityName = String(record[entityField] || 'Unknown')
-				const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
-				return [xValue, yValue, entityName, entitySlug]
-			})
-			.filter(([x, y]) => !Number.isNaN(x as number) && !Number.isNaN(y as number))
+		const scatterData: Array<[number, number, string, string]> = []
+		for (const row of rawData) {
+			const record = row as Record<string, unknown>
+			const xValue = parseFiniteNumber(record[xField])
+			const yValue = parseFiniteNumber(record[yField])
+			if (xValue === null || yValue === null) continue
+			const entityName = String(record[entityField] ?? 'Unknown')
+			const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
+			scatterData.push([xValue, yValue, entityName, entitySlug])
+		}
 
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField
@@ -51,7 +69,7 @@ export function adaptScatterChartData(config: ChartConfiguration, rawData: Chart
 				entityType,
 				tooltipFormatter: (params: any) => {
 					if (params.value.length < 2) return ''
-					const entityName = params.value[2] || 'Unknown'
+					const entityName = escapeHtml(String(params.value[2] ?? 'Unknown'))
 					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatChartValue(params.value[0], xAxisSymbol)}<br/>${yAxisLabel}: ${formatChartValue(params.value[1], yAxisSymbol)}`
 				}
 			},
@@ -60,7 +78,7 @@ export function adaptScatterChartData(config: ChartConfiguration, rawData: Chart
 			defaultExportKind: 'scatter'
 		}
 	} catch (error) {
-		console.log('ScatterChart adapter error:', error)
+		console.error('ScatterChart adapter error:', error)
 		return {
 			chartType: 'scatter',
 			props: { chartData: [], title: 'Scatter Chart Error', height: '360px' },

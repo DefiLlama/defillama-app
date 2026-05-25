@@ -69,4 +69,12 @@ describe('createAgenticCallbacks', () => {
 		expect(dispatch).not.toHaveBeenCalledWith({ type: 'COMMIT_STREAM' })
 		expect(notify).not.toHaveBeenCalled()
 	})
+
+	it('preserves explicit zero spawn start timestamps', () => {
+		const { callbacks, dispatch } = setupCallbacks()
+
+		callbacks.onSpawnProgress({ agentId: 'agent-1', status: 'started', startedAt: 0 })
+
+		expect(dispatch).toHaveBeenCalledWith({ type: 'SET_SPAWN_START_TIME', value: 0 })
+	})
 })

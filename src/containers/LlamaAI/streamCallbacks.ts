@@ -146,7 +146,7 @@ export function createAgenticCallbacks({
 		onSpawnProgress: guard((data: SpawnProgressData) => {
 			if (data.status === 'started' && !buffer.spawnStarted) {
 				buffer.spawnStarted = true
-				dispatch({ type: 'SET_SPAWN_START_TIME', value: data.startedAt || Date.now() })
+				dispatch({ type: 'SET_SPAWN_START_TIME', value: data.startedAt ?? Date.now() })
 				if (data.isResearchMode !== undefined) {
 					dispatch({ type: 'SET_SPAWN_RESEARCH_MODE', value: data.isResearchMode })
 				}

@@ -156,6 +156,8 @@ const parseStrictDateLabelToMs = (timestamp: unknown): number | null => {
 
 const looksLikeDateField = (field: string) => DATE_LIKE_FIELD_RE.test(field)
 
+const normalizeCategoryXValue = (rawValue: unknown) => (rawValue == null ? null : String(rawValue))
+
 function inferTimeSeriesAxis(
 	config: ChartConfiguration,
 	rawData: ChartDataSeries
@@ -178,7 +180,7 @@ function inferTimeSeriesAxis(
 		return {
 			axisType: 'category',
 			dimensionName: 'category',
-			normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+			normalizeXValue: normalizeCategoryXValue,
 			reason: 'category'
 		}
 	}
@@ -191,7 +193,7 @@ function inferTimeSeriesAxis(
 		return {
 			axisType: 'category',
 			dimensionName: 'category',
-			normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+			normalizeXValue: normalizeCategoryXValue,
 			reason: 'category'
 		}
 	}
@@ -214,7 +216,7 @@ function inferTimeSeriesAxis(
 	return {
 		axisType: 'category',
 		dimensionName: 'category',
-		normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+		normalizeXValue: normalizeCategoryXValue,
 		reason: 'category'
 	}
 }

@@ -48,11 +48,14 @@ export function createRequestSettleState(requestId: number): Exclude<RequestSett
 }
 
 export function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, timeoutMs = 5000) {
+	let timeoutId: ReturnType<typeof globalThis.setTimeout> | null = null
 	// Abort callers should not hang forever if a fetch never reaches its finally block.
 	return Promise.race([
 		settleState.promise,
 		new Promise<void>((resolve) => {
-			globalThis.setTimeout(resolve, timeoutMs)
+			timeoutId = globalThis.setTimeout(resolve, timeoutMs)
 		})
-	])
+	]).finally(() => {
+		if (timeoutId !== null) globalThis.clearTimeout(timeoutId)
+	})
 }

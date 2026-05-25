@@ -75,18 +75,41 @@ describe('messageMappers', () => {
 		})
 	})
 
+	it('uses deterministic restored dashboard ids when message id is missing', () => {
+		const message: PersistedMessage = {
+			role: 'assistant',
+			content: 'Dashboard ready',
+			timestamp: 1,
+			metadata: {
+				dashboardConfig: {
+					dashboardName: 'Protocol dashboard',
+					items: [dashboardItem]
+				}
+			}
+		}
+
+		const first = mapPersistedMessage(message, 0)
+		const second = mapPersistedMessage(message, 0)
+
+		expect(first.dashboards?.[0]?.id).toBe(second.dashboards?.[0]?.id)
+		expect(first.dashboards?.[0]?.id).toMatch(/^dashboard_restored_fallback_/)
+	})
+
 	it('maps shared flat chart data to the first chart dataset key', () => {
 		const message: SharedSessionMessage = {
 			role: 'assistant',
 			content: 'Chart',
 			messageId: 'shared-message',
 			timestamp: 1,
+			quotedText: 'quoted user message',
 			charts: [{ ...chart, datasetName: 'tvl_dataset' }],
 			chartData: [{ timestamp: 1, tvl: 100 }]
 		}
 
 		const mapped = mapSharedSessionMessage(message)
 
+		expect(mapped.timestamp).toBe(1)
+		expect(mapped.quotedText).toBe('quoted user message')
 		expect(mapped.charts?.[0]?.chartData).toEqual({
 			tvl_dataset: [{ timestamp: 1, tvl: 100 }]
 		})
@@ -94,5 +117,23 @@ describe('messageMappers', () => {
 
 	it('keeps empty persisted lists empty', () => {
 		expect(mapPersistedMessages(undefined)).toEqual([])
+	})
+
+	it('preserves epoch timestamps and drops invalid persisted timestamps', () => {
+		expect(
+			mapPersistedMessage({
+				role: 'assistant',
+				content: 'Epoch',
+				timestamp: 0
+			}).timestamp
+		).toBe(0)
+
+		expect(
+			mapPersistedMessage({
+				role: 'assistant',
+				content: 'Invalid',
+				timestamp: 'not-a-date'
+			}).timestamp
+		).toBeUndefined()
 	})
 })

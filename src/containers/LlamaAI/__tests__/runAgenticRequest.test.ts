@@ -121,6 +121,43 @@ describe('runAgenticRequest', () => {
 		expect(state.activeRequestKindRef.current).toBe('idle')
 	})
 
+	it('consumes detached request failures when no error handler is available', async () => {
+		const state = refs()
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		try {
+			await runAgenticRequest({
+				mode: 'resume',
+				sessionId: toSessionId('session-1'),
+				requestKind: 'resume',
+				...state,
+				detached: true,
+				createCallbacks: () => ({
+					onToken: vi.fn(),
+					onCharts: vi.fn(),
+					onProgress: vi.fn(),
+					onSpawnProgress: vi.fn(),
+					onSessionId: vi.fn(),
+					onCitations: vi.fn(),
+					onError: vi.fn(),
+					onDone: vi.fn()
+				}),
+				execute: async () => {
+					throw new Error('detached failed')
+				}
+			})
+
+			await vi.waitFor(() =>
+				expect(consoleError).toHaveBeenCalledWith(
+					'[llama-ai] detached request failed:',
+					expect.objectContaining({ message: 'detached failed' })
+				)
+			)
+		} finally {
+			consoleError.mockRestore()
+		}
+	})
+
 	it('does not classify post-success handler errors as request failures', async () => {
 		const state = refs()
 		const onError = vi.fn()
