@@ -28,6 +28,11 @@ COPY package.json bun.lock /temp/dev/
 RUN cd /temp/dev && bun install --frozen-lockfile
 
 FROM bun-base AS builder
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends rclone \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
