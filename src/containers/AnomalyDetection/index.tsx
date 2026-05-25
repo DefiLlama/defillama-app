@@ -179,8 +179,8 @@ export function AnomalyDetection({ rows, lastUpdated }: AnomalyDetectionProps) {
 						<p className="mt-1 text-sm text-(--text-secondary)">
 							Protocols with unusual TVL or fee activity flagged using z-score analysis.
 							<br />
-							Warnings are 2σ+ deviations, Critical are 3σ+, compared across all protocols with TVL &gt; $1M. Hover
-							a badge to see the z-score and exact change.
+							Warnings are 2σ+ deviations, Critical are 3σ+, compared across all protocols with TVL &gt; $1M. Hover a
+							badge to see the z-score and exact change.
 						</p>
 					</div>
 					<span className="shrink-0 text-xs text-(--text-tertiary)">Updated {updatedAt}</span>
