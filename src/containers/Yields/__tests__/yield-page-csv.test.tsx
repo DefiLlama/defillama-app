@@ -65,7 +65,7 @@ describe('YieldPage CSV export', () => {
 	})
 
 	it('uses the full currently filtered row set, not only visible, virtualized, or paginated rows', () => {
-		const includedPools = Array.from({ length: 12 }, (_, index) => pool(index))
+		const includedPools = Array.from({ length: 60 }, (_, index) => pool(index))
 		const zeroApyPool = pool(99, { symbol: 'ZERO-USDC', apy: 0 })
 
 		renderToStaticMarkup(
