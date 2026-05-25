@@ -63,4 +63,4 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & node server.js"]
+CMD ["dotenvx", "run", "--", "sh", "./scripts/docker-entrypoint.sh", "server.js"]
