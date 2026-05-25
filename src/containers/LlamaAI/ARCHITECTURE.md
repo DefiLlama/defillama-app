@@ -44,6 +44,10 @@ All agentic prompt, edit, resume, and replay flows should go through
 controller, tracks event count, invokes the selected transport operation,
 classifies errors, and completes the request.
 
+Prompt mode is represented by `AgenticAnswerMode`: `quick`, `fact_checked`, or
+`research`. Quick mode is the default and is omitted from the `/agentic` request
+body; fact-checked and research prompts are sent as `mode`.
+
 ```mermaid
 sequenceDiagram
   participant UI as AgenticChat
@@ -74,9 +78,19 @@ The stream has two representations by design:
   correctness, event counts, resume, and replay.
 - `StreamState` is reducer-owned UI state for the live draft, progress panels,
   recovery, errors, and context warnings.
+- Fact-check events are split: `fact_check_status` updates the live
+  `factCheckPhase`, and `fact_check_citations` stores `factCheckReferences` for
+  the committed assistant message and markdown renderer.
 
 Do not bypass the guarded callbacks in `streamCallbacks.ts` when adding new SSE
 events. Stale request protection belongs there.
+
+## Deep Links
+
+`/ai/chat?prompt=...` is confirmation-gated. Authenticated chat routes surface
+`DeepLinkPromptModal` and only submit the prompt after user confirmation. The
+unauthenticated `/ai/chat` page uses the same modal so shared prompt URLs never
+auto-run work on page load.
 
 ## Recovery And Replay
 
@@ -130,21 +144,25 @@ Artifact ownership:
 - `streamState.ts` builds committed assistant messages from stream output.
 - `renderModel.ts` turns a message into markdown, source, artifact, and action
   blocks.
+- Fact-check references flow through `Message.factCheckReferences`,
+  `renderModel.ts`, `processFactCheckCitations`, the `fact-check-pill` sanitize
+  allowlist, and `CitationPill`.
 - `utils/restoredAlerts.ts` preserves historical saved and unsaved alert
   markers.
 - `utils/reportMarkers.ts` centralizes `[REPORT_START]` stripping.
 
 ## Charts Pipeline
 
-Chart payloads are typed at the SSE/API boundary and passed through without
-row/config filtering on the client. Chart rendering then flows through adapter,
-capabilities, transformer, render plan, and UI controls.
+Chart payloads enter from JSON-parsed SSE frames and raw restored session JSON.
+`chartPayloads.ts` normalizes these boundary values into the domain chart shapes
+before rendering. Chart rendering then flows through adapter, capabilities,
+transformer, render plan, and UI controls.
 
 ```mermaid
 flowchart TD
-  SSE["typed charts or dashboard SSE payload"] --> PassThrough["chartPayloads typed pass-through"]
+  SSE["charts or dashboard SSE payload"] --> Normalize["chartPayloads runtime normalization"]
   Restore["persisted or shared chart data"] --> Mappers["messageMappers"]
-  PassThrough --> MessageCharts["Message.charts or dashboard chartData"]
+  Normalize --> MessageCharts["Message.charts or dashboard chartData"]
   Mappers --> MessageCharts
   MessageCharts --> Renderer["ChartRenderer"]
   Renderer --> Adapter["adaptChartData"]
@@ -250,6 +268,7 @@ Project ownership:
 - `projects/api.ts` defines the backend endpoint contract.
 - `projects/hooks.ts` wraps React Query behavior.
 - `projects/queryKeys.ts` keeps cache keys stable.
+- `CreateProjectModal` is shared by create and rename/edit project flows.
 - `hooks/useSessionMutations.ts` updates global and project session caches when
   sessions are created, moved, deleted, or renamed.
 
@@ -263,6 +282,9 @@ The current useful test seams are:
 - Stream callback behavior: `__tests__/streamCallbacks.test.ts`.
 - Message normalization: `__tests__/messageMappers.test.ts`.
 - Chart payload boundaries: `__tests__/chartPayloads.test.ts`.
+- Fact-check mode and SSE behavior:
+  `__tests__/fetchAgenticResponse.test.ts`,
+  `__tests__/streamCallbacks.test.ts`, and markdown renderer/helper tests.
 - Route and request helpers: `__tests__/routeTransition.test.ts`,
   `__tests__/requestLifecycle.test.ts`.
 - Integration state helpers:
