@@ -122,7 +122,8 @@ function ProDashboardContent() {
 			item?.kind === 'advanced-borrowed' ||
 			item?.kind === 'income-statement' ||
 			item?.kind === 'unlocks-schedule' ||
-			item?.kind === 'unlocks-pie'
+			item?.kind === 'unlocks-pie' ||
+			item?.kind === 'llamaai-chart'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()
