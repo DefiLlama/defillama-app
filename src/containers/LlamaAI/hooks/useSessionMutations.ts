@@ -90,6 +90,10 @@ function assertSwitchActiveLeafResponse(response: unknown): asserts response is 
 	}
 }
 
+function mutationActionError(action: string, error: unknown) {
+	return new Error(`${action}: ${getErrorMessage(error)}`)
+}
+
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
@@ -274,10 +278,14 @@ export function useSessionMutations() {
 
 	const bulkDeleteSessionsMutation = useMutation({
 		mutationFn: async (sessionIds: string[]) => {
-			await llamaAIRequest(authorizedFetch, '/user/sessions/bulk', {
-				method: 'DELETE',
-				json: { sessionIds }
-			})
+			try {
+				await llamaAIRequest(authorizedFetch, '/user/sessions/bulk', {
+					method: 'DELETE',
+					json: { sessionIds }
+				})
+			} catch (error) {
+				throw mutationActionError('Failed to bulk delete sessions', error)
+			}
 		},
 		onMutate: async (sessionIds) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
@@ -302,12 +310,16 @@ export function useSessionMutations() {
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string; projectId?: string | null }) => {
-			const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/title`, {
-				method: 'PUT',
-				json: { title }
-			})
+			try {
+				const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/title`, {
+					method: 'PUT',
+					json: { title }
+				})
 
-			return response
+				return response
+			} catch (error) {
+				throw mutationActionError('Failed to update session title', error)
+			}
 		},
 		onMutate: async ({ sessionId, title }) => {
 			// Cancel any outgoing refetches
@@ -337,11 +349,15 @@ export function useSessionMutations() {
 
 	const pinSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/pin`, {
-				method: 'PUT'
-			})
+			try {
+				const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/pin`, {
+					method: 'PUT'
+				})
 
-			return response
+				return response
+			} catch (error) {
+				throw mutationActionError('Failed to toggle pin', error)
+			}
 		},
 		onMutate: async (sessionId) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })

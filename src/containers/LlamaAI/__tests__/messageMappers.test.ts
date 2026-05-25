@@ -6,7 +6,7 @@ import {
 	type PersistedMessage,
 	type SharedSessionMessage
 } from '~/containers/LlamaAI/messageMappers'
-import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import type { ChartConfiguration, DashboardItem } from '~/containers/LlamaAI/types'
 
 const chart: ChartConfiguration = {
 	id: 'chart-1',
@@ -36,6 +36,13 @@ const chart: ChartConfiguration = {
 	}
 }
 
+const dashboardItem = {
+	id: 'dashboard-item-1',
+	kind: 'llamaai-chart',
+	chartRef: 'chart-1',
+	title: 'TVL'
+} satisfies DashboardItem
+
 describe('messageMappers', () => {
 	it('restores persisted dashboard chart data from message metadata', () => {
 		const message: PersistedMessage = {
@@ -49,7 +56,7 @@ describe('messageMappers', () => {
 			metadata: {
 				dashboardConfig: {
 					dashboardName: 'Protocol dashboard',
-					items: [{ kind: 'llamaai-chart', chartRef: 'chart-1', title: 'TVL' } as any]
+					items: [dashboardItem]
 				}
 			}
 		}

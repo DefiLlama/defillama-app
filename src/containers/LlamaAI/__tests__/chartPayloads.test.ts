@@ -51,11 +51,12 @@ describe('chart payload normalization', () => {
 				malformedConfig: { config: { id: 'chart-2', type: 'line' }, data: [{ date: 3, value: 30 }] }
 			})
 		).toEqual({
-			'chart-1': { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [{ name: 'generate_chart' }] }
+			'chart-1': { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [{ name: 'generate_chart' }] },
+			malformedConfig: { config: { id: 'chart-2', type: 'line' }, data: [{ date: 3, value: 30 }], toolChain: [] }
 		})
 	})
 
-	it('drops dashboard chart data when no renderable configs remain', () => {
+	it('drops dashboard chart data when no object configs remain', () => {
 		expect(
 			normalizeDashboardChartData({
 				missingConfig: { data: [{ date: 1, value: 10 }] },

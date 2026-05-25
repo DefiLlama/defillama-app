@@ -120,4 +120,46 @@ describe('runAgenticRequest', () => {
 		await vi.waitFor(() => expect(onFinally).toHaveBeenCalledOnce())
 		expect(state.activeRequestKindRef.current).toBe('idle')
 	})
+
+	it('does not classify post-success handler errors as request failures', async () => {
+		const state = refs()
+		const onError = vi.fn()
+		const onFinally = vi.fn()
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		try {
+			await runAgenticRequest({
+				mode: 'prompt',
+				sessionId: toSessionId('session-1'),
+				requestKind: 'prompt',
+				...state,
+				createCallbacks: () => ({
+					onToken: vi.fn(),
+					onCharts: vi.fn(),
+					onProgress: vi.fn(),
+					onSpawnProgress: vi.fn(),
+					onSessionId: vi.fn(),
+					onCitations: vi.fn(),
+					onError: vi.fn(),
+					onDone: vi.fn()
+				}),
+				execute: vi.fn(async () => {}),
+				onSuccess: vi.fn(async () => {
+					throw new Error('post-success failed')
+				}),
+				onError,
+				onFinally
+			})
+
+			expect(onError).not.toHaveBeenCalled()
+			expect(onFinally).toHaveBeenCalledOnce()
+			expect(state.activeRequestKindRef.current).toBe('idle')
+			expect(consoleError).toHaveBeenCalledWith(
+				'[llama-ai] post-success request handler failed:',
+				expect.objectContaining({ message: 'post-success failed' })
+			)
+		} finally {
+			consoleError.mockRestore()
+		}
+	})
 })

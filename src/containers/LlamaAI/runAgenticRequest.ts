@@ -116,11 +116,18 @@ export async function runAgenticRequest({
 
 	const operation = (async () => {
 		try {
-			await execute(context)
-			await onSuccess?.(context)
-		} catch (error) {
-			if (!onError) throw error
-			await onError(classifyAgenticRequestError(error, controller.signal), context)
+			try {
+				await execute(context)
+			} catch (error) {
+				if (!onError) throw error
+				await onError(classifyAgenticRequestError(error, controller.signal), context)
+				return
+			}
+			try {
+				await onSuccess?.(context)
+			} catch (error) {
+				console.error('[llama-ai] post-success request handler failed:', error)
+			}
 		} finally {
 			// A newer request may have already replaced the active controller; never
 			// clear refs owned by that newer request.

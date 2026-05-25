@@ -4,33 +4,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-const CHART_TYPES = new Set<ChartConfiguration['type']>([
-	'line',
-	'area',
-	'bar',
-	'combo',
-	'pie',
-	'scatter',
-	'hbar',
-	'candlestick'
-])
-
-function isChartConfiguration(value: unknown): value is ChartConfiguration {
+function hasDashboardChartConfig(value: unknown): value is ChartConfiguration {
 	if (!isRecord(value)) return false
-	// This boundary check intentionally validates the renderer-required envelope,
-	// not every nested series field owned by the backend chart contract.
-	if (typeof value.id !== 'string' || typeof value.title !== 'string' || typeof value.description !== 'string') {
-		return false
-	}
-	if (typeof value.type !== 'string' || !CHART_TYPES.has(value.type as ChartConfiguration['type'])) {
-		return false
-	}
-	if (!isRecord(value.axes) || !isRecord(value.axes.x) || !Array.isArray(value.axes.yAxes)) {
-		return false
-	}
-	if (!Array.isArray(value.series) || !isRecord(value.dataTransformation)) {
-		return false
-	}
+	// Dashboard chart configs are backend-owned and may be partially rolled out.
+	// Keep object configs with row data so existing dashboards keep rendering as
+	// much as the chart renderer can support.
 	return true
 }
 
@@ -57,9 +35,7 @@ export function normalizeDashboardChartData(value: unknown): DashboardChartData 
 	for (const key in value) {
 		const entry = value[key]
 		if (!isRecord(entry) || !Array.isArray(entry.data)) continue
-		// Dashboard panels inline charts directly, so entries without a renderable
-		// config are dropped instead of being passed through as undefined config.
-		if (!isChartConfiguration(entry.config)) continue
+		if (!hasDashboardChartConfig(entry.config)) continue
 		chartData[key] = {
 			config: entry.config,
 			data: entry.data,
