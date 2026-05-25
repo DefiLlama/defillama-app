@@ -259,6 +259,7 @@ function MessageContentBlock({
 			<ChatMarkdownRenderer
 				content={block.content}
 				citations={block.citations}
+				factCheckReferences={block.factCheckReferences}
 				isStreaming={isStreaming}
 				hackerMode={hackerMode}
 				onTableFullscreenOpen={onTableFullscreenOpen}

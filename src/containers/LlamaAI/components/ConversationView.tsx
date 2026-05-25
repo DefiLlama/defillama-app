@@ -1,14 +1,4 @@
-import {
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-	type Dispatch,
-	type RefCallback,
-	type RefObject,
-	type SetStateAction
-} from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefCallback, type RefObject } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -25,7 +15,16 @@ import {
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
-import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, TodoItem, ToolCall } from '~/containers/LlamaAI/types'
+import type {
+	AgenticAnswerMode,
+	ChartSet,
+	FactCheckedUsage,
+	Message,
+	ResearchUsage,
+	SpawnAgentStatus,
+	TodoItem,
+	ToolCall
+} from '~/containers/LlamaAI/types'
 
 export interface ConversationViewModel {
 	readOnly: boolean
@@ -74,9 +73,12 @@ export interface ConversationViewModel {
 	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
 	onBranchSwitch?: (leafMessageId: string) => void
 	isBranchSwitching?: boolean
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
+	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
@@ -185,7 +187,8 @@ function ConversationLiveStatus({
 	sessionId,
 	readOnly,
 	isLlama,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	factCheckPhase
 }: {
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
@@ -208,6 +211,7 @@ function ConversationLiveStatus({
 	readOnly: boolean
 	isLlama: boolean
 	onTableFullscreenOpen?: () => void
+	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
 }) {
 	const hasTodos = todos.length > 0
 	return (
@@ -244,6 +248,7 @@ function ConversationLiveStatus({
 						}
 						executionStartedAt={executionStartedAt}
 						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
+						factCheckPhase={factCheckPhase}
 					/>
 				)}
 			</div>
@@ -336,9 +341,12 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 		onEditMessage,
 		onBranchSwitch,
 		isBranchSwitching,
-		isResearchMode,
-		setIsResearchMode,
+		mode,
+		setMode,
 		researchUsage,
+		factCheckedUsage,
+		onFactCheckedGated,
+		factCheckPhase,
 		onOpenAlerts,
 		quotedText,
 		onClearQuotedText,
@@ -349,6 +357,7 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 		onDismissContextWarning,
 		onStartNewChat
 	} = viewModel
+	const isResearchMode = mode === 'research'
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const handledAnchorIdRef = useRef<string | null>(null)
@@ -664,6 +673,7 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 												readOnly={readOnly}
 												isLlama={isLlama}
 												onTableFullscreenOpen={onTableFullscreenOpen}
+												factCheckPhase={factCheckPhase}
 											/>
 										) : null}
 									</div>
@@ -690,6 +700,7 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onTableFullscreenOpen={onTableFullscreenOpen}
+										factCheckPhase={factCheckPhase}
 									/>
 								)}
 							</div>
@@ -737,9 +748,11 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 						isStreaming={isStreaming}
 						restoreRequest={null}
 						placeholder="Reply to LlamaAI&hellip; Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
+						mode={mode}
+						setMode={setMode}
 						researchUsage={researchUsage}
+						factCheckedUsage={factCheckedUsage}
+						onFactCheckedGated={onFactCheckedGated}
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}

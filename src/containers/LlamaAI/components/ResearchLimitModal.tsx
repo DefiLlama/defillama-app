@@ -10,9 +10,39 @@ interface ResearchLimitModalProps {
 	period: string
 	limit: number
 	resetTime: string | null
+	feature?: 'research' | 'fact_checked'
 }
 
-export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _resetTime }: ResearchLimitModalProps) {
+const COPY = {
+	research: {
+		titleLimit: 'Research Report Limit Reached',
+		bodyVerify: 'Verify your email to unlock research reports.',
+		bodyBlocked: 'Subscribe to Pro to use research reports.',
+		bodyLifetime: (n: number) => `You've used all ${n} research reports available on your trial plan.`,
+		bodyDaily: (n: number) => `You've used all ${n} research reports for today. Resets at midnight UTC.`,
+		proPitch: 'Get 5 research reports per day with Pro',
+		umamiVerify: 'verify-email-research-limit',
+		umamiUpgrade: 'subscribe-research-limit-upgrade'
+	},
+	fact_checked: {
+		titleLimit: 'Fact-Checked Answer Limit Reached',
+		bodyVerify: 'Verify your email to unlock fact-checked answers.',
+		bodyBlocked: 'Subscribe to Pro to use fact-checked answers.',
+		bodyLifetime: (n: number) => `You've used all ${n} fact-checked answers available on your trial plan.`,
+		bodyDaily: (n: number) => `You've used all ${n} fact-checked answers for today. Resets at midnight UTC.`,
+		proPitch: 'Get 10 fact-checked answers per day with Pro',
+		umamiVerify: 'verify-email-fact-checked-limit',
+		umamiUpgrade: 'subscribe-fact-checked-limit-upgrade'
+	}
+} as const
+
+export function ResearchLimitModal({
+	dialogStore,
+	period,
+	limit,
+	resetTime: _resetTime,
+	feature = 'research'
+}: ResearchLimitModalProps) {
 	const isLifetime = period === 'lifetime'
 	const isBlocked = period === 'blocked'
 	const { user, isTrial } = useAuthContext()
@@ -86,20 +116,22 @@ export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _res
 					) : (
 						<>
 							<h2 className="mb-4 text-center text-xl leading-snug font-bold text-black dark:text-white">
-								{isBlocked && needsVerification ? 'Email Verification Required' : 'Research Report Limit Reached'}
+								{isBlocked && needsVerification ? 'Email Verification Required' : COPY[feature].titleLimit}
 							</h2>
 							<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
-								{isBlocked && needsVerification
-									? 'Verify your email to unlock research reports.'
+								{isBlocked
+									? needsVerification
+										? COPY[feature].bodyVerify
+										: COPY[feature].bodyBlocked
 									: isLifetime
-										? `You've used all ${limit} research reports available on your trial plan.`
-										: `You've used all ${limit} research reports for today. Resets at midnight UTC.`}
+										? COPY[feature].bodyLifetime(limit)
+										: COPY[feature].bodyDaily(limit)}
 							</p>
 
 							{isBlocked && needsVerification ? (
 								<BasicLink
 									href="/account"
-									data-umami-event="verify-email-research-limit"
+									data-umami-event={COPY[feature].umamiVerify}
 									className="mx-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-6 py-3.5 text-center text-base font-semibold text-white transition-colors hover:bg-[#4A4AF0]"
 									onClick={dialogStore.hide}
 								>
@@ -116,23 +148,19 @@ export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _res
 									>
 										{isEndTrialLoading ? 'Processing...' : 'Upgrade to Pro'}
 									</button>
-									<p className="text-center text-sm text-[#888] dark:text-[#777]">
-										Get 5 research reports per day with Pro
-									</p>
+									<p className="text-center text-sm text-[#888] dark:text-[#777]">{COPY[feature].proPitch}</p>
 								</div>
 							) : (
 								<>
 									<BasicLink
 										href="/subscription"
-										data-umami-event="subscribe-research-limit-upgrade"
+										data-umami-event={COPY[feature].umamiUpgrade}
 										className="mx-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-6 py-3.5 text-center text-base font-semibold text-white transition-colors hover:bg-[#4A4AF0]"
 										onClick={dialogStore.hide}
 									>
 										Upgrade to Pro
 									</BasicLink>
-									<p className="mt-4 text-center text-sm text-[#888] dark:text-[#777]">
-										Get 5 research reports per day with Pro
-									</p>
+									<p className="mt-4 text-center text-sm text-[#888] dark:text-[#777]">{COPY[feature].proPitch}</p>
 								</>
 							)}
 						</>

@@ -16,8 +16,8 @@ import type { UpgradeOffer } from '~/containers/LlamaAI/types'
 export type AgenticRequestMode = 'prompt' | 'edit' | 'resume' | 'replay'
 
 export interface UsageLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | UpgradeOffer['code']
-	details?: Partial<RateLimitDetails>
+	code?: 'USAGE_LIMIT_EXCEEDED' | 'FACT_CHECKED_REQUIRES_SUBSCRIPTION' | UpgradeOffer['code']
+	details?: Partial<RateLimitDetails> & { feature?: string }
 	upgradeUrl?: string
 }
 
@@ -45,7 +45,9 @@ export function classifyAgenticRequestError(error: unknown, signal: AbortSignal)
 	const requestError = toUsageLimitError(error)
 	if (signal.aborted || requestError.name === 'AbortError') return { kind: 'abort', error: requestError }
 	if (isFreeLimitError(requestError)) return { kind: 'free-limit', error: requestError }
-	if (requestError.code === 'USAGE_LIMIT_EXCEEDED') return { kind: 'usage-limit', error: requestError }
+	if (requestError.code === 'USAGE_LIMIT_EXCEEDED' || requestError.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+		return { kind: 'usage-limit', error: requestError }
+	}
 	if (isTemporaryConnectivityError(requestError)) return { kind: 'temporary-connectivity', error: requestError }
 	return { kind: 'failure', error: requestError }
 }

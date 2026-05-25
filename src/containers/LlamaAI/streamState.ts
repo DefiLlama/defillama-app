@@ -4,6 +4,7 @@ import type {
 	AlertProposedData,
 	ChartSet,
 	DashboardArtifact,
+	FactCheckReference,
 	GeneratedImage,
 	Message,
 	MessageMetadata,
@@ -74,6 +75,8 @@ export interface StreamState {
 	lastFailedRequest: FailedRequest | null
 	rateLimitDetails: RateLimitDetails | null
 	contextWarning: ContextWarningPayload | null
+	factCheckPhase: 'drafting' | 'verifying' | 'finalizing' | null
+	factCheckReferences: FactCheckReference[]
 }
 
 export interface StreamAccumulator {
@@ -92,6 +95,7 @@ export interface StreamAccumulator {
 	spawnStarted: boolean
 	receivedEventCount: number
 	messageMetadata?: MessageMetadata
+	factCheckReferences: FactCheckReference[]
 }
 
 export type StreamBuffer = StreamAccumulator
@@ -126,6 +130,8 @@ export type StreamAction =
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
 	| { type: 'SET_CONTEXT_WARNING'; value: ContextWarningPayload | null }
+	| { type: 'SET_FACT_CHECK_PHASE'; value: 'drafting' | 'verifying' | 'finalizing' | null }
+	| { type: 'SET_FACT_CHECK_REFERENCES'; references: FactCheckReference[] }
 
 // Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
@@ -153,7 +159,9 @@ const createEmptyRuntimeState = () => ({
 		startedAt: null,
 		attemptCount: 0,
 		lastErrorMessage: null
-	} as RecoveryState
+	} as RecoveryState,
+	factCheckPhase: null as 'drafting' | 'verifying' | 'finalizing' | null,
+	factCheckReferences: [] as FactCheckReference[]
 })
 
 // Full stream state starts from the empty runtime snapshot plus error/retry metadata.
@@ -181,7 +189,8 @@ export const createStreamAccumulator = (): StreamAccumulator => ({
 	error: null,
 	hasStartedText: false,
 	spawnStarted: false,
-	receivedEventCount: 0
+	receivedEventCount: 0,
+	factCheckReferences: []
 })
 
 export const createStreamBuffer = createStreamAccumulator
@@ -196,6 +205,7 @@ export function hasStreamBufferContent(buffer: StreamBuffer) {
 		buffer.dashboards.length > 0 ||
 		buffer.generatedImages.length > 0 ||
 		buffer.citations.length > 0 ||
+		buffer.factCheckReferences.length > 0 ||
 		buffer.toolExecutions.length > 0 ||
 		buffer.thinking
 	)
@@ -345,6 +355,10 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			}
 		case 'SET_CONTEXT_WARNING':
 			return { ...state, contextWarning: action.value }
+		case 'SET_FACT_CHECK_PHASE':
+			return { ...state, factCheckPhase: action.value }
+		case 'SET_FACT_CHECK_REFERENCES':
+			return { ...state, factCheckReferences: action.references }
 		default:
 			return state
 	}
@@ -364,6 +378,7 @@ export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string):
 		dashboards: nonEmpty(buffer.dashboards),
 		generatedImages: nonEmpty(buffer.generatedImages),
 		citations: nonEmpty(buffer.citations),
+		factCheckReferences: nonEmpty(buffer.factCheckReferences),
 		toolExecutions: nonEmpty(buffer.toolExecutions),
 		thinking: buffer.thinking || undefined,
 		messageMetadata: buffer.messageMetadata,

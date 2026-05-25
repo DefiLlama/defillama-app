@@ -6,10 +6,12 @@ import {
 	normalizeDashboardItems
 } from '~/containers/LlamaAI/chartPayloads'
 import type {
+	AgenticAnswerMode,
 	AlertProposedData,
 	ChartConfiguration,
 	ChartDataByKey,
 	DashboardArtifact,
+	FactCheckReference,
 	GeneratedImage,
 	MessageMetadata,
 	TodoItem,
@@ -52,6 +54,8 @@ export interface AgenticSSECallbacks {
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
+	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
+	onFactCheckCitations?: (sources: FactCheckReference[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onMdExport?: (exports: MdExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
@@ -152,6 +156,18 @@ interface CitationsEvent {
 	citations?: unknown
 }
 
+interface FactCheckStatusEvent {
+	type: 'fact_check_status'
+	status: 'drafting' | 'verifying' | 'finalizing'
+}
+
+interface FactCheckCitationsEvent {
+	type: 'fact_check_citations'
+	citations?: FactCheckReference[]
+	sources?: FactCheckReference[]
+	sessionId: string
+}
+
 interface TitleEvent {
 	type: 'title'
 	content: string
@@ -237,6 +253,8 @@ type AgenticSSEEvent =
 	| TodoSnapshotEvent
 	| ThinkingEvent
 	| CitationsEvent
+	| FactCheckStatusEvent
+	| FactCheckCitationsEvent
 	| TitleEvent
 	| MessageIdEvent
 	| UserMessageIdEvent
@@ -285,7 +303,12 @@ interface RateLimitErrorDetails {
 }
 
 interface RateLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	code?:
+		| 'USAGE_LIMIT_EXCEEDED'
+		| 'FREE_QUESTION_LIMIT'
+		| 'FREE_FORM_LIMIT'
+		| 'FREE_DAILY_LIMIT'
+		| 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
 	details?: RateLimitErrorDetails
 	upgradeUrl?: string
 }
@@ -304,7 +327,7 @@ interface FetchAgenticResponseParams {
 	sessionId?: string | null
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
-	researchMode?: boolean
+	mode?: AgenticAnswerMode
 	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
@@ -437,6 +460,12 @@ export function parseSSEStream(
 				case 'citations':
 					callbacks.onCitations(normalizeArray<string>(data.citations))
 					break
+				case 'fact_check_status':
+					callbacks.onFactCheckStatus?.(data.status)
+					break
+				case 'fact_check_citations':
+					callbacks.onFactCheckCitations?.(data.sources || data.citations || [])
+					break
 				case 'title':
 					if (typeof data.content === 'string') callbacks.onTitle?.(data.content)
 					break
@@ -526,7 +555,7 @@ export async function fetchAgenticResponse({
 	sessionId,
 	callbacks,
 	abortSignal,
-	researchMode,
+	mode,
 	enablePremiumTools,
 	entities,
 	images,
@@ -550,7 +579,7 @@ export async function fetchAgenticResponse({
 		message: string
 		stream: true
 		sessionId?: string
-		researchMode?: true
+		mode?: AgenticAnswerMode
 		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
@@ -575,9 +604,8 @@ export async function fetchAgenticResponse({
 		requestBody.sessionId = sessionId
 	}
 
-	// Research mode is an opt-in backend feature, so only send the flag when enabled.
-	if (researchMode) {
-		requestBody.researchMode = true
+	if (mode && mode !== 'quick') {
+		requestBody.mode = mode
 	}
 
 	// Timezone helps the backend answer scheduling/date questions in the user's local context.
@@ -653,6 +681,14 @@ export async function fetchAgenticResponse({
 			err.code = errorData.code as RateLimitError['code']
 			err.upgradeUrl = errorData.upgradeUrl
 			err.details = errorData.details
+			throw err
+		}
+		if (response.status === 403 && errorData?.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+			const err = new Error(
+				errorData.content || 'Fact-checked answers require an active subscription.'
+			) as RateLimitError
+			err.code = 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
+			err.upgradeUrl = errorData.upgradeUrl
 			throw err
 		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {

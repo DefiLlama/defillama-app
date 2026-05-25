@@ -3,6 +3,7 @@ import type {
 	ChartConfiguration,
 	ChartDataByKey,
 	DashboardArtifact,
+	FactCheckReference,
 	GeneratedImage,
 	Message
 } from '~/containers/LlamaAI/types'
@@ -64,7 +65,7 @@ export type ArtifactRecord =
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
 export type MessageRenderBlock =
-	| { type: 'markdown'; key: string; content: string; citations?: string[] }
+	| { type: 'markdown'; key: string; content: string; citations?: string[]; factCheckReferences?: FactCheckReference[] }
 	| { type: 'sources'; key: string; citations: string[] }
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
@@ -199,7 +200,8 @@ export function parseMessageToRenderModel(
 				type: 'markdown',
 				key: `markdown-${markdownBlockIndex++}`,
 				content: part.content,
-				citations: message.citations
+				citations: message.citations,
+				factCheckReferences: message.factCheckReferences
 			})
 			continue
 		}

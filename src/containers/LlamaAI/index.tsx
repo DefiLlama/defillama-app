@@ -29,6 +29,7 @@ import {
 	LoadingConversationState,
 	type ConversationViewModel
 } from '~/containers/LlamaAI/components/ConversationView'
+import { DeepLinkPromptModal } from '~/containers/LlamaAI/components/DeepLinkPromptModal'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
@@ -87,7 +88,7 @@ import {
 	type FailedRequest,
 	type StreamBuffer
 } from '~/containers/LlamaAI/streamState'
-import type { Message, UpgradeOffer } from '~/containers/LlamaAI/types'
+import type { AgenticAnswerMode, Message, UpgradeOffer } from '~/containers/LlamaAI/types'
 import type { SettingsInitialState, SettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
@@ -248,6 +249,7 @@ export function AgenticChat({
 	const {
 		sessions,
 		researchUsage,
+		factCheckedUsage,
 		isLoading: isLoadingSessions,
 		error: sessionListError,
 		hasNextPage: hasMoreSessions,
@@ -289,7 +291,7 @@ export function AgenticChat({
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [currentSessionProjectId, setCurrentSessionProjectId] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
-	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [mode, setMode] = useState<AgenticAnswerMode>('quick')
 	const [quotedText, setQuotedText] = useState<string | null>(null)
 	const [
 		{
@@ -304,6 +306,7 @@ export function AgenticChat({
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
 	const [initialIntegrationsState, setInitialIntegrationsState] = useState<SettingsInitialState | null>(null)
+	const [deepLinkConfirmationPrompt, setDeepLinkConfirmationPrompt] = useState<string | null>(null)
 	const router = useRouter()
 	const {
 		settings,
@@ -318,6 +321,7 @@ export function AgenticChat({
 	const [viewError, setViewError] = useState<string | null>(null)
 	const [paginationError, setPaginationError] = useState<string | null>(null)
 	const researchModalStore = Ariakit.useDialogStore()
+	const [limitModalFeature, setLimitModalFeature] = useState<'research' | 'fact_checked'>('research')
 	const currentMessageIdRef = useRef<string | null>(null)
 	const activeRequestIdRef = useRef(0)
 	const activeRequestKindRef = useRef<RequestKind>('idle')
@@ -431,6 +435,15 @@ export function AgenticChat({
 		setShowShareModal(true)
 	}, [])
 
+	const handleFactCheckedGated = useCallback(() => {
+		dispatchStream({
+			type: 'SET_RATE_LIMIT_DETAILS',
+			value: { period: 'blocked', limit: 0, resetTime: null }
+		})
+		setLimitModalFeature('fact_checked')
+		researchModalStore.show()
+	}, [researchModalStore])
+
 	const setShareModalOpen = useCallback((nextOpen: boolean) => {
 		setShowShareModal(nextOpen)
 		if (!nextOpen) {
@@ -439,9 +452,9 @@ export function AgenticChat({
 	}, [])
 
 	const triggerPromptTransition = useCallback(
-		(mode: PromptTransitionMode) => {
+		(nextTransitionMode: PromptTransitionMode) => {
 			clearPromptTransitionTimer()
-			setPromptTransitionMode(mode)
+			setPromptTransitionMode(nextTransitionMode)
 			promptTransitionTimerRef.current = window.setTimeout(() => {
 				setPromptTransitionMode('idle')
 				promptTransitionTimerRef.current = null
@@ -1552,7 +1565,7 @@ export function AgenticChat({
 							fetchAgenticResponse({
 								message: trimmed,
 								sessionId: currentSessionId,
-								researchMode: isResearchMode,
+								mode,
 								entities: entities?.length ? entities : undefined,
 								images: images?.length ? images : undefined,
 								pageContext,
@@ -1582,6 +1595,20 @@ export function AgenticChat({
 								dispatchStream({ type: 'RESET_STREAM' })
 								return
 							}
+							if (err.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+								dispatchStream({
+									type: 'SET_RATE_LIMIT_DETAILS',
+									value: {
+										period: 'blocked',
+										limit: 0,
+										resetTime: null
+									}
+								})
+								dispatchStream({ type: 'RESET_STREAM' })
+								setLimitModalFeature('fact_checked')
+								researchModalStore.show()
+								return
+							}
 							if (kind === 'usage-limit') {
 								dispatchStream({
 									type: 'SET_RATE_LIMIT_DETAILS',
@@ -1592,6 +1619,7 @@ export function AgenticChat({
 									}
 								})
 								dispatchStream({ type: 'RESET_STREAM' })
+								setLimitModalFeature(err.details?.feature === 'fact_checked' ? 'fact_checked' : 'research')
 								researchModalStore.show()
 								return
 							}
@@ -1663,7 +1691,7 @@ export function AgenticChat({
 		[
 			isStreaming,
 			sessionId,
-			isResearchMode,
+			mode,
 			authorizedFetchCompat,
 			createSession,
 			createFakeSession,
@@ -1781,7 +1809,7 @@ export function AgenticChat({
 						message: trimmed,
 						sessionId,
 						editMessageId: isBranchingEdit ? messageId : undefined,
-						researchMode: isResearchMode,
+						mode,
 						quotedText: original.quotedText || undefined,
 						customInstructions: settings.customInstructions || undefined,
 						enablePremiumTools: settings.enablePremiumTools,
@@ -1847,6 +1875,38 @@ export function AgenticChat({
 						dispatchStream({ type: 'RESET_STREAM' })
 						return
 					}
+					if (editError.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+						setMessages(messagesSnapshot)
+						setActiveLeafMessageId(activeLeafSnapshot)
+						dispatchStream({
+							type: 'SET_RATE_LIMIT_DETAILS',
+							value: {
+								period: 'blocked',
+								limit: 0,
+								resetTime: null
+							}
+						})
+						dispatchStream({ type: 'RESET_STREAM' })
+						setLimitModalFeature('fact_checked')
+						researchModalStore.show()
+						return
+					}
+					if (kind === 'usage-limit') {
+						setMessages(messagesSnapshot)
+						setActiveLeafMessageId(activeLeafSnapshot)
+						dispatchStream({
+							type: 'SET_RATE_LIMIT_DETAILS',
+							value: {
+								period: editError.details?.period || 'lifetime',
+								limit: editError.details?.limit || 0,
+								resetTime: editError.details?.resetTime || null
+							}
+						})
+						dispatchStream({ type: 'RESET_STREAM' })
+						setLimitModalFeature(editError.details?.feature === 'fact_checked' ? 'fact_checked' : 'research')
+						researchModalStore.show()
+						return
+					}
 					setMessages(messagesSnapshot)
 					setActiveLeafMessageId(activeLeafSnapshot)
 					setViewError(getErrorMessage(editError))
@@ -1877,9 +1937,10 @@ export function AgenticChat({
 			authorizedFetchCompat,
 			abortActiveRequest,
 			isMobileChatView,
-			isResearchMode,
+			mode,
 			messages,
 			notify,
+			researchModalStore,
 			resumeRunningExecution,
 			sessionId,
 			currentSessionProjectId,
@@ -1988,7 +2049,8 @@ export function AgenticChat({
 		}
 	)
 
-	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
+	// Confirm shareable deep-link prompts before spending a user request. Prompts that were already
+	// confirmed before auth are still delivered through the existing pending-prompt queue.
 	const deepLinkPrompt = route.kind === 'chat-new' ? route.initialPrompt?.trim() || undefined : undefined
 	const deepLinkUtmSource = typeof router.query.utm_source === 'string' ? router.query.utm_source : null
 	const deepLinkUtmCampaign = typeof router.query.utm_campaign === 'string' ? router.query.utm_campaign : null
@@ -1997,30 +2059,61 @@ export function AgenticChat({
 	useEffect(() => {
 		if (route.kind !== 'chat-new' || sharedSession) return
 
-		// Shareable deep link (/ai/chat?prompt=...): hold until the account is verified,
-		// then submit once and strip the param so a reload/back can't re-run it.
-		if (deepLinkPrompt) {
-			if (!user?.verified) return
-			const deepLinkKey = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
-			if (deepLinkConsumedKeyRef.current === deepLinkKey) return
-			deepLinkConsumedKeyRef.current = deepLinkKey
-			trackUmamiEvent('llamaai-deeplink-run', {
-				source: deepLinkUtmSource,
-				campaign: deepLinkUtmCampaign,
-				prompt: deepLinkPrompt.replace(/\s+/g, ' ').slice(0, 100)
-			})
-			void navigate.refineCurrent('/ai/chat')
-			submitPendingPromptEvent(deepLinkPrompt)
-			return
-		}
-
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		const isSuggested = consumePendingSuggestedFlag()
 		if (pendingPrompt) {
+			if (deepLinkPrompt) {
+				deepLinkConsumedKeyRef.current = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+				setDeepLinkConfirmationPrompt(null)
+				void navigate.refineCurrent('/ai/chat')
+			}
 			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
+			return
 		}
-	}, [route.kind, deepLinkPrompt, deepLinkUtmSource, deepLinkUtmCampaign, user?.verified, sharedSession, navigate])
+
+		if (deepLinkPrompt) {
+			const deepLinkKey = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+			if (deepLinkConsumedKeyRef.current === deepLinkKey) return
+			deepLinkConsumedKeyRef.current = deepLinkKey
+			setDeepLinkConfirmationPrompt(deepLinkPrompt)
+			trackUmamiEvent('llamaai-deeplink-view', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+			return
+		}
+
+		deepLinkConsumedKeyRef.current = null
+		setDeepLinkConfirmationPrompt(null)
+	}, [route.kind, deepLinkPrompt, deepLinkUtmSource, deepLinkUtmCampaign, sharedSession, navigate])
+
+	const handleConfirmDeepLinkPrompt = useCallback(() => {
+		const prompt = deepLinkConfirmationPrompt?.trim()
+		if (!prompt) return
+		deepLinkConsumedKeyRef.current = `${prompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+		setDeepLinkConfirmationPrompt(null)
+		trackUmamiEvent('llamaai-deeplink-run', {
+			source: deepLinkUtmSource,
+			campaign: deepLinkUtmCampaign,
+			prompt: prompt.replace(/\s+/g, ' ').slice(0, 100)
+		})
+		void navigate.refineCurrent('/ai/chat')
+		submitPendingPromptEvent(prompt)
+	}, [deepLinkConfirmationPrompt, deepLinkUtmSource, deepLinkUtmCampaign, navigate])
+
+	const handleCloseDeepLinkPrompt = useCallback(() => {
+		if (deepLinkConfirmationPrompt) {
+			trackUmamiEvent('llamaai-deeplink-dismiss', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkConfirmationPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+		}
+		setDeepLinkConfirmationPrompt(null)
+		void navigate.refineCurrent('/ai/chat')
+	}, [deepLinkConfirmationPrompt, deepLinkUtmSource, deepLinkUtmCampaign, navigate])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
 	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
@@ -2124,10 +2217,10 @@ export function AgenticChat({
 				settingsModalStore.show()
 			},
 			openAlertsModal: alertsModalStore.show,
-			toggleResearchMode: () => setIsResearchMode((v) => !v),
+			toggleResearchMode: () => setMode((current) => (current === 'research' ? 'quick' : 'research')),
 			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore, alertsModalStore.show, setIsResearchMode, handleSubmit]
+		[settingsModalStore, alertsModalStore.show, setMode, handleSubmit]
 	)
 
 	const landingProps = {
@@ -2138,9 +2231,11 @@ export function AgenticChat({
 		promptInputRef,
 		handleStopRequest,
 		isStreaming,
-		isResearchMode,
-		setIsResearchMode,
+		mode,
+		setMode,
 		researchUsage,
+		factCheckedUsage,
+		onFactCheckedGated: handleFactCheckedGated,
 		onOpenAlerts: alertsModalStore.show,
 		quotedText,
 		onClearQuotedText: () => setQuotedText(null),
@@ -2183,9 +2278,12 @@ export function AgenticChat({
 		onEditMessage: handleEditMessage,
 		onBranchSwitch: handleBranchSwitch,
 		isBranchSwitching: isSwitchingActiveLeaf,
-		isResearchMode,
-		setIsResearchMode,
+		mode,
+		setMode,
 		researchUsage,
+		factCheckedUsage,
+		onFactCheckedGated: handleFactCheckedGated,
+		factCheckPhase: streamState.factCheckPhase,
 		onOpenAlerts: alertsModalStore.show,
 		quotedText,
 		onClearQuotedText: () => setQuotedText(null),
@@ -2361,6 +2459,7 @@ export function AgenticChat({
 							period={rateLimitDetails.period}
 							limit={rateLimitDetails.limit}
 							resetTime={rateLimitDetails.resetTime}
+							feature={limitModalFeature}
 						/>
 					) : null}
 					{!readOnly ? (
@@ -2372,6 +2471,14 @@ export function AgenticChat({
 							setOpen={setShareModalOpen}
 							sessionId={effectiveSessionId}
 							messageId={shareTargetMessageId}
+						/>
+					) : null}
+					{!readOnly ? (
+						<DeepLinkPromptModal
+							isOpen={!!deepLinkConfirmationPrompt}
+							prompt={deepLinkConfirmationPrompt}
+							onClose={handleCloseDeepLinkPrompt}
+							onConfirm={handleConfirmDeepLinkPrompt}
 						/>
 					) : null}
 					{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}

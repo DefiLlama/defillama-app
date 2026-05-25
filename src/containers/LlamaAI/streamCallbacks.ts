@@ -8,7 +8,7 @@ import {
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
 import { getToolLabel } from '~/containers/LlamaAI/toolMetadata'
-import type { DashboardArtifact, Message, TodoItem } from '~/containers/LlamaAI/types'
+import type { DashboardArtifact, FactCheckReference, Message, TodoItem } from '~/containers/LlamaAI/types'
 import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 // Consume the current streamed message id once the buffered assistant message is committed.
@@ -46,6 +46,8 @@ export function createAgenticCallbacks({
 	replaceLocalUserMessageId,
 	setMessageSiblingInfo,
 	deferEmptyDone,
+	onFactCheckStatus,
+	onFactCheckCitations,
 	notify
 }: {
 	requestId: number
@@ -62,6 +64,8 @@ export function createAgenticCallbacks({
 	replaceLocalUserMessageId?: (realId: string) => void
 	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
 	deferEmptyDone?: boolean
+	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
+	onFactCheckCitations?: (sources: FactCheckReference[]) => void
 	notify: () => void
 }): AgenticSSECallbacks {
 	// One guard wraps every callback so late chunks from an aborted or superseded
@@ -187,6 +191,15 @@ export function createAgenticCallbacks({
 		}),
 		onContextWarning: guard((warning) => {
 			dispatch({ type: 'SET_CONTEXT_WARNING', value: warning })
+		}),
+		onFactCheckStatus: guard((status) => {
+			dispatch({ type: 'SET_FACT_CHECK_PHASE', value: status })
+			onFactCheckStatus?.(status)
+		}),
+		onFactCheckCitations: guard((sources) => {
+			buffer.factCheckReferences = sources
+			dispatch({ type: 'SET_FACT_CHECK_REFERENCES', references: sources })
+			onFactCheckCitations?.(sources)
 		}),
 		onError: guard((content) => {
 			buffer.error = content

@@ -4,6 +4,7 @@ import type {
 	ChartDataByKey,
 	DashboardArtifact,
 	DashboardItem,
+	FactCheckReference,
 	Message,
 	TodoItem,
 	ToolExecution
@@ -28,6 +29,9 @@ export interface PersistedMessageMetadata extends RestoredAlertMetadata {
 	deliveryChannel?: 'email' | 'telegram' | 'slack'
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	x402_cost_usd?: string
+	factCheck?: {
+		references?: unknown[]
+	}
 }
 
 export interface PersistedMessage {
@@ -204,6 +208,9 @@ export function mapPersistedMessage(message: PersistedMessage, index?: number): 
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		messageMetadata: message.messageMetadata,
 		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
 		parentId: message.parentId,
@@ -247,6 +254,9 @@ export function mapSharedSessionMessage(message: SharedSessionMessage, index?: n
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.quotedText ?? message.metadata?.quotedText,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		id: message.messageId ?? (index != null ? `shared-${index}` : undefined),
 		timestamp: mapPersistedTimestamp(message.timestamp)
 	}

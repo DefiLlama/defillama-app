@@ -3,6 +3,7 @@
  */
 
 import DOMPurify from 'dompurify'
+import type { FactCheckReference } from '~/containers/LlamaAI/types'
 import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 /**
@@ -279,6 +280,41 @@ interface ChartRef {
 	id: string
 	url: string
 	title: string
+}
+
+export function processFactCheckCitations(text: string, references: FactCheckReference[]): string {
+	const citationSequencePattern = String.raw`\d+(?:(?:\s*-\s*\d+)|(?:\s*,\s*\d+))*`
+	const markerRegex = new RegExp(String.raw`\[(?:\^\s*)?(${citationSequencePattern})\s*\]`, 'g')
+
+	if (!references || references.length === 0) {
+		return text.replace(markerRegex, '')
+	}
+
+	const idsAvailable = new Set<number>()
+	for (const ref of references) {
+		if (typeof ref.id === 'number') idsAvailable.add(ref.id)
+	}
+
+	return text.replace(markerRegex, (match, nums: string) => {
+		const parts = nums.split(',').map((p) => p.trim())
+		const expanded: number[] = []
+		for (const part of parts) {
+			if (part.includes('-')) {
+				const [start, end] = part.split('-').map((n) => parseInt(n.trim(), 10))
+				if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
+					for (let i = start; i <= end; i++) expanded.push(i)
+				}
+			} else {
+				const num = parseInt(part.trim(), 10)
+				if (!Number.isNaN(num)) expanded.push(num)
+			}
+		}
+
+		const pills = expanded.filter((id) => idsAvailable.has(id))
+		if (pills.length === 0) return match
+
+		return pills.map((id) => `<fact-check-pill data-ref="${id}"></fact-check-pill>`).join('')
+	})
 }
 
 export function sanitizeAlertSummary(html: string, charts: ChartRef[]): string {

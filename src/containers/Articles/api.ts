@@ -92,6 +92,7 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		tags: article.tags ?? [],
 		section: article.section ?? null,
 		displayDate: article.displayDate ?? null,
+		goLiveAt: article.goLiveAt ?? null,
 		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
 		featuredUntil: article.featuredUntil ? article.featuredUntil : null,
@@ -319,11 +320,25 @@ export async function updateReportHighlightSponsorLogo(
 	return data.article
 }
 
-export async function publishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
+export type PublishArticleOptions = {
+	goLiveAt?: string | null
+}
+
+export async function publishArticle(
+	id: string,
+	authorizedFetch: AuthorizedFetch,
+	options: PublishArticleOptions = {}
+): Promise<ArticleDocument> {
+	const params = new URLSearchParams({ _n: String(Date.now()) })
+	if ('goLiveAt' in options) {
+		if (options.goLiveAt === null) {
+			params.set('goLiveAt', 'null')
+		} else if (options.goLiveAt) {
+			params.set('goLiveAt', options.goLiveAt)
+		}
+	}
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish?_n=${Date.now()}`, {
-			method: 'GET'
-		})
+		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish?${params}`)
 	)
 	return data.article
 }

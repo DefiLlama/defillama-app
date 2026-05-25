@@ -51,7 +51,8 @@ describe('/api/research/articles/[id]/publish', () => {
 		expect(fetchImpl.mock.calls[0][1]).toEqual({ headers: { Authorization: 'Bearer user-token' } })
 		expect(new URL(fetchImpl.mock.calls[1][0]).pathname).toBe('/articles/article-id/publish')
 		expect(fetchImpl.mock.calls[1][1]).toEqual({
-			headers: { Authorization: 'Bearer user-token' },
+			body: '{}',
+			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
 			method: 'POST'
 		})
 		expect(res.revalidate).toHaveBeenCalledWith('/research')
@@ -86,6 +87,56 @@ describe('/api/research/articles/[id]/publish', () => {
 				revalidateErrors: [],
 				revalidated: ['/research', '/research/report/old-story', '/research/spotlight/new-story']
 			}
+		})
+	})
+
+	it('forwards goLiveAt from query into the backend publish POST body', async () => {
+		const before = article()
+		const after = article({ status: 'draft', goLiveAt: '2026-06-01T09:00:00.000Z' })
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: after }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(
+			request({
+				headers: { authorization: 'Bearer user-token' },
+				query: { goLiveAt: '2026-06-01T09:00:00.000Z', id: 'article-id' }
+			}),
+			res
+		)
+
+		expect(fetchImpl.mock.calls[1][1]).toEqual({
+			body: JSON.stringify({ goLiveAt: '2026-06-01T09:00:00.000Z' }),
+			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
+			method: 'POST'
+		})
+	})
+
+	it('forwards goLiveAt=null from query when publishing immediately', async () => {
+		const before = article({ status: 'draft', goLiveAt: '2026-06-01T09:00:00.000Z' })
+		const after = article({ status: 'published', goLiveAt: null })
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: after }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(
+			request({
+				headers: { authorization: 'Bearer user-token' },
+				query: { goLiveAt: 'null', id: 'article-id' }
+			}),
+			res
+		)
+
+		expect(fetchImpl.mock.calls[1][1]).toEqual({
+			body: JSON.stringify({ goLiveAt: null }),
+			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
+			method: 'POST'
 		})
 	})
 
