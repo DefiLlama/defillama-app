@@ -8,7 +8,7 @@ const commandDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(commandDir, '..', '..')
 const [nodeEnv, nextCommand, ...nextArgs] = process.argv.slice(2)
 const isProductionBuild = nodeEnv === 'production' && nextCommand === 'build'
-const buildNodeOptions = '--max-old-space-size=6144'
+const buildNodeOptions = '--max-heap-size=6144'
 
 if (!nodeEnv || !nextCommand) {
 	console.error('Usage: node ./scripts/command/runPreparedNext.mjs <NODE_ENV> <next-command> [...args]')
