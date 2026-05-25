@@ -122,6 +122,7 @@ export function ChainsByAdapter(props: IProps) {
 			{showChartPanel ? (
 				<ChainsByAdapterChart
 					adapterType={props.adapterType}
+					dataType={props.dataType}
 					chartData={props.chartData}
 					allChains={props.allChains}
 					chartName={props.type}
