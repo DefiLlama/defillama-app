@@ -115,6 +115,57 @@ describe('messageMappers', () => {
 		})
 	})
 
+	it('maps owned legacy flat chart data to the first chart dataset key', () => {
+		const message: PersistedMessage = {
+			role: 'assistant',
+			content: 'Chart',
+			charts: [{ ...chart, datasetName: 'tvl_dataset' }],
+			chartData: [{ timestamp: '1772323200000', tvl: 100 }]
+		}
+
+		const mapped = mapPersistedMessage(message)
+
+		expect(mapped.charts?.[0]?.chartData).toEqual({
+			tvl_dataset: [{ timestamp: '1772323200000', tvl: 100 }]
+		})
+	})
+
+	it('normalizes malformed restored dashboard items and missing chart refs', () => {
+		const message: PersistedMessage = {
+			role: 'assistant',
+			content: 'Dashboard ready',
+			charts: [chart],
+			chartData: {
+				'chart-1': [{ timestamp: 1, tvl: 100 }]
+			},
+			metadata: {
+				dashboardConfig: {
+					dashboardName: 'Protocol dashboard',
+					items: [{ id: 'bad' }, { ...dashboardItem, chartRef: 'missing-chart' }, dashboardItem]
+				}
+			}
+		}
+
+		const mapped = mapPersistedMessage(message)
+
+		expect(mapped.dashboards?.[0]?.items).toEqual([{ ...dashboardItem, chartRef: 'missing-chart' }, dashboardItem])
+		expect(mapped.dashboards?.[0]?.chartData).toEqual({
+			'chart-1': { config: chart, data: [{ timestamp: 1, tvl: 100 }], toolChain: [] }
+		})
+	})
+
+	it('preserves legacy toolName-only executions from restored messages', () => {
+		const mapped = mapPersistedMessage({
+			role: 'assistant',
+			content: 'Done',
+			metadata: {
+				toolExecutions: [{ toolName: 'search', success: true }]
+			}
+		})
+
+		expect(mapped.toolExecutions?.[0]).toMatchObject({ name: 'search', toolName: 'search', success: true })
+	})
+
 	it('keeps empty persisted lists empty', () => {
 		expect(mapPersistedMessages(undefined)).toEqual([])
 	})

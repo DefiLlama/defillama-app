@@ -172,6 +172,17 @@ function makeUnsortedTimeChart(): AdaptedLlamaAICartesianChart {
 	}
 }
 
+function makeLegacyTimestampChart(): AdaptedLlamaAICartesianChart {
+	const chart = makeUnsortedTimeChart()
+	chart.props.dataset.source = [
+		{ timestamp: String(Date.UTC(2026, 0, 1)), Revenue: 10 },
+		{ timestamp: 'not-a-date', Revenue: 999 },
+		{ timestamp: Date.UTC(2026, 1, 1), Revenue: 20 }
+	]
+	chart.rowCount = chart.props.dataset.source.length
+	return chart
+}
+
 describe('ChartDataTransformer', () => {
 	it('keeps secondary-axis symbols in percentage tooltips for time charts', () => {
 		const transformed = ChartDataTransformer.applyViewState(makeMixedAxisChart('time'), viewState, capabilities)
@@ -238,6 +249,34 @@ describe('ChartDataTransformer', () => {
 			Date.UTC(2026, 0, 1),
 			Date.UTC(2026, 1, 1),
 			Date.UTC(2026, 2, 1)
+		])
+	})
+
+	it('groups legacy string timestamps and skips malformed timestamps', () => {
+		const transformed = ChartDataTransformer.applyViewState(
+			makeLegacyTimestampChart(),
+			{ ...viewState, grouping: 'month', percentage: false },
+			{ ...capabilities, allowGrouping: true }
+		)
+		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		expect(transformed.props.dataset.source).toEqual([
+			{ timestamp: Date.UTC(2026, 0, 1), Revenue: 10 },
+			{ timestamp: Date.UTC(2026, 1, 1), Revenue: 20 }
+		])
+	})
+
+	it('applies cumulative view to legacy string timestamps and skips malformed timestamps', () => {
+		const transformed = ChartDataTransformer.applyViewState(
+			makeLegacyTimestampChart(),
+			{ ...viewState, cumulative: true, percentage: false },
+			{ ...capabilities, allowCumulative: true }
+		)
+		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		expect(transformed.props.dataset.source).toEqual([
+			{ timestamp: Date.UTC(2026, 0, 1), Revenue: 10 },
+			{ timestamp: Date.UTC(2026, 1, 1), Revenue: 30 }
 		])
 	})
 })

@@ -62,6 +62,46 @@ describe('chart adapters', () => {
 		expect(adaptScatterChartData(baseConfig, [{ x: 1, y: 2, protocol: 0 }]).props.chartData).toEqual([[1, 2, '0', '0']])
 	})
 
+	it('keeps legacy blank category labels as Unknown while preserving numeric zero', () => {
+		const categoryConfig = {
+			...baseConfig,
+			type: 'bar',
+			axes: { ...baseConfig.axes, x: { field: 'x', label: 'X', type: 'category' as const } },
+			series: [
+				{
+					...baseConfig.series[0]!,
+					type: 'bar' as const,
+					dataMapping: { xField: 'x', yField: 'y' }
+				}
+			]
+		} satisfies ChartConfiguration
+
+		const result = adaptCartesianChartData(categoryConfig, [
+			{ x: '', y: 1 },
+			{ x: 0, y: 2 }
+		])
+
+		expect(result.props.dataset.source).toEqual([
+			{ category: 'Unknown', Series: 1 },
+			{ category: '0', Series: 2 }
+		])
+	})
+
+	it('filters scatter rows with missing or non-numeric coordinates', () => {
+		const result = adaptScatterChartData(baseConfig, [
+			{ x: 1, y: 2, protocol: 'valid' },
+			{ x: null, y: 3, protocol: 'null-x' },
+			{ x: 'bad', y: 4, protocol: 'bad-x' },
+			{ x: 5, y: undefined, protocol: 'missing-y' },
+			{ x: '6.5', y: '7.5', protocol: 'string-coords' }
+		])
+
+		expect(result.props.chartData).toEqual([
+			[1, 2, 'valid', 'valid'],
+			[6.5, 7.5, 'string-coords', 'string-coords']
+		])
+	})
+
 	it('escapes scatter tooltip entity names', () => {
 		const result = adaptScatterChartData(baseConfig, [{ x: 1, y: 2, protocol: '<img src=x onerror=alert(1)>' }])
 		const tooltip = result.props.tooltipFormatter?.({ value: [1, 2, '<img src=x onerror=alert(1)>'] })

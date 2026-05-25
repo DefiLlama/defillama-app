@@ -27,6 +27,12 @@ describe('alert schedule helpers', () => {
 		expect(parseScheduleExpression('Daily at 25:00 UTC')).toMatchObject({ hour: undefined, timezone: 'UTC' })
 	})
 
+	it('parses backend 12-hour AM/PM schedule strings', () => {
+		expect(parseScheduleExpression('Daily at 12:00 AM UTC')).toMatchObject({ hour: 0, timezone: 'UTC' })
+		expect(parseScheduleExpression('Daily at 12:00 PM UTC')).toMatchObject({ hour: 12, timezone: 'UTC' })
+		expect(parseScheduleExpression('Daily at 9:00 PM UTC')).toMatchObject({ hour: 21, timezone: 'UTC' })
+	})
+
 	it('parses multi-segment IANA zones and whole-hour fixed offsets', () => {
 		expect(parseScheduleExpression('Daily at 9:00 America/Argentina/Buenos_Aires')).toMatchObject({
 			hour: 9,

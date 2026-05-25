@@ -91,9 +91,15 @@ export const parseScheduleExpression = (
 	dayOfWeek?: number
 	timezone?: string
 } => {
-	const hourMatch = expression.match(/\bat\s+([01]?\d|2[0-3])(?::[0-5]\d)?\b/i)
+	// Backend formatAlertExpression emits 12-hour AM/PM strings for saved alerts.
+	const hourMatch = expression.match(/\bat\s+([01]?\d|2[0-3])(?::[0-5]\d)?(?:\s*(AM|PM))?\b/i)
 	const dayMatch = expression.match(/on (\w+)/)
-	const hour = hourMatch ? parseInt(hourMatch[1], 10) : undefined
+	let hour = hourMatch ? parseInt(hourMatch[1], 10) : undefined
+	const period = hourMatch?.[2]?.toUpperCase()
+	if (hour !== undefined && period) {
+		if (period === 'AM' && hour === 12) hour = 0
+		if (period === 'PM' && hour < 12) hour += 12
+	}
 	let dayOfWeek: number | undefined
 	if (dayMatch) {
 		const idx = DAYS_OF_WEEK.findIndex((d) => d.toLowerCase() === dayMatch[1].toLowerCase())

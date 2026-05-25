@@ -9,8 +9,9 @@ import type {
 	ToolExecution
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts, type RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
+import { normalizeChartConfigs, normalizeChartDataByKey, normalizeDashboardItems } from './chartPayloads'
 
-export interface PersistedToolExecution extends ToolExecution {
+export interface PersistedToolExecution extends Partial<ToolExecution> {
 	toolName?: string
 }
 
@@ -20,7 +21,7 @@ export interface PersistedMessageMetadata extends RestoredAlertMetadata {
 	quotedText?: string
 	dashboardConfig?: {
 		dashboardName?: string
-		items?: DashboardItem[]
+		items?: unknown
 		timePeriod?: string
 		sourceDashboardId?: string
 	}
@@ -32,8 +33,8 @@ export interface PersistedMessageMetadata extends RestoredAlertMetadata {
 export interface PersistedMessage {
 	role: 'user' | 'assistant'
 	content?: string
-	charts?: ChartConfiguration[]
-	chartData?: ChartDataByKey
+	charts?: unknown
+	chartData?: unknown
 	citations?: string[]
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
@@ -78,7 +79,7 @@ export interface SharedSessionMessage {
 	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
-	charts?: ChartConfiguration[]
+	charts?: unknown
 	chartData?: unknown[] | ChartDataByKey
 	citations?: string[]
 	csvExports?: CsvExport[]
@@ -103,7 +104,9 @@ const mapPersistedTimestamp = (timestamp: PersistedMessage['timestamp']): number
 function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 	return {
 		...tool,
-		name: tool.name || tool.toolName || 'unknown'
+		name: tool.name || tool.toolName || 'unknown',
+		executionTimeMs: typeof tool.executionTimeMs === 'number' ? tool.executionTimeMs : 0,
+		success: tool.success === true
 	}
 }
 
@@ -114,6 +117,13 @@ function stableHash(value: string): string {
 		hash = Math.imul(hash, 16777619)
 	}
 	return (hash >>> 0).toString(36)
+}
+
+function hasChartData(chartData: ChartDataByKey): boolean {
+	for (const key in chartData) {
+		if (chartData[key]?.length) return true
+	}
+	return false
 }
 
 function getRestoredDashboardIdSuffix(message: PersistedMessage, index?: number): string {
@@ -127,7 +137,7 @@ function getRestoredDashboardIdSuffix(message: PersistedMessage, index?: number)
 			message.parentId ?? '',
 			dashboardConfig?.dashboardName ?? '',
 			dashboardConfig?.sourceDashboardId ?? '',
-			dashboardConfig?.items?.length ?? 0,
+			Array.isArray(dashboardConfig?.items) ? dashboardConfig.items.length : 0,
 			index ?? ''
 		].join('\u001f')
 	)}`
@@ -136,6 +146,9 @@ function getRestoredDashboardIdSuffix(message: PersistedMessage, index?: number)
 function buildRestoredDashboard(message: PersistedMessage, index?: number): DashboardArtifact | null {
 	const dashboardConfig = message.metadata?.dashboardConfig
 	if (!dashboardConfig) return null
+	const items = normalizeDashboardItems(dashboardConfig.items)
+	const charts = normalizeChartConfigs(message.charts)
+	const chartData = normalizeChartDataByKey(message.chartData, charts)
 
 	// Historical persisted messages may not have a dashboard id, but the render
 	// model still needs a stable artifact key for fallback rendering.
@@ -143,20 +156,20 @@ function buildRestoredDashboard(message: PersistedMessage, index?: number): Dash
 	const artifact: DashboardArtifact = {
 		id: `dashboard_restored_${restoredDashboardIdSuffix}`,
 		dashboardName: dashboardConfig.dashboardName || 'Dashboard',
-		items: dashboardConfig.items ?? [],
+		items,
 		timePeriod: dashboardConfig.timePeriod,
 		sourceDashboardId: dashboardConfig.sourceDashboardId
 	}
-	const chartRefs = (dashboardConfig.items ?? []).filter(
+	const chartRefs = items.filter(
 		(item): item is Extract<DashboardItem, { kind: 'llamaai-chart' }> & { chartRef: string } =>
 			item.kind === 'llamaai-chart' && typeof item.chartRef === 'string'
 	)
-	if (chartRefs.length > 0 && message.chartData && message.charts) {
-		const chartConfigMap = new Map(message.charts.map((chart) => [chart.id, chart]))
+	if (chartRefs.length > 0 && charts.length > 0) {
+		const chartConfigMap = new Map(charts.map((chart) => [chart.id, chart]))
 		const bundled: NonNullable<DashboardArtifact['chartData']> = {}
 		for (const item of chartRefs) {
-			const data = message.chartData[item.chartRef]
 			const config = chartConfigMap.get(item.chartRef)
+			const data = chartData[item.chartRef] || (config?.datasetName ? chartData[config.datasetName] : undefined)
 			if (data && config) {
 				bundled[item.chartRef] = { config, data, toolChain: [] }
 			}
@@ -169,11 +182,12 @@ function buildRestoredDashboard(message: PersistedMessage, index?: number): Dash
 
 export function mapPersistedMessage(message: PersistedMessage, index?: number): Message {
 	const restoredDashboard = buildRestoredDashboard(message, index)
+	const charts = normalizeChartConfigs(message.charts)
+	const chartData = normalizeChartDataByKey(message.chartData, charts)
 	return {
 		role: message.role,
 		content: message.content,
-		charts:
-			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
+		charts: charts.length > 0 && hasChartData(chartData) ? [{ charts, chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
 		mdExports: message.mdExports ?? message.metadata?.mdExports,
@@ -208,29 +222,16 @@ export function normalizeSharedChartDataByChartId(
 	chartData: SharedSessionMessage['chartData']
 ): ChartDataByKey | undefined {
 	if (!charts || charts.length === 0 || !chartData) return undefined
-	if (!Array.isArray(chartData)) return chartData
-
-	// Older shared-session payloads stored one flat row array. Attach it to the
-	// first chart's dataset key so ChartRenderer can use the normal keyed path.
-	const fallbackKey = charts[0]?.datasetName || charts[0]?.id || 'default'
-	return {
-		[fallbackKey]: chartData
-	}
+	return normalizeChartDataByKey(chartData, charts)
 }
 
 export function mapSharedSessionMessage(message: SharedSessionMessage, index?: number): Message {
+	const charts = normalizeChartConfigs(message.charts)
+	const chartData = normalizeSharedChartDataByChartId(charts, message.chartData)
 	return {
 		role: message.role,
 		content: message.content || undefined,
-		charts:
-			message.charts && message.chartData
-				? [
-						{
-							charts: message.charts,
-							chartData: normalizeSharedChartDataByChartId(message.charts, message.chartData) ?? {}
-						}
-					]
-				: undefined,
+		charts: charts.length > 0 && chartData && hasChartData(chartData) ? [{ charts, chartData }] : undefined,
 		csvExports: message.csvExports,
 		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		citations: message.citations,

@@ -121,7 +121,7 @@ export type StreamAction =
 	| { type: 'SET_SPAWN_RESEARCH_MODE'; value: boolean }
 	| { type: 'SET_EXECUTION_STARTED_AT'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
-	| { type: 'SET_TODOS'; value: TodoItem[] }
+	| { type: 'SET_TODOS'; value: unknown }
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
@@ -293,14 +293,12 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, spawnProgress: next }
 		}
 		case 'SET_TODOS': {
-			if (state.isStreaming && action.value.length === 0 && state.todos.length > 0) return state
+			const todos = Array.isArray(action.value) ? (action.value as TodoItem[]) : []
+			if (state.isStreaming && todos.length === 0 && state.todos.length > 0) return state
 			// Keep the first non-empty todo timestamp stable while later snapshots
 			// update item statuses; the elapsed timer should not restart per update.
-			const todosStartTime =
-				Array.isArray(action.value) && action.value.length > 0
-					? state.todosStartTime || Date.now()
-					: state.todosStartTime
-			return { ...state, todos: action.value, todosStartTime }
+			const todosStartTime = todos.length > 0 ? state.todosStartTime || Date.now() : state.todosStartTime
+			return { ...state, todos, todosStartTime }
 		}
 		case 'START_RECOVERY':
 			return {

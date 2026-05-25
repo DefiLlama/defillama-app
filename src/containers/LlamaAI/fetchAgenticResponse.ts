@@ -1,5 +1,6 @@
 import { AI_SERVER } from '~/constants'
 import {
+	normalizeChartConfigs,
 	normalizeChartDataByKey,
 	normalizeDashboardChartData,
 	normalizeDashboardItems
@@ -9,13 +10,12 @@ import type {
 	ChartConfiguration,
 	ChartDataByKey,
 	DashboardArtifact,
-	DashboardChartData,
-	DashboardItem,
 	GeneratedImage,
 	MessageMetadata,
 	TodoItem,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
+import { normalizeAlertProposedData } from '~/containers/LlamaAI/utils/restoredAlerts'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -85,28 +85,28 @@ interface ToolCallEvent {
 
 interface ResponseChunkEvent {
 	type: 'response_chunk'
-	content: string
+	content?: unknown
 }
 
 interface ChartsEvent {
 	type: 'charts'
-	charts: ChartConfiguration[]
-	chartData: ChartDataByKey
+	charts?: unknown
+	chartData?: unknown
 }
 
 interface GeneratedImagesEvent {
 	type: 'generated_images'
-	images: GeneratedImage[]
+	images?: unknown
 }
 
 interface CsvExportEvent {
 	type: 'csv_export'
-	exports: CsvExport[]
+	exports?: unknown
 }
 
 interface MdExportEvent {
 	type: 'md_export'
-	exports: MdExport[]
+	exports?: unknown
 }
 
 interface AlertProposedEvent extends AlertProposedData {
@@ -117,21 +117,21 @@ interface DashboardEvent {
 	type: 'dashboard'
 	dashboard_id?: string
 	dashboardConfig?: {
-		dashboardName: string
-		items: DashboardItem[]
-		timePeriod?: string
-		sourceDashboardId?: string
+		dashboardName?: unknown
+		items?: unknown
+		timePeriod?: unknown
+		sourceDashboardId?: unknown
 	}
-	chartData?: DashboardChartData
+	chartData?: unknown
 	content?: {
 		dashboard_id?: string
 		dashboardConfig?: {
-			dashboardName: string
-			items: DashboardItem[]
-			timePeriod?: string
-			sourceDashboardId?: string
+			dashboardName?: unknown
+			items?: unknown
+			timePeriod?: unknown
+			sourceDashboardId?: unknown
 		}
-		chartData?: DashboardChartData
+		chartData?: unknown
 	}
 }
 
@@ -144,12 +144,12 @@ interface CompactionEvent {
 
 interface ThinkingEvent {
 	type: 'thinking'
-	content: string
+	content?: unknown
 }
 
 interface CitationsEvent {
 	type: 'citations'
-	citations: string[]
+	citations?: unknown
 }
 
 interface TitleEvent {
@@ -197,7 +197,7 @@ interface ContextWarningEvent {
 
 interface TodoSnapshotEvent {
 	type: 'todo_snapshot'
-	todos: TodoItem[]
+	todos?: unknown
 	summary?: Record<string, number>
 }
 
@@ -246,6 +246,14 @@ type AgenticSSEEvent =
 	| ContextWarningEvent
 	| ErrorEvent
 	| DoneEvent
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function normalizeArray<T>(value: unknown): T[] {
+	return Array.isArray(value) ? (value as T[]) : []
+}
 
 interface RateLimitErrorDetails {
 	period?: string
@@ -318,12 +326,12 @@ export function parseSSEStream(
 	let sawDone = false
 
 	const handleLine = (line: string) => {
-		if (!line.startsWith('data: ')) return
+		if (!line.startsWith('data:')) return
 
 		try {
-			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
-			// Count every parsed server event, including `done`, because resume/replay
-			// cursors are expressed in backend event offsets rather than UI mutations.
+			const data = JSON.parse(line.slice(5).trimStart()) as AgenticSSEEvent
+			// Backend replay PRs #32/#33 use event offsets, not UI mutations, so count
+			// every parsed server event, including `done`.
 			if (eventCounter) eventCounter.count++
 			if (data.type === 'done') sawDone = true
 
@@ -335,42 +343,51 @@ export function parseSSEStream(
 					callbacks.onProgress(data.name, data.isPremium)
 					break
 				case 'response_chunk': {
-					const chunk = data.content.replace(/<bill\s*\/>/g, '')
+					const chunk = typeof data.content === 'string' ? data.content.replace(/<bill\s*\/>/g, '') : ''
 					if (chunk) callbacks.onToken(chunk)
 					break
 				}
-				case 'charts':
-					callbacks.onCharts(data.charts, normalizeChartDataByKey(data.chartData))
+				case 'charts': {
+					const charts = normalizeChartConfigs(data.charts)
+					callbacks.onCharts(charts, normalizeChartDataByKey(data.chartData, charts))
 					break
+				}
 				case 'generated_images':
-					callbacks.onGeneratedImages?.(data.images)
+					callbacks.onGeneratedImages?.(normalizeArray<GeneratedImage>(data.images))
 					break
 				case 'csv_export':
-					callbacks.onCsvExport?.(data.exports)
+					callbacks.onCsvExport?.(normalizeArray<CsvExport>(data.exports))
 					break
 				case 'md_export':
-					callbacks.onMdExport?.(data.exports)
+					callbacks.onMdExport?.(normalizeArray<MdExport>(data.exports))
 					break
 				case 'alert_proposed':
-					callbacks.onAlertProposed?.(data)
+					callbacks.onAlertProposed?.(normalizeAlertProposedData(data))
 					break
 				case 'dashboard': {
 					const config = data.dashboardConfig || data.content?.dashboardConfig
 					const chartData = data.chartData || data.content?.chartData
-					if (config && callbacks.onDashboard) {
+					if (isRecord(config) && callbacks.onDashboard) {
 						// Dashboard events can arrive in both top-level and nested `content`
-						// forms while deployments roll; normalize both shapes here.
+						// forms around PR #2790; normalize both shapes here.
+						const items = normalizeDashboardItems(config.items)
+						const dashboardName =
+							typeof config.dashboardName === 'string' && config.dashboardName.trim()
+								? config.dashboardName
+								: 'Dashboard'
+						const sourceDashboardId =
+							typeof config.sourceDashboardId === 'string' ? config.sourceDashboardId : undefined
 						const dashboardChartData = normalizeDashboardChartData(chartData)
 						const stableId =
 							data.dashboard_id ||
 							data.content?.dashboard_id ||
-							`dashboard_${config.dashboardName}_${config.sourceDashboardId ?? ''}_${config.items.length}`
+							`dashboard_${dashboardName}_${sourceDashboardId ?? ''}_${items.length}`
 						callbacks.onDashboard({
 							id: stableId,
-							dashboardName: config.dashboardName,
-							items: normalizeDashboardItems(config.items),
-							timePeriod: config.timePeriod,
-							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
+							dashboardName,
+							items,
+							...(typeof config.timePeriod === 'string' && { timePeriod: config.timePeriod }),
+							...(sourceDashboardId && { sourceDashboardId }),
 							...(dashboardChartData && { chartData: dashboardChartData })
 						})
 					}
@@ -386,19 +403,19 @@ export function parseSSEStream(
 					callbacks.onToolExecution?.(data)
 					break
 				case 'todo_snapshot':
-					callbacks.onTodos?.(data.todos)
+					callbacks.onTodos?.(normalizeArray<TodoItem>(data.todos))
 					break
 				case 'message_metadata':
 					callbacks.onMessageMetadata?.(data.content)
 					break
 				case 'thinking':
-					callbacks.onThinking?.(data.content)
+					if (typeof data.content === 'string') callbacks.onThinking?.(data.content)
 					break
 				case 'citations':
-					callbacks.onCitations(data.citations)
+					callbacks.onCitations(normalizeArray<string>(data.citations))
 					break
 				case 'title':
-					callbacks.onTitle?.(data.content)
+					if (typeof data.content === 'string') callbacks.onTitle?.(data.content)
 					break
 				case 'message_id':
 					callbacks.onMessageId?.(data.messageId)

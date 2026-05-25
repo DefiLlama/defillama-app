@@ -442,17 +442,22 @@ function ChartRendererImpl({
 					))}
 				</div>
 			) : null}
-			{charts.map((chart, index) => (
-				<SingleChart
-					key={chart.id}
-					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
-					isActive={!hasMultipleCharts || activeTabIndex === index}
-					title={chart.title}
-					sessionId={sessionId}
-					messageId={messageId}
-				/>
-			))}
+			{charts.map((chart, index) => {
+				// Backend sessions before the keyed chart-data transition (commit a6035b1)
+				// stored one flat row array. PR #2666 kept this branch load-bearing.
+				const data = Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []
+				return (
+					<SingleChart
+						key={chart.id}
+						config={chart}
+						data={data}
+						isActive={!hasMultipleCharts || activeTabIndex === index}
+						title={chart.title}
+						sessionId={sessionId}
+						messageId={messageId}
+					/>
+				)
+			})}
 		</div>
 	)
 }

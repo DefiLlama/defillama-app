@@ -156,7 +156,13 @@ const parseStrictDateLabelToMs = (timestamp: unknown): number | null => {
 
 const looksLikeDateField = (field: string) => DATE_LIKE_FIELD_RE.test(field)
 
-const normalizeCategoryXValue = (rawValue: unknown) => (rawValue == null ? null : String(rawValue))
+const normalizeCategoryXValue = (rawValue: unknown) => {
+	if (rawValue == null) return null
+	// Historical category charts used an "Unknown" bucket for blank labels; keep that
+	// fallback without treating numeric zero as blank.
+	if (typeof rawValue === 'string' && rawValue.trim() === '') return 'Unknown'
+	return String(rawValue)
+}
 
 function inferTimeSeriesAxis(
 	config: ChartConfiguration,

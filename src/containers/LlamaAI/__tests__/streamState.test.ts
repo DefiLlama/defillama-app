@@ -42,4 +42,13 @@ describe('streamReducer', () => {
 
 		expect(streamReducer(state, { type: 'SET_TODOS', value: [] }).todos).toEqual([])
 	})
+
+	it('treats malformed todo snapshots as empty arrays', () => {
+		const state = {
+			...createInitialStreamState(),
+			todos: [{ id: 'todo-1', content: 'Research TVL', status: 'completed' as const }]
+		}
+
+		expect(streamReducer(state, { type: 'SET_TODOS', value: null }).todos).toEqual([])
+	})
 })

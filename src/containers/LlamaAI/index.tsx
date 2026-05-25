@@ -357,6 +357,7 @@ export function AgenticChat({
 		csvExports: streamingCsvExports,
 		mdExports: streamingMdExports,
 		alerts: streamingAlerts,
+		dashboards: streamingDashboards,
 		citations: streamingCitations,
 		toolExecutions: streamingToolExecutions,
 		generatedImages: streamingGeneratedImages,
@@ -463,6 +464,7 @@ export function AgenticChat({
 			streamingCsvExports.length > 0 ||
 			streamingMdExports.length > 0 ||
 			streamingAlerts.length > 0 ||
+			streamingDashboards.length > 0 ||
 			streamingCitations.length > 0 ||
 			streamingToolExecutions.length > 0 ||
 			streamingThinking ||
@@ -475,6 +477,7 @@ export function AgenticChat({
 			csvExports: streamingCsvExports.length > 0 ? streamingCsvExports : undefined,
 			mdExports: streamingMdExports.length > 0 ? streamingMdExports : undefined,
 			alerts: streamingAlerts.length > 0 ? streamingAlerts : undefined,
+			dashboards: streamingDashboards.length > 0 ? streamingDashboards : undefined,
 			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
 			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined,
 			thinking: streamingThinking || undefined,
@@ -487,6 +490,7 @@ export function AgenticChat({
 		streamingCsvExports,
 		streamingMdExports,
 		streamingAlerts,
+		streamingDashboards,
 		streamingCitations,
 		streamingToolExecutions,
 		streamingThinking,

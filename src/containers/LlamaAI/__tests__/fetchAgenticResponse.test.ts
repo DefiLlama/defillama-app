@@ -183,6 +183,86 @@ describe('parseSSEStream', () => {
 			chartData
 		})
 	})
+
+	it('normalizes malformed optional SSE fields instead of aborting the stream', async () => {
+		const cb = callbacks()
+
+		const result = await parseSSEStream(
+			sseReader(
+				JSON.stringify({ type: 'response_chunk', content: 123 }),
+				JSON.stringify({
+					type: 'charts',
+					charts: [chartConfig, { id: 'bad' }],
+					chartData: [{ timestamp: 1, tvl: 100 }]
+				}),
+				JSON.stringify({ type: 'generated_images' }),
+				JSON.stringify({ type: 'csv_export', exports: {} }),
+				JSON.stringify({ type: 'md_export', exports: null }),
+				JSON.stringify({ type: 'citations' }),
+				JSON.stringify({ type: 'todo_snapshot' }),
+				JSON.stringify({
+					type: 'alert_proposed',
+					content: {
+						alertId: 'alert-1',
+						title: 'Fee alert',
+						alertIntent: { deliveryChannel: 'slack', slackTeamId: 'T1', slackChannelName: 'alerts' }
+					}
+				}),
+				JSON.stringify({
+					type: 'dashboard',
+					dashboardConfig: {},
+					chartData: {
+						'chart-1': {
+							config: chartConfig,
+							data: [{ timestamp: 1, tvl: 100 }],
+							toolChain: 'legacy-bad-tool-chain'
+						},
+						malformed: { config: { id: 'bad' }, data: [{ timestamp: 2, tvl: 200 }] }
+					}
+				}),
+				JSON.stringify({ type: 'done' })
+			),
+			cb
+		)
+
+		expect(result).toEqual({ sawDone: true })
+		expect(cb.onToken).not.toHaveBeenCalled()
+		expect(cb.onCharts).toHaveBeenCalledWith([chartConfig], { 'chart-1': [{ timestamp: 1, tvl: 100 }] })
+		expect(cb.onGeneratedImages).toHaveBeenCalledWith([])
+		expect(cb.onCsvExport).toHaveBeenCalledWith([])
+		expect(cb.onMdExport).toHaveBeenCalledWith([])
+		expect(cb.onCitations).toHaveBeenCalledWith([])
+		expect(cb.onTodos).toHaveBeenCalledWith([])
+		expect(cb.onAlertProposed).toHaveBeenCalledWith({
+			alertId: 'alert-1',
+			title: 'Fee alert',
+			alertIntent: {
+				frequency: 'daily',
+				hour: 9,
+				timezone: 'UTC',
+				dayOfWeek: undefined,
+				deliveryChannel: 'slack',
+				slackTeamId: 'T1',
+				slackTeamName: null,
+				slackChannelId: null,
+				slackChannelName: 'alerts'
+			},
+			schedule_expression: '',
+			next_run_at: ''
+		})
+		expect(cb.onDashboard).toHaveBeenCalledWith({
+			id: 'dashboard_Dashboard__0',
+			dashboardName: 'Dashboard',
+			items: [],
+			chartData: {
+				'chart-1': {
+					config: chartConfig,
+					data: [{ timestamp: 1, tvl: 100 }],
+					toolChain: []
+				}
+			}
+		})
+	})
 })
 
 describe('fetchAgenticResponse', () => {

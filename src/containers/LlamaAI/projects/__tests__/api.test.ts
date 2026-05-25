@@ -20,9 +20,17 @@ describe('project API wrappers', () => {
 		await expect(listProjects(fetcher)).resolves.toEqual(projects)
 	})
 
-	it('surfaces malformed typed envelopes instead of returning fallback arrays', async () => {
+	it('treats missing or malformed 2xx envelopes as empty lists', async () => {
 		const fetcher: AuthorizedFetch = async () => jsonResponse({})
 
-		await expect(listProjectSessions(fetcher, 'project-1')).rejects.toThrow('Malformed project sessions response')
+		await expect(listProjects(fetcher)).resolves.toEqual([])
+		await expect(listProjectSessions(fetcher, 'project-1')).resolves.toEqual([])
+	})
+
+	it('still throws on non-2xx responses', async () => {
+		const fetcher: AuthorizedFetch = async () => jsonResponse({ error: 'nope' }, { status: 500 })
+
+		await expect(listProjects(fetcher)).rejects.toThrow('nope')
+		await expect(listProjectSessions(fetcher, 'project-1')).rejects.toThrow('nope')
 	})
 })

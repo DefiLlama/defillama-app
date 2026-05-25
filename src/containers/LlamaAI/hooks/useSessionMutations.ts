@@ -40,6 +40,16 @@ type SessionRestoreResponse = {
 	projectId?: string | null
 }
 
+function getSessionRestoreMessages(result: SessionRestoreResponse | null | undefined): unknown[] {
+	// PR #2299 renamed conversationHistory to messages; old restore payloads
+	// and malformed 2xx envelopes must normalize before callers map them.
+	return Array.isArray(result?.messages)
+		? result.messages
+		: Array.isArray(result?.conversationHistory)
+			? result.conversationHistory
+			: []
+}
+
 function assertSwitchActiveLeafResponse(response: unknown): asserts response is SwitchActiveLeafResponse {
 	if (!response || typeof response !== 'object' || Array.isArray(response)) {
 		throw new Error('Invalid branch switch response')
@@ -206,7 +216,7 @@ export function useSessionMutations() {
 				if (afterSequence !== undefined) params.append('afterSequence', afterSequence.toString())
 
 				const query = params.toString()
-				const response = await llamaAIRequest<SessionRestoreResponse>(
+				const response = await llamaAIRequest<SessionRestoreResponse | null>(
 					authorizedFetch,
 					`/user/sessions/${sessionId}/restore${query ? `?${query}` : ''}`
 				)
@@ -432,19 +442,20 @@ export function useSessionMutations() {
 					limit: around ? 20 : limit,
 					around
 				})
+				const messages = getSessionRestoreMessages(result)
 				return {
-					messages: result.messages || result.conversationHistory || [],
+					messages,
 					pagination: {
-						hasMore: result.hasMore ?? false,
+						hasMore: result?.hasMore ?? false,
 						isLoadingMore: false,
-						cursor: result.nextCursor,
-						totalMessages: result.totalMessages,
-						hasNewer: result.hasNewer ?? false,
-						newerCursor: result.newerCursor
+						cursor: result?.nextCursor,
+						totalMessages: result?.totalMessages,
+						hasNewer: result?.hasNewer ?? false,
+						newerCursor: result?.newerCursor
 					},
-					streaming: result.streaming,
-					todos: result.todos,
-					projectId: result.projectId ?? null
+					streaming: result?.streaming,
+					todos: result?.todos,
+					projectId: result?.projectId ?? null
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
@@ -460,12 +471,12 @@ export function useSessionMutations() {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
 				return {
-					messages: result.messages || result.conversationHistory || [],
+					messages: getSessionRestoreMessages(result),
 					pagination: {
-						hasMore: result.hasMore ?? false,
+						hasMore: result?.hasMore ?? false,
 						isLoadingMore: false,
-						cursor: result.nextCursor,
-						totalMessages: result.totalMessages
+						cursor: result?.nextCursor,
+						totalMessages: result?.totalMessages
 					}
 				}
 			} catch (error) {
@@ -481,10 +492,10 @@ export function useSessionMutations() {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, afterSequence })
 				return {
-					messages: result.messages || result.conversationHistory || [],
+					messages: getSessionRestoreMessages(result),
 					pagination: {
-						hasNewer: result.hasNewer ?? false,
-						newerCursor: result.newerCursor
+						hasNewer: result?.hasNewer ?? false,
+						newerCursor: result?.newerCursor
 					}
 				}
 			} catch (error) {

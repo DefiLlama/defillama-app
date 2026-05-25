@@ -277,9 +277,11 @@ export class ChartDataTransformer {
 			const formattedSeries = nextChart.seriesMeta.map((meta) => {
 				const data: Array<[number, number]> = []
 				for (const row of nextChart.props.dataset.source) {
-					const timestamp = row.timestamp as number
+					// Pre-March-2026 restored sessions (PR #2666 era) can carry string
+					// timestamps; malformed rows must not produce NaN buckets.
+					const timestamp = Number(row.timestamp)
 					const value = row[meta.name]
-					if (typeof value !== 'number' || Number.isNaN(value)) continue
+					if (!Number.isFinite(timestamp) || typeof value !== 'number' || Number.isNaN(value)) continue
 					data.push([timestamp, value])
 				}
 
@@ -302,7 +304,8 @@ export class ChartDataTransformer {
 		const groupedRows = new Map<number, Map<string, number[]>>()
 
 		for (const row of nextChart.props.dataset.source) {
-			const timestamp = row.timestamp as number
+			const timestamp = Number(row.timestamp)
+			if (!Number.isFinite(timestamp)) continue
 			const bucket = bucketTimestamp(timestamp, interval)
 			if (!groupedRows.has(bucket)) {
 				groupedRows.set(bucket, new Map())
@@ -334,7 +337,8 @@ export class ChartDataTransformer {
 		const formattedSeries = nextChart.seriesMeta.map((meta) => {
 			const data: Array<[number, number]> = []
 			for (const row of nextChart.props.dataset.source) {
-				const timestamp = row.timestamp as number
+				const timestamp = Number(row.timestamp)
+				if (!Number.isFinite(timestamp)) continue
 				const rawValue = row[meta.name]
 				const numericValue = typeof rawValue === 'number' && !Number.isNaN(rawValue) ? rawValue : 0
 				data.push([timestamp, numericValue])

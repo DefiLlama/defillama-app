@@ -1,7 +1,6 @@
 import { formatChartValue } from '~/components/ECharts/formatters'
 import type { IScatterChartProps } from '~/components/ECharts/types'
 import type { ChartConfiguration, ChartDataSeries } from '~/containers/LlamaAI/types'
-import { parseStringNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
 
 export interface AdaptedScatterChartData {
 	chartType: 'scatter'
@@ -29,6 +28,13 @@ const escapeHtml = (value: string) =>
 		}
 	})
 
+const parseScatterNumber = (value: unknown): number | null => {
+	if (typeof value === 'number') return Number.isFinite(value) ? value : null
+	if (typeof value !== 'string' || value.trim() === '') return null
+	const parsed = parseFloat(value)
+	return Number.isFinite(parsed) ? parsed : null
+}
+
 export function adaptScatterChartData(config: ChartConfiguration, rawData: ChartDataSeries): AdaptedScatterChartData {
 	try {
 		if (!rawData || rawData.length === 0) throw new Error('No data provided')
@@ -44,8 +50,11 @@ export function adaptScatterChartData(config: ChartConfiguration, rawData: Chart
 		const scatterData: Array<[number, number, string, string]> = []
 		for (const row of rawData) {
 			const record = row as Record<string, unknown>
-			const xValue = parseStringNumber(record[xField])
-			const yValue = parseStringNumber(record[yField])
+			const xValue = parseScatterNumber(record[xField])
+			const yValue = parseScatterNumber(record[yField])
+			// Missing legacy scatter coordinates must be dropped; coercing them to 0
+			// creates phantom origin points in restored pre-keyed chart sessions.
+			if (xValue == null || yValue == null) continue
 			const entityName = String(record[entityField] ?? 'Unknown')
 			const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
 			scatterData.push([xValue, yValue, entityName, entitySlug])

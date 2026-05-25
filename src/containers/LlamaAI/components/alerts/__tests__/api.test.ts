@@ -20,9 +20,17 @@ describe('alerts API wrappers', () => {
 		await expect(fetchAlerts(fetcher)).resolves.toEqual(alerts)
 	})
 
-	it('surfaces malformed typed envelopes instead of returning fallback arrays', async () => {
+	it('treats missing or malformed 2xx envelopes as empty lists', async () => {
 		const fetcher: AuthorizedFetch = async () => jsonResponse({})
 
-		await expect(fetchAlertExecutions(fetcher, 'alert-1')).rejects.toThrow('Malformed alert executions response')
+		await expect(fetchAlerts(fetcher)).resolves.toEqual([])
+		await expect(fetchAlertExecutions(fetcher, 'alert-1')).resolves.toEqual([])
+	})
+
+	it('still throws on non-2xx responses', async () => {
+		const fetcher: AuthorizedFetch = async () => jsonResponse({ error: 'nope' }, { status: 500 })
+
+		await expect(fetchAlerts(fetcher)).rejects.toThrow('Failed to fetch alerts')
+		await expect(fetchAlertExecutions(fetcher, 'alert-1')).rejects.toThrow('Failed to fetch executions')
 	})
 })
