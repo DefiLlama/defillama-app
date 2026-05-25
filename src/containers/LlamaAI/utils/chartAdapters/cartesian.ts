@@ -185,11 +185,19 @@ function inferTimeSeriesAxis(
 		}
 	}
 
-	const rawValues = rawData
-		.map((row) => asRecord(row)[config.axes.x.field])
-		.filter((value) => value != null && String(value).trim().length > 0)
+	const rawValues: string[] = []
+	let hasNonStringValue = false
+	for (const row of rawData) {
+		const value = asRecord(row)[config.axes.x.field]
+		if (value == null || String(value).trim().length === 0) continue
+		if (typeof value !== 'string') {
+			hasNonStringValue = true
+			break
+		}
+		rawValues.push(value)
+	}
 
-	if (rawValues.length === 0 || rawValues.some((v) => typeof v !== 'string')) {
+	if (rawValues.length === 0 || hasNonStringValue) {
 		return {
 			axisType: 'category',
 			dimensionName: 'category',
@@ -198,9 +206,16 @@ function inferTimeSeriesAxis(
 		}
 	}
 
-	const parsedValues = rawValues.map((value) => parseStrictDateLabelToMs(value))
-	const allParsed = parsedValues.every((value) => value != null)
-	const uniqueTimestamps = new Set(parsedValues.filter((value): value is number => value != null))
+	const uniqueTimestamps = new Set<number>()
+	let allParsed = true
+	for (const value of rawValues) {
+		const parsedValue = parseStrictDateLabelToMs(value)
+		if (parsedValue == null) {
+			allParsed = false
+			break
+		}
+		uniqueTimestamps.add(parsedValue)
+	}
 
 	// Some model configs mark a date-like dimension as category. Promote only
 	// when every populated value parses and there is enough variation for a time axis.

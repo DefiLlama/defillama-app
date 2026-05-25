@@ -1,7 +1,7 @@
 import { formatChartValue } from '~/components/ECharts/formatters'
 import type { IScatterChartProps } from '~/components/ECharts/types'
 import type { ChartConfiguration, ChartDataSeries } from '~/containers/LlamaAI/types'
-import { parseFiniteNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
+import { parseStringNumber } from '~/containers/LlamaAI/utils/chartAdapters/shared'
 
 export interface AdaptedScatterChartData {
 	chartType: 'scatter'
@@ -44,9 +44,8 @@ export function adaptScatterChartData(config: ChartConfiguration, rawData: Chart
 		const scatterData: Array<[number, number, string, string]> = []
 		for (const row of rawData) {
 			const record = row as Record<string, unknown>
-			const xValue = parseFiniteNumber(record[xField])
-			const yValue = parseFiniteNumber(record[yField])
-			if (xValue === null || yValue === null) continue
+			const xValue = parseStringNumber(record[xField])
+			const yValue = parseStringNumber(record[yField])
 			const entityName = String(record[entityField] ?? 'Unknown')
 			const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
 			scatterData.push([xValue, yValue, entityName, entitySlug])

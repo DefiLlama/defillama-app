@@ -136,15 +136,15 @@ Artifact ownership:
 
 ## Charts Pipeline
 
-Chart payloads are normalized at the unknown API boundary before renderer code
-uses them. Chart rendering then flows through adapter, capabilities,
-transformer, render plan, and UI controls.
+Chart payloads are typed at the SSE/API boundary and passed through without
+row/config filtering on the client. Chart rendering then flows through adapter,
+capabilities, transformer, render plan, and UI controls.
 
 ```mermaid
 flowchart TD
-  SSE["charts or dashboard SSE payload"] --> Normalize["chartPayloads normalizers"]
+  SSE["typed charts or dashboard SSE payload"] --> PassThrough["chartPayloads typed pass-through"]
   Restore["persisted or shared chart data"] --> Mappers["messageMappers"]
-  Normalize --> MessageCharts["Message.charts or dashboard chartData"]
+  PassThrough --> MessageCharts["Message.charts or dashboard chartData"]
   Mappers --> MessageCharts
   MessageCharts --> Renderer["ChartRenderer"]
   Renderer --> Adapter["adaptChartData"]
@@ -161,7 +161,8 @@ Rules for chart changes:
 
 - Keep `utils/chartAdapter.ts` as the stable facade.
 - Add chart-family behavior through the family adapter modules.
-- New loose backend chart payloads should be handled in `chartPayloads.ts`.
+- Backend chart payload shape changes should be fixed at the API/SSE contract,
+  not by filtering rows or configs in render code.
 - Preserve public exports: `adaptChartData`, `adaptCandlestickData`, and
   `AdaptedChartData`.
 

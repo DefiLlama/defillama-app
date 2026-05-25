@@ -114,7 +114,11 @@ describe('parseSSEStream', () => {
 				JSON.stringify({ type: 'charts', charts: [], chartData: { rows: [] } }),
 				JSON.stringify({ type: 'citations', citations: ['https://example.com'] }),
 				JSON.stringify({ type: 'tool_execution', name: 'search', success: true }),
-				JSON.stringify({ type: 'dashboard', dashboard_id: 'dash-1', dashboardConfig: { dashboardName: 'Dash' } }),
+				JSON.stringify({
+					type: 'dashboard',
+					dashboard_id: 'dash-1',
+					dashboardConfig: { dashboardName: 'Dash', items: [] }
+				}),
 				JSON.stringify({ type: 'done' })
 			),
 			cb,
@@ -144,6 +148,41 @@ describe('parseSSEStream', () => {
 		expect(cb.onToken).toHaveBeenCalledWith('partial')
 		expect(cb.onDone).not.toHaveBeenCalled()
 	})
+
+	it('preserves nested dashboard chart payloads', async () => {
+		const cb = callbacks()
+		const chartData = {
+			'chart-1': {
+				config: chartConfig,
+				data: [{ timestamp: 1, tvl: 100 }],
+				toolChain: [{ name: 'generate_chart' }]
+			}
+		}
+
+		await parseSSEStream(
+			sseReader(
+				JSON.stringify({
+					type: 'dashboard',
+					content: {
+						dashboard_id: 'dash-1',
+						dashboardConfig: {
+							dashboardName: 'Nested dashboard',
+							items: [{ kind: 'llamaai-chart', chartRef: 'chart-1', title: 'TVL' }]
+						},
+						chartData
+					}
+				})
+			),
+			cb
+		)
+
+		expect(cb.onDashboard).toHaveBeenCalledWith({
+			id: 'dash-1',
+			dashboardName: 'Nested dashboard',
+			items: [{ kind: 'llamaai-chart', chartRef: 'chart-1', title: 'TVL' }],
+			chartData
+		})
+	})
 })
 
 describe('fetchAgenticResponse', () => {
@@ -159,7 +198,7 @@ describe('fetchAgenticResponse', () => {
 					charts: [chartConfig],
 					chartData: {
 						'chart-1': [{ timestamp: 1, tvl: 100 }],
-						ignored: { timestamp: 2, tvl: 200 }
+						'chart-2': [{ timestamp: 2, tvl: 200 }]
 					}
 				}),
 				JSON.stringify({
@@ -233,7 +272,10 @@ describe('fetchAgenticResponse', () => {
 		expect(eventCounter.count).toBe(7)
 		expect(cb.onSessionId).toHaveBeenCalledWith('session-1', 123)
 		expect(cb.onToken).toHaveBeenCalledWith('hello')
-		expect(cb.onCharts).toHaveBeenCalledWith([chartConfig], { 'chart-1': [{ timestamp: 1, tvl: 100 }] })
+		expect(cb.onCharts).toHaveBeenCalledWith([chartConfig], {
+			'chart-1': [{ timestamp: 1, tvl: 100 }],
+			'chart-2': [{ timestamp: 2, tvl: 200 }]
+		})
 		expect(cb.onDashboard).toHaveBeenCalledWith({
 			id: 'dash-1',
 			dashboardName: 'Protocol dashboard',

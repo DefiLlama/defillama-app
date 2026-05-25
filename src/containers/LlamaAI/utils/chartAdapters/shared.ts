@@ -42,10 +42,3 @@ export const parseStringNumber = (value: unknown): number => {
 	}
 	return 0
 }
-
-export const parseFiniteNumber = (value: unknown): number | null => {
-	if (typeof value === 'number') return Number.isFinite(value) ? value : null
-	if (typeof value !== 'string') return null
-	const parsed = parseFloat(value)
-	return Number.isFinite(parsed) ? parsed : null
-}

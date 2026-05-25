@@ -17,13 +17,15 @@ export async function getProjectUsage(fetcher: AuthorizedFetch): Promise<Project
 }
 
 export async function listProjectSessions(fetcher: AuthorizedFetch, id: string): Promise<ProjectChatSession[]> {
-	const data = await llamaAIRequest<{ sessions: ProjectChatSession[] }>(fetcher, `/projects/${id}/sessions`)
-	return data.sessions ?? []
+	const data = await llamaAIRequest<{ sessions?: ProjectChatSession[] }>(fetcher, `/projects/${id}/sessions`)
+	if (data.sessions === undefined) throw new Error('Malformed project sessions response')
+	return data.sessions
 }
 
 export async function listProjects(fetcher: AuthorizedFetch): Promise<ProjectWithStats[]> {
-	const data = await llamaAIRequest<{ projects: ProjectWithStats[] }>(fetcher, '/projects')
-	return data.projects ?? []
+	const data = await llamaAIRequest<{ projects?: ProjectWithStats[] }>(fetcher, '/projects')
+	if (data.projects === undefined) throw new Error('Malformed projects response')
+	return data.projects
 }
 
 export async function getProject(fetcher: AuthorizedFetch, id: string): Promise<ProjectWithStats> {
@@ -127,8 +129,9 @@ export async function listGithubInstallations(fetcher: AuthorizedFetch): Promise
 }
 
 export async function listInstallationRepos(fetcher: AuthorizedFetch, installationId: number): Promise<GitHubRepo[]> {
-	const data = await llamaAIRequest<{ repos: GitHubRepo[] }>(fetcher, `/github/installations/${installationId}/repos`)
-	return data.repos ?? []
+	const data = await llamaAIRequest<{ repos?: GitHubRepo[] }>(fetcher, `/github/installations/${installationId}/repos`)
+	if (data.repos === undefined) throw new Error('Malformed GitHub repos response')
+	return data.repos
 }
 
 export async function listInstallationRepoBranches(
@@ -137,11 +140,10 @@ export async function listInstallationRepoBranches(
 	owner: string,
 	repo: string
 ): Promise<GitHubBranch[]> {
-	const data = await llamaAIRequest<GitHubBranch[]>(
+	return llamaAIRequest<GitHubBranch[]>(
 		fetcher,
 		`/github/installations/${installationId}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/branches`
 	)
-	return Array.isArray(data) ? data : []
 }
 
 export async function connectGithubSource(
@@ -161,6 +163,7 @@ export async function disconnectSource(fetcher: AuthorizedFetch, projectId: stri
 }
 
 export async function listProjectSources(fetcher: AuthorizedFetch, projectId: string): Promise<ProjectSource[]> {
-	const data = await llamaAIRequest<{ sources: ProjectSource[] }>(fetcher, `/projects/${projectId}/sources`)
-	return data.sources ?? []
+	const data = await llamaAIRequest<{ sources?: ProjectSource[] }>(fetcher, `/projects/${projectId}/sources`)
+	if (data.sources === undefined) throw new Error('Malformed project sources response')
+	return data.sources
 }

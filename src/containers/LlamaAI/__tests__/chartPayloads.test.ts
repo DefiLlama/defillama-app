@@ -4,7 +4,7 @@ import {
 	normalizeDashboardChartData,
 	normalizeDashboardItems
 } from '~/containers/LlamaAI/chartPayloads'
-import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import type { ChartConfiguration, ChartDataByKey, DashboardChartData, DashboardItem } from '~/containers/LlamaAI/types'
 
 const chartConfig: ChartConfiguration = {
 	id: 'chart-1',
@@ -29,39 +29,23 @@ const chartConfig: ChartConfiguration = {
 }
 
 describe('chart payload normalization', () => {
-	it('keeps array-backed chart data keyed by chart id', () => {
-		const data = normalizeChartDataByKey({
+	it('passes typed chart data through without filtering entries', () => {
+		const data: ChartDataByKey = {
 			'chart-1': [{ date: 1, value: 10 }],
-			ignored: { date: 2, value: 20 }
-		})
+			'chart-2': [{ date: 2, value: 20 }]
+		}
 
-		expect(data).toEqual({ 'chart-1': [{ date: 1, value: 10 }] })
+		expect(normalizeChartDataByKey(data)).toBe(data)
 	})
 
-	it('normalizes dashboard items and bundled chart data from unknown payloads', () => {
-		const items = [{ kind: 'llamaai-chart', chartRef: 'chart-1', title: 'TVL' }]
-		expect(normalizeDashboardItems(items)).toBe(items)
-		expect(normalizeDashboardItems({})).toEqual([])
-
-		expect(
-			normalizeDashboardChartData({
-				'chart-1': { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [{ name: 'generate_chart' }] },
-				ignored: { config: chartConfig, data: null },
-				missingConfig: { data: [{ date: 2, value: 20 }] },
-				malformedConfig: { config: { id: 'chart-2', type: 'line' }, data: [{ date: 3, value: 30 }] }
-			})
-		).toEqual({
+	it('passes dashboard items and bundled chart data through without filtering entries', () => {
+		const items: DashboardItem[] = [{ id: 'item-1', kind: 'llamaai-chart', chartRef: 'chart-1', title: 'TVL' }]
+		const chartData: DashboardChartData = {
 			'chart-1': { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [{ name: 'generate_chart' }] },
-			malformedConfig: { config: { id: 'chart-2', type: 'line' }, data: [{ date: 3, value: 30 }], toolChain: [] }
-		})
-	})
+			'chart-2': { config: chartConfig, data: [{ date: 2, value: 20 }], toolChain: [] }
+		}
 
-	it('drops dashboard chart data when no object configs remain', () => {
-		expect(
-			normalizeDashboardChartData({
-				missingConfig: { data: [{ date: 1, value: 10 }] },
-				nonObjectConfig: { config: null, data: [{ date: 2, value: 20 }] }
-			})
-		).toBeUndefined()
+		expect(normalizeDashboardItems(items)).toBe(items)
+		expect(normalizeDashboardChartData(chartData)).toBe(chartData)
 	})
 })

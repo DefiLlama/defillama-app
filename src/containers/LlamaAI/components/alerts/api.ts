@@ -13,8 +13,9 @@ export async function fetchAlerts(authorizedFetch: AuthorizedFetch): Promise<Ale
 	if (!res.ok) {
 		throw new Error('Failed to fetch alerts')
 	}
-	const data = await res.json()
-	return Array.isArray(data.alerts) ? data.alerts : []
+	const data = (await res.json()) as { alerts?: Alert[] }
+	if (data.alerts === undefined) throw new Error('Malformed alerts response')
+	return data.alerts
 }
 
 export async function fetchAlertExecutions(
@@ -24,8 +25,9 @@ export async function fetchAlertExecutions(
 	const encodedAlertId = encodeURIComponent(alertId)
 	const res = await authorizedFetch(`${AI_SERVER}/alerts/${encodedAlertId}/executions`)
 	if (!res?.ok) throw new Error('Failed to fetch executions')
-	const data = await res.json()
-	return data.executions ?? []
+	const data = (await res.json()) as { executions?: AlertExecution[] }
+	if (data.executions === undefined) throw new Error('Malformed alert executions response')
+	return data.executions
 }
 
 export async function fetchAlertExecutionDetail(

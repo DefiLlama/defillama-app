@@ -275,12 +275,13 @@ export class ChartDataTransformer {
 		if (interval === 'week' || interval === 'month') {
 			const groupBy = interval === 'week' ? 'weekly' : 'monthly'
 			const formattedSeries = nextChart.seriesMeta.map((meta) => {
-				const data = nextChart.props.dataset.source.flatMap((row) => {
-					const timestamp = Number(row.timestamp)
+				const data: Array<[number, number]> = []
+				for (const row of nextChart.props.dataset.source) {
+					const timestamp = row.timestamp as number
 					const value = row[meta.name]
-					if (!Number.isFinite(timestamp) || typeof value !== 'number' || Number.isNaN(value)) return []
-					return [[timestamp, value] as [number, number]]
-				})
+					if (typeof value !== 'number' || Number.isNaN(value)) continue
+					data.push([timestamp, value])
+				}
 
 				return {
 					name: meta.name,
@@ -301,8 +302,7 @@ export class ChartDataTransformer {
 		const groupedRows = new Map<number, Map<string, number[]>>()
 
 		for (const row of nextChart.props.dataset.source) {
-			const timestamp = Number(row.timestamp)
-			if (!Number.isFinite(timestamp)) continue
+			const timestamp = row.timestamp as number
 			const bucket = bucketTimestamp(timestamp, interval)
 			if (!groupedRows.has(bucket)) {
 				groupedRows.set(bucket, new Map())
@@ -332,13 +332,13 @@ export class ChartDataTransformer {
 		const seriesCount = nextChart.seriesMeta.length
 
 		const formattedSeries = nextChart.seriesMeta.map((meta) => {
-			const data = nextChart.props.dataset.source.flatMap((row) => {
-				const timestamp = Number(row.timestamp)
-				if (!Number.isFinite(timestamp)) return []
+			const data: Array<[number, number]> = []
+			for (const row of nextChart.props.dataset.source) {
+				const timestamp = row.timestamp as number
 				const rawValue = row[meta.name]
 				const numericValue = typeof rawValue === 'number' && !Number.isNaN(rawValue) ? rawValue : 0
-				return [[timestamp, numericValue] as [number, number]]
-			})
+				data.push([timestamp, numericValue])
+			}
 
 			return {
 				name: meta.name,

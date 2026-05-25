@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
-import { adaptCandlestickData } from '~/containers/LlamaAI/utils/chartAdapters/candlestick'
 import { adaptCartesianChartData } from '~/containers/LlamaAI/utils/chartAdapters/cartesian'
 import { adaptHBarChartData } from '~/containers/LlamaAI/utils/chartAdapters/hbar'
 import { adaptPieChartData } from '~/containers/LlamaAI/utils/chartAdapters/pie'
@@ -35,45 +34,6 @@ const baseConfig: ChartConfiguration = {
 }
 
 describe('chart adapters', () => {
-	it('drops scatter rows with invalid numeric coordinates', () => {
-		const result = adaptScatterChartData(baseConfig, [
-			{ x: '1', y: '2', protocol: 'Valid Protocol' },
-			{ x: 'N/A', y: null, protocol: 'Invalid Protocol' }
-		])
-
-		expect(result.props.chartData).toEqual([[1, 2, 'Valid Protocol', 'valid-protocol']])
-	})
-
-	it('drops hbar rows with invalid numeric values', () => {
-		const result = adaptHBarChartData(
-			{ ...baseConfig, type: 'hbar', series: [{ ...baseConfig.series[0]!, type: 'hbar' }] },
-			[
-				{ x: 'Valid Protocol', y: '100' },
-				{ x: 'Invalid Protocol', y: 'N/A' }
-			]
-		)
-
-		expect(result.data).toEqual([['Valid Protocol', 100]])
-	})
-
-	it('filters candlestick rows with invalid timestamps before building series', () => {
-		const result = adaptCandlestickData(
-			{
-				...baseConfig,
-				type: 'candlestick',
-				series: [{ ...baseConfig.series[0]!, type: 'candlestick' }],
-				dataTransformation: { timeField: 'timestamp', metrics: ['open', 'high', 'low', 'close'] }
-			},
-			[
-				{ timestamp: '2024-01-01', open: 1, high: 3, low: 0.5, close: 2, volume: 10 },
-				{ timestamp: 'not-a-date', open: 2, high: 4, low: 1, close: 3, volume: 20 }
-			]
-		)
-
-		expect(result.data).toHaveLength(1)
-		expect(result.data[0]?.[0]).toBe(Date.UTC(2024, 0, 1))
-	})
-
 	it('preserves falsy category labels in cartesian, pie, hbar, and scatter adapters', () => {
 		const categoryConfig = {
 			...baseConfig,
@@ -108,5 +68,33 @@ describe('chart adapters', () => {
 
 		expect(tooltip).toContain('&lt;img src=x onerror=alert(1)&gt;')
 		expect(tooltip).not.toContain('<img src=x')
+	})
+
+	it('keeps cartesian time-series rows sorted after adaptation', () => {
+		const timeConfig = {
+			...baseConfig,
+			type: 'line',
+			axes: { ...baseConfig.axes, x: { field: 'timestamp', label: 'Date', type: 'time' as const } },
+			series: [
+				{
+					...baseConfig.series[0]!,
+					type: 'line' as const,
+					dataMapping: { xField: 'timestamp', yField: 'y' }
+				}
+			],
+			dataTransformation: { timeField: 'timestamp', metrics: ['y'] }
+		} satisfies ChartConfiguration
+
+		const result = adaptCartesianChartData(timeConfig, [
+			{ timestamp: Date.UTC(2026, 2, 1), y: 3 },
+			{ timestamp: Date.UTC(2026, 0, 1), y: 1 },
+			{ timestamp: Date.UTC(2026, 1, 1), y: 2 }
+		])
+
+		expect(result.props.dataset.source.map((row) => row.timestamp)).toEqual([
+			Date.UTC(2026, 0, 1),
+			Date.UTC(2026, 1, 1),
+			Date.UTC(2026, 2, 1)
+		])
 	})
 })

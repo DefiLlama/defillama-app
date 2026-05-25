@@ -90,23 +90,23 @@ interface ResponseChunkEvent {
 
 interface ChartsEvent {
 	type: 'charts'
-	charts?: ChartConfiguration[]
-	chartData?: ChartDataByKey
+	charts: ChartConfiguration[]
+	chartData: ChartDataByKey
 }
 
 interface GeneratedImagesEvent {
 	type: 'generated_images'
-	images?: GeneratedImage[]
+	images: GeneratedImage[]
 }
 
 interface CsvExportEvent {
 	type: 'csv_export'
-	exports?: CsvExport[]
+	exports: CsvExport[]
 }
 
 interface MdExportEvent {
 	type: 'md_export'
-	exports?: MdExport[]
+	exports: MdExport[]
 }
 
 interface AlertProposedEvent extends AlertProposedData {
@@ -117,8 +117,8 @@ interface DashboardEvent {
 	type: 'dashboard'
 	dashboard_id?: string
 	dashboardConfig?: {
-		dashboardName?: string
-		items?: DashboardItem[]
+		dashboardName: string
+		items: DashboardItem[]
 		timePeriod?: string
 		sourceDashboardId?: string
 	}
@@ -126,8 +126,8 @@ interface DashboardEvent {
 	content?: {
 		dashboard_id?: string
 		dashboardConfig?: {
-			dashboardName?: string
-			items?: DashboardItem[]
+			dashboardName: string
+			items: DashboardItem[]
 			timePeriod?: string
 			sourceDashboardId?: string
 		}
@@ -149,7 +149,7 @@ interface ThinkingEvent {
 
 interface CitationsEvent {
 	type: 'citations'
-	citations?: string[]
+	citations: string[]
 }
 
 interface TitleEvent {
@@ -197,7 +197,7 @@ interface ContextWarningEvent {
 
 interface TodoSnapshotEvent {
 	type: 'todo_snapshot'
-	todos?: TodoItem[]
+	todos: TodoItem[]
 	summary?: Record<string, number>
 }
 
@@ -335,21 +335,21 @@ export function parseSSEStream(
 					callbacks.onProgress(data.name, data.isPremium)
 					break
 				case 'response_chunk': {
-					const chunk = typeof data.content === 'string' ? data.content.replace(/<bill\s*\/>/g, '') : data.content
+					const chunk = data.content.replace(/<bill\s*\/>/g, '')
 					if (chunk) callbacks.onToken(chunk)
 					break
 				}
 				case 'charts':
-					callbacks.onCharts(data.charts || [], normalizeChartDataByKey(data.chartData))
+					callbacks.onCharts(data.charts, normalizeChartDataByKey(data.chartData))
 					break
 				case 'generated_images':
-					callbacks.onGeneratedImages?.(data.images || [])
+					callbacks.onGeneratedImages?.(data.images)
 					break
 				case 'csv_export':
-					callbacks.onCsvExport?.(data.exports || [])
+					callbacks.onCsvExport?.(data.exports)
 					break
 				case 'md_export':
-					callbacks.onMdExport?.(data.exports || [])
+					callbacks.onMdExport?.(data.exports)
 					break
 				case 'alert_proposed':
 					callbacks.onAlertProposed?.(data)
@@ -364,10 +364,10 @@ export function parseSSEStream(
 						const stableId =
 							data.dashboard_id ||
 							data.content?.dashboard_id ||
-							`dashboard_${config.dashboardName || ''}_${config.sourceDashboardId || ''}_${config.items?.length ?? 0}`
+							`dashboard_${config.dashboardName}_${config.sourceDashboardId ?? ''}_${config.items.length}`
 						callbacks.onDashboard({
 							id: stableId,
-							dashboardName: config.dashboardName || 'Dashboard',
+							dashboardName: config.dashboardName,
 							items: normalizeDashboardItems(config.items),
 							timePeriod: config.timePeriod,
 							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
@@ -386,7 +386,7 @@ export function parseSSEStream(
 					callbacks.onToolExecution?.(data)
 					break
 				case 'todo_snapshot':
-					callbacks.onTodos?.(Array.isArray(data.todos) ? data.todos : [])
+					callbacks.onTodos?.(data.todos)
 					break
 				case 'message_metadata':
 					callbacks.onMessageMetadata?.(data.content)
@@ -395,7 +395,7 @@ export function parseSSEStream(
 					callbacks.onThinking?.(data.content)
 					break
 				case 'citations':
-					callbacks.onCitations(data.citations || [])
+					callbacks.onCitations(data.citations)
 					break
 				case 'title':
 					callbacks.onTitle?.(data.content)

@@ -117,6 +117,61 @@ function makeMixedAxisChart(axisType: 'time' | 'category'): AdaptedLlamaAICartes
 	}
 }
 
+function makeUnsortedTimeChart(): AdaptedLlamaAICartesianChart {
+	const mar = Date.UTC(2026, 2, 1)
+	const jan = Date.UTC(2026, 0, 1)
+	const feb = Date.UTC(2026, 1, 1)
+
+	return {
+		chartType: 'cartesian',
+		props: {
+			dataset: {
+				dimensions: ['timestamp', 'Revenue'],
+				source: [
+					{ timestamp: mar, Revenue: 30 },
+					{ timestamp: jan, Revenue: 10 },
+					{ timestamp: feb, Revenue: 20 }
+				]
+			},
+			charts: [
+				{
+					type: 'line',
+					name: 'Revenue',
+					encode: { x: 'timestamp', y: 'Revenue' },
+					color: '#111',
+					valueSymbol: '$',
+					yAxisIndex: 0
+				}
+			],
+			chartOptions: {},
+			valueSymbol: '$'
+		},
+		title: 'Unsorted',
+		description: '',
+		rowCount: 3,
+		axisType: 'time',
+		isTimeChart: true,
+		hasHallmarks: false,
+		groupingPolicy: 'always',
+		defaultExportKind: 'cartesian',
+		seriesMeta: [
+			{
+				name: 'Revenue',
+				seriesIndex: 0,
+				metricClass: 'flow',
+				baseType: 'line',
+				resolvedColor: '#111',
+				valueSymbol: '$',
+				yAxisIndex: 0,
+				isPrimaryAxis: true,
+				canStack: true,
+				canPercentage: true,
+				canGroup: true
+			}
+		]
+	}
+}
+
 describe('ChartDataTransformer', () => {
 	it('keeps secondary-axis symbols in percentage tooltips for time charts', () => {
 		const transformed = ChartDataTransformer.applyViewState(makeMixedAxisChart('time'), viewState, capabilities)
@@ -154,5 +209,35 @@ describe('ChartDataTransformer', () => {
 		expect(tooltip).toContain('Primary A: 40%')
 		expect(tooltip).toContain('Primary B: 60%')
 		expect(tooltip).toContain('Secondary: $5')
+	})
+
+	it('keeps grouped rows timestamp-sorted after rebuilding from formatter output', () => {
+		const transformed = ChartDataTransformer.applyViewState(
+			makeUnsortedTimeChart(),
+			{ ...viewState, grouping: 'month', percentage: false },
+			{ ...capabilities, allowGrouping: true }
+		)
+		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		expect(transformed.props.dataset.source.map((row) => row.timestamp)).toEqual([
+			Date.UTC(2026, 0, 1),
+			Date.UTC(2026, 1, 1),
+			Date.UTC(2026, 2, 1)
+		])
+	})
+
+	it('keeps cumulative rows timestamp-sorted after rebuilding from formatter output', () => {
+		const transformed = ChartDataTransformer.applyViewState(
+			makeUnsortedTimeChart(),
+			{ ...viewState, cumulative: true, percentage: false },
+			{ ...capabilities, allowCumulative: true }
+		)
+		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		expect(transformed.props.dataset.source.map((row) => row.timestamp)).toEqual([
+			Date.UTC(2026, 0, 1),
+			Date.UTC(2026, 1, 1),
+			Date.UTC(2026, 2, 1)
+		])
 	})
 })
