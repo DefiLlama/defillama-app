@@ -76,10 +76,9 @@ export function detectAnomalies(protocols: RawProtocol[], feesProtocols: RawFees
 
 		if (p.change_7d != null && isFinite(p.change_7d)) {
 			const z = zScore(p.change_7d, s7d.mean, s7d.std)
-			// Only flag 7d if it's critical and 1d didn't already flag it
-			if (Math.abs(z) >= CRITICAL_Z && !anomalies.some((a) => a.type === 'tvl-spike' || a.type === 'tvl-drop')) {
-				const type: AnomalyType = z > 0 ? 'tvl-spike' : 'tvl-drop'
-				anomalies.push(makeAnomaly(type, z, p.change_7d, z > 0 ? 'TVL Spike (7d)' : 'TVL Drop (7d)'))
+			const sameDirectionType: AnomalyType = z > 0 ? 'tvl-spike' : 'tvl-drop'
+			if (Math.abs(z) >= CRITICAL_Z && !anomalies.some((a) => a.type === sameDirectionType)) {
+				anomalies.push(makeAnomaly(sameDirectionType, z, p.change_7d, z > 0 ? 'TVL Spike (7d)' : 'TVL Drop (7d)'))
 			}
 		}
 

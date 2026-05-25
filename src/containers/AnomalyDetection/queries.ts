@@ -21,12 +21,16 @@ export async function getAnomalyDetectionData(): Promise<AnomalyDetectionProps> 
 		change_7d: typeof p.change_7d === 'number' ? p.change_7d : null
 	}))
 
-	const fees = (feesRes.protocols ?? []).map((p: any) => ({
-		name: p.name,
-		slug: p.slug ?? p.name,
-		total30d: p.total30d ?? null,
-		change_30dover30d: p.change_30dover30d ?? null
-	}))
+	const fees = (feesRes.protocols ?? []).map((p: any) => {
+		const total30d = Number(p.total30d)
+		const change_30dover30d = Number(p.change_30dover30d)
+		return {
+			name: p.name,
+			slug: p.slug ?? p.name,
+			total30d: isFinite(total30d) ? total30d : null,
+			change_30dover30d: isFinite(change_30dover30d) ? change_30dover30d : null
+		}
+	})
 
 	const rows = detectAnomalies(protocols, fees)
 
