@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 const commandDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(commandDir, '..', '..')
 const [nodeEnv, nextCommand, ...nextArgs] = process.argv.slice(2)
+const isProductionBuild = nodeEnv === 'production' && nextCommand === 'build'
+const buildNodeArgs = ['--max-old-space-size=8192']
 
 if (!nodeEnv || !nextCommand) {
 	console.error('Usage: node ./scripts/command/runPreparedNext.mjs <NODE_ENV> <next-command> [...args]')
@@ -17,6 +19,10 @@ const env = { ...process.env, NODE_ENV: nodeEnv }
 
 function packageBin(name) {
 	return path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? `${name}.cmd` : name)
+}
+
+function packageScript(packageName, ...parts) {
+	return path.join(repoRoot, 'node_modules', packageName, ...parts)
 }
 
 function run(command, args) {
@@ -48,5 +54,13 @@ const prepareExitCode = await run(process.execPath, [
 if (prepareExitCode !== 0) {
 	process.exitCode = prepareExitCode
 } else {
-	process.exitCode = await run(packageBin('next'), [nextCommand, ...nextArgs])
+	const nextExitCode = isProductionBuild
+		? await run(process.execPath, [
+				...buildNodeArgs,
+				packageScript('next', 'dist', 'bin', 'next'),
+				nextCommand,
+				...nextArgs
+			])
+		: await run(packageBin('next'), [nextCommand, ...nextArgs])
+	process.exitCode = nextExitCode
 }

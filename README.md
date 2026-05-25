@@ -60,6 +60,8 @@ Use the Next.js framework preset and leave Build Command, Output Directory, Inst
 
 Set the required Vercel environment variables from `.env.example`. For production indexing, set `ROBOTS_ALLOW_INDEXING=true` only in the Production environment.
 
+Do not set `NODE_OPTIONS` on Vercel for this project. The build wrapper applies the required heap setting only to the Next.js production build, and static generation memory is bounded in `next.config.ts`; setting Node flags globally can break Vercel's build runtime before Next.js starts.
+
 ## Contributing
 
 Contributions are welcome. New features, small fixes, docs updates, whatever helps.
