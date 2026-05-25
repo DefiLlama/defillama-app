@@ -1,13 +1,4 @@
-import {
-	type Dispatch,
-	type RefObject,
-	type SetStateAction,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState
-} from 'react'
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { CapabilityChips } from '~/containers/LlamaAI/components/input/CapabilityChips'
@@ -20,7 +11,7 @@ import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
 import { fileToBase64, useImageUpload } from '~/containers/LlamaAI/hooks/useImageUpload'
-import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { setInputSize, syncHighlightScroll } from '~/containers/LlamaAI/utils/scrollUtils'
 import { highlightWord } from '~/containers/LlamaAI/utils/textUtils'
 import { useMedia } from '~/hooks/useMedia'
@@ -54,9 +45,11 @@ interface PromptInputProps {
 		text: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
 	} | null
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
 	droppedFiles?: File[] | null
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
@@ -85,9 +78,11 @@ export function PromptInput({
 	isStreaming,
 	placeholder,
 	restoreRequest,
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	researchUsage,
+	factCheckedUsage,
+	onFactCheckedGated,
 	droppedFiles,
 	clearDroppedFiles,
 	externalDragging,
@@ -508,15 +503,17 @@ export function PromptInput({
 			<div className="flex items-center justify-between gap-4 p-0">
 				<div className="hidden items-center gap-2 sm:flex">
 					<ModeToggle
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
+						mode={mode}
+						setMode={setMode}
 						researchUsage={researchUsage}
+						factCheckedUsage={factCheckedUsage}
+						onFactCheckedGated={onFactCheckedGated}
 					/>
 					<CapabilityChips
 						key={isPending || isStreaming ? 'capability-chips-disabled' : 'capability-chips-enabled'}
 						onPromptSelect={(prompt, categoryKey) => {
 							if (categoryKey === 'research') {
-								setIsResearchMode(true)
+								setMode('research')
 							}
 							isSuggestedRef.current = true
 							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
@@ -536,13 +533,15 @@ export function PromptInput({
 					) : null}
 				</div>
 				<MobileToolsPopover
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
+					mode={mode}
+					setMode={setMode}
 					researchUsage={researchUsage}
+					factCheckedUsage={factCheckedUsage}
+					onFactCheckedGated={onFactCheckedGated}
 					onOpenAlerts={onOpenAlerts}
 					onPromptSelect={(prompt, categoryKey) => {
 						if (categoryKey === 'research') {
-							setIsResearchMode(true)
+							setMode('research')
 						}
 						isSuggestedRef.current = true
 						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })

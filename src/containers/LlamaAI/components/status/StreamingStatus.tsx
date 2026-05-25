@@ -379,6 +379,12 @@ export function TypingIndicator() {
 	)
 }
 
+const FACT_CHECK_PHASE_COPY: Record<'drafting' | 'verifying' | 'finalizing', string> = {
+	drafting: 'Drafting answer…',
+	verifying: 'Checking claims…',
+	finalizing: 'Preparing verified answer…'
+}
+
 export function ToolProgressIndicator({
 	toolCalls,
 	thinking,
@@ -386,7 +392,8 @@ export function ToolProgressIndicator({
 	spawnProgress,
 	isWaiting,
 	executionStartedAt,
-	indentForActiveTodo
+	indentForActiveTodo,
+	factCheckPhase
 }: {
 	toolCalls: ToolCall[]
 	thinking?: string
@@ -395,9 +402,11 @@ export function ToolProgressIndicator({
 	isWaiting?: boolean
 	executionStartedAt?: number
 	indentForActiveTodo?: boolean
+	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
 }) {
 	const hasSpawn = spawnProgress && spawnProgress.size > 0
-	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting
+	const hasActivity =
+		toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting || !!factCheckPhase
 	const hackerMode = useHackerMode()
 
 	if (!hasActivity) return null
@@ -423,7 +432,13 @@ export function ToolProgressIndicator({
 								: 'm-0 text-base font-semibold text-[#555] dark:text-[#919296]'
 						}
 					>
-						{hackerMode ? <>{'>'} infiltrating mainframe&hellip;</> : <>LlamaAI is thinking&hellip;</>}
+						{hackerMode ? (
+							<>{'>'} infiltrating mainframe&hellip;</>
+						) : factCheckPhase ? (
+							FACT_CHECK_PHASE_COPY[factCheckPhase]
+						) : (
+							<>LlamaAI is thinking&hellip;</>
+						)}
 					</p>
 					<ElapsedTimeLabel startedAt={executionStartedAt} />
 				</div>
