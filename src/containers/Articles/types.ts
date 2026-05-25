@@ -213,6 +213,7 @@ export type LocalArticleDocument = {
 	interviewees?: ArticleInterviewee[]
 	section?: ArticleSection | null
 	displayDate?: string | null
+	goLiveAt?: string | null
 	brandByline?: boolean
 	featuredRank?: number | null
 	featuredUntil?: string | null
@@ -256,6 +257,7 @@ export type ArticleRevisionEventType =
 	| 'pending_save'
 	| 'discard_pending'
 	| 'restore_pending'
+	| 'schedule'
 
 export type ArticleRevisionSummary = {
 	id: string

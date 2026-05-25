@@ -98,6 +98,14 @@ async function revalidatePaths(paths: string[], res: NextApiResponse<ResponseDat
 	return { revalidateErrors, revalidated }
 }
 
+function publishRequestBodyFromQuery(req: NextApiRequest): string {
+	const raw = req.query.goLiveAt
+	if (raw === undefined) return JSON.stringify({})
+	const value = Array.isArray(raw) ? raw[0] : raw
+	if (value === '' || value === 'null') return JSON.stringify({ goLiveAt: null })
+	return JSON.stringify({ goLiveAt: value })
+}
+
 export async function researchPublishHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
 
@@ -112,16 +120,23 @@ export async function researchPublishHandler(req: NextApiRequest, res: NextApiRe
 	}
 
 	const encodedArticleId = encodeURIComponent(articleId)
-	const headers = authorizationHeader(req)
-	const beforeResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/edit`), { headers })
+	const headers = {
+		...authorizationHeader(req),
+		'Content-Type': 'application/json'
+	}
+	const beforeResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/edit`), {
+		headers: authorizationHeader(req)
+	})
 	if (!beforeResponse.ok) {
 		return sendBackendResponse(beforeResponse, res)
 	}
 
 	const before = (await readJson<BackendArticleResponse>(beforeResponse))?.article ?? null
+	const publishBody = publishRequestBodyFromQuery(req)
 	const publishResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/publish`), {
 		headers,
-		method: 'POST'
+		method: 'POST',
+		body: publishBody
 	})
 	if (!publishResponse.ok) {
 		return sendBackendResponse(publishResponse, res)

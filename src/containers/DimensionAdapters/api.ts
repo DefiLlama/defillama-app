@@ -1,4 +1,5 @@
 import { fetchCoinGeckoExchanges, fetchCoinGeckoSimplePrice } from '~/api/coingecko'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -171,6 +172,19 @@ export async function fetchAdapterChartDataByChainBreakdown({
 	}
 
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
+}
+
+export async function fetchChainsByAdapterPageChartData({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+}): Promise<{ chartData: MultiSeriesChart2Dataset }> {
+	const searchParams = new URLSearchParams({ adapterType, dataType })
+	return fetchJson<{ chartData: MultiSeriesChart2Dataset }>(
+		`/api/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
+	)
 }
 
 /**
