@@ -83,10 +83,13 @@ export interface IProtocolsCategoriesTableRow {
 
 export type IProtocolsCategoriesChartRow = Record<string, number | null> & { timestamp: number }
 
-export interface IProtocolsCategoriesPageData {
+export interface IProtocolsCategoriesChartData {
+	chartSource: Array<IProtocolsCategoriesChartRow>
+	extraTvlCharts: Record<string, Record<string, Record<number, number>>>
+}
+
+export interface IProtocolsCategoriesPageData extends IProtocolsCategoriesChartData {
 	categories: Array<string>
 	tableData: Array<IProtocolsCategoriesTableRow>
-	chartSource: Array<IProtocolsCategoriesChartRow>
 	categoryColors: Record<string, string>
-	extraTvlCharts: Record<string, Record<string, Record<number, number>>>
 }
