@@ -354,6 +354,12 @@ export function normalizeLocalArticleDocument(
 	const firstPublishedAt = normalizeOptionalDate(input.firstPublishedAt) ?? existing?.firstPublishedAt ?? null
 	const lastPublishedAt = normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
 	const displayDate = normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
+	const goLiveAt =
+		status === 'published'
+			? null
+			: 'goLiveAt' in input
+				? normalizeOptionalDate(input.goLiveAt)
+				: (existing?.goLiveAt ?? null)
 	const section = normalizeSection(input.section) ?? existing?.section ?? null
 	const brandByline = typeof input.brandByline === 'boolean' ? input.brandByline : (existing?.brandByline ?? false)
 	const editorialTags = Array.isArray(input.editorialTags)
@@ -407,6 +413,7 @@ export function normalizeLocalArticleDocument(
 			...(interviewees && interviewees.length > 0 ? { interviewees } : {}),
 			section,
 			displayDate,
+			goLiveAt,
 			brandByline,
 			...(typeof input.featuredRank === 'number' && Number.isInteger(input.featuredRank)
 				? { featuredRank: input.featuredRank }

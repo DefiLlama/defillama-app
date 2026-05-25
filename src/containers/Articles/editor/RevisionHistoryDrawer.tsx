@@ -34,6 +34,7 @@ const EVENT_LABELS: Record<ArticleRevisionEventType, string> = {
 	create: 'Created',
 	save: 'Draft saved',
 	publish: 'Published',
+	schedule: 'Scheduled',
 	unpublish: 'Unpublished',
 	delete: 'Deleted',
 	pending_save: 'Pending edit',
@@ -45,6 +46,7 @@ const EVENT_TONES: Record<ArticleRevisionEventType, string> = {
 	create: 'text-(--text-secondary)',
 	save: 'text-(--text-secondary)',
 	publish: 'text-emerald-500',
+	schedule: 'text-sky-500',
 	unpublish: 'text-amber-500',
 	delete: 'text-red-500',
 	pending_save: 'text-amber-500',
@@ -62,7 +64,7 @@ const FILTER_LABELS: Record<FilterKey, string> = {
 
 const FILTER_MATCH: Record<FilterKey, (e: ArticleRevisionEventType) => boolean> = {
 	all: () => true,
-	publishes: (e) => e === 'publish' || e === 'unpublish' || e === 'create',
+	publishes: (e) => e === 'publish' || e === 'schedule' || e === 'unpublish' || e === 'create',
 	pending: (e) => e === 'pending_save' || e === 'discard_pending',
 	edits: (e) => e === 'save',
 	restores: (e) => e === 'restore_pending'

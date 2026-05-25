@@ -4,11 +4,13 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { LocalArticleDocument } from '../types'
 import { Icon } from './ArticleEditorIcon'
 import type { SavePillState } from './ArticleEditorTypes'
+import { formatArticleDate } from './ArticleEditorUtils'
 
 export type ArticleEditorViewMode = 'write' | 'preview'
 
 type ArticleEditorHeaderProps = {
 	article: LocalArticleDocument
+	articleIsScheduled: boolean
 	articleViewHref: string
 	deletePending: boolean
 	hasPendingEdits: boolean
@@ -39,6 +41,7 @@ type ArticleEditorHeaderProps = {
 
 export function ArticleEditorHeader({
 	article,
+	articleIsScheduled,
 	articleViewHref,
 	beginSlugEdit,
 	cancelSlugEdit,
@@ -117,10 +120,11 @@ export function ArticleEditorHeader({
 				</span>
 				<span
 					className={`font-jetbrains text-[10px] font-medium tracking-[0.22em] uppercase ${
-						isPublished ? 'text-emerald-500' : 'text-amber-500'
+						isPublished ? 'text-emerald-500' : articleIsScheduled ? 'text-sky-500' : 'text-amber-500'
 					}`}
+					title={articleIsScheduled ? `Scheduled for ${formatArticleDate(article.goLiveAt)}` : undefined}
 				>
-					{article.status}
+					{articleIsScheduled ? 'draft · scheduled' : article.status}
 				</span>
 			</nav>
 

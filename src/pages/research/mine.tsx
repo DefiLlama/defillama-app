@@ -6,6 +6,8 @@ import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useR
 import { deleteArticle as deleteArticleApi, listMyArticles, type ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { isScheduled } from '~/containers/Articles/articleSchedule'
+import { formatArticleDate } from '~/containers/Articles/editor/ArticleEditorUtils'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -97,8 +99,12 @@ function MyArticlesContent() {
 	})
 
 	const allArticles = data?.items ?? EMPTY_ARTICLES
-	const draftCount = useMemo(() => allArticles.filter((a) => a.status === 'draft').length, [allArticles])
-	const publishedCount = allArticles.length - draftCount
+	const scheduledCount = useMemo(() => allArticles.filter((a) => isScheduled(a)).length, [allArticles])
+	const draftCount = useMemo(
+		() => allArticles.filter((a) => a.status === 'draft' && !isScheduled(a)).length,
+		[allArticles]
+	)
+	const publishedCount = allArticles.filter((a) => a.status === 'published').length
 	const totalCount = allArticles.length
 	const capped = data ? data.totalItems > FETCH_LIMIT : false
 
@@ -160,6 +166,12 @@ function MyArticlesContent() {
 							<p className="text-sm text-(--text-secondary)">
 								<span className="text-(--text-primary) tabular-nums">{draftCount}</span> draft
 								{draftCount === 1 ? '' : 's'}
+								{scheduledCount > 0 ? (
+									<>
+										<span className="mx-2 text-(--text-tertiary)">·</span>
+										<span className="text-(--text-primary) tabular-nums">{scheduledCount}</span> scheduled
+									</>
+								) : null}
 								<span className="mx-2 text-(--text-tertiary)">·</span>
 								<span className="text-(--text-primary) tabular-nums">{publishedCount}</span> published
 								{capped ? (
@@ -352,6 +364,7 @@ function MyArticlesContent() {
 							const words = wordCount(article.plainText) || wordCount(article.excerpt)
 							const minutes = words > 0 ? Math.max(1, Math.ceil(words / 220)) : 0
 							const isDeleting = deleteArticleMutation.variables === article.id && deleteArticleMutation.isPending
+							const scheduled = isScheduled(article)
 							return (
 								<li
 									key={article.id}
@@ -360,7 +373,7 @@ function MyArticlesContent() {
 									<span
 										aria-hidden
 										className={`absolute top-2 bottom-2 left-0 w-[2px] rounded-r ${
-											article.status === 'draft' ? 'bg-amber-500/70' : 'bg-transparent'
+											scheduled ? 'bg-sky-500/70' : article.status === 'draft' ? 'bg-amber-500/70' : 'bg-transparent'
 										}`}
 									/>
 									<Link href={`/research/edit/${article.id}`} className="grid min-w-0 gap-1">
@@ -369,6 +382,14 @@ function MyArticlesContent() {
 											<h3 className="truncate text-base font-semibold tracking-tight text-(--text-primary) group-hover:text-(--link-text)">
 												{article.title || 'Untitled'}
 											</h3>
+											{scheduled ? (
+												<span
+													className="rounded bg-sky-500/10 px-1.5 py-0.5 font-jetbrains text-[10px] tracking-[0.12em] text-sky-500 uppercase"
+													title={`Goes live ${formatArticleDate(article.goLiveAt)}`}
+												>
+													Scheduled
+												</span>
+											) : null}
 											{article.viewerRole === 'collaborator' ? (
 												<span className="rounded bg-(--link-button) px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-(--link-text) uppercase">
 													Co-author
@@ -382,7 +403,9 @@ function MyArticlesContent() {
 										</div>
 										<div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-(--text-tertiary)">
 											<span>
-												{article.status === 'draft' ? 'Saved' : 'Updated'} {updated}
+												{scheduled
+													? `Scheduled ${formatArticleDate(article.goLiveAt)}`
+													: `${article.status === 'draft' ? 'Saved' : 'Updated'} ${updated}`}
 											</span>
 											<span aria-hidden>·</span>
 											<span className="truncate font-jetbrains text-[11px]">/{article.slug}</span>

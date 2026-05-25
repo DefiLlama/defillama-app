@@ -107,7 +107,25 @@ describe('articles api client', () => {
 
 		const [url, options] = fetchFn.mock.calls[0]
 		expect(url).toBe('/api/research/articles/article-id/publish?_n=1779199500000')
-		expect(options?.method).toBe('GET')
+		expect(options?.method).toBeUndefined()
+	})
+
+	it('sends goLiveAt when scheduling publish', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
+
+		await publishArticle('article-id', fetchFn, { goLiveAt: '2026-06-01T09:00:00.000Z' })
+
+		const [url] = fetchFn.mock.calls[0]
+		expect(url).toContain('goLiveAt=2026-06-01T09%3A00%3A00.000Z')
+	})
+
+	it('sends goLiveAt null when publishing immediately after schedule', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
+
+		await publishArticle('article-id', fetchFn, { goLiveAt: null })
+
+		const [url] = fetchFn.mock.calls[0]
+		expect(url).toContain('goLiveAt=null')
 	})
 
 	it('requests research landing revalidation with a nonce', async () => {
