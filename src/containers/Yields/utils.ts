@@ -23,7 +23,8 @@ function findTokenCategory(token: string, tokenCategories: TokenCategories): Tok
 function poolMatchesTokenCategory(
 	curr: YieldsData['props']['pools'][number],
 	tokensInPool: string[],
-	category: TokenCategory
+	category: TokenCategory,
+	poolTokenIndex?: number
 ) {
 	const { addresses: catAddresses, symbols: catSymbols } = category
 	const underlyingTokens = curr.underlyingTokens ?? []
@@ -36,17 +37,21 @@ function poolMatchesTokenCategory(
 	chain = chainMapping[chain] ?? chain
 
 	// Strategy 1: Address-based matching (preferred, no false positives)
-	if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
+	if (underlyingTokens.length > 0) {
 		const addressSet = new Set(catAddresses)
-		const hasAddressMatch = underlyingTokens.some(
-			(addr: string) => addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+		if (poolTokenIndex != null) {
+			const addr = underlyingTokens[poolTokenIndex]
+			return !!addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+		}
+		return underlyingTokens.some(
+			(addr: string) => !!addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 		)
-		if (hasAddressMatch) return true
 	}
 
 	// Strategy 2: Exact symbol matching (fallback for pools without underlyingTokens)
 	if (catSymbols?.length > 0) {
 		const symbolSet = new Set(catSymbols)
+		if (poolTokenIndex != null) return symbolSet.has(tokensInPool[poolTokenIndex])
 		return tokensInPool.some((sym) => symbolSet.has(sym))
 	}
 
@@ -55,6 +60,7 @@ function poolMatchesTokenCategory(
 
 function poolTokenMatchesToken(
 	poolToken: string,
+	poolTokenIndex: number,
 	token: string,
 	curr: YieldsData['props']['pools'][number],
 	tokensInPool: string[],
@@ -71,14 +77,10 @@ function poolTokenMatchesToken(
 
 	const categoryEntry = findTokenCategory(token, tokenCategories)
 	if (categoryEntry) {
-		return poolMatchesTokenCategory(curr, tokensInPool, categoryEntry)
+		return poolMatchesTokenCategory(curr, tokensInPool, categoryEntry, poolTokenIndex)
 	}
 
-	if (poolToken.includes(token)) {
-		return true
-	} else if (token === 'eth') {
-		return poolToken.includes('weth') && poolToken.includes(token)
-	} else return false
+	return poolToken === token || poolToken === `w${token}`
 }
 
 function tokensMatchPair({
@@ -107,6 +109,7 @@ function tokensMatchPair({
 			if (
 				!poolTokenMatchesToken(
 					tokensInPool[poolTokenIndex],
+					poolTokenIndex,
 					pairPart,
 					curr,
 					tokensInPool,
