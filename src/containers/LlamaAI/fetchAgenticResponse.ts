@@ -255,6 +255,29 @@ function normalizeArray<T>(value: unknown): T[] {
 	return Array.isArray(value) ? (value as T[]) : []
 }
 
+function dashboardItemsHash(items: DashboardArtifact['items']): string {
+	const normalized = items.map((item) => {
+		const record = item as unknown as Record<string, unknown>
+		return [
+			typeof record.kind === 'string' ? record.kind : '',
+			typeof record.chartRef === 'string'
+				? record.chartRef
+				: typeof record.savedChartId === 'string'
+					? record.savedChartId
+					: typeof record.id === 'string'
+						? record.id
+						: ''
+		]
+	})
+	const serialized = JSON.stringify(normalized)
+	let hash = 0xcbf29ce484222325n
+	for (let i = 0; i < serialized.length; i++) {
+		hash ^= BigInt(serialized.charCodeAt(i))
+		hash = BigInt.asUintN(64, hash * 0x100000001b3n)
+	}
+	return hash.toString(16).padStart(16, '0')
+}
+
 interface RateLimitErrorDetails {
 	period?: string
 	limit?: number
@@ -381,7 +404,7 @@ export function parseSSEStream(
 						const stableId =
 							data.dashboard_id ||
 							data.content?.dashboard_id ||
-							`dashboard_${dashboardName}_${sourceDashboardId ?? ''}_${items.length}`
+							`dashboard_${dashboardName}_${sourceDashboardId ?? ''}_${dashboardItemsHash(items)}`
 						callbacks.onDashboard({
 							id: stableId,
 							dashboardName,

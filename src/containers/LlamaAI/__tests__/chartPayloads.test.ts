@@ -48,6 +48,18 @@ describe('chart payload normalization', () => {
 		})
 	})
 
+	it('ignores inherited and prototype-polluting chart data keys', () => {
+		const data = Object.create({ inherited: [{ date: 0, value: 0 }] }) as Record<string, unknown>
+		data['chart-1'] = [{ date: 1, value: 10 }]
+		data['constructor'] = [{ date: 2, value: 20 }]
+		data.prototype = [{ date: 3, value: 30 }]
+		Object.defineProperty(data, '__proto__', { value: [{ date: 4, value: 40 }], enumerable: true })
+
+		expect(normalizeChartDataByKey(data)).toEqual({
+			'chart-1': [{ date: 1, value: 10 }]
+		})
+	})
+
 	it('maps legacy flat chart data to the first chart dataset key', () => {
 		expect(normalizeChartDataByKey([{ date: 1, value: 10 }], [{ ...chartConfig, datasetName: 'tvl_dataset' }])).toEqual(
 			{
@@ -71,6 +83,23 @@ describe('chart payload normalization', () => {
 		expect(normalizeDashboardChartData(chartData)).toEqual({
 			'chart-1': { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [{ name: 'generate_chart' }] },
 			'chart-2': { config: chartConfig, data: [{ date: 2, value: 20 }], toolChain: [] }
+		})
+	})
+
+	it('ignores inherited and prototype-polluting dashboard chart-data keys', () => {
+		const data = Object.create({
+			inherited: { config: chartConfig, data: [{ date: 0, value: 0 }], toolChain: [] }
+		}) as Record<string, unknown>
+		data['chart-1'] = { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [] }
+		data['constructor'] = { config: chartConfig, data: [{ date: 2, value: 20 }], toolChain: [] }
+		data.prototype = { config: chartConfig, data: [{ date: 3, value: 30 }], toolChain: [] }
+		Object.defineProperty(data, '__proto__', {
+			value: { config: chartConfig, data: [{ date: 4, value: 40 }], toolChain: [] },
+			enumerable: true
+		})
+
+		expect(normalizeDashboardChartData(data)).toEqual({
+			'chart-1': { config: chartConfig, data: [{ date: 1, value: 10 }], toolChain: [] }
 		})
 	})
 })

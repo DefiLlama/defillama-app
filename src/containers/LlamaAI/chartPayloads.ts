@@ -7,6 +7,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
+function hasOwn(value: Record<string, unknown>, key: string) {
+	return Object.prototype.hasOwnProperty.call(value, key)
+}
+
+function isUnsafeRecordKey(key: string) {
+	return key === '__proto__' || key === 'constructor' || key === 'prototype'
+}
+
 function isLikelyChartConfiguration(value: unknown): value is ChartConfiguration {
 	if (!isRecord(value)) return false
 	if (typeof value.id !== 'string' || value.id.length === 0) return false
@@ -37,6 +45,7 @@ export function normalizeChartDataByKey(value: unknown, charts?: ChartConfigurat
 
 	const normalized: ChartDataByKey = {}
 	for (const key in value) {
+		if (!hasOwn(value, key) || isUnsafeRecordKey(key)) continue
 		const rows = value[key]
 		if (Array.isArray(rows)) normalized[key] = rows
 	}
@@ -56,6 +65,7 @@ export function normalizeDashboardChartData(value: unknown): DashboardChartData 
 	if (!isRecord(value)) return undefined
 	const normalized: DashboardChartData = {}
 	for (const key in value) {
+		if (!hasOwn(value, key) || isUnsafeRecordKey(key)) continue
 		const entry = value[key]
 		if (!isRecord(entry) || !isLikelyChartConfiguration(entry.config) || !Array.isArray(entry.data)) continue
 		normalized[key] = {

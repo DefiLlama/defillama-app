@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import { adaptCandlestickData } from '~/containers/LlamaAI/utils/chartAdapters/candlestick'
 import { adaptCartesianChartData } from '~/containers/LlamaAI/utils/chartAdapters/cartesian'
 import { adaptHBarChartData } from '~/containers/LlamaAI/utils/chartAdapters/hbar'
 import { adaptPieChartData } from '~/containers/LlamaAI/utils/chartAdapters/pie'
@@ -136,5 +137,49 @@ describe('chart adapters', () => {
 			Date.UTC(2026, 1, 1),
 			Date.UTC(2026, 2, 1)
 		])
+	})
+
+	it('filters candlestick rows with invalid timestamps before building indicators', () => {
+		const timestamp = Date.UTC(2026, 0, 1)
+		const config = {
+			...baseConfig,
+			type: 'candlestick',
+			axes: { ...baseConfig.axes, x: { field: 'timestamp', label: 'Date', type: 'time' as const } },
+			series: [
+				{
+					...baseConfig.series[0]!,
+					type: 'candlestick' as const,
+					dataMapping: { xField: 'timestamp', yField: 'close' }
+				}
+			],
+			dataTransformation: { timeField: 'timestamp', metrics: ['open', 'high', 'low', 'close'] }
+		} satisfies ChartConfiguration
+
+		const result = adaptCandlestickData(config, [
+			{
+				timestamp: 'bad',
+				open: 1,
+				high: 3,
+				low: 0,
+				close: 2,
+				volume: 10,
+				sma_7: 4,
+				rsi: 60
+			},
+			{
+				timestamp,
+				open: 2,
+				high: 5,
+				low: 1,
+				close: 4,
+				volume: 20,
+				sma_7: 3,
+				rsi: 55
+			}
+		])
+
+		expect(result.data).toHaveLength(1)
+		expect(result.data[0]?.[0]).toBe(timestamp)
+		expect(result.indicators?.every((indicator) => indicator.data?.length === 1)).toBe(true)
 	})
 })

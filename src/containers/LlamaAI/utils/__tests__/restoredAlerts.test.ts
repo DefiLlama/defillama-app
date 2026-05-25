@@ -84,6 +84,32 @@ describe('normalizeAlertProposedData', () => {
 			next_run_at: ''
 		})
 	})
+
+	it('clamps invalid live alert schedule fields', () => {
+		expect(
+			normalizeAlertProposedData({
+				alertId: 'alert-1',
+				alertIntent: { hour: Infinity, dayOfWeek: 9 }
+			}).alertIntent
+		).toMatchObject({ hour: 9, dayOfWeek: undefined })
+
+		expect(
+			normalizeAlertProposedData({
+				alertId: 'alert-1',
+				alertIntent: { hour: 27.9, dayOfWeek: 6 }
+			}).alertIntent
+		).toMatchObject({ hour: 23, dayOfWeek: 6 })
+	})
+
+	it('clamps invalid restored alert schedule fields', () => {
+		const alerts = buildRestoredAlerts({
+			content: '[ALERT:alert-1]',
+			messageId: 'message-1',
+			metadata: { alertIntent: { ...alertIntent, hour: -3.2, dayOfWeek: 7 } }
+		})
+
+		expect(alerts?.[0]?.alertIntent).toMatchObject({ hour: 0, dayOfWeek: undefined })
+	})
 })
 
 describe('restored alert render model', () => {

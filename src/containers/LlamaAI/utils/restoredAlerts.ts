@@ -41,6 +41,17 @@ function getStringValue(...values: unknown[]): string | null {
 	return null
 }
 
+function normalizeHour(value: unknown) {
+	if (typeof value !== 'number' || !Number.isFinite(value)) return 9
+	return Math.min(23, Math.max(0, Math.trunc(value)))
+}
+
+function normalizeDayOfWeek(value: unknown) {
+	return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value) && value >= 0 && value <= 6
+		? value
+		: undefined
+}
+
 export function normalizeAlertProposedData(value: unknown): AlertProposedData {
 	const outerEvent = isRecord(value) ? value : {}
 	const event = isRecord(outerEvent.content) ? outerEvent.content : outerEvent
@@ -58,9 +69,9 @@ export function normalizeAlertProposedData(value: unknown): AlertProposedData {
 			(typeof rawIntent.dataQuery === 'string' ? rawIntent.dataQuery : ''),
 		alertIntent: {
 			frequency: rawIntent.frequency === 'weekly' ? 'weekly' : 'daily',
-			hour: typeof rawIntent.hour === 'number' ? rawIntent.hour : 9,
+			hour: normalizeHour(rawIntent.hour),
 			timezone: typeof rawIntent.timezone === 'string' && rawIntent.timezone ? rawIntent.timezone : 'UTC',
-			dayOfWeek: typeof rawIntent.dayOfWeek === 'number' ? rawIntent.dayOfWeek : undefined,
+			dayOfWeek: normalizeDayOfWeek(rawIntent.dayOfWeek),
 			deliveryChannel: restoredDeliveryChannel,
 			...(restoredDeliveryChannel === 'slack'
 				? {
@@ -125,9 +136,9 @@ export function buildRestoredAlerts({
 			title: metadata.alertIntent.title || metadata.alertIntent.dataQuery || '',
 			alertIntent: {
 				frequency: metadata.alertIntent.frequency || 'daily',
-				hour: metadata.alertIntent.hour ?? 9,
+				hour: normalizeHour(metadata.alertIntent.hour),
 				timezone: metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: metadata.alertIntent.dayOfWeek,
+				dayOfWeek: normalizeDayOfWeek(metadata.alertIntent.dayOfWeek),
 				deliveryChannel: restoredDeliveryChannel,
 				...(restoredDeliveryChannel === 'slack'
 					? {

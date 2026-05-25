@@ -13,8 +13,6 @@ export function adaptCandlestickData(
 	}
 
 	const rows = rawData as Array<Record<string, unknown>>
-	const sample = (rows[0] || {}) as Record<string, unknown>
-	const keys = Object.keys(sample)
 	const timeField = config.dataTransformation?.timeField
 	const getTs = (row: Record<string, unknown>) => {
 		const candidates = timeField ? [row[timeField], row.timestamp, row.date] : [row.timestamp, row.date]
@@ -29,6 +27,15 @@ export function adaptCandlestickData(
 		}
 		return NaN
 	}
+	const timestampedRows: Array<{ row: Record<string, unknown>; timestamp: number }> = []
+	for (const row of rows) {
+		const timestamp = getTs(row)
+		if (Number.isFinite(timestamp)) timestampedRows.push({ row, timestamp })
+	}
+	if (timestampedRows.length === 0) return { data, indicators }
+
+	const sample = timestampedRows[0]?.row || {}
+	const keys = Object.keys(sample)
 
 	const metrics = config.dataTransformation?.metrics ?? []
 	const ohlcFields = {
@@ -39,9 +46,9 @@ export function adaptCandlestickData(
 	}
 
 	data = []
-	for (const r of rows) {
+	for (const { row: r, timestamp } of timestampedRows) {
 		data.push([
-			getTs(r),
+			timestamp,
 			parseFloat(String(r[ohlcFields.open] ?? r.price ?? 0)),
 			parseFloat(String(r[ohlcFields.close])),
 			parseFloat(String(r[ohlcFields.low])),
@@ -56,8 +63,8 @@ export function adaptCandlestickData(
 	if (bbUpper && bbMiddle && bbLower) {
 		let hasValidBB = false
 		const values: NonNullable<ICandlestickChartProps['indicators']>[number]['values'] = []
-		for (let index = 0; index < rows.length; index++) {
-			const r = rows[index]
+		for (let index = 0; index < timestampedRows.length; index++) {
+			const r = timestampedRows[index]!.row
 			const u = parseFloat(String(r[bbUpper]))
 			const m = parseFloat(String(r[bbMiddle]))
 			const l = parseFloat(String(r[bbLower]))
@@ -85,8 +92,8 @@ export function adaptCandlestickData(
 	const maFields = keys.filter((k) => /^(sma|ema|dema|tema|wma|vwap)_?\d*$/i.test(k))
 	for (const field of maFields) {
 		const indicatorData: NonNullable<ICandlestickChartProps['indicators']>[number]['data'] = []
-		for (let index = 0; index < rows.length; index++) {
-			const v = parseFloat(String(rows[index][field]))
+		for (let index = 0; index < timestampedRows.length; index++) {
+			const v = parseFloat(String(timestampedRows[index]!.row[field]))
 			indicatorData.push([data[index][0], Number.isFinite(v) ? v : null])
 		}
 		indicators.push({
@@ -99,8 +106,8 @@ export function adaptCandlestickData(
 	const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
 	if (rsiField) {
 		const rsiData: NonNullable<ICandlestickChartProps['indicators']>[number]['data'] = []
-		for (let index = 0; index < rows.length; index++) {
-			const v = parseFloat(String(rows[index][rsiField]))
+		for (let index = 0; index < timestampedRows.length; index++) {
+			const v = parseFloat(String(timestampedRows[index]!.row[rsiField]))
 			rsiData.push([data[index][0], Number.isFinite(v) ? v : null])
 		}
 		indicators.push({
@@ -116,8 +123,8 @@ export function adaptCandlestickData(
 	if (macdField || signalField || histField) {
 		let hasValidMACD = false
 		const values: NonNullable<ICandlestickChartProps['indicators']>[number]['values'] = []
-		for (let index = 0; index < rows.length; index++) {
-			const r = rows[index]
+		for (let index = 0; index < timestampedRows.length; index++) {
+			const r = timestampedRows[index]!.row
 			const m = parseFloat(String(r[macdField as string]))
 			const s = parseFloat(String(r[signalField as string]))
 			const h = parseFloat(String(r[histField as string]))
@@ -146,8 +153,8 @@ export function adaptCandlestickData(
 	if (stochK || stochD) {
 		let hasValidStoch = false
 		const values: NonNullable<ICandlestickChartProps['indicators']>[number]['values'] = []
-		for (let index = 0; index < rows.length; index++) {
-			const r = rows[index]
+		for (let index = 0; index < timestampedRows.length; index++) {
+			const r = timestampedRows[index]!.row
 			const k = parseFloat(String(r[stochK as string]))
 			const d = parseFloat(String(r[stochD as string]))
 			hasValidStoch ||= Number.isFinite(k) || Number.isFinite(d)

@@ -63,6 +63,16 @@ const offsetMinutesToEtc = (offsetMinutes: number): string | undefined => {
 	return GMT_OFFSETS.some((g) => g.value === etcValue) ? etcValue : undefined
 }
 
+const offsetMinutesToTimezoneToken = (offsetMinutes: number): string => {
+	const etcValue = offsetMinutesToEtc(offsetMinutes)
+	if (etcValue) return etcValue
+	const sign = offsetMinutes >= 0 ? '+' : '-'
+	const absMinutes = Math.abs(offsetMinutes)
+	const hours = Math.floor(absMinutes / 60)
+	const minutes = absMinutes % 60
+	return `UTC${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+}
+
 const parseTimezoneFromExpression = (expression: string): string | undefined => {
 	const etcMatch = expression.match(/\bEtc\/GMT[+-]\d{1,2}\b/)
 	if (etcMatch && GMT_OFFSETS.some((g) => g.value === etcMatch[0])) return etcMatch[0]
@@ -70,7 +80,7 @@ const parseTimezoneFromExpression = (expression: string): string | undefined => 
 	const offsetMatch = expression.match(/\b(?:GMT|UTC)[+-]\d{1,2}(?::?\d{2})?\b/)
 	if (offsetMatch) {
 		const offsetMinutes = parseOffsetMinutes(offsetMatch[0])
-		if (offsetMinutes !== null) return offsetMinutesToEtc(offsetMinutes)
+		if (offsetMinutes !== null) return offsetMinutesToTimezoneToken(offsetMinutes)
 	}
 
 	if (/\bUTC\b/.test(expression)) return 'UTC'
@@ -112,11 +122,9 @@ export const parseScheduleExpression = (
 export const getUserTimezone = (): string => {
 	try {
 		const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-		const offset = new Date().getTimezoneOffset()
-		const etcTz = offsetMinutesToEtc(-offset)
-		if (GMT_OFFSETS.some((g) => g.value === etcTz)) return etcTz
 		if (tz) return tz
-		return 'UTC'
+		const offset = new Date().getTimezoneOffset()
+		return offsetMinutesToTimezoneToken(-offset)
 	} catch {
 		return 'UTC'
 	}
@@ -132,6 +140,13 @@ const convertHourToUTC = (localHour: number, timezone: string): number => {
 		if (utcHour < 0) utcHour += 24
 		if (utcHour >= 24) utcHour -= 24
 		return utcHour
+	}
+	const fixedOffsetMinutes = parseOffsetMinutes(timezone)
+	if (fixedOffsetMinutes !== null) {
+		let utcMinutes = localHour * 60 - fixedOffsetMinutes
+		while (utcMinutes < 0) utcMinutes += 24 * 60
+		while (utcMinutes >= 24 * 60) utcMinutes -= 24 * 60
+		return Math.floor(utcMinutes / 60)
 	}
 	const offsetMinutes = getOffsetMinutesFromTimezone(timezone)
 	if (offsetMinutes !== null) {

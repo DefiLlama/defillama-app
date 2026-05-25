@@ -250,18 +250,48 @@ describe('parseSSEStream', () => {
 			schedule_expression: '',
 			next_run_at: ''
 		})
-		expect(cb.onDashboard).toHaveBeenCalledWith({
-			id: 'dashboard_Dashboard__0',
-			dashboardName: 'Dashboard',
-			items: [],
-			chartData: {
-				'chart-1': {
-					config: chartConfig,
-					data: [{ timestamp: 1, tvl: 100 }],
-					toolChain: []
+		expect(cb.onDashboard).toHaveBeenCalledWith(
+			expect.objectContaining({
+				id: expect.stringMatching(/^dashboard_Dashboard__[a-f0-9]{16}$/),
+				dashboardName: 'Dashboard',
+				items: [],
+				chartData: {
+					'chart-1': {
+						config: chartConfig,
+						data: [{ timestamp: 1, tvl: 100 }],
+						toolChain: []
+					}
 				}
-			}
-		})
+			})
+		)
+	})
+
+	it('uses dashboard item identity, not item count, for fallback ids', async () => {
+		const cb = callbacks()
+
+		await parseSSEStream(
+			sseReader(
+				JSON.stringify({
+					type: 'dashboard',
+					dashboardConfig: {
+						dashboardName: 'Dash',
+						items: [{ kind: 'llamaai-chart', chartRef: 'chart-1', title: 'TVL' }]
+					}
+				}),
+				JSON.stringify({
+					type: 'dashboard',
+					dashboardConfig: {
+						dashboardName: 'Dash',
+						items: [{ kind: 'llamaai-chart', chartRef: 'chart-2', title: 'Fees' }]
+					}
+				})
+			),
+			cb
+		)
+
+		const ids = vi.mocked(cb.onDashboard!).mock.calls.map(([dashboard]) => dashboard.id)
+		expect(ids).toHaveLength(2)
+		expect(ids[0]).not.toBe(ids[1])
 	})
 })
 

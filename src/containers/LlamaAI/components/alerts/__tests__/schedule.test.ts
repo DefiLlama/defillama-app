@@ -22,6 +22,18 @@ describe('alert schedule helpers', () => {
 		expect(getUserTimezone()).toBe('Asia/Kolkata')
 	})
 
+	it('prefers the resolved IANA user timezone over a fixed whole-hour offset', () => {
+		vi.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(300)
+		vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+			() =>
+				({
+					resolvedOptions: () => ({ timeZone: 'America/New_York' })
+				}) as Intl.DateTimeFormat
+		)
+
+		expect(getUserTimezone()).toBe('America/New_York')
+	})
+
 	it('ignores out-of-range schedule hours', () => {
 		expect(parseScheduleExpression('Daily at 9:00 UTC')).toMatchObject({ hour: 9, timezone: 'UTC' })
 		expect(parseScheduleExpression('Daily at 25:00 UTC')).toMatchObject({ hour: undefined, timezone: 'UTC' })
@@ -39,6 +51,14 @@ describe('alert schedule helpers', () => {
 			timezone: 'Etc/GMT+3'
 		})
 		expect(parseScheduleExpression('Daily at 9:00 UTC+5')).toMatchObject({ hour: 9, timezone: 'Etc/GMT-5' })
+	})
+
+	it('keeps fractional fixed offsets round-trippable', () => {
+		expect(parseScheduleExpression('Daily at 9:00 UTC+05:30')).toMatchObject({
+			hour: 9,
+			timezone: 'UTC+05:30'
+		})
+		expect(getBlockedLocalHours('UTC+05:30')).toEqual(expect.arrayContaining([6, 7, 8]))
 	})
 
 	it('converts IANA fractional-offset zones when computing blocked local hours', () => {
