@@ -43,10 +43,12 @@ export function ProjectsGrid() {
 	const isLocked = tier === 'free'
 	const usage = useProjectUsage(!isLocked)
 	const createStore = Ariakit.useDialogStore()
+	const renameStore = Ariakit.useDialogStore()
 	const deleteStore = Ariakit.useDialogStore()
 	const { data, isLoading, error, refetch } = useProjectList(!isLocked)
 	const [query, setQuery] = useState('')
 	const [sortBy, setSortBy] = useState<SortBy>('updated')
+	const [projectToRename, setProjectToRename] = useState<ProjectWithStats | null>(null)
 	const [projectToDelete, setProjectToDelete] = useState<ProjectWithStats | null>(null)
 	const deferredQuery = useDeferredValue(query)
 	const allProjects = useMemo<ProjectWithStats[]>(() => data ?? [], [data])
@@ -249,24 +251,44 @@ export function ProjectsGrid() {
 											Updated {relativeTime(p.updated_at)}
 										</p>
 									</div>
-									<Tooltip
-										content="Delete project"
-										render={
-											<button
-												type="button"
-												aria-label={`Delete ${p.name}`}
-												onClick={(e) => {
-													e.preventDefault()
-													e.stopPropagation()
-													setProjectToDelete(p)
-													deleteStore.show()
-												}}
-											/>
-										}
-										className="pointer-events-none -mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#999] opacity-0 transition-[opacity,color,background-color] group-hover:pointer-events-auto group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-600 focus-visible:pointer-events-auto focus-visible:opacity-100 dark:text-[#666] dark:hover:text-red-400"
-									>
-										<Icon name="trash-2" height={13} width={13} />
-									</Tooltip>
+									<div className="-mr-1 flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+										<Tooltip
+											content="Rename project"
+											render={
+												<button
+													type="button"
+													aria-label={`Rename ${p.name}`}
+													onClick={(e) => {
+														e.preventDefault()
+														e.stopPropagation()
+														setProjectToRename(p)
+														renameStore.show()
+													}}
+												/>
+											}
+											className="flex h-7 w-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:text-[#666]"
+										>
+											<Icon name="pencil" height={13} width={13} />
+										</Tooltip>
+										<Tooltip
+											content="Delete project"
+											render={
+												<button
+													type="button"
+													aria-label={`Delete ${p.name}`}
+													onClick={(e) => {
+														e.preventDefault()
+														e.stopPropagation()
+														setProjectToDelete(p)
+														deleteStore.show()
+													}}
+												/>
+											}
+											className="flex h-7 w-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:bg-red-500/10 focus-visible:text-red-600 dark:text-[#666] dark:hover:text-red-400 dark:focus-visible:text-red-400"
+										>
+											<Icon name="trash-2" height={13} width={13} />
+										</Tooltip>
+									</div>
 								</header>
 								{p.description ? (
 									<p className="line-clamp-2 text-[13px] text-[#666] dark:text-[#919296]">{p.description}</p>
@@ -284,6 +306,7 @@ export function ProjectsGrid() {
 			)}
 
 			<CreateProjectModal dialogStore={createStore} onCreated={onCreated} />
+			<CreateProjectModal dialogStore={renameStore} mode="rename" project={projectToRename} />
 			<DeleteProjectModal
 				dialogStore={deleteStore}
 				project={projectToDelete}
