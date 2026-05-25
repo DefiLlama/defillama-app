@@ -11,7 +11,7 @@
 		"prepare": "git config core.hooksPath .githooks || true",
 		"build:metadata": "node ./scripts/command/runTsCommand.mjs scripts/command/prepareCli.ts",
 		"build": "node ./scripts/command/runPreparedNext.mjs production build",
-		"start": "./scripts/prestart.sh & node .next/standalone/server.js",
+		"start": "sh ./scripts/docker-entrypoint.sh .next/standalone/server.js",
 		"test": "vitest run",
 		"test:types": "tsc -p tsconfig.vitest.json --noEmit",
 		"format:check": "oxfmt --check",

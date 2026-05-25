@@ -8,6 +8,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
 import type { ArticleEntityType } from '~/containers/Articles/types'
+import { CitationPill } from '~/containers/LlamaAI/components/messages/CitationPill'
+import type { FactCheckReference } from '~/containers/LlamaAI/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import {
 	allowLlamaAIExternalHostname,
@@ -18,7 +20,8 @@ import {
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
-	processCitationMarkers
+	processCitationMarkers,
+	processFactCheckCitations
 } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
@@ -474,6 +477,7 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 export function ChatMarkdownRenderer({
 	content,
 	citations,
+	factCheckReferences,
 	isStreaming = false,
 	hackerMode = false,
 	onTableFullscreenOpen,
@@ -481,6 +485,7 @@ export function ChatMarkdownRenderer({
 }: {
 	content: string
 	citations?: string[]
+	factCheckReferences?: FactCheckReference[]
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
@@ -498,9 +503,13 @@ export function ChatMarkdownRenderer({
 	)
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
-		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
+		const factCheckProcessed =
+			factCheckReferences && factCheckReferences.length > 0
+				? processFactCheckCitations(content, factCheckReferences)
+				: content
+		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(factCheckProcessed, citations))
 		return { content: processedContent, linkMap }
-	}, [content, citations])
+	}, [content, citations, factCheckReferences])
 
 	const resolveHeadingId = createHeadingIdFactory(messageId)
 	const markdownComponents: Components = {
@@ -578,6 +587,15 @@ export function ChatMarkdownRenderer({
 	}: CitationBadgeProps) => (
 		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
 	)
+
+	;(markdownComponents as Record<string, any>)['fact-check-pill'] = (props: Record<string, any>) => {
+		if (!factCheckReferences) return null
+		const raw = props['data-ref'] ?? props.dataRef
+		const numericId = Number(raw)
+		const ref = factCheckReferences.find((r) => r.id === numericId)
+		if (!ref) return <span>[{raw}]</span>
+		return <CitationPill reference={ref} />
+	}
 
 	if (!processedData.content.trim()) {
 		return null
