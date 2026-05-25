@@ -34,6 +34,7 @@ function page(sessions: ChatSession[], nextOffset?: number): SessionListPage {
 	return {
 		sessions,
 		usage,
+		factCheckedUsage: null,
 		hasMore: nextOffset !== undefined,
 		nextOffset
 	}
@@ -61,6 +62,7 @@ describe('sessionListCache', () => {
 		expect(result).toEqual({
 			sessions: [first],
 			usage,
+			factCheckedUsage: null,
 			hasMore: true,
 			nextOffset: 200
 		})
