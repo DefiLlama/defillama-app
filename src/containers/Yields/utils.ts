@@ -13,6 +13,121 @@ export function extractPoolTokens(symbol: string): string[] {
 	return symbol.split('(')[0].split('-').map(normalizeToken).filter(Boolean)
 }
 
+type TokenCategory = { addresses: string[]; symbols: string[]; label: string; filterKey: string }
+type TokenCategories = Record<string, TokenCategory>
+
+function findTokenCategory(token: string, tokenCategories: TokenCategories): TokenCategory | undefined {
+	return Object.values(tokenCategories).find((cat) => cat.filterKey?.toLowerCase() === token)
+}
+
+function poolMatchesTokenCategory(
+	curr: YieldsData['props']['pools'][number],
+	tokensInPool: string[],
+	category: TokenCategory
+) {
+	const { addresses: catAddresses, symbols: catSymbols } = category
+	const underlyingTokens = curr.underlyingTokens ?? []
+	// chain name mapping to match llama-ai database format
+	const chainMapping: Record<string, string> = {
+		avalanche: 'avax',
+		gnosis: 'xdai'
+	}
+	let chain = curr.chain?.toLowerCase()
+	chain = chainMapping[chain] ?? chain
+
+	// Strategy 1: Address-based matching (preferred, no false positives)
+	if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
+		const addressSet = new Set(catAddresses)
+		const hasAddressMatch = underlyingTokens.some(
+			(addr: string) => addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+		)
+		if (hasAddressMatch) return true
+	}
+
+	// Strategy 2: Exact symbol matching (fallback for pools without underlyingTokens)
+	if (catSymbols?.length > 0) {
+		const symbolSet = new Set(catSymbols)
+		return tokensInPool.some((sym) => symbolSet.has(sym))
+	}
+
+	return false
+}
+
+function poolTokenMatchesToken(
+	poolToken: string,
+	token: string,
+	curr: YieldsData['props']['pools'][number],
+	tokensInPool: string[],
+	normalizedUsdPeggedSymbols: string[],
+	tokenCategories: TokenCategories
+): boolean {
+	if (token === 'all_bitcoins') {
+		return poolToken.includes('btc')
+	}
+
+	if (token === 'all_usd_stables') {
+		return normalizedUsdPeggedSymbols.some((usd) => poolToken.includes(usd))
+	}
+
+	const categoryEntry = findTokenCategory(token, tokenCategories)
+	if (categoryEntry) {
+		return poolMatchesTokenCategory(curr, tokensInPool, categoryEntry)
+	}
+
+	if (poolToken.includes(token)) {
+		return true
+	} else if (token === 'eth') {
+		return poolToken.includes('weth') && poolToken.includes(token)
+	} else return false
+}
+
+function tokensMatchPair({
+	curr,
+	tokensInPool,
+	pairParts,
+	normalizedUsdPeggedSymbols,
+	tokenCategories
+}: {
+	curr: YieldsData['props']['pools'][number]
+	tokensInPool: string[]
+	pairParts: string[]
+	normalizedUsdPeggedSymbols: string[]
+	tokenCategories: TokenCategories
+}): boolean {
+	if (tokensInPool.length !== pairParts.length) return false
+
+	const matchedPoolTokenIndexes = new Set<number>()
+
+	const matchPairPart = (pairPartIndex: number): boolean => {
+		if (pairPartIndex === pairParts.length) return true
+
+		const pairPart = pairParts[pairPartIndex]
+		for (let poolTokenIndex = 0; poolTokenIndex < tokensInPool.length; poolTokenIndex++) {
+			if (matchedPoolTokenIndexes.has(poolTokenIndex)) continue
+			if (
+				!poolTokenMatchesToken(
+					tokensInPool[poolTokenIndex],
+					pairPart,
+					curr,
+					tokensInPool,
+					normalizedUsdPeggedSymbols,
+					tokenCategories
+				)
+			) {
+				continue
+			}
+
+			matchedPoolTokenIndexes.add(poolTokenIndex)
+			if (matchPairPart(pairPartIndex + 1)) return true
+			matchedPoolTokenIndexes.delete(poolTokenIndex)
+		}
+
+		return false
+	}
+
+	return matchPairPart(0)
+}
+
 interface IToFilterPool {
 	curr: YieldsData['props']['pools'][number]
 	selectedProjectsSet: Set<string>
@@ -86,9 +201,18 @@ export function toFilterPool({
 
 	if (pairTokens.length > 0) {
 		let atLeastOnePairToken = false
+		const normalizedUsdPeggedSymbols = usdPeggedSymbols.map(normalizeToken)
 		for (const pairToken of pairTokens) {
 			const pt = pairToken.split('-')
-			if (tokensInPool.length === pt.length && pt.every((token) => tokensInPoolSet.has(token))) {
+			if (
+				tokensMatchPair({
+					curr,
+					tokensInPool,
+					pairParts: pt,
+					normalizedUsdPeggedSymbols,
+					tokenCategories
+				})
+			) {
 				atLeastOnePairToken = true
 				break
 			}
@@ -113,34 +237,9 @@ export function toFilterPool({
 							)
 						} else {
 							// Check if token matches a dynamic token category (e.g., TOKENIZED_GOLD, TOKENIZED_SILVER)
-							const categoryEntry = Object.values(tokenCategories).find((cat) => cat.filterKey?.toLowerCase() === token)
+							const categoryEntry = findTokenCategory(token, tokenCategories)
 							if (categoryEntry) {
-								const { addresses: catAddresses, symbols: catSymbols } = categoryEntry
-								const underlyingTokens = curr.underlyingTokens ?? []
-								// chain name mapping to match llama-ai database format
-								const chainMapping: Record<string, string> = {
-									avalanche: 'avax',
-									gnosis: 'xdai'
-								}
-								let chain = curr.chain?.toLowerCase()
-								chain = chainMapping[chain] ?? chain
-
-								// Strategy 1: Address-based matching (preferred, no false positives)
-								if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
-									const addressSet = new Set(catAddresses)
-									const hasAddressMatch = underlyingTokens.some(
-										(addr: string) => addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
-									)
-									if (hasAddressMatch) return true
-								}
-
-								// Strategy 2: Exact symbol matching (fallback for pools without underlyingTokens)
-								if (catSymbols?.length > 0) {
-									const symbolSet = new Set(catSymbols)
-									return tokensInPool.some((sym) => symbolSet.has(sym))
-								}
-
-								return false
+								return poolMatchesTokenCategory(curr, tokensInPool, categoryEntry)
 							}
 
 							// Default: substring match on pool symbol
