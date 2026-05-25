@@ -8,7 +8,7 @@ const commandDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(commandDir, '..', '..')
 const [nodeEnv, nextCommand, ...nextArgs] = process.argv.slice(2)
 const isProductionBuild = nodeEnv === 'production' && nextCommand === 'build'
-const buildNodeArgs = ['--max-old-space-size=8192']
+const buildNodeOptions = '--max-old-space-size=6144'
 
 if (!nodeEnv || !nextCommand) {
 	console.error('Usage: node ./scripts/command/runPreparedNext.mjs <NODE_ENV> <next-command> [...args]')
@@ -25,11 +25,11 @@ function packageScript(packageName, ...parts) {
 	return path.join(repoRoot, 'node_modules', packageName, ...parts)
 }
 
-function run(command, args) {
+function run(command, args, envOverrides = {}) {
 	return new Promise((resolve) => {
 		const child = spawn(command, args, {
 			cwd: repoRoot,
-			env,
+			env: { ...env, ...envOverrides },
 			shell: process.platform === 'win32' || command.endsWith('.cmd'),
 			stdio: 'inherit'
 		})
@@ -54,13 +54,13 @@ const prepareExitCode = await run(process.execPath, [
 if (prepareExitCode !== 0) {
 	process.exitCode = prepareExitCode
 } else {
+	if (isProductionBuild) {
+		console.log(`[build] Starting Next.js production build with scoped NODE_OPTIONS=${buildNodeOptions}`)
+	}
 	const nextExitCode = isProductionBuild
-		? await run(process.execPath, [
-				...buildNodeArgs,
-				packageScript('next', 'dist', 'bin', 'next'),
-				nextCommand,
-				...nextArgs
-			])
+		? await run(process.execPath, [packageScript('next', 'dist', 'bin', 'next'), nextCommand, ...nextArgs], {
+				NODE_OPTIONS: buildNodeOptions
+			})
 		: await run(packageBin('next'), [nextCommand, ...nextArgs])
 	process.exitCode = nextExitCode
 }
