@@ -15,12 +15,18 @@ function getStringParam(value: string | string[] | undefined): string | undefine
 }
 
 function getStringListParam(value: string | string[] | undefined): string[] {
-	const rawValue = getStringParam(value)
-	if (!rawValue) return []
-	return rawValue
-		.split(',')
-		.map((item) => item.trim())
-		.filter(Boolean)
+	if (!value) return []
+	const values = Array.isArray(value) ? value : [value]
+	const items: string[] = []
+
+	for (const rawValue of values) {
+		for (const item of rawValue.split(',')) {
+			const trimmed = item.trim()
+			if (trimmed) items.push(trimmed)
+		}
+	}
+
+	return items
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {

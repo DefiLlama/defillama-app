@@ -76,6 +76,31 @@ describe('page data chart api routes', () => {
 		})
 	})
 
+	it('returns cacheable categories chart data from repeated extra tvl query params', async () => {
+		getProtocolsCategoriesChartDataMock.mockResolvedValue({
+			chartSource: [{ timestamp: 1, Dexes: 100 }],
+			extraTvlCharts: {}
+		})
+		const req = {
+			method: 'GET',
+			query: { extraTvlTypes: ['staking', 'borrowed'] },
+			url: '/api/page-data/categories/charts?extraTvlTypes=staking&extraTvlTypes=borrowed'
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await categoriesChartsHandler(req, res)
+
+		expect(getProtocolsCategoriesChartDataMock).toHaveBeenCalledWith({
+			extraTvlTypes: ['staking', 'borrowed']
+		})
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('public, s-maxage='))
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith({
+			chartSource: [{ timestamp: 1, Dexes: 100 }],
+			extraTvlCharts: {}
+		})
+	})
+
 	it('returns cacheable chains chart data', async () => {
 		getChainsByCategoryChartDataMock.mockResolvedValue({
 			tvlChartsByChain: { tvl: { Ethereum: { 1: 100 } } },
@@ -85,6 +110,33 @@ describe('page data chart api routes', () => {
 			method: 'GET',
 			query: { category: 'All', sampledChart: 'true', extraTvlTypes: 'staking,borrowed' },
 			url: '/api/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking,borrowed'
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await chainsChartsHandler(req, res)
+
+		expect(getChainsByCategoryChartDataMock).toHaveBeenCalledWith({
+			category: 'All',
+			sampledChart: true,
+			extraTvlTypes: ['staking', 'borrowed']
+		})
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('public, s-maxage='))
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith({
+			tvlChartsByChain: { tvl: { Ethereum: { 1: 100 } } },
+			totalTvlByDate: { tvl: { 1: 100 } }
+		})
+	})
+
+	it('returns cacheable chains chart data from repeated extra tvl query params', async () => {
+		getChainsByCategoryChartDataMock.mockResolvedValue({
+			tvlChartsByChain: { tvl: { Ethereum: { 1: 100 } } },
+			totalTvlByDate: { tvl: { 1: 100 } }
+		})
+		const req = {
+			method: 'GET',
+			query: { category: 'All', sampledChart: 'true', extraTvlTypes: ['staking', 'borrowed'] },
+			url: '/api/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking&extraTvlTypes=borrowed'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
