@@ -828,6 +828,12 @@ export function deriveTodosFromToolExecutions(
 	toolExecutions: Array<{ name?: string; success?: boolean; error?: string; toolData?: unknown }> | undefined
 ): TodoItem[] {
 	if (!toolExecutions || toolExecutions.length === 0) return []
+	const hasWrite = toolExecutions.some((exec) => {
+		if (exec?.name !== 'todo' || exec.success !== true || exec.error) return false
+		const data = exec.toolData as { action?: unknown } | undefined
+		return data?.action === 'write'
+	})
+	if (!hasWrite) return []
 	for (let i = toolExecutions.length - 1; i >= 0; i--) {
 		const exec = toolExecutions[i]
 		if (exec?.name !== 'todo') continue

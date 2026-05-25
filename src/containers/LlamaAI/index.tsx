@@ -702,9 +702,9 @@ function createAgenticCallbacks({
 			buffer.toolExecutions.push(data)
 			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
 			if (data.name === 'todo' && data.success) {
-				const todos = (data.toolData as { todos?: TodoItem[] } | undefined)?.todos
-				if (Array.isArray(todos)) {
-					dispatch({ type: 'SET_TODOS', value: todos })
+				const toolData = data.toolData as { todos?: TodoItem[]; action?: string } | undefined
+				if (toolData?.action === 'write' && Array.isArray(toolData.todos)) {
+					dispatch({ type: 'SET_TODOS', value: toolData.todos })
 				}
 			}
 		},
