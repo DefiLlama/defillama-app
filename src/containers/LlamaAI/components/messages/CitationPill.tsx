@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import type { FactCheckReference } from '~/containers/LlamaAI/types'
 import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
@@ -27,6 +28,7 @@ function sourceBadge(sourceType?: string): string | null {
 
 export function CitationPill({ reference }: CitationPillProps) {
 	const id = reference.id
+	const anchorRef = useRef<HTMLButtonElement | null>(null)
 	const hovercard = Ariakit.useHovercardStore({ placement: 'top', showTimeout: 120, hideTimeout: 180 })
 	const iconName = sourceIcon(reference.sourceType)
 	const badge = sourceBadge(reference.sourceType)
@@ -36,8 +38,11 @@ export function CitationPill({ reference }: CitationPillProps) {
 	return (
 		<Ariakit.HovercardProvider store={hovercard}>
 			<Ariakit.HovercardAnchor
-				render={<button type="button" />}
-				onClick={() => hovercard.toggle()}
+				render={<button ref={anchorRef} type="button" />}
+				onClick={() => {
+					if (anchorRef.current) hovercard.setAnchorElement(anchorRef.current)
+					hovercard.toggle()
+				}}
 				className="mx-px inline-flex h-[18px] min-w-[18px] cursor-pointer items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline transition-colors hover:border-[rgba(31,103,210,0.45)] hover:bg-[rgba(31,103,210,0.18)] focus-visible:ring-2 focus-visible:ring-[#1f67d2]/40 focus-visible:outline-none"
 				aria-label={reference.checked ? `Citation ${id ?? ''}: ${reference.checked}` : `Citation ${id ?? ''}`}
 			>
@@ -46,6 +51,7 @@ export function CitationPill({ reference }: CitationPillProps) {
 			<Ariakit.Hovercard
 				portal
 				gutter={6}
+				getAnchorRect={() => anchorRef.current?.getBoundingClientRect() ?? null}
 				className="z-50 flex max-w-[22rem] min-w-[18rem] flex-col gap-2.5 rounded-lg border border-[#e6e6e6] bg-white p-3 text-sm shadow-xl dark:border-[#222324] dark:bg-[#18181b]"
 			>
 				<div className="flex items-center gap-1.5">
