@@ -10,7 +10,7 @@
 		"dev": "next dev",
 		"dev:prepared": "node ./scripts/command/runPreparedNext.mjs development dev",
 		"prepare": "git config core.hooksPath .githooks || true",
-		"build": "node ./scripts/command/runPreparedNext.mjs production build",
+		"build": "node ./scripts/command/runPreparedNext.mjs production build --webpack",
 		"build:deploy": "node ./scripts/command/runTsCommand.mjs scripts/command/deployBuildCli.ts",
 		"build:metadata": "node ./scripts/command/runTsCommand.mjs scripts/command/prepareCli.ts",
 		"build:next": "next build",
