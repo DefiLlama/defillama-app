@@ -787,6 +787,12 @@
       "oldName": "Narrative Tracker"
     },
     {
+      "name": "Anomaly Detection",
+      "route": "/anomaly-detection",
+      "category": "Others",
+      "description": "Real-time detection of unusual TVL and fee activity across DeFi protocols using z-score analysis. Spot spikes and drops before they become headlines."
+    },
+    {
       "name": "Staked ETH by Protocol",
       "route": "/lst",
       "category": "Others",
