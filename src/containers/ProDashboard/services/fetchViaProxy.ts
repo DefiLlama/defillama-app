@@ -5,7 +5,7 @@ async function proxyFetch<T>(type: string, params: Record<string, any>, authToke
 	const url = `${PROXY_URL}?type=${encodeURIComponent(type)}&params=${encodeURIComponent(JSON.stringify(params))}`
 	const res = await fetchWithPoolingOnServer(url, {
 		headers: {
-			'X-PB-Auth-Token': authToken
+			Authorization: `Bearer ${authToken}`
 		}
 	})
 	if (!res.ok) {

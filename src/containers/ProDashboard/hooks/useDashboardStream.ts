@@ -264,7 +264,7 @@ export function useDashboardStream(
 			try {
 				const response = await fetch(`/api/dashboard/${dashboardId}/stream`, {
 					credentials: 'include',
-					headers: authToken ? { 'X-PB-Auth-Token': authToken } : undefined,
+					headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
 					signal: abortController.signal
 				})
 

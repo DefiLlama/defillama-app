@@ -58,6 +58,43 @@ export class DashboardError extends Error {
 	}
 }
 
+type DashboardSavePayload = {
+	items: DashboardItemConfig[]
+	dashboardName: string
+	timePeriod?: TimePeriod
+	customTimePeriod?: CustomTimePeriod | null
+	visibility?: 'private' | 'public'
+	tags?: string[]
+	description?: string
+	aiGenerated?: Record<string, any> | null
+}
+
+function dashboardSaveBody(data: DashboardSavePayload) {
+	const { visibility, tags, description, aiGenerated, ...dashboardData } = data
+	return {
+		data: dashboardData,
+		visibility: visibility || 'private',
+		tags: Array.isArray(tags) ? tags : [],
+		description: typeof description === 'string' ? description : '',
+		aiGenerated: aiGenerated || null
+	}
+}
+
+function dashboardSaveUrl(id?: string) {
+	return id ? `${FEATURES_SERVER}/dashboards/${encodeURIComponent(id)}` : `${FEATURES_SERVER}/dashboards`
+}
+
+export function buildDashboardSaveRequest(params: { id?: string; data: DashboardSavePayload }) {
+	return {
+		url: dashboardSaveUrl(params.id),
+		options: {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(dashboardSaveBody(params.data))
+		}
+	}
+}
+
 class DashboardAPIService {
 	private async handleResponse<T>(response: Response): Promise<T> {
 		if (!response.ok) {
@@ -122,13 +159,8 @@ class DashboardAPIService {
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const response = await authorizedFetch('/api/dashboard/save', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ data })
-		})
+		const { url, options } = buildDashboardSaveRequest({ data })
+		const response = await authorizedFetch(url, options)
 
 		return this.handleResponse<Dashboard>(response)
 	}
@@ -147,13 +179,8 @@ class DashboardAPIService {
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const response = await authorizedFetch('/api/dashboard/save', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ id, data })
-		})
+		const { url, options } = buildDashboardSaveRequest({ id, data })
+		const response = await authorizedFetch(url, options)
 
 		return this.handleResponse<Dashboard>(response)
 	}
