@@ -51,14 +51,18 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `bun run build` refreshes generated metadata, dataset caches, site navigation, and `public/robots.txt`, then runs the Next.js production build with Webpack.
 - `bun run build:next` runs plain `next build` without refreshing generated data.
 - `bun run build:deploy` runs the self-hosted deploy wrapper, including build logs, artifact sync, and notifications.
+- `bun run build:upload-r2` uploads `.next/static` build artifacts to Cloudflare R2.
+- `bun run build:vercel` runs the standard production build, then uploads build artifacts to R2.
 - `bun run start` starts a standard Next.js production server.
 - `bun run start:docker` runs the Docker/self-hosted entrypoint, including the post-start hook.
 
 ## Vercel
 
-Use the Next.js framework preset and leave Build Command, Output Directory, Install Command, and Development Command overrides disabled. Vercel should run the package build script; do not override the Build Command to `next build`, because that skips metadata cache, dataset cache, site navigation, robots.txt generation, and the repo's Webpack build fallback.
+Use the Next.js framework preset. If R2 artifact uploads are enabled, set the Build Command override to `bun run build:vercel`; otherwise leave Build Command, Output Directory, Install Command, and Development Command overrides disabled. Do not override the Build Command to `next build`, because that skips metadata cache, dataset cache, site navigation, robots.txt generation, and the repo's Webpack build fallback.
 
 Set the required Vercel environment variables from `.env.example`. For production indexing, set `ROBOTS_ALLOW_INDEXING=true` only in the Production environment.
+
+For R2 uploads on Vercel, set `RCLONE_CONFIG_ARTIFACTS_ACCESS_KEY_ID`, `RCLONE_CONFIG_ARTIFACTS_SECRET_ACCESS_KEY`, and `RCLONE_CONFIG_ARTIFACTS_ENDPOINT`. `R2_ARTIFACT_BUCKET` defaults to `defillama-app-artifacts`, `R2_ARTIFACT_SOURCE_DIR` defaults to `.next/static`, and `R2_ARTIFACT_PREFIX` is optional.
 
 Do not set `NODE_OPTIONS` on Vercel for this project. The build wrapper applies the required heap setting only to the Next.js production build, and static generation memory is bounded in `next.config.ts`; setting Node flags globally can break Vercel's build runtime before Next.js starts.
 

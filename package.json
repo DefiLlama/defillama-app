@@ -14,6 +14,8 @@
 		"build:deploy": "node ./scripts/command/runTsCommand.mjs scripts/command/deployBuildCli.ts",
 		"build:metadata": "node ./scripts/command/runTsCommand.mjs scripts/command/prepareCli.ts",
 		"build:next": "next build",
+		"build:upload-r2": "node ./scripts/command/runTsCommand.mjs scripts/command/uploadR2Cli.ts",
+		"build:vercel": "bun run build && bun run build:upload-r2",
 		"start": "next start",
 		"start:docker": "sh ./scripts/docker-entrypoint.sh .next/standalone/server.js",
 		"test": "vitest run",
