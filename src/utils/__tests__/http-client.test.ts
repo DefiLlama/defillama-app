@@ -58,6 +58,19 @@ describe('fetchWithPoolingOnServer direct API auth', () => {
 		expect(v2Url.searchParams.get('x-llama-pro-key')).toBe('core-secret')
 	})
 
+	it('appends the core backend secret to URL object direct API requests', async () => {
+		const { fetchMock, fetchWithPoolingOnServer } = await importHttpClientWithEnv({
+			API2_SECRET_KEY: 'core-secret',
+			SERVER_URL: 'https://core.example.com/api'
+		})
+
+		await fetchWithPoolingOnServer(new URL('https://core.example.com/api/config?zz=16'))
+
+		const url = fetchedUrl(fetchMock)
+		expect(url.searchParams.get('zz')).toBe('16')
+		expect(url.searchParams.get('x-llama-pro-key')).toBe('core-secret')
+	})
+
 	it('appends direct auth for explicit V2, equities, and liquidations URL overrides', async () => {
 		const { fetchMock, fetchWithPoolingOnServer } = await importHttpClientWithEnv({
 			API2_SECRET_KEY: 'core-secret',
