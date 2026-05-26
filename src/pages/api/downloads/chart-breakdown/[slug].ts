@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL, V2_SERVER_URL } from '~/constants'
 import { chartDatasetsBySlug } from '~/containers/Downloads/chart-datasets'
 import { slug as toSlug } from '~/utils'
-import { validateSubscription } from '~/utils/apiAuth'
+import { subscriptionAuthHeader, validateSubscription } from '~/utils/apiAuth'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -221,7 +221,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		const auth = await validateSubscription(req.headers.authorization)
+		const auth = await validateSubscription(subscriptionAuthHeader(req.headers))
 		const isPreview = auth.valid === false
 
 		if (!isPreview && auth.valid && auth.isTrial) {

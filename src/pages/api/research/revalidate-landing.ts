@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { FEATURES_SERVER } from '~/constants'
 import { purgeCloudflareResearchUrls, type CloudflarePurgeResult } from '~/server/cloudflarePurge'
+import { subscriptionAuthHeader } from '~/utils/apiAuth'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type CacheUpdateResult = {
@@ -16,11 +17,7 @@ function articleUrl(path: string) {
 }
 
 function authorizationHeader(req: NextApiRequest): Record<string, string> {
-	const header = req.headers.authorization
-	if (Array.isArray(header)) {
-		const first = header.find(Boolean)
-		return first ? { Authorization: first } : {}
-	}
+	const header = subscriptionAuthHeader(req.headers)
 	return header ? { Authorization: header } : {}
 }
 

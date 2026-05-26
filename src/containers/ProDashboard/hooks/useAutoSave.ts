@@ -74,7 +74,8 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`
+					Authorization: `Bearer ${token}`,
+					'X-PB-Auth-Token': token
 				},
 				body: JSON.stringify({ id: pending.dashboardId, data: pending.data }),
 				keepalive: true
