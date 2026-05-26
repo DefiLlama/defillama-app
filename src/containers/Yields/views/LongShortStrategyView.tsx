@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { filterPool, findStrategyPoolsFR } from '../domain/strategyFilters'
+import { filterStrategyPool, findStrategyPoolsFR } from '../domain/strategyFilters'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
 import { YieldsStrategyTableFR } from '../Tables/StrategyFR'
@@ -30,7 +30,7 @@ const YieldsStrategyPageLongShort = ({
 
 		const pools = findStrategyPoolsFR({ token: token ? query : null, filteredPools, perps })
 			.filter((pool) =>
-				filterPool({
+				filterStrategyPool({
 					pool,
 					selectedChainsSet,
 					selectedAttributes,

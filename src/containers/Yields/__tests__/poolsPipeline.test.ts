@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { buildPoolsTableRows, buildPoolsTrackingStats, mapPoolToYieldTableRow } from '../poolsPipeline'
+import type { YieldView } from '../types'
 
 const basePool = {
 	pool: 'pool-1',
@@ -127,6 +128,10 @@ describe('buildPoolsTableRows view defaults', () => {
 			tokenCategories: {}
 		}).map((row) => row.configID)
 	}
+
+	it('requires callers to pass an explicit view', () => {
+		expectTypeOf<Parameters<typeof buildPoolsTableRows>[0]>().toMatchTypeOf<{ view: YieldView }>()
+	})
 
 	it('keeps main zero-APY and stablecoins route defaults explicit', () => {
 		expect(rowIdsForView('main')).toEqual(['active', 'stable', 'stable-il'])

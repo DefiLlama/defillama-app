@@ -7,6 +7,7 @@ import type {
 	YieldPoolsResponse,
 	YieldUrlsResponse
 } from '../api.types'
+import { calculateApyNet7d } from '../domain/apyMath'
 import type { YieldPageProps, YieldPool } from '../types'
 
 // Build slug → valuation map from raises + protocol hierarchy
@@ -142,7 +143,7 @@ export function formatYieldsPageData({
 		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
 		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
-		apyNet7d: p.apyBase7d > 0 ? Math.max(p.apyBase7d + p.il7d * 52, -100) : null // scale il7d (negative value) to year
+		apyNet7d: calculateApyNet7d(p.apyBase7d, p.il7d)
 	}))
 
 	// add lsd apr

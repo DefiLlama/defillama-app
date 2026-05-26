@@ -1,10 +1,14 @@
+import type { LendBorrowPool } from '../types'
+import { getEffectiveLtv } from './ltv'
+
 export const excludedOptimizerProjects = new Set(['silo-v2'])
 
-export const isStableToken = (token) => token?.toUpperCase() === 'USD_STABLES'
+export const isStableToken = (token?: string | null) => token?.toUpperCase() === 'USD_STABLES'
 
-export const removeLendBorrowMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+export const removeLendBorrowMetaTag = (symbol: string) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const matchesLendBorrowToken = (symbol, tokenToMatch) => {
+export const matchesLendBorrowToken = (symbol?: string | null, tokenToMatch?: string | null) => {
+	if (!symbol) return false
 	if (!tokenToMatch) return false
 
 	const cleanSymbol = removeLendBorrowMetaTag(symbol).toUpperCase()
@@ -18,19 +22,35 @@ export const matchesLendBorrowToken = (symbol, tokenToMatch) => {
 type PairMode = 'optimizer' | 'strategy'
 
 interface BuildLendBorrowPairsOptions {
-	pools: Array<any>
+	pools: LendBorrowPool[]
 	tokenToLend?: string | null
 	tokenToBorrow?: string | null
 	mode: PairMode
 }
 
-function buildAvailableToLend(pools: Array<any>, tokenToLend: string | null | undefined, mode: PairMode) {
-	return pools.filter(({ symbol, ltv }) => {
+type LendBorrowPoolWithLtv = LendBorrowPool & { ltv: number }
+
+export interface LendBorrowPairPool extends LendBorrowPoolWithLtv {
+	chains: string[]
+	borrow: LendBorrowPool
+}
+
+function hasPositiveLtv(pool: LendBorrowPool): pool is LendBorrowPoolWithLtv {
+	return pool.ltv != null && pool.ltv > 0
+}
+
+function buildAvailableToLend(
+	pools: LendBorrowPool[],
+	tokenToLend: string | null | undefined,
+	mode: PairMode
+): LendBorrowPoolWithLtv[] {
+	return pools.filter((pool): pool is LendBorrowPoolWithLtv => {
+		if (!hasPositiveLtv(pool)) return false
+		const { symbol } = pool
 		if (mode === 'optimizer' && (!tokenToLend || isStableToken(tokenToLend))) return true
 
 		return (
 			(isStableToken(tokenToLend) ? true : matchesLendBorrowToken(symbol, tokenToLend)) &&
-			ltv > 0 &&
 			!matchesLendBorrowToken(symbol, 'AMM')
 		)
 	})
@@ -44,7 +64,7 @@ function shouldKeepBorrowPool({
 	availableChainsSet,
 	mode
 }: {
-	pool: any
+	pool: LendBorrowPool
 	tokenToLend?: string | null
 	tokenToBorrow?: string | null
 	availableProjectsSet: Set<string>
@@ -73,8 +93,8 @@ function canUseCollateralPool({
 	tokenToBorrow,
 	mode
 }: {
-	collateralPool: any
-	borrowPool: any
+	collateralPool: LendBorrowPoolWithLtv
+	borrowPool: LendBorrowPool
 	tokenToLend?: string | null
 	tokenToBorrow?: string | null
 	mode: PairMode
@@ -103,7 +123,12 @@ function canUseCollateralPool({
 	)
 }
 
-export function buildLendBorrowPairs({ pools, tokenToLend, tokenToBorrow, mode }: BuildLendBorrowPairsOptions) {
+export function buildLendBorrowPairs({
+	pools,
+	tokenToLend,
+	tokenToBorrow,
+	mode
+}: BuildLendBorrowPairsOptions): LendBorrowPairPool[] {
 	const availableToLend = buildAvailableToLend(pools, tokenToLend, mode)
 	const availableCollateralPools =
 		mode === 'optimizer'
@@ -113,7 +138,7 @@ export function buildLendBorrowPairs({ pools, tokenToLend, tokenToBorrow, mode }
 	const availableProjectsSet = new Set(availableToLend.map(({ project }) => project))
 	const availableChainsSet = new Set(availableToLend.map(({ chain }) => chain))
 
-	return pools.reduce((acc, pool) => {
+	return pools.reduce<LendBorrowPairPool[]>((acc, pool) => {
 		if (
 			!shouldKeepBorrowPool({
 				pool,
@@ -127,16 +152,24 @@ export function buildLendBorrowPairs({ pools, tokenToLend, tokenToBorrow, mode }
 			return acc
 		}
 
-		const collateralPools = availableCollateralPools.filter((collateralPool) =>
-			canUseCollateralPool({ collateralPool, borrowPool: pool, tokenToLend, tokenToBorrow, mode })
-		)
+		const poolPairs: LendBorrowPairPool[] = []
+		for (const collateralPool of availableCollateralPools) {
+			if (!canUseCollateralPool({ collateralPool, borrowPool: pool, tokenToLend, tokenToBorrow, mode })) continue
 
-		const poolPairs = collateralPools.map((collateralPool) => ({
-			...collateralPool,
-			chains: [collateralPool.chain],
-			borrow: pool,
-			ltv: collateralPool.project === 'euler' ? collateralPool.ltv * pool.borrowFactor : collateralPool.ltv
-		}))
+			const ltv = getEffectiveLtv({
+				project: collateralPool.project,
+				ltv: collateralPool.ltv,
+				borrowFactor: pool.borrowFactor
+			})
+			if (ltv == null) continue
+
+			poolPairs.push({
+				...collateralPool,
+				chains: [collateralPool.chain],
+				borrow: pool,
+				ltv
+			})
+		}
 
 		return acc.concat(poolPairs)
 	}, [])

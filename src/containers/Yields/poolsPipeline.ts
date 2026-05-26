@@ -1,7 +1,6 @@
 import { filterYieldPools, type YieldPoolFilterState, extractYieldPoolTokens } from './domain/poolFilters'
 import { mapPoolToYieldTableRow } from './domain/poolRows'
 import { matchesYieldPoolToken } from './domain/tokenFilter'
-import { getYieldViewFromPathname } from './domain/views'
 import type { HolderStatsMap } from './queries/holderTypes'
 import type { IYieldTableRow } from './Tables/types'
 import type { StablecoinInfoBySymbol, YieldPool, YieldTokenCategories, YieldView } from './types'
@@ -10,8 +9,7 @@ type VolatilityMap = Record<string, [number | null, number | null, number | null
 
 interface BuildPoolRowsOptions {
 	pools: YieldPool[]
-	pathname?: string
-	view?: YieldView
+	view: YieldView
 	filters: YieldPoolFilterState
 	usdPeggedSymbols?: string[]
 	tokenCategories?: YieldTokenCategories
@@ -64,7 +62,6 @@ export function buildYieldTableRowsWithBorrowData(
 
 export function buildPoolsTableRows({
 	pools,
-	pathname,
 	view,
 	filters,
 	usdPeggedSymbols = [],
@@ -73,8 +70,7 @@ export function buildPoolsTableRows({
 	volatility,
 	holderStats
 }: BuildPoolRowsOptions): IYieldTableRow[] {
-	const resolvedView = view ?? getYieldViewFromPathname(pathname ?? '')
-	const filteredPools = filterYieldPools({ pools, view: resolvedView, filters, usdPeggedSymbols, tokenCategories })
+	const filteredPools = filterYieldPools({ pools, view, filters, usdPeggedSymbols, tokenCategories })
 	const rows: IYieldTableRow[] = []
 
 	for (const pool of filteredPools) {

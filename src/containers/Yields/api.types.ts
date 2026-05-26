@@ -75,7 +75,7 @@ export interface RawYieldLendBorrowPool {
 	ltv: number
 	borrowable?: boolean
 	mintedCoin?: string | null
-	borrowFactor?: number
+	borrowFactor?: number | null
 	debtCeilingUsd?: number | null
 	rewardTokens?: string[] | null
 	underlyingTokens?: string[] | null

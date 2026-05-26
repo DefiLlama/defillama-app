@@ -340,18 +340,22 @@ const safeProjects = [
 
 interface IPool {
 	projectName: string
-	totalAvailableUsd: number
+	totalAvailableUsd?: number | null
 	chain: string
 	pool: string | null
-	poolMeta: string | null
+	poolMeta?: string | null
 	tvlUsd: number
-	borrow: any
+	borrow: {
+		totalAvailableUsd?: number | null
+		apyBorrow?: number | null
+		apyBaseBorrow?: number | null
+	}
 	apyBaseBorrow?: number | null
 	apyBase?: number | null
 	apy?: number | null
 	apyReward?: number | null
 	apyRewardBorrow?: number | null
-	ltv?: number | null
+	ltv: number
 }
 
 const getAPY = (
