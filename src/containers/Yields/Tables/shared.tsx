@@ -1,4 +1,5 @@
 import {
+	type ColumnDef,
 	type ColumnOrderState,
 	getCoreRowModel,
 	getPaginationRowModel,
@@ -18,9 +19,9 @@ import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 const EMPTY_SORTING: SortingState = []
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
 
-interface IYieldsTableWrapper {
-	data: any
-	columns: any
+interface IYieldsTableWrapper<TRow> {
+	data: TRow[]
+	columns: Array<ColumnDef<TRow, unknown>>
 	columnOrders: ColumnOrdersByBreakpoint
 	rowSize?: number
 	columnVisibility?: Record<string, boolean>
@@ -31,7 +32,7 @@ interface IYieldsTableWrapper {
 	initialPageSize?: number
 }
 
-export const YieldsTableWrapper = ({
+export const YieldsTableWrapper = <TRow,>({
 	data,
 	columns,
 	columnOrders,
@@ -42,7 +43,7 @@ export const YieldsTableWrapper = ({
 	skipVirtualization,
 	enablePagination = false,
 	initialPageSize = PAGE_SIZE_OPTIONS[0]
-}: IYieldsTableWrapper) => {
+}: IYieldsTableWrapper<TRow>) => {
 	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [pagination, setPagination] = React.useState<PaginationState>({

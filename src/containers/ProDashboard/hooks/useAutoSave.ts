@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
-import { FEATURES_SERVER } from '~/constants'
 import pb from '~/utils/pocketbase'
 import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
+import { buildDashboardSaveRequest } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
 
 interface UseAutoSaveOptions {
@@ -71,13 +71,16 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 		const token = pb.authStore.token
 
 		if (pending && token) {
-			void fetch(`${FEATURES_SERVER}/dashboards/${pending.dashboardId}`, {
-				method: 'POST',
+			const { url, options: requestOptions } = buildDashboardSaveRequest({
+				id: pending.dashboardId,
+				data: pending.data
+			})
+			void fetch(url, {
+				...requestOptions,
 				headers: {
-					'Content-Type': 'application/json',
+					...requestOptions.headers,
 					Authorization: `Bearer ${token}`
 				},
-				body: JSON.stringify({ data: pending.data }),
 				keepalive: true
 			})
 			pendingDataRef.current = null

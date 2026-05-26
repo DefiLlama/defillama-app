@@ -1,10 +1,10 @@
 import type { ParsedUrlQuery } from 'querystring'
 import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 import type { BorrowAdvancedPageMetadata, BorrowAdvancedRow, BorrowAdvancedSearchItem } from './borrowAdvanced'
-import { UNBOUNDED_DEBT_CEILING_PROJECTS } from './queries'
-import type { LendBorrowData } from './queries/index'
+import { UNBOUNDED_DEBT_CEILING_PROJECTS } from './constants'
+import { filterOptimizerPool, findOptimizerPools, formatOptimizerPool } from './domain/strategyFilters'
+import type { LendBorrowData } from './queries.server'
 import { decodeYieldsQuery } from './queryState'
-import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
 const EMPTY_ARRAY: string[] = []
 const LAST_SORT_POSITION = Number.MAX_SAFE_INTEGER
@@ -162,7 +162,7 @@ export function buildBorrowAdvancedPageRows(data: LendBorrowData, query: ParsedU
 				: pool
 
 		if (
-			!filterPool({
+			!filterOptimizerPool({
 				pool: poolForFilter,
 				selectedChainsSet,
 				selectedAttributes,

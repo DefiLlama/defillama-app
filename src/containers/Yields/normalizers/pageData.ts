@@ -1,5 +1,14 @@
 import { buildEvmChainsSet } from '~/constants/chains'
 import type { RawRaise } from '~/containers/Raises/api.types'
+import type {
+	RawYieldPool,
+	YieldChainsResponse,
+	YieldConfigResponse,
+	YieldPoolsResponse,
+	YieldUrlsResponse
+} from '../api.types'
+import { calculateApyNet7d } from '../domain/apyMath'
+import type { YieldPageProps, YieldPool } from '../types'
 
 // Build slug → valuation map from raises + protocol hierarchy
 export function buildRaiseValuations(
@@ -90,12 +99,24 @@ export function buildRaiseValuations(
 	return result
 }
 
-export function formatYieldsPageData(poolsAndConfig: any) {
-	let _pools = poolsAndConfig[0]?.data ?? []
-	let _config = poolsAndConfig[1]?.protocols ?? []
-	let _urls = poolsAndConfig[2] ?? []
-	let _chains = poolsAndConfig[3] ?? []
-	let _lite = poolsAndConfig[4] ?? []
+export function formatYieldsPageData({
+	poolsData,
+	configData,
+	urlsData,
+	chainsData,
+	protocolsData
+}: {
+	poolsData: YieldPoolsResponse
+	configData: YieldConfigResponse
+	urlsData: YieldUrlsResponse
+	chainsData: YieldChainsResponse
+	protocolsData: any
+}): YieldPageProps {
+	let _pools: Array<RawYieldPool & Partial<YieldPool>> = poolsData?.data ?? []
+	let _config = configData?.protocols ?? {}
+	let _urls = urlsData ?? {}
+	let _chains = chainsData ?? []
+	let _lite = protocolsData ?? { protocols: [], parentProtocols: [] }
 
 	// Build EVM chains set from API data (chains with chainId are EVM)
 	const evmChainsSet = buildEvmChainsSet(_chains)
@@ -122,7 +143,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
 		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
-		apyNet7d: p.apyBase7d > 0 ? Math.max(p.apyBase7d + p.il7d * 52, -100) : null // scale il7d (negative value) to year
+		apyNet7d: calculateApyNet7d(p.apyBase7d, p.il7d)
 	}))
 
 	// add lsd apr
@@ -160,7 +181,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		}
 	})
 
-	const poolsList = []
+	const poolsList: YieldPool[] = []
 
 	const chainList: Set<string> = new Set()
 
@@ -170,12 +191,54 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	for (const pool of _pools) {
 		// remove potential undefined on projectName
-		if (pool.projectName) {
-			poolsList.push(pool)
-			chainList.add(pool.chain)
-			if (pool.category) categoryList.add(pool.category)
-			projectList.add(pool.projectName)
+		if (!pool.projectName) continue
+
+		const normalizedPool: YieldPool = {
+			pool: pool.pool,
+			symbol: pool.symbol,
+			project: pool.project,
+			projectName: pool.projectName,
+			chain: pool.chain,
+			category: pool.category ?? null,
+			tvlUsd: pool.tvlUsd,
+			apy: pool.apy,
+			apyBase: pool.apyBase,
+			apyReward: pool.apyReward,
+			rewardTokens: pool.rewardTokens ?? [],
+			rewardTokensSymbols: pool.rewardTokensSymbols ?? undefined,
+			rewardTokensNames: pool.rewardTokensNames ?? undefined,
+			rewardMeta: pool.rewardMeta ?? null,
+			underlyingTokens: pool.underlyingTokens ?? [],
+			airdrop: Boolean(pool.airdrop),
+			raiseValuation: pool.raiseValuation ?? null,
+			audits: pool.audits ?? null,
+			url: pool.url ?? '',
+			stablecoin: pool.stablecoin,
+			exposure: pool.exposure,
+			ilRisk: pool.ilRisk,
+			hasMemeToken: pool.hasMemeToken,
+			outlier: pool.outlier,
+			predictions: pool.predictions,
+			apyPct1D: pool.apyPct1D,
+			apyPct7D: pool.apyPct7D,
+			il7d: pool.il7d,
+			apyBase7d: pool.apyBase7d,
+			apyNet7d: pool.apyNet7d,
+			apyMean30d: pool.apyMean30d,
+			volumeUsd1d: pool.volumeUsd1d,
+			volumeUsd7d: pool.volumeUsd7d,
+			apyBaseInception: pool.apyBaseInception,
+			apyLsd: pool.apyLsd,
+			apyIncludingLsdApy: pool.apyIncludingLsdApy,
+			apyBaseIncludingLsdApy: pool.apyBaseIncludingLsdApy,
+			lsdTokenOnly: pool.lsdTokenOnly,
+			poolMeta: pool.poolMeta
 		}
+
+		poolsList.push(normalizedPool)
+		chainList.add(normalizedPool.chain)
+		if (normalizedPool.category) categoryList.add(normalizedPool.category)
+		projectList.add(normalizedPool.projectName)
 	}
 
 	let tokenNameMapping = {}
@@ -238,6 +301,9 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		tokenNameMapping,
 		tokens,
 		tokenSymbolsList,
+		usdPeggedSymbols: [],
+		stablecoinInfoBySymbol: {},
+		tokenCategories: {},
 		evmChains: Array.from(evmChainsSet)
 	}
 }

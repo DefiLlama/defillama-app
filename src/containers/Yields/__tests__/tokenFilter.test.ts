@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet, matchesYieldPoolToken } from '../tokenFilter'
+import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet, matchesYieldPoolToken } from '../domain/tokenFilter'
 
 describe('matchesYieldPoolToken', () => {
 	it('returns false for falsy inputs', () => {

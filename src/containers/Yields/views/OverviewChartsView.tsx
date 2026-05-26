@@ -2,9 +2,10 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { YieldFiltersV2 } from './Filters'
-import { useFormatYieldQueryParams } from './hooks'
-import { normalizeToken, toFilterPool } from './utils'
+import { filterYieldPools } from '../domain/poolFilters'
+import { getYieldViewFromPathname } from '../domain/views'
+import { YieldFiltersV2 } from '../Filters'
+import { useFormatYieldQueryParams } from '../hooks'
 
 interface IChartProps {
 	chartData: any
@@ -21,7 +22,7 @@ interface ITreemapProps {
 const ScatterChart = React.lazy(() => import('~/components/ECharts/ScatterChart')) as React.FC<IChartProps>
 const BoxplotChart = React.lazy(() => import('~/components/ECharts/BoxplotChart')) as React.FC<IChartProps>
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapProps>
-const MultiSeriesChart2 = React.lazy(() => import('./YieldsMultiSeriesChart')) as React.FC<IMultiSeriesChart2Props>
+const MultiSeriesChart2 = React.lazy(() => import('../YieldsMultiSeriesChart')) as React.FC<IMultiSeriesChart2Props>
 
 export const PlotsPage = ({
 	pools,
@@ -52,39 +53,25 @@ export const PlotsPage = ({
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
-		const pair_tokens = pairTokens.map((token) => normalizeToken(token))
-		const include_tokens = includeTokens.map((token) => normalizeToken(token))
-		const excludeTokensSet = new Set(excludeTokens.map((token) => normalizeToken(token)))
-		const exact_tokens = exactTokens.map((token) => normalizeToken(token))
-
-		const selectedProjectsSet = new Set(selectedProjects)
-		const selectedChainsSet = new Set(selectedChains)
-		const selectedCategoriesSet = new Set(selectedCategories)
-
-		return pools.reduce((acc, curr) => {
-			const toFilter = toFilterPool({
-				curr,
-				pathname,
-				selectedProjectsSet,
-				selectedChainsSet,
+		return filterYieldPools({
+			pools,
+			view: getYieldViewFromPathname(pathname),
+			filters: {
+				selectedProjects,
+				selectedChains,
 				selectedAttributes,
-				includeTokens: include_tokens,
-				excludeTokensSet,
-				exactTokens: exact_tokens,
-				selectedCategoriesSet,
+				includeTokens,
+				excludeTokens,
+				exactTokens,
+				selectedCategories,
+				pairTokens,
 				minTvl,
 				maxTvl,
 				minApy,
-				maxApy,
-				pairTokens: pair_tokens,
-				usdPeggedSymbols
-			})
-
-			if (toFilter) {
-				acc.push(curr)
-			}
-			return acc
-		}, [])
+				maxApy
+			},
+			usdPeggedSymbols
+		})
 	}, [
 		minTvl,
 		maxTvl,

@@ -69,8 +69,46 @@ export interface IYieldsProjectsTableRow {
 	airdrop?: boolean
 }
 
-export interface IYieldsTableProps {
-	data: Array<IYieldTableRow>
+export interface YieldPoolTableRow extends IYieldTableRow {}
+
+export interface YieldBorrowTableRow extends Pick<
+	IYieldTableRow,
+	| 'pool'
+	| 'configID'
+	| 'projectslug'
+	| 'project'
+	| 'airdrop'
+	| 'raiseValuation'
+	| 'chains'
+	| 'apyBase'
+	| 'apyReward'
+	| 'apyBorrow'
+	| 'apyBaseBorrow'
+	| 'apyRewardBorrow'
+	| 'totalSupplyUsd'
+	| 'totalBorrowUsd'
+	| 'totalAvailableUsd'
+	| 'url'
+	| 'ltv'
+	| 'rewardTokensSymbols'
+	| 'rewards'
+	| 'tvl'
+	| 'apy'
+	| 'change1d'
+	| 'change7d'
+	| 'confidence'
+	| 'category'
+	| 'strikeTvl'
+> {}
+
+export interface YieldLoopTableRow extends YieldBorrowTableRow {
+	loopApy?: number | null
+	netSupplyApy?: number | null
+	boost?: number | null
+}
+
+export interface IYieldsTableProps<TRow = IYieldTableRow> {
+	data: Array<TRow>
 	enablePagination?: boolean
 	initialPageSize?: number
 	initialPageIndex?: number
@@ -119,3 +157,8 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	afr30d: number
 	indexPrice: number
 }
+
+export interface YieldOptimizerTableRow extends IYieldsOptimizerTableRow {}
+export interface YieldStrategyTableRow extends IYieldsStrategyTableRow {}
+export interface YieldLongShortStrategyTableRow extends IYieldsStrategyTableRow {}
+export interface YieldProjectTableRow extends IYieldsProjectsTableRow {}

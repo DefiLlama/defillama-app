@@ -40,6 +40,21 @@ export const config = {
 	api: { responseLimit: false }
 }
 
+function getAuthToken(req: NextApiRequest): string | null {
+	const normalizeToken = (value: string | undefined): string | null => {
+		const token = value?.trim().replace(/^Bearer\s+/i, '')
+		if (!token || token === 'null' || token === 'undefined') return null
+		return token
+	}
+
+	const authHeader = req.headers?.authorization
+	const value = Array.isArray(authHeader) ? authHeader[0] : authHeader
+	const normalizedAuthToken = normalizeToken(value)
+	if (normalizedAuthToken) return normalizedAuthToken
+
+	return normalizeToken(req.cookies['pb_auth_token'])
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.status(405).end()
@@ -52,11 +67,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return
 	}
 
-	const authToken = req.cookies['pb_auth_token'] ?? null
+	const authToken = getAuthToken(req)
 
 	// Set streaming headers
 	res.setHeader('Content-Type', 'application/x-ndjson')
 	res.setHeader('X-Accel-Buffering', 'no')
+	res.setHeader('Vary', 'Cookie, Authorization')
 	res.setHeader(
 		'Cache-Control',
 		authToken ? 'private, no-cache, no-store, must-revalidate' : 'public, s-maxage=300, stale-while-revalidate=3600'

@@ -5,15 +5,15 @@ import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref 
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
-import type { IYieldsTableProps, IYieldTableRow } from './types'
+import type { IYieldsTableProps, YieldBorrowTableRow } from './types'
 
-const columnHelper = createColumnHelper<IYieldTableRow>()
+const columnHelper = createColumnHelper<YieldBorrowTableRow>()
 const BORROW_COLUMN_IDS = [
 	'pool',
 	'project',
@@ -327,14 +327,14 @@ const columnOrders: Record<number, readonly BorrowColumnId[]> = {
 		'totalAvailableUsd'
 	]
 }
-export const BORROW_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, BorrowColumnId> = {
+export const BORROW_TABLE_CONFIG: YieldsTableConfig<YieldBorrowTableRow, BorrowColumnId> = {
 	kind: 'borrow',
 	columnIds: BORROW_COLUMN_IDS,
 	columns,
 	columnOrders
 }
 
-export function YieldsBorrowTable({ data }: IYieldsTableProps) {
+export function YieldsBorrowTable({ data }: IYieldsTableProps<YieldBorrowTableRow>) {
 	const resolvedConfig = resolveVirtualYieldsTableConfig(BORROW_TABLE_CONFIG, undefined)
 	return <YieldsTableWrapper data={data} columns={resolvedConfig.columns} columnOrders={resolvedConfig.columnOrders} />
 }

@@ -12,6 +12,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { extractYieldPoolTokens } from '~/containers/Yields/domain/poolFilters'
 import { ProtocolInformationCard } from '~/containers/Yields/ProtocolInformationCard'
 import {
 	useYieldChartData,
@@ -19,7 +20,7 @@ import {
 	useVolatility,
 	useHolderHistory,
 	useHolderStats
-} from '~/containers/Yields/queries/client'
+} from '~/containers/Yields/queries.client'
 import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import {
 	computeHolderChanges,
@@ -31,7 +32,6 @@ import {
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
-import { extractPoolTokens } from '~/containers/Yields/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
@@ -134,7 +134,7 @@ function truncateAddress(addr: string): string {
 
 export function getYieldPoolAssetTokens(poolSymbol?: string | null): string[] {
 	if (!poolSymbol) return []
-	return [...new Set(extractPoolTokens(poolSymbol))]
+	return [...new Set(extractYieldPoolTokens(poolSymbol))]
 }
 
 function ShareBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {

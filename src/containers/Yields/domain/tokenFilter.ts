@@ -1,4 +1,4 @@
-import { extractPoolTokens, normalizeToken } from './utils'
+import { extractYieldPoolTokens, normalizeYieldToken } from './poolFilters'
 
 // Wrapper prefixes that should still match the underlying token symbol.
 const WRAPPER_PREFIXES = ['st', 'cb', 'w', 'r', 't'] as const
@@ -8,7 +8,7 @@ function normalizeYieldTokenSymbol(token: string): string {
 	if (!normalizedToken) return ''
 	if (normalizedToken === 't') return 't'
 	if (normalizedToken === 'tether') return 'usdt'
-	return normalizeToken(normalizedToken)
+	return normalizeYieldToken(normalizedToken)
 }
 
 function stripWrapperPrefix(token: string): string {
@@ -37,7 +37,7 @@ export function getYieldTokenVariantSet(token: string): Set<string> {
 export function getYieldPoolTokenVariantSet(poolSymbol: string): Set<string> {
 	const variants = new Set<string>()
 
-	for (const poolToken of extractPoolTokens(poolSymbol)) {
+	for (const poolToken of extractYieldPoolTokens(poolSymbol)) {
 		for (const variant of getYieldTokenVariants(poolToken)) {
 			variants.add(variant)
 		}

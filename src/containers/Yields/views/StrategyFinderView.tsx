@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { YieldFiltersV2 } from './Filters'
-import { useFormatYieldQueryParams } from './hooks'
-import { YieldsStrategyTable } from './Tables/Strategy'
-import { filterPool, findStrategyPools } from './utils'
+import { filterStrategyPool, findStrategyPools } from '../domain/strategyFilters'
+import { YieldFiltersV2 } from '../Filters'
+import { useFormatYieldQueryParams } from '../hooks'
+import { YieldsStrategyTable } from '../Tables/Strategy'
 
 const YieldsStrategyPage = ({
 	pools,
@@ -60,7 +60,7 @@ const YieldsStrategyPage = ({
 			cdpRoutes: cdpPools,
 			customLTV
 		}).filter((pool) =>
-			filterPool({
+			filterStrategyPool({
 				pool,
 				selectedChainsSet,
 				selectedAttributes,
@@ -70,8 +70,7 @@ const YieldsStrategyPage = ({
 				maxAvailable,
 				selectedLendingProtocolsSet,
 				selectedFarmProtocolsSet,
-				customLTV,
-				strategyPage: true
+				customLTV
 			})
 		)
 
