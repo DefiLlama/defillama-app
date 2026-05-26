@@ -28,10 +28,24 @@ COPY package.json bun.lock /temp/dev/
 RUN cd /temp/dev && bun install --frozen-lockfile
 
 FROM bun-base AS builder
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends rclone \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 ARG COOLIFY_BRANCH
+ARG SOURCE_COMMIT
+ARG BUILD_DEPLOYMENT_NAME
+ARG COOLIFY_CONTAINER_NAME
+ARG COOLIFY_RESOURCE_UUID
+ARG COOLIFY_FQDN
+ARG COOLIFY_URL
+ARG VERCEL_GIT_COMMIT_SHA
+ARG NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+ARG GITHUB_SHA
 ARG LOGGER_API_KEY
 ARG LOGGER_API_URL
 ARG BUILD_STATUS_WEBHOOK

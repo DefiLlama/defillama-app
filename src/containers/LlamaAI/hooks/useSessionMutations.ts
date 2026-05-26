@@ -180,8 +180,18 @@ export function useSessionMutations() {
 			}
 		},
 		onSuccess: (_data, variables) => {
-			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
-			if (variables.projectId) invalidateProjectSessions(variables.projectId)
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					updateSessionInInfiniteData(old, variables.sessionId, (session) => ({
+						...session,
+						isOptimistic: false,
+						projectId: variables.projectId ?? null
+					}))
+				)
+			}
+			if (!variables.projectId) {
+				void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			}
 		},
 		onError: (_error, variables) => {
 			if (user) {
@@ -352,8 +362,11 @@ export function useSessionMutations() {
 			}
 		},
 		onSettled: (_data, _error, variables) => {
+			if (variables.projectId) {
+				invalidateProjectSessions(variables.projectId)
+				return
+			}
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
-			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		}
 	})
 

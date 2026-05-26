@@ -12,7 +12,12 @@ const type = 'Holders Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, chainMetadata: metadataCache.chainMetadata })
+	const data = await getChainsByAdapterPageData({
+		adapterType,
+		dataType,
+		chainMetadata: metadataCache.chainMetadata,
+		includeChartData: false
+	})
 
 	return {
 		props: data,

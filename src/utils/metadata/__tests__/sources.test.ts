@@ -29,15 +29,17 @@ function responseForUrl(url: string): unknown {
 	}
 	if (url.endsWith('/chains2')) return { categories: ['EVM'] }
 	if (url.endsWith('/cexs?zz=16')) return { cexs: [], cg_volume_cexs: ['binance'] }
-	if (url.includes('/rwa/list?zz=16')) {
+	if (url.includes('/rwa/list?zz=16') || url === 'https://rwa.example.com/list?zz=16') {
 		return { canonicalMarketIds: [], platforms: [], chains: [], categories: [], assetGroups: [], idMap: {} }
 	}
-	if (url.includes('/rwa-perps/list?zz=16')) {
+	if (url.includes('/rwa-perps/list?zz=16') || url === 'https://rwa-perps.example.com/list?zz=16') {
 		return { contracts: [], venues: [], categories: [], assetGroups: [], total: 0 }
 	}
 	if (url.includes('/tokenlist/sorted.json?zz=16')) return []
 	if (url.includes('/config/smol/token.json')) return {}
-	if (url.includes('/liquidations/all?zz=16')) return { data: {}, tokens: {}, validThresholds: [], timestamp: 0 }
+	if (url.includes('/liquidations/all?zz=16') || url === 'https://liquidations.example.com/all?zz=16') {
+		return { data: {}, tokens: {}, validThresholds: [], timestamp: 0 }
+	}
 	if (url.includes('/bridges?includeChains=true')) return { bridges: [], chains: [] }
 	if (url.includes('/emissionsSupplyMetrics')) return {}
 	if (url.endsWith('/emissions')) return []
@@ -106,6 +108,41 @@ describe('metadata source adapters', () => {
 		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://pro-api.llama.fi/secret-key/api/emissions', {
 			timeout: 180_000
 		})
+	})
+
+	it('fetches metadata sources from direct URL overrides before pro API fallbacks', async () => {
+		vi.stubEnv('API_KEY', 'secret-key')
+		vi.stubEnv('BRIDGES_SERVER_URL', 'https://bridges.example.com/')
+		vi.stubEnv('DATASETS_SERVER_URL', 'https://datasets.example.com/')
+		vi.stubEnv('LIQUIDATIONS_SERVER_URL_V2', 'https://liquidations.example.com/')
+		vi.stubEnv('RWA_PERPS_SERVER_URL', 'https://rwa-perps.example.com/')
+		vi.stubEnv('RWA_SERVER_URL', 'https://rwa.example.com/')
+		vi.stubEnv('SERVER_URL', 'https://core.example.com/api/')
+		const { fetchCoreMetadataSources } = await import('../sources')
+
+		await fetchCoreMetadataSources()
+
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith(
+			'https://core.example.com/api/config/smol/appMetadata-protocols.json?zz=16',
+			{ timeout: 180_000 }
+		)
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://rwa.example.com/list?zz=16', {
+			timeout: 180_000
+		})
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://rwa-perps.example.com/list?zz=16', {
+			timeout: 180_000
+		})
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith(
+			'https://datasets.example.com/tokenlist/sorted.json?zz=16',
+			{ timeout: 180_000 }
+		)
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith('https://liquidations.example.com/all?zz=16', {
+			timeout: 180_000
+		})
+		expect(fetchWithPoolingOnServerMock).toHaveBeenCalledWith(
+			'https://bridges.example.com/bridges?includeChains=true',
+			{ timeout: 180_000 }
+		)
 	})
 
 	it('logs the named metadata source when an upstream request fails', async () => {

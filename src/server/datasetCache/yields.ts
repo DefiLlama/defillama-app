@@ -120,7 +120,7 @@ async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
 	return byPoolId
 }
 
-async function getLendBorrowData(): Promise<LendBorrowData> {
+export async function getLendBorrowDataFromCache(): Promise<LendBorrowData> {
 	return readDatasetDomainJson<LendBorrowData>('yields', YIELDS_DATASET_FILES.lendBorrow)
 }
 
@@ -150,7 +150,7 @@ export async function getTokenYieldsRowsFromCache(
 }
 
 export async function getTokenBorrowRoutesFromCache(token: string): Promise<TokenBorrowRoutesResponse> {
-	const lendBorrowData = await getLendBorrowData()
+	const lendBorrowData = await getLendBorrowDataFromCache()
 	return buildTokenBorrowRoutesData(token, lendBorrowData.props.pools)
 }
 

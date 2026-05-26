@@ -404,6 +404,21 @@ export function AgenticChat({
 	const shouldStartDetachedForAnchor = typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
 
 	useEffect(() => {
+		if (!quotedText || readOnly) return
+
+		const frameId = window.requestAnimationFrame(() => {
+			const input = promptInputRef.current
+			if (!input) return
+
+			input.focus()
+			const cursorPosition = input.value.length
+			input.setSelectionRange(cursorPosition, cursorPosition)
+		})
+
+		return () => window.cancelAnimationFrame(frameId)
+	}, [quotedText, readOnly])
+
+	useEffect(() => {
 		currentSessionIdRef.current = sessionId
 	}, [sessionId])
 
@@ -975,7 +990,7 @@ export function AgenticChat({
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
-			setCurrentSessionProjectId(result.projectId ?? null)
+			setCurrentSessionProjectId(result.projectId ?? match?.projectId ?? null)
 
 			const allDashboards = restored.flatMap((m) => m.dashboards || [])
 			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
@@ -1209,6 +1224,7 @@ export function AgenticChat({
 		clearConversationRuntimeState()
 		setMessages([])
 		setActiveLeafMessageId(null)
+		setQuotedText(null)
 		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
@@ -1236,17 +1252,11 @@ export function AgenticChat({
 				title: 'New Chat',
 				projectId: projectIdForNewChat
 			})
-			if (route.kind !== 'project') {
-				try {
-					await persistSession
-					void navigate.toSession(nextSessionId)
-				} catch (createSessionError) {
-					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
-				}
-			} else {
-				void persistSession.catch((createSessionError) => {
-					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
-				})
+			try {
+				await persistSession
+				void navigate.toSession(nextSessionId)
+			} catch (createSessionError) {
+				console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
 			}
 			promptInputRef.current?.focus()
 			return
@@ -1396,6 +1406,7 @@ export function AgenticChat({
 				if (shouldSkipCurrentSessionRouteRestore(routeTransition, previousTransition, currentSessionIdRef.current))
 					return
 
+				setQuotedText(null)
 				setMessages([])
 				setActiveLeafMessageId(null)
 				setSessionTitle(null)

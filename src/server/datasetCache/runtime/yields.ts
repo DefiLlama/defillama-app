@@ -1,14 +1,21 @@
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
+import { buildBorrowAdvancedPageMetadata, buildBorrowAdvancedPageRows } from '~/containers/Yields/borrowAdvanced.server'
 import { buildYieldTableRowsWithBorrowData, mapPoolToYieldTableRow } from '~/containers/Yields/poolsPipeline'
-import { fetchYieldConfigFromNetwork, getLendBorrowData, getYieldPageData } from '~/containers/Yields/queries/index'
+import {
+	fetchYieldConfigFromNetwork,
+	getLendBorrowData as getLendBorrowDataFromNetwork,
+	getYieldPageData
+} from '~/containers/Yields/queries/index'
 import type { YieldConfigResponse } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { fetchJson } from '~/utils/async'
 import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
 import {
+	getLendBorrowDataFromCache,
 	getProtocolYieldRowsFromCache,
 	getTokenBorrowRoutesFromCache,
 	getTokenYieldsRowsFromCache,
@@ -21,7 +28,7 @@ import type { YieldPoolPageData, YieldPoolPageDataResult } from './yields.types'
 
 async function getProtocolYieldRowsFromNetwork(protocolSlugs: string[]): Promise<IYieldTableRow[]> {
 	const yieldsData = await getYieldPageData()
-	const dataBorrow = await getLendBorrowData().catch(() => ({ props: { pools: [] as any[] } }))
+	const dataBorrow = await getLendBorrowDataFromNetwork().catch(() => ({ props: { pools: [] as any[] } }))
 	const allRows = buildYieldTableRowsWithBorrowData(yieldsData?.props?.pools ?? [], dataBorrow.props.pools)
 	const protocolSlugSet = new Set(protocolSlugs)
 	const rows: IYieldTableRow[] = []
@@ -76,6 +83,24 @@ export function getYieldConfig(): Promise<YieldConfigResponse> {
 		readCache: getYieldConfigFromCache,
 		readNetwork: fetchYieldConfigFromNetwork
 	})
+}
+
+function getLendBorrowData() {
+	return readThroughDatasetCache({
+		domain: 'yields',
+		readCache: getLendBorrowDataFromCache,
+		readNetwork: getLendBorrowDataFromNetwork
+	})
+}
+
+export async function getBorrowAdvancedPageMetadata() {
+	const [lendBorrowData, cgList] = await Promise.all([getLendBorrowData(), fetchCoinGeckoTokensListFromDataset()])
+	return buildBorrowAdvancedPageMetadata(lendBorrowData, cgList)
+}
+
+export async function getBorrowAdvancedPageRows(query: Record<string, string | string[] | undefined>) {
+	const lendBorrowData = await getLendBorrowData()
+	return buildBorrowAdvancedPageRows(lendBorrowData, query)
 }
 
 export function getProtocolYieldRows(protocolSlugs: string[]): Promise<IYieldTableRow[]> {

@@ -9,7 +9,7 @@ import { AddTextContentModal } from './AddTextContentModal'
 import { GitHubConnectModal } from './GitHubConnectModal'
 import { useDeleteProjectFile, useDisconnectSource, useProjectFiles, useProjectSources } from './hooks'
 import type { ProjectFile, ProjectSource } from './types'
-import { useProjectFileUpload } from './useProjectFileUpload'
+import { PROJECT_FILE_ACCEPT, useProjectFileUpload } from './useProjectFileUpload'
 
 function formatBytes(bytes: number | string): string {
 	const n = Number(bytes ?? 0)
@@ -141,6 +141,7 @@ export function ProjectFilesPanel({
 					ref={fileInputRef}
 					type="file"
 					multiple
+					accept={PROJECT_FILE_ACCEPT}
 					hidden
 					onChange={(e) => {
 						const list = e.target.files ? Array.from(e.target.files) : []

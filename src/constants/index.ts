@@ -1,3 +1,5 @@
+import { getDirectUrlEnv } from '~/utils/directApi'
+
 // Base environment/config
 const API_KEY = process.env.API_KEY
 export const PRO_API_BASE_URL =
@@ -13,35 +15,46 @@ export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE
 export const AUTH_SERVER = process.env.NEXT_PUBLIC_AUTH_SERVER_URL ?? 'https://auth.llama.fi'
 export const FEATURES_SERVER = process.env.NEXT_PUBLIC_FEATURES_SERVER_URL ?? 'https://features.llama.fi'
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
-export const DATASETS_SERVER_URL = API_KEY
-	? `${PRO_API_BASE_URL}/${API_KEY}/datasets`
-	: 'https://defillama-datasets.llama.fi'
-export const SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/api` : 'https://api.llama.fi'
-export const V2_SERVER_URL = `${SERVER_URL}/v2`
+export const DATASETS_SERVER_URL =
+	getDirectUrlEnv('DATASETS_SERVER_URL') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/datasets` : 'https://defillama-datasets.llama.fi')
+export const SERVER_URL =
+	getDirectUrlEnv('SERVER_URL') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/api` : 'https://api.llama.fi')
+export const V2_SERVER_URL = getDirectUrlEnv('V2_SERVER_URL') ?? `${SERVER_URL}/v2`
 
 // Product/domain server roots
-export const BRIDGES_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/bridges` : 'https://bridges.llama.fi'
-export const COINS_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/coins` : 'https://coins.llama.fi'
-export const EQUITIES_SERVER_URL = API_KEY
-	? `${PRO_API_BASE_URL}/${API_KEY}/equities/v1`
-	: 'https://api.llama.fi/equities/v1'
-export const ETF_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/etfs` : 'https://etfs.llama.fi'
-export const FDV_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
+export const BRIDGES_SERVER_URL =
+	getDirectUrlEnv('BRIDGES_SERVER_URL') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/bridges` : 'https://bridges.llama.fi')
+export const COINS_SERVER_URL =
+	getDirectUrlEnv('COINS_SERVER_URL') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/coins` : 'https://coins.llama.fi')
+export const EQUITIES_SERVER_URL =
+	getDirectUrlEnv('EQUITIES_SERVER_URL') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/equities/v1` : 'https://api.llama.fi/equities/v1')
+export const ETF_SERVER_URL =
+	getDirectUrlEnv('ETF_SERVER_URL') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/etfs` : 'https://etfs.llama.fi')
+export const FDV_SERVER_URL =
+	getDirectUrlEnv('FDV_SERVER_URL') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/fdv` : 'https://fdv-server.llama.fi')
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
-export const RWA_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
-export const RWA_PERPS_SERVER_URL = API_KEY
-	? `${PRO_API_BASE_URL}/${API_KEY}/rwa-perps`
-	: 'https://api.llama.fi/rwa-perps'
-export const STABLECOINS_SERVER_URL = API_KEY
-	? `${PRO_API_BASE_URL}/${API_KEY}/stablecoins`
-	: 'https://stablecoins.llama.fi'
-export const TRADFI_API = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/dat` : 'https://api.llama.fi/dat'
-export const YIELDS_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/yields` : 'https://yields.llama.fi'
-export const LIQUIDATIONS_SERVER_URL_V2 = API_KEY
-	? `${PRO_API_BASE_URL}/${API_KEY}/liquidations`
-	: 'https://api.llama.fi/liquidations'
-export const RISK_SERVER_URL = API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/risks` : 'https://risks.llama.fi'
-export const MARKETS_SERVER_URL = process.env.MARKETS_SERVER_URL
+export const RWA_SERVER_URL =
+	getDirectUrlEnv('RWA_SERVER_URL') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/rwa` : 'https://api.llama.fi/rwa')
+export const RWA_PERPS_SERVER_URL =
+	getDirectUrlEnv('RWA_PERPS_SERVER_URL') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/rwa-perps` : 'https://api.llama.fi/rwa-perps')
+export const STABLECOINS_SERVER_URL =
+	getDirectUrlEnv('STABLECOINS_SERVER_URL') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/stablecoins` : 'https://stablecoins.llama.fi')
+export const TRADFI_API =
+	getDirectUrlEnv('TRADFI_API') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/dat` : 'https://api.llama.fi/dat')
+export const YIELDS_SERVER_URL =
+	getDirectUrlEnv('YIELDS_SERVER_URL') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/yields` : 'https://yields.llama.fi')
+export const LIQUIDATIONS_SERVER_URL_V2 =
+	getDirectUrlEnv('LIQUIDATIONS_SERVER_URL_V2') ??
+	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/liquidations` : 'https://api.llama.fi/liquidations')
+export const RISK_SERVER_URL =
+	getDirectUrlEnv('RISK_SERVER_URL') ?? (API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/risks` : 'https://risks.llama.fi')
+export const MARKETS_SERVER_URL = getDirectUrlEnv('MARKETS_SERVER_URL')
 
 // Core llama APIs
 export const CONFIG_API = `${SERVER_URL}/config`
@@ -85,6 +98,7 @@ export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
 export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow`
 export const YIELD_CHART_LEND_BORROW_PROXY_API = '/api/datasets/chartLendBorrow'
+export const YIELD_BORROW_ADVANCED_API = '/api/datasets/borrow-advanced'
 export const YIELD_CONFIG_API = `${SERVER_URL}/config/yields`
 export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_LEND_BORROW_API = `${YIELDS_SERVER_URL}/lendBorrow`

@@ -21,6 +21,7 @@ import {
 } from './constants'
 import type {
 	IProtocolByCategoryOrTagPageData,
+	IProtocolsCategoriesChartData,
 	IProtocolsCategoriesExtraTvlPoint,
 	IProtocolsCategoriesPageData,
 	IProtocolsCategoriesTableRow
@@ -1055,19 +1056,79 @@ function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories'])
 	return []
 }
 
+function buildProtocolsCategoriesChartData({
+	chart,
+	categoryKeys,
+	extraTvlTypes = []
+}: {
+	chart: CategoriesApiResponse['chart']
+	categoryKeys: Array<string>
+	extraTvlTypes?: readonly string[]
+}): IProtocolsCategoriesChartData {
+	const includedExtraTvlKeys = CATEGORIES_PAGE_INCLUDED_EXTRA_TVL_KEYS.filter((key) => extraTvlTypes.includes(key))
+	const extraTvlCharts: IProtocolsCategoriesChartData['extraTvlCharts'] = {}
+	if (includedExtraTvlKeys.length > 0) {
+		for (const categoryName of categoryKeys) {
+			extraTvlCharts[categoryName] = {}
+			for (const extraTvlKey of includedExtraTvlKeys) {
+				extraTvlCharts[categoryName][extraTvlKey] = {}
+			}
+		}
+	}
+
+	const chartSource: IProtocolsCategoriesChartData['chartSource'] = []
+	for (const [date, chartByCategory] of Object.entries(chart ?? {})) {
+		const timestamp = Number(date) * 1e3
+
+		const chartRow: IProtocolsCategoriesChartData['chartSource'][number] = { timestamp }
+		for (const categoryName of categoryKeys) {
+			const categoryChartMetrics = chartByCategory?.[categoryName]
+			const tvlValue = categoryChartMetrics?.tvl
+			chartRow[categoryName] = typeof tvlValue === 'number' ? tvlValue : null
+
+			for (const extraTvlKey of includedExtraTvlKeys) {
+				const rawExtraValue = categoryChartMetrics?.[extraTvlKey]
+				const extraValue = typeof rawExtraValue === 'number' ? rawExtraValue : 0
+				const currentValue = extraTvlCharts[categoryName][extraTvlKey][timestamp] ?? 0
+				extraTvlCharts[categoryName][extraTvlKey][timestamp] = currentValue + extraValue
+			}
+		}
+		chartSource.push(chartRow)
+	}
+	chartSource.sort((a, b) => a.timestamp - b.timestamp)
+
+	return { chartSource, extraTvlCharts }
+}
+
+export async function getProtocolsCategoriesChartData({
+	extraTvlTypes = []
+}: {
+	extraTvlTypes?: readonly string[]
+} = {}): Promise<IProtocolsCategoriesChartData> {
+	const { chart, categories } = await fetchCategoriesSummary()
+	const categoryKeysFromApi = getCategoryKeysFromApi(categories)
+	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) => {
+		const categoryKeys: string[] = []
+		for (const categoryName in chartByCategory) {
+			categoryKeys.push(categoryName)
+		}
+		return categoryKeys
+	})
+	const categoryKeys = Array.from(
+		new Set(categoryKeysFromApi.length > 0 ? categoryKeysFromApi : fallbackCategoryKeysFromChart)
+	)
+
+	return buildProtocolsCategoriesChartData({ chart, categoryKeys, extraTvlTypes })
+}
+
 export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCategoriesPageData> {
-	const [{ protocols }, revenueData, { chart, categories }]: [
-		ProtocolsResponse,
-		IAdapterChainMetrics | null,
-		CategoriesApiResponse
-	] = await Promise.all([
+	const [{ protocols }, revenueData]: [ProtocolsResponse, IAdapterChainMetrics | null] = await Promise.all([
 		fetchProtocols(),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue'
-		}).catch(() => null),
-		fetchCategoriesSummary()
+		}).catch(() => null)
 	])
 
 	const revenueByProtocol: Record<string, number> = {}
@@ -1156,27 +1217,9 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		}
 	}
 
-	const categoryKeysFromApi = getCategoryKeysFromApi(categories)
-	const fallbackCategoryKeysFromRows = Array.from(categoryRows.keys())
-	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) => {
-		const categoryKeys: string[] = []
-		for (const categoryName in chartByCategory) {
-			categoryKeys.push(categoryName)
-		}
-		return categoryKeys
-	})
-	const categoryKeys = Array.from(
-		new Set(
-			categoryKeysFromApi.length > 0
-				? categoryKeysFromApi
-				: [...fallbackCategoryKeysFromRows, ...fallbackCategoryKeysFromChart]
-		)
+	const categoryKeys = Array.from(categoryRows.keys()).sort(
+		(a, b) => (categoryRows.get(b)?.tvl ?? 0) - (categoryRows.get(a)?.tvl ?? 0)
 	)
-	for (const categoryName of categoryKeys) {
-		if (!categoryRows.has(categoryName)) {
-			categoryRows.set(categoryName, createCategoryAggregateRow(categoryName))
-		}
-	}
 
 	const allColors = getNDistinctColors(categoryKeys.length)
 	const categoryColors: Record<string, string> = {}
@@ -1209,40 +1252,11 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		)
 	}
 
-	const extraTvlCharts: IProtocolsCategoriesPageData['extraTvlCharts'] = {}
-	for (const categoryName of categoryKeys) {
-		extraTvlCharts[categoryName] = {}
-		for (const extraTvlKey of CATEGORIES_PAGE_INCLUDED_EXTRA_TVL_KEYS) {
-			extraTvlCharts[categoryName][extraTvlKey] = {}
-		}
-	}
-
-	const chartSource: IProtocolsCategoriesPageData['chartSource'] = []
-	for (const [date, chartByCategory] of Object.entries(chart ?? {})) {
-		const timestamp = Number(date) * 1e3
-
-		const chartRow: IProtocolsCategoriesPageData['chartSource'][number] = { timestamp }
-		for (const categoryName of categoryKeys) {
-			const categoryChartMetrics = chartByCategory?.[categoryName]
-			const tvlValue = categoryChartMetrics?.tvl
-			chartRow[categoryName] = typeof tvlValue === 'number' ? tvlValue : null
-
-			for (const extraTvlKey of CATEGORIES_PAGE_INCLUDED_EXTRA_TVL_KEYS) {
-				const rawExtraValue = categoryChartMetrics?.[extraTvlKey]
-				const extraValue = typeof rawExtraValue === 'number' ? rawExtraValue : 0
-				const currentValue = extraTvlCharts[categoryName][extraTvlKey][timestamp] ?? 0
-				extraTvlCharts[categoryName][extraTvlKey][timestamp] = currentValue + extraValue
-			}
-		}
-		chartSource.push(chartRow)
-	}
-	chartSource.sort((a, b) => a.timestamp - b.timestamp)
-
 	return {
 		categories: categoryKeys,
 		tableData: tableData.toSorted((a, b) => b.tvl - a.tvl),
-		chartSource,
+		chartSource: [],
 		categoryColors,
-		extraTvlCharts
+		extraTvlCharts: {}
 	}
 }
