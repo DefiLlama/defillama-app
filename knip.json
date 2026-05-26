@@ -1,0 +1,13 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"entry": ["src/pages/**/*.{ts,tsx}", "src/server/**/*.{ts,tsx}", "scripts/**/*.{ts,mjs}"],
+	"project": ["src/**/*.{ts,tsx}", "scripts/**/*.{ts,mjs}"],
+	"ignoreBinaries": ["oxfmt", "oxlint"],
+	"next": {
+		"entry": ["next.config.ts", "src/pages/**/*.{ts,tsx}", "src/middleware.{ts,tsx}"]
+	},
+	"vitest": {
+		"config": ["vitest.config.ts"],
+		"entry": ["src/**/*.{test,spec}.{ts,tsx}", "src/**/__tests__/**/*.{ts,tsx}"]
+	}
+}

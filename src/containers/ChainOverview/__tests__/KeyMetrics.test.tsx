@@ -12,10 +12,6 @@ vi.mock('~/components/Tooltip', () => ({
 	Tooltip: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
 }))
 
-vi.mock('~/components/BuyOnLlamaswap', () => ({
-	BuyOnLlamaswap: () => null
-}))
-
 vi.mock('../KeyMetricsPngExport', () => ({
 	KeyMetricsPngExportButton: () => null
 }))
