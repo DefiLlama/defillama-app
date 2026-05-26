@@ -31,7 +31,7 @@ const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 
 	try {
 		const dashboard = await fetchDashboardConfig(dashboardId, authToken)
-		if (!dashboard) {
+		if (authToken && !dashboard) {
 			return { notFound: true }
 		}
 	} catch {
@@ -101,7 +101,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 		return <ProDashboardLoader />
 	}
 
-	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating) {
+	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating && isAuthenticated) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<h1 className="text-3xl font-bold">Dashboard Not Found</h1>

@@ -1,6 +1,15 @@
 import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { RecordAuthResponse } from 'pocketbase'
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+	useSyncExternalStore
+} from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { getReferrer } from '~/containers/Subscription/referrer'
@@ -200,6 +209,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
 
 	const queryClient = useQueryClient()
+
+	useEffect(() => {
+		syncAuthTokenToCookie(isAuthenticated ? authStoreState.token : null)
+	}, [authStoreState.token, isAuthenticated])
 
 	const { isLoading: userQueryIsLoading } = useQuery({
 		queryKey: ['auth', 'status', authStoreState?.record?.id ?? null],

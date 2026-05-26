@@ -336,7 +336,7 @@ function ProDashboardAPIProviderInner({
 		[initialDashboardId, isAuthenticated, user?.id]
 	)
 	useEffect(() => {
-		if (stream.dashboard !== undefined) {
+		if (stream.dashboard) {
 			queryClient.setQueryData(dashboardQueryKey, stream.dashboard, { updatedAt: Date.now() })
 		}
 	}, [stream.dashboard, queryClient, dashboardQueryKey])
@@ -371,6 +371,16 @@ function ProDashboardAPIProviderInner({
 	const applyDashboard = useCallback((dashboard: Dashboard) => {
 		dispatch({ type: 'APPLY_DASHBOARD', payload: dashboard })
 	}, [])
+
+	useEffect(() => {
+		if (
+			stream.dashboard &&
+			initialDashboardId === stream.dashboard.id &&
+			currentDashboard?.id !== stream.dashboard.id
+		) {
+			applyDashboard(stream.dashboard)
+		}
+	}, [applyDashboard, currentDashboard, initialDashboardId, stream.dashboard])
 
 	const createDashboardDialogStore = Ariakit.useDialogStore()
 
