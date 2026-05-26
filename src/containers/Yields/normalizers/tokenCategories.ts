@@ -35,8 +35,10 @@ export async function enrichYieldTokenCategories(
 	try {
 		const memeTokenData = data.tokenCategories?.['meme-token']
 		if (memeTokenData) {
-			const memeAddresses = new Set(memeTokenData.addresses || [])
-			const memeSymbols = new Set(memeTokenData.symbols || [])
+			const memeAddresses = new Set(
+				(memeTokenData.addresses || []).map((address) => address.trim().toLowerCase().replaceAll('/', ':'))
+			)
+			const memeSymbols = new Set((memeTokenData.symbols || []).map((symbol) => symbol.trim().toLowerCase()))
 
 			data.pools = data.pools.map((pool) => {
 				let hasMemeToken = false
@@ -46,8 +48,8 @@ export async function enrichYieldTokenCategories(
 				const underlyingTokens = pool.underlyingTokens ?? []
 
 				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
-					hasMemeToken = underlyingTokens.some(
-						(address: string) => address && memeAddresses.has(`${chain}:${address.toLowerCase().replaceAll('/', ':')}`)
+					hasMemeToken = underlyingTokens.some((address: string) =>
+						memeAddresses.has(`${chain}:${address.trim().toLowerCase().replaceAll('/', ':')}`)
 					)
 				}
 

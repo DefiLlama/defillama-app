@@ -7,6 +7,10 @@ export const yieldPriceChainMapping: Record<string, string> = {
 	gnosis: 'xdai'
 }
 
+function getRewardTokenPriceKey(chain: string, token: string) {
+	return `${chain}:${token.replaceAll('/', ':').toLowerCase()}`
+}
+
 export async function enrichRewardTokenNames(data: YieldPageProps): Promise<YieldPageProps> {
 	const priceChainMappingKeys = new Set<string>()
 	for (const chainName in yieldPriceChainMapping) {
@@ -27,7 +31,7 @@ export async function enrichRewardTokenNames(data: YieldPageProps): Promise<Yiel
 			pricesList.push(
 				pool.chain === 'Neo'
 					? [`coingecko:${pool.project}`]
-					: rewardTokens.map((token) => `${priceChainName}:${token.replaceAll('/', ':').toLowerCase()}`)
+					: rewardTokens.map((token) => getRewardTokenPriceKey(priceChainName, token))
 			)
 		}
 	}
@@ -57,7 +61,7 @@ export async function enrichRewardTokenNames(data: YieldPageProps): Promise<Yiel
 				: [
 						...new Set(
 							rewardTokens.map(
-								(token) => coinsPrices[`${priceChainName}:${token.toLowerCase()}`]?.symbol.toUpperCase() ?? null
+								(token) => coinsPrices[getRewardTokenPriceKey(priceChainName, token)]?.symbol.toUpperCase() ?? null
 							)
 						)
 					]

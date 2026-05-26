@@ -43,7 +43,7 @@ function escapeRegExp(value: string) {
 function importsSpecifier(contents: string, specifier: string) {
 	const escaped = escapeRegExp(specifier)
 	return new RegExp(
-		`(?:from\\s+['"]${escaped}['"]|import\\s+['"]${escaped}['"]|import\\s*\\(\\s*['"]${escaped}['"]\\s*\\)|require\\s*\\(\\s*['"]${escaped}['"]\\s*\\))`
+		`(?:from\\s+['"]${escaped}['"]|export\\s+.*\\s+from\\s+['"]${escaped}['"]|import\\s+['"]${escaped}['"]|import\\s*\\(\\s*['"]${escaped}['"]\\s*\\)|require\\s*\\(\\s*['"]${escaped}['"]\\s*\\))`
 	).test(contents)
 }
 
@@ -65,6 +65,12 @@ function listSourceFiles(dir: string): string[] {
 }
 
 describe('Yields import boundaries', () => {
+	it('detects forbidden specifiers in imports and re-exports', () => {
+		expect(importsSpecifier("import value from '~/containers/Yields'", '~/containers/Yields')).toBe(true)
+		expect(importsSpecifier("export * from '~/containers/Yields'", '~/containers/Yields')).toBe(true)
+		expect(importsSpecifier("export { value } from '~/containers/Yields'", '~/containers/Yields')).toBe(true)
+	})
+
 	it('does not import removed Yields utility, query, or view paths', () => {
 		const violations: string[] = []
 

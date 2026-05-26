@@ -229,7 +229,7 @@ export function matchesYieldPoolForQuery({
 		toFilter = toFilter && atLeastOnePairToken
 	} else if (exactTokens.length === 0) {
 		const includeToken =
-			includeTokens.length > 0 && includeTokens[0] !== 'All'
+			includeTokens.length > 0 && includeTokens[0] !== 'all'
 				? includeTokens.find((token) => {
 						if (token === 'all_bitcoins') {
 							return tokensInPool.some((x) => x.includes('btc'))

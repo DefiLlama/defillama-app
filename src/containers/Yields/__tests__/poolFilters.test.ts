@@ -73,6 +73,7 @@ describe('matchesYieldPoolForQuery route defaults', () => {
 		expect(getYieldViewFromPathname('/borrow/advanced')).toBe('borrowAdvanced')
 		expect(getYieldViewFromPathname('/yields/loop')).toBe('loop')
 		expect(getYieldViewFromPathname('/yields/strategy')).toBe('strategy')
+		expect(getYieldViewFromPathname('/yields/strategy/loop-eth-usdc')).toBe('strategy')
 		expect(getYieldViewFromPathname('/yields/strategy-long-short')).toBe('strategyLongShort')
 		expect(getYieldViewFromPathname('/yields/watchlist')).toBe('watchlist')
 		expect(getYieldViewFromPathname('/yields/projects')).toBe('projects')
@@ -130,6 +131,7 @@ describe('matchesYieldPoolForQuery route defaults', () => {
 
 describe('matchesYieldPoolForQuery token filters', () => {
 	it('keeps broad include-token substring matching, including ETH matching WETH and stETH', () => {
+		expect(matchesPool({ symbol: 'LINK-USDC' }, { includeTokens: ['all'] })).toBe(true)
 		expect(matchesPool({ symbol: 'WETH-USDC' }, { includeTokens: ['eth'] })).toBe(true)
 		expect(matchesPool({ symbol: 'STETH-USDC' }, { includeTokens: ['eth'] })).toBe(true)
 		expect(matchesPool({ symbol: 'LINK-USDC' }, { includeTokens: ['in'] })).toBe(true)

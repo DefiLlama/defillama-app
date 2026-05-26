@@ -98,4 +98,56 @@ describe('yield network queries', () => {
 
 		expect(fetchJsonMock).toHaveBeenCalledWith(YIELD_LEND_BORROW_API, { timeout: 180_000 })
 	})
+
+	it('looks up reward token prices with the same normalized key used for requests', async () => {
+		const { enrichRewardTokenNames } = await import('../../normalizers/rewardTokens')
+		fetchCoinPricesMock.mockResolvedValue({
+			'ethereum:0xreward:token': { symbol: 'rwd' }
+		})
+		const data = {
+			tokenNameMapping: {},
+			pools: [
+				{
+					chain: 'Ethereum',
+					project: 'test-project',
+					rewardTokens: ['0xReward/Token'],
+					rewardTokensSymbols: [],
+					rewardTokensNames: []
+				}
+			]
+		} as any
+
+		const result = await enrichRewardTokenNames(data)
+
+		expect(fetchCoinPricesMock).toHaveBeenCalledWith(['ethereum:0xreward:token'])
+		expect(result.pools[0].rewardTokensSymbols).toEqual(['RWD'])
+	})
+
+	it('normalizes meme token category sets before matching pools', async () => {
+		const { enrichYieldTokenCategories } = await import('../../normalizers/tokenCategories')
+		fetchJsonMock.mockImplementation((url: string) => {
+			if (url === YIELD_TOKEN_CATEGORIES_API) {
+				return Promise.resolve({
+					'meme-token': {
+						addresses: [' Ethereum:0xABC/DEF '],
+						symbols: [' PEPE ']
+					}
+				})
+			}
+			return Promise.resolve({})
+		})
+		const data = {
+			tokenCategories: {},
+			tokens: [],
+			tokenSymbolsList: [],
+			pools: [
+				{ symbol: 'OTHER-USDC', chain: 'Ethereum', underlyingTokens: ['0xabc/def'] },
+				{ symbol: 'PePe-USDC', chain: 'Ethereum', underlyingTokens: [] }
+			]
+		} as any
+
+		const result = await enrichYieldTokenCategories(data)
+
+		expect(result.pools.map((pool) => pool.hasMemeToken)).toEqual([true, true])
+	})
 })

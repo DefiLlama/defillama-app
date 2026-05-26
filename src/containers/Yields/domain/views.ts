@@ -23,6 +23,9 @@ export function getYieldViewFromPathname(pathname: string): YieldView {
 		case '/yields/projects':
 			return 'projects'
 		default:
+			if (pathname.startsWith('/yields/strategy/')) {
+				return 'strategy'
+			}
 			return 'unknown'
 	}
 }
