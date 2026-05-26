@@ -394,8 +394,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 			const authHeaders = {
 				...headers,
-				Authorization: onlyToken ? pb.authStore.token : `Bearer ${pb.authStore.token}`,
-				'X-PB-Auth-Token': pb.authStore.token
+				Authorization: onlyToken ? pb.authStore.token : `Bearer ${pb.authStore.token}`
 			}
 
 			try {

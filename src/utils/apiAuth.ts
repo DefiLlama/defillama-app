@@ -1,20 +1,9 @@
-import type { IncomingHttpHeaders } from 'http'
 import { AUTH_SERVER, FEATURES_SERVER, POCKETBASE_URL } from '~/constants'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 
 type ValidationSuccess = { valid: true; isTrial: boolean }
 type ValidationFailure = { valid: false; status: number; error: string }
 export type ValidationResult = ValidationSuccess | ValidationFailure
-
-export function subscriptionAuthHeader(headers: IncomingHttpHeaders): string | undefined {
-	const headerToken = headers['x-pb-auth-token']
-	const rawHeaderToken = Array.isArray(headerToken) ? headerToken[0] : headerToken
-	const token = rawHeaderToken?.trim()
-	if (token) return `Bearer ${token.replace(/^Bearer\s+/i, '')}`
-
-	const authorization = headers.authorization
-	return Array.isArray(authorization) ? authorization[0] : authorization
-}
 
 export async function validateSubscription(authHeader: string | undefined): Promise<ValidationResult> {
 	if (!authHeader?.startsWith('Bearer ')) {

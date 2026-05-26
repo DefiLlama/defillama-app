@@ -10,11 +10,6 @@ function dashboardUrl(path: string) {
 }
 
 function authorizationHeader(req: NextApiRequest): Record<string, string> {
-	const headerToken = req.headers['x-pb-auth-token']
-	const rawHeaderToken = Array.isArray(headerToken) ? headerToken[0] : headerToken
-	const token = rawHeaderToken?.trim()
-	if (token) return { Authorization: `Bearer ${token.replace(/^Bearer\s+/i, '')}` }
-
 	const header = req.headers.authorization
 	if (Array.isArray(header)) {
 		const first = header.find(Boolean)

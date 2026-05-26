@@ -7,7 +7,6 @@ import {
 	purgeCloudflareResearchUrls,
 	type CloudflarePurgeResult
 } from '~/server/cloudflarePurge'
-import { subscriptionAuthHeader } from '~/utils/apiAuth'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type BackendArticleResponse = {
@@ -33,7 +32,11 @@ function articleIdFromRequest(req: NextApiRequest): string | null {
 }
 
 function authorizationHeader(req: NextApiRequest): Record<string, string> {
-	const header = subscriptionAuthHeader(req.headers)
+	const header = req.headers.authorization
+	if (Array.isArray(header)) {
+		const first = header.find(Boolean)
+		return first ? { Authorization: first } : {}
+	}
 	return header ? { Authorization: header } : {}
 }
 
