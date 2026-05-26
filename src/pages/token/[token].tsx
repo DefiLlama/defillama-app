@@ -24,8 +24,8 @@ import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
+import { extractYieldPoolTokens } from '~/containers/Yields/domain/poolFilters'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { extractPoolTokens } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -475,7 +475,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		for (const row of yieldsRows) {
 			const chain = row.chains[0]
 			if (chain) initialYieldsChains.add(chain)
-			for (const poolToken of extractPoolTokens(row.pool)) {
+			for (const poolToken of extractYieldPoolTokens(row.pool)) {
 				initialYieldsTokens.add(poolToken.toUpperCase())
 			}
 		}

@@ -1,11 +1,10 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { buildBorrowAdvancedRowsQueryString, type BorrowAdvancedRow } from './borrowAdvanced'
-import { YieldFiltersV2 } from './Filters'
-import { useFormatYieldQueryParams } from './hooks'
-import { useGetPrice } from './queries'
-import { useBorrowAdvancedRows } from './queries/client'
-import { YieldsOptimizerTable } from './Tables/Optimizer'
+import { buildBorrowAdvancedRowsQueryString, type BorrowAdvancedRow } from '../borrowAdvanced'
+import { YieldFiltersV2 } from '../Filters'
+import { useFormatYieldQueryParams } from '../hooks'
+import { useBorrowAdvancedRows, useGetPrice } from '../queries.client'
+import { YieldsOptimizerTable } from '../Tables/Optimizer'
 
 const EMPTY_POOL_ROWS: BorrowAdvancedRow[] = []
 
