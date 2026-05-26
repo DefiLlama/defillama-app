@@ -426,9 +426,9 @@ export async function getLendBorrowDataFromYieldPageData(
 		.filter(Boolean)
 		.sort((a, b) => b.totalSupplyUsd - a.totalSupplyUsd)
 
-	const projectsList = new Set()
-	const lendingProtocols = new Set()
-	const farmProtocols = new Set()
+	const projectsList = new Set<string>()
+	const lendingProtocols = new Set<string>()
+	const farmProtocols = new Set<string>()
 
 	for (const pool of props.pools) {
 		projectsList.add(pool.projectName)
@@ -456,7 +456,8 @@ export async function getLendBorrowDataFromYieldPageData(
 			categoryList: Array.from(categoriesToKeepSet),
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools,
-			symbols: [...tokenSymbols]
+			symbols: [...tokenSymbols],
+			evmChains: props.evmChains
 		}
 	}
 }

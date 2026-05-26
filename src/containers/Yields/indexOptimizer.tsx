@@ -1,125 +1,30 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { buildBorrowAdvancedRowsQueryString, type BorrowAdvancedRow } from './borrowAdvanced'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { useGetPrice } from './queries'
+import { useBorrowAdvancedRows } from './queries/client'
 import { YieldsOptimizerTable } from './Tables/Optimizer'
-import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
-const EMPTY_ARRAY: string[] = []
+const EMPTY_POOL_ROWS: BorrowAdvancedRow[] = []
 
-export const BorrowAggregatorAdvanced = ({
-	pools,
-	projectList,
-	chainList,
-	categoryList,
-	lendingProtocols,
-	searchData,
-	unboundedDebtCeilingProjects = EMPTY_ARRAY,
-	evmChains
-}) => {
-	const unlimitedDebtProjects = React.useMemo(
-		() => new Set(unboundedDebtCeilingProjects),
-		[unboundedDebtCeilingProjects]
-	)
-	const { pathname, query } = useRouter()
+export const BorrowAggregatorAdvanced = ({ chainList, lendingProtocols, searchData, evmChains }) => {
+	const { query } = useRouter()
 
 	const lendAmount = query.lendAmount ? +query.lendAmount : 0
 	const borrowAmount = query.borrowAmount ? +query.borrowAmount : 0
 
 	const { lend, borrow } = query
-	const { selectedChains, selectedAttributes, selectedLendingProtocols, customLTV, minAvailable, maxAvailable } =
-		useFormatYieldQueryParams({
-			projectList,
-			chainList,
-			lendingProtocols,
-			categoryList,
-			evmChains
-		})
+	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
+		chainList,
+		lendingProtocols,
+		evmChains
+	})
 
-	const { cdpPools, lendingPools } = React.useMemo(() => {
-		// get cdp collateral -> debt token route
-		const cdpPools = pools
-			.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
-			.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
-
-		const lendingPools = pools.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
-		return {
-			cdpPools,
-			lendingPools
-		}
-	}, [pools])
-
-	const poolsData = React.useMemo(() => {
-		if (pathname === '/borrow/advanced' && (lend === '' || borrow === '')) {
-			return []
-		} else if (lend === undefined || borrow === undefined) {
-			return []
-		}
-
-		const selectedChainsSet = new Set(selectedChains)
-		const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
-
-		let filteredPools = findOptimizerPools({
-			pools: lendingPools,
-			tokenToLend: lend,
-			tokenToBorrow: borrow,
-			cdpRoutes: cdpPools
-		})
-			.filter((pool) => {
-				if (typeof lend === 'string' && lend.toLowerCase() === 'eth' && pool.symbol?.toLowerCase().includes('steth')) {
-					return false
-				}
-
-				if (
-					typeof borrow === 'string' &&
-					borrow.toLowerCase() === 'eth' &&
-					pool.borrow?.symbol?.toLowerCase().includes('steth')
-				) {
-					return false
-				}
-
-				const poolProject = pool.project
-				const borrowProject = pool.borrow?.project
-				const hasUnboundedDebtCeiling =
-					(poolProject && unlimitedDebtProjects.has(poolProject)) ||
-					(borrowProject && unlimitedDebtProjects.has(borrowProject))
-				const poolForFilter =
-					hasUnboundedDebtCeiling && pool.borrow && pool.borrow.totalAvailableUsd == null
-						? {
-								...pool,
-								borrow: { ...pool.borrow, totalAvailableUsd: Number.POSITIVE_INFINITY }
-							}
-						: pool
-
-				return filterPool({
-					pool: poolForFilter,
-					selectedChainsSet,
-					selectedAttributes,
-					minAvailable,
-					maxAvailable,
-					selectedLendingProtocolsSet,
-					customLTV
-				})
-			})
-			.map((p) => formatOptimizerPool({ pool: p, customLTV }))
-			.sort((a, b) => b.totalReward - a.totalReward)
-
-		return filteredPools
-	}, [
-		lendingPools,
-		lend,
-		borrow,
-		cdpPools,
-		selectedChains,
-		selectedAttributes,
-		minAvailable,
-		maxAvailable,
-		selectedLendingProtocols,
-		customLTV,
-		pathname,
-		unlimitedDebtProjects
-	])
+	const rowsQueryString = React.useMemo(() => buildBorrowAdvancedRowsQueryString(query), [query])
+	const { data: poolsData = EMPTY_POOL_ROWS, isLoading, isError } = useBorrowAdvancedRows(rowsQueryString)
+	const hasSelection = rowsQueryString !== null
 
 	const tokens = React.useMemo(() => {
 		const set = new Set<string>()
@@ -248,7 +153,15 @@ export const BorrowAggregatorAdvanced = ({
 				ltvPlaceholder={'Custom LTV'}
 			/>
 
-			{poolsData.length > 0 ? (
+			{hasSelection && isLoading ? (
+				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-center">
+					Loading lending routes...
+				</p>
+			) : hasSelection && isError ? (
+				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-center">
+					Couldn't load lending routes.
+				</p>
+			) : poolsData.length > 0 ? (
 				<YieldsOptimizerTable data={poolsDataWithAmounts} />
 			) : (
 				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-center">
