@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { toFilterPool } from '../utils'
+import { matchesYieldPoolForQuery } from '../domain/poolFilters'
+import { getYieldViewFromPathname } from '../domain/views'
+import { attributeOptions } from '../Filters/Attributes'
 
 const tokenCategories = {
 	gold: {
@@ -25,7 +27,7 @@ const basePool = {
 
 function matchesPool(poolOverrides: Record<string, unknown>, filterOverrides: Record<string, unknown>) {
 	return Boolean(
-		toFilterPool({
+		matchesYieldPoolForQuery({
 			curr: { ...basePool, ...poolOverrides },
 			selectedProjectsSet: new Set(['Test Project']),
 			selectedChainsSet: new Set(['Ethereum']),
@@ -34,7 +36,7 @@ function matchesPool(poolOverrides: Record<string, unknown>, filterOverrides: Re
 			excludeTokensSet: new Set(),
 			exactTokens: [],
 			selectedCategoriesSet: new Set(['Dexes']),
-			pathname: '/yields',
+			view: 'main',
 			minTvl: null,
 			maxTvl: null,
 			minApy: null,
@@ -47,7 +49,7 @@ function matchesPool(poolOverrides: Record<string, unknown>, filterOverrides: Re
 	)
 }
 
-describe('toFilterPool token categories', () => {
+describe('matchesYieldPoolForQuery token categories', () => {
 	it('uses category symbols only when a pool has no underlying token addresses', () => {
 		expect(matchesPool({ underlyingTokens: [] }, { includeTokens: ['tokenized_gold'] })).toBe(true)
 		expect(matchesPool({ underlyingTokens: ['0xnot-gold', '0xusdc'] }, { includeTokens: ['tokenized_gold'] })).toBe(
@@ -62,7 +64,42 @@ describe('toFilterPool token categories', () => {
 	})
 })
 
-describe('toFilterPool route defaults', () => {
+describe('matchesYieldPoolForQuery route defaults', () => {
+	it('maps known Yields and Borrow pathnames to explicit views', () => {
+		expect(getYieldViewFromPathname('/yields')).toBe('main')
+		expect(getYieldViewFromPathname('/yields/stablecoins')).toBe('stablecoins')
+		expect(getYieldViewFromPathname('/yields/overview')).toBe('overview')
+		expect(getYieldViewFromPathname('/borrow')).toBe('borrow')
+		expect(getYieldViewFromPathname('/borrow/advanced')).toBe('borrowAdvanced')
+		expect(getYieldViewFromPathname('/yields/loop')).toBe('loop')
+		expect(getYieldViewFromPathname('/yields/strategy')).toBe('strategy')
+		expect(getYieldViewFromPathname('/yields/strategy-long-short')).toBe('strategyLongShort')
+		expect(getYieldViewFromPathname('/yields/watchlist')).toBe('watchlist')
+		expect(getYieldViewFromPathname('/yields/projects')).toBe('projects')
+		expect(getYieldViewFromPathname('/yields/halal')).toBe('unknown')
+		expect(getYieldViewFromPathname('/unexpected')).toBe('unknown')
+	})
+
+	it('keeps every default attribute route explicitly mapped to a known view', () => {
+		const defaultRoutes = new Set<string>()
+		for (const option of attributeOptions) {
+			for (const route of Object.keys(option.defaultFilterFnOnPage)) {
+				defaultRoutes.add(route)
+			}
+		}
+
+		expect([...defaultRoutes].sort()).toEqual(['/yields/stablecoins'])
+		for (const route of defaultRoutes) {
+			expect(getYieldViewFromPathname(route)).not.toBe('unknown')
+		}
+	})
+
+	it('applies no route default predicates to non-default views', () => {
+		for (const view of ['unknown', 'borrow', 'loop', 'overview', 'watchlist', 'projects'] as const) {
+			expect(matchesPool({ apy: 0, stablecoin: false, ilRisk: 'yes' }, { view })).toBe(true)
+		}
+	})
+
 	it('/yields excludes pools with APY <= 0 unless apy_zero is selected', () => {
 		expect(matchesPool({ apy: 0 }, {})).toBe(false)
 		expect(matchesPool({ apy: -1 }, {})).toBe(false)
@@ -73,9 +110,9 @@ describe('toFilterPool route defaults', () => {
 	})
 
 	it('/yields/stablecoins defaults to stablecoin pools with no impermanent loss', () => {
-		expect(matchesPool({ stablecoin: true, ilRisk: 'no' }, { pathname: '/yields/stablecoins' })).toBe(true)
-		expect(matchesPool({ stablecoin: false, ilRisk: 'no' }, { pathname: '/yields/stablecoins' })).toBe(false)
-		expect(matchesPool({ stablecoin: true, ilRisk: 'yes' }, { pathname: '/yields/stablecoins' })).toBe(false)
+		expect(matchesPool({ stablecoin: true, ilRisk: 'no' }, { view: 'stablecoins' })).toBe(true)
+		expect(matchesPool({ stablecoin: false, ilRisk: 'no' }, { view: 'stablecoins' })).toBe(false)
+		expect(matchesPool({ stablecoin: true, ilRisk: 'yes' }, { view: 'stablecoins' })).toBe(false)
 	})
 
 	it('treats TVL bounds as inclusive and APY bounds as exclusive', () => {
@@ -91,7 +128,7 @@ describe('toFilterPool route defaults', () => {
 	})
 })
 
-describe('toFilterPool token filters', () => {
+describe('matchesYieldPoolForQuery token filters', () => {
 	it('keeps broad include-token substring matching, including ETH matching WETH and stETH', () => {
 		expect(matchesPool({ symbol: 'WETH-USDC' }, { includeTokens: ['eth'] })).toBe(true)
 		expect(matchesPool({ symbol: 'STETH-USDC' }, { includeTokens: ['eth'] })).toBe(true)
@@ -131,7 +168,7 @@ describe('toFilterPool token filters', () => {
 	})
 })
 
-describe('toFilterPool token pairs', () => {
+describe('matchesYieldPoolForQuery token pairs', () => {
 	it('matches normal pair parts exactly instead of by substring', () => {
 		expect(matchesPool({ symbol: 'ETH-USDC' }, { pairTokens: ['eth-usdc'] })).toBe(true)
 		expect(matchesPool({ symbol: 'WETH-USDC' }, { pairTokens: ['eth-usdc'] })).toBe(true)

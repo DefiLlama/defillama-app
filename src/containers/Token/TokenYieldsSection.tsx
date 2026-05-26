@@ -6,6 +6,8 @@ import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLay
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
+import { extractYieldPoolTokens } from '~/containers/Yields/domain/poolFilters'
+import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet } from '~/containers/Yields/domain/tokenFilter'
 import { APYRange } from '~/containers/Yields/Filters/APYRange'
 import { FilterByChain } from '~/containers/Yields/Filters/Chains'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
@@ -13,11 +15,9 @@ import { ALL_POOL_COLUMN_QUERY_KEYS } from '~/containers/Yields/Filters/poolColu
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import { buildPoolsTrackingStats } from '~/containers/Yields/poolsPipeline'
-import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
+import { useHolderStats, useVolatility } from '~/containers/Yields/queries.client'
 import { PaginatedYieldsPoolTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
-import { extractPoolTokens } from '~/containers/Yields/utils'
 import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { DEFAULT_TABLE_PAGE_SIZE } from './tableUtils'
@@ -107,11 +107,11 @@ export function TokenYieldsSection({
 	const tokensList = React.useMemo(
 		() =>
 			fetchedRows
-				? [...new Set(poolsList.flatMap((pool) => extractPoolTokens(pool.pool)))]
+				? [...new Set(poolsList.flatMap((pool) => extractYieldPoolTokens(pool.pool)))]
 						.sort()
 						.map((token) => token.toUpperCase())
 				: (initialTokensList ??
-					[...new Set(poolsList.flatMap((pool) => extractPoolTokens(pool.pool)))]
+					[...new Set(poolsList.flatMap((pool) => extractYieldPoolTokens(pool.pool)))]
 						.sort()
 						.map((token) => token.toUpperCase())),
 		[fetchedRows, initialTokensList, poolsList]

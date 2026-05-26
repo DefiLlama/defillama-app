@@ -2,13 +2,13 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
+import { calculateLoopAPY } from '~/containers/Yields/domain/loopApy'
 import {
 	useConfigPool,
 	useYieldChartData,
 	useYieldChartLendBorrow,
 	useYieldConfigData
-} from '~/containers/Yields/queries/client'
-import { calculateLoopAPY } from '~/containers/Yields/queries/index'
+} from '~/containers/Yields/queries.client'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 

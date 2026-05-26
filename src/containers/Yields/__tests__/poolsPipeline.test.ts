@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildPoolsTrackingStats, mapPoolToYieldTableRow } from '../poolsPipeline'
+import { buildPoolsTableRows, buildPoolsTrackingStats, mapPoolToYieldTableRow } from '../poolsPipeline'
 
 const basePool = {
 	pool: 'pool-1',
@@ -92,5 +92,51 @@ describe('buildPoolsTrackingStats', () => {
 
 		expect(stats.noOfPoolsTracked).toBe(4)
 		expect(stats.averageAPY).toBe(15)
+	})
+})
+
+describe('buildPoolsTableRows view defaults', () => {
+	const defaultFilters = {
+		selectedProjects: ['Aave V3'],
+		selectedChains: ['Ethereum'],
+		selectedAttributes: [],
+		includeTokens: [],
+		excludeTokens: [],
+		exactTokens: [],
+		selectedCategories: ['Lending'],
+		pairTokens: [],
+		minTvl: null,
+		maxTvl: null,
+		minApy: null,
+		maxApy: null
+	}
+
+	const pools = [
+		{ ...basePool, pool: 'active', symbol: 'ETH-USDC', apy: 5, stablecoin: false, ilRisk: 'yes' },
+		{ ...basePool, pool: 'zero', symbol: 'ZERO-USDC', apy: 0, stablecoin: false, ilRisk: 'yes' },
+		{ ...basePool, pool: 'stable', symbol: 'USDC-USDT', apy: 2, stablecoin: true, ilRisk: 'no' },
+		{ ...basePool, pool: 'stable-il', symbol: 'USDC-DAI', apy: 3, stablecoin: true, ilRisk: 'yes' }
+	] as any[]
+
+	function rowIdsForView(view: Parameters<typeof buildPoolsTableRows>[0]['view']) {
+		return buildPoolsTableRows({
+			pools,
+			view,
+			filters: defaultFilters,
+			usdPeggedSymbols: ['usdc', 'usdt', 'dai'],
+			tokenCategories: {}
+		}).map((row) => row.configID)
+	}
+
+	it('keeps main zero-APY and stablecoins route defaults explicit', () => {
+		expect(rowIdsForView('main')).toEqual(['active', 'stable', 'stable-il'])
+		expect(rowIdsForView('stablecoins')).toEqual(['stable'])
+	})
+
+	it('applies no route defaults to overview, borrow, loop, and unknown views', () => {
+		expect(rowIdsForView('overview')).toEqual(['active', 'zero', 'stable', 'stable-il'])
+		expect(rowIdsForView('borrow')).toEqual(['active', 'zero', 'stable', 'stable-il'])
+		expect(rowIdsForView('loop')).toEqual(['active', 'zero', 'stable', 'stable-il'])
+		expect(rowIdsForView('unknown')).toEqual(['active', 'zero', 'stable', 'stable-il'])
 	})
 })

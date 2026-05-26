@@ -69,7 +69,7 @@ describe('yield network queries', () => {
 	})
 
 	it('passes explicit long timeouts to the yield page source APIs', async () => {
-		const { getYieldPageDataFromNetwork } = await import('../index')
+		const { getYieldPageDataFromNetwork } = await import('../../queries.server')
 
 		await getYieldPageDataFromNetwork({ timeout: 180_000 })
 
@@ -81,7 +81,7 @@ describe('yield network queries', () => {
 	})
 
 	it('passes explicit long timeouts to the yield config API', async () => {
-		const { fetchYieldConfigFromNetwork } = await import('../index')
+		const { fetchYieldConfigFromNetwork } = await import('../../queries.server')
 
 		await fetchYieldConfigFromNetwork({ timeout: 180_000 })
 
@@ -89,7 +89,7 @@ describe('yield network queries', () => {
 	})
 
 	it('passes explicit long timeouts to the lend-borrow API', async () => {
-		const { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } = await import('../index')
+		const { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } = await import('../../queries.server')
 		const yieldPageData = await getYieldPageDataFromNetwork({ timeout: 180_000 })
 		fetchJsonMock.mockClear()
 		mockYieldApiResponses()

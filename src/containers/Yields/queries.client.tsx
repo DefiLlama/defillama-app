@@ -1,21 +1,30 @@
 import { useQuery } from '@tanstack/react-query'
+import { fetchCoinPrices } from '~/api'
 import {
 	CONFIG_API,
 	YIELD_BORROW_ADVANCED_API,
 	YIELD_CHART_API,
 	YIELD_CHART_LEND_BORROW_PROXY_API,
-	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
-	YIELD_POOLS_API,
 	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
-import type { BorrowAdvancedRow } from '../borrowAdvanced'
-import type { HolderHistoryEntry, HolderStatsMap } from './holderTypes'
-import { formatYieldsPageData } from './utils'
+import type { BorrowAdvancedRow } from './borrowAdvanced'
+import type { HolderHistoryEntry, HolderStatsMap } from './queries/holderTypes'
+
+export const useGetPrice = (tokens: Array<string>) => {
+	return useQuery({
+		queryKey: ['yields', 'prices', tokens],
+		queryFn: () => fetchCoinPrices(tokens),
+		enabled: tokens.length > 0,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+}
 
 export const useBorrowAdvancedRows = (queryString: string | null) => {
 	const url = queryString ? `${YIELD_BORROW_ADVANCED_API}${queryString}` : null
@@ -81,36 +90,6 @@ export const useYieldConfigData = (project) => {
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useYieldPageData = () => {
-	return useQuery({
-		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
-		queryFn: () => Promise.all([fetchJson(YIELD_POOLS_API), fetchJson(YIELD_CONFIG_API)]),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useFetchProjectsList = () => {
-	const { data, isLoading, error } = useQuery({
-		queryKey: [YIELD_POOLS_API, YIELD_CONFIG_API],
-		queryFn: () => Promise.all([fetchJson(YIELD_POOLS_API), fetchJson(YIELD_CONFIG_API)]),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-
-	const { projectList } = data ? formatYieldsPageData(data) : { projectList: [] }
-
-	return {
-		data: projectList,
-		error,
-		isLoading
-	}
 }
 
 export const useVolatility = ({ enabled = true }: { enabled?: boolean } = {}) => {
@@ -186,19 +165,4 @@ export const useHolderHistory = (configID: string | null) => {
 		retry: 1,
 		enabled: !!configID
 	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useYields = () => {
-	const { data = {} } = useQuery({
-		queryKey: [YIELD_POOLS_API],
-		queryFn: () => fetchJson(YIELD_POOLS_API),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-
-	const res = data?.data
-
-	return { data: res }
 }

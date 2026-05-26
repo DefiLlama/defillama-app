@@ -1,12 +1,12 @@
 import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
+import { getYieldPoolTokenVariantSet } from '~/containers/Yields/domain/tokenFilter'
 import { buildYieldTableRowsWithBorrowData } from '~/containers/Yields/poolsPipeline'
 import {
 	fetchYieldConfigFromNetwork,
 	getLendBorrowDataFromYieldPageData,
 	getYieldPageDataFromNetwork
-} from '~/containers/Yields/queries/index'
+} from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { getYieldPoolTokenVariantSet } from '~/containers/Yields/tokenFilter'
 import { getDatasetCacheFetchTimeoutMs } from './config'
 import { ensureDirectory, writeJsonFile } from './core'
 import {

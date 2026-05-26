@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('~/containers/Yields/queries/index', () => ({
+vi.mock('~/containers/Yields/queries.server', () => ({
 	getYieldPageDataFromNetwork: vi.fn(),
 	getLendBorrowDataFromYieldPageData: vi.fn()
 }))
 
-import { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } from '~/containers/Yields/queries/index'
+import { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } from '~/containers/Yields/queries.server'
 import { getTokenYieldsRows } from '../tokenYields.server'
 
 const mockedGetYieldPageDataFromNetwork = getYieldPageDataFromNetwork as unknown as ReturnType<typeof vi.fn>

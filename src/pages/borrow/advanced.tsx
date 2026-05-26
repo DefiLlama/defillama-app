@@ -1,6 +1,6 @@
 import { Announcement } from '~/components/Announcement'
-import { BorrowAggregatorAdvanced } from '~/containers/Yields/indexOptimizer'
-import { disclaimer } from '~/containers/Yields/utils'
+import { disclaimer } from '~/containers/Yields/constants'
+import { BorrowAggregatorAdvanced } from '~/containers/Yields/views/OptimizerView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
