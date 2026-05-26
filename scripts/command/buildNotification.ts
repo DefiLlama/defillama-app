@@ -30,7 +30,29 @@ function formatUserMentions(value: string | undefined): string {
 		.join(' ')
 }
 
-function formatBuildNotificationSummary(result: BuildResult): string {
+function firstEnvValue(env: NodeJS.ProcessEnv, keys: readonly string[]): string {
+	for (const key of keys) {
+		const value = normalize(env[key])
+		if (value) return value
+	}
+	return ''
+}
+
+function resolveDeploymentName(env: NodeJS.ProcessEnv): string {
+	return firstEnvValue(env, [
+		'BUILD_DEPLOYMENT_NAME',
+		'COOLIFY_CONTAINER_NAME',
+		'COOLIFY_RESOURCE_UUID',
+		'VERCEL_DEPLOYMENT_ID',
+		'VERCEL_URL'
+	])
+}
+
+function resolveDeploymentUrl(env: NodeJS.ProcessEnv): string {
+	return firstEnvValue(env, ['COOLIFY_URL', 'COOLIFY_FQDN', 'VERCEL_URL'])
+}
+
+function formatBuildNotificationSummary(result: BuildResult, env: NodeJS.ProcessEnv): string {
 	let summary =
 		result.status === 'success'
 			? `🎉 Build succeeded in ${formatDurationMs(result.durationMs)}`
@@ -38,6 +60,14 @@ function formatBuildNotificationSummary(result: BuildResult): string {
 	summary += '\n📂 defillama-app\n'
 	if (result.branchName) {
 		summary = `🪾 ${result.branchName}\n` + summary
+	}
+	const deploymentName = resolveDeploymentName(env)
+	if (deploymentName) {
+		summary += `\n🧭 Deployment: ${deploymentName}`
+	}
+	const deploymentUrl = resolveDeploymentUrl(env)
+	if (deploymentUrl && deploymentUrl !== deploymentName) {
+		summary += `\n🌐 URL: ${deploymentUrl}`
 	}
 	summary += `\n📅 Build started at ${result.startedAt}`
 	if (result.buildId) {
@@ -133,7 +163,7 @@ export async function sendBuildNotification({
 		webhookUrl,
 		{
 			allowed_mentions: { parse: ['users', 'roles'] },
-			content: `\`\`\`${'===== BUILD SUMMARY =====\n' + formatBuildNotificationSummary(result)}\`\`\``
+			content: `\`\`\`${'===== BUILD SUMMARY =====\n' + formatBuildNotificationSummary(result, env)}\`\`\``
 		},
 		logger
 	)

@@ -27,4 +27,20 @@ describe('metadata upstream base selection', () => {
 		expect(getMetadataUpstreamBase('bridges')).toBe('https://pro-api.llama.fi/secret-key/bridges')
 		expect(getMetadataUpstreamBase('datasets')).toBe('https://pro-api.llama.fi/secret-key/datasets')
 	})
+
+	it('uses direct URL overrides before pro upstreams', async () => {
+		vi.stubEnv('API_KEY', 'secret-key')
+		vi.stubEnv('BRIDGES_SERVER_URL', 'https://bridges.example.com/')
+		vi.stubEnv('DATASETS_SERVER_URL', 'https://datasets.example.com/')
+		vi.stubEnv('RWA_PERPS_SERVER_URL', 'https://rwa-perps.example.com/')
+		vi.stubEnv('RWA_SERVER_URL', 'https://rwa.example.com/')
+		vi.stubEnv('SERVER_URL', 'https://core.example.com/api/')
+		const { getMetadataUpstreamBase } = await import('../upstream')
+
+		expect(getMetadataUpstreamBase('core')).toBe('https://core.example.com/api')
+		expect(getMetadataUpstreamBase('rwa')).toBe('https://rwa.example.com')
+		expect(getMetadataUpstreamBase('rwa-perps')).toBe('https://rwa-perps.example.com')
+		expect(getMetadataUpstreamBase('bridges')).toBe('https://bridges.example.com')
+		expect(getMetadataUpstreamBase('datasets')).toBe('https://datasets.example.com')
+	})
 })
