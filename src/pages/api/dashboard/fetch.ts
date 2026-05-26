@@ -19,6 +19,16 @@ export const config = { api: { responseLimit: false } }
 
 const FETCH_TIMEOUT = 15_000
 
+function dashboardProxyAuthHeader(req: NextApiRequest): string | undefined {
+	const headerToken = req.headers['x-pb-auth-token']
+	const rawHeaderToken = Array.isArray(headerToken) ? headerToken[0] : headerToken
+	const token = rawHeaderToken?.trim()
+	if (token) return `Bearer ${token.replace(/^Bearer\s+/i, '')}`
+
+	const authorization = req.headers.authorization
+	return Array.isArray(authorization) ? authorization[0] : authorization
+}
+
 async function dispatchFetch(type: string, params: any): Promise<any> {
 	switch (type) {
 		case 'chart': {
@@ -220,7 +230,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
+	const auth = await validateSubscription(dashboardProxyAuthHeader(req))
 	if (auth.valid === false) {
 		return res.status(auth.status).json({ error: auth.error })
 	}

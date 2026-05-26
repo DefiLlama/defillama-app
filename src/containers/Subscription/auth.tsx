@@ -181,6 +181,7 @@ interface AuthContextType {
 	addEmail: (email: string) => Promise<void>
 	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
+	authToken: string | null
 	user: AuthModel
 	hasActiveSubscription: boolean
 	isTrial: boolean
@@ -746,6 +747,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		addEmail: addEmail.mutateAsync,
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
+		authToken: isAuthenticated ? authStoreState.token : null,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
 		isTrial: Boolean(userData?.flags?.is_trial),
 		loaders: {

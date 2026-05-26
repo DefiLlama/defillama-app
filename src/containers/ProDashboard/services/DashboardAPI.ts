@@ -122,19 +122,12 @@ class DashboardAPIService {
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
-		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards`, {
+		const response = await authorizedFetch('/api/dashboard/save', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({
-				data: dashboardData,
-				visibility: visibility || 'private',
-				tags: tags || [],
-				description: description || '',
-				aiGenerated: aiGenerated || null
-			})
+			body: JSON.stringify({ data })
 		})
 
 		return this.handleResponse<Dashboard>(response)
@@ -154,19 +147,12 @@ class DashboardAPIService {
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
-		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/${id}`, {
+		const response = await authorizedFetch('/api/dashboard/save', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({
-				data: dashboardData,
-				visibility: visibility || 'private',
-				tags: tags || [],
-				description: description || '',
-				aiGenerated: aiGenerated || null
-			})
+			body: JSON.stringify({ id, data })
 		})
 
 		return this.handleResponse<Dashboard>(response)

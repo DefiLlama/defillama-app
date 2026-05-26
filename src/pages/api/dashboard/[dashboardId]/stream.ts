@@ -41,12 +41,23 @@ export const config = {
 }
 
 function getAuthToken(req: NextApiRequest): string | null {
-	const cookieToken = req.cookies['pb_auth_token']
-	if (cookieToken) return cookieToken
+	const normalizeToken = (value: string | undefined): string | null => {
+		const token = value?.trim().replace(/^Bearer\s+/i, '')
+		if (!token || token === 'null' || token === 'undefined') return null
+		return token
+	}
+
+	const headerToken = req.headers['x-pb-auth-token']
+	const rawHeaderToken = Array.isArray(headerToken) ? headerToken[0] : headerToken
+	const normalizedHeaderToken = normalizeToken(rawHeaderToken)
+	if (normalizedHeaderToken) return normalizedHeaderToken
+
 	const authHeader = req.headers.authorization
-	if (!authHeader) return null
 	const value = Array.isArray(authHeader) ? authHeader[0] : authHeader
-	return value.replace(/^Bearer\s+/i, '') || null
+	const normalizedAuthToken = normalizeToken(value)
+	if (normalizedAuthToken) return normalizedAuthToken
+
+	return normalizeToken(req.cookies['pb_auth_token'])
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -66,6 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	// Set streaming headers
 	res.setHeader('Content-Type', 'application/x-ndjson')
 	res.setHeader('X-Accel-Buffering', 'no')
+	res.setHeader('Vary', 'Cookie, Authorization, X-PB-Auth-Token')
 	res.setHeader(
 		'Cache-Control',
 		authToken ? 'private, no-cache, no-store, must-revalidate' : 'public, s-maxage=300, stale-while-revalidate=3600'
