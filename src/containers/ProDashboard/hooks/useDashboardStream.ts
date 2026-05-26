@@ -50,7 +50,11 @@ function seedTableDataIntoCache(
 	}
 }
 
-export function useDashboardStream(dashboardId: string | undefined): DashboardStreamState {
+export function useDashboardStream(
+	dashboardId: string | undefined,
+	authToken?: string | null,
+	enabled = true
+): DashboardStreamState {
 	const queryClient = useQueryClient()
 	const [state, setState] = useState<DashboardStreamState>({
 		isStreaming: false,
@@ -239,7 +243,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 	)
 
 	useEffect(() => {
-		if (!dashboardId || dashboardId === 'new') return
+		if (!dashboardId || dashboardId === 'new' || !enabled) return
 
 		// Abort any previous stream before starting a new one
 		abortRef.current?.abort()
@@ -258,8 +262,9 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 
 		const startStream = async () => {
 			try {
-				const response = await fetch(`/api/dashboard/${dashboardId}/stream?_=${Math.random().toString(36).slice(2)}`, {
+				const response = await fetch(`/api/dashboard/${dashboardId}/stream`, {
 					credentials: 'include',
+					headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
 					signal: abortController.signal
 				})
 
@@ -329,7 +334,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 		return () => {
 			abortController.abort()
 		}
-	}, [dashboardId, handleLine])
+	}, [dashboardId, authToken, enabled, handleLine])
 
 	return state
 }

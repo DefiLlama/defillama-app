@@ -291,9 +291,9 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 	initialItems?: DashboardItemConfig[]
 }) {
-	const stream = useDashboardStream(initialDashboardId)
-	const streamDone = !initialDashboardId || stream.isDone
-	const { hasActiveSubscription } = useAuthContext()
+	const { authToken, hasActiveSubscription, loaders } = useAuthContext()
+	const stream = useDashboardStream(initialDashboardId, authToken, !loaders.userLoading)
+	const streamDone = !initialDashboardId || (!loaders.userLoading && stream.isDone)
 	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
 
 	return (
@@ -336,7 +336,7 @@ function ProDashboardAPIProviderInner({
 		[initialDashboardId, isAuthenticated, user?.id]
 	)
 	useEffect(() => {
-		if (stream.dashboard !== undefined) {
+		if (stream.dashboard) {
 			queryClient.setQueryData(dashboardQueryKey, stream.dashboard, { updatedAt: Date.now() })
 		}
 	}, [stream.dashboard, queryClient, dashboardQueryKey])
@@ -371,6 +371,16 @@ function ProDashboardAPIProviderInner({
 	const applyDashboard = useCallback((dashboard: Dashboard) => {
 		dispatch({ type: 'APPLY_DASHBOARD', payload: dashboard })
 	}, [])
+
+	useEffect(() => {
+		if (
+			stream.dashboard &&
+			initialDashboardId === stream.dashboard.id &&
+			currentDashboard?.id !== stream.dashboard.id
+		) {
+			applyDashboard(stream.dashboard)
+		}
+	}, [applyDashboard, currentDashboard, initialDashboardId, stream.dashboard])
 
 	const createDashboardDialogStore = Ariakit.useDialogStore()
 

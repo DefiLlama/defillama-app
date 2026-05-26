@@ -77,7 +77,7 @@ vi.mock('~/containers/Yields/hooks', () => ({
 	useFormatYieldQueryParams: () => yieldsQueryState
 }))
 
-vi.mock('~/containers/Yields/queries/client', () => ({
+vi.mock('~/containers/Yields/queries.client', () => ({
 	useVolatility: () => ({ data: {} }),
 	useHolderStats: () => ({ data: {} })
 }))

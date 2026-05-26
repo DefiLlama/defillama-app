@@ -5,15 +5,15 @@ import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
-import type { IYieldsTableProps, IYieldTableRow } from './types'
+import type { IYieldsTableProps, YieldLoopTableRow } from './types'
 
-const columnHelper = createColumnHelper<IYieldTableRow>()
+const columnHelper = createColumnHelper<YieldLoopTableRow>()
 const LOOP_COLUMN_IDS = [
 	'pool',
 	'project',
@@ -276,14 +276,14 @@ const columnOrders: Record<number, readonly LoopColumnId[]> = {
 		'totalAvailableUsd'
 	]
 }
-export const LOOP_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, LoopColumnId> = {
+export const LOOP_TABLE_CONFIG: YieldsTableConfig<YieldLoopTableRow, LoopColumnId> = {
 	kind: 'loop',
 	columnIds: LOOP_COLUMN_IDS,
 	columns,
 	columnOrders
 }
 
-export function YieldsLoopTable({ data }: IYieldsTableProps) {
+export function YieldsLoopTable({ data }: IYieldsTableProps<YieldLoopTableRow>) {
 	const resolvedConfig = resolveVirtualYieldsTableConfig(LOOP_TABLE_CONFIG, undefined)
 	return <YieldsTableWrapper data={data} columns={resolvedConfig.columns} columnOrders={resolvedConfig.columnOrders} />
 }

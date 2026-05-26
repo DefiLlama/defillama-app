@@ -12,7 +12,7 @@ import { PercentChange, formatPercentChangeText } from '~/components/PercentChan
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'

@@ -9,8 +9,8 @@ import {
 	fetchYieldConfigFromNetwork,
 	getLendBorrowData as getLendBorrowDataFromNetwork,
 	getYieldPageData
-} from '~/containers/Yields/queries/index'
-import type { YieldConfigResponse } from '~/containers/Yields/queries/index'
+} from '~/containers/Yields/queries.server'
+import type { YieldConfigResponse } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { fetchJson } from '~/utils/async'
 import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'

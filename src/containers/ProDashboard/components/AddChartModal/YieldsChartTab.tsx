@@ -8,8 +8,8 @@ import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldsData } from '~/containers/ProDashboard/components/datasets/YieldsDataset/useYieldsData'
-import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
-import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
+import { extractYieldPoolTokens, normalizeYieldToken } from '~/containers/Yields/domain/poolFilters'
+import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries.client'
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
@@ -196,7 +196,7 @@ export function YieldsChartTab({
 	const tokenOptions = useMemo(() => {
 		const tokenTvlMap = new Map<string, number>()
 		for (const p of yieldsData as any[]) {
-			const tokens = extractPoolTokens((p.pool || '') as string).map(normalizeToken)
+			const tokens = extractYieldPoolTokens((p.pool || '') as string).map(normalizeYieldToken)
 			for (const token of tokens) {
 				if (!token) continue
 				const current = tokenTvlMap.get(token) || 0
@@ -284,16 +284,16 @@ export function YieldsChartTab({
 	}
 
 	const normalizedSelectedTokens = useMemo(
-		() => selectedYieldTokens.map((token) => normalizeToken(token)),
+		() => selectedYieldTokens.map((token) => normalizeYieldToken(token)),
 		[selectedYieldTokens]
 	)
 	const normalizedSelectedTokenSet = useMemo(() => new Set(normalizedSelectedTokens), [normalizedSelectedTokens])
 
 	const toggleToken = (value: string) => {
-		const normalizedValue = normalizeToken(value)
+		const normalizedValue = normalizeYieldToken(value)
 
 		if (normalizedSelectedTokenSet.has(normalizedValue)) {
-			onSelectedYieldTokensChange(selectedYieldTokens.filter((token) => normalizeToken(token) !== normalizedValue))
+			onSelectedYieldTokensChange(selectedYieldTokens.filter((token) => normalizeYieldToken(token) !== normalizedValue))
 		} else {
 			onSelectedYieldTokensChange([...selectedYieldTokens, normalizedValue])
 		}
@@ -314,7 +314,7 @@ export function YieldsChartTab({
 			}
 
 			if (normalizedSelectedTokens.length > 0) {
-				const tokensInPool = extractPoolTokens(pool.pool || '')
+				const tokensInPool = extractYieldPoolTokens(pool.pool || '')
 
 				const matchesToken = normalizedSelectedTokens.some((token) => {
 					if (token === 'all_bitcoins') {

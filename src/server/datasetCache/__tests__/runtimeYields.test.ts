@@ -23,7 +23,7 @@ vi.mock('~/containers/Yields/poolsPipeline', () => ({
 	mapPoolToYieldTableRow: mapPoolToYieldTableRowMock
 }))
 
-vi.mock('~/containers/Yields/queries/index', () => ({
+vi.mock('~/containers/Yields/queries.server', () => ({
 	fetchYieldConfigFromNetwork: vi.fn(),
 	getLendBorrowData: vi.fn(),
 	getYieldPageData: vi.fn()

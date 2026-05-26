@@ -10,14 +10,14 @@ type MaybeFactory<T, TContext> = T | ((context: TContext) => T)
 export interface YieldsTableConfig<TRow, TColumnId extends string, TContext = undefined> {
 	kind: YieldsTableKind
 	columnIds: readonly TColumnId[]
-	columns: MaybeFactory<Array<ColumnDef<TRow, any>>, TContext>
+	columns: MaybeFactory<Array<ColumnDef<TRow, unknown>>, TContext>
 	columnOrders: Record<number, readonly TColumnId[]>
 	columnVisibility?: MaybeFactory<VisibilityState | undefined, TContext>
 	defaultSorting?: SortingState
 	rowSize?: number
 }
 
-export function getYieldsColumnId<TRow>(column: ColumnDef<TRow, any>) {
+export function getYieldsColumnId<TRow>(column: ColumnDef<TRow, unknown>) {
 	if ('id' in column && typeof column.id === 'string') return column.id
 	if ('accessorKey' in column && typeof column.accessorKey === 'string') return column.accessorKey
 	return undefined
@@ -70,16 +70,21 @@ export function resolveVirtualYieldsTableConfig<TRow, TColumnId extends string, 
 	config: YieldsTableConfig<TRow, TColumnId, TContext>,
 	context: TContext
 ): {
-	columns: Array<ColumnDef<TRow, any>>
+	columns: Array<ColumnDef<TRow, unknown>>
 	columnVisibility?: VisibilityState
 	columnOrders: ColumnOrdersByBreakpoint
 	defaultSorting?: SortingState
 	rowSize?: number
 } {
+	const columnOrders: ColumnOrdersByBreakpoint = {}
+	for (const [breakpoint, order] of Object.entries(config.columnOrders)) {
+		columnOrders[Number(breakpoint)] = [...order]
+	}
+
 	return {
 		columns: resolveFactoryValue(config.columns, context),
 		columnVisibility: config.columnVisibility ? resolveFactoryValue(config.columnVisibility, context) : undefined,
-		columnOrders: config.columnOrders as unknown as ColumnOrdersByBreakpoint,
+		columnOrders,
 		defaultSorting: config.defaultSorting,
 		rowSize: config.rowSize
 	}

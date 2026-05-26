@@ -1,6 +1,15 @@
 import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { RecordAuthResponse } from 'pocketbase'
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+	useSyncExternalStore
+} from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { getReferrer } from '~/containers/Subscription/referrer'
@@ -172,6 +181,7 @@ interface AuthContextType {
 	addEmail: (email: string) => Promise<void>
 	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
+	authToken: string | null
 	user: AuthModel
 	hasActiveSubscription: boolean
 	isTrial: boolean
@@ -200,6 +210,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
 
 	const queryClient = useQueryClient()
+
+	useEffect(() => {
+		syncAuthTokenToCookie(isAuthenticated ? authStoreState.token : null)
+	}, [authStoreState.token, isAuthenticated])
 
 	const { isLoading: userQueryIsLoading } = useQuery({
 		queryKey: ['auth', 'status', authStoreState?.record?.id ?? null],
@@ -733,6 +747,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		addEmail: addEmail.mutateAsync,
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
+		authToken: isAuthenticated ? authStoreState.token : null,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
 		isTrial: Boolean(userData?.flags?.is_trial),
 		loaders: {
