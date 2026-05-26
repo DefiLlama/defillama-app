@@ -203,6 +203,7 @@ export function matchesYieldPoolForQuery({
 	}
 
 	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
+	toFilter = toFilter && selectedChainsSet.has(curr.chain)
 	toFilter = toFilter && selectedCategoriesSet.has(curr.category)
 
 	const tokensInPool: string[] = tokensInPoolArray
@@ -264,7 +265,7 @@ export function matchesYieldPoolForQuery({
 			}
 		}
 
-		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && !hasExcludedToken
+		toFilter = toFilter && includeToken && !hasExcludedToken
 	} else {
 		const exactToken = exactTokens.find((token) => {
 			if (tokensInPoolSet.has(token)) {
@@ -274,7 +275,7 @@ export function matchesYieldPoolForQuery({
 			} else return false
 		})
 
-		toFilter = toFilter && !!(selectedChainsSet.has(curr.chain) && exactToken)
+		toFilter = toFilter && !!exactToken
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null

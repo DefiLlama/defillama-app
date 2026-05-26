@@ -10,6 +10,7 @@ import {
 	fetchYieldUrlsApi
 } from './api'
 import type { YieldConfigResponse, YieldFetchOptions } from './api.types'
+import { sumApyParts } from './domain/apyMath'
 import { buildRaiseValuations, formatYieldsPageData } from './normalizers/pageData'
 import { enrichRewardTokenNames } from './normalizers/rewardTokens'
 import { enrichStablecoinPegData } from './normalizers/stablecoinPeg'
@@ -181,7 +182,7 @@ export async function getLendBorrowDataFromYieldPageData(
 			// we display apyBaseBorrow as a negative value
 			const apyBaseBorrow = x.apyBaseBorrow !== null ? -x.apyBaseBorrow : null
 			const apyRewardBorrow = x.apyRewardBorrow
-			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : apyBaseBorrow + apyRewardBorrow
+			const apyBorrow = sumApyParts(apyBaseBorrow, apyRewardBorrow)
 
 			// morpho
 			// (using compound available liquidity if totalSupplyUsd < totalBorrowUsd on morpho === p2p fully matched
@@ -233,7 +234,7 @@ export async function getLendBorrowDataFromYieldPageData(
 				totalAvailableUsd,
 				apyBorrow,
 				rewardTokens:
-					(p as typeof p & { apyRewards?: number | null }).apyRewards > 0 || x.apyRewardBorrow > 0
+					((p.apyReward ?? 0) > 0 || (x.apyRewardBorrow ?? 0) > 0) && x.rewardTokens?.length > 0
 						? x.rewardTokens
 						: p.rewardTokens
 			}

@@ -7,6 +7,7 @@ import {
 	removeLendBorrowMetaTag
 } from './lendBorrowPairs'
 import { calculateLoopAPY } from './loopApy'
+import { applyCustomLtvToMax, isValidOptimizerCustomLtv, isValidStrategyCustomLtv, resolveOptimizerLtv } from './ltv'
 
 export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoutes }) => {
 	if (!tokenToLend && !tokenToBorrow) return []
@@ -114,7 +115,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	finalPools = finalPools.concat(loopPoolsFiltered)
 
 	finalPools = finalPools.map((p) => {
-		const ltv = customLTV ? (customLTV / 100) * p.ltv : p.ltv
+		const ltv = applyCustomLtvToMax(p.ltv, customLTV)
 		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * ltv + p.farmApy * ltv
 
 		return {
@@ -134,7 +135,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 }
 
 export const formatOptimizerPool = ({ pool, customLTV }) => {
-	const ltv = customLTV ? customLTV / 100 : pool.ltv
+	const ltv = resolveOptimizerLtv(pool.ltv ?? 0, customLTV)
 
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
@@ -259,17 +260,74 @@ interface FilterPools {
 	selectedChainsSet: Set<string>
 	selectedAttributes?: Array<string>
 	selectedLendingProtocolsSet?: Set<string> | null
-	selectedFarmProtocolsSet?: Set<string> | null
 	pool: FilterablePool
 	minTvl?: number | null
 	maxTvl?: number | null
 	minAvailable?: number | null
 	maxAvailable?: number | null
 	customLTV?: number | null
-	strategyPage?: boolean
 }
 
-export const filterPool = ({
+interface StrategyPoolFilters extends FilterPools {
+	selectedFarmProtocolsSet?: Set<string> | null
+}
+
+function passesSelectedAttributes(pool: FilterablePool, selectedAttributes?: Array<string>) {
+	if (!selectedAttributes) return true
+
+	for (const attribute of selectedAttributes) {
+		const attributeOption = attributeOptionsMap.get(attribute)
+
+		if (attributeOption && !attributeOption.filterFn(pool)) return false
+	}
+
+	return true
+}
+
+function passesAvailableRange(pool: FilterablePool, minAvailable?: number | null, maxAvailable?: number | null) {
+	const isValidAvailableRange = minAvailable != null || maxAvailable != null
+	if (!isValidAvailableRange) return true
+
+	const totalAvailableUsd = Number(pool.borrow?.totalAvailableUsd ?? 0)
+	return (
+		(minAvailable != null ? totalAvailableUsd >= +minAvailable : true) &&
+		(maxAvailable != null ? totalAvailableUsd <= +maxAvailable : true)
+	)
+}
+
+export const filterOptimizerPool = ({
+	pool,
+	selectedChainsSet,
+	selectedAttributes,
+	selectedLendingProtocolsSet,
+	minTvl,
+	maxTvl,
+	minAvailable,
+	maxAvailable,
+	customLTV
+}: FilterPools) => {
+	let toFilter = true
+
+	toFilter = toFilter && selectedChainsSet.has(pool.chain)
+	if (selectedLendingProtocolsSet) {
+		toFilter = toFilter && pool.projectName != null && selectedLendingProtocolsSet.has(pool.projectName)
+	}
+	toFilter = toFilter && passesSelectedAttributes(pool, selectedAttributes)
+
+	const isValidTvlRange = minTvl != null || maxTvl != null
+
+	if (isValidTvlRange) {
+		toFilter =
+			toFilter && (minTvl != null ? pool.tvlUsd >= minTvl : true) && (maxTvl != null ? pool.tvlUsd <= maxTvl : true)
+	}
+
+	toFilter = toFilter && passesAvailableRange(pool, minAvailable, maxAvailable)
+	toFilter = toFilter && isValidOptimizerCustomLtv(pool.ltv, customLTV)
+
+	return toFilter
+}
+
+export const filterStrategyPool = ({
 	pool,
 	selectedChainsSet,
 	selectedAttributes,
@@ -279,55 +337,29 @@ export const filterPool = ({
 	maxTvl,
 	minAvailable,
 	maxAvailable,
-	customLTV,
-	strategyPage
-}: FilterPools) => {
+	customLTV
+}: StrategyPoolFilters) => {
 	let toFilter = true
 
 	toFilter = toFilter && selectedChainsSet.has(pool.chain)
 	if (selectedLendingProtocolsSet) {
-		toFilter = toFilter && selectedLendingProtocolsSet.has(pool.projectName)
+		toFilter = toFilter && pool.projectName != null && selectedLendingProtocolsSet.has(pool.projectName)
 	}
 	if (selectedFarmProtocolsSet) {
-		toFilter = toFilter && selectedFarmProtocolsSet.has(pool.farmProjectName)
+		toFilter = toFilter && pool.farmProjectName != null && selectedFarmProtocolsSet.has(pool.farmProjectName)
 	}
-	if (selectedAttributes) {
-		for (const attribute of selectedAttributes) {
-			const attributeOption = attributeOptionsMap.get(attribute)
-
-			if (attributeOption) {
-				toFilter = toFilter && attributeOption.filterFn(pool)
-			}
-		}
-	}
+	toFilter = toFilter && passesSelectedAttributes(pool, selectedAttributes)
 
 	const isValidTvlRange = minTvl != null || maxTvl != null
 
 	if (isValidTvlRange) {
+		const strategyTvl = pool.farmTvlUsd ?? pool.tvlUsd
 		toFilter =
-			toFilter &&
-			(minTvl != null ? (pool.farmTvlUsd ?? 0) >= minTvl : true) &&
-			(maxTvl != null ? (pool.tvlUsd ?? 0) <= maxTvl : true)
+			toFilter && (minTvl != null ? strategyTvl >= minTvl : true) && (maxTvl != null ? strategyTvl <= maxTvl : true)
 	}
 
-	const isValidAvailableRange = minAvailable != null || maxAvailable != null
-
-	if (isValidAvailableRange) {
-		toFilter =
-			toFilter &&
-			(minAvailable != null ? +(pool.borrow?.totalAvailableUsd || 0) >= +minAvailable : true) &&
-			(maxAvailable != null ? +(pool.borrow?.totalAvailableUsd || 0) <= +maxAvailable : true)
-	}
-
-	const isValidLtvValue = customLTV != null
-
-	if (isValidLtvValue && strategyPage) {
-		toFilter = toFilter && (customLTV ? customLTV > 0 && customLTV <= 100 : true)
-	}
-
-	if (isValidLtvValue && !strategyPage) {
-		toFilter = toFilter && (customLTV ? customLTV > 0 && customLTV < 100 && customLTV / 100 <= pool.ltv : true)
-	}
+	toFilter = toFilter && passesAvailableRange(pool, minAvailable, maxAvailable)
+	toFilter = toFilter && isValidStrategyCustomLtv(customLTV)
 
 	return toFilter
 }

@@ -79,7 +79,7 @@ export interface YieldPool {
 	ltv?: number | null
 	borrowable?: boolean
 	mintedCoin?: string | null
-	borrowFactor?: number
+	borrowFactor?: number | null
 	debtCeilingUsd?: number | null
 	loopApy?: number | null
 	boost?: number | null
@@ -115,7 +115,7 @@ export interface LendBorrowPool extends YieldPool {
 	ltv?: number | null
 	borrowable?: boolean
 	mintedCoin?: string | null
-	borrowFactor?: number
+	borrowFactor?: number | null
 	loopApy?: number | null
 	boost?: number | null
 }

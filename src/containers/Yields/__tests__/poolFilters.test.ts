@@ -204,4 +204,12 @@ describe('matchesYieldPoolForQuery token pairs', () => {
 		).toBe(true)
 		expect(matchesPool({ symbol: 'ETH-USDC' }, { pairTokens: ['btc-usdc'], includeTokens: ['eth'] })).toBe(false)
 	})
+
+	it('still applies selected chains when pair-token filtering is active', () => {
+		const filter = { pairTokens: ['eth-usdc'], selectedChainsSet: new Set(['Ethereum']) }
+
+		expect(matchesPool({ symbol: 'ETH-USDC', chain: 'Ethereum' }, filter)).toBe(true)
+		expect(matchesPool({ symbol: 'ETH-USDC', chain: 'Base' }, filter)).toBe(false)
+		expect(matchesPool({ symbol: 'ETH-USDC', chain: 'Arbitrum' }, filter)).toBe(false)
+	})
 })
