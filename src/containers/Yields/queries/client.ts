@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import {
 	CONFIG_API,
+	YIELD_BORROW_ADVANCED_API,
 	YIELD_CHART_API,
 	YIELD_CHART_LEND_BORROW_PROXY_API,
 	YIELD_CONFIG_API,
@@ -12,8 +13,21 @@ import {
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
+import type { BorrowAdvancedRow } from '../borrowAdvanced'
 import type { HolderHistoryEntry, HolderStatsMap } from './holderTypes'
 import { formatYieldsPageData } from './utils'
+
+export const useBorrowAdvancedRows = (queryString: string | null) => {
+	const url = queryString ? `${YIELD_BORROW_ADVANCED_API}${queryString}` : null
+	return useQuery<BorrowAdvancedRow[]>({
+		queryKey: ['yield-borrow-advanced-rows', queryString],
+		queryFn: async () => (url ? fetchJson<BorrowAdvancedRow[]>(url) : []),
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!url
+	})
+}
 
 // single pool
 export const useYieldPoolData = (configID) => {
