@@ -40,6 +40,8 @@ describe('build notification adapter', () => {
 			env: testEnv({
 				BUILD_NOTIFY_USERS: '1,2',
 				BUILD_STATUS_WEBHOOK: 'https://discord.example/webhook',
+				BUILD_DEPLOYMENT_NAME: 'core-next',
+				COOLIFY_URL: 'https://core.example',
 				LOGGER_API_URL: 'https://logs.example'
 			}),
 			fetchImpl,
@@ -50,6 +52,24 @@ describe('build notification adapter', () => {
 
 		expect(result).toEqual({ buildLogUrl: 'https://logs.example/get/log-id', status: 'sent' })
 		expect(fetchImpl).toHaveBeenCalledTimes(4)
+		expect(fetchImpl.mock.calls[0][1]?.body).toContain('Deployment: core-next')
+		expect(fetchImpl.mock.calls[0][1]?.body).toContain('URL: https://core.example')
+	})
+
+	it('uses Coolify identifiers when no custom deployment name is set', async () => {
+		const fetchImpl = vi.fn().mockResolvedValue(new Response('', { status: 200 }))
+
+		await sendBuildNotification({
+			env: testEnv({
+				BUILD_STATUS_WEBHOOK: 'https://discord.example/webhook',
+				COOLIFY_CONTAINER_NAME: 'defillama-app-core'
+			}),
+			fetchImpl,
+			logger: { log: vi.fn() },
+			result: failedBuild
+		})
+
+		expect(fetchImpl.mock.calls[0][1]?.body).toContain('Deployment: defillama-app-core')
 	})
 
 	it('keeps notification successful when build-log upload fails', async () => {
