@@ -40,6 +40,15 @@ export const config = {
 	api: { responseLimit: false }
 }
 
+function getAuthToken(req: NextApiRequest): string | null {
+	const cookieToken = req.cookies['pb_auth_token']
+	if (cookieToken) return cookieToken
+	const authHeader = req.headers.authorization
+	if (!authHeader) return null
+	const value = Array.isArray(authHeader) ? authHeader[0] : authHeader
+	return value.replace(/^Bearer\s+/i, '') || null
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.status(405).end()
@@ -52,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return
 	}
 
-	const authToken = req.cookies['pb_auth_token'] ?? null
+	const authToken = getAuthToken(req)
 
 	// Set streaming headers
 	res.setHeader('Content-Type', 'application/x-ndjson')

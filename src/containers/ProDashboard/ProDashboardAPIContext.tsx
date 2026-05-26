@@ -291,9 +291,10 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 	initialItems?: DashboardItemConfig[]
 }) {
-	const stream = useDashboardStream(initialDashboardId)
+	const { hasActiveSubscription, isAuthenticated } = useAuthContext()
+	const streamAuthToken = isAuthenticated && pb.authStore.isValid ? pb.authStore.token : null
+	const stream = useDashboardStream(initialDashboardId, streamAuthToken)
 	const streamDone = !initialDashboardId || stream.isDone
-	const { hasActiveSubscription } = useAuthContext()
 	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
 
 	return (

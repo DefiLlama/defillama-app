@@ -50,7 +50,7 @@ function seedTableDataIntoCache(
 	}
 }
 
-export function useDashboardStream(dashboardId: string | undefined): DashboardStreamState {
+export function useDashboardStream(dashboardId: string | undefined, authToken?: string | null): DashboardStreamState {
 	const queryClient = useQueryClient()
 	const [state, setState] = useState<DashboardStreamState>({
 		isStreaming: false,
@@ -260,6 +260,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 			try {
 				const response = await fetch(`/api/dashboard/${dashboardId}/stream?_=${Math.random().toString(36).slice(2)}`, {
 					credentials: 'include',
+					headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
 					signal: abortController.signal
 				})
 
@@ -329,7 +330,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 		return () => {
 			abortController.abort()
 		}
-	}, [dashboardId, handleLine])
+	}, [dashboardId, authToken, handleLine])
 
 	return state
 }
