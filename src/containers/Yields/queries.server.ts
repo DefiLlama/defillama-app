@@ -234,7 +234,9 @@ export async function getLendBorrowDataFromYieldPageData(
 				totalAvailableUsd,
 				apyBorrow,
 				rewardTokens:
-					(p.apyReward ?? 0) > 0 || (x.apyRewardBorrow ?? 0) > 0 ? (x.rewardTokens ?? p.rewardTokens) : p.rewardTokens
+					((p.apyReward ?? 0) > 0 || (x.apyRewardBorrow ?? 0) > 0) && x.rewardTokens?.length > 0
+						? x.rewardTokens
+						: p.rewardTokens
 			}
 		})
 		.filter(Boolean)

@@ -139,6 +139,24 @@ describe('yield network queries', () => {
 						raiseValuation: null,
 						audits: null,
 						url: ''
+					},
+					{
+						pool: 'empty-lend-borrow-rewards',
+						symbol: 'DAI',
+						project: 'aave-v3',
+						projectName: 'Aave V3',
+						chain: 'Ethereum',
+						category: 'Lending',
+						tvlUsd: 3_000,
+						apy: 2,
+						apyBase: 1,
+						apyReward: 1,
+						rewardTokens: ['yield-page-fallback-token'],
+						underlyingTokens: [],
+						airdrop: false,
+						raiseValuation: null,
+						audits: null,
+						url: ''
 					}
 				],
 				tokenNameMapping: {},
@@ -165,6 +183,15 @@ describe('yield network queries', () => {
 						totalBorrowUsd: 500,
 						ltv: 0.75,
 						rewardTokens: ['lend-borrow-borrow-token']
+					},
+					{
+						pool: 'empty-lend-borrow-rewards',
+						apyBaseBorrow: null,
+						apyRewardBorrow: null,
+						totalSupplyUsd: 3_000,
+						totalBorrowUsd: 0,
+						ltv: 0.6,
+						rewardTokens: []
 					}
 				])
 			}
@@ -174,12 +201,14 @@ describe('yield network queries', () => {
 		const result = await getLendBorrowDataFromYieldPageData(yieldPageData)
 		const supplyOnly = result.props.pools.find((pool) => pool.pool === 'supply-only')
 		const borrowReward = result.props.pools.find((pool) => pool.pool === 'borrow-reward')
+		const emptyLendBorrowRewards = result.props.pools.find((pool) => pool.pool === 'empty-lend-borrow-rewards')
 
 		expect(supplyOnly?.rewardTokens).toEqual(['lend-borrow-supply-token'])
 		expect(supplyOnly?.apyBorrow).toBeNull()
 		expect(borrowReward?.rewardTokens).toEqual(['lend-borrow-borrow-token'])
 		expect(borrowReward?.apyBaseBorrow).toBe(-4)
 		expect(borrowReward?.apyBorrow).toBe(-3)
+		expect(emptyLendBorrowRewards?.rewardTokens).toEqual(['yield-page-fallback-token'])
 	})
 
 	it('looks up reward token prices with the same normalized key used for requests', async () => {

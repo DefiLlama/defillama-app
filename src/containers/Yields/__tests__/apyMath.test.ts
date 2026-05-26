@@ -16,6 +16,8 @@ describe('Yields APY math helpers', () => {
 		expect(calculateApyNet7d(4, null)).toBeNull()
 		expect(calculateApyNet7d(null, -0.01)).toBeNull()
 		expect(calculateApyNet7d(0, -0.01)).toBeNull()
+		expect(calculateApyNet7d(Number.NaN, -0.01)).toBeNull()
+		expect(calculateApyNet7d(4, Number.POSITIVE_INFINITY)).toBeNull()
 		expect(calculateApyNet7d(4, -0.01)).toBeCloseTo(3.48)
 		expect(calculateApyNet7d(1, -3)).toBe(-100)
 	})
