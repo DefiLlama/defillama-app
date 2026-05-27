@@ -23,13 +23,17 @@ function appendVaryHeader(response: NextResponse, value: string) {
 	}
 }
 
-function resolveAllowedOrigin(origin: string | null): string | null {
+function resolveAllowedOrigin(origin: string | null, requestOrigin: string): string | null {
 	if (allowAnyOrigin) {
 		return '*'
 	}
 
 	if (!origin) {
 		return null
+	}
+
+	if (origin === requestOrigin) {
+		return origin
 	}
 
 	return allowedOrigins.includes(origin) ? origin : null
@@ -56,7 +60,7 @@ function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedO
 
 export function proxy(request: NextRequest) {
 	const origin = request.headers.get('origin')
-	const allowedOrigin = resolveAllowedOrigin(origin)
+	const allowedOrigin = resolveAllowedOrigin(origin, request.nextUrl.origin)
 
 	if (origin && !allowedOrigin) {
 		const response = new NextResponse('CORS origin denied', { status: 403 })
