@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchJson } from '~/utils/async'
 
 const BASE = process.env.IR_SERVER_URL
-const ALLOWED = new Set(['metadata', 'tvl', 'revenue', 'incentives', 'yields', 'treasury', 'growth'])
+const ALLOWED = new Set(['metadata', 'tvl', 'revenue', 'incentives', 'yields', 'treasury', 'growth', 'pegs'])
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {

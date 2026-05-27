@@ -35,7 +35,7 @@ function SubSectionCard({
 				{total != null && (
 					<div className="text-right">
 						<div className="text-[10px] font-medium tracking-wider text-(--text-label) uppercase">Subtotal</div>
-						<div className="text-lg font-semibold text-(--text-primary) tabular-nums">{fmtUsd(total)}</div>
+						<div className="text-lg font-semibold tabular-nums text-(--text-primary)">{fmtUsd(total)}</div>
 					</div>
 				)}
 			</div>
@@ -52,7 +52,9 @@ export default function Revenue() {
 	const cm = k.claimedMtd ?? ({} as Partial<NonNullable<typeof k.claimedMtd>>)
 	const up = data?.unclaimedPipeline ?? ({} as Partial<NonNullable<typeof data>['unclaimedPipeline']>)
 	const mc = data?.metronomeClaimed
-	const mb = data?.metbasisDetail
+	const vc = data?.vesperClaimed
+	const oc = data?.odysseyClaimed
+	const hbm = data?.holdersByMonth
 
 	const dailySeries = data?.llamaDailyChart
 		? chartToTs(data.llamaDailyChart).map((s) => ({
@@ -74,30 +76,41 @@ export default function Revenue() {
 			}))
 		: undefined
 
-	const lpTotal = sumUsd(up.treasuryLps, 'rewardsUsd')
-	const ethUniv3Total = sumUsd(up.ethUniv3, 'usd')
-	const plasmaTotal = sumUsd(up.plasmaUniv3, 'usd')
-	const lithosTotal = sumUsd(up.lithosGauge, 'usd')
-	const amoTotal = sumUsd(up.amoPositions, 'pnlUsd')
-	const veAeroTotal = sumUsd(up.aeroLocks, 'usd')
-	const convexClaimable = (up.convex || [])
-		.filter((r: any) => !/total/i.test(r.type || '') && r.isClaimable)
-		.reduce((s: number, r: any) => s + (r.usd || 0), 0)
-	const synthDaily = (data?.synthInterestDetail || []).reduce((s: number, r: any) => s + (r.estimatedDailyUsd || 0), 0)
-	const synthMonthly = (data?.synthInterestDetail || []).reduce(
-		(s: number, r: any) => s + (r.estimatedMonthlyUsd || 0),
-		0
-	)
+	const holdersByMonthSeries = hbm
+		? [
+				{
+					name: 'Metronome',
+					type: 'bar' as const,
+					color: '#fb923c',
+					data: (hbm.metronome || []).map(
+						(r) => [Math.floor(new Date(r.month + '-01T00:00:00Z').getTime() / 1000), r.totalUsd] as [number, number]
+					)
+				},
+				{
+					name: 'Vesper',
+					type: 'bar' as const,
+					color: '#a78bfa',
+					data: (hbm.vesper || []).map(
+						(r) => [Math.floor(new Date(r.month + '-01T00:00:00Z').getTime() / 1000), r.totalUsd] as [number, number]
+					)
+				}
+			]
+		: undefined
+
+	const lpTotal = sumUsd(up.treasuryLps as any[], 'rewardsUsd')
+	const ethUniv3Total = sumUsd(up.ethUniv3 as any[], 'usd')
+	const plasmaTotal = sumUsd(up.plasmaUniv3 as any[], 'usd')
+	const amoTotal = sumUsd(up.amoPositions as any[], 'pnlUsd')
+	const veAeroTotal = sumUsd(up.aeroLocks as any[], 'usd')
+	const convexClaimable = (up.convex || []).filter((r) => r.isClaimable).reduce((s, r) => s + (r.usd || 0), 0)
+	const synthDaily = (data?.synthInterestDetail || []).reduce((s, r) => s + (r.estimatedDailyUsd || 0), 0)
+	const synthMonthly = (data?.synthInterestDetail || []).reduce((s, r) => s + (r.estimatedMonthlyUsd || 0), 0)
 
 	return (
 		<div className="flex flex-col gap-6">
 			{/* Headline KPIs */}
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-				<KpiCard
-					label="Ecosystem Revenue (All-time)"
-					value={ra.ecosystem?.formatted}
-					sub="Claimed + unclaimed pipeline"
-				/>
+				<KpiCard label="Ecosystem Revenue (All-time)" value={ra.ecosystem?.formatted} sub="Claimed + unclaimed pipeline" />
 				<KpiCard label="Metronome" value={ra.metronome?.formatted} sub="All-time" />
 				<KpiCard label="Vesper" value={ra.vesper?.formatted} sub="All-time" />
 				<KpiCard label="Odyssey" value={ra.odyssey?.formatted} sub="All-time" />
@@ -107,12 +120,12 @@ export default function Revenue() {
 				<KpiCard label="VSP Holder Buybacks" value={ha.vesper?.formatted} sub="All-time" />
 			</div>
 
-			{/* Claimed */}
+			{/* Claimed MTD */}
 			<SectionHeader>Claimed Revenue · Month-to-Date</SectionHeader>
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<KpiCard label="Metronome MTD" value={cm.metronome?.formatted} />
-				<KpiCard label="Vesper MTD" value={cm.vesper?.formatted} />
-				<KpiCard label="Odyssey MTD" value={cm.odyssey?.formatted} />
+				<KpiCard label="Vesper MTD" value={cm.vesper?.formatted} sub={vc ? `${vc.windowDays}d window · ${vc.source}` : undefined} />
+				<KpiCard label="Odyssey MTD" value={cm.odyssey?.formatted} sub={oc ? `${oc.windowDays}d window · ${oc.source}` : undefined} />
 			</div>
 			{isLoading || !dailySeries ? (
 				<ChartSkeleton title="Daily Revenue" />
@@ -122,52 +135,46 @@ export default function Revenue() {
 				</ChartCard>
 			)}
 			{isLoading || !holderSeries ? (
-				<ChartSkeleton title="Holder Buybacks" />
+				<ChartSkeleton title="Holder Buybacks (daily)" />
 			) : (
-				<ChartCard title="Holder Buybacks" subtitle="Revenue routed to token holders (MET / VSP)">
+				<ChartCard title="Holder Buybacks (daily)" subtitle="Revenue routed to token holders (MET / VSP)">
 					<MultiSeriesChart series={holderSeries as any} valueSymbol="$" height="260px" />
 				</ChartCard>
 			)}
-
-			<SectionHeader>Metronome Sources · Month-to-Date</SectionHeader>
-			<ChartCard title="Revenue by source" subtitle={`Total ${fmtUsd(mc?.claimedTotalUsd)} this month`}>
-				<SimpleTable
-					rows={mc?.items}
-					cols={[
-						{ key: 'label', label: 'Source' },
-						{ key: 'chain', label: 'Chain' },
-						{ key: 'detail', label: 'Detail' },
-						{ key: 'amountUsd', label: 'USD', right: true, render: (r) => r.amountFormatted || fmtUsd(r.amountUsd) }
-					]}
-				/>
-			</ChartCard>
-
-			{mb && (
-				<ChartCard
-					title={`MetBasis Rewards${mb.monthLabel ? ' · ' + mb.monthLabel : ''}`}
-					subtitle={`Total ${mb.totalFormatted || fmtUsd(mb.totalUsd)} · LP gauge claims this month`}
-				>
-					<SimpleTable
-						rows={mb.rows}
-						cols={[
-							{ key: 'chain', label: 'Chain' },
-							{ key: 'token', label: 'Token' },
-							{
-								key: 'amount',
-								label: 'Amount',
-								right: true,
-								render: (r) => r.amount?.toLocaleString(undefined, { maximumFractionDigits: 4 })
-							},
-							{ key: 'priceUsd', label: 'Price', right: true, render: (r) => fmtUsd(r.priceUsd) },
-							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) },
-							{ key: 'claims', label: 'Claims', right: true },
-							{ key: 'lastClaim', label: 'Last Claim', right: true }
-						]}
-					/>
+			{holdersByMonthSeries && (
+				<ChartCard title="Holder Buybacks by Month" subtitle="Monthly totals routed to MET / VSP holders">
+					<MultiSeriesChart series={holdersByMonthSeries as any} valueSymbol="$" height="280px" />
 				</ChartCard>
 			)}
 
-			{/* Unclaimed pipeline — split into clearly labeled subsections */}
+			{/* Metronome breakdown · canonical from financial-statement adapter */}
+			{mc && (
+				<>
+					<SectionHeader>Metronome Revenue Breakdown · {mc.monthLabel}</SectionHeader>
+					<ChartCard
+						title="Revenue by source"
+						subtitle={`Total ${mc.claimedFormatted} this month · source: ${mc.source}`}
+					>
+						{mc.hasBreakdown && mc.items?.length ? (
+							<SimpleTable
+								rows={mc.items}
+								cols={[
+									{ key: 'label', label: 'Source' },
+									{ key: 'chain', label: 'Chain' },
+									{ key: 'detail', label: 'Detail' },
+									{ key: 'amountUsd', label: 'USD', right: true, render: (r) => r.amountFormatted || fmtUsd(r.amountUsd) }
+								]}
+							/>
+						) : (
+							<div className="px-2 py-3 text-xs text-(--text-secondary)">
+								Per-source breakdown not yet available for this month — only the total is reported.
+							</div>
+						)}
+					</ChartCard>
+				</>
+			)}
+
+			{/* Unclaimed pipeline */}
 			<SectionHeader>Unclaimed Pipeline · Overview</SectionHeader>
 			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 				<div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
@@ -185,9 +192,7 @@ export default function Revenue() {
 						height="320px"
 						showLegend
 						legendPosition={{ orient: 'vertical', left: 'right', top: 'middle' }}
-						stackColors={Object.fromEntries(
-							up.pie.map((p: any, i: number) => [p.name, PIE_COLORS[i % PIE_COLORS.length]])
-						)}
+						stackColors={Object.fromEntries(up.pie.map((p, i) => [p.name, PIE_COLORS[i % PIE_COLORS.length]]))}
 					/>
 				)}
 			</div>
@@ -221,24 +226,21 @@ export default function Revenue() {
 						rows={up.ethUniv3}
 						cols={[
 							{ key: 'position', label: 'Position' },
-							{
-								key: 'rewards',
-								label: 'Unclaimed',
-								render: (r) => <span dangerouslySetInnerHTML={{ __html: r.rewards }} />
-							},
+							{ key: 'pool', label: 'Pool' },
+							{ key: 'rewards', label: 'Unclaimed' },
 							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
 						]}
 					/>
 				</SubSectionCard>
 				<SubSectionCard
 					title="Plasma UniV3"
-					subtitle="Trading fees accrued on Plasma concentrated-liquidity positions"
+					subtitle="Trading fees on Plasma concentrated-liquidity positions (per token)"
 					total={plasmaTotal}
 				>
 					<SimpleTable
 						rows={up.plasmaUniv3}
 						cols={[
-							{ key: 'pool', label: 'Position' },
+							{ key: 'position', label: 'Position' },
 							{ key: 'token', label: 'Token' },
 							{ key: 'amount', label: 'Amount', right: true, render: (r) => r.amount?.toFixed(4) },
 							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
@@ -248,38 +250,22 @@ export default function Revenue() {
 			</div>
 
 			<SectionHeader>Gauge & Lock Rewards</SectionHeader>
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<SubSectionCard
-					title="Lithos Gauge (Plasma)"
-					subtitle="Pending rewards on Lithos gauge for treasury LP"
-					total={lithosTotal}
-				>
-					<SimpleTable
-						rows={up.lithosGauge}
-						cols={[
-							{ key: 'gauge', label: 'Gauge' },
-							{ key: 'rewards', label: 'Rewards' },
-							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
-						]}
-					/>
-				</SubSectionCard>
-				<SubSectionCard
-					title="veAERO Locks (Base)"
-					subtitle="Bribe & emission rewards on locked AERO voting power"
-					total={veAeroTotal}
-				>
-					<SimpleTable
-						rows={up.aeroLocks}
-						cols={[
-							{ key: 'nft', label: 'NFT' },
-							{ key: 'locked', label: 'Locked AERO' },
-							{ key: 'rewards', label: 'Pending Rewards' },
-							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) },
-							{ key: 'unlock', label: 'Unlock', right: true }
-						]}
-					/>
-				</SubSectionCard>
-			</div>
+			<SubSectionCard
+				title="veAERO Locks (Base)"
+				subtitle="Bribe & emission rewards on locked AERO voting power"
+				total={veAeroTotal}
+			>
+				<SimpleTable
+					rows={up.aeroLocks}
+					cols={[
+						{ key: 'nft', label: 'NFT' },
+						{ key: 'locked', label: 'Locked AERO' },
+						{ key: 'rewards', label: 'Pending Rewards' },
+						{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) },
+						{ key: 'unlock', label: 'Unlock', right: true, render: (r) => r.unlock || '—' }
+					]}
+				/>
+			</SubSectionCard>
 
 			<SectionHeader>Morpho AMO · Unrealised PnL</SectionHeader>
 			<SubSectionCard
@@ -293,42 +279,39 @@ export default function Revenue() {
 						{ key: 'vaultName', label: 'Vault' },
 						{ key: 'asset', label: 'Asset' },
 						{ key: 'assetsUsd', label: 'NAV', right: true, render: (r) => fmtUsd(r.assetsUsd) },
-						{ key: 'pnlUsd', label: 'Unrealised PnL', right: true, render: (r) => fmtUsd(r.pnlUsd) },
-						{
-							key: 'allTimeHarvestedUsd',
-							label: 'All-time Harvested',
-							right: true,
-							render: (r) => fmtUsd(r.allTimeHarvestedUsd)
-						},
-						{ key: 'lastHarvestDate', label: 'Last Harvest', right: true }
+						{ key: 'grossPnlUsd', label: 'Gross PnL', right: true, render: (r) => fmtUsd(r.grossPnlUsd) },
+						{ key: 'feeRate', label: 'Fee', right: true, render: (r) => `${((r.feeRate ?? 0) * 100).toFixed(1)}%` },
+						{ key: 'pnlUsd', label: 'Net PnL', right: true, render: (r) => fmtUsd(r.pnlUsd) },
+						{ key: 'allTimeHarvestedUsd', label: 'All-time Harvested', right: true, render: (r) => fmtUsd(r.allTimeHarvestedUsd) },
+						{ key: 'lastHarvestDate', label: 'Last Harvest', right: true, render: (r) => r.lastHarvestDate || '—' }
 					]}
 				/>
 			</SubSectionCard>
 
 			<SectionHeader>Convex vlCVX · Vote-locked Rewards</SectionHeader>
 			<SubSectionCard
-				title="vlCVX locks"
-				subtitle={`Locked CVX positions used for VoteMarket bribes. Claimable rewards total ${fmtUsd(convexClaimable)}.`}
+				title="vlCVX claimable"
+				subtitle={`Claimable rewards total ${fmtUsd(convexClaimable)}.`}
 			>
 				<SimpleTable
-					rows={(up.convex || []).filter((r: any) => !/total/i.test(r.type || ''))}
+					rows={up.convex}
 					cols={[
-						{ key: 'type', label: 'Lock' },
-						{ key: 'balance', label: 'Balance' },
+						{ key: 'type', label: 'Type' },
 						{ key: 'status', label: 'Status' },
-						{ key: 'usd', label: 'Rewards USD', right: true, render: (r) => (r.isClaimable ? fmtUsd(r.usd) : '—') },
-						{ key: 'unlock', label: 'Unlock', right: true }
+						{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) },
+						{ key: 'unlock', label: 'Unlock', right: true, render: (r) => r.unlock || '—' }
 					]}
 				/>
 			</SubSectionCard>
 
-			<SectionHeader>Synth Interest · Estimated Accrual</SectionHeader>
+			{/* Synth interest — informational, not in pipeline total */}
+			<SectionHeader>Synth Interest · Borrower-side Accrual (informational)</SectionHeader>
 			<SubSectionCard
 				title="Outstanding synth debt"
-				subtitle={`Interest accrues on user borrows of msUSD / msETH / msBTC. Est. ${fmtUsd(synthDaily)} per day · ${fmtUsd(synthMonthly)} per month.`}
+				subtitle={`Interest accrues on user borrows of msUSD / msETH. Est. ${fmtUsd(synthDaily)} per day · ${fmtUsd(synthMonthly)} per month. Not part of pipeline total.`}
 			>
 				<div className="flex flex-col gap-4">
-					{(data?.synthInterestDetail || []).map((r: any) => (
+					{(data?.synthInterestDetail || []).map((r) => (
 						<div key={r.asset} className="rounded-md border border-(--cards-border)/60 p-3">
 							<div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
 								<div>

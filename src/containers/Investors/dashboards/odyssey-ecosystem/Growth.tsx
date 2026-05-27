@@ -1,7 +1,7 @@
 import { lazy, useState } from 'react'
 import type { IChartProps, IMultiSeriesChartProps } from '~/components/ECharts/types'
-import { useGrowthData, chartToTs, seriesPairs } from './api'
-import { KpiCard, ChartCard, SectionHeader, ChartSkeleton, fmtUsd } from './ui'
+import { useGrowthData, chartToTs, type LooprDailyRow } from './api'
+import { KpiCard, ChartCard, SectionHeader, ChartSkeleton, SimpleTable, fmtUsd } from './ui'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart')) as React.FC<IMultiSeriesChartProps>
@@ -20,15 +20,7 @@ const SPEND_VENUES = [
 	{ id: 'votemarket', label: 'VoteMarket' }
 ]
 
-function TabBtns({
-	active,
-	onChange,
-	options
-}: {
-	active: string
-	onChange: (v: string) => void
-	options: { id: string; label: string }[]
-}) {
+function TabBtns({ active, onChange, options }: { active: string; onChange: (v: string) => void; options: { id: string; label: string }[] }) {
 	return (
 		<div className="mb-3 flex flex-wrap gap-1">
 			{options.map((o) => (
@@ -48,24 +40,48 @@ function TabBtns({
 	)
 }
 
-function combinedPairs(block: any): Array<[number, number | null]> | undefined {
-	if (!block?.combined) return undefined
-	return seriesPairs(block.combined.dates, block.combined.values)
+function dailyToPairs(rows: LooprDailyRow[] | undefined, metric: keyof LooprDailyRow): Array<[number, number | null]> {
+	if (!rows) return []
+	return rows.map(
+		(r) => [Math.floor(new Date(r.day + 'T00:00:00Z').getTime() / 1000), Number(r[metric] ?? 0)] as [number, number | null]
+	)
+}
+
+function capitalize(s: string) {
+	return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 export default function Growth() {
 	const { data, isLoading } = useGrowthData()
 	const k = data?.kpis ?? ({} as Partial<NonNullable<typeof data>['kpis']>)
-	const loopr = data?.loopr ?? ({} as Partial<NonNullable<typeof data>['loopr']>)
+	const loopr = data?.loopr
 	const cs = data?.caseStudies ?? ({} as Partial<NonNullable<typeof data>['caseStudies']>)
 	const csk = cs.kpis ?? ({} as Partial<NonNullable<typeof cs.kpis>>)
 
 	const [spendVenue, setSpendVenue] = useState('aerodrome')
 
-	const activeAccounts = combinedPairs(loopr.activeAccounts)
-	const activePositions = combinedPairs(loopr.activePositions)
-	const accountsCreated = combinedPairs(loopr.accountsCreated)
-	const positionsCreated = combinedPairs(loopr.positionsCreated)
+	const activeAccounts = dailyToPairs(loopr?.total, 'active_users')
+	const activePositions = dailyToPairs(loopr?.total, 'active_positions')
+	const cumulativeAccounts = dailyToPairs(loopr?.total, 'cumulative_users')
+	const cumulativePositions = dailyToPairs(loopr?.total, 'cumulative_positions')
+
+	const perChainActiveUsers = loopr?.chains
+		? Object.entries(loopr.chains).map(([chain, rows]) => ({
+				name: capitalize(chain),
+				type: 'line' as const,
+				color: CHAIN_COLORS[capitalize(chain)] || '#6366f1',
+				data: dailyToPairs(rows, 'active_users')
+			}))
+		: undefined
+
+	const perChainActivePositions = loopr?.chains
+		? Object.entries(loopr.chains).map(([chain, rows]) => ({
+				name: capitalize(chain),
+				type: 'line' as const,
+				color: CHAIN_COLORS[capitalize(chain)] || '#6366f1',
+				data: dailyToPairs(rows, 'active_positions')
+			}))
+		: undefined
 
 	const deposits = data?.depositsByChain
 		? chartToTs(data.depositsByChain).map((s) => ({
@@ -76,8 +92,8 @@ export default function Growth() {
 			}))
 		: undefined
 
-	const metHistory = (data?.tokenPrices?.MET?.history || []).map((p: any) => [p.timestamp, p.price] as [number, number])
-	const vspHistory = (data?.tokenPrices?.VSP?.history || []).map((p: any) => [p.timestamp, p.price] as [number, number])
+	const metHistory = (data?.tokenPrices?.MET?.history || []).map((p) => [p.timestamp, p.price] as [number, number])
+	const vspHistory = (data?.tokenPrices?.VSP?.history || []).map((p) => [p.timestamp, p.price] as [number, number])
 
 	const marketComboSeries = data?.marketComparison?.combined
 		? chartToTs(data.marketComparison.combined).map((s, i) => ({
@@ -110,14 +126,14 @@ export default function Growth() {
 		? chartToTs(cs.morphoMarket).map((s, i) => ({
 				name: s.name,
 				type: 'line' as const,
-				color: ['#6366f1', '#fb923c', '#34d399'][i],
+				color: ['#6366f1', '#fb923c', '#34d399'][i] || '#6366f1',
 				data: s.data,
 				yAxisIndex: s.name.includes('%') ? 1 : 0
 			}))
 		: undefined
 
 	const morphoMarkets = (cs.morphoMarkets || []) as any[]
-	const spendVsTvlBlock = (cs.spendVsTvl || []).find((s: any) => s.venue === spendVenue)
+	const spendVsTvlBlock = (cs.spendVsTvl || []).find((s) => s.venue === spendVenue)
 	const spendVsTvlSeries = spendVsTvlBlock
 		? chartToTs(spendVsTvlBlock).map((s, i) => ({
 				name: s.name,
@@ -130,7 +146,6 @@ export default function Growth() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			{/* Headline KPIs */}
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<KpiCard label="Active Accounts" value={k.activeAccounts?.formatted} sub="Loopr — current" />
 				<KpiCard label="Active Positions" value={k.activePositions?.formatted} sub="Loopr — current" />
@@ -140,20 +155,19 @@ export default function Growth() {
 				<KpiCard label="Morpho Utilization" value={k.morphoUtilization?.formatted} sub="Featured market" />
 			</div>
 
-			{/* Loopr Activity */}
-			<SectionHeader>Loopr · Daily Activity</SectionHeader>
+			<SectionHeader>Loopr · Daily Activity (Combined)</SectionHeader>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				{isLoading || !activeAccounts ? (
+				{isLoading || !activeAccounts.length ? (
 					<ChartSkeleton title="Active Accounts" />
 				) : (
-					<ChartCard title="Active Accounts" subtitle="Combined across all chains">
+					<ChartCard title="Active Accounts" subtitle="Owner-deduped across chains">
 						<AreaChart chartData={activeAccounts as any} title="" height="280px" color="#6366f1" />
 					</ChartCard>
 				)}
-				{isLoading || !activePositions ? (
+				{isLoading || !activePositions.length ? (
 					<ChartSkeleton title="Active Positions" />
 				) : (
-					<ChartCard title="Active Positions" subtitle="Open Loopr positions">
+					<ChartCard title="Active Positions" subtitle="Combined open positions">
 						<AreaChart chartData={activePositions as any} title="" height="280px" color="#34d399" />
 					</ChartCard>
 				)}
@@ -161,18 +175,24 @@ export default function Growth() {
 
 			<SectionHeader>Loopr · Cumulative Onboarding</SectionHeader>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				{isLoading || !accountsCreated ? (
-					<ChartSkeleton title="Accounts Created" />
-				) : (
-					<ChartCard title="Accounts Created" subtitle="Cumulative across all chains">
-						<AreaChart chartData={accountsCreated as any} title="" height="280px" color="#fb923c" />
+				<ChartCard title="Cumulative Accounts" subtitle="Owner-deduped across chains">
+					<AreaChart chartData={cumulativeAccounts as any} title="" height="280px" color="#fb923c" />
+				</ChartCard>
+				<ChartCard title="Cumulative Positions" subtitle="Across all chains">
+					<AreaChart chartData={cumulativePositions as any} title="" height="280px" color="#a78bfa" />
+				</ChartCard>
+			</div>
+
+			<SectionHeader>Loopr · Per-Chain Activity</SectionHeader>
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+				{perChainActiveUsers && (
+					<ChartCard title="Active Users by Chain">
+						<MultiSeriesChart series={perChainActiveUsers as any} height="280px" />
 					</ChartCard>
 				)}
-				{isLoading || !positionsCreated ? (
-					<ChartSkeleton title="Positions Created" />
-				) : (
-					<ChartCard title="Positions Created" subtitle="Cumulative across all chains">
-						<AreaChart chartData={positionsCreated as any} title="" height="280px" color="#a78bfa" />
+				{perChainActivePositions && (
+					<ChartCard title="Active Positions by Chain">
+						<MultiSeriesChart series={perChainActivePositions as any} height="280px" />
 					</ChartCard>
 				)}
 			</div>
@@ -180,13 +200,38 @@ export default function Growth() {
 			{deposits && (
 				<>
 					<SectionHeader>Loopr · Deposits by Chain</SectionHeader>
-					<ChartCard title="Deposits over time" subtitle="Total Loopr deposits per chain">
+					<ChartCard title="Total deposits over time" subtitle="USD deposits per chain">
 						<MultiSeriesChart series={deposits as any} valueSymbol="$" height="320px" />
 					</ChartCard>
 				</>
 			)}
 
-			{/* Token Prices */}
+			{loopr?.byStrategy?.length ? (
+				<>
+					<SectionHeader>Loopr · By Strategy</SectionHeader>
+					<ChartCard title="Active strategies" subtitle="Deposits, users and performance fee per strategy">
+						<SimpleTable
+							rows={loopr.byStrategy}
+							cols={[
+								{ key: 'strategyId', label: 'ID' },
+								{ key: 'asset', label: 'Asset' },
+								{ key: 'users', label: 'Users', right: true },
+								{ key: 'totalDepositedUsd', label: 'Deposited', right: true, render: (r) => r.totalDepositedFormatted || fmtUsd(r.totalDepositedUsd) },
+								{ key: 'performanceFeePct', label: 'Perf Fee', right: true, render: (r) => `${r.performanceFeePct}%` },
+								{
+									key: 'chains',
+									label: 'Chains',
+									render: (r) =>
+										Object.entries(r.chains)
+											.map(([c, v]: any) => `${capitalize(c)}: ${v.users}u · ${fmtUsd(v.usd)}`)
+											.join(' · ')
+								}
+							]}
+						/>
+					</ChartCard>
+				</>
+			) : null}
+
 			<SectionHeader>Token Prices</SectionHeader>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				{metHistory.length > 0 && (
@@ -201,20 +246,15 @@ export default function Growth() {
 				)}
 			</div>
 
-			{/* Market Comparison */}
 			{marketComboSeries && (
 				<>
-					<SectionHeader>Ecosystem TVL vs ETH Change %</SectionHeader>
-					<ChartCard
-						title="Relative performance"
-						subtitle="Combined ecosystem TVL change vs ETH/USD change since reference date"
-					>
+					<SectionHeader>Ecosystem TVL Change vs ETH (cumulative)</SectionHeader>
+					<ChartCard title="Cumulative % change since baseline" subtitle="Combined ecosystem TVL change vs ETH/USD change — 2y window">
 						<MultiSeriesChart series={marketComboSeries as any} valueSymbol="%" height="320px" />
 					</ChartCard>
 				</>
 			)}
 
-			{/* siUSD case study */}
 			<SectionHeader>siUSD Case Study</SectionHeader>
 			<div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
 				<KpiCard label="siUSD TVL" value={csk.siusdTvl != null ? fmtUsd(csk.siusdTvl) : undefined} />
@@ -222,10 +262,7 @@ export default function Growth() {
 			</div>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 				{siusdVsIusd && (
-					<ChartCard
-						title="siUSD vs iUSD TVL"
-						subtitle={cs.kelpExploitDate ? `Reference: Kelp exploit ${cs.kelpExploitDate}` : undefined}
-					>
+					<ChartCard title="siUSD vs iUSD TVL" subtitle={cs.kelpExploitDate ? `Reference: Kelp exploit ${cs.kelpExploitDate}` : undefined}>
 						<MultiSeriesChart series={siusdVsIusd as any} valueSymbol="$" height="320px" />
 					</ChartCard>
 				)}
@@ -236,7 +273,6 @@ export default function Growth() {
 				)}
 			</div>
 
-			{/* Morpho market deep-dive */}
 			{morphoMarket && (
 				<>
 					<SectionHeader>Morpho Market · Supply / Borrow / Utilization</SectionHeader>
@@ -251,7 +287,7 @@ export default function Growth() {
 
 			{morphoMarkets.length > 0 && (
 				<>
-					<SectionHeader>Morpho Markets · Supply / Borrow History</SectionHeader>
+					<SectionHeader>Metronome Morpho Markets</SectionHeader>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 						{morphoMarkets.map((m: any) => {
 							const series = chartToTs(m).map((s, i) => ({
@@ -271,14 +307,10 @@ export default function Growth() {
 				</>
 			)}
 
-			{/* Spend vs TVL efficiency */}
 			{spendVsTvlBlock && (
 				<>
 					<SectionHeader>Incentive Spend vs Pool TVL · Efficiency</SectionHeader>
-					<ChartCard
-						title={`${spendVenue} — weekly spend vs pool TVL`}
-						subtitle="Compare incentive outlay against the TVL it attracted"
-					>
+					<ChartCard title={`${spendVenue} — weekly spend vs pool TVL`} subtitle="Compare incentive outlay against the TVL it attracted">
 						<TabBtns active={spendVenue} onChange={setSpendVenue} options={SPEND_VENUES} />
 						<MultiSeriesChart
 							key={spendVenue}
