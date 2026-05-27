@@ -47,3 +47,7 @@ export const EDITORIAL_TAG_LIST: EditorialTagDefinition[] = Object.values(EDITOR
 export function isEditorialTagSlug(value: unknown): value is EditorialTagSlug {
 	return typeof value === 'string' && Object.prototype.hasOwnProperty.call(EDITORIAL_TAGS, value)
 }
+
+export function isEditorialTagReorderable(slug: EditorialTagSlug): boolean {
+	return EDITORIAL_TAGS[slug].cardinality === 'multi'
+}

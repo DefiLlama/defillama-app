@@ -1,4 +1,5 @@
 import { FEATURES_SERVER } from '~/constants'
+import type { EditorialTagOrderItem } from './editorialTagOrder'
 import type {
 	ArticleAuthorProfile,
 	ArticleCollaborator,
@@ -155,6 +156,9 @@ export type ArticleSectionListResponse = {
 	sections: { section: ArticleSection; items: ArticleDocument[] }[]
 }
 
+export type { EditorialTagOrderItem } from './editorialTagOrder'
+export { applyEditorialTagOrderPayload, buildEditorialTagReorderPayload } from './editorialTagOrder'
+
 export type ArticleByTagResponse = {
 	items: ArticleDocument[]
 }
@@ -193,13 +197,35 @@ export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch
 export async function setEditorialTag(
 	articleId: string,
 	tag: string,
-	authorizedFetch: AuthorizedFetch
-): Promise<{ articleId: string; tag: string }> {
+	authorizedFetch: AuthorizedFetch,
+	options?: { order?: number }
+): Promise<{ articleId: string; tag: string; order: number }> {
+	const hasOrder = options?.order !== undefined
 	return parseResponse(
 		await authorizedFetch(
 			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
-			{ method: 'POST' }
+			hasOrder
+				? {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ order: options.order })
+					}
+				: { method: 'POST' }
 		)
+	)
+}
+
+export async function reorderEditorialTag(
+	tag: string,
+	items: EditorialTagOrderItem[],
+	authorizedFetch: AuthorizedFetch
+): Promise<{ tag: string; items: EditorialTagOrderItem[] }> {
+	return parseResponse(
+		await authorizedFetch(articleUrl(`/articles/editorial-tags/${encodeURIComponent(tag)}/order`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ items })
+		})
 	)
 }
 
