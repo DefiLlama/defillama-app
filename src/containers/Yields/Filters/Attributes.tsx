@@ -4,6 +4,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { badDebt, lockupsCollateral } from '~/containers/Yields/constants'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { shouldResetYieldsPoolPage } from '../queryState'
 
 export const attributeOptions = [
 	{
@@ -214,6 +215,7 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			nestedMenu={nestedMenu}
 			includeQueryKey="attribute"
 			excludeQueryKey="excludeAttribute"
+			resetPageOnQueryChange={shouldResetYieldsPoolPage(router.pathname)}
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
 				for (const attributeKey of values) {

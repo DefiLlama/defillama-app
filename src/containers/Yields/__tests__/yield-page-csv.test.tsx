@@ -2,9 +2,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import YieldPage from '../views/PoolsView'
 
-const { captured, routerState, enrichmentState } = vi.hoisted(() => ({
+const { captured, routerState, enrichmentState, fetchJsonMock, poolPageQueryState } = vi.hoisted(() => ({
 	captured: {
-		prepareCsv: null as null | (() => { filename: string; rows: unknown[][] })
+		prepareCsv: null as null | (() => Promise<{ filename: string; rows: unknown[][] }>)
 	},
 	routerState: {
 		pathname: '/yields',
@@ -23,6 +23,10 @@ const { captured, routerState, enrichmentState } = vi.hoisted(() => ({
 		volatility: {
 			'pool-0': [null, 4.4, 0.9, 0.2]
 		}
+	},
+	fetchJsonMock: vi.fn(),
+	poolPageQueryState: {
+		isError: false
 	}
 }))
 
@@ -32,7 +36,50 @@ vi.mock('next/router', () => ({
 
 vi.mock('../queries.client', () => ({
 	useHolderStats: () => ({ data: enrichmentState.holderStats }),
-	useVolatility: () => ({ data: enrichmentState.volatility })
+	useVolatility: () => ({ data: enrichmentState.volatility }),
+	useYieldPoolsPage: () =>
+		poolPageQueryState.isError
+			? {
+					data: undefined,
+					isLoading: false,
+					isFetching: false,
+					isError: true
+				}
+			: {
+					data: {
+						rows: Array.from({ length: 10 }, (_, index) => ({
+							id: `pool-${index}`,
+							pool: `TOKEN${index}-USDC`,
+							configID: `pool-${index}`,
+							projectslug: 'test-project',
+							project: 'Test Project',
+							chains: ['Ethereum'],
+							tvl: 1_000 + index,
+							apy: index + 1,
+							apyBase: index,
+							apyReward: 1,
+							rewardTokensSymbols: [],
+							rewards: [],
+							change1d: null,
+							change7d: null,
+							outlook: 'Stable/Up',
+							confidence: 3,
+							url: '',
+							category: 'Dexes'
+						})),
+						total: 60,
+						page: 1,
+						pageSize: 50,
+						hasMore: true
+					},
+					isLoading: false,
+					isFetching: false,
+					isError: false
+				}
+}))
+
+vi.mock('~/utils/async', () => ({
+	fetchJson: fetchJsonMock
 }))
 
 vi.mock('~/containers/LlamaAI/hooks/useEntityQuestions', () => ({
@@ -40,14 +87,15 @@ vi.mock('~/containers/LlamaAI/hooks/useEntityQuestions', () => ({
 }))
 
 vi.mock('../Filters', () => ({
-	YieldFiltersV2: (props: { prepareCsv?: () => { filename: string; rows: unknown[][] } }) => {
+	YieldFiltersV2: (props: { prepareCsv?: () => Promise<{ filename: string; rows: unknown[][] }> }) => {
 		captured.prepareCsv = props.prepareCsv ?? null
 		return <div data-testid="yield-filters" />
 	}
 }))
 
 vi.mock('../Tables/Pools', () => ({
-	YieldsPoolsTable: () => <div data-testid="yield-pools-table" />
+	YieldsPoolsTable: () => <div data-testid="yield-pools-table" />,
+	PaginatedYieldsPoolTable: () => <div data-testid="paginated-yield-pools-table" />
 }))
 
 function pool(id: number, overrides: Record<string, unknown> = {}) {
@@ -111,11 +159,13 @@ const expectedHeaders = [
 describe('YieldPage CSV export', () => {
 	beforeEach(() => {
 		captured.prepareCsv = null
+		fetchJsonMock.mockReset()
+		poolPageQueryState.isError = false
 		routerState.pathname = '/yields'
 		routerState.query = {}
 	})
 
-	it('uses the full currently filtered row set, not only visible, virtualized, or paginated rows', () => {
+	it('uses the full currently filtered row set in legacy mode, not only visible, virtualized, or paginated rows', async () => {
 		const includedPools = [
 			pool(0, {
 				apyBaseBorrow: -1,
@@ -149,7 +199,7 @@ describe('YieldPage CSV export', () => {
 		const prepareCsv = captured.prepareCsv
 		if (!prepareCsv) throw new Error('YieldFiltersV2 did not receive a prepareCsv callback')
 
-		const csv = prepareCsv()
+		const csv = await prepareCsv()
 		const poolNames = csv.rows.slice(1).map((row) => row[0])
 		const enrichedRow = Object.fromEntries(expectedHeaders.map((header, index) => [header, csv.rows[1][index]]))
 
@@ -174,5 +224,84 @@ describe('YieldPage CSV export', () => {
 			'Holder Change 7d': 2,
 			'Holder Change 30d': 3
 		})
+	})
+
+	it('uses a full server-filtered CSV export in server pagination mode', async () => {
+		const csvPools = Array.from({ length: 60 }, (_, index) => pool(index))
+		fetchJsonMock.mockResolvedValue({
+			rows: csvPools.map((p) => ({
+				id: p.pool,
+				pool: p.symbol,
+				configID: p.pool,
+				projectslug: p.project,
+				project: p.projectName,
+				chains: [p.chain],
+				tvl: p.tvlUsd,
+				apy: p.apy,
+				apyBase: p.apyBase,
+				apyReward: p.apyReward,
+				rewardTokensSymbols: [],
+				rewards: [],
+				change1d: null,
+				change7d: null,
+				outlook: 'Stable/Up',
+				confidence: 3,
+				url: '',
+				category: p.category
+			})),
+			total: 60,
+			page: 1,
+			pageSize: 60,
+			hasMore: false
+		})
+
+		renderToStaticMarkup(
+			<YieldPage
+				serverPagination
+				projectList={['Test Project']}
+				chainList={['Ethereum']}
+				categoryList={['Dexes']}
+				tokens={[]}
+				tokenSymbolsList={[]}
+				evmChains={[]}
+				entityQuestions={[]}
+			/>
+		)
+
+		const prepareCsv = captured.prepareCsv
+		if (!prepareCsv) throw new Error('YieldFiltersV2 did not receive a prepareCsv callback')
+
+		const csv = await prepareCsv()
+		const poolNames = csv.rows.slice(1).map((row) => row[0])
+
+		expect(fetchJsonMock).toHaveBeenCalledWith('/api/datasets/yields/pools?view=main&page=1&pageSize=all')
+		expect(poolNames).toHaveLength(60)
+		expect(poolNames).toEqual(csvPools.map((includedPool) => includedPool.symbol))
+		expect(Object.fromEntries(expectedHeaders.map((header, index) => [header, csv.rows[1][index]]))).toMatchObject({
+			'APY Median 30d': 4.4,
+			'APY Std Dev 30d': 0.9,
+			'CV 30d': 0.2,
+			'Holder Count': 10
+		})
+	})
+
+	it('shows a server query error separately from empty filtered results', () => {
+		poolPageQueryState.isError = true
+
+		const html = renderToStaticMarkup(
+			<YieldPage
+				serverPagination
+				projectList={['Test Project']}
+				chainList={['Ethereum']}
+				categoryList={['Dexes']}
+				tokens={[]}
+				tokenSymbolsList={[]}
+				evmChains={[]}
+				entityQuestions={[]}
+			/>
+		)
+
+		expect(html).toContain('load pools.')
+		expect(html).not.toContain("Couldn't find any pools for these filters")
 	})
 })

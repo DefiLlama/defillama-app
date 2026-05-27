@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/Select/types'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { shouldResetYieldsPoolPage } from '../queryState'
 
 interface IYieldProjectsProps {
 	projectList: Array<string>
@@ -34,6 +35,7 @@ export function YieldProjects({
 			labelType={!project || project === 'All' ? 'none' : 'regular'}
 			includeQueryKey={includeQueryKey}
 			excludeQueryKey={excludeQueryKey}
+			resetPageOnQueryChange={shouldResetYieldsPoolPage(router.pathname)}
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
 				for (const projectName of values) {

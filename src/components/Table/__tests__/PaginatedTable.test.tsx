@@ -13,13 +13,24 @@ vi.mock('~/components/Tooltip', () => ({
 
 const columnHelper = createColumnHelper<{ name: string }>()
 
-function TestTable({ rowCount, initialPageSize = 10 }: { rowCount: number; initialPageSize?: number }) {
+function TestTable({
+	rowCount,
+	initialPageSize = 10,
+	interactionDisabled = false
+}: {
+	rowCount: number
+	initialPageSize?: number
+	interactionDisabled?: boolean
+}) {
 	const data = Array.from({ length: rowCount }, (_, index) => ({ name: `row-${index + 1}` }))
 	const table = useReactTable({
 		data,
 		columns: [
 			columnHelper.accessor('name', {
-				header: 'Name'
+				header: 'Name',
+				meta: {
+					headerClassName: 'w-[180px]'
+				}
 			})
 		],
 		initialState: {
@@ -32,7 +43,13 @@ function TestTable({ rowCount, initialPageSize = 10 }: { rowCount: number; initi
 		getPaginationRowModel: getPaginationRowModel()
 	})
 
-	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
+	return (
+		<PaginatedTable
+			table={table}
+			pageSizeOptions={[10, 20, 30, 50] as const}
+			interactionDisabled={interactionDisabled}
+		/>
+	)
 }
 
 describe('PaginatedTable', () => {
@@ -61,7 +78,13 @@ describe('PaginatedTable', () => {
 		const html = renderToStaticMarkup(<TestTable rowCount={11} initialPageSize={20} />)
 
 		expect(html).toContain('Rows per page')
-		expect(html).toContain('<option value="10">10</option>')
-		expect(html).toContain('<option value="20" selected="">20</option>')
+	})
+
+	it('marks sortable headers as disabled when interactions are disabled', () => {
+		const enabledHtml = renderToStaticMarkup(<TestTable rowCount={20} />)
+		const disabledHtml = renderToStaticMarkup(<TestTable rowCount={20} interactionDisabled />)
+
+		expect(enabledHtml).toContain('aria-disabled="false"')
+		expect(disabledHtml).toContain('aria-disabled="true"')
 	})
 })

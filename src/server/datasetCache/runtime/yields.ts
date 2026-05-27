@@ -4,6 +4,8 @@ import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBor
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
 import { buildBorrowAdvancedPageMetadata, buildBorrowAdvancedPageRows } from '~/containers/Yields/borrowAdvanced.server'
+import { buildBorrowPageMetadata, buildBorrowPageRows } from '~/containers/Yields/borrowSimple.server'
+import { buildYieldPoolsPageResponse } from '~/containers/Yields/pools.server'
 import { buildYieldTableRowsWithBorrowData, mapPoolToYieldTableRow } from '~/containers/Yields/poolsPipeline'
 import {
 	fetchYieldConfigFromNetwork,
@@ -14,12 +16,14 @@ import type { YieldConfigResponse } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { fetchJson } from '~/utils/async'
 import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
+import { isMissingDatasetArtifactError } from '../core'
 import {
 	getLendBorrowDataFromCache,
 	getProtocolYieldRowsFromCache,
 	getTokenBorrowRoutesFromCache,
 	getTokenYieldsRowsFromCache,
 	getYieldConfigFromCache,
+	getYieldPageDataFromCache,
 	getYieldPoolRowFromCache,
 	getYieldProtocolConfigFromCache
 } from '../yields'
@@ -85,6 +89,23 @@ export function getYieldConfig(): Promise<YieldConfigResponse> {
 	})
 }
 
+function getYieldPageDataThroughCache() {
+	return readThroughDatasetCache({
+		domain: 'yields',
+		readCache: async () => {
+			try {
+				return await getYieldPageDataFromCache()
+			} catch (error) {
+				if (isMissingDatasetArtifactError(error)) {
+					return getYieldPageData()
+				}
+				throw error
+			}
+		},
+		readNetwork: getYieldPageData
+	})
+}
+
 function getLendBorrowData() {
 	return readThroughDatasetCache({
 		domain: 'yields',
@@ -101,6 +122,25 @@ export async function getBorrowAdvancedPageMetadata() {
 export async function getBorrowAdvancedPageRows(query: Record<string, string | string[] | undefined>) {
 	const lendBorrowData = await getLendBorrowData()
 	return buildBorrowAdvancedPageRows(lendBorrowData, query)
+}
+
+export async function getBorrowPageMetadata() {
+	const [lendBorrowData, cgList] = await Promise.all([getLendBorrowData(), fetchCoinGeckoTokensListFromDataset()])
+	return buildBorrowPageMetadata(lendBorrowData, cgList)
+}
+
+export async function getBorrowPageRows(query: Record<string, string | string[] | undefined>) {
+	const lendBorrowData = await getLendBorrowData()
+	return buildBorrowPageRows(lendBorrowData, query)
+}
+
+export async function getYieldPoolsPage(query: Record<string, string | string[] | undefined>) {
+	const [yieldPageData, lendBorrowData] = await Promise.all([getYieldPageDataThroughCache(), getLendBorrowData()])
+	return buildYieldPoolsPageResponse({
+		data: yieldPageData.props,
+		lendBorrowPools: lendBorrowData.props.pools,
+		query
+	})
 }
 
 export function getProtocolYieldRows(protocolSlugs: string[]): Promise<IYieldTableRow[]> {

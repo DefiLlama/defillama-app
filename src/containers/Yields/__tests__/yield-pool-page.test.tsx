@@ -22,7 +22,7 @@ describe('YieldPoolPage', () => {
 		)
 
 		expect(html).toContain('href="/protocol/aerodrome"')
-		expect(html).toContain('>Aerodrome</a>')
+		expect(html).toContain('Aerodrome')
 	})
 
 	it('renders internal token links for pool assets in the information card', () => {

@@ -9,13 +9,15 @@ export function TVLRange({
 	nestedMenu,
 	triggerClassName,
 	placement,
-	onValueChange
+	onValueChange,
+	resetPageOnChange
 }: {
 	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
 	onValueChange?: (min: number | null, max: number | null) => void
+	resetPageOnChange?: boolean
 }) {
 	const router = useRouter()
 
@@ -29,7 +31,8 @@ export function TVLRange({
 
 		void pushShallowQuery(router, {
 			minTvl: minTvl || undefined,
-			maxTvl: maxTvl || undefined
+			maxTvl: maxTvl || undefined,
+			...(resetPageOnChange ? { page: undefined } : {})
 		})
 	}
 
@@ -38,7 +41,11 @@ export function TVLRange({
 
 	const handleClear = () => {
 		onValueChange?.(null, null)
-		void pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
+		void pushShallowQuery(router, {
+			minTvl: undefined,
+			maxTvl: undefined,
+			...(resetPageOnChange ? { page: undefined } : {})
+		})
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

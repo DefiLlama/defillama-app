@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
+import { resetYieldsPoolPageOnFilterChange } from '../queryState'
 
 const EMPTY_ARRAY: string[] = []
 
@@ -74,6 +75,8 @@ export function FilterByToken({
 		excludedTokens.length > 0 ? tokensList.filter((tokenValue) => !excludedTokens.includes(tokenValue)) : selectedTokens
 
 	const currentAttributes = attribute ? (typeof attribute === 'string' ? [attribute] : [...attribute]) : []
+	const pushFilterQuery = (updates: Record<string, string | string[] | undefined>) =>
+		pushShallowQuery(router, resetYieldsPoolPageOnFilterChange(router.pathname, updates))
 
 	const handleSetSelectedValues = (values: string[]) => {
 		const prevSet = new Set(displaySelectedTokens)
@@ -114,7 +117,7 @@ export function FilterByToken({
 			}
 		}
 
-		void pushShallowQuery(router, updates)
+		void pushFilterQuery(updates)
 	}
 
 	return (
