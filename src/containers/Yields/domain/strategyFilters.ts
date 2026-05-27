@@ -81,10 +81,12 @@ export const findStrategyPools = ({
 	const loopPools = calculateLoopAPY(pools, 10, customLTV)
 	const lendBorrowPairs = buildLendBorrowPairs({ pools, tokenToLend, tokenToBorrow, mode: 'strategy' })
 
-	for (const cdpRoute of cdpRoutes) {
-		if (tokenToLend && !matchesLendBorrowToken(cdpRoute.symbol, tokenToLend)) continue
-		if (tokenToBorrow && !matchesLendBorrowToken(cdpRoute.borrow.symbol, tokenToBorrow)) continue
-		lendBorrowPairs.push(cdpRoute)
+	if (tokenToLend) {
+		for (const cdpRoute of cdpRoutes) {
+			if (!matchesLendBorrowToken(cdpRoute.symbol, tokenToLend)) continue
+			if (tokenToBorrow && !matchesLendBorrowToken(cdpRoute.borrow.symbol, tokenToBorrow)) continue
+			lendBorrowPairs.push(cdpRoute)
+		}
 	}
 
 	let finalPools: YieldStrategyCandidate[] = []

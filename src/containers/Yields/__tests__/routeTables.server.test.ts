@@ -183,6 +183,41 @@ describe('route-specific Yields table builders', () => {
 		})
 	})
 
+	it('does not emit CDP strategy rows before a lend token is selected', () => {
+		const cdpCollateral = lendPool('cdp-eth', {
+			symbol: 'ETH',
+			category: 'CDP',
+			project: 'maker',
+			projectName: 'Maker',
+			mintedCoin: 'USDC',
+			apy: 2,
+			apyBase: 2,
+			apyReward: 0,
+			apyBorrow: -1,
+			apyBaseBorrow: -1,
+			apyRewardBorrow: 0,
+			totalSupplyUsd: 10_000,
+			totalBorrowUsd: 2_000,
+			totalAvailableUsd: 8_000,
+			ltv: 0.5
+		})
+		const farm = pool('farm-usdc', {
+			symbol: 'USDC',
+			project: 'farm-one',
+			projectName: 'Farm One',
+			apy: 10,
+			tvlUsd: 2_000
+		})
+		const data = lendBorrowData([cdpCollateral], [cdpCollateral, farm])
+
+		const result = buildYieldStrategyPageResponse(data, {
+			pageSize: 'all'
+		})
+
+		expect(result).toMatchObject({ total: 0, page: 1, pageSize: 0, hasMore: false })
+		expect(result.rows).toEqual([])
+	})
+
 	it('builds long/short rows with token semantics, route math, and default open-interest ordering', () => {
 		const data = pageData([
 			pool('btc-farm', { symbol: 'BTC', project: 'farm-one', projectName: 'Farm One', apy: 5, tvlUsd: 5_000 })
