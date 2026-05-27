@@ -59,7 +59,10 @@ vi.mock('next/router', () => ({
 
 vi.mock('~/api/coingecko', () => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback,
-	fetchCoinGeckoCoinById: mocks.fetchCoinGeckoCoinById,
+	fetchCoinGeckoCoinById: mocks.fetchCoinGeckoCoinById
+}))
+
+vi.mock('~/api/pricing', () => ({
 	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices
 }))
 

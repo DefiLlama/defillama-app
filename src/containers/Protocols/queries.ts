@@ -1,6 +1,6 @@
-import { fetchCoinPrices } from '~/api'
 import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
+import { fetchCoinPrices } from '~/api/pricing'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchChainChart, fetchChainsByCategoryAll } from '~/containers/Chains/api'
 import type { ChainChartResponse } from '~/containers/Chains/api.types'

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchCoinPrices } from '~/api'
+import { fetchCoinPrices } from '~/api/pricing'
 import {
 	CONFIG_API,
 	YIELD_BORROW_ADVANCED_API,

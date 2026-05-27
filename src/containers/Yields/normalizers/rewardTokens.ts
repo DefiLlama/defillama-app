@@ -1,4 +1,4 @@
-import { fetchCoinPrices } from '~/api'
+import { fetchCoinPrices } from '~/api/pricing'
 import type { YieldPageProps } from '../types'
 
 export const yieldPriceChainMapping: Record<string, string> = {

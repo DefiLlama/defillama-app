@@ -26,7 +26,7 @@ vi.mock('~/utils/async', () => ({
 	fetchJson: fetchJsonMock
 }))
 
-vi.mock('~/api', () => ({
+vi.mock('~/api/pricing', () => ({
 	fetchCoinPrices: fetchCoinPricesMock
 }))
 

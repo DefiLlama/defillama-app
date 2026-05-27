@@ -4,8 +4,7 @@ const fetchJsonMock = vi.hoisted(() => vi.fn())
 const recordRuntimeErrorMock = vi.hoisted(() => vi.fn())
 
 vi.mock('~/utils/async', () => ({
-	fetchJson: fetchJsonMock,
-	getFastJsonTimeoutMs: () => 1000
+	fetchJson: fetchJsonMock
 }))
 
 vi.mock('~/utils/telemetry', () => ({
@@ -14,6 +13,7 @@ vi.mock('~/utils/telemetry', () => ({
 
 function priceFor(coin: string) {
 	return {
+		confidence: 0.99,
 		price: coin.length,
 		symbol: coin.toUpperCase(),
 		timestamp: 1
@@ -36,7 +36,7 @@ describe('fetchCoinPrices', () => {
 				coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
 			}
 		})
-		const { fetchCoinPrices } = await import('../index')
+		const { fetchCoinPrices } = await import('../pricing')
 		const coins = Array.from({ length: 11 }, (_, i) => `coingecko:get-${i}`)
 
 		const prices = await fetchCoinPrices(coins, { searchWidth: '4h' })
@@ -62,7 +62,7 @@ describe('fetchCoinPrices', () => {
 				coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
 			}
 		})
-		const { fetchCoinPrices } = await import('../index')
+		const { fetchCoinPrices } = await import('../pricing')
 		const coins = ['coingecko:browser-0']
 
 		const prices = await fetchCoinPrices(coins)
@@ -80,7 +80,7 @@ describe('fetchCoinPrices', () => {
 				coins: Object.fromEntries(body.coins.map((coin: string) => [coin, priceFor(coin)]))
 			}
 		})
-		const { fetchCoinPrices } = await import('../index')
+		const { fetchCoinPrices } = await import('../pricing')
 		const coins = Array.from({ length: 100001 }, (_, i) => `coingecko:token-${i}`)
 
 		const prices = await fetchCoinPrices(coins, { searchWidth: '4h' })
@@ -116,7 +116,7 @@ describe('fetchCoinPrices', () => {
 					coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
 				}
 			})
-		const { fetchCoinPrices } = await import('../index')
+		const { fetchCoinPrices } = await import('../pricing')
 		const coins = Array.from({ length: 11 }, (_, i) => `coingecko:fallback-${i}`)
 
 		const prices = await fetchCoinPrices(coins)
@@ -140,7 +140,7 @@ describe('fetchCoinPrices', () => {
 					coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
 				}
 			})
-		const { fetchCoinPrices } = await import('../index')
+		const { fetchCoinPrices } = await import('../pricing')
 		const coins = Array.from({ length: 11 }, (_, i) => `coingecko:fallback-${i}`)
 
 		const prices = await fetchCoinPrices(coins)
@@ -163,11 +163,35 @@ describe('fetchCoinPrices', () => {
 		fetchJsonMock.mockRejectedValue(
 			new Error('https://pro-api.llama.fi/pro-secret/coins/pro/prices/current: [500] Internal Error')
 		)
-		const { fetchCoinPrices } = await import('../index')
+		const { fetchCoinPrices } = await import('../pricing')
 
 		await expect(fetchCoinPrices(['coingecko:ethereum'])).resolves.toEqual({})
 
 		expect(fetchJsonMock).toHaveBeenCalledTimes(1)
 		expect(recordRuntimeErrorMock).toHaveBeenCalled()
+	})
+})
+
+describe('fetchCoinPriceByCoinGeckoIdViaLlamaPrices', () => {
+	afterEach(() => {
+		fetchJsonMock.mockReset()
+		recordRuntimeErrorMock.mockReset()
+		vi.resetModules()
+		vi.unstubAllEnvs()
+		vi.unstubAllGlobals()
+	})
+
+	it('maps CoinGecko ids to DefiLlama coingecko coin keys', async () => {
+		fetchJsonMock.mockResolvedValue({
+			coins: {
+				'coingecko:bitcoin': priceFor('coingecko:bitcoin')
+			}
+		})
+		const { fetchCoinPriceByCoinGeckoIdViaLlamaPrices } = await import('../pricing')
+
+		const price = await fetchCoinPriceByCoinGeckoIdViaLlamaPrices('bitcoin')
+
+		expect(fetchJsonMock).toHaveBeenCalledWith('https://coins.llama.fi/prices/current/coingecko:bitcoin')
+		expect(price).toEqual(priceFor('coingecko:bitcoin'))
 	})
 })
