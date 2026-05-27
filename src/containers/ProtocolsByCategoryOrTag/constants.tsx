@@ -687,6 +687,10 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 			'revenue_24h'
 		],
 		defaultSort: 'payment_volume_7d'
+	},
+	'Interest Rate Derivatives': {
+		description:
+			'Protocols where users long, short, or hedge rate-based markets such as perp funding, instead of taking directional exposure to the underlying asset'
 	}
 }
 
