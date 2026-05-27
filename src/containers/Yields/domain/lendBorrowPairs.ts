@@ -28,14 +28,14 @@ interface BuildLendBorrowPairsOptions {
 	mode: PairMode
 }
 
-type LendBorrowPoolWithLtv = LendBorrowPool & { ltv: number }
+export type LendBorrowPoolWithLtv = LendBorrowPool & { ltv: number }
 
 export interface LendBorrowPairPool extends LendBorrowPoolWithLtv {
 	chains: string[]
 	borrow: LendBorrowPool
 }
 
-function hasPositiveLtv(pool: LendBorrowPool): pool is LendBorrowPoolWithLtv {
+export function hasPositiveLtv(pool: LendBorrowPool): pool is LendBorrowPoolWithLtv {
 	return pool.ltv != null && pool.ltv > 0
 }
 

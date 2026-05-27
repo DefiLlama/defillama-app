@@ -9,7 +9,7 @@ import {
 	fetchYieldPoolsApi,
 	fetchYieldUrlsApi
 } from './api'
-import type { YieldConfigResponse, YieldFetchOptions } from './api.types'
+import type { YieldConfigResponse, YieldFetchOptions, YieldPerpMarket } from './api.types'
 import { sumApyParts } from './domain/apyMath'
 import { buildRaiseValuations, formatYieldsPageData } from './normalizers/pageData'
 import { enrichRewardTokenNames } from './normalizers/rewardTokens'
@@ -288,7 +288,11 @@ export async function getLendBorrowData() {
 
 export type { LendBorrowData } from './types'
 
-export async function getPerpData() {
+export async function getPerpData(): Promise<YieldPerpMarket[]> {
 	const perps = await fetchYieldPerpsApi()
-	return perps.data.map((m) => ({ ...m, symbol: m.baseAsset }))
+	const markets: YieldPerpMarket[] = []
+	for (const market of perps.data) {
+		markets.push({ ...market, symbol: market.baseAsset })
+	}
+	return markets
 }

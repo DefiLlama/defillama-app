@@ -1,6 +1,6 @@
 import type { ParsedUrlQuery } from 'querystring'
 import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
-import type { RawYieldPerpMarket } from './api.types'
+import type { YieldPerpMarket } from './api.types'
 import { filterStrategyPool, findStrategyPoolsFR, type YieldLongShortStrategyCandidate } from './domain/strategyFilters'
 import { decodeYieldsQuery } from './queryState'
 import type { YieldLongShortStrategyTableRow } from './Tables/types'
@@ -54,8 +54,18 @@ function getLongShortFilteredPools(data: YieldPageData) {
 
 export function buildYieldLongShortPageMetadata(data: YieldPageData, cgList: Array<IResponseCGMarketsAPI>) {
 	const filteredPools = getLongShortFilteredPools(data)
-	const poolsUniqueSymbols = new Set(filteredPools.map((pool) => pool.symbol))
-	const tokens = buildYieldTokenOptions(cgList.filter((token) => poolsUniqueSymbols.has(token.symbol?.toUpperCase())))
+	const poolsUniqueSymbols = new Set<string>()
+	for (const pool of filteredPools) {
+		poolsUniqueSymbols.add(pool.symbol)
+	}
+
+	const matchingTokens: IResponseCGMarketsAPI[] = []
+	for (const token of cgList) {
+		if (poolsUniqueSymbols.has(token.symbol?.toUpperCase())) {
+			matchingTokens.push(token)
+		}
+	}
+	const tokens = buildYieldTokenOptions(matchingTokens)
 
 	return {
 		chainList: data.props.chainList,
@@ -99,7 +109,7 @@ export function buildYieldLongShortPageResponse({
 	query
 }: {
 	data: YieldPageData
-	perps: RawYieldPerpMarket[]
+	perps: YieldPerpMarket[]
 	query: ParsedUrlQuery
 }): YieldLongShortStrategyPageResponse {
 	const token = typeof query.token === 'string' || Array.isArray(query.token) ? query : null
@@ -113,22 +123,29 @@ export function buildYieldLongShortPageResponse({
 	const selectedChainsSet = new Set(decoded.selectedChains)
 	const rows: YieldLongShortStrategyTableRow[] = []
 
+	const positivePerps: YieldPerpMarket[] = []
+	for (const market of perps) {
+		if (market.fundingRate > 0) positivePerps.push(market)
+	}
+
 	const strategyPools = findStrategyPoolsFR({
 		token,
 		filteredPools,
-		perps: perps.filter((market) => market.fundingRate > 0)
-	}).filter((pool) =>
-		filterStrategyPool({
-			pool,
-			selectedChainsSet,
-			selectedAttributes: decoded.selectedAttributes,
-			minTvl: decoded.minTvl,
-			maxTvl: decoded.maxTvl
-		})
-	)
+		perps: positivePerps
+	})
 
 	for (const pool of strategyPools) {
-		rows.push(serializeLongShortStrategyRow(pool))
+		if (
+			filterStrategyPool({
+				pool,
+				selectedChainsSet,
+				selectedAttributes: decoded.selectedAttributes,
+				minTvl: decoded.minTvl,
+				maxTvl: decoded.maxTvl
+			})
+		) {
+			rows.push(serializeLongShortStrategyRow(pool))
+		}
 	}
 
 	return paginateAndSortRows<YieldLongShortStrategyTableRow, keyof YieldLongShortStrategyTableRow>({

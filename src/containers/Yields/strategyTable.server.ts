@@ -1,5 +1,6 @@
 import type { ParsedUrlQuery } from 'querystring'
 import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
+import { hasPositiveLtv, type LendBorrowPairPool } from './domain/lendBorrowPairs'
 import { filterStrategyPool, findStrategyPools, type YieldStrategyCandidate } from './domain/strategyFilters'
 import { decodeYieldsQuery } from './queryState'
 import type { YieldStrategyTableRow } from './Tables/types'
@@ -17,6 +18,10 @@ const STRATEGY_SORT_ACCESSORS: YieldsTableSortAccessors<YieldStrategyTableRow, k
 
 function getStringQueryValue(value: ParsedUrlQuery[string]): string | null {
 	return typeof value === 'string' && value ? value : null
+}
+
+function hasMintedCoin(pool: LendBorrowPool): pool is LendBorrowPool & { mintedCoin: string } {
+	return typeof pool.mintedCoin === 'string' && pool.mintedCoin.length > 0
 }
 
 function getStrategyLendPools(data: LendBorrowData) {
@@ -102,10 +107,17 @@ export function buildYieldStrategyPageResponse(data: LendBorrowData, query: Pars
 	const customLTV = decoded.customLTV
 
 	const pools = getStrategyLendPools(data)
-	const cdpPools = pools
-		.filter((pool) => pool.category === 'CDP' && pool.mintedCoin)
-		.map((pool) => ({ ...pool, chains: [pool.chain], borrow: { ...pool, symbol: pool.mintedCoin?.toUpperCase() } }))
-	const lendingPools = pools.filter((pool) => pool.category !== 'CDP')
+	const cdpPools: LendBorrowPairPool[] = []
+	const lendingPools: LendBorrowPool[] = []
+	for (const pool of pools) {
+		if (pool.category === 'CDP') {
+			if (hasPositiveLtv(pool) && hasMintedCoin(pool)) {
+				cdpPools.push({ ...pool, chains: [pool.chain], borrow: { ...pool, symbol: pool.mintedCoin.toUpperCase() } })
+			}
+		} else {
+			lendingPools.push(pool)
+		}
+	}
 	const allPools = getStrategyFarmPools(data)
 	const selectedChainsSet = new Set(decoded.selectedChains)
 	const selectedLendingProtocolsSet = decoded.selectedLendingProtocols
