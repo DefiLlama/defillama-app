@@ -111,8 +111,8 @@ export function PaginatedTable<T extends RowData>({
 	return (
 		<DisplayRowNumbersContext.Provider value={displayRowNumbers}>
 			<div className={`flex flex-col gap-3 ${className ?? ''}`}>
-				<TokenPageTableShell>
-					<TokenPageTableScroller>
+				<TokenPageTableShell className="bg-(--cards-bg)">
+					<TokenPageTableScroller className="bg-(--cards-bg)">
 						<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 							<img
 								src="/assets/defillama-dark-neutral.webp"
@@ -129,7 +129,10 @@ export function PaginatedTable<T extends RowData>({
 								className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 							/>
 						</div>
-						<TokenPageTable className={`z-10 ${tableClassName ?? ''}`} style={{ tableLayout: 'fixed', width: '100%' }}>
+						<TokenPageTable
+							className={`z-10 bg-(--cards-bg) ${tableClassName ?? ''}`}
+							style={{ tableLayout: 'fixed', width: '100%' }}
+						>
 							<colgroup>
 								{visibleLeafColumns.map((column) => (
 									<col key={column.id} className={column.columnDef.meta?.headerClassName} />
@@ -137,7 +140,7 @@ export function PaginatedTable<T extends RowData>({
 							</colgroup>
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
-									<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--app-bg)">
+									<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--cards-bg)">
 										{headerGroup.headers.map((header) => {
 											const align = header.column.columnDef.meta?.align ?? 'start'
 											const headerAlignmentClass =

@@ -89,6 +89,13 @@ describe('PaginatedTable', () => {
 		expect(html).toContain('<col class="w-[180px]"/>')
 	})
 
+	it('renders the paginated table on the card surface', () => {
+		const html = renderToStaticMarkup(<TestTable rowCount={20} />)
+
+		expect(html).toContain('bg-(--cards-bg)')
+		expect(html).not.toContain('bg-(--app-bg)')
+	})
+
 	it('keeps sortable header markup stable while interactions are disabled', () => {
 		const enabledHtml = renderToStaticMarkup(<TestTable rowCount={20} />)
 		const disabledHtml = renderToStaticMarkup(<TestTable rowCount={20} interactionDisabled />)
