@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import YieldPage from '../views/PoolsView'
 
-const { captured, routerState, enrichmentState, fetchJsonMock } = vi.hoisted(() => ({
+const { captured, routerState, enrichmentState, fetchJsonMock, poolPageQueryState } = vi.hoisted(() => ({
 	captured: {
 		prepareCsv: null as null | (() => Promise<{ filename: string; rows: unknown[][] }>)
 	},
@@ -24,7 +24,10 @@ const { captured, routerState, enrichmentState, fetchJsonMock } = vi.hoisted(() 
 			'pool-0': [null, 4.4, 0.9, 0.2]
 		}
 	},
-	fetchJsonMock: vi.fn()
+	fetchJsonMock: vi.fn(),
+	poolPageQueryState: {
+		isError: false
+	}
 }))
 
 vi.mock('next/router', () => ({
@@ -34,36 +37,45 @@ vi.mock('next/router', () => ({
 vi.mock('../queries.client', () => ({
 	useHolderStats: () => ({ data: enrichmentState.holderStats }),
 	useVolatility: () => ({ data: enrichmentState.volatility }),
-	useYieldPoolsPage: () => ({
-		data: {
-			rows: Array.from({ length: 10 }, (_, index) => ({
-				id: `pool-${index}`,
-				pool: `TOKEN${index}-USDC`,
-				configID: `pool-${index}`,
-				projectslug: 'test-project',
-				project: 'Test Project',
-				chains: ['Ethereum'],
-				tvl: 1_000 + index,
-				apy: index + 1,
-				apyBase: index,
-				apyReward: 1,
-				rewardTokensSymbols: [],
-				rewards: [],
-				change1d: null,
-				change7d: null,
-				outlook: 'Stable/Up',
-				confidence: 3,
-				url: '',
-				category: 'Dexes'
-			})),
-			total: 60,
-			page: 1,
-			pageSize: 50,
-			hasMore: true
-		},
-		isLoading: false,
-		isFetching: false
-	})
+	useYieldPoolsPage: () =>
+		poolPageQueryState.isError
+			? {
+					data: undefined,
+					isLoading: false,
+					isFetching: false,
+					isError: true
+				}
+			: {
+					data: {
+						rows: Array.from({ length: 10 }, (_, index) => ({
+							id: `pool-${index}`,
+							pool: `TOKEN${index}-USDC`,
+							configID: `pool-${index}`,
+							projectslug: 'test-project',
+							project: 'Test Project',
+							chains: ['Ethereum'],
+							tvl: 1_000 + index,
+							apy: index + 1,
+							apyBase: index,
+							apyReward: 1,
+							rewardTokensSymbols: [],
+							rewards: [],
+							change1d: null,
+							change7d: null,
+							outlook: 'Stable/Up',
+							confidence: 3,
+							url: '',
+							category: 'Dexes'
+						})),
+						total: 60,
+						page: 1,
+						pageSize: 50,
+						hasMore: true
+					},
+					isLoading: false,
+					isFetching: false,
+					isError: false
+				}
 }))
 
 vi.mock('~/utils/async', () => ({
@@ -148,6 +160,7 @@ describe('YieldPage CSV export', () => {
 	beforeEach(() => {
 		captured.prepareCsv = null
 		fetchJsonMock.mockReset()
+		poolPageQueryState.isError = false
 		routerState.pathname = '/yields'
 		routerState.query = {}
 	})
@@ -270,5 +283,25 @@ describe('YieldPage CSV export', () => {
 			'CV 30d': 0.2,
 			'Holder Count': 10
 		})
+	})
+
+	it('shows a server query error separately from empty filtered results', () => {
+		poolPageQueryState.isError = true
+
+		const html = renderToStaticMarkup(
+			<YieldPage
+				serverPagination
+				projectList={['Test Project']}
+				chainList={['Ethereum']}
+				categoryList={['Dexes']}
+				tokens={[]}
+				tokenSymbolsList={[]}
+				evmChains={[]}
+				entityQuestions={[]}
+			/>
+		)
+
+		expect(html).toContain('load pools.')
+		expect(html).not.toContain("Couldn't find any pools for these filters")
 	})
 })

@@ -38,8 +38,8 @@ export type BorrowPageRowsResponse = {
 export const BORROW_ROW_QUERY_KEYS = ['borrow', 'collateral'] as const
 
 export function buildBorrowRowsQueryString(query: ParsedUrlQuery): string | null {
-	const borrow = typeof query.borrow === 'string' ? query.borrow : ''
-	const collateral = typeof query.collateral === 'string' ? query.collateral : ''
+	const borrow = Array.isArray(query.borrow) ? query.borrow[0] : query.borrow
+	const collateral = Array.isArray(query.collateral) ? query.collateral[0] : query.collateral
 	if (!borrow && !collateral) return null
 
 	const rowQuery: Record<string, string | string[] | undefined> = {}

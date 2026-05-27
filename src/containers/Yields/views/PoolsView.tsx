@@ -291,6 +291,10 @@ const YieldPage = ({
 				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 					Loading pools...
 				</p>
+			) : serverPagination && serverRowsQuery.isError ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Couldn't load pools.
+				</p>
 			) : poolsData.length > 0 ? (
 				serverPagination ? (
 					<PaginatedYieldsPoolTable

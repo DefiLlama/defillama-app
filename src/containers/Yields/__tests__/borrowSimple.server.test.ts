@@ -128,4 +128,18 @@ describe('borrow simple data shaping', () => {
 		).toBe('?borrow=USDC&collateral=ETH')
 		expect(buildBorrowRowsQueryString({ incentives: 'true' })).toBeNull()
 	})
+
+	it('treats array borrow and collateral query values as selected row filters', () => {
+		expect(
+			buildBorrowRowsQueryString({
+				borrow: ['USDC', 'DAI'],
+				incentives: 'true'
+			})
+		).toBe('?borrow=USDC&borrow=DAI')
+		expect(
+			buildBorrowRowsQueryString({
+				collateral: ['ETH']
+			})
+		).toBe('?collateral=ETH')
+	})
 })
