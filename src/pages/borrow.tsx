@@ -127,11 +127,11 @@ export default function YieldBorrow(data) {
 
 				<div className="min-w-0 flex-1">
 					{hasSelection && isLoading && !rowsData ? (
-						<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+						<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 							Loading borrow routes...
 						</p>
 					) : hasSelection && isError ? (
-						<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+						<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 							Couldn't load borrow routes.
 						</p>
 					) : hasSelection ? (

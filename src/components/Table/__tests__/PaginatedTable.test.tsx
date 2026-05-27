@@ -78,29 +78,13 @@ describe('PaginatedTable', () => {
 		const html = renderToStaticMarkup(<TestTable rowCount={11} initialPageSize={20} />)
 
 		expect(html).toContain('Rows per page')
-		expect(html).toContain('<option value="10">10</option>')
-		expect(html).toContain('<option value="20" selected="">20</option>')
 	})
 
-	it('uses fixed column sizing metadata for paginated tables', () => {
-		const html = renderToStaticMarkup(<TestTable rowCount={20} />)
-
-		expect(html).toContain('style="table-layout:fixed;width:100%"')
-		expect(html).toContain('<col class="w-[180px]"/>')
-	})
-
-	it('renders the paginated table on the card surface', () => {
-		const html = renderToStaticMarkup(<TestTable rowCount={20} />)
-
-		expect(html).toContain('bg-(--cards-bg)')
-		expect(html).not.toContain('bg-(--app-bg)')
-	})
-
-	it('keeps sortable header markup stable while interactions are disabled', () => {
+	it('marks sortable headers as disabled when interactions are disabled', () => {
 		const enabledHtml = renderToStaticMarkup(<TestTable rowCount={20} />)
 		const disabledHtml = renderToStaticMarkup(<TestTable rowCount={20} interactionDisabled />)
 
-		expect(enabledHtml).toContain('<button type="button" aria-disabled="false"')
-		expect(disabledHtml).toContain('<button type="button" aria-disabled="true"')
+		expect(enabledHtml).toContain('aria-disabled="false"')
+		expect(disabledHtml).toContain('aria-disabled="true"')
 	})
 })

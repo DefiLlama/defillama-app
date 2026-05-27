@@ -288,7 +288,9 @@ const YieldPage = ({
 			) : null}
 
 			{serverRowsQuery.isLoading && serverPagination && !serverRowsQuery.data ? (
-				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">Loading pools...</p>
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Loading pools...
+				</p>
 			) : poolsData.length > 0 ? (
 				serverPagination ? (
 					<PaginatedYieldsPoolTable
@@ -307,7 +309,7 @@ const YieldPage = ({
 					<YieldsPoolsTable data={poolsData} />
 				)
 			) : (
-				<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 					Couldn't find any pools for these filters
 				</p>
 			)}

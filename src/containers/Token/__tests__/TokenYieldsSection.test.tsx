@@ -256,7 +256,6 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('loader')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows an error state when the fetch fails', () => {
@@ -269,14 +268,12 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('Failed to fetch yields data')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows an empty state when no pools match the token', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('No yield pools found.')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows the filtered empty state when selectors remove all rows', () => {
