@@ -1,4 +1,4 @@
-import type { SortingState } from '@tanstack/react-table'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 
 export interface IYieldTableRow {
 	rewardMeta?: string
@@ -112,7 +112,13 @@ export interface IYieldsTableProps<TRow = IYieldTableRow> {
 	enablePagination?: boolean
 	initialPageSize?: number
 	initialPageIndex?: number
+	rowCount?: number
+	manualPagination?: boolean
+	manualSorting?: boolean
+	serverMode?: boolean
+	paginationState?: PaginationState
 	sortingState?: SortingState
+	onPaginationChange?: (paginationState: PaginationState) => void
 	onSortingChange?: (sortingState: SortingState) => void
 	interactionDisabled?: boolean
 }

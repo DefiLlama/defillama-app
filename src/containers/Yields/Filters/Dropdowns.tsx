@@ -6,6 +6,7 @@ import { TVLRange } from '~/components/Filters/TVLRange'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
+import { resetYieldsPoolPageOnFilterChange, shouldResetYieldsPoolPage } from '../queryState'
 import { APYRange } from './APYRange'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -64,17 +65,34 @@ export function YieldFilterDropdowns({
 
 	const safeSelectedAttributes = selectedAttributes ?? []
 	const effectivePathname = pathname || router.pathname
+	const resetPoolPage = shouldResetYieldsPoolPage(effectivePathname)
 	const toggleBadDebtFilter = () => {
 		const nextAttributes = isBadDebtToggled
 			? safeSelectedAttributes.filter((attribute) => attribute !== BAD_DEBT_KEY)
 			: [...safeSelectedAttributes, BAD_DEBT_KEY]
-		void pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
+		void pushShallowQuery(
+			router,
+			resetYieldsPoolPageOnFilterChange(effectivePathname, { attribute: nextAttributes }),
+			effectivePathname
+		)
 	}
 	const toggleExcludeRewardApyFilter = () => {
-		void pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
+		void pushShallowQuery(
+			router,
+			resetYieldsPoolPageOnFilterChange(effectivePathname, {
+				excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined
+			}),
+			effectivePathname
+		)
 	}
 	const toggleIncludeLsdApyFilter = () => {
-		void pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
+		void pushShallowQuery(
+			router,
+			resetYieldsPoolPageOnFilterChange(effectivePathname, {
+				includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined
+			}),
+			effectivePathname
+		)
 	}
 
 	return (
@@ -144,6 +162,7 @@ export function YieldFilterDropdowns({
 					nestedMenu={nestedMenu}
 					variant="secondary"
 					placement="bottom-start"
+					resetPageOnChange={resetPoolPage}
 					onValueChange={(min, max) => {
 						const eventData: Record<string, number> = {}
 						if (min != null) eventData.min = min

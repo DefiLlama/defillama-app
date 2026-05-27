@@ -14,6 +14,7 @@ import {
 	getYieldsConfigPath,
 	getYieldsDomainDir,
 	getYieldsLendBorrowPath,
+	getYieldsPageDataPath,
 	getYieldsRowsPath,
 	getYieldsTokenIndexPath,
 	getYieldRowCacheId
@@ -70,6 +71,7 @@ export async function buildYieldsDomain(rootDir: string): Promise<DomainBuildRes
 
 	await Promise.all([
 		writeJsonFile(getYieldsRowsPath(rootDir), transformedPools),
+		writeJsonFile(getYieldsPageDataPath(rootDir), yieldPageData),
 		writeJsonFile(getYieldsConfigPath(rootDir), yieldConfig),
 		writeJsonFile(getYieldsLendBorrowPath(rootDir), lendBorrowData),
 		writeTokenYieldIndexes(rootDir, transformedPools)

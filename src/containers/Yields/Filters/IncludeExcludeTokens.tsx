@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
+import { resetYieldsPoolPageOnFilterChange } from '../queryState'
 
 const POPULAR_PAIRS = ['USDC-ETH', 'USDC-WETH', 'USDC-USDT', 'USDC-WBTC']
 
@@ -16,6 +17,8 @@ export function IncludeExcludeTokens({
 	tokens: Array<{ name: string; symbol: string; logo?: string | null; fallbackLogo?: string | null }>
 }) {
 	const router = useRouter()
+	const pushFilterQuery = (updates: Record<string, string | string[] | undefined>) =>
+		pushShallowQuery(router, resetYieldsPoolPageOnFilterChange(router.pathname, updates))
 
 	const { token: includeTokenQuery, excludeToken, exactToken, token_pair, attribute } = router.query
 
@@ -49,9 +52,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			void pushShallowQuery(router, updates)
+			void pushFilterQuery(updates)
 		} else {
-			void pushShallowQuery(router, updates).then(() => {
+			void pushFilterQuery(updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -66,9 +69,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			void pushShallowQuery(router, { excludeToken: tokenQueryParams })
+			void pushFilterQuery({ excludeToken: tokenQueryParams })
 		} else {
-			void pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
+			void pushFilterQuery({ excludeToken: tokenQueryParams }).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -90,9 +93,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			void pushShallowQuery(router, updates)
+			void pushFilterQuery(updates)
 		} else {
-			void pushShallowQuery(router, updates).then(() => {
+			void pushFilterQuery(updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -145,7 +148,7 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_PAIR, { pair })
 		}
 
-		void pushShallowQuery(router, { token_pair: pairQueryParams })
+		void pushFilterQuery({ token_pair: pairQueryParams })
 	}
 
 	const tokensComboboxRef = useRef<HTMLDivElement>(null)
