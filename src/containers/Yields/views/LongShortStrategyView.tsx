@@ -13,6 +13,8 @@ const LONG_SHORT_DEFAULT_SORTING: SortingState = [{ id: 'openInterest', desc: tr
 const YieldsStrategyPageLongShort = ({ tokens, projectList, chainList, categoryList, evmChains }) => {
 	const router = useRouter()
 	const { query } = router
+	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
+	const hasToken = typeof token === 'string' ? !!token : Array.isArray(token) ? token.length > 0 : false
 	const {
 		rows,
 		total: poolsNumber,
@@ -20,11 +22,10 @@ const YieldsStrategyPageLongShort = ({ tokens, projectList, chainList, categoryL
 		tableProps
 	} = useYieldsServerTable<YieldLongShortStrategyTableRow>({
 		endpoint: YIELD_LONG_SHORT_STRATEGY_DATASET_API,
+		enabled: hasToken,
 		defaultSorting: LONG_SHORT_DEFAULT_SORTING
 	})
 	const poolsData = rows.length > 0 ? rows : EMPTY_ROWS
-
-	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
 
 	const { selectedChains } = useFormatYieldQueryParams({
 		projectList,

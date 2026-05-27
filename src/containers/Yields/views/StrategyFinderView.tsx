@@ -17,17 +17,17 @@ const YieldsStrategyPage = ({
 }) => {
 	const router = useRouter()
 	const { query } = router
+	const lend = typeof query.lend === 'string' ? query.lend : null
+	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 	const {
 		rows: poolsData,
 		total: poolsNumber,
 		rowsQuery,
 		tableProps
 	} = useYieldsServerTable<YieldStrategyTableRow>({
-		endpoint: YIELD_STRATEGY_DATASET_API
+		endpoint: YIELD_STRATEGY_DATASET_API,
+		enabled: !!lend
 	})
-
-	const lend = typeof query.lend === 'string' ? query.lend : null
-	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
 	const { selectedChains, selectedLendingProtocols, selectedFarmProtocols } = useFormatYieldQueryParams({
 		projectList,
