@@ -104,6 +104,7 @@ describe('dataset cache builders', () => {
 			getTokenBorrowRoutesFromCache,
 			getTokenYieldsRowsFromCache,
 			getYieldConfigFromCache,
+			getYieldPageDataFromCache,
 			getYieldPoolRowFromCache
 		} = await import('../yields')
 		const { buildEmptyDatasetManifest, writeDatasetManifest } = await import('../core')
@@ -114,6 +115,9 @@ describe('dataset cache builders', () => {
 		await expect(getTokenYieldsRowsFromCache('BTC')).resolves.toEqual([btcRow])
 		await expect(getYieldPoolRowFromCache('pool-2')).resolves.toEqual(ethRow)
 		await expect(getYieldConfigFromCache()).resolves.toEqual(yieldConfig)
+		await expect(getYieldPageDataFromCache()).resolves.toEqual(
+			await getYieldPageDataFromNetworkMock.mock.results[0].value
+		)
 		await expect(getTokenBorrowRoutesFromCache('BTC')).resolves.toEqual({
 			borrowAsCollateral: [],
 			borrowAsDebt: []

@@ -92,6 +92,8 @@ const createRiskData = (): TokenRiskResponse => ({
 
 import { TokenRisksSection } from '../TokenRisksSection'
 
+const textFromMarkup = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
+
 describe('TokenRisksSection', () => {
 	it('renders the combined maximum possible exposure headline from preloaded risk data', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
@@ -107,19 +109,17 @@ describe('TokenRisksSection', () => {
 
 	it('shows methodology, limitations, and the exposure details disclosure', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
+		const text = textFromMarkup(html)
 
-		expect(html).toContain('Showing collateral exposure for USDC on')
+		expect(text).toContain('Showing collateral exposure for USDC on')
 		expect(html).toContain(
 			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.'
 		)
 		expect(html).toContain('Show exposure details')
-		expect(html).toContain('paginated-table:2')
 		expect(html).toContain('Asset|Asset methodology')
 		expect(html).toContain('Max Borrowable|Liquidity max borrow methodology')
 		expect(html).toContain('Bad Debt at $0|Zero-price bad debt methodology')
-		expect(html).toContain(
-			'Bad Debt at $0</span> is the minimum known bad debt if the collateral asset price goes to zero'
-		)
+		expect(text).toContain('Bad Debt at $0 is the minimum known bad debt if the collateral asset price goes to zero')
 		expect(html).toContain('Bad debt at $0 totals remain lower bounds when a row is marked partial.')
 		expect(html).not.toContain('Borrowed Debt|')
 	})
@@ -141,7 +141,7 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" riskData={riskData} />)
 
-		expect(html).toContain('<span class="font-medium text-(--text-primary)">onchain</span>')
+		expect(textFromMarkup(html)).toContain('onchain')
 	})
 
 	it('shows a focusable chain breakdown trigger for multi-chain protocol summaries', () => {

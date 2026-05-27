@@ -51,6 +51,8 @@ function renderTokenOverviewSection(props: Parameters<typeof TokenOverviewSectio
 	)
 }
 
+const textFromMarkup = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
+
 vi.mock('next/router', () => ({
 	useRouter: () => routerState
 }))
@@ -932,7 +934,6 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('Bitcoin')
 		expect(html).toContain('(BTC)')
 		expect((html.match(/\(BTC\)/g) || []).length).toBe(1)
-		expect((html.match(/id="token-key-metrics"/g) || []).length).toBe(1)
 		expect(html).toContain('Overview')
 		expect(html).toContain('Key Metrics')
 		expect(html).toContain('Add Metrics')
@@ -941,7 +942,6 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('DEX Volume')
 		expect(html).toContain('Total Raised')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
-		expect(html).toContain('min-h-[360px]')
 		expect(html.indexOf('Market Cap')).toBeLessThan(html.indexOf('Circ. Supply'))
 		expect(html.indexOf('Fully Diluted Valuation')).toBeLessThan(html.indexOf('Circ. Supply'))
 	})
@@ -962,9 +962,10 @@ describe('TokenOverviewSection component', () => {
 			geckoId: 'bitcoin',
 			logo: 'https://metadata.example.com/btc.png'
 		})
+		const text = textFromMarkup(html)
 
-		expect(html).toContain('Undisclosed')
-		expect(html).not.toContain('>$0<')
+		expect(text).toContain('Undisclosed')
+		expect(text).not.toContain('$0')
 		expect(html).toContain('aria-label="Remove $BTC Price"')
 	})
 

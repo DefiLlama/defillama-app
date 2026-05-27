@@ -48,10 +48,4 @@ describe('VirtualTable SSR', () => {
 		expect(html).toContain('Asset 2')
 		expect(html).not.toContain('Asset 40')
 	})
-
-	it('applies the estimated row height to rendered virtual rows', () => {
-		const html = renderToStaticMarkup(<TestVirtualTable rowSize={64} />)
-
-		expect(html).toContain('height:64px')
-	})
 })

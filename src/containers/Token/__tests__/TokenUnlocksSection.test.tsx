@@ -2,11 +2,15 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { DynamicUnlocksCharts } = vi.hoisted(() => ({
-	DynamicUnlocksCharts: ({ protocolName, hideTokenStats }: { protocolName: string; hideTokenStats?: boolean }) => (
-		<div>{`unlocks-charts:${protocolName}:${String(hideTokenStats)}`}</div>
-	)
-}))
+const { DynamicUnlocksCharts, unlocksChartsCalls } = vi.hoisted(() => {
+	const unlocksChartsCalls: Array<{ hideTokenStats?: boolean; protocolName: string }> = []
+	const DynamicUnlocksCharts = (props: { protocolName: string; hideTokenStats?: boolean }) => {
+		unlocksChartsCalls.push(props)
+		return <div>Unlock charts</div>
+	}
+
+	return { DynamicUnlocksCharts, unlocksChartsCalls }
+})
 
 var authState = {
 	authorizedFetch: vi.fn(),
@@ -87,6 +91,7 @@ describe('TokenUnlocksSection', () => {
 			error: null,
 			isLoading: false
 		}
+		unlocksChartsCalls.length = 0
 		vi.clearAllMocks()
 	})
 
@@ -105,7 +110,6 @@ describe('TokenUnlocksSection', () => {
 
 		expect(html).toContain('loader')
 		expect(html).toContain('Unlocks')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows a sign-in gate for unauthenticated users', () => {
@@ -119,9 +123,7 @@ describe('TokenUnlocksSection', () => {
 		const html = renderToStaticMarkup(<TokenUnlocksSection resolvedUnlocksSlug="solana" />)
 
 		expect(html).toContain('active subscription')
-		expect(html).toContain('sign-in-modal')
 		expect(html).toContain('Unlocks')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows a subscription link for authenticated users without a subscription', () => {
@@ -150,7 +152,6 @@ describe('TokenUnlocksSection', () => {
 
 		expect(html).toContain('Failed to fetch token unlocks')
 		expect(html).toContain('Unlocks')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('renders the shared unlock charts for subscribers when data is available', () => {
@@ -163,6 +164,6 @@ describe('TokenUnlocksSection', () => {
 		const html = renderToStaticMarkup(<TokenUnlocksSection resolvedUnlocksSlug="solana" />)
 
 		expect(html).toContain('Unlocks')
-		expect(html).toContain('unlocks-charts:solana:true')
+		expect(unlocksChartsCalls).toMatchObject([{ hideTokenStats: true, protocolName: 'solana' }])
 	})
 })

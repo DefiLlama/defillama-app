@@ -86,15 +86,15 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			<div className="h-1.5 w-full bg-linear-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
 
 			<div className="flex flex-1 flex-col gap-1.5 p-3">
-				<div className="flex flex-wrap items-center justify-end gap-2">
-					<h2 className="mr-auto line-clamp-1 text-lg leading-tight font-bold">
+				<div className="flex min-w-0 items-start gap-2">
+					<h2 className="min-w-0 flex-1 truncate text-lg leading-snug font-bold">
 						{dashboard.data.dashboardName || 'Untitled Dashboard'}
 					</h2>
 
 					{viewMode !== 'grid' ? <Tags dashboard={dashboard} onTagClick={onTagClick} /> : null}
 
 					{onDelete ? (
-						<>
+						<div className="flex shrink-0 items-center gap-2">
 							{dashboard.visibility === 'public' ? (
 								<p className="flex items-center gap-1 rounded-md bg-pro-green-100 px-2 py-1.25 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
 									<Icon name="earth" height={12} width={12} />
@@ -113,7 +113,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 							>
 								{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
 							</Tooltip>
-						</>
+						</div>
 					) : null}
 				</div>
 

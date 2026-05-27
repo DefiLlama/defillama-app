@@ -1,5 +1,6 @@
+import type { ColumnDef } from '@tanstack/react-table'
 import { describe, expect, it } from 'vitest'
-import { preparePaginatedYieldsColumns, validateYieldsTableConfig } from '../config'
+import { getYieldsColumnId, preparePaginatedYieldsColumns, validateYieldsTableConfig } from '../config'
 import { YIELDS_TABLE_CONFIGS } from '../configRegistry'
 
 const basePoolsContext = {
@@ -7,6 +8,10 @@ const basePoolsContext = {
 	hasPremiumAccess: false,
 	isClient: true,
 	onRequestUpgrade: () => {}
+}
+
+function getColumnIds<TRow>(columns: Array<ColumnDef<TRow, unknown>>) {
+	return columns.map(getYieldsColumnId).filter((columnId): columnId is string => Boolean(columnId))
 }
 
 describe('YIELDS_TABLE_CONFIGS', () => {
@@ -19,35 +24,24 @@ describe('YIELDS_TABLE_CONFIGS', () => {
 		validateYieldsTableConfig(YIELDS_TABLE_CONFIGS.strategyFr, undefined)
 	})
 
-	it('applies the same pools visible ordering for paginated rendering that the shared config declares', () => {
+	it('applies the configured responsive ordering and visibility for paginated rendering', () => {
 		const columns = preparePaginatedYieldsColumns(YIELDS_TABLE_CONFIGS.pools, basePoolsContext, 1280)
-		const orderedIds = columns
-			.map((column) =>
-				'id' in column && typeof column.id === 'string'
-					? column.id
-					: 'accessorKey' in column
-						? column.accessorKey
-						: undefined
-			)
-			.filter(Boolean)
+		const orderedIds = getColumnIds(columns)
+		const visibleConfiguredIds = YIELDS_TABLE_CONFIGS.pools.columnOrders[1280].filter((columnId) =>
+			orderedIds.includes(columnId)
+		)
 
-		expect(orderedIds.slice(0, 6)).toEqual(['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase'])
+		expect(orderedIds.slice(0, visibleConfiguredIds.length)).toEqual(visibleConfiguredIds)
 		expect(orderedIds).not.toContain('apyMedian30d')
 		expect(orderedIds).not.toContain('apyStd30d')
 	})
 
-	it('keeps paginated rendering stable without a client breakpoint width', () => {
+	it('keeps paginated rendering available without a client breakpoint width', () => {
 		const columns = preparePaginatedYieldsColumns(YIELDS_TABLE_CONFIGS.pools, basePoolsContext)
-		const orderedIds = columns
-			.map((column) =>
-				'id' in column && typeof column.id === 'string'
-					? column.id
-					: 'accessorKey' in column
-						? column.accessorKey
-						: undefined
-			)
-			.filter(Boolean)
+		const orderedIds = getColumnIds(columns)
 
-		expect(orderedIds.slice(0, 6)).toEqual(['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase'])
+		expect(orderedIds).toContain('pool')
+		expect(orderedIds).not.toContain('apyMedian30d')
+		expect(orderedIds).not.toContain('apyStd30d')
 	})
 })

@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { shouldResetYieldsPoolPage } from '../queryState'
 
 const toArray = <T,>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value])
 
@@ -105,6 +106,9 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 
 			const newQuery: Record<string, string | string[]> = {}
 			for (const [key, value] of Object.entries(query)) {
+				if (shouldResetYieldsPoolPage(pathname) && key === 'page') {
+					continue
+				}
 				if (!ALL_PRESET_FILTER_KEYS.has(key)) {
 					newQuery[key] = value as string | string[]
 				}

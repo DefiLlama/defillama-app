@@ -39,6 +39,9 @@ export interface DecodedYieldsQuery {
 	customLTV: number | null
 }
 
+type QueryUpdatePrimitive = string | number | boolean
+type QueryUpdateValue = QueryUpdatePrimitive | QueryUpdatePrimitive[] | undefined
+
 type PoolsColumnVisibility = Record<
 	PoolOptionalColumnId | 'apy' | 'apyBase' | 'apyIncludingLsdApy' | 'apyBaseIncludingLsdApy' | 'cv30d' | 'pegDeviation',
 	boolean
@@ -168,6 +171,17 @@ export function hasActiveYieldsQueries(query: ParsedUrlQuery, keys: readonly str
 
 export function clearYieldsQueries(keys: readonly string[]) {
 	return Object.fromEntries(keys.map((key) => [key, undefined] as const))
+}
+
+export function shouldResetYieldsPoolPage(pathname: string | undefined) {
+	return pathname === '/yields' || pathname === '/yields/stablecoins'
+}
+
+export function resetYieldsPoolPageOnFilterChange<T extends Record<string, QueryUpdateValue>>(
+	pathname: string | undefined,
+	updates: T
+): T & { page?: undefined } {
+	return shouldResetYieldsPoolPage(pathname) ? { ...updates, page: undefined } : updates
 }
 
 export function decodePoolsColumnVisibilityQuery(

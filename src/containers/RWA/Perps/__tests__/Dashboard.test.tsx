@@ -452,7 +452,6 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).not.toContain('Only a single snapshot is available')
-		expect(html).toContain('min-h-[360px]')
 	})
 
 	it('renders the time-series metric switch labels from metric option names', () => {

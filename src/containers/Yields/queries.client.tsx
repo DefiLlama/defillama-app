@@ -3,16 +3,20 @@ import { fetchCoinPrices } from '~/api'
 import {
 	CONFIG_API,
 	YIELD_BORROW_ADVANCED_API,
+	YIELD_BORROW_API,
 	YIELD_CHART_API,
 	YIELD_CHART_LEND_BORROW_PROXY_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
 	YIELD_POOLS_LAMBDA_API,
+	YIELD_POOLS_DATASET_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
 import type { BorrowAdvancedRow } from './borrowAdvanced'
+import type { BorrowPageRowsResponse } from './borrowSimple'
+import type { YieldPoolsPageResponse } from './pools.types'
 import type { HolderHistoryEntry, HolderStatsMap } from './queries/holderTypes'
 
 export const useGetPrice = (tokens: Array<string>) => {
@@ -31,6 +35,47 @@ export const useBorrowAdvancedRows = (queryString: string | null) => {
 	return useQuery<BorrowAdvancedRow[]>({
 		queryKey: ['yield-borrow-advanced-rows', queryString],
 		queryFn: async () => (url ? fetchJson<BorrowAdvancedRow[]>(url) : []),
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!url
+	})
+}
+
+export const useBorrowRows = (queryString: string | null) => {
+	const url = queryString ? `${YIELD_BORROW_API}${queryString}` : null
+	return useQuery<BorrowPageRowsResponse>({
+		queryKey: ['yield-borrow-rows', queryString],
+		queryFn: async () =>
+			url
+				? fetchJson<BorrowPageRowsResponse>(url)
+				: {
+						rows: [],
+						total: 0
+					},
+		placeholderData: (previousData) => previousData,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!url
+	})
+}
+
+export const useYieldPoolsPage = (queryString: string | null) => {
+	const url = queryString ? `${YIELD_POOLS_DATASET_API}${queryString}` : null
+	return useQuery<YieldPoolsPageResponse>({
+		queryKey: ['yield-pools-page', queryString],
+		queryFn: async () =>
+			url
+				? fetchJson<YieldPoolsPageResponse>(url)
+				: {
+						rows: [],
+						total: 0,
+						page: 1,
+						pageSize: 50,
+						hasMore: false
+					},
+		placeholderData: (previousData) => previousData,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,

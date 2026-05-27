@@ -8,6 +8,7 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useYieldFilters } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { shouldResetYieldsPoolPage } from '../queryState'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
@@ -29,10 +30,11 @@ function SavedFilters({ currentFilters }) {
 		const filters = savedFilters[name]
 		if (filters) {
 			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
+			const query = shouldResetYieldsPoolPage(router.pathname) ? { ...filters, page: undefined } : filters
 			void router.push(
 				{
 					pathname: router.pathname,
-					query: filters
+					query
 				},
 				undefined,
 				{ shallow: true }
@@ -135,7 +137,12 @@ export function YieldFiltersV2({
 
 	const isSmall = useMedia(`(max-width: 639px)`)
 
-	const { query } = useRouter()
+	const { pathname, query } = useRouter()
+	const currentFilters = React.useMemo(() => {
+		if (!shouldResetYieldsPoolPage(pathname)) return query
+		const { page: _page, ...filters } = query
+		return filters
+	}, [pathname, query])
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
@@ -145,7 +152,7 @@ export function YieldFiltersV2({
 			<div className="flex flex-wrap items-center gap-2 p-3">
 				<h1 className="font-semibold">{header}</h1>
 				{trackingStats ? <p>{trackingStats}</p> : null}
-				<SavedFilters currentFilters={query} />
+				<SavedFilters currentFilters={currentFilters} />
 			</div>
 			<div className="flex flex-col gap-3 rounded-b-md p-3">
 				{showPresetFilters ? (

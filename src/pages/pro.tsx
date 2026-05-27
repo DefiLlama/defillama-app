@@ -2,9 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
+import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
+import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
@@ -21,12 +22,6 @@ const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
 		default: m.CreateDashboardPicker
 	}))
-)
-const DashboardDiscovery = lazy(() =>
-	import('~/containers/ProDashboard/components/DashboardDiscovery').then((m) => ({ default: m.DashboardDiscovery }))
-)
-const DashboardList = lazy(() =>
-	import('~/containers/ProDashboard/components/DashboardList').then((m) => ({ default: m.DashboardList }))
 )
 const GenerateDashboardModal = lazy(() =>
 	import('~/containers/ProDashboard/components/GenerateDashboardModal').then((m) => ({
@@ -61,6 +56,10 @@ function ProPageContent() {
 }
 
 const tabs = ['my-dashboards', 'discover', 'favorites'] as const
+type ProTab = (typeof tabs)[number]
+
+const tabClassName =
+	'shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap outline-hidden hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)'
 
 function getDashboardPagesToShow(selectedPage: number, totalPages: number): number[] {
 	if (totalPages < 1) return []
@@ -84,7 +83,12 @@ function ProContent({
 }) {
 	const router = useRouter()
 	const { tab } = router.query
-	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
+	const activeTab: ProTab = typeof tab === 'string' && tabs.includes(tab as ProTab) ? (tab as ProTab) : 'discover'
+
+	const switchTab = (nextTab: ProTab) => {
+		if (nextTab === activeTab) return
+		void router.replace({ pathname: '/pro', query: { tab: nextTab } }, undefined, { shallow: true, scroll: false })
+	}
 
 	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
 		open: false,
@@ -113,7 +117,7 @@ function ProContent({
 		totalPages: myDashboardsTotalPages,
 		totalItems: myDashboardsTotalItems,
 		goToPage
-	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: activeTab === 'my-dashboards' })
+	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: isAuthenticated })
 
 	useEffect(() => {
 		if (createDialogOpen && !dialogWasOpenRef.current) {
@@ -167,37 +171,43 @@ function ProContent({
 	return (
 		<div className="flex flex-1 flex-col gap-4 pro-dashboard p-2 lg:px-0">
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<div className="flex overflow-x-auto">
-					<BasicLink
-						href={`/pro?tab=discover`}
-						shallow
+				<div className="flex overflow-x-auto" role="tablist" aria-label="Dashboard views">
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'discover'}
+						onClick={() => switchTab('discover')}
 						data-active={activeTab === 'discover'}
 						data-umami-event="dashboard-open-discover"
-						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+						className={tabClassName}
 					>
 						Discover
-					</BasicLink>
+					</button>
 					{isAuthenticated ? (
-						<BasicLink
-							href={`/pro?tab=my-dashboards`}
-							shallow
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'my-dashboards'}
+							onClick={() => switchTab('my-dashboards')}
 							data-active={activeTab === 'my-dashboards'}
 							data-umami-event="dashboard-open-my-dashboards"
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+							className={tabClassName}
 						>
 							My Dashboards
-						</BasicLink>
+						</button>
 					) : null}
 					{isAuthenticated ? (
-						<BasicLink
-							href={`/pro?tab=favorites`}
-							shallow
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'favorites'}
+							onClick={() => switchTab('favorites')}
 							data-active={activeTab === 'favorites'}
 							data-umami-event="dashboard-open-favorites"
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+							className={tabClassName}
 						>
 							Favorites
-						</BasicLink>
+						</button>
 					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
@@ -235,87 +245,95 @@ function ProContent({
 				</div>
 			</div>
 
-			{activeTab === 'my-dashboards' ? (
-				<Suspense fallback={<></>}>
-					<>
-						{!isLoadingMyDashboards ? (
-							<p className="-mb-2 text-xs text-(--text-label)">
-								Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
-							</p>
-						) : null}
+			<div
+				role="tabpanel"
+				aria-hidden={activeTab !== 'discover'}
+				className={activeTab === 'discover' ? 'flex flex-col gap-4' : 'hidden'}
+			>
+				<DashboardDiscovery />
+			</div>
 
-						<DashboardList
-							dashboards={myDashboards}
-							isLoading={isLoadingMyDashboards}
-							onCreateNew={() => createDashboardDialogStore.show()}
-							onDeleteDashboard={
-								isAuthenticated
-									? (dashboardId) => {
-											void handleDeleteDashboard(dashboardId)
-										}
-									: undefined
-							}
-						/>
+			{isAuthenticated ? (
+				<div
+					role="tabpanel"
+					aria-hidden={activeTab !== 'my-dashboards'}
+					className={activeTab === 'my-dashboards' ? 'flex flex-col gap-4' : 'hidden'}
+				>
+					{!isLoadingMyDashboards ? (
+						<p className="text-xs text-(--text-label)">
+							Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
+						</p>
+					) : null}
 
-						{myDashboardsTotalPages > 1 ? (
-							<div className="mt-4 flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
-								<button
-									onClick={() => goToPage(1)}
-									disabled={selectedPage < 3}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevrons-left" height={16} width={16} />
-								</button>
+					<DashboardList
+						dashboards={myDashboards}
+						isLoading={isLoadingMyDashboards}
+						onCreateNew={() => createDashboardDialogStore.show()}
+						onDeleteDashboard={(dashboardId) => {
+							void handleDeleteDashboard(dashboardId)
+						}}
+					/>
 
-								<button
-									onClick={() => goToPage(Math.max(1, selectedPage - 1))}
-									disabled={selectedPage === 1}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevron-left" height={16} width={16} />
-								</button>
+					{myDashboardsTotalPages > 1 ? (
+						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
+							<button
+								onClick={() => goToPage(1)}
+								disabled={selectedPage < 3}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevrons-left" height={16} width={16} />
+							</button>
 
-								{getDashboardPagesToShow(selectedPage, myDashboardsTotalPages).map((pageNum) => {
-									const isActive = selectedPage === pageNum
-									return (
-										<button
-											key={`my-dashboard-page-${pageNum}`}
-											onClick={() => goToPage(pageNum)}
-											data-active={isActive}
-											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-										>
-											{pageNum}
-										</button>
-									)
-								})}
+							<button
+								onClick={() => goToPage(Math.max(1, selectedPage - 1))}
+								disabled={selectedPage === 1}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevron-left" height={16} width={16} />
+							</button>
 
-								<button
-									onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
-									disabled={selectedPage === myDashboardsTotalPages}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevron-right" height={16} width={16} />
-								</button>
-								<button
-									onClick={() => goToPage(myDashboardsTotalPages)}
-									disabled={selectedPage > myDashboardsTotalPages - 2}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevrons-right" height={16} width={16} />
-								</button>
-							</div>
-						) : null}
-					</>
-				</Suspense>
-			) : activeTab === 'favorites' ? (
-				<Suspense fallback={<></>}>
+							{getDashboardPagesToShow(selectedPage, myDashboardsTotalPages).map((pageNum) => {
+								const isActive = selectedPage === pageNum
+								return (
+									<button
+										key={`my-dashboard-page-${pageNum}`}
+										onClick={() => goToPage(pageNum)}
+										data-active={isActive}
+										className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									>
+										{pageNum}
+									</button>
+								)
+							})}
+
+							<button
+								onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
+								disabled={selectedPage === myDashboardsTotalPages}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevron-right" height={16} width={16} />
+							</button>
+							<button
+								onClick={() => goToPage(myDashboardsTotalPages)}
+								disabled={selectedPage > myDashboardsTotalPages - 2}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevrons-right" height={16} width={16} />
+							</button>
+						</div>
+					) : null}
+				</div>
+			) : null}
+
+			{isAuthenticated ? (
+				<div
+					role="tabpanel"
+					aria-hidden={activeTab !== 'favorites'}
+					className={activeTab === 'favorites' ? 'flex flex-col gap-4' : 'hidden'}
+				>
 					<LikedDashboards />
-				</Suspense>
-			) : (
-				<Suspense fallback={<></>}>
-					<DashboardDiscovery />
-				</Suspense>
-			)}
+				</div>
+			) : null}
 
 			<Suspense fallback={<></>}>
 				<CreateDashboardPicker
