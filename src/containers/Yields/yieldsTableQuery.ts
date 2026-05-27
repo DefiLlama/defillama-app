@@ -9,6 +9,8 @@ import type {
 } from './Tables/types'
 
 export const DEFAULT_YIELDS_TABLE_PAGE_SIZE = 50
+// Regular table pages are capped; CSV exports bypass this with pageSize=all.
+export const MAX_YIELDS_TABLE_PAGE_SIZE = 500
 
 export type YieldsPaginatedTableResponse<TRow> = {
 	rows: TRow[]
@@ -30,7 +32,10 @@ function parsePositiveIntegerQueryParam(value: ParsedUrlQuery[string], fallback:
 
 export function getYieldsTablePaginationFromQuery(query: ParsedUrlQuery): PaginationState {
 	const page = parsePositiveIntegerQueryParam(query.page, 1)
-	const pageSize = parsePositiveIntegerQueryParam(query.pageSize, DEFAULT_YIELDS_TABLE_PAGE_SIZE)
+	const pageSize = Math.min(
+		parsePositiveIntegerQueryParam(query.pageSize, DEFAULT_YIELDS_TABLE_PAGE_SIZE),
+		MAX_YIELDS_TABLE_PAGE_SIZE
+	)
 
 	return {
 		pageIndex: page - 1,
@@ -64,11 +69,13 @@ export function buildYieldsTableQueryString({
 	extraQuery?: Record<string, string | string[] | undefined>
 }) {
 	const sort = sorting[0]
+	const nextPageSize =
+		pageSize === 'all' ? 'all' : String(Math.min(pageSize ?? pagination.pageSize, MAX_YIELDS_TABLE_PAGE_SIZE))
 	return toQueryString({
 		...query,
 		...extraQuery,
 		page: String(pagination.pageIndex + 1),
-		pageSize: pageSize === 'all' ? 'all' : String(pageSize ?? pagination.pageSize),
+		pageSize: nextPageSize,
 		sortBy: sort?.id,
 		sortDesc: sort ? String(sort.desc) : undefined
 	})

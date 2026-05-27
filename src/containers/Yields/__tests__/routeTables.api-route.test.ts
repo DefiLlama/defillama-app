@@ -91,4 +91,20 @@ describe('route-specific yield table api routes', () => {
 		expect(res.status).toHaveBeenCalledWith(200)
 		expect(res.json).toHaveBeenCalledWith(response)
 	})
+
+	it('rejects non-GET halal requests before loading rows', async () => {
+		const req = {
+			method: 'POST',
+			url: '/api/datasets/yields/halal',
+			query: {}
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await halalHandler(req, res)
+
+		expect(runtimeMocks.getYieldHalalPage).not.toHaveBeenCalled()
+		expect(res.setHeader).toHaveBeenCalledWith('Allow', 'GET')
+		expect(res.status).toHaveBeenCalledWith(405)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Method not allowed' })
+	})
 })

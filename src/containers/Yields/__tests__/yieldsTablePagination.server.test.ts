@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { paginateAndSortRows } from '../yieldsTablePagination.server'
+import { MAX_YIELDS_TABLE_PAGE_SIZE } from '../yieldsTableQuery'
 
 interface TestRow {
 	id: string
@@ -36,6 +37,23 @@ describe('paginateAndSortRows', () => {
 
 		expect(result).toMatchObject({ total: 12, page: 2, pageSize: 5, hasMore: true })
 		expect(result.rows.map((row) => row.id)).toEqual(['5', '6', '7', '8', '9'])
+	})
+
+	it('caps regular pageSize query params', () => {
+		const rows = Array.from({ length: MAX_YIELDS_TABLE_PAGE_SIZE + 10 }, (_, index) => ({
+			id: String(index),
+			apy: index
+		}))
+
+		const result = paginateAndSortRows({ rows, query: { pageSize: '999999' }, sortAccessors })
+
+		expect(result).toMatchObject({
+			total: MAX_YIELDS_TABLE_PAGE_SIZE + 10,
+			page: 1,
+			pageSize: MAX_YIELDS_TABLE_PAGE_SIZE,
+			hasMore: true
+		})
+		expect(result.rows).toHaveLength(MAX_YIELDS_TABLE_PAGE_SIZE)
 	})
 
 	it('returns the full filtered set for pageSize=all', () => {

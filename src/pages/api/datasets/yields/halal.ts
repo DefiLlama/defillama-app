@@ -12,6 +12,12 @@ export const config = {
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse<YieldHalalPageResponse | { error: string }>) {
+	if (req.method !== 'GET') {
+		res.setHeader('Allow', 'GET')
+		res.status(405).json({ error: 'Method not allowed' })
+		return
+	}
+
 	try {
 		const { getYieldHalalPage } = await import('~/server/datasetCache/runtime/yields')
 		const result = await getYieldHalalPage(req.query)

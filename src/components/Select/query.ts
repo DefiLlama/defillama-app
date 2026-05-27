@@ -27,11 +27,12 @@ export const updateQueryFromSelected = (
 		updates[key] = value === null ? undefined : value
 	}
 	const pushUpdates = () => {
+		const payload = options?.resetPage ? { ...updates, page: undefined } : updates
 		if (options?.pushQueryUpdates) {
-			options.pushQueryUpdates(updates)
+			options.pushQueryUpdates(payload)
 			return
 		}
-		void pushShallowQuery(router, options?.resetPage ? { ...updates, page: undefined } : updates)
+		void pushShallowQuery(router, payload)
 	}
 
 	const validSet = new Set(allKeys)

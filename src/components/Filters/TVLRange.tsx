@@ -26,14 +26,12 @@ export function TVLRange({
 	const router = useRouter()
 
 	const updateQuery = (updates: QueryUpdates) => {
+		const payload = resetPageOnChange ? { ...updates, page: undefined } : updates
 		if (pushQueryUpdates) {
-			pushQueryUpdates(updates)
+			pushQueryUpdates(payload)
 			return
 		}
-		void pushShallowQuery(router, {
-			...updates,
-			...(resetPageOnChange ? { page: undefined } : {})
-		})
+		void pushShallowQuery(router, payload)
 	}
 
 	const handleSubmit = (e: FormSubmitEvent) => {

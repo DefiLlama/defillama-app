@@ -102,53 +102,73 @@ export function filterPoolTableRows(
 		maxApy: number | null
 	}
 ) {
-	let filteredRows = rows
+	const filteredRows: IYieldTableRow[] = []
+	const shouldFilterChains = selectedChains.length > 0 && selectedChains.length < chainList.length
+	const chainSet = shouldFilterChains ? new Set(selectedChains) : null
+	const shouldIncludeTokens = includeTokens.length > 0 && includeTokens[0] !== 'All'
 
-	if (selectedChains.length > 0 && selectedChains.length < chainList.length) {
-		const chainSet = new Set(selectedChains)
-		filteredRows = filteredRows.filter((row) => chainSet.has(row.chains[0]))
-	}
+	rowLoop: for (const row of rows) {
+		if (chainSet && !chainSet.has(row.chains[0])) continue
+		if (row.tvl == null && (minTvl != null || maxTvl != null)) continue
+		if (minTvl != null && row.tvl < minTvl) continue
+		if (maxTvl != null && row.tvl > maxTvl) continue
+		if (row.apy == null && (minApy != null || maxApy != null)) continue
+		if (minApy != null && row.apy <= minApy) continue
+		if (maxApy != null && row.apy >= maxApy) continue
 
-	if (includeTokens.length > 0 && includeTokens[0] !== 'All') {
-		filteredRows = filteredRows.filter((row) => includeTokens.some((token) => matchesYieldPoolToken(row.pool, token)))
-	}
+		if (shouldIncludeTokens) {
+			let hasIncludedToken = false
+			for (const token of includeTokens) {
+				if (matchesYieldPoolToken(row.pool, token)) {
+					hasIncludedToken = true
+					break
+				}
+			}
+			if (!hasIncludedToken) continue
+		}
 
-	if (excludeTokens.length > 0) {
-		filteredRows = filteredRows.filter((row) => excludeTokens.every((token) => !matchesYieldPoolToken(row.pool, token)))
-	}
+		for (const token of excludeTokens) {
+			if (matchesYieldPoolToken(row.pool, token)) continue rowLoop
+		}
 
-	if (minTvl != null) {
-		filteredRows = filteredRows.filter((row) => row.tvl != null && row.tvl >= minTvl)
+		filteredRows.push(row)
 	}
-	if (maxTvl != null) {
-		filteredRows = filteredRows.filter((row) => row.tvl != null && row.tvl <= maxTvl)
-	}
-	if (minApy != null) {
-		filteredRows = filteredRows.filter((row) => row.apy != null && row.apy > minApy)
-	}
-	if (maxApy != null) {
-		filteredRows = filteredRows.filter((row) => row.apy != null && row.apy < maxApy)
-	}
-
 	return filteredRows
 }
 
 export function buildPoolsTrackingStats(rows: IYieldTableRow[]) {
-	const poolsWithApy = rows.filter((row): row is IYieldTableRow & { apy: number } => row.apy != null && row.apy !== 0)
+	let totalApy = 0
+	let poolsWithApy = 0
+	for (const row of rows) {
+		if (row.apy == null || row.apy === 0) continue
+		totalApy += row.apy
+		poolsWithApy++
+	}
 
 	return {
 		noOfPoolsTracked: rows.length,
-		averageAPY:
-			poolsWithApy.length > 0 ? poolsWithApy.reduce((total, row) => total + row.apy, 0) / poolsWithApy.length : null
+		averageAPY: poolsWithApy > 0 ? totalApy / poolsWithApy : null
 	}
 }
 
 export function getPoolRowChains(rows: IYieldTableRow[]) {
-	return [...new Set(rows.map((row) => row.chains[0]).filter(Boolean))].sort()
+	const chains = new Set<string>()
+	for (const row of rows) {
+		if (row.chains[0]) chains.add(row.chains[0])
+	}
+	return Array.from(chains).sort()
 }
 
 export function getPoolRowTokens(rows: IYieldTableRow[]) {
-	return [...new Set(rows.flatMap((row) => extractYieldPoolTokens(row.pool)))]
-		.sort()
-		.map((token) => token.toUpperCase())
+	const tokens = new Set<string>()
+	for (const row of rows) {
+		for (const token of extractYieldPoolTokens(row.pool)) {
+			tokens.add(token)
+		}
+	}
+	const sortedTokens = Array.from(tokens).sort()
+	for (let i = 0; i < sortedTokens.length; i++) {
+		sortedTokens[i] = sortedTokens[i].toUpperCase()
+	}
+	return sortedTokens
 }

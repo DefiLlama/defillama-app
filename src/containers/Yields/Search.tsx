@@ -174,10 +174,14 @@ const Row = ({ data, lend, setOpen }) => {
 				})
 				void pushYieldsQuery(router, {
 					[targetParam]: data.symbol
-				}).then(() => {
-					setLoading(false)
-					setOpen(false)
 				})
+					.then(() => {
+						setOpen(false)
+					})
+					.finally(() => {
+						setLoading(false)
+					})
+					.catch(() => undefined)
 			}}
 			focusOnHover
 			disabled={loading}

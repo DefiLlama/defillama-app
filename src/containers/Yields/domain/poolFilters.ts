@@ -10,13 +10,23 @@ export function normalizeYieldToken(token: string): string {
 }
 
 export function extractYieldPoolTokens(symbol: string): string[] {
-	return symbol.split('(')[0].split('-').map(normalizeYieldToken).filter(Boolean)
+	const tokens: string[] = []
+	const poolSymbol = symbol.split('(')[0]
+	for (const token of poolSymbol.split('-')) {
+		const normalizedToken = normalizeYieldToken(token)
+		if (normalizedToken) tokens.push(normalizedToken)
+	}
+	return tokens
 }
 
 type TokenCategory = { addresses: string[]; symbols: string[]; label: string; filterKey: string }
 
 function findTokenCategory(token: string, tokenCategories: YieldTokenCategories): TokenCategory | undefined {
-	return Object.values(tokenCategories).find((cat) => cat.filterKey?.toLowerCase() === token)
+	for (const key in tokenCategories) {
+		const category = tokenCategories[key]
+		if (category.filterKey?.toLowerCase() === token) return category
+	}
+	return undefined
 }
 
 function poolMatchesTokenCategory(
@@ -40,15 +50,19 @@ function poolMatchesTokenCategory(
 			const addr = underlyingTokens[poolTokenIndex]
 			return !!addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 		}
-		return underlyingTokens.some(
-			(addr: string) => !!addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
-		)
+		for (const addr of underlyingTokens) {
+			if (addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)) return true
+		}
+		return false
 	}
 
 	if (catSymbols?.length > 0) {
 		const symbolSet = new Set(catSymbols)
 		if (poolTokenIndex != null) return symbolSet.has(tokensInPool[poolTokenIndex])
-		return tokensInPool.some((sym) => symbolSet.has(sym))
+		for (const sym of tokensInPool) {
+			if (symbolSet.has(sym)) return true
+		}
+		return false
 	}
 
 	return false
@@ -68,7 +82,10 @@ function poolTokenMatchesToken(
 	}
 
 	if (token === 'all_usd_stables') {
-		return normalizedUsdPeggedSymbols.some((usd) => poolToken.includes(usd))
+		for (const usd of normalizedUsdPeggedSymbols) {
+			if (poolToken.includes(usd)) return true
+		}
+		return false
 	}
 
 	const categoryEntry = findTokenCategory(token, tokenCategories)
@@ -210,7 +227,10 @@ export function matchesYieldPoolForQuery({
 
 	if (pairTokens.length > 0) {
 		let atLeastOnePairToken = false
-		const normalizedUsdPeggedSymbols = usdPeggedSymbols.map(normalizeYieldToken)
+		const normalizedUsdPeggedSymbols: string[] = []
+		for (const symbol of usdPeggedSymbols) {
+			normalizedUsdPeggedSymbols.push(normalizeYieldToken(symbol))
+		}
 		for (const pairToken of pairTokens) {
 			const pt = pairToken.split('-')
 			if (
@@ -229,33 +249,54 @@ export function matchesYieldPoolForQuery({
 
 		toFilter = toFilter && atLeastOnePairToken
 	} else if (exactTokens.length === 0) {
-		const includeToken =
-			includeTokens.length > 0 && includeTokens[0] !== 'all'
-				? includeTokens.find((token) => {
-						if (token === 'all_bitcoins') {
-							return tokensInPool.some((x) => x.includes('btc'))
-						} else if (token === 'all_usd_stables') {
-							if (!curr.stablecoin) return false
-							if (!Array.isArray(usdPeggedSymbols) || usdPeggedSymbols.length === 0) return false
-							const normalizedUsdPeggedSymbols = usdPeggedSymbols.map(normalizeYieldToken)
-							return (
-								tokensInPool.length > 0 &&
-								tokensInPool.every((sym) => normalizedUsdPeggedSymbols.some((usd) => sym.includes(usd)))
-							)
-						} else {
-							const categoryEntry = findTokenCategory(token, tokenCategories)
-							if (categoryEntry) {
-								return poolMatchesTokenCategory(curr, tokensInPool, categoryEntry)
-							}
-
-							if (tokensInPool.some((x) => x.includes(token))) {
-								return true
-							} else if (token === 'eth') {
-								return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
-							} else return false
+		let includeToken = true
+		if (includeTokens.length > 0 && includeTokens[0] !== 'all') {
+			includeToken = false
+			for (const token of includeTokens) {
+				if (token === 'all_bitcoins') {
+					for (const x of tokensInPool) {
+						if (x.includes('btc')) {
+							includeToken = true
+							break
 						}
-					})
-				: true
+					}
+				} else if (token === 'all_usd_stables') {
+					if (curr.stablecoin && usdPeggedSymbols.length > 0 && tokensInPool.length > 0) {
+						const normalizedUsdPeggedSymbols: string[] = []
+						for (const symbol of usdPeggedSymbols) {
+							normalizedUsdPeggedSymbols.push(normalizeYieldToken(symbol))
+						}
+						includeToken = true
+						for (const sym of tokensInPool) {
+							let isUsdPegged = false
+							for (const usd of normalizedUsdPeggedSymbols) {
+								if (sym.includes(usd)) {
+									isUsdPegged = true
+									break
+								}
+							}
+							if (!isUsdPegged) {
+								includeToken = false
+								break
+							}
+						}
+					}
+				} else {
+					const categoryEntry = findTokenCategory(token, tokenCategories)
+					if (categoryEntry) {
+						includeToken = poolMatchesTokenCategory(curr, tokensInPool, categoryEntry)
+					} else {
+						for (const x of tokensInPool) {
+							if (x.includes(token) || (token === 'eth' && x.includes('weth') && x.includes(token))) {
+								includeToken = true
+								break
+							}
+						}
+					}
+				}
+				if (includeToken) break
+			}
+		}
 
 		let hasExcludedToken = false
 		for (const token of excludeTokensSet) {
@@ -267,15 +308,23 @@ export function matchesYieldPoolForQuery({
 
 		toFilter = toFilter && includeToken && !hasExcludedToken
 	} else {
-		const exactToken = exactTokens.find((token) => {
+		let exactToken = false
+		for (const token of exactTokens) {
 			if (tokensInPoolSet.has(token)) {
-				return true
+				exactToken = true
+				break
 			} else if (token === 'eth') {
-				return tokensInPool.find((x) => x.includes('weth') && x === token)
-			} else return false
-		})
+				for (const x of tokensInPool) {
+					if (x.includes('weth') && x === token) {
+						exactToken = true
+						break
+					}
+				}
+			}
+			if (exactToken) break
+		}
 
-		toFilter = toFilter && !!exactToken
+		toFilter = toFilter && exactToken
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null
@@ -324,10 +373,22 @@ export function filterYieldPools({
 	const selectedProjectsSet = new Set(filters.selectedProjects)
 	const selectedChainsSet = new Set(filters.selectedChains)
 	const selectedCategoriesSet = new Set(filters.selectedCategories)
-	const includeTokens = filters.includeTokens.map((token) => normalizeYieldToken(token))
-	const excludeTokensSet = new Set(filters.excludeTokens.map((token) => normalizeYieldToken(token)))
-	const exactTokens = (filters.exactTokens ?? []).map((token) => normalizeYieldToken(token))
-	const pairTokens = (filters.pairTokens ?? []).map((token) => normalizeYieldToken(token))
+	const includeTokens: string[] = []
+	for (const token of filters.includeTokens) {
+		includeTokens.push(normalizeYieldToken(token))
+	}
+	const excludeTokensSet = new Set<string>()
+	for (const token of filters.excludeTokens) {
+		excludeTokensSet.add(normalizeYieldToken(token))
+	}
+	const exactTokens: string[] = []
+	for (const token of filters.exactTokens ?? []) {
+		exactTokens.push(normalizeYieldToken(token))
+	}
+	const pairTokens: string[] = []
+	for (const token of filters.pairTokens ?? []) {
+		pairTokens.push(normalizeYieldToken(token))
+	}
 	const filteredPools: YieldPool[] = []
 
 	for (const curr of pools) {

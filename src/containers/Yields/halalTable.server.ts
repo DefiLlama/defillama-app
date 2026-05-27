@@ -59,12 +59,15 @@ const HALAL_BLACKLISTED_TOKENS = ['AUSDT', 'OUSD', 'AUSDC']
 function getHalalPools(pools: YieldPool[]): YieldPool[] {
 	const filteredPools = []
 	for (const pool of pools) {
-		if (
-			HALAL_PROJECT_WHITELIST.includes(pool.projectName as (typeof HALAL_PROJECT_WHITELIST)[number]) &&
-			!HALAL_BLACKLISTED_TOKENS.some((token) => pool.symbol.includes(token))
-		) {
-			filteredPools.push(pool)
+		if (!HALAL_PROJECT_WHITELIST.includes(pool.projectName as (typeof HALAL_PROJECT_WHITELIST)[number])) continue
+		let hasBlacklistedToken = false
+		for (const token of HALAL_BLACKLISTED_TOKENS) {
+			if (pool.symbol.includes(token)) {
+				hasBlacklistedToken = true
+				break
+			}
 		}
+		if (!hasBlacklistedToken) filteredPools.push(pool)
 	}
 	return filteredPools
 }
@@ -89,11 +92,19 @@ export function buildYieldHalalPageMetadata(data: YieldPageData) {
 
 	return {
 		...metadata,
-		projectList: data.props.projectList.filter((project) =>
-			HALAL_PROJECT_WHITELIST.includes(project as (typeof HALAL_PROJECT_WHITELIST)[number])
-		),
+		projectList: getHalalProjectList(data.props.projectList),
 		categoryList: getHalalCategoryList(pools)
 	}
+}
+
+function getHalalProjectList(projectList: string[]): string[] {
+	const projects: string[] = []
+	for (const project of projectList) {
+		if (HALAL_PROJECT_WHITELIST.includes(project as (typeof HALAL_PROJECT_WHITELIST)[number])) {
+			projects.push(project)
+		}
+	}
+	return projects
 }
 
 export function buildYieldHalalPageResponse(data: YieldPageData, query: ParsedUrlQuery): YieldHalalPageResponse {

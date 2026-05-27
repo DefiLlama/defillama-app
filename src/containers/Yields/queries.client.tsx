@@ -160,8 +160,8 @@ export const useHolderStats = (configIDs?: string[], { enabled = true }: { enabl
 			const res = await fetchJson(YIELD_HOLDERS_API)
 			const raw = res?.data ?? {}
 			const result: HolderStatsMap = {}
-			for (const [id, entry] of Object.entries(raw)) {
-				const e = entry as any
+			for (const id in raw) {
+				const e = raw[id] as any
 				result[id] = {
 					holderCount: e.holderCount ?? null,
 					avgPositionUsd: e.avgPositionUsd != null ? Number(e.avgPositionUsd) : null,
@@ -196,13 +196,17 @@ export const useHolderHistory = (configID: string | null) => {
 		queryKey: ['holder-history', configID],
 		queryFn: async () => {
 			const res = await fetchJson(`${YIELD_HOLDERS_API}/${configID}`)
-			return (res?.data ?? []).map((row: any) => ({
-				timestamp: row.timestamp,
-				holderCount: row.holderCount ?? null,
-				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
-				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null,
-				top10Holders: row.top10Holders?.holders ?? null
-			}))
+			const rows: HolderHistoryEntry[] = []
+			for (const row of res?.data ?? []) {
+				rows.push({
+					timestamp: row.timestamp,
+					holderCount: row.holderCount ?? null,
+					avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
+					top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null,
+					top10Holders: row.top10Holders?.holders ?? null
+				})
+			}
+			return rows
 		},
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,

@@ -113,15 +113,27 @@ export function IncludeExcludeTokens({
 		const v = searchValue.trim()
 		const sep = v.includes('/') ? '/' : v.includes('-') ? '-' : null
 		if (!sep) return null
-		const parts = v
-			.split(sep)
-			.map((s) => s.trim().toUpperCase())
-			.filter(Boolean)
+		const parts: string[] = []
+		for (const part of v.split(sep)) {
+			const token = part.trim().toUpperCase()
+			if (token) parts.push(token)
+		}
 		if (parts.length === 0) return null
-		const tokenSymbols = new Set(tokens.map((t) => t.symbol.toUpperCase()))
-		const validParts = parts.filter((p) => tokenSymbols.has(p))
-		if (validParts.length === 0) return null
-		if (parts.length >= 2 && parts.every((p) => tokenSymbols.has(p))) {
+		const tokenSymbols = new Set<string>()
+		for (const token of tokens) {
+			tokenSymbols.add(token.symbol.toUpperCase())
+		}
+		let validPartsCount = 0
+		let allPartsValid = true
+		for (const part of parts) {
+			if (tokenSymbols.has(part)) {
+				validPartsCount++
+			} else {
+				allPartsValid = false
+			}
+		}
+		if (validPartsCount === 0) return null
+		if (parts.length >= 2 && allPartsValid) {
 			return { type: 'ready' as const, pair: parts.join('-') }
 		}
 		return { type: 'partial' as const, pair: null }

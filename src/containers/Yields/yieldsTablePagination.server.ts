@@ -1,5 +1,9 @@
 import type { ParsedUrlQuery } from 'querystring'
-import { DEFAULT_YIELDS_TABLE_PAGE_SIZE, type YieldsPaginatedTableResponse } from './yieldsTableQuery'
+import {
+	DEFAULT_YIELDS_TABLE_PAGE_SIZE,
+	MAX_YIELDS_TABLE_PAGE_SIZE,
+	type YieldsPaginatedTableResponse
+} from './yieldsTableQuery'
 
 const ALL_PAGE_SIZE = 'all'
 
@@ -26,7 +30,9 @@ function parsePageSize(query: ParsedUrlQuery, total: number): number {
 	if (rawPageSize === ALL_PAGE_SIZE) return total
 
 	const pageSize = Number(rawPageSize)
-	return Number.isFinite(pageSize) && pageSize > 0 ? Math.floor(pageSize) : DEFAULT_YIELDS_TABLE_PAGE_SIZE
+	return Number.isFinite(pageSize) && pageSize > 0
+		? Math.min(Math.floor(pageSize), MAX_YIELDS_TABLE_PAGE_SIZE)
+		: DEFAULT_YIELDS_TABLE_PAGE_SIZE
 }
 
 function parseSort<SortKey extends string>(
@@ -89,24 +95,31 @@ export function paginateAndSortRows<TRow, SortKey extends string>({
 		sort &&
 		(sortAccessors?.[sort.sortBy] ??
 			(fallbackSortAccessor ? (row: TRow) => fallbackSortAccessor(row, sort.sortBy) : null))
-	const sortedRows = accessor
-		? rows
-				.map((row, index) => ({ row, index }))
-				.sort((left, right) => {
-					const leftValue = accessor(left.row)
-					const rightValue = accessor(right.row)
-					const leftMissing = leftValue == null
-					const rightMissing = rightValue == null
-					if (leftMissing && rightMissing) return left.index - right.index
-					if (leftMissing) return 1
-					if (rightMissing) return -1
+	let sortedRows = rows
+	if (accessor) {
+		const indexedRows: Array<{ row: TRow; index: number }> = []
+		for (let index = 0; index < rows.length; index++) {
+			indexedRows.push({ row: rows[index], index })
+		}
+		indexedRows.sort((left, right) => {
+			const leftValue = accessor(left.row)
+			const rightValue = accessor(right.row)
+			const leftMissing = leftValue == null
+			const rightMissing = rightValue == null
+			if (leftMissing && rightMissing) return left.index - right.index
+			if (leftMissing) return 1
+			if (rightMissing) return -1
 
-					const result = compareYieldsTableValues(leftValue, rightValue)
-					if (result === 0) return left.index - right.index
-					return sort.sortDesc ? -result : result
-				})
-				.map(({ row }) => row)
-		: rows
+			const result = compareYieldsTableValues(leftValue, rightValue)
+			if (result === 0) return left.index - right.index
+			return sort.sortDesc ? -result : result
+		})
+
+		sortedRows = new Array<TRow>(indexedRows.length)
+		for (let index = 0; index < indexedRows.length; index++) {
+			sortedRows[index] = indexedRows[index].row
+		}
+	}
 	const total = sortedRows.length
 	const pageSize = parsePageSize(query, total)
 	const requestedPage = parsePage(query)

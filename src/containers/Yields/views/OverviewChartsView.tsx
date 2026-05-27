@@ -122,17 +122,18 @@ export const PlotsPage = ({
 			return Number.isFinite(ms) ? ms : null
 		}
 
-		const rows = (median ?? []).map((r) => {
+		const rows = []
+		for (const r of median ?? []) {
 			const medianApyRaw = Number(r?.medianAPY)
 			const avg7DayRaw = r?.avg7day == null ? null : Number(r.avg7day)
 
-			return {
+			rows.push({
 				// Keep this UTC-stable (avoid local timezone shifts)
 				timestamp: parseTimestampToEpochMs(r?.timestamp),
 				'Median APY': Number.isFinite(medianApyRaw) ? Number(medianApyRaw.toFixed(3)) : null,
 				'7-day Average': avg7DayRaw == null ? null : Number.isFinite(avg7DayRaw) ? Number(avg7DayRaw.toFixed(3)) : null
-			}
-		})
+			})
+		}
 
 		return {
 			dimensions: ['timestamp', 'Median APY', '7-day Average'],
@@ -140,7 +141,13 @@ export const PlotsPage = ({
 		}
 	}, [median])
 
-	const nonOutlierPoolsData = React.useMemo(() => poolsData.filter((p) => !p.outlier), [poolsData])
+	const nonOutlierPoolsData = React.useMemo(() => {
+		const rows = []
+		for (const pool of poolsData) {
+			if (!pool.outlier) rows.push(pool)
+		}
+		return rows
+	}, [poolsData])
 
 	const treemapTreeData = React.useMemo(() => {
 		const toFixed2Safe = (v: unknown) => {

@@ -52,7 +52,15 @@ const YieldPage = ({
 	const effectiveServerRows = serverRows.length > 0 ? serverRows : EMPTY_POOL_ROWS
 
 	const { data: volatility } = useVolatility()
-	const { data: holderStats } = useHolderStats(serverPagination ? undefined : pools?.map((p) => p.pool))
+	const holderStatsPoolIds = React.useMemo(() => {
+		if (serverPagination) return undefined
+		const ids: string[] = []
+		for (const pool of pools ?? []) {
+			ids.push(pool.pool)
+		}
+		return ids
+	}, [pools, serverPagination])
+	const { data: holderStats } = useHolderStats(holderStatsPoolIds)
 
 	const {
 		selectedProjects,
@@ -82,12 +90,13 @@ const YieldPage = ({
 		(rows: IYieldTableRow[]) => {
 			if (!volatility && !holderStats) return rows
 
-			return rows.map((row) => {
+			const enrichedRows: IYieldTableRow[] = []
+			for (const row of rows) {
 				const poolId = row.configID
 				const volatilityEntry = volatility?.[poolId]
 				const holderStatsEntry = holderStats?.[poolId]
 
-				return {
+				enrichedRows.push({
 					...row,
 					apyMedian30d: volatilityEntry?.[1] ?? row.apyMedian30d ?? null,
 					apyStd30d: volatilityEntry?.[2] ?? row.apyStd30d ?? null,
@@ -97,8 +106,9 @@ const YieldPage = ({
 					top10Pct: holderStatsEntry?.top10Pct ?? row.top10Pct ?? null,
 					holderChange7d: holderStatsEntry?.holderChange7d ?? row.holderChange7d ?? null,
 					holderChange30d: holderStatsEntry?.holderChange30d ?? row.holderChange30d ?? null
-				}
-			})
+				})
+			}
+			return enrichedRows
 		},
 		[holderStats, volatility]
 	)

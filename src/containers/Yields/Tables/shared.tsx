@@ -188,19 +188,19 @@ export function PaginatedYieldsTableWrapper<TRow, TColumnId extends string>({
 	manualPagination = false,
 	manualSorting = false,
 	paginationState,
-	sortingState = EMPTY_SORTING,
+	sortingState,
 	onPaginationChange,
 	onSortingChange,
 	interactionDisabled = false
 }: IYieldsTableProps<TRow> & {
 	config: YieldsTableConfig<TRow, TColumnId, undefined>
 }) {
-	const [localSorting, setLocalSorting] = React.useState<SortingState>(() => [...sortingState])
+	const [localSorting, setLocalSorting] = React.useState<SortingState>(() => [...(sortingState ?? EMPTY_SORTING)])
 	const [localPagination, setLocalPagination] = React.useState<PaginationState>({
 		pageIndex: initialPageIndex,
 		pageSize: initialPageSize
 	})
-	const sorting = onSortingChange ? sortingState : localSorting
+	const sorting = sortingState ?? localSorting
 	const pagination = paginationState ?? localPagination
 	const paginatedColumns = React.useMemo(() => preparePaginatedYieldsColumns(config, undefined), [config])
 
@@ -221,7 +221,7 @@ export function PaginatedYieldsTableWrapper<TRow, TColumnId extends string>({
 		onSortingChange: (updater) =>
 			React.startTransition(() => {
 				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
-				if (!onSortingChange) {
+				if (sortingState === undefined) {
 					setLocalSorting(nextSorting)
 				}
 				onSortingChange?.(nextSorting)

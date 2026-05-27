@@ -83,31 +83,34 @@ export function computeHolderChanges(
 
 	const summary = { ...emptySummary }
 	const balanceSummary = { ...emptyBalanceSummary }
-	const holders: HolderWithChange[] = currentHolders.map((h) => {
+	const holders: HolderWithChange[] = []
+	for (const h of currentHolders) {
 		const pastHolder = pastMap.get(h.address.toLowerCase())
 
 		if (!pastHolders) {
 			summary.unknown++
 			balanceSummary.unknown++
-			return {
+			holders.push({
 				...h,
 				status: 'unknown' as const,
 				balancePctChange: null,
 				balanceStatus: 'unknown' as const,
 				balanceChangePct: null
-			}
+			})
+			continue
 		}
 
 		if (!pastHolder) {
 			summary.newCount++
 			balanceSummary.newCount++
-			return {
+			holders.push({
 				...h,
 				status: 'new' as const,
 				balancePctChange: null,
 				balanceStatus: 'new' as const,
 				balanceChangePct: null
-			}
+			})
+			continue
 		}
 
 		// Share-based change
@@ -128,14 +131,14 @@ export function computeHolderChanges(
 		const { status: balStatus, changePct: balChangePct } = computeBalanceChange(h.balance, pastHolder.balance)
 		balanceSummary[balStatus === 'new' ? 'newCount' : balStatus]++
 
-		return {
+		holders.push({
 			...h,
 			status: shareStatus,
 			balancePctChange: shareChange,
 			balanceStatus: balStatus,
 			balanceChangePct: balChangePct
-		}
-	})
+		})
+	}
 
 	return { holders, summary, balanceSummary }
 }

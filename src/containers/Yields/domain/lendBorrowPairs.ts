@@ -44,16 +44,23 @@ function buildAvailableToLend(
 	tokenToLend: string | null | undefined,
 	mode: PairMode
 ): LendBorrowPoolWithLtv[] {
-	return pools.filter((pool): pool is LendBorrowPoolWithLtv => {
-		if (!hasPositiveLtv(pool)) return false
+	const availableToLend: LendBorrowPoolWithLtv[] = []
+	for (const pool of pools) {
+		if (!hasPositiveLtv(pool)) continue
 		const { symbol } = pool
-		if (mode === 'optimizer' && (!tokenToLend || isStableToken(tokenToLend))) return true
+		if (mode === 'optimizer' && (!tokenToLend || isStableToken(tokenToLend))) {
+			availableToLend.push(pool)
+			continue
+		}
 
-		return (
+		if (
 			(isStableToken(tokenToLend) ? true : matchesLendBorrowToken(symbol, tokenToLend)) &&
 			!matchesLendBorrowToken(symbol, 'AMM')
-		)
-	})
+		) {
+			availableToLend.push(pool)
+		}
+	}
+	return availableToLend
 }
 
 function shouldKeepBorrowPool({
@@ -130,15 +137,20 @@ export function buildLendBorrowPairs({
 	mode
 }: BuildLendBorrowPairsOptions): LendBorrowPairPool[] {
 	const availableToLend = buildAvailableToLend(pools, tokenToLend, mode)
-	const availableCollateralPools =
-		mode === 'optimizer'
-			? availableToLend.filter((pool) => !excludedOptimizerProjects.has(pool.project))
-			: availableToLend
+	const availableCollateralPools: LendBorrowPoolWithLtv[] = []
+	const availableProjectsSet = new Set<string>()
+	const availableChainsSet = new Set<string>()
 
-	const availableProjectsSet = new Set(availableToLend.map(({ project }) => project))
-	const availableChainsSet = new Set(availableToLend.map(({ chain }) => chain))
+	for (const pool of availableToLend) {
+		availableProjectsSet.add(pool.project)
+		availableChainsSet.add(pool.chain)
+		if (mode !== 'optimizer' || !excludedOptimizerProjects.has(pool.project)) {
+			availableCollateralPools.push(pool)
+		}
+	}
 
-	return pools.reduce<LendBorrowPairPool[]>((acc, pool) => {
+	const pairs: LendBorrowPairPool[] = []
+	for (const pool of pools) {
 		if (
 			!shouldKeepBorrowPool({
 				pool,
@@ -149,10 +161,9 @@ export function buildLendBorrowPairs({
 				mode
 			})
 		) {
-			return acc
+			continue
 		}
 
-		const poolPairs: LendBorrowPairPool[] = []
 		for (const collateralPool of availableCollateralPools) {
 			if (!canUseCollateralPool({ collateralPool, borrowPool: pool, tokenToLend, tokenToBorrow, mode })) continue
 
@@ -163,14 +174,14 @@ export function buildLendBorrowPairs({
 			})
 			if (ltv == null) continue
 
-			poolPairs.push({
+			pairs.push({
 				...collateralPool,
 				chains: [collateralPool.chain],
 				borrow: pool,
 				ltv
 			})
 		}
+	}
 
-		return acc.concat(poolPairs)
-	}, [])
+	return pairs
 }
