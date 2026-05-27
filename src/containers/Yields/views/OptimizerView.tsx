@@ -8,11 +8,18 @@ import { YieldsOptimizerTable } from '../Tables/Optimizer'
 
 const EMPTY_POOL_ROWS: BorrowAdvancedRow[] = []
 
+export function parseAmountQuery(value: string | string[] | undefined) {
+	const raw = Array.isArray(value) ? value[0] : value
+	if (!raw) return 0
+	const amount = Number(raw)
+	return Number.isFinite(amount) ? amount : 0
+}
+
 export const BorrowAggregatorAdvanced = ({ chainList, lendingProtocols, searchData, evmChains }) => {
 	const { query } = useRouter()
 
-	const lendAmount = query.lendAmount ? +query.lendAmount : 0
-	const borrowAmount = query.borrowAmount ? +query.borrowAmount : 0
+	const lendAmount = parseAmountQuery(query.lendAmount)
+	const borrowAmount = parseAmountQuery(query.borrowAmount)
 
 	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({

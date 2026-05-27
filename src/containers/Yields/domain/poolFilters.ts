@@ -315,7 +315,7 @@ export function matchesYieldPoolForQuery({
 				break
 			} else if (token === 'eth') {
 				for (const x of tokensInPool) {
-					if (x.includes('weth') && x === token) {
+					if (x.includes('weth')) {
 						exactToken = true
 						break
 					}

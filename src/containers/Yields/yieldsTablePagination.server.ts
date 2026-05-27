@@ -70,6 +70,8 @@ export function compareYieldsTableValues(left: unknown, right: unknown): number 
 	if (leftNumber != null && rightNumber != null) {
 		return leftNumber - rightNumber
 	}
+	if (leftNumber != null) return -1
+	if (rightNumber != null) return 1
 
 	return String(leftValue).localeCompare(String(rightValue))
 }

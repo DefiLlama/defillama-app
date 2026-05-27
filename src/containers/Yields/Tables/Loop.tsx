@@ -4,6 +4,7 @@ import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
@@ -33,20 +34,7 @@ const columns = [
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue()
-			const exploited = isExploitedPool(row.original.projectslug, value)
-			return (
-				<span className="flex items-center gap-1">
-					<NameYieldPool value={value} configID={row.original.configID} url={row.original.url} borrow={true} />
-					{exploited ? (
-						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-							<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
-						</Tooltip>
-					) : null}
-				</span>
-			)
-		},
+		cell: ({ getValue, row }) => <LoopPoolCell value={getValue()} row={row} />,
 		meta: {
 			headerClassName:
 				'w-[160px] min-[812px]:w-[200px] 2xl:w-[240px] min-[1600px]:w-[280px] min-[1640px]:w-[320px] min-[1720px]:w-[420px]'
@@ -225,6 +213,34 @@ const columns = [
 		}
 	})
 ]
+
+function LoopPoolCell({
+	value,
+	row
+}: {
+	value: string
+	row: { id: string; index: number; original: YieldLoopTableRow }
+}) {
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+	const exploited = isExploitedPool(row.original.projectslug, value)
+
+	return (
+		<span className="flex items-center gap-1">
+			<NameYieldPool
+				value={value}
+				configID={row.original.configID}
+				url={row.original.url}
+				rowIndex={rowIndex ?? row.index + 1}
+				borrow={true}
+			/>
+			{exploited ? (
+				<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+					<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
+				</Tooltip>
+			) : null}
+		</span>
+	)
+}
 
 const columnOrders: Record<number, readonly LoopColumnId[]> = {
 	0: [

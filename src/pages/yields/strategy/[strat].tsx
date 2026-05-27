@@ -111,6 +111,10 @@ export function calculateStrategyDetailLoopApy({
 	return calculateLoopAPY([{ ...borrowData, project, apyBaseBorrow: -borrowData.apyBaseBorrow, ltv }], 10)[0]?.loopApy
 }
 
+export function sortStrategyDetailApyPoints(points: MergedStrategyApyPoint[]) {
+	points.sort((left, right) => left.timestamp - right.timestamp)
+}
+
 const PageView = () => {
 	const { query } = useRouter()
 
@@ -187,6 +191,8 @@ const PageView = () => {
 				loopAPY: calculateStrategyDetailLoopApy({ borrowData: completeRow.borrowData, project, ltv })
 			})
 		}
+
+		sortStrategyDetailApyPoints(mergedWithApy)
 
 		// make sure this is the most recent value
 		const latestValues = mergedWithApy.at(-1)

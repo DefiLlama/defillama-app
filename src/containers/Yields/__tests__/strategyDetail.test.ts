@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateStrategyDetailLoopApy } from '~/pages/yields/strategy/[strat]'
+import { calculateStrategyDetailLoopApy, sortStrategyDetailApyPoints } from '~/pages/yields/strategy/[strat]'
 import { calculateLoopAPY } from '../domain/loopApy'
 
 const borrowData = {
@@ -37,4 +37,27 @@ describe('strategy detail page APY helpers', () => {
 
 		expect(actual).toBeCloseTo(expected!)
 	})
+
+	it('orders merged APY points by timestamp before latest values are read', () => {
+		const points: Parameters<typeof sortStrategyDetailApyPoints>[0] = [
+			strategyPoint(300),
+			strategyPoint(100),
+			strategyPoint(200)
+		]
+
+		sortStrategyDetailApyPoints(points)
+
+		expect(points.map((point) => point.timestamp)).toEqual([100, 200, 300])
+		expect(points.at(-1)?.timestamp).toBe(300)
+	})
 })
+
+function strategyPoint(timestamp: number): Parameters<typeof sortStrategyDetailApyPoints>[0][number] {
+	return {
+		timestamp,
+		lendData: { timestamp, apy: 1 },
+		borrowData: { timestamp, apy: 1, apyBaseBorrow: 1 },
+		farmData: { timestamp, apy: 1 },
+		strategyAPY: 1
+	}
+}

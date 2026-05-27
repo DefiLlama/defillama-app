@@ -107,6 +107,22 @@ describe('paginateAndSortRows', () => {
 		expect(result.rows.map((row) => row.id)).toEqual(['ten', 'two', 'negative'])
 	})
 
+	it('keeps mixed numeric-string and text sorting transitive', () => {
+		const rows: TestRow[] = [
+			{ id: 'text', funding: '85abc' },
+			{ id: 'nine', funding: '9' },
+			{ id: 'eighty', funding: '80' }
+		]
+
+		const result = paginateAndSortRows({
+			rows,
+			query: { sortBy: 'funding', sortDesc: 'false', pageSize: 'all' },
+			sortAccessors
+		})
+
+		expect(result.rows.map((row) => row.id)).toEqual(['nine', 'eighty', 'text'])
+	})
+
 	it('ignores invalid sort keys when no fallback accessor is provided', () => {
 		const rows: TestRow[] = [
 			{ id: 'first', apy: 1 },
