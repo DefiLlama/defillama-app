@@ -141,19 +141,50 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 	borrowAmount: number
 }
 
-export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
+export interface YieldStrategyTableRow {
 	strategy?: string
-	totalApy?: number | null
-	delta?: number | null
-	strategyAPY?: number | null
-	fr8hCurrent?: number | string | null
-	fundingRate7dAverage?: number | string | null
+	symbol: string
+	pool: string
+	project: string
+	projectName: string
+	airdrop?: boolean
+	raiseValuation?: number | null
+	chains: string[]
+	url: string
+	apy?: number | null
+	borrow: {
+		pool: string
+		symbol: string
+		apyBorrow?: number | null
+		totalAvailableUsd?: number | null
+	}
 	farmPool: string
 	farmSymbol: string
 	farmTvlUsd: number
 	farmProjectName: string
-	farmChain: Array<string>
-	farmApy: number
+	farmApy: number | null
+	totalApy?: number | null
+	delta?: number | null
+	ltv?: number | null
+	strikeTvl?: boolean
+	borrowAvailableUsd?: number | null
+}
+
+export interface YieldLongShortStrategyTableRow {
+	strategy?: string
+	symbol: string
+	pool: string
+	project: string
+	projectName: string
+	airdrop?: boolean
+	raiseValuation?: number | null
+	chains: string[]
+	url: string
+	apy?: number | null
+	strikeTvl?: boolean
+	strategyAPY?: number | null
+	fr8hCurrent?: number | string | null
+	fundingRate7dAverage?: number | string | null
 	symbolPerp: string
 	openInterest: number
 	tvlUsd: number
@@ -164,7 +195,7 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	indexPrice: number
 }
 
+export type IYieldsStrategyTableRow = YieldStrategyTableRow | YieldLongShortStrategyTableRow
+
 export interface YieldOptimizerTableRow extends IYieldsOptimizerTableRow {}
-export interface YieldStrategyTableRow extends IYieldsStrategyTableRow {}
-export interface YieldLongShortStrategyTableRow extends IYieldsStrategyTableRow {}
 export interface YieldProjectTableRow extends IYieldsProjectsTableRow {}

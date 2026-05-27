@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { shouldResetYieldsPoolPage } from '../queryState'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const toArray = <T,>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value])
 
@@ -104,28 +104,23 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 			const preset = YIELD_PRESETS[presetKey]
 			const isActive = activePresets.has(presetKey)
 
-			const newQuery: Record<string, string | string[]> = {}
-			for (const [key, value] of Object.entries(query)) {
-				if (shouldResetYieldsPoolPage(pathname) && key === 'page') {
-					continue
-				}
-				if (!ALL_PRESET_FILTER_KEYS.has(key)) {
-					newQuery[key] = value as string | string[]
-				}
+			const updates: Record<string, string | string[] | undefined> = {}
+			for (const key of ALL_PRESET_FILTER_KEYS) {
+				updates[key] = undefined
 			}
 
 			if (!isActive) {
 				trackYieldsEvent(YIELDS_EVENTS.FILTER_PRESET, { preset: presetKey })
 				for (const [filterKey, filterValue] of Object.entries(preset.filters)) {
 					const values = toArray(filterValue)
-					newQuery[filterKey] = values.length === 1 ? values[0] : values
+					updates[filterKey] = values.length === 1 ? values[0] : values
 				}
 			}
 			// If clicking active preset, just clear (already done above)
 
-			void router.push({ pathname, query: newQuery }, undefined, { shallow: true })
+			void pushYieldsQuery(router, updates, { pathname })
 		},
-		[activePresets, query, pathname, router]
+		[activePresets, pathname, router]
 	)
 
 	return (

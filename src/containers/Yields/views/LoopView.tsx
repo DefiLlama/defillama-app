@@ -1,75 +1,31 @@
-import { useRouter } from 'next/router'
-import * as React from 'react'
-import { filterYieldPools } from '../domain/poolFilters'
-import { mapPoolToLoopTableRow } from '../domain/poolRows'
-import { getYieldViewFromPathname } from '../domain/views'
+import { YIELD_LOOP_DATASET_API } from '~/constants'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
-import { YieldsLoopTable } from '../Tables/Loop'
+import { PaginatedYieldsLoopTable } from '../Tables/Loop'
+import type { YieldLoopTableRow } from '../Tables/types'
+import { useYieldsServerTable } from '../useYieldsServerTable'
 
-const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, usdPeggedSymbols, evmChains }) => {
-	const { pathname } = useRouter()
+const EMPTY_ROWS: YieldLoopTableRow[] = []
 
-	const {
-		selectedProjects,
-		selectedChains,
-		selectedAttributes,
-		includeTokens,
-		excludeTokens,
-		exactTokens,
-		selectedCategories,
-		pairTokens,
-		minTvl,
-		maxTvl,
-		minApy,
-		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
+const YieldPageLoop = ({ projectList, chainList, categoryList, tokens, evmChains }) => {
+	const { rows, total, rowsQuery, tableProps } = useYieldsServerTable<YieldLoopTableRow>({
+		endpoint: YIELD_LOOP_DATASET_API
+	})
+	const poolsData = rows.length > 0 ? rows : EMPTY_ROWS
+	const poolsNumber = total
 
-	const poolsData = React.useMemo(() => {
-		const filteredPools = filterYieldPools({
-			pools,
-			view: getYieldViewFromPathname(pathname),
-			filters: {
-				selectedProjects,
-				selectedChains,
-				selectedAttributes,
-				includeTokens,
-				excludeTokens,
-				exactTokens,
-				selectedCategories,
-				pairTokens,
-				minTvl,
-				maxTvl,
-				minApy,
-				maxApy
-			},
-			usdPeggedSymbols
-		})
-
-		return filteredPools.map(mapPoolToLoopTableRow)
-	}, [
-		minTvl,
-		maxTvl,
-		minApy,
-		maxApy,
-		pools,
-		selectedProjects,
-		selectedCategories,
-		selectedChains,
-		selectedAttributes,
-		includeTokens,
-		excludeTokens,
-		exactTokens,
-		pathname,
-		pairTokens,
-		usdPeggedSymbols
-	])
+	const { selectedProjects, selectedChains } = useFormatYieldQueryParams({
+		projectList,
+		chainList,
+		categoryList,
+		evmChains
+	})
 
 	return (
 		<>
 			<YieldFiltersV2
 				header="Leveraged Lending"
-				poolsNumber={poolsData.length}
+				poolsNumber={poolsNumber}
 				projectsNumber={selectedProjects.length}
 				chainsNumber={selectedChains.length}
 				tokens={tokens}
@@ -82,8 +38,16 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, us
 				resetFilters={true}
 			/>
 
-			{poolsData.length > 0 ? (
-				<YieldsLoopTable data={poolsData} />
+			{rowsQuery.isLoading && !rowsQuery.data ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Loading pools...
+				</p>
+			) : rowsQuery.isError ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Couldn't load pools.
+				</p>
+			) : poolsData.length > 0 ? (
+				<PaginatedYieldsLoopTable data={poolsData} {...tableProps} />
 			) : (
 				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 					Couldn't find any pools for these filters

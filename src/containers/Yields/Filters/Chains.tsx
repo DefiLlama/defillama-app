@@ -2,8 +2,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery } from '~/utils/routerQuery'
-import { resetYieldsPoolPageOnFilterChange } from '../queryState'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const EMPTY_ARRAY: string[] = []
 
@@ -31,8 +30,7 @@ export function FilterByChain({
 		[evmChainsSet]
 	)
 	const pushFilterQuery = useCallback(
-		(updates: Record<string, string | string[] | undefined>) =>
-			pushShallowQuery(router, resetYieldsPoolPageOnFilterChange(router.pathname, updates)),
+		(updates: Record<string, string | string[] | undefined>) => pushYieldsQuery(router, updates),
 		[router]
 	)
 

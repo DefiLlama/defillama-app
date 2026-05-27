@@ -5,8 +5,7 @@ import { startTransition, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery } from '~/utils/routerQuery'
-import { resetYieldsPoolPageOnFilterChange } from '../queryState'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const POPULAR_PAIRS = ['USDC-ETH', 'USDC-WETH', 'USDC-USDT', 'USDC-WBTC']
 
@@ -17,8 +16,7 @@ export function IncludeExcludeTokens({
 	tokens: Array<{ name: string; symbol: string; logo?: string | null; fallbackLogo?: string | null }>
 }) {
 	const router = useRouter()
-	const pushFilterQuery = (updates: Record<string, string | string[] | undefined>) =>
-		pushShallowQuery(router, resetYieldsPoolPageOnFilterChange(router.pathname, updates))
+	const pushFilterQuery = (updates: Record<string, string | string[] | undefined>) => pushYieldsQuery(router, updates)
 
 	const { token: includeTokenQuery, excludeToken, exactToken, token_pair, attribute } = router.query
 

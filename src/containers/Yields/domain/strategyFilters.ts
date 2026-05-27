@@ -1,8 +1,11 @@
+import type { RawYieldPerpMarket } from '../api.types'
 import { attributeOptionsMap } from '../Filters/Attributes'
+import type { LendBorrowPool, YieldPool } from '../types'
 import {
 	buildLendBorrowPairs,
 	excludedOptimizerProjects,
 	isStableToken,
+	type LendBorrowPairPool,
 	matchesLendBorrowToken,
 	removeLendBorrowMetaTag
 } from './lendBorrowPairs'
@@ -26,7 +29,54 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 	return lendBorrowPairs.concat(cdpPairs)
 }
 
-export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV }) => {
+export interface YieldStrategyCandidate extends LendBorrowPairPool {
+	farmPool: string
+	farmSymbol: string
+	farmChain: string[]
+	farmProjectName: string
+	farmProject: string
+	farmTvlUsd: number
+	farmApy: number | null
+	farmApyBase?: number | null
+	farmApyReward?: number | null
+	strategy?: string
+	totalApy?: number | null
+	delta?: number | null
+	strikeTvl?: boolean
+}
+
+export interface YieldLongShortStrategyCandidate extends YieldPool {
+	strategy?: string
+	strategyAPY: number
+	fr8hCurrent: string
+	fundingRate7dAverage: string
+	symbolPerp: string
+	openInterest: number
+	tvlUsd: number
+	marketplace: string
+	afr: number
+	afr7d: number
+	afr30d: number
+	indexPrice: number
+	chains: string[]
+	strikeTvl?: boolean
+}
+
+export const findStrategyPools = ({
+	pools,
+	tokenToLend,
+	tokenToBorrow,
+	allPools,
+	cdpRoutes,
+	customLTV
+}: {
+	pools: LendBorrowPool[]
+	tokenToLend?: string | null
+	tokenToBorrow?: string | null
+	allPools: YieldPool[]
+	cdpRoutes: Array<LendBorrowPool & { chains: string[]; borrow: LendBorrowPool }>
+	customLTV?: number | null
+}): YieldStrategyCandidate[] => {
 	const loopPools = calculateLoopAPY(pools, 10, customLTV)
 	let lendBorrowPairs = buildLendBorrowPairs({ pools, tokenToLend, tokenToBorrow, mode: 'strategy' })
 
@@ -39,7 +89,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	}
 	lendBorrowPairs = lendBorrowPairs.concat(cdpPairs)
 
-	let finalPools = []
+	let finalPools: YieldStrategyCandidate[] = []
 	if (tokenToBorrow) {
 		const farmPools = allPools.filter((i) =>
 			isStableToken(tokenToBorrow) ? i.stablecoin : matchesLendBorrowToken(i.symbol, tokenToBorrow)
@@ -91,7 +141,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 		}
 	}
 
-	const loopPoolsFiltered =
+	const loopPoolsFiltered: YieldStrategyCandidate[] =
 		tokenToBorrow !== tokenToLend && tokenToBorrow?.length > 0
 			? []
 			: loopPools
@@ -154,7 +204,15 @@ export const formatOptimizerPool = ({ pool, customLTV }) => {
 	}
 }
 
-export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
+export const findStrategyPoolsFR = ({
+	token,
+	filteredPools,
+	perps
+}: {
+	token: { token?: string | string[]; excludeToken?: string | string[] } | null
+	filteredPools: YieldPool[]
+	perps: RawYieldPerpMarket[]
+}): YieldLongShortStrategyCandidate[] => {
 	let tokensToInclude = token?.token
 	tokensToInclude = typeof tokensToInclude === 'string' ? [tokensToInclude] : tokensToInclude
 	let tokensToExclude = token?.excludeToken
@@ -185,7 +243,7 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 		(p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0 && p.baseAsset !== 'T'
 	)
 
-	const finalPools = []
+	const finalPools: YieldLongShortStrategyCandidate[] = []
 	for (const pool of pools) {
 		for (const perp of perpsData) {
 			const fr8hPrevious = Number(perp.fundingRatePrevious) * 100
@@ -199,16 +257,6 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 				...pool,
 				symbolPerp: perp.market,
 				fr8hCurrent: frCurrent.toFixed(3),
-				fr8hPrevious: fr8hPrevious.toFixed(3),
-				frDay: frCurrent * 3,
-				frWeek: frCurrent * 3 * 7,
-				frMonth: frCurrent * 3 * 30,
-				frYear: frCurrent * 3 * 365,
-				poolReturn8h: pool.apy / 365 / 3,
-				poolReturnDay: pool.apy / 365,
-				poolReturnWeek: pool.apy / 52,
-				poolReturnMonth: pool.apy / 12,
-				strategyReturn: pool.apy / 365 + frCurrent * 3,
 				afr,
 				afr7d,
 				afr30d,
@@ -216,12 +264,8 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 				openInterest: Number(perp.openInterest),
 				indexPrice: perp.indexPrice,
 				chains: [pool.chain],
-				farmTvlUsd: pool.tvlUsd,
 				marketplace: perp.marketplace,
-				fundingRate7dAverage: (perp.fundingRate7dAverage * 100).toFixed(3),
-				fundingRate7dSum: (perp.fundingRate7dSum * 100).toFixed(3),
-				fundingRate30dAverage: (perp.fundingRate30dAverage * 100).toFixed(3),
-				fundingRate30dSum: (perp.fundingRate30dSum * 100).toFixed(3)
+				fundingRate7dAverage: (perp.fundingRate7dAverage * 100).toFixed(3)
 			})
 		}
 	}

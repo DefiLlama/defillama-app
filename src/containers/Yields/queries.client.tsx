@@ -9,15 +9,14 @@ import {
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
 	YIELD_POOLS_LAMBDA_API,
-	YIELD_POOLS_DATASET_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
 import type { BorrowAdvancedRow } from './borrowAdvanced'
 import type { BorrowPageRowsResponse } from './borrowSimple'
-import type { YieldPoolsPageResponse } from './pools.types'
 import type { HolderHistoryEntry, HolderStatsMap } from './queries/holderTypes'
+import type { YieldsPaginatedTableResponse } from './yieldsTableQuery'
 
 export const useGetPrice = (tokens: Array<string>) => {
 	return useQuery({
@@ -61,13 +60,13 @@ export const useBorrowRows = (queryString: string | null) => {
 	})
 }
 
-export const useYieldPoolsPage = (queryString: string | null) => {
-	const url = queryString ? `${YIELD_POOLS_DATASET_API}${queryString}` : null
-	return useQuery<YieldPoolsPageResponse>({
-		queryKey: ['yield-pools-page', queryString],
+export const useYieldsPaginatedTable = <TRow,>(endpoint: string, queryString: string | null) => {
+	const url = queryString ? `${endpoint}${queryString}` : null
+	return useQuery<YieldsPaginatedTableResponse<TRow>>({
+		queryKey: ['yield-paginated-table', endpoint, queryString],
 		queryFn: async () =>
 			url
-				? fetchJson<YieldPoolsPageResponse>(url)
+				? fetchJson<YieldsPaginatedTableResponse<TRow>>(url)
 				: {
 						rows: [],
 						total: 0,

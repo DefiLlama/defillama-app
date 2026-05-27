@@ -174,7 +174,14 @@ export function clearYieldsQueries(keys: readonly string[]) {
 }
 
 export function shouldResetYieldsPoolPage(pathname: string | undefined) {
-	return pathname === '/yields' || pathname === '/yields/stablecoins'
+	return (
+		pathname === '/yields' ||
+		pathname === '/yields/stablecoins' ||
+		pathname === '/yields/loop' ||
+		pathname === '/yields/strategy' ||
+		pathname === '/yields/strategy-long-short' ||
+		pathname === '/yields/halal'
+	)
 }
 
 export function resetYieldsPoolPageOnFilterChange<T extends Record<string, QueryUpdateValue>>(

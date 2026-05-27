@@ -1,37 +1,35 @@
 import { useRouter } from 'next/router'
-import * as React from 'react'
-import { filterStrategyPool, findStrategyPools } from '../domain/strategyFilters'
+import { YIELD_STRATEGY_DATASET_API } from '~/constants'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
-import { YieldsStrategyTable } from '../Tables/Strategy'
+import { PaginatedYieldsStrategyTable } from '../Tables/Strategy'
+import type { YieldStrategyTableRow } from '../Tables/types'
+import { useYieldsServerTable } from '../useYieldsServerTable'
 
 const YieldsStrategyPage = ({
-	pools,
 	projectList,
 	searchData,
 	chainList,
 	categoryList,
-	allPools,
 	lendingProtocols,
 	farmProtocols,
 	evmChains
 }) => {
-	const { query } = useRouter()
+	const router = useRouter()
+	const { query } = router
+	const {
+		rows: poolsData,
+		total: poolsNumber,
+		rowsQuery,
+		tableProps
+	} = useYieldsServerTable<YieldStrategyTableRow>({
+		endpoint: YIELD_STRATEGY_DATASET_API
+	})
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
-	const {
-		selectedChains,
-		selectedAttributes,
-		selectedLendingProtocols,
-		selectedFarmProtocols,
-		minTvl,
-		maxTvl,
-		minAvailable,
-		maxAvailable,
-		customLTV
-	} = useFormatYieldQueryParams({
+	const { selectedChains, selectedLendingProtocols, selectedFarmProtocols } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
 		categoryList,
@@ -39,58 +37,6 @@ const YieldsStrategyPage = ({
 		farmProtocols,
 		evmChains
 	})
-
-	// prepare cdp pools
-	const cdpPools = pools
-		.filter((p) => p.category === 'CDP' && p.mintedCoin)
-		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
-
-	// exclude cdp from lending
-	const lendingPools = pools.filter((p) => p.category !== 'CDP')
-	const poolsData = React.useMemo(() => {
-		const selectedChainsSet = new Set(selectedChains)
-		const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
-		const selectedFarmProtocolsSet = selectedFarmProtocols ? new Set(selectedFarmProtocols) : null
-
-		let filteredPools = findStrategyPools({
-			pools: lendingPools,
-			tokenToLend: lend,
-			tokenToBorrow: borrow,
-			allPools,
-			cdpRoutes: cdpPools,
-			customLTV
-		}).filter((pool) =>
-			filterStrategyPool({
-				pool,
-				selectedChainsSet,
-				selectedAttributes,
-				minTvl,
-				maxTvl,
-				minAvailable,
-				maxAvailable,
-				selectedLendingProtocolsSet,
-				selectedFarmProtocolsSet,
-				customLTV
-			})
-		)
-
-		return filteredPools
-	}, [
-		lendingPools,
-		borrow,
-		lend,
-		selectedChains,
-		selectedAttributes,
-		selectedLendingProtocols,
-		selectedFarmProtocols,
-		allPools,
-		cdpPools,
-		minTvl,
-		maxTvl,
-		minAvailable,
-		maxAvailable,
-		customLTV
-	])
 
 	const header = `Strategy Finder ${
 		lend && !borrow
@@ -116,13 +62,21 @@ const YieldsStrategyPage = ({
 				tvlRange={true}
 				availableRange={true}
 				resetFilters={true}
-				noOfStrategies={poolsData?.length ?? null}
+				noOfStrategies={poolsNumber}
 				strategyInputsData={searchData}
 				ltvPlaceholder={'% of max LTV'}
 			/>
 
-			{poolsData.length > 0 ? (
-				<YieldsStrategyTable data={poolsData} />
+			{rowsQuery.isLoading && !rowsQuery.data ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Loading strategies...
+				</p>
+			) : rowsQuery.isError ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Couldn't load strategies.
+				</p>
+			) : poolsData.length > 0 ? (
+				<PaginatedYieldsStrategyTable data={poolsData} {...tableProps} />
 			) : (
 				<p className="rounded-md bg-(--cards-bg) p-3 text-center">
 					Given a collateral token this finder will display "lend-borrow-farm" strategies across all our tracked pools.

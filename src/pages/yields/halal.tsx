@@ -1,7 +1,7 @@
 import { startTransition, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
+import { YIELD_HALAL_DATASET_API } from '~/constants'
 import { disclaimer } from '~/containers/Yields/constants'
-import { getYieldPageData } from '~/containers/Yields/queries.server'
 import YieldPage from '~/containers/Yields/views/PoolsView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -34,92 +34,12 @@ This leaves us with:
 - Bridge LPs
 `
 
-/*
-Blacklist
-
-Removed because of 
-- lending: aave, justlend, compound, alpaca finance, venus, euler, solend, tectonic, iron bank, benqi, morpho, goldfinch, radiant, geist, moonwell, dForce, TrueFi
-- "lending money to gamblers": GMX
-- yield aggregator that can deposit money in lending protocols: yearn, beefy, badger dao, idle finance, yield yak, autofarm, vesper
-- algo-stables: frax, origin dollar
-- lending with fixed timeframes and interests (may be complaint but not sure): notional
-- cdp (not sure): angle, Yeti Finance, abracadabra
-- option selling: Francium, friktion, StakeDAO
-- kind of lending: tokemak
-- leverage: Instadapp
-*/
-
-const whitelist = [
-	'Curve',
-	'Lido',
-	'Convex Finance',
-	'Uniswap V2',
-	'Uniswap V3',
-	'Arrakis Finance',
-	'PancakeSwap',
-	'Osmosis',
-	'Balancer',
-	'VVS Finance',
-	'Stargate',
-	'SushiSwap',
-	'DefiChain DEX',
-	'Aura',
-	'Biswap',
-	'Quickswap',
-	'Maiar Exchange',
-	'Ankr',
-	'Raydium',
-	'Wombat Exchange',
-	'Trader Joe',
-	'Atrix',
-	'Platypus Finance',
-	'Vector Finance',
-	'LooksRare',
-	'MDEX',
-	'cBridge',
-	'Bancor V3',
-	'Ellipsis Finance',
-	'Concentrator',
-	'Velodrome',
-	'Beethoven X',
-	'Across',
-	'SpookySwap',
-	'Meshswap',
-	'Kokonut Swap',
-	'Flamingo Finance',
-	'Pangolin',
-	'Dot Dot Finance',
-	'Loopring',
-	'Trisolaris',
-	'ApeSwap AMM',
-	'MM Finance Polygon',
-	'Solidly V2'
-	// stopped at protocols with <20M TVL
-]
-
-const blackListedTokens = ['AUSDT', 'OUSD', 'AUSDC']
-
 export const getStaticProps = withPerformanceLogging('yields/halal', async () => {
-	let {
-		props: { ...data }
-	} = await getYieldPageData()
-
-	const pools = data.pools.filter(
-		(p) => whitelist.includes(p.projectName) && !blackListedTokens.some((t) => p.symbol.includes(t))
-	)
+	const { getYieldHalalPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const metadata = await getYieldHalalPageMetadata()
 
 	return {
-		props: {
-			...data,
-			pools,
-			projectList: data.projectList.filter((p) => whitelist.includes(p)),
-			categoryList: Array.from(
-				pools.reduce((set, pool) => {
-					set.add(pool.category)
-					return set
-				}, new Set())
-			)
-		},
+		props: { ...metadata, serverPagination: true, serverApi: YIELD_HALAL_DATASET_API },
 		revalidate: maxAgeForNext([23])
 	}
 })

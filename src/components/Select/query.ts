@@ -18,6 +18,7 @@ export const updateQueryFromSelected = (
 	defaultSelectedValues?: string[],
 	options?: {
 		resetPage?: boolean
+		pushQueryUpdates?: (updates: Record<string, string | string[] | undefined>) => void
 	}
 ) => {
 	const updates: Record<string, string | string[] | undefined> = {}
@@ -26,6 +27,10 @@ export const updateQueryFromSelected = (
 		updates[key] = value === null ? undefined : value
 	}
 	const pushUpdates = () => {
+		if (options?.pushQueryUpdates) {
+			options.pushQueryUpdates(updates)
+			return
+		}
 		void pushShallowQuery(router, options?.resetPage ? { ...updates, page: undefined } : updates)
 	}
 

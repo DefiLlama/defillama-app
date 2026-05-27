@@ -11,10 +11,13 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { preparePaginatedYieldsColumns, type YieldsTableConfig } from './config'
+import type { IYieldsTableProps } from './types'
 
 const EMPTY_SORTING: SortingState = []
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
@@ -174,4 +177,68 @@ export const YieldsTableWrapper = <TRow,>({
 			) : null}
 		</div>
 	)
+}
+
+export function PaginatedYieldsTableWrapper<TRow, TColumnId extends string>({
+	data,
+	config,
+	initialPageSize = PAGE_SIZE_OPTIONS[0],
+	initialPageIndex = 0,
+	rowCount,
+	manualPagination = false,
+	manualSorting = false,
+	paginationState,
+	sortingState = EMPTY_SORTING,
+	onPaginationChange,
+	onSortingChange,
+	interactionDisabled = false
+}: IYieldsTableProps<TRow> & {
+	config: YieldsTableConfig<TRow, TColumnId, undefined>
+}) {
+	const [localSorting, setLocalSorting] = React.useState<SortingState>(() => [...sortingState])
+	const [localPagination, setLocalPagination] = React.useState<PaginationState>({
+		pageIndex: initialPageIndex,
+		pageSize: initialPageSize
+	})
+	const sorting = onSortingChange ? sortingState : localSorting
+	const pagination = paginationState ?? localPagination
+	const paginatedColumns = React.useMemo(() => preparePaginatedYieldsColumns(config, undefined), [config])
+
+	const table = useReactTable({
+		data,
+		columns: paginatedColumns,
+		state: {
+			sorting,
+			pagination
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		rowCount: manualPagination ? rowCount : undefined,
+		manualPagination,
+		manualSorting,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) =>
+			React.startTransition(() => {
+				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
+				if (!onSortingChange) {
+					setLocalSorting(nextSorting)
+				}
+				onSortingChange?.(nextSorting)
+			}),
+		onPaginationChange: (updater) =>
+			React.startTransition(() => {
+				const nextPagination = typeof updater === 'function' ? updater(pagination) : updater
+				if (!paginationState) {
+					setLocalPagination(nextPagination)
+				}
+				onPaginationChange?.(nextPagination)
+			}),
+		getCoreRowModel: getCoreRowModel(),
+		...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
+		...(manualPagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
+		autoResetPageIndex: false
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={PAGE_SIZE_OPTIONS} interactionDisabled={interactionDisabled} />
 }
