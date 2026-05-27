@@ -3,6 +3,7 @@
 import { flexRender, type RowData, type Table as ReactTable } from '@tanstack/react-table'
 import { createContext, startTransition, useContext, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import {
 	TokenPageTable,
 	TokenPageTableBodyCell,
@@ -113,6 +114,14 @@ export function PaginatedTable<T extends RowData>({
 			<div className={`flex flex-col gap-3 ${className ?? ''}`}>
 				<TokenPageTableShell className="bg-(--cards-bg)">
 					<TokenPageTableScroller className="bg-(--cards-bg)">
+						{interactionDisabled ? (
+							<div className="absolute inset-0 z-20 flex items-center justify-center bg-(--cards-bg)/60 backdrop-blur-[1px]">
+								<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-secondary) shadow-xs">
+									<LoadingSpinner size={14} />
+									<span>Loading data...</span>
+								</div>
+							</div>
+						) : null}
 						<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 							<img
 								src="/assets/defillama-dark-neutral.webp"
