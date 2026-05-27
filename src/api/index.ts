@@ -43,6 +43,7 @@ export async function searchApi<T = Record<string, unknown>>(query: SearchQuery)
 
 const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
 const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
+const COINS_PUBLIC_PRICES_API_URL = 'https://coins.llama.fi/prices'
 const COINS_CURRENT_PRICES_POST_API_URL = `${COINS_SERVER_URL}/pro/prices/current`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
@@ -59,10 +60,19 @@ function shouldFallbackToLegacyCurrentPricesGet(error: unknown): boolean {
 	return error instanceof Error && /\[(404|405)\]/.test(error.message)
 }
 
+function canUseCurrentPricesPost(): boolean {
+	return typeof window === 'undefined' && !!process.env.API_KEY
+}
+
+function getCurrentPricesGetApiUrl(): string {
+	return typeof window === 'undefined' ? COINS_PRICES_API_URL : COINS_PUBLIC_PRICES_API_URL
+}
+
 async function fetchCoinPricesGetBatch(
 	coins: Array<string>,
 	options?: { searchWidth?: string }
 ): Promise<Record<string, PriceObject>> {
+	const coinsPricesApiUrl = getCurrentPricesGetApiUrl()
 	const legacyBatchSize = 10
 	const batches: Array<Array<string>> = []
 	for (let i = 0; i < coins.length; i += legacyBatchSize) {
@@ -74,12 +84,12 @@ async function fetchCoinPricesGetBatch(
 				const searchParams = new URLSearchParams()
 				if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
 				const queryString = searchParams.toString()
-				const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
+				const url = `${coinsPricesApiUrl}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
 				const response = await fetchJson<CoinsPricesResponse>(url)
 				return response.coins ?? {}
 			} catch (err) {
 				recordRuntimeError(err, 'outboundFetch', {
-					target: `${COINS_PRICES_API_URL}/current`,
+					target: `${coinsPricesApiUrl}/current`,
 					coin_count: batch.length,
 					first_coin: batch[0],
 					search_width: options?.searchWidth ?? 'default'
@@ -113,6 +123,10 @@ export async function fetchCoinPrices(
 ): Promise<Record<string, PriceObject>> {
 	if (coins.length === 0) {
 		return {}
+	}
+
+	if (!canUseCurrentPricesPost()) {
+		return fetchCoinPricesGetBatch(coins, options)
 	}
 
 	const batchSize = 100000

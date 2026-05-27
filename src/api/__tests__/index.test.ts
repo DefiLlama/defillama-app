@@ -25,9 +25,55 @@ describe('fetchCoinPrices', () => {
 		fetchJsonMock.mockReset()
 		recordRuntimeErrorMock.mockReset()
 		vi.resetModules()
+		vi.unstubAllEnvs()
+		vi.unstubAllGlobals()
 	})
 
-	it('uses POST batches of 100000 and preserves merged output order', async () => {
+	it('uses legacy GET chunks without a server API key', async () => {
+		fetchJsonMock.mockImplementation(async (url: string) => {
+			const coinList = url.match(/\/current\/([^?]+)/)?.[1]?.split(',') ?? []
+			return {
+				coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
+			}
+		})
+		const { fetchCoinPrices } = await import('../index')
+		const coins = Array.from({ length: 11 }, (_, i) => `coingecko:get-${i}`)
+
+		const prices = await fetchCoinPrices(coins, { searchWidth: '4h' })
+
+		expect(fetchJsonMock).toHaveBeenCalledTimes(2)
+		expect(fetchJsonMock).toHaveBeenNthCalledWith(
+			1,
+			`https://coins.llama.fi/prices/current/${coins.slice(0, 10).join(',')}?searchWidth=4h`
+		)
+		expect(fetchJsonMock).toHaveBeenNthCalledWith(
+			2,
+			`https://coins.llama.fi/prices/current/${coins.slice(10).join(',')}?searchWidth=4h`
+		)
+		expect(Object.keys(prices)).toEqual(coins)
+	})
+
+	it('uses legacy GET chunks in browser runtime even when an API key is present', async () => {
+		vi.stubEnv('API_KEY', 'pro-secret')
+		vi.stubGlobal('window', {})
+		fetchJsonMock.mockImplementation(async (url: string) => {
+			const coinList = url.match(/\/current\/([^?]+)/)?.[1]?.split(',') ?? []
+			return {
+				coins: Object.fromEntries(coinList.map((coin) => [coin, priceFor(coin)]))
+			}
+		})
+		const { fetchCoinPrices } = await import('../index')
+		const coins = ['coingecko:browser-0']
+
+		const prices = await fetchCoinPrices(coins)
+
+		expect(fetchJsonMock).toHaveBeenCalledTimes(1)
+		expect(fetchJsonMock).toHaveBeenCalledWith('https://coins.llama.fi/prices/current/coingecko:browser-0')
+		expect(Object.keys(prices)).toEqual(coins)
+	})
+
+	it('uses server POST batches of 100000 when an API key is available', async () => {
+		vi.stubEnv('API_KEY', 'pro-secret')
 		fetchJsonMock.mockImplementation(async (_url: string, options?: RequestInit) => {
 			const body = JSON.parse(String(options?.body))
 			return {
@@ -42,7 +88,7 @@ describe('fetchCoinPrices', () => {
 		expect(fetchJsonMock).toHaveBeenCalledTimes(2)
 		expect(fetchJsonMock).toHaveBeenNthCalledWith(
 			1,
-			'https://coins.llama.fi/pro/prices/current',
+			'https://pro-api.llama.fi/pro-secret/coins/pro/prices/current',
 			expect.objectContaining({
 				method: 'POST',
 				body: JSON.stringify({ coins: coins.slice(0, 100000), searchWidth: '4h' })
@@ -50,7 +96,7 @@ describe('fetchCoinPrices', () => {
 		)
 		expect(fetchJsonMock).toHaveBeenNthCalledWith(
 			2,
-			'https://coins.llama.fi/pro/prices/current',
+			'https://pro-api.llama.fi/pro-secret/coins/pro/prices/current',
 			expect.objectContaining({
 				method: 'POST',
 				body: JSON.stringify({ coins: coins.slice(100000), searchWidth: '4h' })
@@ -61,8 +107,9 @@ describe('fetchCoinPrices', () => {
 	})
 
 	it('falls back to legacy GET chunks only for missing POST endpoint errors', async () => {
+		vi.stubEnv('API_KEY', 'pro-secret')
 		fetchJsonMock
-			.mockRejectedValueOnce(new Error('https://coins.llama.fi/pro/prices/current: [404] Not Found'))
+			.mockRejectedValueOnce(new Error('https://pro-api.llama.fi/pro-secret/coins/pro/prices/current: [404] Not Found'))
 			.mockImplementation(async (url: string) => {
 				const coinList = url.match(/\/current\/([^?]+)/)?.[1]?.split(',') ?? []
 				return {
@@ -81,8 +128,9 @@ describe('fetchCoinPrices', () => {
 	})
 
 	it('keeps legacy GET fallback partial results when one chunk fails', async () => {
+		vi.stubEnv('API_KEY', 'pro-secret')
 		fetchJsonMock
-			.mockRejectedValueOnce(new Error('https://coins.llama.fi/pro/prices/current: [404] Not Found'))
+			.mockRejectedValueOnce(new Error('https://pro-api.llama.fi/pro-secret/coins/pro/prices/current: [404] Not Found'))
 			.mockImplementation(async (url: string) => {
 				const coinList = url.match(/\/current\/([^?]+)/)?.[1]?.split(',') ?? []
 				if (coinList.includes('coingecko:fallback-0')) {
@@ -103,7 +151,7 @@ describe('fetchCoinPrices', () => {
 			expect.any(Error),
 			'outboundFetch',
 			expect.objectContaining({
-				target: 'https://coins.llama.fi/prices/current',
+				target: 'https://pro-api.llama.fi/pro-secret/coins/prices/current',
 				coin_count: 10,
 				first_coin: 'coingecko:fallback-0'
 			})
@@ -111,7 +159,10 @@ describe('fetchCoinPrices', () => {
 	})
 
 	it('does not fall back to legacy GET for server failures', async () => {
-		fetchJsonMock.mockRejectedValue(new Error('https://coins.llama.fi/pro/prices/current: [500] Internal Error'))
+		vi.stubEnv('API_KEY', 'pro-secret')
+		fetchJsonMock.mockRejectedValue(
+			new Error('https://pro-api.llama.fi/pro-secret/coins/pro/prices/current: [500] Internal Error')
+		)
 		const { fetchCoinPrices } = await import('../index')
 
 		await expect(fetchCoinPrices(['coingecko:ethereum'])).resolves.toEqual({})
