@@ -71,7 +71,13 @@ function decodeQuerySelection(
 	}
 
 	const excludedSet = parseExcludeParam(excludeValue)
-	return excludedSet.size > 0 ? selectedValues.filter((value) => !excludedSet.has(value)) : selectedValues
+	if (excludedSet.size === 0) return selectedValues
+
+	const filteredValues: string[] = []
+	for (const value of selectedValues) {
+		if (!excludedSet.has(value)) filteredValues.push(value)
+	}
+	return filteredValues
 }
 
 export function decodeYieldsQuery(
@@ -112,13 +118,21 @@ export function decodeYieldsQuery(
 				} else if (query.chain === 'None') {
 					selectedChains = []
 				} else if (query.chain === 'ALL_EVM') {
-					selectedChains = chainList.filter(isEvmChain)
+					for (const chain of chainList) {
+						if (isEvmChain(chain)) selectedChains.push(chain)
+					}
 				} else {
 					selectedChains = [query.chain]
 				}
 			} else if (query.chain.includes('ALL_EVM')) {
-				const evmChainsFromList = chainList.filter(isEvmChain)
-				selectedChains = [...new Set([...query.chain.filter((value) => value !== 'ALL_EVM'), ...evmChainsFromList])]
+				const selectedChainsSet = new Set<string>()
+				for (const value of query.chain) {
+					if (value !== 'ALL_EVM') selectedChainsSet.add(value)
+				}
+				for (const chain of chainList) {
+					if (isEvmChain(chain)) selectedChainsSet.add(chain)
+				}
+				selectedChains = Array.from(selectedChainsSet)
 			} else {
 				selectedChains = [...query.chain]
 			}
@@ -128,13 +142,19 @@ export function decodeYieldsQuery(
 
 		const excludedChainSet = parseExcludeParam(query.excludeChain)
 		if (excludedChainSet.size > 0) {
-			selectedChains = selectedChains.filter((chain) => !excludedChainSet.has(chain))
+			const filteredChains: string[] = []
+			for (const chain of selectedChains) {
+				if (!excludedChainSet.has(chain)) filteredChains.push(chain)
+			}
+			selectedChains = filteredChains
 		}
 	}
 
-	const selectedAttributes = toQueryArray(query.attribute).filter(
-		(attribute) => !parseExcludeParam(query.excludeAttribute).has(attribute)
-	)
+	const selectedAttributes: string[] = []
+	const excludedAttributeSet = parseExcludeParam(query.excludeAttribute)
+	for (const attribute of toQueryArray(query.attribute)) {
+		if (!excludedAttributeSet.has(attribute)) selectedAttributes.push(attribute)
+	}
 	const includeTokens = toQueryArray(token)
 	const excludeTokens = toQueryArray(excludeToken)
 	const exactTokens = toQueryArray(exactToken)
@@ -170,11 +190,22 @@ export function hasActiveYieldsQueries(query: ParsedUrlQuery, keys: readonly str
 }
 
 export function clearYieldsQueries(keys: readonly string[]) {
-	return Object.fromEntries(keys.map((key) => [key, undefined] as const))
+	const updates: Record<string, undefined> = {}
+	for (const key of keys) {
+		updates[key] = undefined
+	}
+	return updates
 }
 
 export function shouldResetYieldsPoolPage(pathname: string | undefined) {
-	return pathname === '/yields' || pathname === '/yields/stablecoins'
+	return (
+		pathname === '/yields' ||
+		pathname === '/yields/stablecoins' ||
+		pathname === '/yields/loop' ||
+		pathname === '/yields/strategy' ||
+		pathname === '/yields/strategy-long-short' ||
+		pathname === '/yields/halal'
+	)
 }
 
 export function resetYieldsPoolPageOnFilterChange<T extends Record<string, QueryUpdateValue>>(
@@ -196,14 +227,13 @@ export function decodePoolsColumnVisibilityQuery(
 		isStablecoinPage: boolean
 	}
 ): PoolsColumnVisibility {
-	const optionalColumnVisibility = Object.fromEntries(
-		ALL_POOL_COLUMN_QUERY_KEYS.map((queryKey) => {
-			const columnId = POOL_QUERY_KEY_TO_COLUMN_ID[queryKey]
-			const isVisible = query[queryKey] === 'true'
-			const premiumBlocked = (queryKey === 'showMedianApy' || queryKey === 'showStdDev') && !hasPremiumAccess
-			return [columnId, premiumBlocked ? false : isVisible]
-		})
-	) as Record<PoolOptionalColumnId, boolean>
+	const optionalColumnVisibility = {} as Record<PoolOptionalColumnId, boolean>
+	for (const queryKey of ALL_POOL_COLUMN_QUERY_KEYS) {
+		const columnId = POOL_QUERY_KEY_TO_COLUMN_ID[queryKey]
+		const isVisible = query[queryKey] === 'true'
+		const premiumBlocked = (queryKey === 'showMedianApy' || queryKey === 'showStdDev') && !hasPremiumAccess
+		optionalColumnVisibility[columnId] = premiumBlocked ? false : isVisible
+	}
 
 	return {
 		...optionalColumnVisibility,
@@ -237,7 +267,11 @@ export const POOLS_FILTER_QUERY_KEYS = [
 	...ALL_POOL_COLUMN_QUERY_KEYS
 ] as const
 
-export const POOLS_FILTER_ONLY_QUERY_KEYS = POOLS_FILTER_QUERY_KEYS.filter(
-	(queryKey): queryKey is Exclude<(typeof POOLS_FILTER_QUERY_KEYS)[number], PoolColumnQueryKey> =>
-		!(ALL_POOL_COLUMN_QUERY_KEYS as readonly string[]).includes(queryKey)
-)
+const ALL_POOL_COLUMN_QUERY_KEYS_SET = new Set<string>(ALL_POOL_COLUMN_QUERY_KEYS)
+const poolsFilterOnlyQueryKeys: Array<Exclude<(typeof POOLS_FILTER_QUERY_KEYS)[number], PoolColumnQueryKey>> = []
+for (const queryKey of POOLS_FILTER_QUERY_KEYS) {
+	if (!ALL_POOL_COLUMN_QUERY_KEYS_SET.has(queryKey)) {
+		poolsFilterOnlyQueryKeys.push(queryKey as Exclude<(typeof POOLS_FILTER_QUERY_KEYS)[number], PoolColumnQueryKey>)
+	}
+}
+export const POOLS_FILTER_ONLY_QUERY_KEYS = poolsFilterOnlyQueryKeys

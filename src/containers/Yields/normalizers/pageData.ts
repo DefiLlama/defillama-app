@@ -63,7 +63,7 @@ export function buildRaiseValuations(
 
 	// Match config slugs → valuations (4-tier cascade)
 	const result = new Map<string, number>()
-	for (const slug of Object.keys(config)) {
+	for (const slug in config) {
 		const configName = config[slug]?.name
 		if (!configName) continue
 		const proto = liteByName.get(configName.toLowerCase())
@@ -122,64 +122,103 @@ export function formatYieldsPageData({
 	const evmChainsSet = buildEvmChainsSet(_chains)
 
 	// symbol in _config doesn't account for potential parentProtocol token, updating this here
-	for (const i of Object.values(_config)) {
+	const parentProtocolByProtocolName = new Map<string, string>()
+	for (const protocol of _lite.protocols) {
+		if (protocol.name && protocol.parentProtocol)
+			parentProtocolByProtocolName.set(protocol.name, protocol.parentProtocol)
+	}
+	const parentGeckoIdById = new Map<string, string | null>()
+	for (const parentProtocol of _lite.parentProtocols) {
+		if (parentProtocol.id) parentGeckoIdById.set(parentProtocol.id, parentProtocol.gecko_id ?? null)
+	}
+
+	for (const key in _config) {
+		const i = _config[key]
 		if ([null, '-'].includes(i['symbol'])) {
-			const parentId = _lite.protocols.find((l) => l.name === i['name'])?.parentProtocol
+			const parentId = parentProtocolByProtocolName.get(i['name'])
 
 			if (parentId) {
-				const geckoId = _lite.parentProtocols.find((p) => p.id === parentId)?.gecko_id
+				const geckoId = parentGeckoIdById.get(parentId)
 				i['symbol'] = geckoId ? 'x' : i['symbol']
 			}
 		}
 	}
 
 	// add projectName and audit fields from config to pools array
-	_pools = _pools.map((p) => ({
-		...p,
-		projectName: _config[p.project]?.name ?? null,
-		audits: _config[p.project]?.audits ?? null,
-		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
-		category: _config[p.project]?.category ?? null,
-		url: _urls[p.pool] ?? '',
-		apyReward: p.apyReward > 0 ? p.apyReward : null,
-		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
-		apyNet7d: calculateApyNet7d(p.apyBase7d, p.il7d)
-	}))
+	const poolsWithConfig: Array<RawYieldPool & Partial<YieldPool>> = []
+	for (const p of _pools) {
+		const config = _config[p.project]
+		poolsWithConfig.push({
+			...p,
+			projectName: config?.name ?? null,
+			audits: config?.audits ?? null,
+			airdrop: config?.symbol === null || config?.symbol === '-',
+			category: config?.category ?? null,
+			url: _urls[p.pool] ?? '',
+			apyReward: p.apyReward > 0 ? p.apyReward : null,
+			rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
+			apyNet7d: calculateApyNet7d(p.apyBase7d, p.il7d)
+		})
+	}
+	_pools = poolsWithConfig
 
 	// add lsd apr
-	const lsd = _pools.filter(
-		(p) => p.category === 'Liquid Staking' && p.exposure === 'single' && p.project !== 'stafi' && p.symbol !== 'ETH'
-	)
-	const lsdSymbols = [...new Set(lsd.map((p) => p.symbol))]
-	_pools = _pools.map((p) => {
+	const lsd = []
+	const lsdSymbolsSet = new Set<string>()
+	for (const p of _pools) {
+		if (p.category === 'Liquid Staking' && p.exposure === 'single' && p.project !== 'stafi' && p.symbol !== 'ETH') {
+			lsd.push(p)
+			lsdSymbolsSet.add(p.symbol)
+		}
+	}
+	const lsdSymbols = Array.from(lsdSymbolsSet)
+	const poolsWithLsd: Array<RawYieldPool & Partial<YieldPool>> = []
+	const lsdExcludedProjects = new Set(['curve-dex', 'olympus-dao', 'convex-finance'])
+	const lsdFeeProjects = new Set(['balancer-v2', 'aura'])
+	for (const p of _pools) {
 		let apyLsd = null
-		if (
-			p.category !== 'Liquid Staking' &&
-			lsdSymbols.some((i) => p.symbol.includes(i)) &&
-			!['curve-dex', 'olympus-dao', 'convex-finance'].includes(p.project)
-		) {
+		let includesLsdSymbol = false
+		for (const symbol of lsdSymbols) {
+			if (p.symbol.includes(symbol)) {
+				includesLsdSymbol = true
+				break
+			}
+		}
+		if (p.category !== 'Liquid Staking' && includesLsdSymbol && !lsdExcludedProjects.has(p.project)) {
 			const l = p.underlyingTokens?.length
-			apyLsd = lsd
-				.filter((i) => p.symbol.includes(i.symbol))
-				.reduce(
-					// balancer takes 50% of lsd apr as fee (https://docs.balancer.fi/concepts/governance/protocol-fees.html#wrapped-token-yield-fees)
-					(acc, v) => (['balancer-v2', 'aura'].includes(p.project) ? (v.apyBase * 0.5) / l + acc : v.apyBase / l + acc),
-					0
-				)
+			apyLsd = 0
+			for (const lsdPool of lsd) {
+				if (!p.symbol.includes(lsdPool.symbol)) continue
+				// balancer takes 50% of lsd apr as fee (https://docs.balancer.fi/concepts/governance/protocol-fees.html#wrapped-token-yield-fees)
+				apyLsd += lsdFeeProjects.has(p.project) ? (lsdPool.apyBase * 0.5) / l : lsdPool.apyBase / l
+			}
 			apyLsd = Number.isFinite(apyLsd) ? apyLsd : null
 		}
 
-		return {
+		let lsdTokenOnly = true
+		for (const symbolPart of p.symbol.split('-')) {
+			let symbolPartHasLsd = false
+			for (const lsdSymbol of lsdSymbols) {
+				if (symbolPart.includes(lsdSymbol)) {
+					symbolPartHasLsd = true
+					break
+				}
+			}
+			if (!symbolPartHasLsd) {
+				lsdTokenOnly = false
+				break
+			}
+		}
+
+		poolsWithLsd.push({
 			...p,
 			apyLsd,
 			apyBaseIncludingLsdApy: p.apyBase + apyLsd,
 			apyIncludingLsdApy: p.apy + apyLsd,
-			lsdTokenOnly: !p.symbol
-				.split('-')
-				.map((s) => lsdSymbols.some((i) => s.includes(i)))
-				.includes(false)
-		}
-	})
+			lsdTokenOnly
+		})
+	}
+	_pools = poolsWithLsd
 
 	const poolsList: YieldPool[] = []
 
@@ -262,7 +301,13 @@ export function formatYieldsPageData({
 	}
 	tokenNameMapping = filteredTokenNameMapping
 
-	const symbols = [...new Set(_pools.map((p) => p.symbol.split(' ')[0].split('-')).flat())]
+	const symbolsSet = new Set<string>()
+	for (const pool of _pools) {
+		for (const symbol of pool.symbol.split(' ')[0].split('-')) {
+			symbolsSet.add(symbol)
+		}
+	}
+	const symbols = Array.from(symbolsSet)
 
 	const tokens = [
 		{

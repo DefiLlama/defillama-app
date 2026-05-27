@@ -4,16 +4,28 @@ import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import type { FormSubmitEvent } from '~/types/forms'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
+type QueryUpdates = Record<string, string | string[] | undefined>
+
 export function AvailableRange({
 	variant = 'primary',
 	nestedMenu,
-	placement
+	placement,
+	pushQueryUpdates
 }: {
 	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	placement?: Ariakit.PopoverStoreProps['placement']
+	pushQueryUpdates?: (updates: QueryUpdates) => void
 }) {
 	const router = useRouter()
+
+	const updateQuery = (updates: QueryUpdates) => {
+		if (pushQueryUpdates) {
+			pushQueryUpdates(updates)
+			return
+		}
+		void pushShallowQuery(router, updates)
+	}
 
 	const handleSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
@@ -21,7 +33,7 @@ export function AvailableRange({
 		const minAvailable = form.min?.value
 		const maxAvailable = form.max?.value
 
-		void pushShallowQuery(router, {
+		updateQuery({
 			minAvailable: minAvailable || undefined,
 			maxAvailable: maxAvailable || undefined
 		})
@@ -31,7 +43,7 @@ export function AvailableRange({
 	const maxAvailable = readSingleQueryValue(router.query.maxAvailable)
 
 	const handleClear = () => {
-		void pushShallowQuery(router, { minAvailable: undefined, maxAvailable: undefined })
+		updateQuery({ minAvailable: undefined, maxAvailable: undefined })
 	}
 
 	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null

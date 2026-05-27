@@ -98,6 +98,10 @@ export interface RawYieldPerpMarket {
 	indexPrice: number
 }
 
+export interface YieldPerpMarket extends RawYieldPerpMarket {
+	symbol: string
+}
+
 export interface YieldPerpsResponse {
 	data: RawYieldPerpMarket[]
 }

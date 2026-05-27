@@ -17,77 +17,86 @@ export async function enrichRewardTokenNames(data: YieldPageProps): Promise<Yiel
 		priceChainMappingKeys.add(chainName)
 	}
 
-	let pricesList = []
+	const pricesSet = new Set<string>()
 
 	for (const pool of data.pools) {
-		const rewardTokens = pool.rewardTokens?.filter(Boolean) ?? []
+		if (!pool.rewardTokens?.length) continue
 
-		if (rewardTokens.length) {
-			let priceChainName = pool.chain.toLowerCase()
-			priceChainName = priceChainMappingKeys.has(priceChainName)
-				? yieldPriceChainMapping[priceChainName]
-				: priceChainName
+		let hasRewardToken = false
+		for (const token of pool.rewardTokens) {
+			if (token) {
+				hasRewardToken = true
+				break
+			}
+		}
+		if (!hasRewardToken) continue
 
-			pricesList.push(
-				pool.chain === 'Neo'
-					? [`coingecko:${pool.project}`]
-					: rewardTokens.map((token) => getRewardTokenPriceKey(priceChainName, token))
-			)
+		let priceChainName = pool.chain.toLowerCase()
+		priceChainName = priceChainMappingKeys.has(priceChainName) ? yieldPriceChainMapping[priceChainName] : priceChainName
+
+		if (pool.chain === 'Neo') {
+			pricesSet.add(`coingecko:${pool.project}`)
+		} else {
+			for (const token of pool.rewardTokens) {
+				if (token) pricesSet.add(getRewardTokenPriceKey(priceChainName, token))
+			}
 		}
 	}
-	pricesList = [...new Set(pricesList.flat())]
 
-	const coinsPrices = await fetchCoinPrices(pricesList)
+	const coinsPrices = await fetchCoinPrices(Array.from(pricesSet))
 
 	for (const pool of data.pools) {
 		let priceChainName = pool.chain.toLowerCase()
-		const rewardTokens = pool.rewardTokens?.filter(Boolean) ?? []
+		const rewardTokens: string[] = []
+		for (const token of pool.rewardTokens ?? []) {
+			if (token) rewardTokens.push(token)
+		}
 
 		priceChainName = priceChainMappingKeys.has(priceChainName) ? yieldPriceChainMapping[priceChainName] : priceChainName
 
-		pool.rewardTokensSymbols =
-			pool.chain === 'Neo'
-				? [
-						...new Set(
-							rewardTokens.map((token) =>
-								token === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
-									? 'FLM'
-									: token === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
-										? 'NUDES'
-										: null
-							)
-						)
-					]
-				: [
-						...new Set(
-							rewardTokens.map(
-								(token) => coinsPrices[getRewardTokenPriceKey(priceChainName, token)]?.symbol.toUpperCase() ?? null
-							)
-						)
-					]
+		const rewardTokenSymbols = new Set<string | null>()
+		if (pool.chain === 'Neo') {
+			for (const token of rewardTokens) {
+				rewardTokenSymbols.add(
+					token === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
+						? 'FLM'
+						: token === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
+							? 'NUDES'
+							: null
+				)
+			}
+		} else {
+			for (const token of rewardTokens) {
+				rewardTokenSymbols.add(coinsPrices[getRewardTokenPriceKey(priceChainName, token)]?.symbol.toUpperCase() ?? null)
+			}
+		}
+		pool.rewardTokensSymbols = Array.from(rewardTokenSymbols)
 	}
 
 	for (const pool of data.pools) {
-		const rewardNames = pool.rewardTokensSymbols.map((token) => {
-			return token === 'WAVAX'
-				? data.tokenNameMapping['AVAX']
-				: token === 'WFTM'
-					? data.tokenNameMapping['FTM']
-					: token === 'WMATIC'
-						? data.tokenNameMapping['MATIC']
-						: token === 'WETH'
-							? data.tokenNameMapping['ETH']
-							: token === 'WBNB'
-								? data.tokenNameMapping['BNB']
-								: token === 'HOP' && pool.project === 'hop-protocol'
-									? pool.projectName
-									: token === 'WOO.E'
-										? data.tokenNameMapping['WOO']
-										: token === 'SOLID' && pool.project === 'solidly-v3'
-											? pool.projectName
-											: data.tokenNameMapping[token]
-		})
-		pool.rewardTokensNames = rewardNames.filter((token) => token)
+		const rewardNames: string[] = []
+		for (const token of pool.rewardTokensSymbols) {
+			const rewardName =
+				token === 'WAVAX'
+					? data.tokenNameMapping['AVAX']
+					: token === 'WFTM'
+						? data.tokenNameMapping['FTM']
+						: token === 'WMATIC'
+							? data.tokenNameMapping['MATIC']
+							: token === 'WETH'
+								? data.tokenNameMapping['ETH']
+								: token === 'WBNB'
+									? data.tokenNameMapping['BNB']
+									: token === 'HOP' && pool.project === 'hop-protocol'
+										? pool.projectName
+										: token === 'WOO.E'
+											? data.tokenNameMapping['WOO']
+											: token === 'SOLID' && pool.project === 'solidly-v3'
+												? pool.projectName
+												: data.tokenNameMapping[token]
+			if (rewardName) rewardNames.push(rewardName)
+		}
+		pool.rewardTokensNames = rewardNames
 	}
 
 	return data

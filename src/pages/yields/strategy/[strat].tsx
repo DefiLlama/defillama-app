@@ -1,8 +1,9 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
+import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
-import { calculateLoopAPY } from '~/containers/Yields/domain/loopApy'
+import { calculateLoopAPY, type LoopApyInputPool } from '~/containers/Yields/domain/loopApy'
 import {
 	useConfigPool,
 	useYieldChartData,
@@ -14,41 +15,132 @@ import { formattedNum } from '~/utils'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const EMPTY_APY_DATASET = { source: [], dimensions: ['timestamp', 'APY'] }
-const EMPTY_BASE_REWARD_DATASET = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
+const EMPTY_APY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'APY'] }
+const EMPTY_BASE_REWARD_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
 
-const APY_LINE_CHARTS = [{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }]
+const APY_LINE_CHARTS: MultiSeriesChart2SeriesConfig[] = [
+	{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }
+]
 
-const BAR_APY_CHARTS = [
+const BAR_APY_CHARTS: MultiSeriesChart2SeriesConfig[] = [
 	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
 	{ type: 'bar', name: 'Reward', encode: { x: 'timestamp', y: 'Reward' }, stack: 'a', color: CHART_COLORS[1] }
 ]
 
+interface StrategyConfigPool {
+	config_id: string
+	project: string
+	category?: string | null
+	symbol?: string | null
+	mintedCoin?: string | null
+	ltv?: number | null
+}
+
+interface YieldChartPoint {
+	timestamp: string
+	apy: number | null
+	apyBase?: number | null
+	apyReward?: number | null
+	tvlUsd?: number | null
+}
+
+interface YieldBorrowChartPoint extends YieldChartPoint, Omit<LoopApyInputPool, 'project' | 'apyBaseBorrow'> {
+	apyBaseBorrow: number | null
+	apyRewardBorrow?: number | null
+	totalSupplyUsd?: number | null
+	totalBorrowUsd?: number | null
+	borrowFactor?: number | null
+}
+
+type ParsedChartPoint<TPoint extends { timestamp: string }> = Omit<TPoint, 'timestamp'> & { timestamp: number }
+
+type ParsedYieldChartPoint = ParsedChartPoint<YieldChartPoint>
+type ParsedYieldBorrowChartPoint = ParsedChartPoint<YieldBorrowChartPoint>
+
+interface MergedStrategyPoint {
+	timestamp: number
+	lendData: ParsedYieldChartPoint
+	borrowData: ParsedYieldBorrowChartPoint
+	farmData: ParsedYieldChartPoint
+}
+
+interface MergedStrategyCompletePoint extends MergedStrategyPoint {
+	lendData: ParsedYieldChartPoint & { apy: number }
+	borrowData: ParsedYieldBorrowChartPoint & { apyBaseBorrow: number }
+	farmData: ParsedYieldChartPoint & { apy: number }
+}
+
+interface MergedStrategyApyPoint extends MergedStrategyCompletePoint {
+	strategyAPY: number
+	loopAPY?: number
+}
+
+function getFirstRouteParam(value: string | string[] | undefined) {
+	return Array.isArray(value) ? value[0] : value
+}
+
+function parseTimestamp(timestamp: string) {
+	return new Date(timestamp.split('T')[0]).getTime() / 1000
+}
+
+function buildParsedChartMap<TPoint extends { timestamp: string }>(
+	points: TPoint[] | undefined,
+	uniqueDates: Set<number>
+) {
+	const map = new Map<number, ParsedChartPoint<TPoint>>()
+	if (!points) return map
+
+	for (const point of points) {
+		const timestamp = parseTimestamp(point.timestamp)
+		map.set(timestamp, { ...point, timestamp } as ParsedChartPoint<TPoint>)
+		uniqueDates.add(timestamp)
+	}
+
+	return map
+}
+
+export function calculateStrategyDetailLoopApy({
+	borrowData,
+	project,
+	ltv
+}: {
+	borrowData: ParsedYieldBorrowChartPoint & { apyBaseBorrow: number }
+	project: string
+	ltv: number
+}) {
+	return calculateLoopAPY([{ ...borrowData, project, apyBaseBorrow: -borrowData.apyBaseBorrow, ltv }], 10)[0]?.loopApy
+}
+
+export function sortStrategyDetailApyPoints(points: MergedStrategyApyPoint[]) {
+	points.sort((left, right) => left.timestamp - right.timestamp)
+}
+
 const PageView = () => {
 	const { query } = useRouter()
 
-	const tokens = query.strat?.split('_')
+	const strategyParam = getFirstRouteParam(query.strat)
+	const tokens = strategyParam?.split('_') ?? []
 
-	const lendToken = tokens?.length ? tokens[0] : ''
-	const borrowToken = tokens?.length ? tokens[1] : ''
-	const farmToken = tokens?.length ? tokens[2] : ''
+	const lendToken = tokens.length ? tokens[0] : ''
+	const borrowToken = tokens.length ? tokens[1] : ''
+	const farmToken = tokens.length ? tokens[2] : ''
 
 	const { data: lendHistory, isLoading: fetchingLendData } = useYieldChartData(lendToken)
 	const { data: borrowHistory, isLoading: fetchingBorrowData } = useYieldChartLendBorrow(borrowToken)
 	const { data: farmHistory, isLoading: fetchingFarmData } = useYieldChartData(farmToken)
-	const { data: configData, isLoading: fetchingConfigData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
+	const { data: configData, isLoading: fetchingConfigData } = useConfigPool(tokens.length ? tokens.join(',') : '')
 
 	const configsMap = useMemo(() => {
-		return configData?.data ? new Map(configData.data.map((p) => [p.config_id, p])) : new Map()
+		const map = new Map<string, StrategyConfigPool>()
+		for (const config of (configData?.data ?? []) as StrategyConfigPool[]) {
+			map.set(config.config_id, config)
+		}
+		return map
 	}, [configData])
 	const project = configsMap?.get(lendToken)?.project
 
 	const { data: config, isLoading: fetchingConfig } = useYieldConfigData(project ?? '')
 	const lendProjectCategory = config?.category
-
-	const parseTimestamp = (timestamp) => {
-		return new Date(timestamp.split('T')[0]).getTime() / 1000
-	}
 
 	const {
 		finalApyDataset = EMPTY_APY_DATASET,
@@ -63,7 +155,7 @@ const PageView = () => {
 		farmTVL,
 		borrowAvailable
 	} = useMemo(() => {
-		if (!lendHistory || !borrowHistory || !farmHistory || !configData || !lendProjectCategory) {
+		if (!lendHistory || !borrowHistory || !farmHistory || !configData || !project || !lendProjectCategory) {
 			return {
 				finalApyDataset: EMPTY_APY_DATASET,
 				barDatasetSupply: EMPTY_BASE_REWARD_DATASET,
@@ -72,59 +164,38 @@ const PageView = () => {
 			}
 		}
 
-		const lendData = lendHistory?.data?.map((t) => ({
-			...t,
-			timestamp: parseTimestamp(t.timestamp)
-		}))
-		const borrowData = borrowHistory?.data?.map((t) => ({
-			...t,
-			timestamp: parseTimestamp(t.timestamp)
-		}))
-		const farmData = farmHistory?.data?.map((t) => ({
-			...t,
-			timestamp: parseTimestamp(t.timestamp)
-		}))
+		const uniqueDates = new Set<number>()
+		const lendDataMap = buildParsedChartMap((lendHistory.data ?? []) as YieldChartPoint[], uniqueDates)
+		const borrowDataMap = buildParsedChartMap((borrowHistory.data ?? []) as YieldBorrowChartPoint[], uniqueDates)
+		const farmDataMap = buildParsedChartMap((farmHistory.data ?? []) as YieldChartPoint[], uniqueDates)
 
-		const lendDataMap = new Map(lendData.map((item) => [item.timestamp, item]))
-		const borrowDataMap = new Map(borrowData.map((item) => [item.timestamp, item]))
-		const farmDataMap = new Map(farmData.map((item) => [item.timestamp, item]))
-
-		const uniqueDates = [
-			...new Set(
-				lendData
-					.map((d) => d.timestamp)
-					.concat(borrowData.map((d) => d.timestamp))
-					.concat(farmData.map((d) => d.timestamp))
-			)
-		]
-
-		let merged = []
+		const ltv = configsMap?.get(lendToken)?.ltv ?? 0
+		const mergedWithApy: MergedStrategyApyPoint[] = []
 		for (const d of uniqueDates) {
-			merged.push({
+			const row: MergedStrategyPoint = {
 				timestamp: d,
 				lendData: lendDataMap.get(d),
 				borrowData: borrowDataMap.get(d),
 				farmData: farmDataMap.get(d)
+			}
+			if (!row.lendData || !row.borrowData || !row.farmData) continue
+			if (row.lendData.apy === null || row.borrowData.apyBaseBorrow === null || row.farmData.apy === null) continue
+
+			const completeRow = row as MergedStrategyCompletePoint
+			mergedWithApy.push({
+				...completeRow,
+				strategyAPY:
+					completeRow.lendData.apy +
+					(-completeRow.borrowData.apyBaseBorrow + (completeRow.borrowData.apyRewardBorrow ?? 0)) * ltv +
+					completeRow.farmData.apy * ltv,
+				loopAPY: calculateStrategyDetailLoopApy({ borrowData: completeRow.borrowData, project, ltv })
 			})
 		}
-		merged = merged.filter((t) => !Object.values(t).includes(undefined))
-		// filter merged to length where all 3 components (lend/borrow/farm values) are not null
-		merged = merged.filter(
-			(t) => t.lendData.apy !== null && t.borrowData.apyBaseBorrow !== null && t.farmData.apy !== null
-		)
 
-		const ltv = configsMap?.get(lendToken)?.ltv || 0
-
-		merged = merged.map((t) => ({
-			...t,
-			strategyAPY:
-				t.lendData.apy + (-t.borrowData.apyBaseBorrow + t.borrowData.apyRewardBorrow) * ltv + t.farmData.apy * ltv,
-			loopAPY: calculateLoopAPY([{ ...t?.borrowData, apyBaseBorrow: -t?.borrowData?.apyBaseBorrow, ltv }], 10)[0]
-				?.loopApy
-		}))
+		sortStrategyDetailApyPoints(mergedWithApy)
 
 		// make sure this is the most recent value
-		const latestValues = merged?.slice(-1)[0] ?? []
+		const latestValues = mergedWithApy.at(-1)
 		const farmTVL = latestValues?.farmData?.tvlUsd ?? 0
 		const borrowAvailable =
 			(latestValues?.borrowData?.totalSupplyUsd ?? 0) - (latestValues?.borrowData?.totalBorrowUsd ?? 0)
@@ -143,63 +214,73 @@ const PageView = () => {
 		const finalAPY = lendToken === borrowToken && lendProjectCategory !== 'CDP' ? loopAPY : strategyAPY
 
 		const isLoop = lendToken === borrowToken && lendProjectCategory !== 'CDP'
+		const finalApySource: MultiSeriesChart2Dataset['source'] = []
+		for (const point of mergedWithApy) {
+			const apyRaw = isLoop ? point.loopAPY : point.strategyAPY
+			const apy = typeof apyRaw === 'number' ? Number(apyRaw.toFixed(2)) : Number(apyRaw)
+			if (Number.isFinite(apy)) {
+				finalApySource.push({ timestamp: point.timestamp * 1e3, APY: apy })
+			}
+		}
 		const finalApyDataset = {
-			source: merged
-				.map((t) => {
-					const apyRaw = isLoop ? t?.loopAPY : t?.strategyAPY
-					const apy = typeof apyRaw === 'number' ? Number(apyRaw.toFixed(2)) : Number(apyRaw)
-					if (!Number.isFinite(apy)) return null
-					return { timestamp: t.timestamp * 1e3, APY: apy }
-				})
-				.filter(Boolean),
+			source: finalApySource,
 			dimensions: ['timestamp', 'APY']
 		}
 
-		const barDatasetSupply = {
-			source: merged.map((item) => ({
+		const supplySource: MultiSeriesChart2Dataset['source'] = []
+		const borrowSource: MultiSeriesChart2Dataset['source'] = []
+		const farmSource: MultiSeriesChart2Dataset['source'] = []
+		for (const item of mergedWithApy) {
+			supplySource.push({
 				timestamp: item.lendData.timestamp * 1e3,
 				Base:
-					item.lendData?.apyBase == null || !Number.isFinite(item.lendData.apyBase)
+					item.lendData.apyBase == null || !Number.isFinite(item.lendData.apyBase)
 						? null
 						: Number(item.lendData.apyBase.toFixed(2)),
 				Reward:
-					item.lendData?.apyReward == null || !Number.isFinite(item.lendData.apyReward)
+					item.lendData.apyReward == null || !Number.isFinite(item.lendData.apyReward)
 						? null
 						: Number(item.lendData.apyReward.toFixed(2))
-			})),
+			})
+
+			borrowSource.push({
+				timestamp: item.borrowData.timestamp * 1e3,
+				Base:
+					item.borrowData.apyBaseBorrow == null || !Number.isFinite(item.borrowData.apyBaseBorrow)
+						? null
+						: -Number(item.borrowData.apyBaseBorrow.toFixed(2)),
+				Reward:
+					item.borrowData.apyRewardBorrow == null || !Number.isFinite(item.borrowData.apyRewardBorrow)
+						? null
+						: Number(item.borrowData.apyRewardBorrow.toFixed(2))
+			})
+
+			const farmBaseRaw =
+				item.farmData.apyBase == null || !Number.isFinite(item.farmData.apyBase)
+					? item.farmData.apy
+					: item.farmData.apyBase
+			farmSource.push({
+				timestamp: item.farmData.timestamp * 1e3,
+				Base: farmBaseRaw == null || !Number.isFinite(farmBaseRaw) ? null : Number(farmBaseRaw.toFixed(2)),
+				Reward:
+					item.farmData.apyReward == null || !Number.isFinite(item.farmData.apyReward)
+						? null
+						: Number(item.farmData.apyReward.toFixed(2))
+			})
+		}
+
+		const barDatasetSupply = {
+			source: supplySource,
 			dimensions: ['timestamp', 'Base', 'Reward']
 		}
 
 		const barDatasetBorrow = {
-			source: merged.map((item) => ({
-				timestamp: item.borrowData.timestamp * 1e3,
-				Base:
-					item.borrowData?.apyBaseBorrow == null || !Number.isFinite(item.borrowData.apyBaseBorrow)
-						? null
-						: -Number(item.borrowData.apyBaseBorrow.toFixed(2)),
-				Reward:
-					item.borrowData?.apyRewardBorrow == null || !Number.isFinite(item.borrowData.apyRewardBorrow)
-						? null
-						: Number(item.borrowData.apyRewardBorrow.toFixed(2))
-			})),
+			source: borrowSource,
 			dimensions: ['timestamp', 'Base', 'Reward']
 		}
 
 		const barDatasetFarm = {
-			source: merged.map((item) => {
-				const baseRaw =
-					item.farmData?.apyBase == null || !Number.isFinite(item.farmData.apyBase)
-						? item.farmData?.apy
-						: item.farmData.apyBase
-				return {
-					timestamp: item.farmData.timestamp * 1e3,
-					Base: baseRaw == null || !Number.isFinite(baseRaw) ? null : Number(baseRaw.toFixed(2)),
-					Reward:
-						item.farmData?.apyReward == null || !Number.isFinite(item.farmData.apyReward)
-							? null
-							: Number(item.farmData.apyReward.toFixed(2))
-				}
-			}),
+			source: farmSource,
 			dimensions: ['timestamp', 'Base', 'Reward']
 		}
 
@@ -216,7 +297,17 @@ const PageView = () => {
 			farmTVL,
 			borrowAvailable
 		}
-	}, [lendHistory, borrowHistory, farmHistory, configData, configsMap, lendToken, borrowToken, lendProjectCategory])
+	}, [
+		lendHistory,
+		borrowHistory,
+		farmHistory,
+		configData,
+		configsMap,
+		lendToken,
+		borrowToken,
+		lendProjectCategory,
+		project
+	])
 
 	const isLoading = fetchingLendData || fetchingBorrowData || fetchingFarmData || fetchingConfigData || fetchingConfig
 
@@ -253,7 +344,7 @@ const PageView = () => {
 						<p className="flex items-center gap-1">
 							<span>Max LTV:</span>
 							<span className="ml-auto font-jetbrains">
-								{isLoading || ltv == null ? '' : `${ltv.toFixed(2) * 100}%`}
+								{isLoading || ltv == null ? '' : `${(ltv * 100).toFixed(2)}%`}
 							</span>
 						</p>
 						<p className="flex items-center gap-1">
@@ -394,9 +485,9 @@ const PageView = () => {
 	)
 }
 
-export default function YieldPoolPage(props) {
+export default function YieldPoolPage() {
 	const { query } = useRouter()
-	const strat = typeof query.strat === 'string' ? query.strat : Array.isArray(query.strat) ? query.strat[0] : undefined
+	const strat = getFirstRouteParam(query.strat)
 
 	return (
 		<Layout
@@ -408,7 +499,7 @@ export default function YieldPoolPage(props) {
 			}
 			canonicalUrl={strat ? `/yields/strategy/${strat}` : null}
 		>
-			<PageView {...props} />
+			<PageView />
 		</Layout>
 	)
 }

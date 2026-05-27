@@ -1,9 +1,4 @@
 import type { IYieldTableRow } from './Tables/types'
+import type { YieldsPaginatedTableResponse } from './yieldsTableQuery'
 
-export interface YieldPoolsPageResponse {
-	rows: IYieldTableRow[]
-	total: number
-	page: number
-	pageSize: number
-	hasMore: boolean
-}
+export type YieldPoolsPageResponse = YieldsPaginatedTableResponse<IYieldTableRow>

@@ -1,47 +1,38 @@
+import type { SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import * as React from 'react'
-import { filterStrategyPool, findStrategyPoolsFR } from '../domain/strategyFilters'
+import { YIELD_LONG_SHORT_STRATEGY_DATASET_API } from '~/constants'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
-import { YieldsStrategyTableFR } from '../Tables/StrategyFR'
+import { PaginatedYieldsStrategyTableFR } from '../Tables/StrategyFR'
+import type { YieldLongShortStrategyTableRow } from '../Tables/types'
+import { useYieldsServerTable } from '../useYieldsServerTable'
 
-const YieldsStrategyPageLongShort = ({
-	filteredPools,
-	perps,
-	tokens,
-	projectList,
-	chainList,
-	categoryList,
-	evmChains
-}) => {
-	const { query } = useRouter()
+const EMPTY_ROWS: YieldLongShortStrategyTableRow[] = []
+const LONG_SHORT_DEFAULT_SORTING: SortingState = [{ id: 'openInterest', desc: true }]
 
+const YieldsStrategyPageLongShort = ({ tokens, projectList, chainList, categoryList, evmChains }) => {
+	const router = useRouter()
+	const { query } = router
 	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
+	const hasToken = typeof token === 'string' ? !!token : Array.isArray(token) ? token.length > 0 : false
+	const {
+		rows,
+		total: poolsNumber,
+		rowsQuery,
+		tableProps
+	} = useYieldsServerTable<YieldLongShortStrategyTableRow>({
+		endpoint: YIELD_LONG_SHORT_STRATEGY_DATASET_API,
+		enabled: hasToken,
+		defaultSorting: LONG_SHORT_DEFAULT_SORTING
+	})
+	const poolsData = rows.length > 0 ? rows : EMPTY_ROWS
 
-	const { selectedChains, selectedAttributes, minTvl, maxTvl } = useFormatYieldQueryParams({
+	const { selectedChains } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
 		categoryList,
 		evmChains
 	})
-
-	const poolsData = React.useMemo(() => {
-		const selectedChainsSet = new Set(selectedChains)
-
-		const pools = findStrategyPoolsFR({ token: token ? query : null, filteredPools, perps })
-			.filter((pool) =>
-				filterStrategyPool({
-					pool,
-					selectedChainsSet,
-					selectedAttributes,
-					minTvl,
-					maxTvl
-				})
-			)
-			.sort((a, b) => b.openInterest - a.openInterest)
-
-		return pools
-	}, [token, query, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
 	const header = 'Strategy Finder' + (token ? `: ${typeof token === 'string' ? token : (token?.join(', ') ?? '')}` : '')
 
@@ -50,7 +41,7 @@ const YieldsStrategyPageLongShort = ({
 			<YieldFiltersV2
 				header={header}
 				resetFilters={true}
-				noOfStrategies={poolsData?.length ?? null}
+				noOfStrategies={poolsNumber}
 				tokens={tokens}
 				chainsNumber={selectedChains.length}
 				chainList={chainList}
@@ -61,8 +52,16 @@ const YieldsStrategyPageLongShort = ({
 				showSearchOnMobile
 			/>
 
-			{poolsData.length > 0 ? (
-				<YieldsStrategyTableFR data={poolsData} />
+			{rowsQuery.isLoading && !rowsQuery.data ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Loading strategies...
+				</p>
+			) : rowsQuery.isError ? (
+				<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+					Couldn't load strategies.
+				</p>
+			) : poolsData.length > 0 ? (
+				<PaginatedYieldsStrategyTableFR data={poolsData} {...tableProps} />
 			) : (
 				<p className="rounded-md bg-(--cards-bg) p-3 text-center">
 					Given a token this finder will display delta neutral "long-short" strategies across all our tracked pools and
