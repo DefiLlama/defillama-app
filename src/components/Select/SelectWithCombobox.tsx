@@ -25,6 +25,7 @@ interface ISelectWithComboboxBase {
 	onValuesChange?: (values: string[], label: string) => void
 	defaultSelectedValues?: string[]
 	resetPageOnQueryChange?: boolean
+	pushQueryUpdates?: (updates: Record<string, string | string[] | undefined>) => void
 	unmountOnHide?: boolean
 }
 
@@ -60,6 +61,7 @@ export function SelectWithCombobox({
 	includeQueryKey,
 	excludeQueryKey,
 	resetPageOnQueryChange,
+	pushQueryUpdates,
 	onValuesChange,
 	defaultSelectedValues,
 	unmountOnHide = true
@@ -94,19 +96,22 @@ export function SelectWithCombobox({
 	const setSelectedValues: (values: string[]) => void = includeQueryKey
 		? (values: string[]) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues, {
-					resetPage: resetPageOnQueryChange
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
 				})
 		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues, {
-					resetPage: resetPageOnQueryChange
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
 				})
 		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
 		? () =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues, {
-					resetPage: resetPageOnQueryChange
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
 				})
 		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
@@ -119,7 +124,8 @@ export function SelectWithCombobox({
 					[value],
 					defaultSelectedValues,
 					{
-						resetPage: resetPageOnQueryChange
+						resetPage: resetPageOnQueryChange,
+						pushQueryUpdates
 					}
 				)
 		: (value: string) => setSelectedValuesFromState([value])

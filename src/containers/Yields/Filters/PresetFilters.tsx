@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { shouldResetYieldsPoolPage } from '../queryState'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const toArray = <T,>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value])
 
@@ -70,9 +70,16 @@ const YIELD_PRESETS = {
 
 type PresetKey = keyof typeof YIELD_PRESETS
 
-const PRESET_KEYS = Object.keys(YIELD_PRESETS) as PresetKey[]
+const PRESET_KEYS: PresetKey[] = []
+const ALL_PRESET_FILTER_KEYS = new Set<string>()
+for (const key in YIELD_PRESETS) {
+	const presetKey = key as PresetKey
+	PRESET_KEYS.push(presetKey)
 
-const ALL_PRESET_FILTER_KEYS = new Set(Object.values(YIELD_PRESETS).flatMap((p) => Object.keys(p.filters)))
+	for (const filterKey in YIELD_PRESETS[presetKey].filters) {
+		ALL_PRESET_FILTER_KEYS.add(filterKey)
+	}
+}
 
 interface PresetFiltersProps {
 	className?: string
@@ -85,16 +92,28 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 	const activePresets = React.useMemo(() => {
 		const active = new Set<PresetKey>()
 
-		for (const [key, preset] of Object.entries(YIELD_PRESETS)) {
-			const isActive = Object.entries(preset.filters).every(([filterKey, filterValue]) => {
+		for (const key of PRESET_KEYS) {
+			const preset = YIELD_PRESETS[key]
+			let isActive = true
+			for (const filterKey in preset.filters) {
+				const filterValue = preset.filters[filterKey]
 				const queryValue = query[filterKey]
-				if (!queryValue) return false
+				if (!queryValue) {
+					isActive = false
+					break
+				}
 				const expected = toArray(filterValue)
 				const actual = toArray(queryValue)
-				return expected.every((v) => actual.includes(v))
-			})
+				for (const value of expected) {
+					if (!actual.includes(value)) {
+						isActive = false
+						break
+					}
+				}
+				if (!isActive) break
+			}
 
-			if (isActive) active.add(key as PresetKey)
+			if (isActive) active.add(key)
 		}
 		return active
 	}, [query])
@@ -104,28 +123,24 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 			const preset = YIELD_PRESETS[presetKey]
 			const isActive = activePresets.has(presetKey)
 
-			const newQuery: Record<string, string | string[]> = {}
-			for (const [key, value] of Object.entries(query)) {
-				if (shouldResetYieldsPoolPage(pathname) && key === 'page') {
-					continue
-				}
-				if (!ALL_PRESET_FILTER_KEYS.has(key)) {
-					newQuery[key] = value as string | string[]
-				}
+			const updates: Record<string, string | string[] | undefined> = {}
+			for (const key of ALL_PRESET_FILTER_KEYS) {
+				updates[key] = undefined
 			}
 
 			if (!isActive) {
 				trackYieldsEvent(YIELDS_EVENTS.FILTER_PRESET, { preset: presetKey })
-				for (const [filterKey, filterValue] of Object.entries(preset.filters)) {
+				for (const filterKey in preset.filters) {
+					const filterValue = preset.filters[filterKey]
 					const values = toArray(filterValue)
-					newQuery[filterKey] = values.length === 1 ? values[0] : values
+					updates[filterKey] = values.length === 1 ? values[0] : values
 				}
 			}
 			// If clicking active preset, just clear (already done above)
 
-			void router.push({ pathname, query: newQuery }, undefined, { shallow: true })
+			void pushYieldsQuery(router, updates, { pathname })
 		},
-		[activePresets, query, pathname, router]
+		[activePresets, pathname, router]
 	)
 
 	return (

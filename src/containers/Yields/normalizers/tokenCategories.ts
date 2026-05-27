@@ -13,9 +13,9 @@ export async function enrichYieldTokenCategories(
 
 		const categoryTokens: Array<{ name: string; symbol: string; logo: null; fallbackLogo: null }> = []
 		const categorySymbols: string[] = []
-		for (const [slug, categoryData] of Object.entries(data.tokenCategories)) {
+		for (const slug in data.tokenCategories) {
 			if (slug === 'meme-token') continue
-			const { label, filterKey } = categoryData as { label: string; filterKey: string }
+			const { label, filterKey } = data.tokenCategories[slug]
 			if (filterKey && label) {
 				categoryTokens.push({
 					name: label,
@@ -35,31 +35,47 @@ export async function enrichYieldTokenCategories(
 	try {
 		const memeTokenData = data.tokenCategories?.['meme-token']
 		if (memeTokenData) {
-			const memeAddresses = new Set(
-				(memeTokenData.addresses || []).map((address) => address.trim().toLowerCase().replaceAll('/', ':'))
-			)
-			const memeSymbols = new Set((memeTokenData.symbols || []).map((symbol) => symbol.trim().toLowerCase()))
+			const memeAddresses = new Set<string>()
+			for (const address of memeTokenData.addresses || []) {
+				memeAddresses.add(address.trim().toLowerCase().replaceAll('/', ':'))
+			}
+			const memeSymbols = new Set<string>()
+			for (const symbol of memeTokenData.symbols || []) {
+				memeSymbols.add(symbol.trim().toLowerCase())
+			}
 
-			data.pools = data.pools.map((pool) => {
+			const pools = []
+			for (const pool of data.pools) {
 				let hasMemeToken = false
-				if (!pool.symbol) return { ...pool, hasMemeToken }
+				if (!pool.symbol) {
+					pools.push({ ...pool, hasMemeToken })
+					continue
+				}
 
 				const chain = yieldPriceChainMapping[pool.chain?.toLowerCase()] ?? pool.chain?.toLowerCase()
 				const underlyingTokens = pool.underlyingTokens ?? []
 
 				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
-					hasMemeToken = underlyingTokens.some((address: string) =>
-						memeAddresses.has(`${chain}:${address.trim().toLowerCase().replaceAll('/', ':')}`)
-					)
+					for (const address of underlyingTokens) {
+						if (memeAddresses.has(`${chain}:${address.trim().toLowerCase().replaceAll('/', ':')}`)) {
+							hasMemeToken = true
+							break
+						}
+					}
 				}
 
 				if (!hasMemeToken && memeSymbols.size > 0) {
-					const tokensInPool = pool.symbol.split('-').map((symbol: string) => symbol.toLowerCase())
-					hasMemeToken = tokensInPool.some((symbol: string) => memeSymbols.has(symbol))
+					for (const symbol of pool.symbol.split('-')) {
+						if (memeSymbols.has(symbol.toLowerCase())) {
+							hasMemeToken = true
+							break
+						}
+					}
 				}
 
-				return { ...pool, hasMemeToken }
-			})
+				pools.push({ ...pool, hasMemeToken })
+			}
+			data.pools = pools
 		}
 	} catch {
 		// Meme token detection failed; pools keep hasMemeToken as undefined.

@@ -18,14 +18,23 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
 		useBookmarks('yields')
 	const { data: volatility } = useVolatility()
-	const { data: holderStats } = useHolderStats(
-		isClient ? protocolsDict.filter((p) => savedProtocols.has(p.pool)).map((p) => p.pool) : undefined
-	)
+	const savedPoolIds = useMemo(() => {
+		if (!isClient) return undefined
+		const ids: string[] = []
+		for (const pool of protocolsDict) {
+			if (savedProtocols.has(pool.pool)) ids.push(pool.pool)
+		}
+		return ids
+	}, [isClient, protocolsDict, savedProtocols])
+	const { data: holderStats } = useHolderStats(savedPoolIds)
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
-			const list = protocolsDict.filter((p) => savedProtocols.has(p.pool))
-			return list.map((pool) => mapPoolToYieldTableRow(pool, { volatility, holderStats }))
+			const rows = []
+			for (const pool of protocolsDict) {
+				if (savedProtocols.has(pool.pool)) rows.push(mapPoolToYieldTableRow(pool, { volatility, holderStats }))
+			}
+			return rows
 		} else return []
 	}, [isClient, savedProtocols, protocolsDict, volatility, holderStats])
 	const [open, setOpen] = useState(false)

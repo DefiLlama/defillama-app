@@ -62,13 +62,29 @@ describe('decodePoolsColumnVisibilityQuery', () => {
 })
 
 describe('resetYieldsPoolPageOnFilterChange', () => {
-	it('clears table pagination only on server-paginated pool routes', () => {
+	it('clears table pagination only on server-paginated yield routes', () => {
 		expect(resetYieldsPoolPageOnFilterChange('/yields', { chain: 'Ethereum' })).toEqual({
 			chain: 'Ethereum',
 			page: undefined
 		})
 		expect(resetYieldsPoolPageOnFilterChange('/yields/stablecoins', { token: 'USDC' })).toEqual({
 			token: 'USDC',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/loop', { token: 'ETH' })).toEqual({
+			token: 'ETH',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/strategy', { lend: 'ETH' })).toEqual({
+			lend: 'ETH',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/strategy-long-short', { token: 'BTC' })).toEqual({
+			token: 'BTC',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/halal', { chain: 'Ethereum' })).toEqual({
+			chain: 'Ethereum',
 			page: undefined
 		})
 		expect(resetYieldsPoolPageOnFilterChange('/borrow', { chain: 'Ethereum' })).toEqual({

@@ -1,40 +1,17 @@
 import { startTransition, useState } from 'react'
-import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/Yields/constants'
-import { calculateLoopAPY } from '~/containers/Yields/domain/loopApy'
-import { getLendBorrowData } from '~/containers/Yields/queries.server'
 import YieldPageLoop from '~/containers/Yields/views/LoopView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
-	let {
-		props: { ...data }
-	} = await getLendBorrowData()
-
-	const cgTokens = await fetchCoinGeckoTokensListFromDataset()
-
-	const tokens = []
-
-	for (const token of cgTokens) {
-		if (token.symbol) {
-			tokens.push({
-				name: token.name,
-				symbol: token.symbol.toUpperCase(),
-				logo: token.image2 || null,
-				fallbackLogo: token.image || null
-			})
-		}
-	}
+	const { getYieldLoopPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const metadata = await getYieldLoopPageMetadata()
 
 	return {
-		props: {
-			...data,
-			pools: calculateLoopAPY(data.pools, 10, null),
-			tokens
-		},
+		props: metadata,
 		revalidate: maxAgeForNext([23])
 	}
 })

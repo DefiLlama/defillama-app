@@ -8,11 +8,18 @@ import { YieldsOptimizerTable } from '../Tables/Optimizer'
 
 const EMPTY_POOL_ROWS: BorrowAdvancedRow[] = []
 
+export function parseAmountQuery(value: string | string[] | undefined) {
+	const raw = Array.isArray(value) ? value[0] : value
+	if (!raw) return 0
+	const amount = Number(raw)
+	return Number.isFinite(amount) ? amount : 0
+}
+
 export const BorrowAggregatorAdvanced = ({ chainList, lendingProtocols, searchData, evmChains }) => {
 	const { query } = useRouter()
 
-	const lendAmount = query.lendAmount ? +query.lendAmount : 0
-	const borrowAmount = query.borrowAmount ? +query.borrowAmount : 0
+	const lendAmount = parseAmountQuery(query.lendAmount)
+	const borrowAmount = parseAmountQuery(query.borrowAmount)
 
 	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
@@ -40,91 +47,101 @@ export const BorrowAggregatorAdvanced = ({ chainList, lendingProtocols, searchDa
 			if (chain && borrowToken) set.add(`${chain}:${borrowToken}`)
 		}
 
-		return [...set]
+		return Array.from(set)
 	}, [poolsData])
 
 	const { data: prices } = useGetPrice(tokens)
 
 	const poolsDataWithAmounts = React.useMemo(() => {
 		if (lendAmount === 0 && borrowAmount === 0) return poolsData
-		const poolsWithAmounts = poolsData
-			.filter((pool) => pool.exposure === 'single')
-			.map((pool) => {
-				// `prices` is keyed by the same string we request in `tokens`: `<chain>:<token>` (with `/` normalized to `:`)
-				if (!prices) return null
+		const poolsWithAmounts = []
+		for (const pool of poolsData) {
+			if (pool.exposure !== 'single') continue
+			// `prices` is keyed by the same string we request in `tokens`: `<chain>:<token>` (with `/` normalized to `:`)
+			if (!prices) continue
 
-				const chain = pool.chain?.toLowerCase()
-				const lendToken = pool.underlyingTokens?.[0]?.toLowerCase()?.replaceAll('/', ':')
-				const borrowToken =
-					pool.borrow?.underlyingTokens?.length > 0
-						? pool.borrow.underlyingTokens[pool.borrow.underlyingTokens.length - 1].toLowerCase().replaceAll('/', ':')
-						: null
+			const chain = pool.chain?.toLowerCase()
+			const lendToken = pool.underlyingTokens?.[0]?.toLowerCase()?.replaceAll('/', ':')
+			const borrowToken =
+				pool.borrow?.underlyingTokens?.length > 0
+					? pool.borrow.underlyingTokens[pool.borrow.underlyingTokens.length - 1].toLowerCase().replaceAll('/', ':')
+					: null
 
-				if (!chain || !lendToken || !borrowToken) return null
+			if (!chain || !lendToken || !borrowToken) continue
 
-				const lendPrice = prices[`${chain}:${lendToken}`]
-				const borrowPrice = prices[`${chain}:${borrowToken}`]
+			const lendPrice = prices[`${chain}:${lendToken}`]
+			const borrowPrice = prices[`${chain}:${borrowToken}`]
 
-				const lendPriceNum = lendPrice?.price
-				const borrowPriceNum = borrowPrice?.price
+			const lendPriceNum = lendPrice?.price
+			const borrowPriceNum = borrowPrice?.price
+
+			if (
+				!Number.isFinite(lendPriceNum) ||
+				!Number.isFinite(borrowPriceNum) ||
+				lendPriceNum <= 0 ||
+				borrowPriceNum <= 0
+			)
+				continue
+			if (!Number.isFinite(pool.ltv) || pool.ltv <= 0) continue
+			if (lendAmount !== 0 && borrowAmount !== 0) {
+				const lendUSDAmount = lendAmount * lendPriceNum
+				const borrowUSDAmount = borrowAmount * borrowPriceNum
+				const availableToBorrowUSD = lendUSDAmount * pool.ltv
+				if (availableToBorrowUSD < borrowUSDAmount) continue
+				poolsWithAmounts.push({
+					...pool,
+					lendUSDAmount,
+					lendAmount,
+					borrowAmount,
+					borrowUSDAmount,
+					lendPrice,
+					borrowPrice
+				})
+				continue
+			}
+			if (lendAmount !== 0) {
+				const lendUSDAmount = lendAmount * lendPriceNum
+				const borrowUSDAmount = lendUSDAmount * pool.ltv
+				const calculatedBorrowAmount = borrowUSDAmount / borrowPriceNum
 
 				if (
-					!Number.isFinite(lendPriceNum) ||
-					!Number.isFinite(borrowPriceNum) ||
-					lendPriceNum <= 0 ||
-					borrowPriceNum <= 0
+					!Number.isFinite(lendUSDAmount) ||
+					!Number.isFinite(borrowUSDAmount) ||
+					!Number.isFinite(calculatedBorrowAmount)
 				)
-					return null
-				if (!Number.isFinite(pool.ltv) || pool.ltv <= 0) return null
-				if (lendAmount !== 0 && borrowAmount !== 0) {
-					const lendUSDAmount = lendAmount * lendPriceNum
-					const borrowUSDAmount = borrowAmount * borrowPriceNum
-					const availableToBorrowUSD = lendUSDAmount * pool.ltv
-					if (availableToBorrowUSD < borrowUSDAmount) return null
-					return {
-						...pool,
-						lendUSDAmount,
-						lendAmount,
-						borrowAmount,
-						borrowUSDAmount,
-						lendPrice,
-						borrowPrice
-					}
-				}
-				if (lendAmount !== 0) {
-					const lendUSDAmount = lendAmount * lendPriceNum
-					const borrowUSDAmount = lendUSDAmount * pool.ltv
-					const calculatedBorrowAmount = borrowUSDAmount / borrowPriceNum
+					continue
+				poolsWithAmounts.push({
+					...pool,
+					lendUSDAmount,
+					lendAmount,
+					borrowAmount: calculatedBorrowAmount,
+					borrowUSDAmount,
+					lendPrice,
+					borrowPrice
+				})
+			} else {
+				const borrowUSDAmount = borrowAmount * borrowPriceNum
+				const lendUSDAmount = borrowUSDAmount / pool.ltv
+				const calculatedLendAmount = lendUSDAmount / lendPriceNum
 
-					if (![lendUSDAmount, borrowUSDAmount, calculatedBorrowAmount].every((e) => Number.isFinite(e))) return null
-					return {
-						...pool,
-						lendUSDAmount,
-						lendAmount,
-						borrowAmount: calculatedBorrowAmount,
-						borrowUSDAmount,
-						lendPrice,
-						borrowPrice
-					}
-				} else {
-					const borrowUSDAmount = borrowAmount * borrowPriceNum
-					const lendUSDAmount = borrowUSDAmount / pool.ltv
-					const calculatedLendAmount = lendUSDAmount / lendPriceNum
+				if (
+					!Number.isFinite(lendUSDAmount) ||
+					!Number.isFinite(borrowUSDAmount) ||
+					!Number.isFinite(calculatedLendAmount)
+				)
+					continue
 
-					if (![lendUSDAmount, borrowUSDAmount, calculatedLendAmount].every((e) => Number.isFinite(e))) return null
-
-					return {
-						...pool,
-						lendUSDAmount,
-						borrowAmount,
-						borrowUSDAmount,
-						lendPrice,
-						borrowPrice,
-						lendAmount: calculatedLendAmount
-					}
-				}
-			})
-			.filter((pool) => pool !== null)
+				poolsWithAmounts.push({
+					...pool,
+					lendUSDAmount,
+					borrowAmount,
+					borrowUSDAmount,
+					lendPrice,
+					borrowPrice,
+					lendAmount: calculatedLendAmount
+				})
+			}
+		}
 
 		return poolsWithAmounts
 	}, [poolsData, prices, lendAmount, borrowAmount])

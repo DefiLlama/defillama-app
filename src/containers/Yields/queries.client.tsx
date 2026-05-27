@@ -9,15 +9,14 @@ import {
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
 	YIELD_POOLS_LAMBDA_API,
-	YIELD_POOLS_DATASET_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
 import type { BorrowAdvancedRow } from './borrowAdvanced'
 import type { BorrowPageRowsResponse } from './borrowSimple'
-import type { YieldPoolsPageResponse } from './pools.types'
 import type { HolderHistoryEntry, HolderStatsMap } from './queries/holderTypes'
+import type { YieldsPaginatedTableResponse } from './yieldsTableQuery'
 
 export const useGetPrice = (tokens: Array<string>) => {
 	return useQuery({
@@ -61,13 +60,13 @@ export const useBorrowRows = (queryString: string | null) => {
 	})
 }
 
-export const useYieldPoolsPage = (queryString: string | null) => {
-	const url = queryString ? `${YIELD_POOLS_DATASET_API}${queryString}` : null
-	return useQuery<YieldPoolsPageResponse>({
-		queryKey: ['yield-pools-page', queryString],
+export const useYieldsPaginatedTable = <TRow,>(endpoint: string, queryString: string | null) => {
+	const url = queryString ? `${endpoint}${queryString}` : null
+	return useQuery<YieldsPaginatedTableResponse<TRow>>({
+		queryKey: ['yield-paginated-table', endpoint, queryString],
 		queryFn: async () =>
 			url
-				? fetchJson<YieldPoolsPageResponse>(url)
+				? fetchJson<YieldsPaginatedTableResponse<TRow>>(url)
 				: {
 						rows: [],
 						total: 0,
@@ -161,8 +160,8 @@ export const useHolderStats = (configIDs?: string[], { enabled = true }: { enabl
 			const res = await fetchJson(YIELD_HOLDERS_API)
 			const raw = res?.data ?? {}
 			const result: HolderStatsMap = {}
-			for (const [id, entry] of Object.entries(raw)) {
-				const e = entry as any
+			for (const id in raw) {
+				const e = raw[id] as any
 				result[id] = {
 					holderCount: e.holderCount ?? null,
 					avgPositionUsd: e.avgPositionUsd != null ? Number(e.avgPositionUsd) : null,
@@ -197,13 +196,17 @@ export const useHolderHistory = (configID: string | null) => {
 		queryKey: ['holder-history', configID],
 		queryFn: async () => {
 			const res = await fetchJson(`${YIELD_HOLDERS_API}/${configID}`)
-			return (res?.data ?? []).map((row: any) => ({
-				timestamp: row.timestamp,
-				holderCount: row.holderCount ?? null,
-				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
-				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null,
-				top10Holders: row.top10Holders?.holders ?? null
-			}))
+			const rows: HolderHistoryEntry[] = []
+			for (const row of res?.data ?? []) {
+				rows.push({
+					timestamp: row.timestamp,
+					holderCount: row.holderCount ?? null,
+					avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
+					top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null,
+					top10Holders: row.top10Holders?.holders ?? null
+				})
+			}
+			return rows
 		},
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,

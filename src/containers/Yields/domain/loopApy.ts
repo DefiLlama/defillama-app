@@ -1,40 +1,58 @@
-import type { LendBorrowPool } from '../types'
 import { sumApyParts } from './apyMath'
 import { applyCustomLtvToMax, getEffectiveLtv } from './ltv'
 
-export interface LoopApyPool extends LendBorrowPool {
+export interface LoopApyInputPool {
+	project: string
+	ltv?: number | null
+	borrowFactor?: number | null
+	totalBorrowUsd?: number | null
+	apyBase?: number | null
+	apyReward?: number | null
+	apyBaseBorrow?: number | null
+	apyRewardBorrow?: number | null
+}
+
+export type LoopApyPool<TPool extends LoopApyInputPool = LoopApyInputPool> = TPool & {
 	ltv: number
 	loopApy: number
 	boost: number
 }
 
-export function calculateLoopAPY(lendBorrowPools: LendBorrowPool[], loops = 10, customLTV?: number | null) {
-	const pools = lendBorrowPools
-		.filter((p) => p.ltv != null && p.ltv > 0 && (p.totalBorrowUsd ?? 0) > 0 && p.project !== 'marginfi') // Can't loop same asset on marginfi
-		.map((p) => ({
-			...p,
-			ltv: getEffectiveLtv({ project: p.project, ltv: p.ltv, borrowFactor: p.borrowFactor })
-		}))
-		.filter((p): p is LendBorrowPool & { ltv: number } => p.ltv != null && p.ltv > 0)
+export function calculateLoopAPY<TPool extends LoopApyInputPool>(
+	lendBorrowPools: TPool[],
+	loops = 10,
+	customLTV?: number | null
+): Array<LoopApyPool<TPool>> {
+	const rows: Array<LoopApyPool<TPool>> = []
 
-	return pools
-		.map((p) => {
-			const deposit_apy = (sumApyParts(p.apyBase, p.apyReward) ?? 0) / 100
-			// apyBaseBorrow already set to - in getLendBorrowData
-			const borrow_apy = (sumApyParts(p.apyBaseBorrow, p.apyRewardBorrow) ?? 0) / 100
+	for (const pool of lendBorrowPools) {
+		// Can't loop same asset on marginfi.
+		if (pool.ltv == null || pool.ltv <= 0 || (pool.totalBorrowUsd ?? 0) <= 0 || pool.project === 'marginfi') continue
 
-			let total_borrowed = 0
-			const ltv = applyCustomLtvToMax(p.ltv, customLTV)
-			for (let i = 0; i < loops; i++) {
-				total_borrowed += ltv ** (i + 1)
-			}
-
-			const loopApy = ((total_borrowed + 1) * deposit_apy + total_borrowed * borrow_apy) * 100
-			const boost = loopApy / (sumApyParts(p.apyBase, p.apyReward) ?? 0)
-			if (boost > 1 && Number.isFinite(boost)) {
-				return { ...p, loopApy, boost }
-			} else return null
+		const effectiveLtv = getEffectiveLtv({
+			project: pool.project,
+			ltv: pool.ltv,
+			borrowFactor: pool.borrowFactor
 		})
-		.filter((p): p is LoopApyPool => p != null)
-		.sort((a, b) => b.loopApy - a.loopApy)
+		if (effectiveLtv == null || effectiveLtv <= 0) continue
+
+		const depositApy = (sumApyParts(pool.apyBase, pool.apyReward) ?? 0) / 100
+		// apyBaseBorrow already set to - in getLendBorrowData
+		const borrowApy = (sumApyParts(pool.apyBaseBorrow, pool.apyRewardBorrow) ?? 0) / 100
+
+		let totalBorrowed = 0
+		const ltv = applyCustomLtvToMax(effectiveLtv, customLTV)
+		for (let i = 0; i < loops; i++) {
+			totalBorrowed += ltv ** (i + 1)
+		}
+
+		const loopApy = ((totalBorrowed + 1) * depositApy + totalBorrowed * borrowApy) * 100
+		const boost = loopApy / (sumApyParts(pool.apyBase, pool.apyReward) ?? 0)
+		if (boost > 1 && Number.isFinite(boost)) {
+			rows.push({ ...pool, ltv: effectiveLtv, loopApy, boost })
+		}
+	}
+
+	rows.sort((a, b) => b.loopApy - a.loopApy)
+	return rows
 }

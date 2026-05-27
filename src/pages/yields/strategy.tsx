@@ -1,47 +1,16 @@
-import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import { disclaimer } from '~/containers/Yields/constants'
-import { getLendBorrowData } from '~/containers/Yields/queries.server'
 import YieldsStrategyPage from '~/containers/Yields/views/StrategyFinderView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/strategy', async () => {
-	const {
-		props: { pools, allPools, ...data }
-	} = await getLendBorrowData()
-
-	const searchData = await fetchCoinGeckoTokensListFromDataset()
-
-	// restrict borrow and farming part (min apy's, noIL, single exposure only)
-	// and uppercase symbols (lend and borrow strings from router are upper case only)
-
-	// for cdp pools we filter only on borrow apy because supply apy is usually 0
-	const filteredPools = pools
-		.filter((p) => (p.category === 'CDP' ? p.apyBorrow !== 0 : p.apy > 0.01 && p.apyBorrow !== 0))
-		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
-
-	// ~1500pools
-	// and uppercase symbols (lend and borrow strings from router are upper case only)
-	const filteredAllPools = allPools
-		.filter(
-			(p) =>
-				p.ilRisk === 'no' &&
-				p.exposure === 'single' &&
-				p.apy > 0 &&
-				p.project !== 'babydogeswap' &&
-				p.project !== 'cbridge'
-		)
-		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
+	const { getYieldStrategyPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const metadata = await getYieldStrategyPageMetadata()
 
 	return {
-		props: {
-			pools: filteredPools,
-			allPools: filteredAllPools,
-			searchData: searchData?.flat() ?? [],
-			...data
-		},
+		props: metadata,
 		revalidate: maxAgeForNext([23])
 	}
 })

@@ -39,8 +39,9 @@ export function prepareYieldPoolsCsv(rows: YieldPoolTableRow[]) {
 		'Holder Change 7d',
 		'Holder Change 30d'
 	]
-	const csvData = rows.map((row) => {
-		return {
+	const csvRows: Array<Array<string | number | boolean | null | undefined>> = [headers]
+	for (const row of rows) {
+		const csvData = {
 			Pool: row.pool,
 			Project: row.project,
 			Chain: row.chains?.join(', '),
@@ -78,10 +79,15 @@ export function prepareYieldPoolsCsv(rows: YieldPoolTableRow[]) {
 			'Holder Change 7d': row.holderChange7d,
 			'Holder Change 30d': row.holderChange30d
 		}
-	})
+		const csvRow = []
+		for (const header of headers) {
+			csvRow.push(csvData[header])
+		}
+		csvRows.push(csvRow)
+	}
 
 	return {
 		filename: 'yields',
-		rows: [headers].concat(csvData.map((row) => headers.map((h) => row[h])))
+		rows: csvRows
 	}
 }
