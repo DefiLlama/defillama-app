@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
+import { resetYieldsPoolPageOnFilterChange } from '../queryState'
 
 const EMPTY_ARRAY: string[] = []
 
@@ -28,6 +29,11 @@ export function FilterByChain({
 	const isEvmChain = useCallback(
 		(c: string) => evmChainsSet.has(c) || evmChainsSet.has(c.toLowerCase()),
 		[evmChainsSet]
+	)
+	const pushFilterQuery = useCallback(
+		(updates: Record<string, string | string[] | undefined>) =>
+			pushShallowQuery(router, resetYieldsPoolPageOnFilterChange(router.pathname, updates)),
+		[router]
 	)
 
 	// Add ALL_EVM as the first option in the chain list
@@ -92,7 +98,7 @@ export function FilterByChain({
 			}
 
 			if (finalValues.length === 0) {
-				void pushShallowQuery(router, {
+				void pushFilterQuery({
 					chain: 'None',
 					excludeChain: undefined
 				})
@@ -100,14 +106,14 @@ export function FilterByChain({
 			}
 			if (finalValues.length === chainList.length) {
 				// All selected - remove chain params (default = all)
-				void pushShallowQuery(router, {
+				void pushFilterQuery({
 					chain: undefined,
 					excludeChain: undefined
 				})
 				return
 			}
 			if (finalValues.includes('ALL_EVM')) {
-				void pushShallowQuery(router, {
+				void pushFilterQuery({
 					chain: 'ALL_EVM',
 					excludeChain: undefined
 				})
@@ -117,19 +123,19 @@ export function FilterByChain({
 			// Specific chains selected - use include or exclude based on which is shorter
 			const excluded = chainList.filter((c) => !finalValues.includes(c))
 			if (excluded.length < finalValues.length) {
-				void pushShallowQuery(router, {
+				void pushFilterQuery({
 					chain: undefined,
 					excludeChain: excluded.length === 1 ? excluded[0] : excluded
 				})
 				return
 			}
 
-			void pushShallowQuery(router, {
+			void pushFilterQuery({
 				chain: finalValues.length === 1 ? finalValues[0] : finalValues,
 				excludeChain: undefined
 			})
 		},
-		[displaySelectedChains, isEvmChain, chainList, chainListWithSpecial, router, evmChains]
+		[displaySelectedChains, isEvmChain, chainList, chainListWithSpecial, pushFilterQuery, evmChains]
 	)
 
 	return (

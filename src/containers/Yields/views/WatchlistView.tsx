@@ -78,7 +78,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				{filteredProtocols.length ? (
 					<YieldsPoolsTable data={filteredProtocols} />
 				) : (
-					<p className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-center">
+					<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 						You have not saved any pools.
 					</p>
 				)}

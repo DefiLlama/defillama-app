@@ -69,6 +69,7 @@ describe('dataset cache registry', () => {
 			'/protocol/yields/*': ['yields'],
 			'/yields/pool/*': ['yields'],
 			'/api/datasets/yields': ['yields'],
+			'/api/datasets/yields/pools': ['yields'],
 			'/api/datasets/yields-token-borrow-routes': ['yields'],
 			'/api/token-liquidations/*': ['liquidations'],
 			'/api/liquidations': ['liquidations'],

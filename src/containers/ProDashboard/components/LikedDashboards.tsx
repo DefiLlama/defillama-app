@@ -6,7 +6,7 @@ import { LoadingSpinner } from './LoadingSpinner'
 export function LikedDashboards() {
 	const { dashboards, isLoading, page, totalPages, goToPage } = useLikedDashboards()
 
-	if (isLoading) {
+	if (isLoading && dashboards.length === 0) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 				<LoadingSpinner />

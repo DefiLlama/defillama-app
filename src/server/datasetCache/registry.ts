@@ -23,6 +23,7 @@ export const DATASET_DOMAIN_ARTIFACTS = {
 	yields: {
 		files: {
 			rows: 'rows.json',
+			pageData: 'page-data.json',
 			config: 'config.json',
 			lendBorrow: 'lend-borrow.json'
 		},
