@@ -153,13 +153,13 @@ describe('pro dashboard cache headers', () => {
 		expect(result).toEqual({ props: { dashboardId: 'dashboard-1' } })
 	})
 
-	it('uses private no-store cache headers for authenticated dashboard pages', async () => {
+	it('uses private no-store cache headers for authenticated dashboard pages without fetching', async () => {
 		const context = createSsrContext('dashboard-1', 'auth-token')
 
 		await getServerSideProps(context)
 
 		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
-		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('dashboard-1', 'auth-token')
+		expect(fetchDashboardConfigMock).not.toHaveBeenCalled()
 	})
 
 	it('uses private no-store cache headers for unauthenticated private-dashboard pages', async () => {

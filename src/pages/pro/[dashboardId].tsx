@@ -25,13 +25,15 @@ const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 
 	const authToken = getAuthTokenFromRequest(context.req)
 
+	if (authToken) {
+		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+		context.res.setHeader('Vary', 'Cookie, Authorization')
+		return { props: { dashboardId } }
+	}
+
 	try {
-		const dashboard = await fetchDashboardConfig(dashboardId, authToken)
-		if (authToken && !dashboard) {
-			context.res.setHeader('Cache-Control', 'private, no-store')
-			return { notFound: true }
-		}
-		const canCacheAtEdge = !authToken && dashboard?.visibility === 'public'
+		const dashboard = await fetchDashboardConfig(dashboardId, null)
+		const canCacheAtEdge = dashboard?.visibility === 'public'
 		context.res.setHeader(
 			'Cache-Control',
 			canCacheAtEdge
