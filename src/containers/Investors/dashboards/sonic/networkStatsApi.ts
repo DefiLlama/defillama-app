@@ -47,7 +47,7 @@ export function useNetworkStatsData() {
 	const query = useQuery<NetworkStatsAPIResponse>({
 		queryKey: ['sonic-network-stats'],
 		queryFn: async () => {
-			const res = await fetch('/api/sonic/network-stats')
+			const res = await fetch('/api/public/sonic/network-stats')
 			if (!res.ok) throw new Error(`Network stats API error: ${res.status}`)
 			return res.json()
 		},

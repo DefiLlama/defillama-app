@@ -301,7 +301,7 @@ export function DatasetPreviewModal({
 	const { data: availableChains } = useQuery({
 		queryKey: ['downloads-chains', dataset.slug],
 		queryFn: async () => {
-			const response = await authorizedFetch(`/api/downloads/${dataset.slug}?mode=chains`)
+			const response = await authorizedFetch(`/api/private/downloads/${dataset.slug}?mode=chains`)
 			if (!response || !response.ok) return []
 			const json = await response.json()
 			return (json?.chains as string[]) ?? []
@@ -322,7 +322,7 @@ export function DatasetPreviewModal({
 		queryFn: async () => {
 			const sep = chainQueryParam ? '&' : '?'
 			const nonce = isPreview ? `${sep}_n=${Math.random().toString(36).slice(2)}` : ''
-			const url = `/api/downloads/${dataset.slug}${chainQueryParam}${nonce}`
+			const url = `/api/private/downloads/${dataset.slug}${chainQueryParam}${nonce}`
 			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)

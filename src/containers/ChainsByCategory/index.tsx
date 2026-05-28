@@ -98,7 +98,7 @@ export function ChainsByCategory({
 			if (enabledTvlSettingsKey) {
 				searchParams.set('extraTvlTypes', enabledTvlSettingsKey)
 			}
-			return fetchJson<ChainsChartData>(`/api/page-data/chains/charts?${searchParams.toString()}`)
+			return fetchJson<ChainsChartData>(`/api/public/page-data/chains/charts?${searchParams.toString()}`)
 		},
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

@@ -57,7 +57,7 @@ export function useFeeMData() {
 	const query = useQuery<FeeMAPIResponse>({
 		queryKey: ['sonic-feem'],
 		queryFn: async () => {
-			const res = await fetch('/api/sonic/feem')
+			const res = await fetch('/api/public/sonic/feem')
 			if (!res.ok) throw new Error(`FeeM API error: ${res.status}`)
 			return res.json()
 		},

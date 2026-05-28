@@ -61,7 +61,7 @@ export function useBlockchainData() {
 	const query = useQuery<BlockchainAPIResponse>({
 		queryKey: ['berachain-blockchain'],
 		queryFn: async () => {
-			const res = await fetch('/api/berachain/blockchain')
+			const res = await fetch('/api/public/berachain/blockchain')
 			if (!res.ok) throw new Error(`Berachain Blockchain API error: ${res.status}`)
 			return res.json()
 		},

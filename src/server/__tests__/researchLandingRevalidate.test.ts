@@ -1,6 +1,6 @@
 import type { NextApiRequest } from 'next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { researchLandingRevalidateHandler } from '~/pages/api/research/revalidate-landing'
+import { researchLandingRevalidateHandler } from '~/pages/api/private/research/revalidate-landing'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
@@ -13,7 +13,7 @@ function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
 	} as NextApiRequest
 }
 
-describe('/api/research/revalidate-landing', () => {
+describe('/api/private/research/revalidate-landing', () => {
 	afterEach(() => {
 		vi.unstubAllEnvs()
 		vi.unstubAllGlobals()

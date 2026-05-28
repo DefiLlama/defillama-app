@@ -879,7 +879,7 @@ function fetchOverviewTimeSeriesDataset(
 	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
 	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/perps/overview-breakdown?${searchParams.toString()}`)
+	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`)
 }
 
 function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownRequest) {
@@ -891,7 +891,7 @@ function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownReque
 	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
 	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/perps/contract-breakdown?${searchParams.toString()}`)
+	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/perps/contract-breakdown?${searchParams.toString()}`)
 }
 
 export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {

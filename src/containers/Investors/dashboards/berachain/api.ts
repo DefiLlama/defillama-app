@@ -28,7 +28,7 @@ export interface HoneyRevenueData {
 export function useHoneyRevenueData() {
 	return useQuery<HoneyRevenueData>({
 		queryKey: ['berachain-honey-revenue'],
-		queryFn: () => fetch('/api/berachain/revenue').then((r) => r.json()),
+		queryFn: () => fetch('/api/public/berachain/revenue').then((r) => r.json()),
 		staleTime: STALE_TIME,
 		refetchOnWindowFocus: false
 	})

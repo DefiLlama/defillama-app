@@ -51,7 +51,12 @@ function appendPreflightVaryHeaders(response: NextResponse) {
 	appendVaryHeader(response, 'Access-Control-Request-Headers')
 }
 
-function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedOrigin: string) {
+function applyCorsHeaders(
+	response: NextResponse,
+	request: NextRequest,
+	allowedOrigin: string,
+	varyByOrigin = !allowAnyOrigin
+) {
 	response.headers.set('Access-Control-Allow-Origin', allowedOrigin)
 	response.headers.set('Access-Control-Allow-Methods', ALLOWED_METHODS)
 	response.headers.set(
@@ -60,9 +65,13 @@ function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedO
 	)
 	response.headers.set('Access-Control-Max-Age', MAX_AGE_SECONDS)
 
-	if (!allowAnyOrigin) {
+	if (varyByOrigin) {
 		appendVaryHeader(response, 'Origin')
 	}
+}
+
+function isPublicApiPath(pathname: string) {
+	return pathname.startsWith('/api/public/')
 }
 
 function getInvestorsRewrite(request: NextRequest) {
@@ -105,9 +114,10 @@ export function proxy(request: NextRequest) {
 	}
 
 	const origin = request.headers.get('origin')
-	const allowedOrigin = resolveAllowedOrigin(origin, request.nextUrl.origin)
+	const isPublicApi = isPublicApiPath(request.nextUrl.pathname)
+	const allowedOrigin = isPublicApi ? '*' : resolveAllowedOrigin(origin, request.nextUrl.origin)
 
-	if (origin && !allowedOrigin) {
+	if (!isPublicApi && origin && !allowedOrigin) {
 		const response = new NextResponse('CORS origin denied', { status: 403 })
 		appendVaryHeader(response, 'Origin')
 		if (request.method === 'OPTIONS') {
@@ -120,7 +130,7 @@ export function proxy(request: NextRequest) {
 		const response = new NextResponse(null, { status: 204 })
 
 		if (allowedOrigin) {
-			applyCorsHeaders(response, request, allowedOrigin)
+			applyCorsHeaders(response, request, allowedOrigin, !isPublicApi && !allowAnyOrigin)
 			appendPreflightVaryHeaders(response)
 		}
 
@@ -130,7 +140,7 @@ export function proxy(request: NextRequest) {
 	const response = NextResponse.next()
 
 	if (allowedOrigin) {
-		applyCorsHeaders(response, request, allowedOrigin)
+		applyCorsHeaders(response, request, allowedOrigin, !isPublicApi && !allowAnyOrigin)
 	}
 
 	return response

@@ -68,13 +68,15 @@ describe('dataset cache registry', () => {
 			'/protocol/token-rights/*': ['token-rights'],
 			'/protocol/yields/*': ['yields'],
 			'/yields/pool/*': ['yields'],
-			'/api/datasets/yields': ['yields'],
-			'/api/datasets/yields/pools': ['yields'],
-			'/api/datasets/yields-token-borrow-routes': ['yields'],
-			'/api/token-liquidations/*': ['liquidations'],
-			'/api/liquidations': ['liquidations'],
-			'/api/liquidations/*': ['liquidations'],
-			'/api/liquidations/*/*': ['liquidations']
+			'/api/public/datasets/borrow': ['yields'],
+			'/api/public/datasets/borrow-advanced': ['yields'],
+			'/api/public/datasets/yields': ['yields'],
+			'/api/public/datasets/yields/pools': ['yields'],
+			'/api/public/datasets/yields-token-borrow-routes': ['yields'],
+			'/api/private/token-liquidations/*': ['liquidations'],
+			'/api/private/liquidations': ['liquidations'],
+			'/api/private/liquidations/*': ['liquidations'],
+			'/api/private/liquidations/*/*': ['liquidations']
 		}
 
 		for (const [route, domains] of Object.entries(expectedRouteDomains)) {

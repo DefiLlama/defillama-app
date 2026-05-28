@@ -367,7 +367,7 @@ describe('useRwaChartDataset', () => {
 		await capturedOptions?.queryFn()
 
 		expect(fetchJsonMock).toHaveBeenCalledWith(
-			'/api/rwa/asset-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
+			'/api/public/rwa/asset-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
 		)
 	})
 

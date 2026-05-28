@@ -14,7 +14,7 @@ export function useFeesData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'fees-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/datasets/fees${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/datasets/fees${queryParams}`),
 		staleTime: Infinity,
 		retry: 1
 	})

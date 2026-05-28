@@ -16,8 +16,8 @@ async function loadInvestorsConfig(investorsSite: string) {
 	return import('~/containers/Investors/config')
 }
 
-function apiRequest(origin: string, method = 'POST') {
-	return new NextRequest('https://defillama.com/api/charts/protocol', {
+function apiRequest(origin: string, method = 'POST', path = '/api/charts/protocol') {
+	return new NextRequest(`https://defillama.com${path}`, {
 		method,
 		headers: { origin }
 	})
@@ -63,6 +63,50 @@ describe('api proxy CORS', () => {
 
 		expect(response.status).toBe(403)
 		expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull()
+	})
+
+	it('allows any origin for canonical public API requests without varying by Origin', async () => {
+		const { proxy } = await loadProxy('https://integrator.example')
+
+		const response = proxy(apiRequest('https://unknown.example', 'GET', '/api/public/charts/protocol'))
+
+		expect(response.status).not.toBe(403)
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
+		expect(response.headers.get('Vary') ?? '').not.toContain('Origin')
+	})
+
+	it('keeps configured-origin CORS for private and dynamic API requests', async () => {
+		const { proxy } = await loadProxy('https://integrator.example')
+
+		const privateResponse = proxy(apiRequest('https://unknown.example', 'GET', '/api/private/token-usage/BTC'))
+		const dynamicResponse = proxy(
+			apiRequest('https://unknown.example', 'GET', '/api/dynamic/dashboard/public-id/stream')
+		)
+
+		expect(privateResponse.status).toBe(403)
+		expect(dynamicResponse.status).toBe(403)
+		expect(privateResponse.headers.get('Access-Control-Allow-Origin')).toBeNull()
+		expect(dynamicResponse.headers.get('Access-Control-Allow-Origin')).toBeNull()
+	})
+
+	it('handles preflight for public, private, and dynamic API groups', async () => {
+		const { proxy } = await loadProxy('https://integrator.example')
+
+		const publicResponse = proxy(apiRequest('https://unknown.example', 'OPTIONS', '/api/public/charts/protocol'))
+		const privateResponse = proxy(apiRequest('https://integrator.example', 'OPTIONS', '/api/private/token-usage/BTC'))
+		const dynamicResponse = proxy(
+			apiRequest('https://integrator.example', 'OPTIONS', '/api/dynamic/dashboard/public-id/stream')
+		)
+
+		expect(publicResponse.status).toBe(204)
+		expect(publicResponse.headers.get('Access-Control-Allow-Origin')).toBe('*')
+		expect(publicResponse.headers.get('Vary') ?? '').not.toContain('Origin')
+		expect(privateResponse.status).toBe(204)
+		expect(privateResponse.headers.get('Access-Control-Allow-Origin')).toBe('https://integrator.example')
+		expect(privateResponse.headers.get('Vary')).toContain('Origin')
+		expect(dynamicResponse.status).toBe(204)
+		expect(dynamicResponse.headers.get('Access-Control-Allow-Origin')).toBe('https://integrator.example')
+		expect(dynamicResponse.headers.get('Vary')).toContain('Origin')
 	})
 })
 

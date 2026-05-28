@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { getLegacyApiRouteRewrites } from './src/server/apiRouteCatalog'
 import { getDatasetCacheTraceIncludes, type DatasetDomain } from './src/server/datasetCache/registry'
 
 const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTraceIncludes(...domains)
@@ -38,20 +39,23 @@ const nextConfig: NextConfig = {
 		'/protocol/token-rights/*': datasetCacheIncludes('token-rights'),
 		'/protocol/yields/*': datasetCacheIncludes('yields'),
 		'/yields/pool/*': datasetCacheIncludes('yields'),
-		'/api/datasets/borrow': datasetCacheIncludes('yields'),
-		'/api/datasets/borrow-advanced': datasetCacheIncludes('yields'),
-		'/api/datasets/yields': datasetCacheIncludes('yields'),
-		'/api/datasets/yields/pools': datasetCacheIncludes('yields'),
-		'/api/datasets/yields-token-borrow-routes': datasetCacheIncludes('yields'),
-		'/api/token-liquidations/*': datasetCacheIncludes('liquidations'),
-		'/api/liquidations': datasetCacheIncludes('liquidations'),
-		'/api/liquidations/*': datasetCacheIncludes('liquidations'),
-		'/api/liquidations/*/*': datasetCacheIncludes('liquidations')
+		'/api/public/datasets/borrow': datasetCacheIncludes('yields'),
+		'/api/public/datasets/borrow-advanced': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields/pools': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields-token-borrow-routes': datasetCacheIncludes('yields'),
+		'/api/private/token-liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations/*/*': datasetCacheIncludes('liquidations')
 	},
 	reactStrictMode: true,
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
+	rewrites() {
+		return getLegacyApiRouteRewrites()
+	},
 	redirects() {
 		return [
 			{

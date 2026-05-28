@@ -26,8 +26,8 @@ vi.mock('~/utils/metadata', () => ({
 	}
 }))
 
-import inflowsHandler from '~/pages/api/cex/inflows'
-import batchHandler from '~/pages/api/cex/inflows/batch'
+import inflowsHandler from '~/pages/api/private/cex/inflows'
+import batchHandler from '~/pages/api/private/cex/inflows/batch'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -35,7 +35,7 @@ beforeEach(() => {
 	fetchWithPoolingOnServerMock.mockResolvedValue(new Response(JSON.stringify({ outflows: 1 })))
 })
 
-describe('/api/cex/inflows', () => {
+describe('/api/private/cex/inflows', () => {
 	it('authenticates before revealing unknown CEX slugs', async () => {
 		validateSubscriptionMock.mockResolvedValue({
 			valid: false,
@@ -73,7 +73,7 @@ describe('/api/cex/inflows', () => {
 	})
 })
 
-describe('/api/cex/inflows/batch', () => {
+describe('/api/private/cex/inflows/batch', () => {
 	it('authenticates before revealing unknown CEX slugs', async () => {
 		validateSubscriptionMock.mockResolvedValue({
 			valid: false,

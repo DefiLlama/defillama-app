@@ -3,7 +3,7 @@ import {
 	buildAssetBreakdownUrl,
 	normalizeAssetBreakdownRows,
 	parseAssetBreakdownRequest
-} from '~/pages/api/rwa/asset-breakdown'
+} from '~/pages/api/public/rwa/asset-breakdown'
 
 describe('parseAssetBreakdownRequest', () => {
 	it('rejects requests when inclusion flags are omitted', () => {

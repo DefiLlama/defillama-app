@@ -1,0 +1,101 @@
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchRWAPerpsContractBreakdownChartData } from '~/containers/RWA/Perps/api'
+import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
+import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
+import type { IRWAPerpsContractBreakdownRequest } from '~/containers/RWA/Perps/types'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+
+export function parseContractBreakdownRequest(
+	req: Pick<NextApiRequest, 'query'>
+): IRWAPerpsContractBreakdownRequest | null {
+	const key = parseChartMetricKey(req.query.key)
+	if (key == null) return null
+
+	const venue = parseOptionalTarget(req.query.venue)
+	const assetGroup = parseOptionalTarget(req.query.assetGroup)
+	const assetClass = parseOptionalTarget(req.query.assetClass)
+	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
+	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
+	const targetCount =
+		Number(Boolean(venue)) +
+		Number(Boolean(assetGroup)) +
+		Number(Boolean(assetClass)) +
+		Number(Boolean(excludeAssetClass))
+	if (targetCount > 1) return null
+
+	return {
+		key,
+		...(venue ? { venue } : {}),
+		...(assetGroup ? { assetGroup } : {}),
+		...(assetClass ? { assetClass } : {}),
+		...(excludeAssetClass ? { excludeAssetClass } : {})
+	}
+}
+
+async function hasKnownPerpsTarget(request: IRWAPerpsContractBreakdownRequest): Promise<boolean> {
+	if (!request.venue && !request.assetGroup) return true
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	if (request.venue) {
+		const requestSlug = rwaSlug(request.venue)
+		for (const venue of metadataCache.rwaPerpsList.venues) {
+			if (rwaSlug(venue) === requestSlug) return true
+		}
+		return false
+	}
+
+	if (request.assetGroup) {
+		const requestSlug = rwaSlug(request.assetGroup)
+		for (const assetGroup of metadataCache.rwaPerpsList.assetGroups) {
+			if (rwaSlug(assetGroup) === requestSlug) return true
+		}
+		return false
+	}
+
+	return true
+}
+
+function buildContractBreakdownCacheJitterKey(request: IRWAPerpsContractBreakdownRequest): string {
+	const searchParams = new URLSearchParams({ key: request.key })
+	if (request.venue) searchParams.set('venue', request.venue)
+	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
+	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
+	return `/api/public/rwa/perps/contract-breakdown?${searchParams.toString()}`
+}
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+	if (req.method !== 'GET') {
+		return res.status(405).json({ error: 'Method not allowed' })
+	}
+
+	const request = parseContractBreakdownRequest(req)
+	if (request == null) {
+		return res.status(400).json({ error: 'Invalid query parameters' })
+	}
+
+	try {
+		if (!(await hasKnownPerpsTarget(request))) {
+			return res.status(404).json({ error: 'RWA perps target not found' })
+		}
+
+		const rows = await fetchRWAPerpsContractBreakdownChartData(request)
+		if (rows == null) {
+			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
+		}
+		const cacheJitterKey = req.url ?? buildContractBreakdownCacheJitterKey(request)
+
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, s-maxage=3600, stale-while-revalidate=1800', cacheJitterKey)
+		)
+		return res.status(200).json(toRWAPerpsBreakdownChartDataset(rows))
+	} catch (error) {
+		recordRouteRuntimeError(error, 'apiRoute')
+		return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
+	}
+}
+
+export default withApiRouteTelemetry('/api/public/rwa/perps/contract-breakdown', handler)

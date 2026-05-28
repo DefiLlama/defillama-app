@@ -203,7 +203,7 @@ export async function fetchChainsByAdapterPageChartData({
 }): Promise<{ chartData: MultiSeriesChart2Dataset }> {
 	const searchParams = new URLSearchParams({ adapterType, dataType })
 	return fetchJson<{ chartData: MultiSeriesChart2Dataset }>(
-		`/api/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
+		`/api/public/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
 	)
 }
 

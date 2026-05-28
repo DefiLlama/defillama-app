@@ -188,7 +188,7 @@ export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<Arti
 
 export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch): Promise<void> {
 	await parseResponse(
-		await authorizedFetch(`/api/research/revalidate-landing?_n=${Date.now()}`, {
+		await authorizedFetch(`/api/private/research/revalidate-landing?_n=${Date.now()}`, {
 			method: 'GET'
 		})
 	)
@@ -364,7 +364,7 @@ export async function publishArticle(
 		}
 	}
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish?${params}`)
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/publish?${params}`)
 	)
 	return data.article
 }

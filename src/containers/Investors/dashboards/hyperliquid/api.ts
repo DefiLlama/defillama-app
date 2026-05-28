@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { HyperliquidCandle } from '~/pages/api/hyperliquid/candles'
-import type { HlpFundingData } from '~/pages/api/hyperliquid/hlp-funding'
-import type { HlpOpenOrder } from '~/pages/api/hyperliquid/hlp-open-orders'
-import type { HlpPortfolioData } from '~/pages/api/hyperliquid/hlp-portfolio'
-import type { HlpData, HlpFill, HlpPosition } from '~/pages/api/hyperliquid/hlp-positions'
-import type { HyperliquidL2Book } from '~/pages/api/hyperliquid/l2-book'
-import type { PerpMarket } from '~/pages/api/hyperliquid/perps'
-import type { PredictedFunding } from '~/pages/api/hyperliquid/predicted-fundings'
-import type { SpotMarket } from '~/pages/api/hyperliquid/spot'
+import type { HyperliquidCandle } from '~/pages/api/public/hyperliquid/candles'
+import type { HlpFundingData } from '~/pages/api/public/hyperliquid/hlp-funding'
+import type { HlpOpenOrder } from '~/pages/api/public/hyperliquid/hlp-open-orders'
+import type { HlpPortfolioData } from '~/pages/api/public/hyperliquid/hlp-portfolio'
+import type { HlpData, HlpFill, HlpPosition } from '~/pages/api/public/hyperliquid/hlp-positions'
+import type { HyperliquidL2Book } from '~/pages/api/public/hyperliquid/l2-book'
+import type { PerpMarket } from '~/pages/api/public/hyperliquid/perps'
+import type { PredictedFunding } from '~/pages/api/public/hyperliquid/predicted-fundings'
+import type { SpotMarket } from '~/pages/api/public/hyperliquid/spot'
 
 const HL_WS = 'wss://api.hyperliquid.xyz/ws'
 const HEARTBEAT_TIMEOUT_MS = 20_000
@@ -205,7 +205,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 export function useHyperliquidPerps() {
 	const query = useQuery<PerpMarket[]>({
 		queryKey: ['hl-perps'],
-		queryFn: () => fetchJson<PerpMarket[]>('/api/hyperliquid/perps'),
+		queryFn: () => fetchJson<PerpMarket[]>('/api/public/hyperliquid/perps'),
 		staleTime: 60_000,
 		refetchOnWindowFocus: false
 	})
@@ -216,7 +216,7 @@ export function useHyperliquidPerps() {
 export function useHyperliquidSpot() {
 	const query = useQuery<SpotMarket[]>({
 		queryKey: ['hl-spot'],
-		queryFn: () => fetchJson<SpotMarket[]>('/api/hyperliquid/spot'),
+		queryFn: () => fetchJson<SpotMarket[]>('/api/public/hyperliquid/spot'),
 		staleTime: 60_000,
 		refetchOnWindowFocus: false
 	})
@@ -227,7 +227,7 @@ export function useHyperliquidSpot() {
 export function useHyperliquidPredictedFundings() {
 	const query = useQuery<PredictedFunding[]>({
 		queryKey: ['hl-predicted-fundings'],
-		queryFn: () => fetchJson<PredictedFunding[]>('/api/hyperliquid/predicted-fundings'),
+		queryFn: () => fetchJson<PredictedFunding[]>('/api/public/hyperliquid/predicted-fundings'),
 		staleTime: 60_000,
 		refetchOnWindowFocus: false
 	})
@@ -239,7 +239,9 @@ export function useHyperliquidL2Book(coin: string, nSigFigs = 5) {
 	const query = useQuery<HyperliquidL2Book>({
 		queryKey: ['hl-l2-book', coin, nSigFigs],
 		queryFn: () =>
-			fetchJson<HyperliquidL2Book>(`/api/hyperliquid/l2-book?coin=${encodeURIComponent(coin)}&nSigFigs=${nSigFigs}`),
+			fetchJson<HyperliquidL2Book>(
+				`/api/public/hyperliquid/l2-book?coin=${encodeURIComponent(coin)}&nSigFigs=${nSigFigs}`
+			),
 		staleTime: 10_000,
 		refetchOnWindowFocus: false
 	})
@@ -252,7 +254,7 @@ export function useHyperliquidCandles(coin: string, interval: string, limit = 20
 		queryKey: ['hl-candles', coin, interval, limit],
 		queryFn: () =>
 			fetchJson<HyperliquidCandle[]>(
-				`/api/hyperliquid/candles?coin=${encodeURIComponent(coin)}&interval=${encodeURIComponent(interval)}&limit=${limit}`
+				`/api/public/hyperliquid/candles?coin=${encodeURIComponent(coin)}&interval=${encodeURIComponent(interval)}&limit=${limit}`
 			),
 		staleTime: 10_000,
 		refetchOnWindowFocus: false
@@ -278,7 +280,7 @@ const DEFAULT_HLP_DATA = {
 export function useHyperliquidHlpPositions() {
 	const query = useQuery<HlpData>({
 		queryKey: ['hl-hlp-positions'],
-		queryFn: () => fetchJson<HlpData>('/api/hyperliquid/hlp-positions'),
+		queryFn: () => fetchJson<HlpData>('/api/public/hyperliquid/hlp-positions'),
 		staleTime: 30_000,
 		refetchInterval: 30_000,
 		refetchOnWindowFocus: false
@@ -290,7 +292,7 @@ export function useHyperliquidHlpPositions() {
 export function useHyperliquidHlpOpenOrders() {
 	const query = useQuery<HlpOpenOrder[]>({
 		queryKey: ['hl-hlp-open-orders'],
-		queryFn: () => fetchJson<HlpOpenOrder[]>('/api/hyperliquid/hlp-open-orders'),
+		queryFn: () => fetchJson<HlpOpenOrder[]>('/api/public/hyperliquid/hlp-open-orders'),
 		staleTime: 30_000,
 		refetchInterval: 30_000,
 		refetchOnWindowFocus: false
@@ -302,7 +304,7 @@ export function useHyperliquidHlpOpenOrders() {
 export function useHyperliquidHlpFunding(window: '24h' | '7d' | '30d') {
 	const query = useQuery<HlpFundingData>({
 		queryKey: ['hl-hlp-funding', window],
-		queryFn: () => fetchJson<HlpFundingData>(`/api/hyperliquid/hlp-funding?window=${window}`),
+		queryFn: () => fetchJson<HlpFundingData>(`/api/public/hyperliquid/hlp-funding?window=${window}`),
 		staleTime: 30_000,
 		refetchInterval: 30_000,
 		refetchOnWindowFocus: false
@@ -317,7 +319,7 @@ export function useHyperliquidHlpFunding(window: '24h' | '7d' | '30d') {
 export function useHyperliquidHlpPortfolio(window: 'day' | 'week' | 'month' | 'allTime') {
 	const query = useQuery<HlpPortfolioData>({
 		queryKey: ['hl-hlp-portfolio', window],
-		queryFn: () => fetchJson<HlpPortfolioData>(`/api/hyperliquid/hlp-portfolio?window=${window}`),
+		queryFn: () => fetchJson<HlpPortfolioData>(`/api/public/hyperliquid/hlp-portfolio?window=${window}`),
 		staleTime: 30_000,
 		refetchInterval: 60_000,
 		refetchOnWindowFocus: false

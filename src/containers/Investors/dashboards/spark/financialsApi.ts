@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { assignColors } from './api'
 
-const API_URL = '/api/spark/financials'
+const API_URL = '/api/public/spark/financials'
 
 interface FormattedValue {
 	value: number

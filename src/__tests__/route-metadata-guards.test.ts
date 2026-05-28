@@ -118,7 +118,7 @@ vi.mock('~/containers/Stablecoins/StablecoinOverview', () => ({
 	default: () => null
 }))
 
-import { chainCacheHandler } from '~/pages/api/cache/chain/[chain]'
+import { chainCacheHandler } from '~/pages/api/dynamic/cache/chain/[chain]'
 import * as datAssetPage from '~/pages/digital-asset-treasuries/[asset]'
 import * as datCompanyPage from '~/pages/digital-asset-treasury/[company]'
 import * as narrativePage from '~/pages/narrative-tracker/[category]'
