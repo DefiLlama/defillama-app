@@ -17,6 +17,7 @@ export type SlackResult = (typeof SLACK_RESULT_VALUES)[number]
 export type SettingsInitialState = {
 	tab?: SettingsTabId
 	tgloginToken?: string | null
+	slackloginToken?: string | null
 	slackResult?: SlackResult | null
 	slackTeamName?: string | null
 	slackErrorDetail?: string | null
@@ -30,6 +31,7 @@ type RouterQuery = Record<string, string | string[] | undefined>
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 const PENDING_TGLOGIN_KEY = 'pending_tglogin'
+const PENDING_SLACKLOGIN_KEY = 'pending_slacklogin'
 const PENDING_SETTINGS_TAB_KEY = 'pending_settings_tab'
 const PENDING_SLACK_RESULT_KEY = 'pending_slack_result'
 const PENDING_SLACK_TEAM_KEY = 'pending_slack_team'
@@ -63,6 +65,14 @@ export function getSettingsIntentFromQuery(query: RouterQuery): {
 		}
 	}
 
+	const slackloginToken = firstQueryValue(query.slacklogin)
+	if (slackloginToken) {
+		return {
+			initialState: { tab: 'integrations', tgloginToken: null, slackloginToken },
+			nextQuery: withoutQueryKeys(query, ['slacklogin', 'modal', 'tab'])
+		}
+	}
+
 	const slackResultRaw = firstQueryValue(query.slack)
 	if (slackResultRaw && isSlackResult(slackResultRaw)) {
 		return {
@@ -90,6 +100,10 @@ export function stashSettingsIntent(storage: StorageLike, initialState: Settings
 		storage.setItem(PENDING_TGLOGIN_KEY, initialState.tgloginToken)
 		return
 	}
+	if (initialState.slackloginToken) {
+		storage.setItem(PENDING_SLACKLOGIN_KEY, initialState.slackloginToken)
+		return
+	}
 	if (initialState.tab) storage.setItem(PENDING_SETTINGS_TAB_KEY, initialState.tab)
 	if (initialState.slackResult) storage.setItem(PENDING_SLACK_RESULT_KEY, initialState.slackResult)
 	if (initialState.slackTeamName) storage.setItem(PENDING_SLACK_TEAM_KEY, initialState.slackTeamName)
@@ -100,6 +114,7 @@ export function readPendingSettingsIntent(storage: StorageLike): SettingsInitial
 	const tgloginToken = storage.getItem(PENDING_TGLOGIN_KEY)
 	if (tgloginToken) {
 		storage.removeItem(PENDING_TGLOGIN_KEY)
+		storage.removeItem(PENDING_SLACKLOGIN_KEY)
 		storage.removeItem(PENDING_SETTINGS_TAB_KEY)
 		storage.removeItem(PENDING_SLACK_RESULT_KEY)
 		storage.removeItem(PENDING_SLACK_TEAM_KEY)
@@ -107,8 +122,20 @@ export function readPendingSettingsIntent(storage: StorageLike): SettingsInitial
 		return { tab: 'integrations', tgloginToken }
 	}
 
+	const slackloginToken = storage.getItem(PENDING_SLACKLOGIN_KEY)
+	if (slackloginToken) {
+		storage.removeItem(PENDING_TGLOGIN_KEY)
+		storage.removeItem(PENDING_SLACKLOGIN_KEY)
+		storage.removeItem(PENDING_SETTINGS_TAB_KEY)
+		storage.removeItem(PENDING_SLACK_RESULT_KEY)
+		storage.removeItem(PENDING_SLACK_TEAM_KEY)
+		storage.removeItem(PENDING_SLACK_ERROR_KEY)
+		return { tab: 'integrations', tgloginToken: null, slackloginToken }
+	}
+
 	const tab = storage.getItem(PENDING_SETTINGS_TAB_KEY)
 	storage.removeItem(PENDING_SETTINGS_TAB_KEY)
+	storage.removeItem(PENDING_SLACKLOGIN_KEY)
 	const slackResult = storage.getItem(PENDING_SLACK_RESULT_KEY)
 	const slackTeamName = storage.getItem(PENDING_SLACK_TEAM_KEY)
 	const slackErrorDetail = storage.getItem(PENDING_SLACK_ERROR_KEY)

@@ -111,6 +111,10 @@ function getMessageAnchorIdFromHash(hash: string) {
 	return /^#msg-[A-Za-z0-9_-]+$/.test(hash) ? hash.slice(1) : null
 }
 
+type ActiveExchangeItem =
+	| { type: 'message'; key: string; message: Message; isDraft?: boolean }
+	| { type: 'live-status'; key: string }
+
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
@@ -126,7 +130,8 @@ function ConversationMessageItem({
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef,
-	enterToSend
+	enterToSend,
+	isDraft = false
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -143,10 +148,12 @@ function ConversationMessageItem({
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
 	enterToSend: boolean
+	isDraft?: boolean
 }) {
 	return (
 		<MessageBubble
 			message={message}
+			isDraft={isDraft}
 			sessionId={sessionId}
 			readOnly={readOnly}
 			isLlama={isLlama}
@@ -188,7 +195,8 @@ function ConversationLiveStatus({
 	readOnly,
 	isLlama,
 	onTableFullscreenOpen,
-	factCheckPhase
+	factCheckPhase,
+	renderStreamingDraft = true
 }: {
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
@@ -212,8 +220,16 @@ function ConversationLiveStatus({
 	isLlama: boolean
 	onTableFullscreenOpen?: () => void
 	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
+	renderStreamingDraft?: boolean
 }) {
-	const hasTodos = todos.length > 0
+	const hasTodos = shouldShowLiveTodoChecklist({
+		todoCount: todos.length,
+		isStreaming,
+		recoveryStatus: recovery.status,
+		activeToolCallCount: activeToolCalls.length,
+		spawnProgressCount: spawnProgress.size,
+		isCompacting
+	})
 	return (
 		<>
 			{hasTodos ? (
@@ -253,7 +269,7 @@ function ConversationLiveStatus({
 				)}
 			</div>
 
-			{streamingDraft ? (
+			{renderStreamingDraft && streamingDraft ? (
 				<div style={{ overflowAnchor: 'none' }}>
 					<MessageBubble
 						key={streamingDraft.id || 'streaming-draft'}
@@ -301,6 +317,31 @@ function ConversationLiveStatus({
 				</div>
 			) : null}
 		</>
+	)
+}
+
+export function shouldShowLiveTodoChecklist({
+	todoCount,
+	isStreaming,
+	recoveryStatus,
+	activeToolCallCount,
+	spawnProgressCount,
+	isCompacting
+}: {
+	todoCount: number
+	isStreaming: boolean
+	recoveryStatus: RecoveryState['status']
+	activeToolCallCount: number
+	spawnProgressCount: number
+	isCompacting: boolean
+}) {
+	if (todoCount === 0) return false
+	return (
+		isStreaming ||
+		recoveryStatus === 'reconnecting' ||
+		activeToolCallCount > 0 ||
+		spawnProgressCount > 0 ||
+		isCompacting
 	)
 }
 
@@ -527,7 +568,28 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 		(isLiveExchange ? messages[messages.length - 1]?.role === 'user' : hasTailChangedSinceMount)
 
 	const lastExchangeMessages = shouldSpaceLastExchange ? messages.slice(lastUserIndex) : []
+	const activeExchangeItems: ActiveExchangeItem[] = (() => {
+		if (!shouldSpaceLastExchange) return []
+		const items: ActiveExchangeItem[] = lastExchangeMessages.map((message, i) => ({
+			type: 'message',
+			key: message.id || `exchange-${i}`,
+			message
+		}))
+		if (isLiveExchange) {
+			items.push({ type: 'live-status', key: 'live-status' })
+			if (streamingDraft) {
+				items.push({
+					type: 'message',
+					key: streamingDraft.id || 'streaming-draft',
+					message: streamingDraft,
+					isDraft: true
+				})
+			}
+		}
+		return items
+	})()
 	const renderedMessages = shouldSpaceLastExchange ? messages.slice(0, lastUserIndex) : messages
+	const canUseMessageControls = !readOnly && !isSharedView
 
 	// Only the newest assistant response keeps persistent controls; older controls
 	// stay available on hover/focus to reduce visual noise.
@@ -604,8 +666,8 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 											isLlama={isLlama}
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
-											onEditMessage={!readOnly ? onEditMessage : undefined}
-											onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+											onEditMessage={canUseMessageControls ? onEditMessage : undefined}
+											onBranchSwitch={canUseMessageControls && !isStreaming ? onBranchSwitch : undefined}
 											isBranchSwitching={isBranchSwitching}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
@@ -630,52 +692,61 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 										}`}
 										style={activeExchangeMinHeight != null ? { minHeight: activeExchangeMinHeight } : undefined}
 									>
-										{lastExchangeMessages.map((message, i) => (
-											<ConversationMessageItem
-												key={message.id || `exchange-${i}`}
-												message={message}
-												onShare={onShare}
-												sessionId={sessionId}
-												readOnly={readOnly}
-												isLlama={isLlama}
-												isLatestAssistant={message.id === lastAssistantId}
-												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
-												onEditMessage={!readOnly ? onEditMessage : undefined}
-												onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
-												isBranchSwitching={isBranchSwitching}
-												onTableFullscreenOpen={onTableFullscreenOpen}
-												anchorId={getMessageAnchorId(message.id)}
-												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
-												enterToSend={enterToSend}
-											/>
-										))}
-
-										{isLiveExchange ? (
-											<ConversationLiveStatus
-												isStreaming={isStreaming}
-												activeToolCalls={activeToolCalls}
-												spawnProgress={spawnProgress}
-												spawnStartTime={spawnStartTime}
-												todos={todos}
-												todosStartTime={todosStartTime}
-												executionStartedAt={executionStartedAt}
-												spawnIsResearchMode={spawnIsResearchMode}
-												streamingThinking={streamingThinking}
-												streamingDraft={streamingDraft}
-												isCompacting={isCompacting}
-												recovery={recovery}
-												error={error}
-												lastFailedPrompt={lastFailedPrompt}
-												onRetryLastFailedPrompt={onRetryLastFailedPrompt}
-												onReconnectNow={onReconnectNow}
-												isResearchMode={isResearchMode}
-												sessionId={sessionId}
-												readOnly={readOnly}
-												isLlama={isLlama}
-												onTableFullscreenOpen={onTableFullscreenOpen}
-												factCheckPhase={factCheckPhase}
-											/>
-										) : null}
+										{activeExchangeItems.map((item) => {
+											if (item.type === 'live-status') {
+												return (
+													<ConversationLiveStatus
+														key={item.key}
+														isStreaming={isStreaming}
+														activeToolCalls={activeToolCalls}
+														spawnProgress={spawnProgress}
+														spawnStartTime={spawnStartTime}
+														todos={todos}
+														todosStartTime={todosStartTime}
+														executionStartedAt={executionStartedAt}
+														spawnIsResearchMode={spawnIsResearchMode}
+														streamingThinking={streamingThinking}
+														streamingDraft={streamingDraft}
+														isCompacting={isCompacting}
+														recovery={recovery}
+														error={error}
+														lastFailedPrompt={lastFailedPrompt}
+														onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+														onReconnectNow={onReconnectNow}
+														isResearchMode={isResearchMode}
+														sessionId={sessionId}
+														readOnly={readOnly}
+														isLlama={isLlama}
+														onTableFullscreenOpen={onTableFullscreenOpen}
+														renderStreamingDraft={false}
+														factCheckPhase={factCheckPhase}
+													/>
+												)
+											}
+											const message = item.message
+											return (
+												<ConversationMessageItem
+													key={item.key}
+													message={message}
+													isDraft={item.isDraft}
+													onShare={onShare}
+													sessionId={sessionId}
+													readOnly={readOnly}
+													isLlama={isLlama}
+													isLatestAssistant={!item.isDraft && message.id === lastAssistantId}
+													onActionClick={!item.isDraft && !readOnly && !isStreaming ? handleActionClick : undefined}
+													onEditMessage={!item.isDraft && canUseMessageControls ? onEditMessage : undefined}
+													onBranchSwitch={
+														!item.isDraft && canUseMessageControls && !isStreaming ? onBranchSwitch : undefined
+													}
+													isBranchSwitching={isBranchSwitching}
+													onTableFullscreenOpen={onTableFullscreenOpen}
+													anchorId={!item.isDraft ? getMessageAnchorId(message.id) : undefined}
+													anchorRef={!item.isDraft ? getAnchorRef(getMessageAnchorId(message.id)) : undefined}
+													enterToSend={enterToSend}
+												/>
+											)
+										})}
 									</div>
 								) : (
 									<ConversationLiveStatus

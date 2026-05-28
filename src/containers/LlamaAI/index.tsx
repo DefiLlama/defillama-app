@@ -495,10 +495,10 @@ export function AgenticChat({
 			streamingDashboards.length > 0 ||
 			streamingCitations.length > 0 ||
 			streamingToolExecutions.length > 0 ||
-			streamingThinking ||
 			streamingGeneratedImages.length > 0
 		if (!hasContent) return null
 		return {
+			id: currentMessageIdRef.current || undefined,
 			role: 'assistant',
 			content: streamingText || undefined,
 			charts: streamingCharts.length > 0 ? streamingCharts : undefined,
@@ -508,7 +508,6 @@ export function AgenticChat({
 			dashboards: streamingDashboards.length > 0 ? streamingDashboards : undefined,
 			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
 			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined,
-			thinking: streamingThinking || undefined,
 			generatedImages: streamingGeneratedImages.length > 0 ? streamingGeneratedImages : undefined
 		}
 	}, [
@@ -521,7 +520,6 @@ export function AgenticChat({
 		streamingDashboards,
 		streamingCitations,
 		streamingToolExecutions,
-		streamingThinking,
 		streamingGeneratedImages
 	])
 

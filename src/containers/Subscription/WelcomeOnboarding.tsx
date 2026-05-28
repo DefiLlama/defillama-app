@@ -2,7 +2,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import {
+	persistSlackAcquisitionIfFirst,
+	readSlackAcquisition,
+	type SlackAcquisition
+} from '~/containers/Subscription/utils/slackAcquisition'
 import { readAppStorage, setLlamaAIWalkthroughState, writeAppStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -67,8 +73,10 @@ const PRIORITY_ORDER = ['llamaai', 'dashboards', 'csv', 'llamafeed', 'sheets'] a
 export function WelcomeOnboarding() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription, loaders, authorizedFetch } = useAuthContext()
 	const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set())
+	const [slackAcquisition, setSlackAcquisition] = useState<SlackAcquisition | null>(null)
+	const slackAcquisitionHandledRef = useRef(false)
 
 	// Invalidate subscription cache once on mount when arriving from Stripe redirect.
 	// StripeCheckoutModal redirects directly to /welcome, bypassing /account?success=true
@@ -95,6 +103,25 @@ export function WelcomeOnboarding() {
 			}
 		} catch {}
 	}, [hasActiveSubscription])
+
+	useEffect(() => {
+		if (slackAcquisitionHandledRef.current) return
+		if (!hasActiveSubscription || !isAuthenticated || loaders.userLoading) return
+		if (typeof window === 'undefined') return
+		const acquisition = readSlackAcquisition(window.sessionStorage)
+		if (!acquisition) {
+			slackAcquisitionHandledRef.current = true
+			return
+		}
+		slackAcquisitionHandledRef.current = true
+		setSlackAcquisition(acquisition)
+		void persistSlackAcquisitionIfFirst(acquisition, {
+			fetch: authorizedFetch,
+			aiServer: AI_SERVER
+		}).catch((error) => {
+			console.warn('[welcome] persistSlackAcquisitionIfFirst failed', error)
+		})
+	}, [hasActiveSubscription, isAuthenticated, loaders.userLoading, authorizedFetch])
 
 	const toggleFeature = useCallback((id: string) => {
 		setSelectedFeatures((prev) => {
@@ -209,6 +236,20 @@ export function WelcomeOnboarding() {
 				<h1 className="text-2xl font-bold tracking-tight text-white">Welcome to DefiLlama Pro</h1>
 				<p className="text-sm text-[#8a8c90]">What brought you here? Pick all that apply.</p>
 			</div>
+
+			{slackAcquisition ? (
+				<div className="mb-6 flex w-full items-start gap-3 rounded-xl border border-[#5C5CF9]/25 bg-[#5C5CF9]/8 px-4 py-3 text-left">
+					<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#5C5CF9]/15">
+						<Icon name="chat" height={16} width={16} className="text-[#7B7BFF]" />
+					</div>
+					<div className="flex min-w-0 flex-col gap-0.5">
+						<span className="text-sm font-medium text-white">LlamaAI is ready in Slack</span>
+						<span className="text-xs leading-snug text-[#8a8c90]">
+							Mention <span className="font-mono text-[#b4b7bc]">@LlamaAI</span> in any channel, or DM the bot directly.
+						</span>
+					</div>
+				</div>
+			) : null}
 
 			<div className="flex w-full flex-col gap-2">
 				{ONBOARDING_OPTIONS.map((option, i) => {

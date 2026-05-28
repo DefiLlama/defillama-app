@@ -8,6 +8,8 @@ export type SlackLink = {
 	installed_at: string
 	revoked: boolean
 	last_error: string | null
+	scopes?: string
+	needs_reconnect?: boolean
 }
 
 export type SlackChannel = {
@@ -29,10 +31,26 @@ export type SlackLinkStartResponse = {
 	expiresAt: string
 }
 
+export type SlackLinkCancelResponse = {
+	canceled: number
+}
+
+export type SlackLoginConsumeResponse = {
+	ok: true
+	team_id: string
+	slack_user_id: string
+}
+
 export const getSlackStatus = (af: AuthorizedFetch) => llamaAIRequest<SlackStatus>(af, '/slack/status')
 
 export const startSlackLink = (af: AuthorizedFetch, body?: { return_to?: string }) =>
 	llamaAIRequest<SlackLinkStartResponse>(af, '/slack/link/start', { method: 'POST', json: body ?? {} })
+
+export const cancelSlackLink = (af: AuthorizedFetch) =>
+	llamaAIRequest<SlackLinkCancelResponse>(af, '/slack/link/cancel', { method: 'POST', json: {} })
+
+export const consumeSlackLogin = (af: AuthorizedFetch, token: string) =>
+	llamaAIRequest<SlackLoginConsumeResponse>(af, '/slack/login/consume', { method: 'POST', json: { token } })
 
 export const listSlackWorkspaces = (af: AuthorizedFetch) =>
 	llamaAIRequest<{ workspaces: SlackLink[] }>(af, '/slack/workspaces')

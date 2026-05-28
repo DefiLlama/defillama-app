@@ -1,6 +1,4 @@
 import { useMemo } from 'react'
-import { formatTime } from '~/containers/LlamaAI/components/status/time'
-import { useCurrentSecond } from '~/containers/LlamaAI/components/status/useCurrentSecond'
 import type { TodoItem } from '~/containers/LlamaAI/types'
 
 const TODO_STATUS_ORDER: Record<TodoItem['status'], number> = {
@@ -51,7 +49,6 @@ function TodoStatusIcon({ status, animated = true }: { status: TodoItem['status'
 
 export function TodoChecklistPanel({
 	todos,
-	startTime,
 	isLive = false,
 	interrupted = false
 }: {
@@ -60,7 +57,6 @@ export function TodoChecklistPanel({
 	isLive?: boolean
 	interrupted?: boolean
 }) {
-	const currentSecond = useCurrentSecond()
 	const orderedTodos = useMemo(() => {
 		const seen = new Set<string>()
 		const out: TodoItem[] = []
@@ -72,40 +68,26 @@ export function TodoChecklistPanel({
 		return out
 	}, [todos])
 	if (orderedTodos.length === 0) return null
-	// Per-item status is only trustworthy while the run is live, or when it ended
-	// early — then the incompleteness is real. On a clean finish the last todo
-	// state is stale (the model stops updating it), so the plan renders as plain
-	// context with no status claims that could contradict the answer.
-	const showStatus = isLive || interrupted
 	const completed = orderedTodos.filter((t) => t.status === 'completed').length
 	const total = orderedTodos.filter((t) => t.status !== 'cancelled').length
-	const showElapsed = isLive && !!startTime
-	const elapsed = showElapsed ? Math.max(0, currentSecond - Math.floor(startTime! / 1000)) : 0
 	return (
 		<section
 			className="flex flex-col gap-1.5 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-2.5 dark:border-[#222324]"
-			aria-label="Plan"
+			aria-label="Progress"
 		>
 			<div className="flex items-center gap-2 px-0.5">
 				<span aria-hidden="true" className="text-sm">
 					📋
 				</span>
-				<p className="m-0 flex-1 truncate text-xs font-medium text-[#444] sm:text-sm dark:text-[#ccc]">Plan</p>
+				<p className="m-0 flex-1 truncate text-xs font-medium text-[#444] sm:text-sm dark:text-[#ccc]">Progress</p>
 				{interrupted ? (
 					<p className="m-0 shrink-0 rounded bg-[rgba(244,63,94,0.1)] px-1.5 py-0.5 text-[10px] text-[#e11d48] sm:text-xs dark:text-[#fb7185]">
-						ended early
+						stopped early
 					</p>
 				) : null}
-				{showStatus ? (
-					<p className="m-0 shrink-0 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
-						{completed}/{total} done
-					</p>
-				) : null}
-				{showElapsed ? (
-					<time className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 font-mono text-[10px] text-[#666] tabular-nums sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
-						{formatTime(elapsed)}
-					</time>
-				) : null}
+				<p className="m-0 shrink-0 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+					{completed}/{total} done
+				</p>
 			</div>
 			<ul className="flex flex-col gap-1">
 				{orderedTodos.map((todo) => {
@@ -115,28 +97,17 @@ export function TodoChecklistPanel({
 					return (
 						<li key={todo.id} className="flex items-start gap-2 px-0.5 py-0.5">
 							<span className="mt-0.5">
-								{showStatus ? (
-									<TodoStatusIcon status={todo.status} animated={isLive} />
-								) : (
-									<span
-										aria-hidden="true"
-										className="inline-flex size-3.5 shrink-0 items-center justify-center text-[#9ca3af] dark:text-[#6b7280]"
-									>
-										•
-									</span>
-								)}
+								<TodoStatusIcon status={todo.status} animated={isLive} />
 							</span>
 							<p
 								className={`m-0 flex-1 text-xs leading-[1.45] sm:text-sm ${
-									!showStatus
-										? 'text-[#666] dark:text-[#919296]'
-										: isActive
-											? 'font-medium text-[#444] dark:text-[#e6e6e6]'
-											: isCompleted
-												? 'text-[#888] line-through dark:text-[#777]'
-												: isCancelled
-													? 'text-[#aaa] line-through dark:text-[#666]'
-													: 'text-[#666] dark:text-[#919296]'
+									isActive
+										? 'font-medium text-[#444] dark:text-[#e6e6e6]'
+										: isCompleted
+											? 'text-[#888] line-through dark:text-[#777]'
+											: isCancelled
+												? 'text-[#aaa] line-through dark:text-[#666]'
+												: 'text-[#666] dark:text-[#919296]'
 								}`}
 							>
 								{todo.content}

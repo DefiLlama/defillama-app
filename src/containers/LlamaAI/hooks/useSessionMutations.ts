@@ -35,6 +35,7 @@ type SessionRestoreResponse = {
 	totalMessages?: number
 	hasNewer?: boolean
 	newerCursor?: number | null
+	activeLeafMessageId?: string | null
 	streaming?: unknown
 	todos?: unknown
 	projectId?: string | null
@@ -466,6 +467,7 @@ export function useSessionMutations() {
 						hasNewer: result?.hasNewer ?? false,
 						newerCursor: result?.newerCursor
 					},
+					activeLeafMessageId: result?.activeLeafMessageId ?? null,
 					streaming: result?.streaming,
 					todos: result?.todos,
 					projectId: result?.projectId ?? null

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
 import {
+	cancelSlackLink,
 	getSlackStatus,
 	listSlackWorkspaces,
 	startSlackLink,
@@ -98,6 +99,17 @@ export function useSlackIntegrationLink(opts: Options = {}) {
 		}
 	})
 
+	const cancelMutation = useMutation({
+		mutationFn: () => cancelSlackLink(authorizedFetch),
+		onSuccess: () => {
+			const previous = queryClient.getQueryData<SlackStatus>(statusQueryKey)
+			queryClient.setQueryData<SlackStatus>(statusQueryKey, {
+				links: previous?.links ?? [],
+				pending: null
+			})
+		}
+	})
+
 	const connect = useCallback(() => {
 		startMutation.mutate()
 	}, [startMutation])
@@ -109,6 +121,10 @@ export function useSlackIntegrationLink(opts: Options = {}) {
 		[unlinkMutation]
 	)
 
+	const cancelPending = useCallback(() => {
+		cancelMutation.mutate()
+	}, [cancelMutation])
+
 	const state = deriveSlackIntegrationState({
 		status: statusQuery.data,
 		isLoading: statusQuery.isLoading,
@@ -117,7 +133,15 @@ export function useSlackIntegrationLink(opts: Options = {}) {
 		statusError: statusQuery.error
 	})
 
-	return { state, connect, disconnect, isDisconnecting: unlinkMutation.isPending }
+	return {
+		state,
+		connect,
+		disconnect,
+		cancelPending,
+		isStarting: startMutation.isPending,
+		isDisconnecting: unlinkMutation.isPending,
+		isCancelingPending: cancelMutation.isPending
+	}
 }
 
 export function useSlackWorkspaces() {
