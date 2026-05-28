@@ -1,7 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { validateSubscription } from '~/utils/apiAuth'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
@@ -9,25 +7,18 @@ export const config = {
 	}
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	res.setHeader('Cache-Control', 'private, no-store')
-
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
-	const symbol = typeof req.query.symbol === 'string' ? req.query.symbol : ''
-	if (!symbol) {
-		return res.status(400).json({ error: 'Missing symbol parameter' })
-	}
-
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
+export default withSubscriptionJsonRoute<{ symbol: string }>({
+	route: '/api/private/token-liquidations/[symbol]',
+	errorMessage: 'Failed to fetch token liquidations data',
+	getRouteParams(req, res) {
+		const symbol = typeof req.query.symbol === 'string' ? req.query.symbol : ''
+		if (!symbol) {
+			res.status(400).json({ error: 'Missing symbol parameter' })
+			return null
 		}
-
+		return { symbol }
+	},
+	async handler(_req, res, { symbol }) {
 		const metadataModule = await import('~/utils/metadata')
 		const normalizedSymbol = normalizeLiquidationsTokenSymbol(symbol)
 
@@ -47,10 +38,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		return res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Failed to fetch token liquidations data' })
 	}
-}
-
-export default withApiRouteTelemetry('/api/private/token-liquidations/[symbol]', handler)
+})

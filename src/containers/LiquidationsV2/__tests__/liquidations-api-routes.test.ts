@@ -79,6 +79,46 @@ describe('liquidations api routes', () => {
 		expect(res.json).toHaveBeenCalledWith({ error: 'Method Not Allowed' })
 	})
 
+	it('returns 400 for missing protocol route params before auth', async () => {
+		const req = { method: 'GET', headers: {}, query: {} } as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await protocolHandler(req, res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Missing protocol parameter' })
+		expect(mockedValidateSubscription).not.toHaveBeenCalled()
+	})
+
+	it('returns 400 for missing chain route params before auth', async () => {
+		const req = {
+			method: 'GET',
+			headers: {},
+			query: { protocol: 'sky' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await chainHandler(req, res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Missing protocol or chain parameter' })
+		expect(mockedValidateSubscription).not.toHaveBeenCalled()
+	})
+
+	it('returns 400 for missing token route params before auth', async () => {
+		const req = { method: 'GET', headers: {}, query: {} } as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await tokenHandler(req, res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Missing symbol parameter' })
+		expect(mockedValidateSubscription).not.toHaveBeenCalled()
+	})
+
 	it('returns 403 for unauthorized protocol requests', async () => {
 		const req = {
 			method: 'GET',

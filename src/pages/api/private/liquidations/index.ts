@@ -1,6 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { validateSubscription } from '~/utils/apiAuth'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 
 export const config = {
 	api: {
@@ -8,20 +6,10 @@ export const config = {
 	}
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	res.setHeader('Cache-Control', 'private, no-store')
-
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
-		}
-
+export default withSubscriptionJsonRoute({
+	route: '/api/private/liquidations',
+	errorMessage: 'Failed to fetch liquidations overview data',
+	async handler(_req, res) {
 		const [{ getLiquidationsOverviewPageData }, { default: metadataCache }] = await Promise.all([
 			import('~/server/datasetCache/runtime/liquidations'),
 			import('~/utils/metadata')
@@ -32,10 +20,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		})
 
 		return res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Failed to fetch liquidations overview data' })
 	}
-}
-
-export default withApiRouteTelemetry('/api/private/liquidations', handler)
+})

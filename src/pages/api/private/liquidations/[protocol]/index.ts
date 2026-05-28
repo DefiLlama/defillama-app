@@ -1,6 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { validateSubscription } from '~/utils/apiAuth'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 
 export const config = {
 	api: {
@@ -8,25 +6,18 @@ export const config = {
 	}
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	res.setHeader('Cache-Control', 'private, no-store')
-
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
-	const protocol = typeof req.query.protocol === 'string' ? req.query.protocol : ''
-	if (!protocol) {
-		return res.status(400).json({ error: 'Missing protocol parameter' })
-	}
-
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
+export default withSubscriptionJsonRoute<{ protocol: string }>({
+	route: '/api/private/liquidations/[protocol]',
+	errorMessage: 'Failed to fetch liquidations protocol data',
+	getRouteParams(req, res) {
+		const protocol = typeof req.query.protocol === 'string' ? req.query.protocol : ''
+		if (!protocol) {
+			res.status(400).json({ error: 'Missing protocol parameter' })
+			return null
 		}
-
+		return { protocol }
+	},
+	async handler(_req, res, { protocol }) {
 		const { resolveLiquidationsProtocolParam } = await import('~/server/routeCache/liquidations')
 		const protocolId = await resolveLiquidationsProtocolParam(protocol)
 		if (!protocolId) {
@@ -47,10 +38,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		return res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Failed to fetch liquidations protocol data' })
 	}
-}
-
-export default withApiRouteTelemetry('/api/private/liquidations/[protocol]', handler)
+})

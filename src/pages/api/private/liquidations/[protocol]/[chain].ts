@@ -1,6 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { validateSubscription } from '~/utils/apiAuth'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 
 export const config = {
 	api: {
@@ -8,27 +6,21 @@ export const config = {
 	}
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	res.setHeader('Cache-Control', 'private, no-store')
+export default withSubscriptionJsonRoute<{ protocol: string; chain: string }>({
+	route: '/api/private/liquidations/[protocol]/[chain]',
+	errorMessage: 'Failed to fetch liquidations chain data',
+	getRouteParams(req, res) {
+		const protocol = typeof req.query.protocol === 'string' ? req.query.protocol : ''
+		const chain = typeof req.query.chain === 'string' ? req.query.chain : ''
 
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
-	const protocol = typeof req.query.protocol === 'string' ? req.query.protocol : ''
-	const chain = typeof req.query.chain === 'string' ? req.query.chain : ''
-
-	if (!protocol || !chain) {
-		return res.status(400).json({ error: 'Missing protocol or chain parameter' })
-	}
-
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
+		if (!protocol || !chain) {
+			res.status(400).json({ error: 'Missing protocol or chain parameter' })
+			return null
 		}
 
+		return { protocol, chain }
+	},
+	async handler(_req, res, { protocol, chain }) {
 		const { resolveLiquidationsChainParams } = await import('~/server/routeCache/liquidations')
 		const route = await resolveLiquidationsChainParams(protocol, chain)
 		if (!route) {
@@ -46,10 +38,5 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		return res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Failed to fetch liquidations chain data' })
 	}
-}
-
-export default withApiRouteTelemetry('/api/private/liquidations/[protocol]/[chain]', handler)
+})
