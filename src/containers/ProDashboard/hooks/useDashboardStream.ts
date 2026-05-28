@@ -65,6 +65,8 @@ export function useDashboardStream(
 		error: null
 	})
 	const abortRef = useRef<AbortController | null>(null)
+	const authTokenRef = useRef(authToken)
+	authTokenRef.current = authToken
 
 	const handleLine = useCallback(
 		(line: string) => {
@@ -231,6 +233,16 @@ export function useDashboardStream(
 						}
 						break
 
+					case 'dimensionDatasetData':
+					case 'incomeStatementData':
+					case 'chartBuilderData':
+						if (chunk.key && chunk.data) {
+							try {
+								queryClient.setQueryData(JSON.parse(chunk.key), chunk.data, { updatedAt: now })
+							} catch {}
+						}
+						break
+
 					case 'done':
 						setState((s) => ({ ...s, isStreaming: false, isDone: true }))
 						break
@@ -262,9 +274,10 @@ export function useDashboardStream(
 
 		const startStream = async () => {
 			try {
+				const tokenAtFetch = authTokenRef.current
 				const response = await fetch(`/api/dashboard/${dashboardId}/stream`, {
 					credentials: 'include',
-					headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+					headers: tokenAtFetch ? { Authorization: `Bearer ${tokenAtFetch}` } : undefined,
 					signal: abortController.signal
 				})
 
@@ -334,7 +347,7 @@ export function useDashboardStream(
 		return () => {
 			abortController.abort()
 		}
-	}, [dashboardId, authToken, enabled, handleLine])
+	}, [dashboardId, enabled, handleLine])
 
 	return state
 }

@@ -576,7 +576,6 @@ export async function getChainOverviewData({
 		if (error instanceof Error && error.stack) {
 			errorWithContext.stack = `${errorWithContext.stack}\nCaused by: ${error.stack}`
 		}
-		console.log(errorWithContext)
 		throw errorWithContext
 	}
 }
