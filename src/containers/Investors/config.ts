@@ -56,12 +56,18 @@ function getActiveInvestorsSiteId(): InvestorsSiteId | null {
 	return null
 }
 
+function isInvestorsSiteForcedByEnv(): boolean {
+	const siteId = process.env.NEXT_PUBLIC_INVESTORS_SITE
+	return !!(siteId && siteId in INVESTORS_SITES)
+}
+
 function normalizeHost(host: string | null | undefined): string {
 	return (host ?? '').split(':')[0].toLowerCase()
 }
 
 export const ACTIVE_INVESTORS_SITE_ID = getActiveInvestorsSiteId()
 export const ACTIVE_INVESTORS_SITE = ACTIVE_INVESTORS_SITE_ID ? INVESTORS_SITES[ACTIVE_INVESTORS_SITE_ID] : null
+export const INVESTORS_SITE_FORCED_BY_ENV = isInvestorsSiteForcedByEnv()
 
 function getInvestorsProjects(projectIds: readonly InvestorsProjectId[] | undefined): InvestorsProject[] {
 	return projectIds
@@ -88,6 +94,10 @@ export function isInvestorsEnabled(): boolean {
 
 export function isActiveInvestorsHost(host: string | null | undefined): boolean {
 	if (!ACTIVE_INVESTORS_SITE) return false
+
+	if (INVESTORS_SITE_FORCED_BY_ENV) {
+		return true
+	}
 
 	const hostname = normalizeHost(host)
 	if (!hostname) return false
