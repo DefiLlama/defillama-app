@@ -134,7 +134,7 @@ describe('pro dashboard cache headers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '1200')
-		fetchDashboardConfigMock.mockResolvedValue({ data: { items: [] } })
+		fetchDashboardConfigMock.mockResolvedValue({ visibility: 'public', data: { items: [] } })
 		fetchProtocolsAndChainsMock.mockResolvedValue({ protocols: [], chains: [] })
 		fetchAppMetadataMock.mockResolvedValue({})
 	})
@@ -162,6 +162,16 @@ describe('pro dashboard cache headers', () => {
 		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('dashboard-1', 'auth-token')
 	})
 
+	it('uses private no-store cache headers for unauthenticated private-dashboard pages', async () => {
+		fetchDashboardConfigMock.mockResolvedValue({ visibility: 'private', data: { items: [] } })
+		const context = createSsrContext('private-dashboard')
+
+		await getServerSideProps(context)
+
+		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
+		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('private-dashboard', null)
+	})
+
 	it('keeps the public dashboard stream cache header unjittered', async () => {
 		const res = createMockNextApiResponse()
 
@@ -181,6 +191,27 @@ describe('pro dashboard cache headers', () => {
 
 		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
 		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('dashboard-1', 'auth-token')
+		expect(res.end).toHaveBeenCalled()
+	})
+
+	it('uses private no-store cache headers for unauthenticated private-dashboard streams', async () => {
+		fetchDashboardConfigMock.mockResolvedValue({ visibility: 'private', data: { items: [] } })
+		const res = createMockNextApiResponse()
+
+		await dashboardStreamHandler(createStreamRequest('private-dashboard'), res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
+		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('private-dashboard', null)
+		expect(res.end).toHaveBeenCalled()
+	})
+
+	it('uses private no-store cache headers when dashboard is not found', async () => {
+		fetchDashboardConfigMock.mockResolvedValue(null)
+		const res = createMockNextApiResponse()
+
+		await dashboardStreamHandler(createStreamRequest('missing'), res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
 		expect(res.end).toHaveBeenCalled()
 	})
 })

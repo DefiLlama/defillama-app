@@ -69,15 +69,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	const authToken = getAuthToken(req)
 
-	// Set streaming headers
-	res.setHeader('Content-Type', 'application/x-ndjson')
-	res.setHeader('X-Accel-Buffering', 'no')
-	res.setHeader('Vary', 'Cookie, Authorization')
-	res.setHeader(
-		'Cache-Control',
-		authToken ? 'private, no-cache, no-store, must-revalidate' : 'public, s-maxage=300, stale-while-revalidate=3600'
-	)
-
 	const writeLine = (chunk: object) => {
 		if (res.destroyed) return
 		try {
@@ -86,17 +77,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		// Phase 1: fetch dashboard config, protocols/chains, and app metadata in parallel
-		// Stream each result as it resolves
+		// Fetch dashboard first so we can choose cache headers based on visibility
 		let dashboard: Awaited<ReturnType<typeof fetchDashboardConfig>> = null
-		let protocolsAndChainsData: Awaited<ReturnType<typeof fetchProtocolsAndChains>> = null
+		try {
+			dashboard = await fetchDashboardConfig(dashboardId, authToken)
+		} catch {
+			dashboard = null
+		}
 
-		const [dashboardResult, protocolsResult] = await Promise.allSettled([
-			fetchDashboardConfig(dashboardId, authToken).then((d) => {
-				writeLine({ type: 'dashboard', data: d })
-				dashboard = d
-				return d
-			}),
+		// Set streaming headers — only cache at edge for confirmed-public, unauthenticated reads
+		const canCacheAtEdge = !authToken && dashboard?.visibility === 'public'
+		res.setHeader('Content-Type', 'application/x-ndjson')
+		res.setHeader('X-Accel-Buffering', 'no')
+		res.setHeader('Vary', 'Cookie, Authorization')
+		res.setHeader(
+			'Cache-Control',
+			canCacheAtEdge
+				? 'public, s-maxage=300, stale-while-revalidate=3600'
+				: 'private, no-cache, no-store, must-revalidate'
+		)
+
+		writeLine({ type: 'dashboard', data: dashboard })
+
+		// Phase 1 continued: fetch protocols/chains and app metadata in parallel; stream as resolved
+		let protocolsAndChainsData: Awaited<ReturnType<typeof fetchProtocolsAndChains>> = null
+		const [protocolsResult] = await Promise.allSettled([
 			fetchProtocolsAndChains().then((d) => {
 				writeLine({ type: 'protocolsAndChains', data: d })
 				protocolsAndChainsData = d
@@ -108,7 +113,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			})
 		])
 
-		if (dashboardResult.status === 'rejected') dashboard = null
 		if (protocolsResult.status === 'rejected') protocolsAndChainsData = null
 
 		const items = dashboard?.data?.items

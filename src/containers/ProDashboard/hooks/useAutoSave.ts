@@ -31,6 +31,7 @@ interface UseAutoSaveOptions {
 	}) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
 	isFreeUser: boolean
+	mode?: 'view' | 'edit'
 	delay?: number
 }
 
@@ -124,11 +125,12 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 			cleanItemsForSaving,
 			updateDashboard,
 			isFreeUser,
+			mode = 'edit',
 			delay = 800
 		} = optionsRef.current
 
 		const isOwner = currentDashboard && userId && currentDashboard.user === userId
-		const shouldBlock = !dashboardId || !isAuthenticated || isReadOnly || !isOwner
+		const shouldBlock = mode === 'view' || !dashboardId || !isAuthenticated || isReadOnly || !isOwner
 
 		if (shouldBlock) {
 			return
