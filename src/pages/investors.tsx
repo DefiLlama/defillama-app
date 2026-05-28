@@ -150,8 +150,8 @@ const PROJECT_CARD_CONTENT = {
 		icon: <OdysseyIcon />,
 		description: 'TVL, revenue, incentives, pegs, treasury, and yield analytics for the Odyssey ecosystem.',
 		tags: ['TVL', 'Revenue', 'Incentives', 'Yields'],
-		accent: 'linear-gradient(90deg, #60a5fa, #a78bfa, #fb923c)',
-		hoverClass: 'hover:border-[#60a5fa]/20 hover:shadow-lg hover:shadow-[#60a5fa]/[0.04]'
+		accent: 'linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd)',
+		hoverClass: 'hover:border-[#3b82f6]/20 hover:shadow-lg hover:shadow-[#3b82f6]/[0.04]'
 	}
 } satisfies Partial<Record<InvestorsProjectId, LandingCardContent>>
 
