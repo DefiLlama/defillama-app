@@ -281,6 +281,52 @@ describe('telemetry client', () => {
 		})
 	})
 
+	it('merges dimension route attributes into failed route and runtime telemetry', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(
+			withStaticRouteTelemetry(
+				'DEX Volume/chain/[chain]',
+				async () => {
+					addRouteTelemetryAttributes({
+						adapter_type: 'dexs',
+						data_type: 'dailyVolume',
+						chain: 'Litecoin',
+						canonical_route: '/dexs/chain/[chain]',
+						metadata_flag: 'dexs'
+					})
+					throw new Error('backend contract failed')
+				},
+				staticRouteTelemetryAttributes({ chain: 'litecoin' }),
+				'/dexs/chain/litecoin'
+			)
+		).rejects.toThrow('backend contract failed')
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution')
+		const runtimeFailure = events.find((event) => event.type === 'runtime_error')
+		const dimensionAttributes = {
+			adapter_type: 'dexs',
+			data_type: 'dailyVolume',
+			chain: 'Litecoin',
+			canonical_route: '/dexs/chain/[chain]',
+			metadata_flag: 'dexs'
+		}
+
+		expect(route).toMatchObject({
+			route: 'DEX Volume/chain/[chain]',
+			request_path: '/dexs/chain/litecoin',
+			status: 'error',
+			attributes: expect.objectContaining(dimensionAttributes)
+		})
+		expect(runtimeFailure).toMatchObject({
+			route: 'DEX Volume/chain/[chain]',
+			phase: 'getStaticProps',
+			attributes: expect.objectContaining(dimensionAttributes)
+		})
+	})
+
 	it('marks large page build finish gaps', async () => {
 		vi.useFakeTimers()
 		vi.setSystemTime(new Date('2026-04-27T00:00:00.000Z'))
@@ -568,6 +614,55 @@ describe('telemetry client', () => {
 			attributes: { api_group: 'api.llama.fi/test', response_bytes: 11 }
 		})
 		expect(outbound).not.toHaveProperty('apiGroup')
+	})
+
+	it('records custom outbound telemetry attributes', async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === 'https://api.llama.fi/v2/chart/dexs/chain/litecoin?dataType=dailyVolume') {
+				return new Response('[]', {
+					status: 200,
+					headers: { 'content-length': '2' }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withRouteTelemetry(
+			{
+				route: 'DEX Volume/chain/[chain]',
+				operationType: 'getStaticProps',
+				runtime: 'build',
+				flushTimeoutMs: 1000
+			},
+			async () => {
+				await fetchWithPoolingOnServer('https://api.llama.fi/v2/chart/dexs/chain/litecoin?dataType=dailyVolume', {
+					timeout: 1234,
+					telemetry: {
+						attributes: {
+							adapter_type: 'dexs',
+							data_type: 'dailyVolume',
+							chain: 'Litecoin'
+						}
+					}
+				})
+				return 'ok'
+			}
+		)
+
+		const outbound = sentEvents(fetchMock).find((event) => event.type === 'outbound_http_request')
+
+		expect(outbound).toMatchObject({
+			type: 'outbound_http_request',
+			attributes: {
+				adapter_type: 'dexs',
+				api_group: 'api.llama.fi/v2/chart/dexs/chain/litecoin',
+				chain: 'Litecoin',
+				data_type: 'dailyVolume',
+				response_bytes: 2
+			}
+		})
 	})
 
 	it('does not record malformed outbound content-length values as response bytes', async () => {
