@@ -7,15 +7,9 @@ export type ApiRoutePath = (typeof allApiRoutePaths)[number]
 export interface ApiRouteCatalogEntry {
 	kind: ApiRouteKind
 	path: ApiRoutePath
-	oldPath: `/api/${ApiRoutePath}`
-	newPath: `/api/${ApiRouteKind}/${ApiRoutePath}`
+	canonicalPath: `/api/${ApiRouteKind}/${ApiRoutePath}`
 	methods: readonly ApiRouteMethod[]
 	cachePolicy?: ApiRouteCachePolicy
-}
-
-export interface ApiRouteRewrite {
-	source: string
-	destination: string
 }
 
 export const privateApiRoutePaths = [
@@ -196,31 +190,10 @@ function createCatalogEntry(path: ApiRoutePath): ApiRouteCatalogEntry {
 	return {
 		kind,
 		path,
-		oldPath: `/api/${path}`,
-		newPath: `/api/${kind}/${path}`,
+		canonicalPath: `/api/${kind}/${path}`,
 		methods: routeMethodOverrides[path] ?? ['ANY'],
 		cachePolicy: cachePolicyByKind[kind]
 	}
 }
 
-function rewriteScore(path: string) {
-	return path.split('/').length * 1000 + path.length
-}
-
-export function toNextRewritePath(apiPath: string) {
-	return apiPath
-		.replace(/\[\[\.\.\.([^\]]+)\]\]/g, ':$1*')
-		.replace(/\[\.\.\.([^\]]+)\]/g, ':$1*')
-		.replace(/\[([^\]]+)\]/g, ':$1')
-}
-
 export const apiRouteCatalog = allApiRoutePaths.map(createCatalogEntry)
-
-export function getLegacyApiRouteRewrites(): ApiRouteRewrite[] {
-	return apiRouteCatalog
-		.map((entry) => ({
-			source: toNextRewritePath(entry.oldPath),
-			destination: toNextRewritePath(entry.newPath)
-		}))
-		.sort((a, b) => rewriteScore(b.source) - rewriteScore(a.source))
-}

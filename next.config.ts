@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next'
-import { getLegacyApiRouteRewrites } from './src/server/apiRouteCatalog'
 import { getDatasetCacheTraceIncludes, type DatasetDomain } from './src/server/datasetCache/registry'
 
 const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTraceIncludes(...domains)
@@ -53,9 +52,6 @@ const nextConfig: NextConfig = {
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
-	rewrites() {
-		return getLegacyApiRouteRewrites()
-	},
 	redirects() {
 		return [
 			{
