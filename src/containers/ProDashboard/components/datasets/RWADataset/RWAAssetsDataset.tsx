@@ -16,7 +16,7 @@ import {
 import * as React from 'react'
 import { useContext } from 'react'
 import { useTableSearch } from '~/components/Table/utils'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { fetchRWAAssetsListViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { fetchRWAActiveTVLs } from '~/containers/RWA/api'
 import type { IFetchedRWAProject } from '~/containers/RWA/api.types'
@@ -114,9 +114,11 @@ const STALE_TIME = 5 * 60 * 1000
 
 function useRWAAssetsTableData() {
 	const authToken = useContext(ProxyAuthTokenContext)
+	const streamDone = useContext(StreamDoneContext)
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'rwa-assets-table'],
+		enabled: streamDone,
 		queryFn: async () => {
 			if (authToken) {
 				return fetchRWAAssetsListViaProxy(authToken)

@@ -9,7 +9,8 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef
+	useRef,
+	useState
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -303,8 +304,13 @@ export function ProDashboardAPIProvider({
 	initialItems?: DashboardItemConfig[]
 	mode?: DashboardMode
 }) {
-	const { authToken, hasActiveSubscription, loaders, isAuthenticated } = useAuthContext()
-	const authReady = !loaders.userLoading && (isAuthenticated ? !!authToken : true)
+	const { authToken, hasActiveSubscription, loaders } = useAuthContext()
+	const [hasMounted, setHasMounted] = useState(false)
+	useEffect(() => {
+		setHasMounted(true)
+	}, [])
+	const hasStoredToken = typeof window !== 'undefined' && pb.authStore.isValid && !!pb.authStore.token
+	const authReady = hasMounted && !loaders.userLoading && (!hasStoredToken || !!authToken)
 	const stream = useDashboardStream(initialDashboardId, authToken, authReady)
 	const streamSettled = authReady && stream.isDone
 	const streamFatal = streamSettled && !!stream.error && stream.dashboard == null
