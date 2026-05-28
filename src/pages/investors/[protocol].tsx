@@ -2,7 +2,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { isInvestorsEnabled, INVESTORS_PROJECTS, INVESTORS_PROTOCOL_IDS } from '~/containers/Investors/config'
+import { getInvestorsProject, isInvestorsEnabled, INVESTORS_PROTOCOL_IDS } from '~/containers/Investors/config'
 import { Logo } from '~/containers/Investors/Logo'
 import { fetchCustomServerData } from '~/containers/Investors/serverDataRegistry'
 
@@ -15,7 +15,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 		return { props: { protocol: protocol || '' } }
 	}
 
-	const project = INVESTORS_PROJECTS.find((p) => p.id === protocol)
+	const project = getInvestorsProject(protocol)
 	if (!project?.dashboardId) {
 		return { props: { protocol } }
 	}
@@ -40,7 +40,7 @@ export default function InvestorsProtocolPage({
 		return null
 	}
 
-	const project = INVESTORS_PROJECTS.find((p) => p.id === protocol)
+	const project = getInvestorsProject(protocol)
 	const protocolName = project?.name ?? protocol
 
 	return (

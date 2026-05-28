@@ -43,7 +43,6 @@
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
 	--animate-ticker-scroll: ticker-scroll 30s linear infinite;
 	--animate-ken-burns: ken-burns 32s ease-in-out infinite alternate;
-
 	@keyframes ticker-scroll {
 		0% {
 			transform: translateX(0);

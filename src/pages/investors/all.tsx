@@ -2,7 +2,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { isInvestorsEnabled, INVESTORS_PROJECTS } from '~/containers/Investors/config'
+import { DEFAULT_INVESTORS_PROTOCOL_ID, isInvestorsEnabled, INVESTORS_PROJECTS } from '~/containers/Investors/config'
 import { Logo } from '~/containers/Investors/Logo'
 import { fetchCustomServerData } from '~/containers/Investors/serverDataRegistry'
 
@@ -11,6 +11,15 @@ const InvestorsDashboard = lazy(() => import('~/containers/Investors'))
 export const getServerSideProps: GetServerSideProps = async () => {
 	if (!isInvestorsEnabled()) {
 		return { props: {} }
+	}
+
+	if (INVESTORS_PROJECTS.length === 1 && DEFAULT_INVESTORS_PROTOCOL_ID) {
+		return {
+			redirect: {
+				destination: `/${DEFAULT_INVESTORS_PROTOCOL_ID}`,
+				permanent: false
+			}
+		}
 	}
 
 	let customServerData: Record<string, unknown> = {}

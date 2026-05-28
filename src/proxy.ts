@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { INVESTORS_PROTOCOL_IDS } from '~/containers/Investors/config'
+import {
+	DEFAULT_INVESTORS_PROTOCOL_ID,
+	INVESTORS_LANDING_PROTOCOL_IDS,
+	INVESTORS_PROTOCOL_IDS,
+	SHOW_INVESTORS_COMING_SOON_PROJECT,
+	isActiveInvestorsHost
+} from '~/containers/Investors/config'
 
 const ALLOWED_METHODS = 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
 const DEFAULT_ALLOWED_HEADERS = 'Content-Type,Authorization,X-Requested-With'
@@ -60,17 +66,28 @@ function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedO
 }
 
 function getInvestorsRewrite(request: NextRequest) {
-	const dashboardId = process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID
-	if (!dashboardId) return null
+	if (!isActiveInvestorsHost(request.headers.get('host'))) return null
 
 	const { pathname } = request.nextUrl
+	const isSingleProject = INVESTORS_PROTOCOL_IDS.length === 1
+	const hasLandingPage = INVESTORS_LANDING_PROTOCOL_IDS.length > 1 || SHOW_INVESTORS_COMING_SOON_PROJECT
 
 	if (pathname === '/') {
-		return new URL('/investors', request.url)
+		return new URL(
+			isSingleProject && !hasLandingPage && DEFAULT_INVESTORS_PROTOCOL_ID
+				? `/investors/${DEFAULT_INVESTORS_PROTOCOL_ID}`
+				: '/investors',
+			request.url
+		)
 	}
 
 	if (pathname === '/all') {
-		return new URL('/investors/all', request.url)
+		return new URL(
+			isSingleProject && DEFAULT_INVESTORS_PROTOCOL_ID
+				? `/investors/${DEFAULT_INVESTORS_PROTOCOL_ID}`
+				: '/investors/all',
+			request.url
+		)
 	}
 
 	const segment = pathname.slice(1)
@@ -131,6 +148,7 @@ export const config = {
 		'/aave',
 		'/sonic',
 		'/near',
-		'/flare'
+		'/flare',
+		'/odyssey-ecosystem'
 	]
 }
