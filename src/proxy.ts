@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { INVESTORS_PROTOCOL_IDS } from '~/containers/Investors/config'
 
 const ALLOWED_METHODS = 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
 const DEFAULT_ALLOWED_HEADERS = 'Content-Type,Authorization,X-Requested-With'
@@ -58,7 +59,34 @@ function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedO
 	}
 }
 
+function getInvestorsRewrite(request: NextRequest) {
+	const dashboardId = process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID
+	if (!dashboardId) return null
+
+	const { pathname } = request.nextUrl
+
+	if (pathname === '/') {
+		return new URL('/investors', request.url)
+	}
+
+	if (pathname === '/all') {
+		return new URL('/investors/all', request.url)
+	}
+
+	const segment = pathname.slice(1)
+	if (INVESTORS_PROTOCOL_IDS.includes(segment)) {
+		return new URL(`/investors/${segment}`, request.url)
+	}
+
+	return null
+}
+
 export function proxy(request: NextRequest) {
+	const investorsRewrite = getInvestorsRewrite(request)
+	if (investorsRewrite) {
+		return NextResponse.rewrite(investorsRewrite)
+	}
+
 	const origin = request.headers.get('origin')
 	const allowedOrigin = resolveAllowedOrigin(origin, request.nextUrl.origin)
 
@@ -92,5 +120,17 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-	matcher: '/api/:path*'
+	matcher: [
+		'/api/:path*',
+		'/',
+		'/all',
+		'/etherfi',
+		'/spark',
+		'/maple',
+		'/berachain',
+		'/aave',
+		'/sonic',
+		'/near',
+		'/flare'
+	]
 }

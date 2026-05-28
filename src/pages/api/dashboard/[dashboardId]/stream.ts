@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -26,10 +27,8 @@ import type {
 	UnlocksPieConfig,
 	UnlocksScheduleConfig
 } from '~/containers/ProDashboard/types'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
-import type { IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -41,6 +40,7 @@ import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
@@ -622,7 +622,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			withChainBreakdown?: boolean
 		}
 		const dimensionDatasetSpecs: DimensionDatasetSpec[] = [
-			{ datasetType: 'dexs', hookPrefix: 'dexs-overview', adapterType: ADAPTER_TYPES.DEXS, route: 'dexs', metricName: 'DEX Volume' },
+			{
+				datasetType: 'dexs',
+				hookPrefix: 'dexs-overview',
+				adapterType: ADAPTER_TYPES.DEXS,
+				route: 'dexs',
+				metricName: 'DEX Volume'
+			},
 			{
 				datasetType: 'perps',
 				hookPrefix: 'perps-overview',
@@ -642,9 +648,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		]
 		const seenDimensionDatasetKeys = new Set<string>()
 		for (const spec of dimensionDatasetSpecs) {
-			const matchingItems = items.filter(
-				(item: any) => item.kind === 'table' && item.datasetType === spec.datasetType
-			)
+			const matchingItems = items.filter((item: any) => item.kind === 'table' && item.datasetType === spec.datasetType)
 			for (const item of matchingItems) {
 				const itemChains: string[] = Array.isArray((item as any).chains) ? (item as any).chains : []
 				const sortedChainsKey = [...itemChains].sort().join(',')
@@ -672,9 +676,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		// Income statement items
-		const incomeStatementItems = items.filter(
-			(item): item is IncomeStatementConfig => item.kind === 'income-statement'
-		)
+		const incomeStatementItems = items.filter((item): item is IncomeStatementConfig => item.kind === 'income-statement')
 		const seenIncomeProtocols = new Set<string>()
 		if (incomeStatementItems.length > 0) {
 			const metadataModule = await import('~/utils/metadata')
@@ -753,10 +755,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 								15_000
 							)
 							let series = data?.series ?? []
-							if (
-								cfg.hideOthers ||
-								(cfg.chainCategories?.length > 0 || cfg.protocolCategories?.length > 0)
-							) {
+							if (cfg.hideOthers || cfg.chainCategories?.length > 0 || cfg.protocolCategories?.length > 0) {
 								series = series.filter((s: any) => !s.name.startsWith('Others'))
 							}
 							result = { series }
@@ -774,7 +773,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 								15_000
 							)
 							let series = data?.series ?? []
-							if (cfg.hideOthers || (cfg.chainCategories?.length > 0)) {
+							if (cfg.hideOthers || cfg.chainCategories?.length > 0) {
 								series = series.filter((s: any) => !s.name.startsWith('Others'))
 							}
 							result = { series }

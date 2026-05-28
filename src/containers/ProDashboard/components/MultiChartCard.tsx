@@ -55,7 +55,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		handleTreemapChange,
 		handleDuplicateMultiChart
 	} = useProDashboardEditorActions()
-	const { isReadOnly } = useProDashboardPermissions()
+	const { isReadOnly, hideDuplicateButton } = useProDashboardPermissions()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false)
@@ -618,7 +618,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						variant="pro"
 					/>
 				) : null}
-				{!isReadOnly ? (
+				{!isReadOnly && !hideDuplicateButton ? (
 					<button
 						type="button"
 						onClick={() => setShowDuplicateConfirm(true)}
