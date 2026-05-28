@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL } from '~/constants'
-import { validateSubscription } from '~/utils/apiAuth'
+import { requireSubscription } from '~/server/api/requireSubscription'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -30,10 +30,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'cexs must be a non-empty array' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
-	}
+	const auth = await requireSubscription(req.headers.authorization, res)
+	if (!auth) return
 
 	const cexRequests: Array<{ slug: string; tokensToExclude?: unknown }> = []
 	for (const cex of body.cexs) {

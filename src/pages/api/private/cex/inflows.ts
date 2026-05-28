@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL } from '~/constants'
-import { validateSubscription } from '~/utils/apiAuth'
+import { requireSubscription } from '~/server/api/requireSubscription'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -21,10 +21,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'start and end must be valid numbers' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
-	}
+	const auth = await requireSubscription(req.headers.authorization, res)
+	if (!auth) return
 
 	try {
 		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([

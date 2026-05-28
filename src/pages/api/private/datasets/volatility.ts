@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { validateSubscription } from '~/utils/apiAuth'
+import { requireSubscription } from '~/server/api/requireSubscription'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -7,10 +7,8 @@ const VOLATILITY_UPSTREAM = process.env.VOLATILITY_UPSTREAM_URL ?? 'https://yiel
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
-		}
+		const auth = await requireSubscription(req.headers.authorization, res)
+		if (!auth) return
 
 		const upstream = await fetchWithPoolingOnServer(VOLATILITY_UPSTREAM)
 		if (!upstream.ok) {

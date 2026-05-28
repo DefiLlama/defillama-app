@@ -11,7 +11,7 @@ import {
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
-import { validateSubscription } from '~/utils/apiAuth'
+import { requireSubscription } from '~/server/api/requireSubscription'
 import { fetchJson } from '~/utils/async'
 import { addRouteTelemetryAttributes, recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -228,10 +228,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
-	const auth = await validateSubscription(dashboardProxyAuthHeader(req))
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
-	}
+	const auth = await requireSubscription(dashboardProxyAuthHeader(req), res)
+	if (!auth) return
 
 	const { type, params: paramsStr } = req.query
 	if (!type || !paramsStr) {

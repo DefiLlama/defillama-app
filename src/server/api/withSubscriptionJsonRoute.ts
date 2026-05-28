@@ -1,6 +1,6 @@
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
-import { validateSubscription } from '~/utils/apiAuth'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+import { requireSubscription } from './requireSubscription'
 
 type SubscriptionJsonRouteOptions<TParams> = {
 	route: string
@@ -27,10 +27,8 @@ export function withSubscriptionJsonRoute<TParams = undefined>({
 		if (params === null) return
 
 		try {
-			const auth = await validateSubscription(req.headers.authorization)
-			if (auth.valid === false) {
-				return res.status(auth.status).json({ error: auth.error })
-			}
+			const auth = await requireSubscription(req.headers.authorization, res)
+			if (!auth) return
 
 			return await handler(req, res, params)
 		} catch (error) {
