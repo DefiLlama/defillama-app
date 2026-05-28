@@ -11,18 +11,25 @@ import {
 	fetchSingleChartData,
 	withTimeout
 } from '~/containers/ProDashboard/queries.server'
+import { fetchDimensionDataset } from '~/containers/ProDashboard/server/datasetFetchers'
 import { fetchTableServerData } from '~/containers/ProDashboard/server/tableQueries'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
+import ProtocolSplitCharts from '~/containers/ProDashboard/services/ProtocolSplitCharts'
 import type {
 	AdvancedTvlChartConfig,
+	ChartBuilderConfig,
 	ChartConfig,
+	IncomeStatementConfig,
 	MetricConfig,
 	StablecoinsChartConfig,
 	UnifiedTableConfig,
 	UnlocksPieConfig,
 	UnlocksScheduleConfig
 } from '~/containers/ProDashboard/types'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -601,6 +608,180 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 						if (data) writeLine({ type: 'emissionData', key: task.key, data })
 					})
 					.catch(() => {})
+			)
+		}
+
+		// Dimension dataset tables (dexs, perps, aggregators) — seed under the per-card hook keys
+		type DimensionDatasetSpec = {
+			datasetType: 'dexs' | 'perps' | 'aggregators'
+			hookPrefix: string
+			adapterType: `${ADAPTER_TYPES}`
+			route: string
+			metricName: string
+			hasOpenInterestByChain?: boolean
+			withChainBreakdown?: boolean
+		}
+		const dimensionDatasetSpecs: DimensionDatasetSpec[] = [
+			{ datasetType: 'dexs', hookPrefix: 'dexs-overview', adapterType: ADAPTER_TYPES.DEXS, route: 'dexs', metricName: 'DEX Volume' },
+			{
+				datasetType: 'perps',
+				hookPrefix: 'perps-overview',
+				adapterType: ADAPTER_TYPES.PERPS,
+				route: 'perps',
+				metricName: 'Perp Volume',
+				hasOpenInterestByChain: true
+			},
+			{
+				datasetType: 'aggregators',
+				hookPrefix: 'aggregators-overview',
+				adapterType: ADAPTER_TYPES.AGGREGATORS,
+				route: 'dex-aggregators',
+				metricName: 'DEX Aggregator Volume',
+				withChainBreakdown: true
+			}
+		]
+		const seenDimensionDatasetKeys = new Set<string>()
+		for (const spec of dimensionDatasetSpecs) {
+			const matchingItems = items.filter(
+				(item: any) => item.kind === 'table' && item.datasetType === spec.datasetType
+			)
+			for (const item of matchingItems) {
+				const itemChains: string[] = Array.isArray((item as any).chains) ? (item as any).chains : []
+				const sortedChainsKey = [...itemChains].sort().join(',')
+				const cacheKey = JSON.stringify(['pro-dashboard', spec.hookPrefix, sortedChainsKey])
+				if (seenDimensionDatasetKeys.has(cacheKey)) continue
+				seenDimensionDatasetKeys.add(cacheKey)
+				phase2Promises.push(
+					withTimeout(
+						fetchDimensionDataset({
+							adapterType: spec.adapterType,
+							route: spec.route,
+							metricName: spec.metricName,
+							chains: itemChains,
+							hasOpenInterestByChain: spec.hasOpenInterestByChain,
+							withChainBreakdown: spec.withChainBreakdown
+						}),
+						15_000
+					)
+						.then((data) => {
+							if (data) writeLine({ type: 'dimensionDatasetData', key: cacheKey, data })
+						})
+						.catch(() => {})
+				)
+			}
+		}
+
+		// Income statement items
+		const incomeStatementItems = items.filter(
+			(item): item is IncomeStatementConfig => item.kind === 'income-statement'
+		)
+		const seenIncomeProtocols = new Set<string>()
+		if (incomeStatementItems.length > 0) {
+			const metadataModule = await import('~/utils/metadata')
+			const { protocolMetadata } = metadataModule.default
+			const metadataByDisplayNameSlug = new Map<string, IProtocolMetadata>()
+			for (const key in protocolMetadata) {
+				const record = protocolMetadata[key]
+				metadataByDisplayNameSlug.set(slug(record.displayName), record)
+			}
+			for (const incomeItem of incomeStatementItems) {
+				const protocol = incomeItem.protocol
+				if (!protocol || seenIncomeProtocols.has(protocol)) continue
+				seenIncomeProtocols.add(protocol)
+				const metadata = metadataByDisplayNameSlug.get(slug(protocol))
+				if (!metadata) continue
+				const cacheKey = JSON.stringify(['pro-dashboard', 'income-statement', protocol])
+				phase2Promises.push(
+					withTimeout(getProtocolIncomeStatement({ metadata }), 15_000)
+						.then((data) => {
+							if (data) writeLine({ type: 'incomeStatementData', key: cacheKey, data })
+						})
+						.catch(() => {})
+				)
+			}
+		}
+
+		// Chart builder items
+		const chartBuilderItems = items.filter((item): item is ChartBuilderConfig => item.kind === 'builder')
+		const CHAIN_ONLY_METRICS = new Set(['chain-fees', 'chain-revenue', 'tvl', 'stablecoins'])
+		const seenChartBuilderKeys = new Set<string>()
+		for (const builderItem of chartBuilderItems) {
+			const cfg: any = builderItem.config
+			if (!cfg?.metric) continue
+			const filterMode = cfg.filterMode
+			const chainFilterMode = cfg.chainFilterMode ?? filterMode
+			const categoryFilterMode = cfg.categoryFilterMode ?? filterMode
+			const chainCategoryFilterMode = cfg.chainCategoryFilterMode ?? filterMode
+			const protocolCategoryFilterMode = cfg.protocolCategoryFilterMode ?? filterMode
+			const cacheKey = JSON.stringify([
+				'pro-dashboard',
+				'chartBuilder',
+				cfg.mode,
+				cfg.metric,
+				cfg.protocol,
+				cfg.chains,
+				cfg.limit,
+				cfg.categories,
+				cfg.chainCategories,
+				cfg.protocolCategories,
+				cfg.hideOthers,
+				cfg.groupByParent,
+				chainFilterMode,
+				categoryFilterMode,
+				chainCategoryFilterMode,
+				protocolCategoryFilterMode
+			])
+			if (seenChartBuilderKeys.has(cacheKey)) continue
+			seenChartBuilderKeys.add(cacheKey)
+			phase2Promises.push(
+				(async () => {
+					try {
+						let result: { series: any[] } = { series: [] }
+						if (cfg.mode === 'protocol') {
+							const data = await withTimeout(
+								ProtocolSplitCharts.getProtocolChainData(
+									cfg.protocol,
+									cfg.metric,
+									cfg.chains?.length > 0 ? cfg.chains : undefined,
+									cfg.limit,
+									chainFilterMode,
+									cfg.chainCategories?.length > 0 ? cfg.chainCategories : undefined,
+									cfg.protocolCategories?.length > 0 ? cfg.protocolCategories : undefined,
+									chainCategoryFilterMode,
+									protocolCategoryFilterMode
+								),
+								15_000
+							)
+							let series = data?.series ?? []
+							if (
+								cfg.hideOthers ||
+								(cfg.chainCategories?.length > 0 || cfg.protocolCategories?.length > 0)
+							) {
+								series = series.filter((s: any) => !s.name.startsWith('Others'))
+							}
+							result = { series }
+						} else if (!CHAIN_ONLY_METRICS.has(cfg.metric)) {
+							const data = await withTimeout(
+								ProtocolSplitCharts.getProtocolSplitData(
+									cfg.metric,
+									cfg.chains,
+									cfg.limit,
+									cfg.categories,
+									cfg.groupByParent,
+									chainFilterMode,
+									categoryFilterMode
+								),
+								15_000
+							)
+							let series = data?.series ?? []
+							if (cfg.hideOthers || (cfg.chainCategories?.length > 0)) {
+								series = series.filter((s: any) => !s.name.startsWith('Others'))
+							}
+							result = { series }
+						}
+						writeLine({ type: 'chartBuilderData', key: cacheKey, data: result })
+					} catch {}
+				})()
 			)
 		}
 
