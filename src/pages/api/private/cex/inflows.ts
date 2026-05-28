@@ -1,15 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL } from '~/constants'
-import { requireSubscription } from '~/server/api/requireSubscription'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
 	const { slug, start, end, tokensToExclude } = req.query
 	if (typeof slug !== 'string' || typeof start !== 'string' || typeof end !== 'string') {
 		return res.status(400).json({ error: 'Missing required parameters: slug, start, end' })
@@ -21,33 +15,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'start and end must be valid numbers' })
 	}
 
-	const auth = await requireSubscription(req.headers.authorization, res)
-	if (!auth) return
-
-	try {
-		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
-			import('~/utils/metadata'),
-			import('~/server/routeCache/assets')
-		])
-		const cexRoute = resolveCexParamFromMetadata(slug, metadataCache)
-		if (!cexRoute) {
-			return res.status(404).json({ error: 'CEX not found' })
-		}
-
-		const upstreamUrl = `${SERVER_URL}/inflows/${encodeURIComponent(cexRoute.canonicalSlug)}/${startNum}?end=${endNum}&tokensToExclude=${encodeURIComponent(typeof tokensToExclude === 'string' ? tokensToExclude : '')}`
-		const upstream = await fetchWithPoolingOnServer(upstreamUrl)
-
-		if (!upstream.ok) {
-			return res.status(upstream.status).json({ error: `Upstream API returned ${upstream.status}` })
-		}
-
-		const data = await upstream.json()
-		res.setHeader('Cache-Control', 'private, no-store')
-		return res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Internal server error' })
+	const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
+		import('~/utils/metadata'),
+		import('~/server/routeCache/assets')
+	])
+	const cexRoute = resolveCexParamFromMetadata(slug, metadataCache)
+	if (!cexRoute) {
+		return res.status(404).json({ error: 'CEX not found' })
 	}
+
+	const upstreamUrl = `${SERVER_URL}/inflows/${encodeURIComponent(cexRoute.canonicalSlug)}/${startNum}?end=${endNum}&tokensToExclude=${encodeURIComponent(typeof tokensToExclude === 'string' ? tokensToExclude : '')}`
+	const upstream = await fetchWithPoolingOnServer(upstreamUrl)
+
+	if (!upstream.ok) {
+		return res.status(upstream.status).json({ error: `Upstream API returned ${upstream.status}` })
+	}
+
+	const data = await upstream.json()
+	return res.status(200).json(data)
 }
 
-export default withApiRouteTelemetry('/api/private/cex/inflows', handler)
+export default withSubscriptionJsonRoute({
+	route: '/api/private/cex/inflows',
+	errorMessage: 'Internal server error',
+	handler
+})
