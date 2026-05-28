@@ -145,7 +145,7 @@ const TweetWidget: React.FC<{ tweetId: string; mobile?: boolean }> = ({ tweetId,
 
 	return (
 		<div
-			className={`${wrapperClass} overflow-hidden rounded-[13px] border border-[#cfd9de] bg-white [&_.twitter-tweet]:!m-0`}
+			className={`${wrapperClass} overflow-hidden rounded-[13px] border border-[#cfd9de] bg-white [&_.twitter-tweet]:m-0!`}
 		>
 			<TweetEmbed config={config} action="Open" />
 		</div>
