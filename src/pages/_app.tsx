@@ -3,7 +3,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import Router from 'next/router'
-import { useRouter } from 'next/router'
 import '@rainbow-me/rainbowkit/styles.css'
 import '~/tailwind.css'
 import Script from 'next/script'
@@ -12,7 +11,6 @@ import { useEffect, useRef } from 'react'
 import { RouteProgressIndicator } from '~/components/RouteProgressIndicator'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useReferrer } from '~/hooks/useReferrer'
@@ -27,6 +25,9 @@ type AppPropsWithLayout = AppProps & {
 }
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
+const MAIN_UMAMI_WEBSITE_ID = 'ca346731-f7ec-437f-9727-162f29bb67ae'
+const IR_UMAMI_WEBSITE_ID = '11de15eb-61d0-41c5-9e73-0bf496cc653c'
+const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID ? IR_UMAMI_WEBSITE_ID : MAIN_UMAMI_WEBSITE_ID
 
 const isChunkLoadError = (error: unknown) => {
 	if (!error) return false
@@ -98,7 +99,6 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 
 	useAuthBridge()
 	useParentAuthTracker()
-	const { hasActiveSubscription } = useAuthContext()
 
 	useUmamiIdentityTracker()
 	useReferrer()
@@ -116,7 +116,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 			<Script
 				src="/script2.js"
 				strategy="lazyOnload"
-				data-website-id="11de15eb-61d0-41c5-9e73-0bf496cc653c"
+				data-website-id={UMAMI_WEBSITE_ID}
 				data-host-url="https://tasty.defillama.com"
 			/>
 
