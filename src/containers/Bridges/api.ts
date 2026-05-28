@@ -144,7 +144,7 @@ export function fetchBridgeTransactionsClient(
 		starttimestamp: String(startTimestamp),
 		endtimestamp: String(endTimestamp)
 	})
-	const url = `/api/bridges/transactions/${encodeURIComponent(String(bridgeId))}?${params.toString()}`
+	const url = `/api/public/bridges/transactions/${encodeURIComponent(String(bridgeId))}?${params.toString()}`
 	return fetchJson<RawBridgeTransactionsResponse>(url)
 }
 

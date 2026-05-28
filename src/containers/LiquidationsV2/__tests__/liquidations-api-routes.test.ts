@@ -47,10 +47,10 @@ vi.mock('~/server/datasetCache/liquidations', () => ({
 	getLiquidationsProtocolChainIdsFromCache: getLiquidationsProtocolChainIdsFromCacheMock
 }))
 
-import chainHandler from '~/pages/api/liquidations/[protocol]/[chain]'
-import protocolHandler from '~/pages/api/liquidations/[protocol]/index'
-import overviewHandler from '~/pages/api/liquidations/index'
-import tokenHandler from '~/pages/api/token-liquidations/[symbol]'
+import chainHandler from '~/pages/api/private/liquidations/[protocol]/[chain]'
+import protocolHandler from '~/pages/api/private/liquidations/[protocol]/index'
+import overviewHandler from '~/pages/api/private/liquidations/index'
+import tokenHandler from '~/pages/api/private/token-liquidations/[symbol]'
 import { validateSubscription } from '~/utils/apiAuth'
 
 const mockedValidateSubscription = vi.mocked(validateSubscription)

@@ -12,7 +12,7 @@ interface DuneResponse<T> {
 }
 
 export async function fetchDuneQuery<T>(queryId: string): Promise<DuneResponse<T>> {
-	const response = await fetch(`/api/dune/query/${queryId}`)
+	const response = await fetch(`/api/public/dune/query/${queryId}`)
 	if (!response.ok) throw new Error(`Dune API error: ${response.status}`)
 	return response.json()
 }

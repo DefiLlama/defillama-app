@@ -120,7 +120,7 @@ export type TimeWindow = 'LAST_DAY' | 'LAST_WEEK' | 'LAST_MONTH' | 'LAST_SIX_MON
 const STALE_TIME = 10 * 60 * 1000
 
 async function fetchAaveQuery<T>(queryName: string, params?: Record<string, unknown>): Promise<T> {
-	const response = await fetch('/api/aave/graphql', {
+	const response = await fetch('/api/dynamic/aave/graphql', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ queryName, ...(params ? { params } : {}) })

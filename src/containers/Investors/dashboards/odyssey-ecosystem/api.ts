@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 
-const BASE = '/api/odyssey-ecosystem'
+const BASE = '/api/public/odyssey-ecosystem'
 const STALE_MS = 10 * 60 * 1000
 
 function useTab<T>(tab: string) {

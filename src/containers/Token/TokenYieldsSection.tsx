@@ -44,7 +44,7 @@ const DEFAULT_TABLE_SORTING: SortingState = [{ id: 'tvl', desc: true }]
 const DEFAULT_TABLE_SORTING_KEY = JSON.stringify(DEFAULT_TABLE_SORTING)
 
 async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[]> {
-	return fetchJson<IYieldTableRow[]>(`/api/datasets/yields?token=${encodeURIComponent(tokenSymbol)}`)
+	return fetchJson<IYieldTableRow[]>(`/api/public/datasets/yields?token=${encodeURIComponent(tokenSymbol)}`)
 }
 
 interface TokenYieldsSectionProps {

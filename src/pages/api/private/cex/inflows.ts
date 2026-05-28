@@ -1,0 +1,55 @@
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { SERVER_URL } from '~/constants'
+import { validateSubscription } from '~/utils/apiAuth'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+	if (req.method !== 'GET') {
+		res.setHeader('Allow', ['GET'])
+		return res.status(405).json({ error: 'Method Not Allowed' })
+	}
+
+	const { slug, start, end, tokensToExclude } = req.query
+	if (typeof slug !== 'string' || typeof start !== 'string' || typeof end !== 'string') {
+		return res.status(400).json({ error: 'Missing required parameters: slug, start, end' })
+	}
+
+	const startNum = Number(start)
+	const endNum = Number(end)
+	if (!Number.isFinite(startNum) || !Number.isFinite(endNum)) {
+		return res.status(400).json({ error: 'start and end must be valid numbers' })
+	}
+
+	const auth = await validateSubscription(req.headers.authorization)
+	if (auth.valid === false) {
+		return res.status(auth.status).json({ error: auth.error })
+	}
+
+	try {
+		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/assets')
+		])
+		const cexRoute = resolveCexParamFromMetadata(slug, metadataCache)
+		if (!cexRoute) {
+			return res.status(404).json({ error: 'CEX not found' })
+		}
+
+		const upstreamUrl = `${SERVER_URL}/inflows/${encodeURIComponent(cexRoute.canonicalSlug)}/${startNum}?end=${endNum}&tokensToExclude=${encodeURIComponent(typeof tokensToExclude === 'string' ? tokensToExclude : '')}`
+		const upstream = await fetchWithPoolingOnServer(upstreamUrl)
+
+		if (!upstream.ok) {
+			return res.status(upstream.status).json({ error: `Upstream API returned ${upstream.status}` })
+		}
+
+		const data = await upstream.json()
+		res.setHeader('Cache-Control', 'private, no-store')
+		return res.status(200).json(data)
+	} catch (error) {
+		recordRouteRuntimeError(error, 'apiRoute')
+		return res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+export default withApiRouteTelemetry('/api/private/cex/inflows', handler)

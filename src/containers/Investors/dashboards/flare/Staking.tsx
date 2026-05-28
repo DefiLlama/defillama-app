@@ -102,7 +102,7 @@ export default function Staking() {
 	const query = useQuery<StakingAPIResponse>({
 		queryKey: ['flare-staking'],
 		queryFn: async () => {
-			const res = await fetch('/api/flare/staking')
+			const res = await fetch('/api/public/flare/staking')
 			if (!res.ok) throw new Error(`Flare staking API error: ${res.status}`)
 			return res.json()
 		},

@@ -13,7 +13,7 @@ export function useDexsData(chains?: string[]) {
 
 	return useQuery<DexItem[]>({
 		queryKey: ['pro-dashboard', 'dexs-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/datasets/dexs${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/datasets/dexs${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1

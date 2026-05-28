@@ -147,7 +147,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 			}
 			const queryString = searchParams.toString()
 			return fetchJson<IProtocolsCategoriesChartData>(
-				`/api/page-data/categories/charts${queryString ? `?${queryString}` : ''}`
+				`/api/public/page-data/categories/charts${queryString ? `?${queryString}` : ''}`
 			)
 		},
 		staleTime: 60 * 60 * 1000,

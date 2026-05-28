@@ -111,7 +111,7 @@ export function useEcosystemData() {
 	const query = useQuery<EcosystemAPIResponse>({
 		queryKey: ['sonic-ecosystem'],
 		queryFn: async () => {
-			const res = await fetch('/api/sonic/ecosystem')
+			const res = await fetch('/api/public/sonic/ecosystem')
 			if (!res.ok) throw new Error(`Ecosystem API error: ${res.status}`)
 			return res.json()
 		},

@@ -77,7 +77,7 @@ export default function Tokenomics() {
 	const query = useQuery<TokenomicsAPIResponse>({
 		queryKey: ['flare-tokenomics'],
 		queryFn: async () => {
-			const res = await fetch('/api/flare/tokenomics')
+			const res = await fetch('/api/public/flare/tokenomics')
 			if (!res.ok) throw new Error(`Flare tokenomics API error: ${res.status}`)
 			return res.json()
 		},

@@ -47,7 +47,7 @@ type ChainDataResult = {
 }
 
 const getChainData = async (chain: string): Promise<ChainDataResult> => {
-	const { chain: chainData } = (await fetchJson(`/api/cache/chain/${chain}`)) as {
+	const { chain: chainData } = (await fetchJson(`/api/dynamic/cache/chain/${chain}`)) as {
 		chain: {
 			chainOverviewData: IChainOverviewData
 			dexVolumeChart: IAdapterChainOverview['totalDataChart']

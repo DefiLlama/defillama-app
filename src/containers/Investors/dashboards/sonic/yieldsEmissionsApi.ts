@@ -96,7 +96,7 @@ export function useYieldsEmissionsData() {
 	const query = useQuery<YieldsEmissionsAPIResponse>({
 		queryKey: ['sonic-yields-emissions'],
 		queryFn: async () => {
-			const res = await fetch('/api/sonic/yields-emissions')
+			const res = await fetch('/api/public/sonic/yields-emissions')
 			if (!res.ok) throw new Error(`Yields-Emissions API error: ${res.status}`)
 			return res.json()
 		},

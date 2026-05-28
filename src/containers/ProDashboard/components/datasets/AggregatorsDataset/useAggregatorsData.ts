@@ -13,7 +13,7 @@ export function useAggregatorsData(chains?: string[]) {
 
 	return useQuery<AggregatorItem[]>({
 		queryKey: ['pro-dashboard', 'aggregators-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/datasets/aggregators${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/datasets/aggregators${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1

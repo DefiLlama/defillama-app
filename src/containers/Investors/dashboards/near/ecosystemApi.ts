@@ -105,7 +105,7 @@ export function useEcosystemData() {
 	return useQuery<EcosystemResponse>({
 		queryKey: ['near-ecosystem'],
 		queryFn: async () => {
-			const res = await fetch('/api/near/ecosystem')
+			const res = await fetch('/api/public/near/ecosystem')
 			if (!res.ok) throw new Error(`NEAR Ecosystem API error: ${res.status}`)
 			return res.json()
 		},

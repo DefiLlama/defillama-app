@@ -105,7 +105,7 @@ vi.mock('~/utils/http-client', () => ({
 	fetchWithPoolingOnServer: vi.fn()
 }))
 
-import dashboardStreamHandler from '~/pages/api/dashboard/[dashboardId]/stream'
+import dashboardStreamHandler from '~/pages/api/dynamic/dashboard/[dashboardId]/stream'
 import { getServerSideProps } from '~/pages/pro/[dashboardId]'
 
 const PUBLIC_DASHBOARD_CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
@@ -126,7 +126,7 @@ function createStreamRequest(dashboardId: string, authToken?: string): NextApiRe
 		method: 'GET',
 		query: { dashboardId },
 		cookies: authToken ? { pb_auth_token: authToken } : {},
-		url: `/api/dashboard/${dashboardId}/stream`
+		url: `/api/dynamic/dashboard/${dashboardId}/stream`
 	} as unknown as NextApiRequest
 }
 

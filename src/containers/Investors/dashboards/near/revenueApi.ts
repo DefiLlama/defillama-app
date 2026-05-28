@@ -135,7 +135,7 @@ export function useRevenueData() {
 	const query = useQuery<RevenueAPIResponse>({
 		queryKey: ['near-revenue'],
 		queryFn: async () => {
-			const res = await fetch('/api/near/revenue')
+			const res = await fetch('/api/public/near/revenue')
 			if (!res.ok) throw new Error(`NEAR Revenue API error: ${res.status}`)
 			return res.json()
 		},

@@ -1,7 +1,7 @@
 import type { NextApiRequest } from 'next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ArticleDocument } from '~/containers/Articles/types'
-import { researchPublishHandler } from '~/pages/api/research/articles/[id]/publish'
+import { researchPublishHandler } from '~/pages/api/private/research/articles/[id]/publish'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
@@ -24,7 +24,7 @@ function article(overrides: Partial<ArticleDocument> = {}): ArticleDocument {
 	} as ArticleDocument
 }
 
-describe('/api/research/articles/[id]/publish', () => {
+describe('/api/private/research/articles/[id]/publish', () => {
 	afterEach(() => {
 		vi.unstubAllEnvs()
 		vi.unstubAllGlobals()

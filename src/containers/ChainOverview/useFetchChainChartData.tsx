@@ -37,7 +37,7 @@ const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
 			searchParams.set(key, value)
 		}
 	}
-	return `/api/charts/chain?${searchParams.toString()}`
+	return `/api/public/charts/chain?${searchParams.toString()}`
 }
 
 export const useFetchChainChartData = ({
@@ -90,16 +90,18 @@ export const useFetchChainChartData = ({
 	}>({
 		queryKey: ['chain-overview', 'price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`/api/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then((res) => {
-				if (!res.data?.prices?.length) return null
+			fetchJson(`/api/public/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
+				(res) => {
+					if (!res.data?.prices?.length) return null
 
-				const store = {}
-				for (const [date, value] of res.data.prices) {
-					store[date] = value
+					const store = {}
+					for (const [date, value] of res.data.prices) {
+						store[date] = value
+					}
+
+					return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
 				}
-
-				return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
-			}),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

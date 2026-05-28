@@ -274,7 +274,7 @@ describe('YieldPage CSV export', () => {
 		const csv = await prepareCsv()
 		const poolNames = csv.rows.slice(1).map((row) => row[0])
 
-		expect(fetchJsonMock).toHaveBeenCalledWith('/api/datasets/yields/pools?view=main&page=1&pageSize=all')
+		expect(fetchJsonMock).toHaveBeenCalledWith('/api/public/datasets/yields/pools?view=main&page=1&pageSize=all')
 		expect(poolNames).toHaveLength(60)
 		expect(poolNames).toEqual(csvPools.map((includedPool) => includedPool.symbol))
 		expect(Object.fromEntries(expectedHeaders.map((header, index) => [header, csv.rows[1][index]]))).toMatchObject({
@@ -319,7 +319,7 @@ describe('YieldPage CSV export', () => {
 		renderToStaticMarkup(
 			<YieldPage
 				serverPagination
-				serverApi="/api/datasets/yields/halal"
+				serverApi="/api/public/datasets/yields/halal"
 				projectList={['Test Project']}
 				chainList={['Ethereum']}
 				categoryList={['Dexes']}
@@ -335,7 +335,9 @@ describe('YieldPage CSV export', () => {
 
 		const csv = await prepareCsv()
 
-		expect(fetchJsonMock).toHaveBeenCalledWith('/api/datasets/yields/halal?page=1&pageSize=all&token=USDC&view=unknown')
+		expect(fetchJsonMock).toHaveBeenCalledWith(
+			'/api/public/datasets/yields/halal?page=1&pageSize=all&token=USDC&view=unknown'
+		)
 		expect(csv.rows.slice(1).map((row) => row[0])).toEqual(csvPools.map((includedPool) => includedPool.symbol))
 	})
 

@@ -58,7 +58,7 @@ describe('strategy finder initial rows requests', () => {
 			<StrategyFinderView {...commonProps} lendingProtocols={['Aave']} farmProtocols={['Curve']} searchData={[]} />
 		)
 
-		expect(captures).toEqual([{ endpoint: '/api/datasets/yields/strategy', queryString: null }])
+		expect(captures).toEqual([{ endpoint: '/api/public/datasets/yields/strategy', queryString: null }])
 		expect(html).toContain('To start just select a collateral token above.')
 		expect(html).not.toContain('Loading strategies...')
 	})
@@ -70,7 +70,7 @@ describe('strategy finder initial rows requests', () => {
 			<StrategyFinderView {...commonProps} lendingProtocols={['Aave']} farmProtocols={['Curve']} searchData={[]} />
 		)
 
-		expect(captures[0]).toMatchObject({ endpoint: '/api/datasets/yields/strategy' })
+		expect(captures[0]).toMatchObject({ endpoint: '/api/public/datasets/yields/strategy' })
 		expect(captures[0]?.queryString).toContain('lend=ETH')
 	})
 
@@ -79,7 +79,7 @@ describe('strategy finder initial rows requests', () => {
 
 		const html = renderToStaticMarkup(<LongShortStrategyView {...commonProps} tokens={[]} />)
 
-		expect(captures).toEqual([{ endpoint: '/api/datasets/yields/strategy-long-short', queryString: null }])
+		expect(captures).toEqual([{ endpoint: '/api/public/datasets/yields/strategy-long-short', queryString: null }])
 		expect(html).toContain('To start just select a token above.')
 		expect(html).not.toContain('Loading strategies...')
 	})
@@ -90,7 +90,7 @@ describe('strategy finder initial rows requests', () => {
 
 		renderToStaticMarkup(<LongShortStrategyView {...commonProps} tokens={[]} />)
 
-		expect(captures[0]).toMatchObject({ endpoint: '/api/datasets/yields/strategy-long-short' })
+		expect(captures[0]).toMatchObject({ endpoint: '/api/public/datasets/yields/strategy-long-short' })
 		expect(captures[0]?.queryString).toContain('token=BTC')
 		expect(captures[0]?.queryString).toContain('sortBy=openInterest')
 		expect(captures[0]?.queryString).toContain('sortDesc=true')

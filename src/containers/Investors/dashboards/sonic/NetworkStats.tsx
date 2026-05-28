@@ -39,7 +39,7 @@ function useBurnStream() {
 		let es: EventSource | null = null
 
 		try {
-			es = new EventSource('/api/sonic/burn-stream')
+			es = new EventSource('/api/dynamic/sonic/burn-stream')
 
 			es.addEventListener('init', (e) => {
 				const data = JSON.parse(e.data)
