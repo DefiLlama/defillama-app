@@ -1,4 +1,4 @@
-import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
+import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api/pricing'
 import { DATASETS_SERVER_URL } from '~/constants'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'

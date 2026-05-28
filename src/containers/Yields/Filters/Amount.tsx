@@ -1,24 +1,13 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 export function InputFilter({ placeholder, filterKey }: { placeholder: string; filterKey: string }) {
 	const router = useRouter()
 	const ref = React.useRef(null)
 
 	const set = (value) => {
-		void router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					[filterKey]: value
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		void pushYieldsQuery(router, { [filterKey]: value || undefined })
 	}
 
 	const rawFilterValue = router.query[filterKey]

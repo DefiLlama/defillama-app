@@ -1,10 +1,7 @@
 import { fetchLiquidityDatasetEntryByProtocolId } from '~/api'
-import {
-	fetchCoinGeckoChartByIdWithCacheFallback,
-	fetchCoinGeckoCoinById,
-	fetchCoinPriceByCoinGeckoIdViaLlamaPrices
-} from '~/api/coingecko'
+import { fetchCoinGeckoChartByIdWithCacheFallback, fetchCoinGeckoCoinById } from '~/api/coingecko'
 import type { CgChartResponse, CoinGeckoCoinDetailResultForOptions } from '~/api/coingecko.types'
+import { fetchCoinPriceByCoinGeckoIdViaLlamaPrices } from '~/api/pricing'
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatLineChart } from '~/components/ECharts/utils'

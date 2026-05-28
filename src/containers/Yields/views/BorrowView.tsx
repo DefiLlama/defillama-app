@@ -55,7 +55,11 @@ const YieldPageBorrow = ({
 			usdPeggedSymbols
 		})
 
-		return filteredPools.map(mapPoolToBorrowTableRow)
+		const rows = []
+		for (const pool of filteredPools) {
+			rows.push(mapPoolToBorrowTableRow(pool))
+		}
+		return rows
 	}, [
 		minTvl,
 		maxTvl,

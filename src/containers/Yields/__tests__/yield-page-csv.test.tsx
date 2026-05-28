@@ -37,7 +37,7 @@ vi.mock('next/router', () => ({
 vi.mock('../queries.client', () => ({
 	useHolderStats: () => ({ data: enrichmentState.holderStats }),
 	useVolatility: () => ({ data: enrichmentState.volatility }),
-	useYieldPoolsPage: () =>
+	useYieldsPaginatedTable: () =>
 		poolPageQueryState.isError
 			? {
 					data: undefined,
@@ -283,6 +283,60 @@ describe('YieldPage CSV export', () => {
 			'CV 30d': 0.2,
 			'Holder Count': 10
 		})
+	})
+
+	it('uses the route-specific server API for full CSV export when provided', async () => {
+		const csvPools = Array.from({ length: 12 }, (_, index) => pool(index))
+		fetchJsonMock.mockResolvedValue({
+			rows: csvPools.map((p) => ({
+				id: p.pool,
+				pool: p.symbol,
+				configID: p.pool,
+				projectslug: p.project,
+				project: p.projectName,
+				chains: [p.chain],
+				tvl: p.tvlUsd,
+				apy: p.apy,
+				apyBase: p.apyBase,
+				apyReward: p.apyReward,
+				rewardTokensSymbols: [],
+				rewards: [],
+				change1d: null,
+				change7d: null,
+				outlook: 'Stable/Up',
+				confidence: 3,
+				url: '',
+				category: p.category
+			})),
+			total: 12,
+			page: 1,
+			pageSize: 12,
+			hasMore: false
+		})
+		routerState.pathname = '/yields/halal'
+		routerState.query = { page: '2', pageSize: '10', token: 'USDC' }
+
+		renderToStaticMarkup(
+			<YieldPage
+				serverPagination
+				serverApi="/api/datasets/yields/halal"
+				projectList={['Test Project']}
+				chainList={['Ethereum']}
+				categoryList={['Dexes']}
+				tokens={[]}
+				tokenSymbolsList={[]}
+				evmChains={[]}
+				entityQuestions={[]}
+			/>
+		)
+
+		const prepareCsv = captured.prepareCsv
+		if (!prepareCsv) throw new Error('YieldFiltersV2 did not receive a prepareCsv callback')
+
+		const csv = await prepareCsv()
+
+		expect(fetchJsonMock).toHaveBeenCalledWith('/api/datasets/yields/halal?page=1&pageSize=all&token=USDC&view=unknown')
+		expect(csv.rows.slice(1).map((row) => row[0])).toEqual(csvPools.map((includedPool) => includedPool.symbol))
 	})
 
 	it('shows a server query error separately from empty filtered results', () => {

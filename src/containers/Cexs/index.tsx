@@ -47,7 +47,7 @@ function CustomRangeCell({
 
 export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	const router = useRouter()
-	const { authorizedFetch } = useAuthContext()
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
 
 	const startDate = getDateTimestamp(router.query.startDate)
 	const endDate = getDateTimestamp(router.query.endDate)
@@ -59,7 +59,8 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 		[cexs]
 	)
 
-	const customRangeEnabled = !!startDate && !!endDate && customRangeCexs.length > 0
+	const isSubscribed = !loaders.userLoading && isAuthenticated && hasActiveSubscription
+	const customRangeEnabled = isSubscribed && !!startDate && !!endDate && customRangeCexs.length > 0
 	const { data: customRangeData, isLoading: customRangeLoading } = useQuery({
 		queryKey: ['cex-inflows-batch', customRangeCexs, startDate, endDate],
 		queryFn: () => fetchCexInflowsBatchProxy(customRangeCexs, startDate! / 1e3, endDate! / 1e3, authorizedFetch),
@@ -90,7 +91,12 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 				header={'CEX Transparency'}
 				headingAs="h1"
 				customFilters={() => (
-					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
+					<DateFilter
+						startDate={startDate}
+						endDate={endDate}
+						isLoading={customRangeLoading}
+						key={`cexs-date-filter-${startDate}-${endDate}`}
+					/>
 				)}
 				csvFileName="cex-transparency"
 				sortingState={DEFAULT_SORTING_STATE}

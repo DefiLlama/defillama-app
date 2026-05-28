@@ -1,6 +1,7 @@
-import { fetchCoinPrices, fetchLlamaConfig } from '~/api'
+import { fetchLlamaConfig } from '~/api'
 import { fetchCoinGeckoCoinById } from '~/api/coingecko'
 import type { CoinGeckoCoinDetailResult } from '~/api/coingecko.types'
+import { fetchCoinPrices } from '~/api/pricing'
 import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'

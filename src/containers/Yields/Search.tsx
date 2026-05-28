@@ -5,7 +5,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery } from '~/utils/routerQuery'
+import { pushYieldsQuery } from './queryUpdates.client'
 
 const DEFAULT_VIEWABLE_MATCHES = 20
 
@@ -172,12 +172,16 @@ const Row = ({ data, lend, setOpen }) => {
 					token: data.symbol,
 					type: lend ? 'lend' : 'borrow'
 				})
-				void pushShallowQuery(router, {
+				void pushYieldsQuery(router, {
 					[targetParam]: data.symbol
-				}).then(() => {
-					setLoading(false)
-					setOpen(false)
 				})
+					.then(() => {
+						setOpen(false)
+					})
+					.finally(() => {
+						setLoading(false)
+					})
+					.catch(() => undefined)
 			}}
 			focusOnHover
 			disabled={loading}

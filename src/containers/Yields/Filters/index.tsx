@@ -9,6 +9,7 @@ import { useYieldFilters } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { shouldResetYieldsPoolPage } from '../queryState'
+import { pushYieldsQuery } from '../queryUpdates.client'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
@@ -30,15 +31,15 @@ function SavedFilters({ currentFilters }) {
 		const filters = savedFilters[name]
 		if (filters) {
 			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
-			const query = shouldResetYieldsPoolPage(router.pathname) ? { ...filters, page: undefined } : filters
-			void router.push(
-				{
-					pathname: router.pathname,
-					query
-				},
-				undefined,
-				{ shallow: true }
-			)
+			const updates: Record<string, string | number | boolean | Array<string | number | boolean> | undefined> = {
+				...filters
+			}
+			for (const key of Object.keys(router.query)) {
+				if (!(key in filters)) {
+					updates[key] = undefined
+				}
+			}
+			void pushYieldsQuery(router, updates)
 		}
 	}
 
