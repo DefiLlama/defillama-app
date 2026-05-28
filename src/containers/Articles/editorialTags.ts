@@ -13,7 +13,7 @@ export const EDITORIAL_TAGS: Record<EditorialTagSlug, EditorialTagDefinition> = 
 	spotlight: {
 		slug: 'spotlight',
 		label: 'Spotlight',
-		description: 'Curated articles featured at the top of /research.',
+		description: 'Curated articles (4–6) featured at the top of /research. Layout adapts to how many are tagged.',
 		cardinality: 'multi'
 	},
 	latest: {

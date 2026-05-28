@@ -50,25 +50,30 @@ type ArticlesPageProps = {
 
 async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
 	const collectionsLimit = RESEARCH_LANDING_SECTION_LIMITS.collections
+	const moreReportsLimit = RESEARCH_LANDING_SECTION_LIMITS.moreReports
+	const spotlightColumnLimit = RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
+	const reportHighlightLimit = RESEARCH_LANDING_SECTION_LIMITS.reportHighlight
+	const reportsHeroLimit = RESEARCH_LANDING_SECTION_LIMITS.reportsHero
+	const spotlightLimit = RESEARCH_LANDING_SECTION_LIMITS.spotlight
 
 	const settled = await Promise.allSettled([
-		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportsHero),
+		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, reportsHeroLimit),
 		listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest),
-		listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight),
+		listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, spotlightLimit),
 		listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }),
-		listArticlesByTag(EDITORIAL_TAGS['report-highlight'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportHighlight),
+		listArticlesByTag(EDITORIAL_TAGS['report-highlight'].slug, reportHighlightLimit),
 		listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights),
 		listArticles({
 			section: 'report',
 			sort: 'newest',
-			limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports,
-			skip: 10
+			// Buffer: we dedupe by ID later, so we fetch enough candidates to avoid ending up with <limit items.
+			limit: reportsHeroLimit + reportHighlightLimit + moreReportsLimit
 		}),
 		listArticles({
 			section: 'spotlight',
 			sort: 'newest',
-			limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn,
-			skip: 4
+			// Buffer: we dedupe by ID later, so we fetch enough candidates to avoid ending up with <limit items.
+			limit: spotlightLimit + spotlightColumnLimit
 		}),
 		listArticles({
 			sort: 'newest',
@@ -89,21 +94,18 @@ async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
 	const interviews = itemsOrEmpty(3)
 	const highlight = itemsOrEmpty(4)
 	const insights = itemsOrEmpty(5)
-	const moreReports = itemsOrEmpty(6)
-	const spotlightColumn = itemsOrEmpty(7)
+	const moreReportsCandidates = itemsOrEmpty(6)
+	const spotlightColumnCandidates = itemsOrEmpty(7)
 
-	const usedIds = new Set(
-		[
-			...heroReports,
-			...latest,
-			...spotlight,
-			...interviews,
-			...highlight,
-			...insights,
-			...moreReports,
-			...spotlightColumn
-		].map((article) => article.id)
+	const usedIds = new Set<string>(
+		[...heroReports, ...latest, ...spotlight, ...interviews, ...highlight, ...insights].map((article) => article.id)
 	)
+
+	const moreReports = takeUniqueArticles(moreReportsCandidates, usedIds, moreReportsLimit)
+	for (const article of moreReports) usedIds.add(article.id)
+
+	const spotlightColumn = takeUniqueArticles(spotlightColumnCandidates, usedIds, spotlightColumnLimit)
+	for (const article of spotlightColumn) usedIds.add(article.id)
 
 	const collections = takeUniqueArticles(itemsOrEmpty(8), usedIds, collectionsLimit)
 
