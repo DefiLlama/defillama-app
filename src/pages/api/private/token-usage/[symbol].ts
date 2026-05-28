@@ -1,15 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL } from '~/constants'
-import { requireSubscription } from '~/server/api/requireSubscription'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
 	const { symbol } = req.query
 	const tokenSymbol = typeof symbol === 'string' ? symbol : ''
 
@@ -17,23 +11,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'Missing symbol parameter' })
 	}
 
-	const auth = await requireSubscription(req.headers.authorization, res)
-	if (!auth) return
-
-	try {
-		const upstream = await fetchWithPoolingOnServer(
-			`${SERVER_URL}/tokenProtocols/${encodeURIComponent(tokenSymbol.toUpperCase())}`
-		)
-		if (!upstream.ok) {
-			return res.status(upstream.status).json({ error: upstream.statusText })
-		}
-		const data = await upstream.json()
-		res.setHeader('Cache-Control', 'private, no-store')
-		res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		res.status(500).json({ error: 'Failed to fetch token usage data' })
+	const upstream = await fetchWithPoolingOnServer(
+		`${SERVER_URL}/tokenProtocols/${encodeURIComponent(tokenSymbol.toUpperCase())}`
+	)
+	if (!upstream.ok) {
+		return res.status(upstream.status).json({ error: upstream.statusText })
 	}
+	const data = await upstream.json()
+	return res.status(200).json(data)
 }
 
-export default withApiRouteTelemetry('/api/private/token-usage/[symbol]', handler)
+export default withSubscriptionJsonRoute({
+	route: '/api/private/token-usage/[symbol]',
+	errorMessage: 'Failed to fetch token usage data',
+	handler
+})
