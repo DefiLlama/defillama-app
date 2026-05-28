@@ -565,14 +565,7 @@ function ProDashboardAPIProviderInner({
 			return { status, message: stream.error }
 		}
 		return null
-	}, [
-		initialDashboardId,
-		currentDashboard,
-		dashboardQueryError,
-		streamHasResolved,
-		currentDashboard2,
-		stream.error
-	])
+	}, [initialDashboardId, currentDashboard, dashboardQueryError, streamHasResolved, currentDashboard2, stream.error])
 
 	const reloadDashboard = useCallback(() => {
 		void queryClient.invalidateQueries({ queryKey: dashboardQueryKey })
