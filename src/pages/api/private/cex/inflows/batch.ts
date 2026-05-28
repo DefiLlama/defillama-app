@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL } from '~/constants'
-import { requireSubscription } from '~/server/api/requireSubscription'
+import { withSubscriptionJsonRoute } from '~/server/api/withSubscriptionJsonRoute'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type CexInflowsBatchRequest = {
 	cexs?: Array<{
@@ -14,11 +13,6 @@ type CexInflowsBatchRequest = {
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'POST') {
-		res.setHeader('Allow', ['POST'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
 	const body = req.body as CexInflowsBatchRequest
 	const startNum = Number(body.start)
 	const endNum = Number(body.end)
@@ -30,9 +24,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(400).json({ error: 'cexs must be a non-empty array' })
 	}
 
-	const auth = await requireSubscription(req.headers.authorization, res)
-	if (!auth) return
-
 	const cexRequests: Array<{ slug: string; tokensToExclude?: unknown }> = []
 	for (const cex of body.cexs) {
 		if (typeof cex.slug !== 'string') {
@@ -41,45 +32,44 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		cexRequests.push({ slug: cex.slug, tokensToExclude: cex.tokensToExclude })
 	}
 
-	try {
-		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
-			import('~/utils/metadata'),
-			import('~/server/routeCache/assets')
-		])
-		const protocols: Array<{ protocol: string; tokensToExclude: string[] }> = []
-		for (const cex of cexRequests) {
-			const cexRoute = resolveCexParamFromMetadata(cex.slug, metadataCache)
-			if (!cexRoute) {
-				return res.status(404).json({ error: 'CEX not found' })
-			}
-
-			protocols.push({
-				protocol: cexRoute.canonicalSlug,
-				tokensToExclude: typeof cex.tokensToExclude === 'string' && cex.tokensToExclude ? [cex.tokensToExclude] : []
-			})
+	const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
+		import('~/utils/metadata'),
+		import('~/server/routeCache/assets')
+	])
+	const protocols: Array<{ protocol: string; tokensToExclude: string[] }> = []
+	for (const cex of cexRequests) {
+		const cexRoute = resolveCexParamFromMetadata(cex.slug, metadataCache)
+		if (!cexRoute) {
+			return res.status(404).json({ error: 'CEX not found' })
 		}
 
-		const upstream = await fetchWithPoolingOnServer(`${SERVER_URL}/inflows/batch`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				protocols,
-				startTimestamp: startNum,
-				endTimestamp: endNum
-			})
+		protocols.push({
+			protocol: cexRoute.canonicalSlug,
+			tokensToExclude: typeof cex.tokensToExclude === 'string' && cex.tokensToExclude ? [cex.tokensToExclude] : []
 		})
-
-		if (!upstream.ok) {
-			return res.status(upstream.status).json({ error: `Upstream API returned ${upstream.status}` })
-		}
-
-		const data = await upstream.json()
-		res.setHeader('Cache-Control', 'private, no-store')
-		return res.status(200).json(data)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Internal server error' })
 	}
+
+	const upstream = await fetchWithPoolingOnServer(`${SERVER_URL}/inflows/batch`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			protocols,
+			startTimestamp: startNum,
+			endTimestamp: endNum
+		})
+	})
+
+	if (!upstream.ok) {
+		return res.status(upstream.status).json({ error: `Upstream API returned ${upstream.status}` })
+	}
+
+	const data = await upstream.json()
+	return res.status(200).json(data)
 }
 
-export default withApiRouteTelemetry('/api/private/cex/inflows/batch', handler)
+export default withSubscriptionJsonRoute({
+	route: '/api/private/cex/inflows/batch',
+	method: 'POST',
+	errorMessage: 'Internal server error',
+	handler
+})

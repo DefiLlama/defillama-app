@@ -5,25 +5,28 @@ import { requireSubscription } from './requireSubscription'
 type SubscriptionJsonRouteOptions<TParams> = {
 	route: string
 	errorMessage: string
+	method?: 'GET' | 'POST'
 	getRouteParams?: (req: NextApiRequest, res: NextApiResponse) => TParams | null | Promise<TParams | null>
 	handler: (req: NextApiRequest, res: NextApiResponse, params: TParams) => unknown | Promise<unknown>
 }
 
 /**
- * Wrapper for strict subscription-gated JSON GET routes.
+ * Wrapper for strict subscription-gated JSON routes.
+ * Routes default to GET, but POST is supported for JSON mutation-style endpoints.
  * Param parsing runs before auth so route-owned shape errors can stay unchanged; everything past that point requires a valid subscription.
  */
 export function withSubscriptionJsonRoute<TParams = undefined>({
 	route,
 	errorMessage,
+	method = 'GET',
 	getRouteParams,
 	handler
 }: SubscriptionJsonRouteOptions<TParams>): NextApiHandler {
 	return withApiRouteTelemetry(route, async (req, res) => {
 		res.setHeader('Cache-Control', 'private, no-store')
 
-		if (req.method !== 'GET') {
-			res.setHeader('Allow', ['GET'])
+		if (req.method !== method) {
+			res.setHeader('Allow', [method])
 			return res.status(405).json({ error: 'Method Not Allowed' })
 		}
 
