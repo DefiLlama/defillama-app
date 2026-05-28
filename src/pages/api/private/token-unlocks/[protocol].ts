@@ -1,28 +1,29 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolEmissons, isEmptyProtocolEmissionResult } from '~/containers/Unlocks/queries'
-import { validateSubscription } from '~/utils/apiAuth'
+import { requireSubscription } from '~/server/api/requireSubscription'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-const NO_STORE_CACHE_CONTROL = 'no-store'
+const PRIVATE_NO_STORE_CACHE_CONTROL = 'private, no-store'
+
+function setPrivateNoStore(res: NextApiResponse) {
+	res.setHeader('Cache-Control', PRIVATE_NO_STORE_CACHE_CONTROL)
+}
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+	setPrivateNoStore(res)
+
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
-		res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
-	const protocol = typeof req.query.protocol === 'string' ? req.query.protocol : ''
-	if (!protocol) {
-		res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
-		return res.status(400).json({ error: 'Missing protocol parameter' })
-	}
-
 	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			res.setHeader('Cache-Control', 'private, no-store')
-			return res.status(auth.status).json({ error: auth.error })
+		const auth = await requireSubscription(req.headers.authorization, res)
+		if (!auth) return
+
+		const protocol = typeof req.query.protocol === 'string' ? req.query.protocol : ''
+		if (!protocol) {
+			return res.status(400).json({ error: 'Missing protocol parameter' })
 		}
 
 		const [metadataModule, { resolveProtocolParamFromMetadata }] = await Promise.all([
@@ -31,7 +32,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		])
 		const protocolRoute = resolveProtocolParamFromMetadata(protocol, metadataModule.default)
 		if (!protocolRoute || !metadataModule.default.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {
-			res.setHeader('Cache-Control', 'private, no-store')
 			return res.status(404).json({ error: 'Protocol emissions not found' })
 		}
 
@@ -41,14 +41,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			tokenlist: metadataModule.default.tokenlist
 		})
 		if (isEmptyProtocolEmissionResult(data)) {
-			res.setHeader('Cache-Control', 'private, no-store')
 			return res.status(404).json({ error: 'Protocol emissions not found' })
 		}
-		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(200).json(data)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')
-		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(500).json({ error: 'Internal server error' })
 	}
 }
