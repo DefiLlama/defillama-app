@@ -9,6 +9,10 @@ type SubscriptionJsonRouteOptions<TParams> = {
 	handler: (req: NextApiRequest, res: NextApiResponse, params: TParams) => unknown | Promise<unknown>
 }
 
+/**
+ * Wrapper for strict subscription-gated JSON GET routes.
+ * Param parsing runs before auth so route-owned shape errors can stay unchanged; everything past that point requires a valid subscription.
+ */
 export function withSubscriptionJsonRoute<TParams = undefined>({
 	route,
 	errorMessage,

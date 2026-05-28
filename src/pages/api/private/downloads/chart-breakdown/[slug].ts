@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { SERVER_URL, V2_SERVER_URL } from '~/constants'
-import { chartDatasetsBySlug } from '~/containers/Downloads/chart-datasets'
+import { chartDatasetsBySlug, type ChartDatasetDefinition } from '~/containers/Downloads/chart-datasets'
+import { withDownloadRoute, type DownloadAccess } from '~/server/api/withDownloadRoute'
 import { slug as toSlug } from '~/utils'
-import { validateSubscription } from '~/utils/apiAuth'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function sanitizeFilenameParam(s: string): string {
 	return s.replace(/["\r\n;\\]/g, '_').trim()
@@ -196,67 +195,70 @@ async function buildDimensionBreakdownCsv(
 	return { headers, rows }
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
+function getRouteParams(req: NextApiRequest, res: NextApiResponse) {
 	const { slug: datasetSlug, category } = req.query
 	if (typeof datasetSlug !== 'string') {
-		return res.status(400).json({ error: 'Invalid dataset parameter' })
+		res.status(400).json({ error: 'Invalid dataset parameter' })
+		return null
 	}
 
 	const dataset = chartDatasetsBySlug.get(datasetSlug)
 	if (!dataset) {
-		return res.status(404).json({ error: `Chart dataset "${datasetSlug}" not found` })
+		res.status(404).json({ error: `Chart dataset "${datasetSlug}" not found` })
+		return null
 	}
 
 	if (!dataset.categoryBreakdown) {
-		return res.status(400).json({ error: `Chart dataset "${datasetSlug}" does not support category breakdown` })
+		res.status(400).json({ error: `Chart dataset "${datasetSlug}" does not support category breakdown` })
+		return null
 	}
 
 	if (typeof category !== 'string' || !category.trim()) {
-		return res.status(400).json({ error: 'Missing required "category" query parameter' })
+		res.status(400).json({ error: 'Missing required "category" query parameter' })
+		return null
 	}
 
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		const isPreview = auth.valid === false
-
-		if (!isPreview && auth.valid && auth.isTrial) {
-			return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
-		}
-
-		const bd = dataset.categoryBreakdown
-		const result =
-			bd.kind === 'tvl'
-				? await buildTvlBreakdownCsv(category.trim())
-				: await buildDimensionBreakdownCsv(bd.adapterType, bd.dataType, category.trim())
-
-		if (!result || result.rows.length === 0) {
-			return res.status(404).json({ error: 'No data returned for the specified category' })
-		}
-
-		let { headers, rows } = result
-		if (isPreview) {
-			rows = rows.slice(-10)
-		}
-
-		const csv = buildWideCsv(headers, rows)
-
-		const filename = `${datasetSlug}_${sanitizeFilenameParam(toSlug(category))}.csv`
-		res.setHeader('Content-Type', 'text/csv; charset=utf-8')
-		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-		res.setHeader('Cache-Control', 'private, no-store')
-		if (isPreview) {
-			res.setHeader('X-Preview', 'true')
-		}
-		return res.status(200).send(csv)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Internal server error' })
-	}
+	return { datasetSlug, dataset, category }
 }
 
-export default withApiRouteTelemetry('/api/private/downloads/chart-breakdown/[slug]', handler)
+async function handler(
+	_req: NextApiRequest,
+	res: NextApiResponse,
+	access: DownloadAccess,
+	{ datasetSlug, dataset, category }: { datasetSlug: string; dataset: ChartDatasetDefinition; category: string }
+) {
+	if (access === 'trial') {
+		return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
+	}
+
+	const bd = dataset.categoryBreakdown!
+	const result =
+		bd.kind === 'tvl'
+			? await buildTvlBreakdownCsv(category.trim())
+			: await buildDimensionBreakdownCsv(bd.adapterType, bd.dataType, category.trim())
+
+	if (!result || result.rows.length === 0) {
+		return res.status(404).json({ error: 'No data returned for the specified category' })
+	}
+
+	let { headers, rows } = result
+	if (access === 'preview') {
+		rows = rows.slice(-10)
+	}
+
+	const csv = buildWideCsv(headers, rows)
+
+	const filename = `${datasetSlug}_${sanitizeFilenameParam(toSlug(category))}.csv`
+	res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+	res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+	if (access === 'preview') {
+		res.setHeader('X-Preview', 'true')
+	}
+	return res.status(200).send(csv)
+}
+
+export default withDownloadRoute({
+	route: '/api/private/downloads/chart-breakdown/[slug]',
+	getRouteParams,
+	handler
+})

@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { chartDatasetsBySlug } from '~/containers/Downloads/chart-datasets'
-import { validateSubscription } from '~/utils/apiAuth'
+import { chartDatasetsBySlug, type ChartDatasetDefinition } from '~/containers/Downloads/chart-datasets'
+import { withDownloadRoute, type DownloadAccess } from '~/server/api/withDownloadRoute'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function sanitize(s: string): string {
 	return s.replace(/[\r\n]+/g, ' ').trim()
@@ -60,69 +59,71 @@ function rowsToCsv(rows: Array<Record<string, unknown>>): string {
 	return lines.join('\r\n')
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
+function getRouteParams(req: NextApiRequest, res: NextApiResponse) {
 	const { dataset: datasetSlug, param } = req.query
 	if (typeof datasetSlug !== 'string') {
-		return res.status(400).json({ error: 'Invalid dataset parameter' })
+		res.status(400).json({ error: 'Invalid dataset parameter' })
+		return null
 	}
 
 	const dataset = chartDatasetsBySlug.get(datasetSlug)
 	if (!dataset) {
-		return res.status(404).json({ error: `Chart dataset "${datasetSlug}" not found` })
+		res.status(404).json({ error: `Chart dataset "${datasetSlug}" not found` })
+		return null
 	}
 
 	if (typeof param !== 'string' || !param.trim()) {
-		return res.status(400).json({ error: 'Missing required "param" query parameter' })
+		res.status(400).json({ error: 'Missing required "param" query parameter' })
+		return null
 	}
 
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		const isPreview = auth.valid === false
-
-		if (!isPreview && auth.valid && auth.isTrial) {
-			return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
-		}
-
-		let rows: Array<Record<string, unknown>>
-		if (dataset.customFetch) {
-			rows = await dataset.customFetch(param.trim())
-		} else {
-			const fetchUrl = dataset.buildUrl(param.trim())
-			const upstream = await fetchWithPoolingOnServer(fetchUrl)
-			if (!upstream.ok) {
-				return res.status(502).json({ error: `Upstream API returned ${upstream.status}` })
-			}
-			const json = await upstream.json()
-			rows = dataset.extractRows(json)
-		}
-
-		if (rows.length === 0) {
-			return res.status(404).json({ error: 'No data returned for the specified parameter' })
-		}
-
-		if (isPreview) {
-			rows = rows.slice(-10)
-		}
-
-		const csv = rowsToCsv(rows)
-
-		const filename = `${datasetSlug}_${sanitizeFilenameParam(param)}.csv`
-		res.setHeader('Content-Type', 'text/csv; charset=utf-8')
-		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-		res.setHeader('Cache-Control', 'private, no-store')
-		if (isPreview) {
-			res.setHeader('X-Preview', 'true')
-		}
-		return res.status(200).send(csv)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Internal server error' })
-	}
+	return { datasetSlug, dataset, param }
 }
 
-export default withApiRouteTelemetry('/api/private/downloads/chart/[dataset]', handler)
+async function handler(
+	_req: NextApiRequest,
+	res: NextApiResponse,
+	access: DownloadAccess,
+	{ datasetSlug, dataset, param }: { datasetSlug: string; dataset: ChartDatasetDefinition; param: string }
+) {
+	if (access === 'trial') {
+		return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
+	}
+
+	let rows: Array<Record<string, unknown>>
+	if (dataset.customFetch) {
+		rows = await dataset.customFetch(param.trim())
+	} else {
+		const fetchUrl = dataset.buildUrl(param.trim())
+		const upstream = await fetchWithPoolingOnServer(fetchUrl)
+		if (!upstream.ok) {
+			return res.status(502).json({ error: `Upstream API returned ${upstream.status}` })
+		}
+		const json = await upstream.json()
+		rows = dataset.extractRows(json)
+	}
+
+	if (rows.length === 0) {
+		return res.status(404).json({ error: 'No data returned for the specified parameter' })
+	}
+
+	if (access === 'preview') {
+		rows = rows.slice(-10)
+	}
+
+	const csv = rowsToCsv(rows)
+
+	const filename = `${datasetSlug}_${sanitizeFilenameParam(param)}.csv`
+	res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+	res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+	if (access === 'preview') {
+		res.setHeader('X-Preview', 'true')
+	}
+	return res.status(200).send(csv)
+}
+
+export default withDownloadRoute({
+	route: '/api/private/downloads/chart/[dataset]',
+	getRouteParams,
+	handler
+})

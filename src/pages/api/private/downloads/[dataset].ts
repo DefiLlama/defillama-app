@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { datasetsBySlug, type DatasetDefinition } from '~/containers/Downloads/datasets'
+import { withDownloadRoute, type DownloadAccess } from '~/server/api/withDownloadRoute'
 import { slug as toSlug } from '~/utils'
-import { validateSubscription } from '~/utils/apiAuth'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function sanitize(s: string): string {
 	return s.replace(/[\r\n]+/g, ' ').trim()
@@ -149,78 +148,84 @@ function filterProtocolsByChain(items: any[], chain: string): any[] {
 		})
 }
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
+function getRouteParams(req: NextApiRequest, res: NextApiResponse) {
 	const { dataset: datasetSlug, mode, chain } = req.query
 	if (typeof datasetSlug !== 'string') {
-		return res.status(400).json({ error: 'Invalid dataset parameter' })
+		res.status(400).json({ error: 'Invalid dataset parameter' })
+		return null
 	}
 
 	const dataset = datasetsBySlug.get(datasetSlug)
 	if (!dataset) {
-		return res.status(404).json({ error: `Dataset "${datasetSlug}" not found` })
+		res.status(404).json({ error: `Dataset "${datasetSlug}" not found` })
+		return null
 	}
 
-	try {
-		const auth = await validateSubscription(req.headers.authorization)
-		const isPreview = auth.valid === false
-
-		const chainParam = typeof chain === 'string' ? chain.trim() : null
-		const isChainMode = mode === 'chains'
-
-		if ((isChainMode || chainParam) && !dataset.chainFilterType) {
-			return res.status(400).json({ error: `Dataset "${datasetSlug}" does not support chain filtering` })
-		}
-
-		const isCsvDownload = !isChainMode
-		if (!isPreview && auth.valid && auth.isTrial && isCsvDownload) {
-			return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
-		}
-
-		let fetchUrl = dataset.url
-		if (chainParam && dataset.chainFilterType === 'overview') {
-			fetchUrl = insertChainIntoOverviewUrl(dataset.url, chainParam)
-		}
-
-		const upstream = await fetchWithPoolingOnServer(fetchUrl)
-		if (!upstream.ok) {
-			return res.status(502).json({ error: `Upstream API returned ${upstream.status}` })
-		}
-
-		const json = await upstream.json()
-
-		if (isChainMode) {
-			const chains = extractChainsForDataset(dataset, json)
-			return res.status(200).json({ chains })
-		}
-
-		let items = dataset.extractItems(json)
-
-		if (chainParam && dataset.chainFilterType === 'protocols') {
-			items = filterProtocolsByChain(items, chainParam)
-		}
-
-		if (isPreview) {
-			items = items.slice(0, 10)
-		}
-
-		const csv = flattenItemsToCsv(items, dataset.fields)
-
-		res.setHeader('Content-Type', 'text/csv; charset=utf-8')
-		res.setHeader('Content-Disposition', `attachment; filename="${datasetSlug}.csv"`)
-		res.setHeader('Cache-Control', 'private, no-store')
-		if (isPreview) {
-			res.setHeader('X-Preview', 'true')
-		}
-		return res.status(200).send(csv)
-	} catch (error) {
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Internal server error' })
-	}
+	return { datasetSlug, dataset, mode, chain }
 }
 
-export default withApiRouteTelemetry('/api/private/downloads/[dataset]', handler)
+async function handler(
+	_req: NextApiRequest,
+	res: NextApiResponse,
+	access: DownloadAccess,
+	{
+		datasetSlug,
+		dataset,
+		mode,
+		chain
+	}: { datasetSlug: string; dataset: DatasetDefinition; mode: unknown; chain: unknown }
+) {
+	const chainParam = typeof chain === 'string' ? chain.trim() : null
+	const isChainMode = mode === 'chains'
+
+	if ((isChainMode || chainParam) && !dataset.chainFilterType) {
+		return res.status(400).json({ error: `Dataset "${datasetSlug}" does not support chain filtering` })
+	}
+
+	const isCsvDownload = !isChainMode
+	if (access === 'trial' && isCsvDownload) {
+		return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
+	}
+
+	let fetchUrl = dataset.url
+	if (chainParam && dataset.chainFilterType === 'overview') {
+		fetchUrl = insertChainIntoOverviewUrl(dataset.url, chainParam)
+	}
+
+	const upstream = await fetchWithPoolingOnServer(fetchUrl)
+	if (!upstream.ok) {
+		return res.status(502).json({ error: `Upstream API returned ${upstream.status}` })
+	}
+
+	const json = await upstream.json()
+
+	if (isChainMode) {
+		const chains = extractChainsForDataset(dataset, json)
+		return res.status(200).json({ chains })
+	}
+
+	let items = dataset.extractItems(json)
+
+	if (chainParam && dataset.chainFilterType === 'protocols') {
+		items = filterProtocolsByChain(items, chainParam)
+	}
+
+	if (access === 'preview') {
+		items = items.slice(0, 10)
+	}
+
+	const csv = flattenItemsToCsv(items, dataset.fields)
+
+	res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+	res.setHeader('Content-Disposition', `attachment; filename="${datasetSlug}.csv"`)
+	if (access === 'preview') {
+		res.setHeader('X-Preview', 'true')
+	}
+	return res.status(200).send(csv)
+}
+
+export default withDownloadRoute({
+	route: '/api/private/downloads/[dataset]',
+	getRouteParams,
+	handler
+})

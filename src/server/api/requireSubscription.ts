@@ -3,6 +3,10 @@ import { validateSubscription, type ValidationResult } from '~/utils/apiAuth'
 
 export type SubscriptionAuth = Extract<ValidationResult, { valid: true }>
 
+/**
+ * Strict private-route auth guard.
+ * Writes the existing auth failure response and returns null; callers still own method checks, cache headers, and error handling.
+ */
 export async function requireSubscription(
 	authHeader: string | undefined,
 	res: NextApiResponse
