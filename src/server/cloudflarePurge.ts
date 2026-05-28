@@ -43,16 +43,23 @@ export function researchPathsToUrls(paths: string[], env: NodeJS.ProcessEnv = pr
 	return Array.from(urls)
 }
 
-export async function purgeCloudflareResearchUrls(
-	paths: string[],
+export function dashboardPathsToUrls(dashboardId: string, env: NodeJS.ProcessEnv = process.env): string[] {
+	const siteUrl = siteUrlFromEnv(env)
+	return [`/pro/${dashboardId}`, `/api/dashboard/${dashboardId}/stream`].map((path) =>
+		new URL(path, siteUrl).toString()
+	)
+}
+
+async function purgeCloudflareUrls(
+	urls: string[],
+	label: string,
 	{ env = process.env, fetchImpl = fetch, logger = console }: PurgeCloudflareOptions = {}
 ): Promise<CloudflarePurgeResult> {
 	if (!env.CF_ZONE || !env.CF_PURGE_CACHE_AUTH) {
-		logger.log('CF_ZONE or CF_PURGE_CACHE_AUTH is not set, skipping research cache purge')
+		logger.log(`CF_ZONE or CF_PURGE_CACHE_AUTH is not set, skipping ${label} cache purge`)
 		return { reason: 'missing Cloudflare env', status: 'skipped' }
 	}
 
-	const urls = researchPathsToUrls(paths, env)
 	if (urls.length === 0) {
 		return { reason: 'no urls to purge', status: 'skipped' }
 	}
@@ -69,15 +76,30 @@ export async function purgeCloudflareResearchUrls(
 		})
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error)
-		logger.log(`Cloudflare research cache purge failed: ${message}`)
+		logger.log(`Cloudflare ${label} cache purge failed: ${message}`)
 		return { reason: message, status: 'failed' }
 	}
 
 	if (!response.ok) {
 		const body = await response.text()
-		logger.log(`Cloudflare research cache purge failed: ${body}`)
+		logger.log(`Cloudflare ${label} cache purge failed: ${body}`)
 		return { reason: body, status: 'failed' }
 	}
 
 	return { status: 'purged', urls }
+}
+
+export async function purgeCloudflareResearchUrls(
+	paths: string[],
+	{ env = process.env, fetchImpl = fetch, logger = console }: PurgeCloudflareOptions = {}
+): Promise<CloudflarePurgeResult> {
+	const urls = researchPathsToUrls(paths, env)
+	return purgeCloudflareUrls(urls, 'research', { env, fetchImpl, logger })
+}
+
+export async function purgeCloudflareDashboardUrls(
+	dashboardId: string,
+	options: PurgeCloudflareOptions = {}
+): Promise<CloudflarePurgeResult> {
+	return purgeCloudflareUrls(dashboardPathsToUrls(dashboardId, options.env), 'dashboard', options)
 }

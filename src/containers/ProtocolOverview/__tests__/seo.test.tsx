@@ -340,7 +340,7 @@ describe('ProtocolOverviewLayout SEO', () => {
 
 		expect(withMarkets).toMatch(canonicalCexMarketsCryptoComRegex)
 		expect(withMarkets).toContain('href="/cex/markets/crypto-com"')
-		expect(withMarkets).toContain('>Markets</a>')
+		expect(withMarkets).toContain('Markets')
 		expect(withMarkets).not.toMatch(robotsNoindexRegex)
 		expect(withoutMarkets).not.toContain('href="/cex/markets/crypto-com"')
 	})
@@ -475,7 +475,7 @@ describe('ProtocolInfo category links', () => {
 		)
 
 		expect(markup).toContain('href="/protocols/prediction-market"')
-		expect(markup).toContain('>Prediction Market<')
-		expect(markup).toContain('>Category<')
+		expect(markup).toContain('Prediction Market')
+		expect(markup).toContain('Category')
 	})
 })

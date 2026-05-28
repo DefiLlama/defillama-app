@@ -20,13 +20,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<TokenBorrowRout
 			return
 		}
 
-		res.setHeader('Cache-Control', jitterCacheControlHeader(CACHE_CONTROL, req.url ?? token))
 		const { getTokenBorrowRoutes } = await import('~/server/datasetCache/runtime/yields')
 		const data = await getTokenBorrowRoutes(token)
 
+		res.setHeader('Cache-Control', jitterCacheControlHeader(CACHE_CONTROL, req.url ?? token))
 		res.status(200).json(data)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')
+		res.setHeader('Cache-Control', 'private, no-store')
 		res.status(500).json({ error: 'Failed to fetch token borrow routes data' })
 	}
 }

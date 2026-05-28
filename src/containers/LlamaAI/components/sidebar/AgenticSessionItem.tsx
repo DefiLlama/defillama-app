@@ -7,12 +7,10 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AI_SERVER } from '~/constants'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
-import { type SessionListInfiniteData, updateSessionInInfiniteData } from '~/containers/LlamaAI/hooks/sessionListCache'
+import { useClearUnseenCompletion } from '~/containers/LlamaAI/hooks/useClearUnseenCompletion'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import { MoveToProjectMenuItem } from '~/containers/LlamaAI/projects/MoveToProjectMenu'
-import { projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
-import type { ProjectChatSession } from '~/containers/LlamaAI/projects/types'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -49,9 +47,10 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	onToggleSelect,
 	onPinSession
 }: AgenticSessionItemProps) {
-	const { authorizedFetch, user } = useAuthContext()
+	const { authorizedFetch } = useAuthContext()
 	const { hideSidebar } = useLlamaAIChrome()
 	const queryClient = useQueryClient()
+	const clearUnseenCompletion = useClearUnseenCompletion()
 
 	const [isEditing, setIsEditing] = useState(false)
 	const [isCopyingLink, setIsCopyingLink] = useState(false)
@@ -81,16 +80,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
 		trackUmamiEvent('llamaai-session-click')
-		if (session.hasUnseenCompletion && user) {
-			queryClient.setQueryData<SessionListInfiniteData | undefined>([SESSIONS_QUERY_KEY, user.id], (old) =>
-				updateSessionInInfiniteData(old, sessionId, (s) => ({ ...s, hasUnseenCompletion: false }))
-			)
-			if (session.projectId) {
-				queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(session.projectId), (old) =>
-					old?.map((s) => (s.sessionId === sessionId ? { ...s, hasUnseenCompletion: false } : s))
-				)
-			}
-		}
+		if (session.hasUnseenCompletion) clearUnseenCompletion(sessionId, session.projectId)
 		onSessionSelect(sessionId)
 		if (document.documentElement.clientWidth < 1024) {
 			hideSidebar()

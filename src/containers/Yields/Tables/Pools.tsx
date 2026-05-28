@@ -19,7 +19,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { decodePoolsColumnVisibilityQuery } from '../queryState'
@@ -101,6 +101,7 @@ interface PoolsTableConfigContext {
 	query: Record<string, unknown>
 	hasPremiumAccess: boolean
 	isClient: boolean
+	serverMode?: boolean
 	onRequestUpgrade: (source: 'header' | 'cell') => void
 }
 
@@ -126,7 +127,16 @@ function PoolNameCell({ value, row }: { value: string; row: { id: string; origin
 	)
 }
 
-function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: PoolsTableConfigContext) {
+const CLIENT_ENRICHED_SORT_COLUMN_IDS = new Set<PoolsColumnId>([
+	'cv30d',
+	'apyMedian30d',
+	'apyStd30d',
+	'holderCount',
+	'top10Pct',
+	'avgPositionUsd'
+])
+
+function createPoolsColumns({ hasPremiumAccess, isClient, serverMode, onRequestUpgrade }: PoolsTableConfigContext) {
 	return [
 		columnHelper.accessor('pool', {
 			id: 'pool',
@@ -647,6 +657,9 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 		})
 	].map((column) => {
 		const columnId = column.id ?? ('accessorKey' in column ? column.accessorKey : undefined)
+		if (serverMode && CLIENT_ENRICHED_SORT_COLUMN_IDS.has(columnId as PoolsColumnId)) {
+			return { ...column, enableSorting: false }
+		}
 		if (!hasPremiumAccess && columnId === 'cv30d') {
 			return { ...column, enableSorting: false }
 		}
@@ -797,7 +810,7 @@ export const POOLS_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, PoolsColumnId
 		})
 }
 
-function usePoolsTableContext() {
+function usePoolsTableContext({ serverMode = false }: { serverMode?: boolean } = {}) {
 	const router = useRouter()
 	const { hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
@@ -812,16 +825,17 @@ function usePoolsTableContext() {
 				},
 				hasPremiumAccess: isClient && hasActiveSubscription,
 				isClient,
+				serverMode,
 				onRequestUpgrade
 			}),
-			[hasActiveSubscription, isClient, onRequestUpgrade, router.pathname, router.query]
+			[hasActiveSubscription, isClient, onRequestUpgrade, router.pathname, router.query, serverMode]
 		),
 		modal
 	}
 }
 
 export function YieldsPoolsTable(props: IYieldsTableProps) {
-	const { context, modal } = usePoolsTableContext()
+	const { context, modal } = usePoolsTableContext({ serverMode: props.serverMode })
 	const resolvedConfig = useMemo(() => resolveVirtualYieldsTableConfig(POOLS_TABLE_CONFIG, context), [context])
 
 	return (
@@ -841,25 +855,30 @@ export function PaginatedYieldsPoolTable({
 	data,
 	initialPageSize = DEFAULT_PAGE_SIZE_OPTIONS[0],
 	initialPageIndex = 0,
+	rowCount,
+	manualPagination = false,
+	manualSorting = false,
+	serverMode = false,
+	paginationState,
 	sortingState = [],
+	onPaginationChange,
 	onSortingChange,
 	interactionDisabled = false
 }: IYieldsTableProps) {
-	const { context, modal } = usePoolsTableContext()
-	const [sorting, setSorting] = useState<SortingState>([...sortingState])
-	const [pagination, setPagination] = useState<PaginationState>({
+	const { context, modal } = usePoolsTableContext({ serverMode })
+	const [localSorting, setLocalSorting] = useState<SortingState>(() => [...sortingState])
+	const [localPagination, setLocalPagination] = useState<PaginationState>({
 		pageIndex: initialPageIndex,
 		pageSize: initialPageSize
 	})
+	const sorting = onSortingChange ? sortingState : localSorting
+	const pagination = paginationState ?? localPagination
 
 	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(POOLS_TABLE_CONFIG, context), [context])
 
 	const table = useReactTable({
 		data,
 		columns: paginatedColumns,
-		meta: {
-			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
-		},
 		state: {
 			sorting,
 			pagination
@@ -867,18 +886,29 @@ export function PaginatedYieldsPoolTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		rowCount: manualPagination ? rowCount : undefined,
+		manualPagination,
+		manualSorting,
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
 			startTransition(() => {
 				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
-				setSorting(nextSorting)
+				if (!onSortingChange) {
+					setLocalSorting(nextSorting)
+				}
 				onSortingChange?.(nextSorting)
 			}),
 		onPaginationChange: (updater) =>
-			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+			startTransition(() => {
+				const nextPagination = typeof updater === 'function' ? updater(pagination) : updater
+				if (!paginationState) {
+					setLocalPagination(nextPagination)
+				}
+				onPaginationChange?.(nextPagination)
+			}),
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
+		...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
+		...(manualPagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
 		autoResetPageIndex: false
 	})
 

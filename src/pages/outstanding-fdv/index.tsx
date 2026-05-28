@@ -7,7 +7,11 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getProtocolsAdjustedFDVsByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
+	const data = await getProtocolsAdjustedFDVsByChain({
+		chain: 'All',
+		protocolMetadata: metadataCache.protocolMetadata,
+		emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
+	})
 
 	if (!data) throw new Error('Missing page data for route=/outstanding-fdv')
 

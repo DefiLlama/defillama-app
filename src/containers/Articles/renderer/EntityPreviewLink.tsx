@@ -409,6 +409,8 @@ export function EntityPreviewLink({
 				render={
 					<a
 						href={entity.route}
+						target="_blank"
+						rel="noopener noreferrer"
 						className="article-entity-link inline-flex items-baseline gap-1 align-baseline font-medium text-(--link-text) no-underline decoration-(--link-text)/30 underline-offset-[3px] hover:underline"
 					/>
 				}
@@ -446,6 +448,8 @@ export function EntityPreviewLink({
 				<PreviewBody entity={entity} preview={preview} loading={loading} />
 				<a
 					href={entity.route}
+					target="_blank"
+					rel="noopener noreferrer"
 					className="flex items-center justify-between gap-2 border-t border-(--cards-border) px-3 py-2 text-xs no-underline hover:bg-(--app-bg)"
 				>
 					<span className="text-(--text-tertiary)">Open page</span>

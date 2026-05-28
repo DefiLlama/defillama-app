@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
+import { StreamDoneContext } from '../queries'
 import type { IncomeStatementConfig } from '../types'
 import { getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -40,6 +41,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 		[displayName, record?.flags?.fees, record?.flags?.revenue, record?.flags?.incentives, record?.flags?.emissions]
 	)
 
+	const streamDone = useContext(StreamDoneContext)
 	const {
 		data: incomeStatement,
 		isLoading,
@@ -47,7 +49,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 	} = useQuery({
 		queryKey: ['pro-dashboard', 'income-statement', config.protocol],
 		queryFn: () => getProtocolIncomeStatement({ metadata }),
-		enabled: Boolean(config.protocol && displayName && metadata.fees && metadata.revenue),
+		enabled: streamDone && Boolean(config.protocol && displayName && metadata.fees && metadata.revenue),
 		staleTime: 60 * 60 * 1000
 	})
 

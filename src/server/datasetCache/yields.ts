@@ -2,9 +2,10 @@ import path from 'node:path'
 import { buildTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
-import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/queries/index'
+import { getYieldTokenVariantSet } from '~/containers/Yields/domain/tokenFilter'
+import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
+import type { YieldPageData } from '~/containers/Yields/types'
 import { getDatasetDomainDir, isMissingDatasetArtifactError, readDatasetDomainJson } from './core'
 import { getDatasetIndexFileName } from './indexKeys'
 import { DATASET_DOMAIN_ARTIFACTS } from './registry'
@@ -13,6 +14,7 @@ type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protoco
 
 export const YIELDS_DATASET_FILES = {
 	rows: DATASET_DOMAIN_ARTIFACTS.yields.files.rows,
+	pageData: DATASET_DOMAIN_ARTIFACTS.yields.files.pageData,
 	config: DATASET_DOMAIN_ARTIFACTS.yields.files.config,
 	lendBorrow: DATASET_DOMAIN_ARTIFACTS.yields.files.lendBorrow,
 	byTokenDir: DATASET_DOMAIN_ARTIFACTS.yields.optionalShardDirs.byToken
@@ -24,6 +26,10 @@ export function getYieldsDomainDir(rootDir?: string): string {
 
 export function getYieldsRowsPath(rootDir?: string): string {
 	return path.join(getYieldsDomainDir(rootDir), YIELDS_DATASET_FILES.rows)
+}
+
+export function getYieldsPageDataPath(rootDir?: string): string {
+	return path.join(getYieldsDomainDir(rootDir), YIELDS_DATASET_FILES.pageData)
 }
 
 export function getYieldsConfigPath(rootDir?: string): string {
@@ -120,8 +126,12 @@ async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
 	return byPoolId
 }
 
-async function getLendBorrowData(): Promise<LendBorrowData> {
+export async function getLendBorrowDataFromCache(): Promise<LendBorrowData> {
 	return readDatasetDomainJson<LendBorrowData>('yields', YIELDS_DATASET_FILES.lendBorrow)
+}
+
+export async function getYieldPageDataFromCache(): Promise<YieldPageData> {
+	return readDatasetDomainJson<YieldPageData>('yields', YIELDS_DATASET_FILES.pageData)
 }
 
 export async function getYieldConfigFromCache(): Promise<YieldConfigResponse> {
@@ -150,7 +160,7 @@ export async function getTokenYieldsRowsFromCache(
 }
 
 export async function getTokenBorrowRoutesFromCache(token: string): Promise<TokenBorrowRoutesResponse> {
-	const lendBorrowData = await getLendBorrowData()
+	const lendBorrowData = await getLendBorrowDataFromCache()
 	return buildTokenBorrowRoutesData(token, lendBorrowData.props.pools)
 }
 

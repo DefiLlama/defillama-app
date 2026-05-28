@@ -43,4 +43,21 @@ describe('yields-token-borrow-routes api route', () => {
 			borrowAsDebt: [{ borrow: { symbol: 'ETH' } }]
 		})
 	})
+
+	it('does not send public cache headers when the loader fails', async () => {
+		getTokenBorrowRoutesDataMock.mockRejectedValueOnce(new Error('borrow routes failed'))
+		const req = {
+			method: 'GET',
+			query: { token: 'ETH' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(getTokenBorrowRoutesDataMock).toHaveBeenCalledWith('ETH')
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.setHeader).not.toHaveBeenCalledWith('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch token borrow routes data' })
+	})
 })

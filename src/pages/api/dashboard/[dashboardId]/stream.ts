@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -11,11 +12,15 @@ import {
 	fetchSingleChartData,
 	withTimeout
 } from '~/containers/ProDashboard/queries.server'
+import { fetchDimensionDataset } from '~/containers/ProDashboard/server/datasetFetchers'
 import { fetchTableServerData } from '~/containers/ProDashboard/server/tableQueries'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
+import ProtocolSplitCharts from '~/containers/ProDashboard/services/ProtocolSplitCharts'
 import type {
 	AdvancedTvlChartConfig,
+	ChartBuilderConfig,
 	ChartConfig,
+	IncomeStatementConfig,
 	MetricConfig,
 	StablecoinsChartConfig,
 	UnifiedTableConfig,
@@ -23,6 +28,7 @@ import type {
 	UnlocksScheduleConfig
 } from '~/containers/ProDashboard/types'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -34,11 +40,26 @@ import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: { responseLimit: false }
+}
+
+function getAuthToken(req: NextApiRequest): string | null {
+	const normalizeToken = (value: string | undefined): string | null => {
+		const token = value?.trim().replace(/^Bearer\s+/i, '')
+		if (!token || token === 'null' || token === 'undefined') return null
+		return token
+	}
+
+	const authHeader = req.headers?.authorization
+	const value = Array.isArray(authHeader) ? authHeader[0] : authHeader
+	const normalizedAuthToken = normalizeToken(value)
+	if (normalizedAuthToken) return normalizedAuthToken
+
+	return normalizeToken(req.cookies['pb_auth_token'])
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -53,20 +74,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return
 	}
 
-	const authToken = req.cookies['pb_auth_token'] ?? null
-
-	// Set streaming headers
-	res.setHeader('Content-Type', 'application/x-ndjson')
-	res.setHeader('X-Accel-Buffering', 'no')
-	res.setHeader(
-		'Cache-Control',
-		authToken
-			? 'private, no-cache, no-store, must-revalidate'
-			: jitterCacheControlHeader(
-					'public, s-maxage=300, stale-while-revalidate=3600',
-					`pro-dashboard-stream:${dashboardId}`
-				)
-	)
+	const authToken = getAuthToken(req)
 
 	const writeLine = (chunk: object) => {
 		if (res.destroyed) return
@@ -76,17 +84,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		// Phase 1: fetch dashboard config, protocols/chains, and app metadata in parallel
-		// Stream each result as it resolves
+		// Fetch dashboard first so we can choose cache headers based on visibility
 		let dashboard: Awaited<ReturnType<typeof fetchDashboardConfig>> = null
-		let protocolsAndChainsData: Awaited<ReturnType<typeof fetchProtocolsAndChains>> = null
+		try {
+			dashboard = await fetchDashboardConfig(dashboardId, authToken)
+		} catch {
+			dashboard = null
+		}
 
-		const [dashboardResult, protocolsResult] = await Promise.allSettled([
-			fetchDashboardConfig(dashboardId, authToken).then((d) => {
-				writeLine({ type: 'dashboard', data: d })
-				dashboard = d
-				return d
-			}),
+		// Set streaming headers — only cache at edge for confirmed-public, unauthenticated reads
+		const canCacheAtEdge = !authToken && dashboard?.visibility === 'public'
+		res.setHeader('Content-Type', 'application/x-ndjson')
+		res.setHeader('X-Accel-Buffering', 'no')
+		res.setHeader('Vary', 'Cookie, Authorization')
+		res.setHeader(
+			'Cache-Control',
+			canCacheAtEdge
+				? 'public, s-maxage=300, stale-while-revalidate=3600'
+				: 'private, no-cache, no-store, must-revalidate'
+		)
+
+		writeLine({ type: 'dashboard', data: dashboard })
+
+		// Phase 1 continued: fetch protocols/chains and app metadata in parallel; stream as resolved
+		let protocolsAndChainsData: Awaited<ReturnType<typeof fetchProtocolsAndChains>> = null
+		const [protocolsResult] = await Promise.allSettled([
 			fetchProtocolsAndChains().then((d) => {
 				writeLine({ type: 'protocolsAndChains', data: d })
 				protocolsAndChainsData = d
@@ -98,7 +120,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			})
 		])
 
-		if (dashboardResult.status === 'rejected') dashboard = null
 		if (protocolsResult.status === 'rejected') protocolsAndChainsData = null
 
 		const items = dashboard?.data?.items
@@ -587,6 +608,179 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 						if (data) writeLine({ type: 'emissionData', key: task.key, data })
 					})
 					.catch(() => {})
+			)
+		}
+
+		// Dimension dataset tables (dexs, perps, aggregators) — seed under the per-card hook keys
+		type DimensionDatasetSpec = {
+			datasetType: 'dexs' | 'perps' | 'aggregators'
+			hookPrefix: string
+			adapterType: `${ADAPTER_TYPES}`
+			route: string
+			metricName: string
+			hasOpenInterestByChain?: boolean
+			withChainBreakdown?: boolean
+		}
+		const dimensionDatasetSpecs: DimensionDatasetSpec[] = [
+			{
+				datasetType: 'dexs',
+				hookPrefix: 'dexs-overview',
+				adapterType: ADAPTER_TYPES.DEXS,
+				route: 'dexs',
+				metricName: 'DEX Volume'
+			},
+			{
+				datasetType: 'perps',
+				hookPrefix: 'perps-overview',
+				adapterType: ADAPTER_TYPES.PERPS,
+				route: 'perps',
+				metricName: 'Perp Volume',
+				hasOpenInterestByChain: true
+			},
+			{
+				datasetType: 'aggregators',
+				hookPrefix: 'aggregators-overview',
+				adapterType: ADAPTER_TYPES.AGGREGATORS,
+				route: 'dex-aggregators',
+				metricName: 'DEX Aggregator Volume',
+				withChainBreakdown: true
+			}
+		]
+		const seenDimensionDatasetKeys = new Set<string>()
+		for (const spec of dimensionDatasetSpecs) {
+			const matchingItems = items.filter((item: any) => item.kind === 'table' && item.datasetType === spec.datasetType)
+			for (const item of matchingItems) {
+				const itemChains: string[] = Array.isArray((item as any).chains) ? (item as any).chains : []
+				const sortedChainsKey = [...itemChains].sort().join(',')
+				const cacheKey = JSON.stringify(['pro-dashboard', spec.hookPrefix, sortedChainsKey])
+				if (seenDimensionDatasetKeys.has(cacheKey)) continue
+				seenDimensionDatasetKeys.add(cacheKey)
+				phase2Promises.push(
+					withTimeout(
+						fetchDimensionDataset({
+							adapterType: spec.adapterType,
+							route: spec.route,
+							metricName: spec.metricName,
+							chains: itemChains,
+							hasOpenInterestByChain: spec.hasOpenInterestByChain,
+							withChainBreakdown: spec.withChainBreakdown
+						}),
+						15_000
+					)
+						.then((data) => {
+							if (data) writeLine({ type: 'dimensionDatasetData', key: cacheKey, data })
+						})
+						.catch(() => {})
+				)
+			}
+		}
+
+		// Income statement items
+		const incomeStatementItems = items.filter((item): item is IncomeStatementConfig => item.kind === 'income-statement')
+		const seenIncomeProtocols = new Set<string>()
+		if (incomeStatementItems.length > 0) {
+			const metadataModule = await import('~/utils/metadata')
+			const { protocolMetadata } = metadataModule.default
+			const metadataByDisplayNameSlug = new Map<string, IProtocolMetadata>()
+			for (const key in protocolMetadata) {
+				const record = protocolMetadata[key]
+				metadataByDisplayNameSlug.set(slug(record.displayName), record)
+			}
+			for (const incomeItem of incomeStatementItems) {
+				const protocol = incomeItem.protocol
+				if (!protocol || seenIncomeProtocols.has(protocol)) continue
+				seenIncomeProtocols.add(protocol)
+				const metadata = metadataByDisplayNameSlug.get(slug(protocol))
+				if (!metadata) continue
+				const cacheKey = JSON.stringify(['pro-dashboard', 'income-statement', protocol])
+				phase2Promises.push(
+					withTimeout(getProtocolIncomeStatement({ metadata }), 15_000)
+						.then((data) => {
+							if (data) writeLine({ type: 'incomeStatementData', key: cacheKey, data })
+						})
+						.catch(() => {})
+				)
+			}
+		}
+
+		// Chart builder items
+		const chartBuilderItems = items.filter((item): item is ChartBuilderConfig => item.kind === 'builder')
+		const CHAIN_ONLY_METRICS = new Set(['chain-fees', 'chain-revenue', 'tvl', 'stablecoins'])
+		const seenChartBuilderKeys = new Set<string>()
+		for (const builderItem of chartBuilderItems) {
+			const cfg: any = builderItem.config
+			if (!cfg?.metric) continue
+			const filterMode = cfg.filterMode
+			const chainFilterMode = cfg.chainFilterMode ?? filterMode
+			const categoryFilterMode = cfg.categoryFilterMode ?? filterMode
+			const chainCategoryFilterMode = cfg.chainCategoryFilterMode ?? filterMode
+			const protocolCategoryFilterMode = cfg.protocolCategoryFilterMode ?? filterMode
+			const cacheKey = JSON.stringify([
+				'pro-dashboard',
+				'chartBuilder',
+				cfg.mode,
+				cfg.metric,
+				cfg.protocol,
+				cfg.chains,
+				cfg.limit,
+				cfg.categories,
+				cfg.chainCategories,
+				cfg.protocolCategories,
+				cfg.hideOthers,
+				cfg.groupByParent,
+				chainFilterMode,
+				categoryFilterMode,
+				chainCategoryFilterMode,
+				protocolCategoryFilterMode
+			])
+			if (seenChartBuilderKeys.has(cacheKey)) continue
+			seenChartBuilderKeys.add(cacheKey)
+			phase2Promises.push(
+				(async () => {
+					try {
+						let result: { series: any[] } = { series: [] }
+						if (cfg.mode === 'protocol') {
+							const data = await withTimeout(
+								ProtocolSplitCharts.getProtocolChainData(
+									cfg.protocol,
+									cfg.metric,
+									cfg.chains?.length > 0 ? cfg.chains : undefined,
+									cfg.limit,
+									chainFilterMode,
+									cfg.chainCategories?.length > 0 ? cfg.chainCategories : undefined,
+									cfg.protocolCategories?.length > 0 ? cfg.protocolCategories : undefined,
+									chainCategoryFilterMode,
+									protocolCategoryFilterMode
+								),
+								15_000
+							)
+							let series = data?.series ?? []
+							if (cfg.hideOthers || cfg.chainCategories?.length > 0 || cfg.protocolCategories?.length > 0) {
+								series = series.filter((s: any) => !s.name.startsWith('Others'))
+							}
+							result = { series }
+						} else if (!CHAIN_ONLY_METRICS.has(cfg.metric)) {
+							const data = await withTimeout(
+								ProtocolSplitCharts.getProtocolSplitData(
+									cfg.metric,
+									cfg.chains,
+									cfg.limit,
+									cfg.categories,
+									cfg.groupByParent,
+									chainFilterMode,
+									categoryFilterMode
+								),
+								15_000
+							)
+							let series = data?.series ?? []
+							if (cfg.hideOthers || cfg.chainCategories?.length > 0) {
+								series = series.filter((s: any) => !s.name.startsWith('Others'))
+							}
+							result = { series }
+						}
+						writeLine({ type: 'chartBuilderData', key: cacheKey, data: result })
+					} catch {}
+				})()
 			)
 		}
 

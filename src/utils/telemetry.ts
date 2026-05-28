@@ -101,7 +101,7 @@ type DomainEvent = {
 	span_id?: string
 	parent_span_id?: string
 	route?: string
-	event_name: 'token_rights.alert'
+	event_name: 'token_rights.alert' | 'build.complete' | 'metadata.refresh'
 	level: 'info' | 'warn' | 'error'
 	occurred_at: string
 	subject?: string
@@ -164,6 +164,7 @@ let flushPromise: Promise<void> | null = null
 let consecutiveFailures = 0
 let circuitOpenUntil = 0
 let previousPageBuildFinishedAt: string | undefined
+const defaultTelemetryTargetId = 'defillama'
 
 function getEnvNumber(name: string, fallback: number): number {
 	const raw = process.env[name]
@@ -227,8 +228,35 @@ function nowIso(): string {
 	return new Date().toISOString()
 }
 
+function telemetryTargetId(): string {
+	return process.env.OPS_TELEMETRY_TARGET_ID?.trim() || defaultTelemetryTargetId
+}
+
+function firstProcessEnvValue(keys: readonly string[]): string | undefined {
+	for (const key of keys) {
+		const value = process.env[key]?.trim()
+		if (value) return value
+	}
+	return undefined
+}
+
+function withTelemetryTargetAttribute(event: TelemetryEvent): TelemetryEvent {
+	return {
+		...event,
+		attributes: {
+			...event.attributes,
+			telemetry_target_id: telemetryTargetId()
+		}
+	}
+}
+
 function producer(runtime: TelemetryRuntime) {
-	const serviceVersion = process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+	const serviceVersion = firstProcessEnvValue([
+		'SOURCE_COMMIT',
+		'VERCEL_GIT_COMMIT_SHA',
+		'NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA',
+		'GITHUB_SHA'
+	])
 
 	return {
 		app: 'defillama-app',
@@ -338,7 +366,7 @@ export function recordTelemetry(event: TelemetryEvent): void {
 			queue.shift()
 		}
 
-		queue.push(event)
+		queue.push(withTelemetryTargetAttribute(event))
 
 		if (queue.length >= batchSize() && !isCircuitOpen()) {
 			void flushTelemetry({ timeoutMs: getEnvNumber('OPS_TELEMETRY_BACKGROUND_FLUSH_MS', 1000) })
@@ -551,7 +579,7 @@ export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, r
 		})
 
 		if (options.operationType === 'getStaticProps') {
-			recordPageBuildFinishTick(options.route, context, status, durationMs)
+			recordPageBuildFinishTick(options.route, context, status, durationMs, extraAttributes)
 		}
 
 		void flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
@@ -602,7 +630,8 @@ function recordPageBuildFinishTick(
 	route: string,
 	context: RouteTelemetryContext,
 	status: RouteStatus,
-	durationMs: number
+	durationMs: number,
+	attributes?: TelemetryAttributes
 ): void {
 	const finishedAt = nowIso()
 	const previousFinishedAt = previousPageBuildFinishedAt
@@ -620,6 +649,7 @@ function recordPageBuildFinishTick(
 		status,
 		attributes: {
 			...context.attributes,
+			...attributes,
 			duration_ms: durationMs,
 			...(gapMs !== undefined && gapMs > largePageBuildFinishGapMs() ? { large_gap: true } : null)
 		}
@@ -1194,13 +1224,29 @@ export async function withOutboundTelemetry(
 }
 
 function staticPropsStatus<T>(result: GetStaticPropsResult<T>, durationMs: number): RouteStatus {
-	if ('notFound' in result && result.notFound) return 'error'
 	if (durationMs > slowRouteThresholdMs()) return 'slow'
 	return 'success'
 }
 
+function staticPropsHttpStatus<T>(result: GetStaticPropsResult<T>): number | undefined {
+	if ('notFound' in result && result.notFound) return 404
+	if ('redirect' in result) {
+		if ('statusCode' in result.redirect) return result.redirect.statusCode
+		return result.redirect.permanent ? 308 : 307
+	}
+	return undefined
+}
+
 export function getStaticPropsTelemetryAttributes<T>(result: GetStaticPropsResult<T>): TelemetryAttributes {
 	const attributes: TelemetryAttributes = {}
+
+	if ('notFound' in result && result.notFound) {
+		attributes.result = 'not_found'
+	} else if ('redirect' in result) {
+		attributes.result = 'redirect'
+	} else {
+		attributes.result = 'props'
+	}
 
 	if ('props' in result) {
 		const bytes = getPayloadBytes(result.props)
@@ -1238,6 +1284,7 @@ export async function withStaticRouteTelemetry<T>(
 			...(requestPath ? { requestPath } : null),
 			attributes,
 			getResultAttributes: getStaticPropsTelemetryAttributes,
+			getHttpStatus: staticPropsHttpStatus,
 			getStatus: staticPropsStatus
 		},
 		run
@@ -1245,9 +1292,17 @@ export async function withStaticRouteTelemetry<T>(
 }
 
 function serverSidePropsStatus<T>(result: GetServerSidePropsResult<T>, durationMs: number): RouteStatus {
-	if ('notFound' in result && result.notFound) return 'error'
 	if (durationMs > slowRouteThresholdMs()) return 'slow'
 	return 'success'
+}
+
+function serverSidePropsHttpStatus<T>(result: GetServerSidePropsResult<T>, fallbackStatus: number): number {
+	if ('notFound' in result && result.notFound) return 404
+	if ('redirect' in result) {
+		if ('statusCode' in result.redirect) return result.redirect.statusCode
+		return result.redirect.permanent ? 308 : 307
+	}
+	return fallbackStatus
 }
 
 export function getServerSidePropsTelemetryAttributes<T>(result: GetServerSidePropsResult<T>): TelemetryAttributes {
@@ -1279,7 +1334,7 @@ export function withServerSidePropsTelemetry<T extends { [key: string]: any }>(
 				requestPath: sanitizeRequestPathString(context.resolvedUrl),
 				flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_SSR_FLUSH_MS', 200),
 				attributes,
-				getHttpStatus: () => context.res.statusCode,
+				getHttpStatus: (result) => serverSidePropsHttpStatus(result, context.res.statusCode),
 				getResultAttributes: getServerSidePropsTelemetryAttributes,
 				getStatus: serverSidePropsStatus
 			},

@@ -1,6 +1,12 @@
 export const SITEMAP_BASE_URL = 'https://defillama.com'
+export const SITEMAP_CACHE_CONTROL = 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600'
 
 export type SitemapUrlEntry = {
+	path: string
+	lastmod?: string
+}
+
+export type SitemapIndexEntry = {
 	path: string
 	lastmod?: string
 }
@@ -86,4 +92,38 @@ export function buildSitemapXmlFromPaths(baseUrl: string, routes: string[]): str
 		.map((path) => ({ path }))
 
 	return buildSitemapXml(baseUrl, entries)
+}
+
+function renderSitemapIndexEntry(baseUrl: string, entry: SitemapIndexEntry): string {
+	const normalizedPath = normalizeSitemapRoute(entry.path)
+	if (normalizedPath == null) return ''
+
+	const loc = escapeXml(`${baseUrl}/${encodeSitemapPath(normalizedPath)}`)
+	const lastmod =
+		entry.lastmod && Number.isFinite(Date.parse(entry.lastmod))
+			? `\n        <lastmod>${escapeXml(entry.lastmod)}</lastmod>`
+			: ''
+
+	return `
+    <sitemap>
+        <loc>${loc}</loc>${lastmod}
+    </sitemap>
+    `
+}
+
+export function buildSitemapIndexXml(baseUrl: string, entries: SitemapIndexEntry[]): string {
+	const deduped = new Map<string, SitemapIndexEntry>()
+	for (const entry of entries) {
+		const normalizedPath = normalizeSitemapRoute(entry.path)
+		if (normalizedPath == null) continue
+		deduped.set(normalizedPath, { ...entry, path: normalizedPath })
+	}
+
+	return `<?xml version="1.0" encoding="UTF-8"?>
+    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+		${Array.from(deduped.values())
+			.map((entry) => renderSitemapIndexEntry(baseUrl, entry))
+			.join('')}
+   </sitemapindex>
+ `
 }

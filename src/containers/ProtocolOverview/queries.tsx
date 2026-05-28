@@ -16,7 +16,7 @@ import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
-import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson, getFastJsonTimeoutMs, getSlowJsonTimeoutMs } from '~/utils/async'
@@ -116,6 +116,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata,
 	tokenlist,
 	cgExchangeIdentifiers,
+	emissionsSupplyMetrics,
 	protocolLlamaswapDataset
 }: {
 	protocolId: string
@@ -124,6 +125,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	tokenlist: Record<string, import('~/utils/metadata/types').ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 }): Promise<IProtocolOverviewPageData> => {
 	const displayName = currentProtocolMetadata.displayName ?? ''
@@ -352,9 +354,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
-			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName)).then(
-					(data) => data?.supplyMetrics?.adjustedSupply ?? null
-				)
+			? (emissionsSupplyMetrics[currentProtocolSlug]?.supplyMetrics?.adjustedSupply ?? null)
 			: null,
 		currentProtocolMetadata.activeUsers
 			? fetchAdapterProtocolMetrics({

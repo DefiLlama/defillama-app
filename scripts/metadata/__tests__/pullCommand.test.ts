@@ -42,14 +42,20 @@ function createPayload(): CoreMetadataPayload {
 		tokenDirectory: {},
 		protocolDisplayNames: { aave: 'Aave' },
 		chainDisplayNames: { ethereum: 'Ethereum' },
+		chainCategories: ['EVM'],
 		liquidationsTokenSymbols: [],
 		emissionsProtocolsList: [],
+		emissionsSupplyMetrics: {},
 		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: [],
 		bridgeProtocolSlugs: [],
 		bridgeChainSlugs: [],
 		bridgeChainSlugToName: {},
-		protocolLlamaswapDataset: {}
+		protocolLlamaswapDataset: {},
+		narrativeCategories: { ids: [], nameById: {} },
+		oracleRoutes: { oracleNameBySlug: {}, chainNameBySlug: {}, chainSlugsByOracleSlug: {} },
+		digitalAssetTreasuryRoutes: { assetSlugs: [], companySlugs: [] },
+		stablecoinPeggedAssetSlugs: []
 	}
 }
 
@@ -94,7 +100,6 @@ describe('pull metadata command', () => {
 		const result = await runPullMetadataCommand({
 			env: { NODE_ENV: 'production' } as NodeJS.ProcessEnv,
 			fetchMetadata,
-			fetchMetrics: vi.fn().mockResolvedValue({ tastyMetrics: {}, trendingRoutes: [] }),
 			logger: { log: vi.fn() },
 			now: 1_100,
 			repoRoot
@@ -110,7 +115,6 @@ describe('pull metadata command', () => {
 		const result = await runPullMetadataCommand({
 			env: { NODE_ENV: 'production' } as NodeJS.ProcessEnv,
 			fetchMetadata: vi.fn().mockResolvedValue(createPayload()),
-			fetchMetrics: vi.fn().mockResolvedValue({ tastyMetrics: {}, trendingRoutes: [] }),
 			logger: { log: vi.fn() },
 			now: 2_000,
 			repoRoot
@@ -122,6 +126,32 @@ describe('pull metadata command', () => {
 		expect(JSON.parse(await fs.readFile(path.join(cacheDir, METADATA_ARTIFACT_FILES.tokenlist), 'utf8'))).toEqual({
 			aave: tokenEntry
 		})
+	})
+
+	it('treats old-version manifests as invalid and publishes a fresh ready cache', async () => {
+		const repoRoot = await createRepoRoot()
+		const cacheDir = getMetadataCacheDir(repoRoot)
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 1_000)
+		await fs.writeFile(
+			path.join(cacheDir, METADATA_MANIFEST_FILE),
+			JSON.stringify({
+				...createMetadataArtifactManifest('ready', 1_000),
+				artifactVersion: 1
+			})
+		)
+		const fetchMetadata = vi.fn().mockResolvedValue(createPayload())
+
+		const result = await runPullMetadataCommand({
+			env: { NODE_ENV: 'production' } as NodeJS.ProcessEnv,
+			fetchMetadata,
+			logger: { log: vi.fn() },
+			now: 2_000,
+			repoRoot
+		})
+
+		expect(result.exitCode).toBe(0)
+		expect(fetchMetadata).toHaveBeenCalledTimes(1)
+		expect((await readMetadataArtifactManifest(cacheDir))?.pulledAt).toBe(2_000)
 	})
 
 	it('writes stubs and exits successfully for local development without an API key', async () => {
@@ -235,13 +265,14 @@ describe('pull metadata command', () => {
 		})
 	})
 
-	it('keeps metadata publishing successful when Tasty metrics fail', async () => {
+	it('does not write pages or trending data as part of metadata publishing', async () => {
 		const repoRoot = await createRepoRoot()
+		const pagesPath = path.join(repoRoot, 'public', 'pages.json')
+		const beforePages = await fs.readFile(pagesPath, 'utf8')
 
 		const result = await runPullMetadataCommand({
 			env: { NODE_ENV: 'production' } as NodeJS.ProcessEnv,
 			fetchMetadata: vi.fn().mockResolvedValue(createPayload()),
-			fetchMetrics: vi.fn().mockRejectedValue(new Error('metrics failed')),
 			logger: { log: vi.fn() },
 			now: 6_000,
 			repoRoot
@@ -249,5 +280,7 @@ describe('pull metadata command', () => {
 
 		expect(result.exitCode).toBe(0)
 		expect((await readMetadataArtifactManifest(getMetadataCacheDir(repoRoot)))?.status).toBe('ready')
+		expect(await fs.readFile(pagesPath, 'utf8')).toBe(beforePages)
+		await expect(fs.access(path.join(repoRoot, 'public', 'trending.json'))).rejects.toMatchObject({ code: 'ENOENT' })
 	})
 })

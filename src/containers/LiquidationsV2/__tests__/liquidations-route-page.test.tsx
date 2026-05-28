@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('~/constants', () => ({
+vi.mock('~/constants', async (importOriginal) => ({
+	...(await importOriginal<typeof import('~/constants')>()),
 	SKIP_BUILD_STATIC_GENERATION: false
 }))
 
@@ -14,8 +15,15 @@ vi.mock('~/containers/LiquidationsV2/RouteContent', () => ({
 	LiquidationsChainRouteContent: () => null
 }))
 
-vi.mock('~/containers/LiquidationsV2/api', () => ({
-	fetchProtocolsList: vi.fn()
+vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+	getLiquidationsProtocolsList: vi.fn()
+}))
+
+vi.mock('~/server/datasetCache/liquidations', () => ({
+	getLiquidationsProtocolsResponseFromCache: vi.fn().mockResolvedValue({
+		protocols: ['sky']
+	}),
+	getLiquidationsProtocolChainIdsFromCache: vi.fn().mockResolvedValue(['Arbitrum One'])
 }))
 
 vi.mock('~/utils/metadata', () => ({
@@ -31,16 +39,16 @@ vi.mock('~/utils/metadata', () => ({
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))
 
-import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import * as chainPage from '~/pages/liquidations/[protocol]/[chain]'
 import * as protocolPage from '~/pages/liquidations/[protocol]/index'
 import * as overviewPage from '~/pages/liquidations/index'
+import { getLiquidationsProtocolsList } from '~/server/datasetCache/runtime/liquidations'
 
-const mockedFetchProtocolsList = fetchProtocolsList as unknown as ReturnType<typeof vi.fn>
+const mockedGetLiquidationsProtocolsList = getLiquidationsProtocolsList as unknown as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
 	vi.clearAllMocks()
-	mockedFetchProtocolsList.mockResolvedValue({
+	mockedGetLiquidationsProtocolsList.mockResolvedValue({
 		protocols: ['sky']
 	})
 })

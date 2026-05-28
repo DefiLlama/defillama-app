@@ -1,6 +1,6 @@
-import { getLendBorrowDataFromNetwork } from '~/containers/Yields/queries/index'
-import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
-import { findOptimizerPools, formatOptimizerPool } from '~/containers/Yields/utils'
+import { findOptimizerPools, formatOptimizerPool } from '~/containers/Yields/domain/strategyFilters'
+import { matchesYieldPoolToken } from '~/containers/Yields/domain/tokenFilter'
+import { getLendBorrowDataFromNetwork } from '~/containers/Yields/queries.server'
 import type { TokenBorrowRoutesResponse } from './tokenBorrowRoutes.types'
 
 type LendBorrowPools = Awaited<ReturnType<typeof getLendBorrowDataFromNetwork>>['props']['pools']

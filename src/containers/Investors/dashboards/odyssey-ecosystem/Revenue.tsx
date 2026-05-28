@@ -35,7 +35,7 @@ function SubSectionCard({
 				{total != null && (
 					<div className="text-right">
 						<div className="text-[10px] font-medium tracking-wider text-(--text-label) uppercase">Subtotal</div>
-						<div className="text-lg font-semibold tabular-nums text-(--text-primary)">{fmtUsd(total)}</div>
+						<div className="text-lg font-semibold text-(--text-primary) tabular-nums">{fmtUsd(total)}</div>
 					</div>
 				)}
 			</div>
@@ -110,7 +110,11 @@ export default function Revenue() {
 		<div className="flex flex-col gap-6">
 			{/* Headline KPIs */}
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-				<KpiCard label="Ecosystem Revenue (All-time)" value={ra.ecosystem?.formatted} sub="Claimed + unclaimed pipeline" />
+				<KpiCard
+					label="Ecosystem Revenue (All-time)"
+					value={ra.ecosystem?.formatted}
+					sub="Claimed + unclaimed pipeline"
+				/>
 				<KpiCard label="Metronome" value={ra.metronome?.formatted} sub="All-time" />
 				<KpiCard label="Vesper" value={ra.vesper?.formatted} sub="All-time" />
 				<KpiCard label="Odyssey" value={ra.odyssey?.formatted} sub="All-time" />
@@ -124,8 +128,16 @@ export default function Revenue() {
 			<SectionHeader>Claimed Revenue · Month-to-Date</SectionHeader>
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<KpiCard label="Metronome MTD" value={cm.metronome?.formatted} />
-				<KpiCard label="Vesper MTD" value={cm.vesper?.formatted} sub={vc ? `${vc.windowDays}d window · ${vc.source}` : undefined} />
-				<KpiCard label="Odyssey MTD" value={cm.odyssey?.formatted} sub={oc ? `${oc.windowDays}d window · ${oc.source}` : undefined} />
+				<KpiCard
+					label="Vesper MTD"
+					value={cm.vesper?.formatted}
+					sub={vc ? `${vc.windowDays}d window · ${vc.source}` : undefined}
+				/>
+				<KpiCard
+					label="Odyssey MTD"
+					value={cm.odyssey?.formatted}
+					sub={oc ? `${oc.windowDays}d window · ${oc.source}` : undefined}
+				/>
 			</div>
 			{isLoading || !dailySeries ? (
 				<ChartSkeleton title="Daily Revenue" />
@@ -162,7 +174,12 @@ export default function Revenue() {
 									{ key: 'label', label: 'Source' },
 									{ key: 'chain', label: 'Chain' },
 									{ key: 'detail', label: 'Detail' },
-									{ key: 'amountUsd', label: 'USD', right: true, render: (r) => r.amountFormatted || fmtUsd(r.amountUsd) }
+									{
+										key: 'amountUsd',
+										label: 'USD',
+										right: true,
+										render: (r) => r.amountFormatted || fmtUsd(r.amountUsd)
+									}
 								]}
 							/>
 						) : (
@@ -282,17 +299,19 @@ export default function Revenue() {
 						{ key: 'grossPnlUsd', label: 'Gross PnL', right: true, render: (r) => fmtUsd(r.grossPnlUsd) },
 						{ key: 'feeRate', label: 'Fee', right: true, render: (r) => `${((r.feeRate ?? 0) * 100).toFixed(1)}%` },
 						{ key: 'pnlUsd', label: 'Net PnL', right: true, render: (r) => fmtUsd(r.pnlUsd) },
-						{ key: 'allTimeHarvestedUsd', label: 'All-time Harvested', right: true, render: (r) => fmtUsd(r.allTimeHarvestedUsd) },
+						{
+							key: 'allTimeHarvestedUsd',
+							label: 'All-time Harvested',
+							right: true,
+							render: (r) => fmtUsd(r.allTimeHarvestedUsd)
+						},
 						{ key: 'lastHarvestDate', label: 'Last Harvest', right: true, render: (r) => r.lastHarvestDate || '—' }
 					]}
 				/>
 			</SubSectionCard>
 
 			<SectionHeader>Convex vlCVX · Vote-locked Rewards</SectionHeader>
-			<SubSectionCard
-				title="vlCVX claimable"
-				subtitle={`Claimable rewards total ${fmtUsd(convexClaimable)}.`}
-			>
+			<SubSectionCard title="vlCVX claimable" subtitle={`Claimable rewards total ${fmtUsd(convexClaimable)}.`}>
 				<SimpleTable
 					rows={up.convex}
 					cols={[

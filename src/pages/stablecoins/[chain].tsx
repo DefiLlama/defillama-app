@@ -1,13 +1,11 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
-import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
 import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import type { PeggedOverviewPageData } from '~/containers/Stablecoins/types'
 import Layout from '~/layout'
-import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -29,14 +27,18 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 			return { notFound: true }
 		}
 
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const metadata = metadataCache.chainMetadata[slug(chain)]
+		const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/chains')
+		])
+		const chainRoute = resolveChainParamFromMetadata(chain, metadataCache)
 
-		if (!metadata?.stablecoins) {
+		if (!chainRoute?.metadata.stablecoins) {
 			return { notFound: true }
 		}
+		const metadata = chainRoute.metadata
 
-		const props = await getStablecoinsByChainPageData(metadata.name)
+		const props = await getStablecoinsByChainPageData(chainRoute.canonicalName)
 		if (!props.filteredPeggedAssets || props.filteredPeggedAssets.length === 0) {
 			throw new Error(`[getStaticProps] [${metadata.name}] no filteredPeggedAssets`)
 		}
@@ -73,7 +75,11 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 				}
 			})
 		}
-		const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', stablecoinsContext)
+		const { questions: entityQuestions } = await fetchEntityQuestions(
+			chainRoute.canonicalSlug,
+			'chain',
+			stablecoinsContext
+		)
 
 		return {
 			props: { ...props, availableBackings, availablePegTypes, entityQuestions },
@@ -93,13 +99,10 @@ export const getStaticPaths: GetStaticPaths<StablecoinsByChainRouteParams> = asy
 		}
 	}
 
-	const { chains } = await fetchStablecoinAssetsApi()
+	const { getStablecoinChainStaticPaths } = await import('~/server/routeCache/chains')
+	const paths = await getStablecoinChainStaticPaths()
 
-	const paths = chains.slice(0, 20).map((chain) => ({
-		params: { chain: slug(chain.name) }
-	}))
-
-	return { paths: paths.slice(0, 11), fallback: 'blocking' }
+	return { paths, fallback: 'blocking' }
 }
 
 const pageName = ['Stablecoins', 'by', 'Market Cap']

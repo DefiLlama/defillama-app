@@ -1,6 +1,7 @@
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '~/components/Icon'
+import type { AgenticAnswerMode } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useMedia } from '~/hooks/useMedia'
 import { getExperimentVariant } from '~/utils/analytics/experiment'
@@ -150,20 +151,21 @@ const SPOTLIGHT_CONFIGS: Partial<Record<Step, SpotlightConfig>> = {
 }
 
 interface OnboardingWalkthroughProps {
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	handleSubmit: ChatLandingProps['handleSubmit']
 	promptInputRef: ChatLandingProps['promptInputRef']
 	onComplete: () => void
 }
 
 export function OnboardingWalkthrough({
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	handleSubmit,
 	promptInputRef,
 	onComplete
 }: OnboardingWalkthroughProps) {
+	const isResearchMode = mode === 'research'
 	const [step, setStep] = useState<Step>('intro')
 	const [introExiting, setIntroExiting] = useState(false)
 	const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null)
@@ -301,19 +303,19 @@ export function OnboardingWalkthrough({
 		(prompt: string) => {
 			trackUmamiEvent('llamaai-walkthrough-complete', { action: 'prompt-click', prompt: prompt.slice(0, 60), variant })
 			if (!isResearchMode) {
-				setIsResearchMode(true)
+				setMode('research')
 			}
 			onComplete()
 			handleSubmit(prompt, undefined, undefined, undefined, true)
 		},
-		[handleSubmit, onComplete, isResearchMode, setIsResearchMode, variant]
+		[handleSubmit, onComplete, isResearchMode, setMode, variant]
 	)
 
 	const handleSkip = useCallback(() => {
 		trackUmamiEvent('llamaai-walkthrough-skip', { step: currentStep, variant })
-		setIsResearchMode(true)
+		setMode('research')
 		onComplete()
-	}, [currentStep, variant, setIsResearchMode, onComplete])
+	}, [currentStep, variant, setMode, onComplete])
 
 	// Dismiss walkthrough on Escape key
 	useEffect(() => {
@@ -326,10 +328,10 @@ export function OnboardingWalkthrough({
 
 	const handleStartChatting = useCallback(() => {
 		trackUmamiEvent('llamaai-walkthrough-complete', { action: 'start-chatting', variant })
-		setIsResearchMode(true)
+		setMode('research')
 		onComplete()
 		requestAnimationFrame(() => promptInputRef.current?.focus())
-	}, [variant, setIsResearchMode, onComplete, promptInputRef])
+	}, [variant, setMode, onComplete, promptInputRef])
 
 	if (typeof document === 'undefined') return null
 

@@ -1,53 +1,59 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYieldPool, PoolStrategyRoute } from './Name'
-import { YieldsTableWrapper } from './shared'
-import type { IYieldsStrategyTableRow } from './types'
+import { PaginatedYieldsTableWrapper, YieldsTableWrapper } from './shared'
+import type { IYieldsTableProps, YieldStrategyTableRow } from './types'
 
-const columnHelper = createColumnHelper<IYieldsStrategyTableRow>()
+const columnHelper = createColumnHelper<YieldStrategyTableRow>()
 const STRATEGY_COLUMN_IDS = ['strategy', 'totalApy', 'delta', 'borrowAvailableUsd', 'farmTvlUsd', 'ltv'] as const
 type StrategyColumnId = (typeof STRATEGY_COLUMN_IDS)[number]
+
+function StrategyNameCell({ row }: { row: { id: string; index: number; original: YieldStrategyTableRow } }) {
+	const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+
+	return (
+		<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
+			<span className="shrink-0 tabular-nums lg:pt-1.25" aria-hidden="true">
+				{rowIndex ?? row.index + 1}
+			</span>
+			<span className="flex min-w-0 flex-col gap-2">
+				<NameYieldPool
+					value={name}
+					// in case of cdp row.original.pool === row.original.borrow.pool
+					configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
+					url={row.original.url}
+					strategy={true}
+					maxCharacters={50}
+					bookmark={false}
+				/>
+				<PoolStrategyRoute
+					project1={row.original.projectName}
+					airdropProject1={row.original.airdrop}
+					raiseValuationProject1={row.original.raiseValuation}
+					project2={row.original.farmProjectName}
+					airdropProject2={false}
+					raiseValuationProject2={null}
+					chain={row.original.chains[0]}
+				/>
+			</span>
+		</span>
+	)
+}
 
 const columns = [
 	columnHelper.accessor((row) => row.strategy ?? '', {
 		id: 'strategy',
 		header: 'Strategy',
 		enableSorting: false,
-		cell: ({ row }) => {
-			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
-
-			return (
-				<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
-					<span className="vf-row-index shrink-0 lg:pt-1.25" aria-hidden="true" />
-					<span className="flex min-w-0 flex-col gap-2">
-						<NameYieldPool
-							value={name}
-							// in case of cdp row.original.pool === row.original.borrow.pool
-							configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
-							url={row.original.url}
-							strategy={true}
-							maxCharacters={50}
-							bookmark={false}
-						/>
-						<PoolStrategyRoute
-							project1={row.original.projectName}
-							airdropProject1={row.original.airdrop}
-							raiseValuationProject1={row.original.raiseValuation}
-							project2={row.original.farmProjectName}
-							airdropProject2={false}
-							raiseValuationProject2={null}
-							chain={row.original.chains[0]}
-						/>
-					</span>
-				</span>
-			)
-		},
+		cell: ({ row }) => <StrategyNameCell row={row} />,
 		meta: {
 			headerClassName: 'w-[250px] min-[812px]:w-[300px]'
 		}
@@ -182,7 +188,7 @@ const columnOrders: Record<number, readonly StrategyColumnId[]> = {
 	640: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
 	1280: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
 }
-export const STRATEGY_TABLE_CONFIG: YieldsTableConfig<IYieldsStrategyTableRow, StrategyColumnId> = {
+export const STRATEGY_TABLE_CONFIG: YieldsTableConfig<YieldStrategyTableRow, StrategyColumnId> = {
 	kind: 'strategy',
 	columnIds: STRATEGY_COLUMN_IDS,
 	columns,
@@ -190,7 +196,7 @@ export const STRATEGY_TABLE_CONFIG: YieldsTableConfig<IYieldsStrategyTableRow, S
 	rowSize: 80
 }
 
-export function YieldsStrategyTable({ data }) {
+export function YieldsStrategyTable({ data }: IYieldsTableProps<YieldStrategyTableRow>) {
 	const resolvedConfig = resolveVirtualYieldsTableConfig(STRATEGY_TABLE_CONFIG, undefined)
 	return (
 		<YieldsTableWrapper
@@ -200,4 +206,8 @@ export function YieldsStrategyTable({ data }) {
 			rowSize={resolvedConfig.rowSize}
 		/>
 	)
+}
+
+export function PaginatedYieldsStrategyTable(props: IYieldsTableProps<YieldStrategyTableRow>) {
+	return <PaginatedYieldsTableWrapper {...props} config={STRATEGY_TABLE_CONFIG} />
 }

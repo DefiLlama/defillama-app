@@ -35,8 +35,18 @@ export default function Yields() {
 						{ key: 'chain', label: 'Chain' },
 						{ key: 'collateral', label: 'Collateral' },
 						{ key: 'borrow', label: 'Borrow' },
-						{ key: 'collateralApyPct', label: 'Coll APY', right: true, render: (r) => `${(r.collateralApyPct ?? 0).toFixed(2)}%` },
-						{ key: 'borrowApyPct', label: 'Borrow APY', right: true, render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%` },
+						{
+							key: 'collateralApyPct',
+							label: 'Coll APY',
+							right: true,
+							render: (r) => `${(r.collateralApyPct ?? 0).toFixed(2)}%`
+						},
+						{
+							key: 'borrowApyPct',
+							label: 'Borrow APY',
+							right: true,
+							render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%`
+						},
 						{ key: 'netApyPct', label: 'Net APY', right: true, render: (r) => `${(r.netApyPct ?? 0).toFixed(2)}%` }
 					]}
 				/>

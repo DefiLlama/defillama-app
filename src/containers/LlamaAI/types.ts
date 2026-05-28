@@ -225,6 +225,12 @@ export interface MessageMetadata {
 	outputTokens?: number
 	executionTimeMs?: number
 	x402CostUsd?: string
+	completionReason?: string
+}
+
+export interface UpgradeOffer {
+	code: 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	resetTime?: string | null
 }
 
 export interface Message {
@@ -234,6 +240,7 @@ export interface Message {
 	csvExports?: CsvExport[]
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	citations?: string[]
+	factCheckReferences?: FactCheckReference[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
@@ -258,6 +265,7 @@ export interface Message {
 	thinking?: string
 	quotedText?: string
 	messageMetadata?: MessageMetadata
+	upgradeOffer?: UpgradeOffer
 }
 
 export interface ChartSet {
@@ -307,4 +315,28 @@ export interface SearchResult {
 	session_title: string | null
 	last_activity: string | null
 	matches: SearchMatch[]
+}
+
+export type AgenticAnswerMode = 'quick' | 'fact_checked' | 'research'
+
+export interface FactCheckReference {
+	id?: number
+	label: string
+	url?: string
+	detail?: string
+	checked?: string
+	asOf?: string
+	evidence?: string[]
+	sourceType?: string
+}
+
+export interface FactCheckedUsage {
+	allowed: boolean
+	currentUsage: number
+	limit: number
+	period: 'daily' | 'lifetime' | 'unlimited' | 'blocked' | 'biweekly'
+	remaining: number
+	remainingUsage: number
+	resetTime?: string
+	message?: string
 }

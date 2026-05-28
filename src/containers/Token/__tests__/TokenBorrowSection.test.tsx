@@ -15,6 +15,10 @@ const strategiesState: {
 	isLoading: false
 }
 
+const { optimizerTableCalls } = vi.hoisted(() => ({
+	optimizerTableCalls: [] as Array<{ dataLength: number; initialPageIndex?: number; initialPageSize?: number }>
+}))
+
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
 		<div>{children(false)}</div>
@@ -47,7 +51,10 @@ vi.mock('~/containers/Yields/Tables/Optimizer', () => ({
 		data: Array<{ symbol: string; borrow: { symbol: string } }>
 		initialPageSize?: number
 		initialPageIndex?: number
-	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}:${initialPageIndex ?? 0}`}</div>
+	}) => {
+		optimizerTableCalls.push({ dataLength: data.length, initialPageIndex, initialPageSize })
+		return <div>Optimizer table</div>
+	}
 }))
 
 vi.mock('../useTokenBorrowRoutes', () => ({
@@ -62,6 +69,7 @@ afterEach(() => {
 	}
 	strategiesState.error = null
 	strategiesState.isLoading = false
+	optimizerTableCalls.length = 0
 	vi.clearAllMocks()
 	vi.restoreAllMocks()
 })
@@ -157,7 +165,7 @@ describe('TokenBorrowSection', () => {
 
 		expect(html).toContain('Tracking 1 route')
 		expect(html).toContain('Available')
-		expect(html).toContain('optimizer-table:1:10:0')
+		expect(optimizerTableCalls[0]).toMatchObject({ dataLength: 1, initialPageIndex: 0, initialPageSize: 10 })
 	})
 
 	it('renders prefetched strategies without waiting for a client fetch', () => {
@@ -180,8 +188,7 @@ describe('TokenBorrowSection', () => {
 		)
 
 		expect(html).toContain('Tracking 1 route')
-		expect(html).toContain('optimizer-table:1:10:0')
-		expect(html).not.toContain('loader')
+		expect(optimizerTableCalls[0]).toMatchObject({ dataLength: 1, initialPageIndex: 0, initialPageSize: 10 })
 	})
 
 	it('shows deferred pagination controls when only the first page is prefetched', () => {

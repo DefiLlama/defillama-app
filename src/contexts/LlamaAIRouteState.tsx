@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { createContext, type PropsWithChildren, useContext, useMemo } from 'react'
 
 export type LlamaAIRouteState =
-	| { kind: 'chat-new' }
+	| { kind: 'chat-new'; initialPrompt?: string }
 	| { kind: 'chat-session'; sessionId: string; aroundMessageId?: string; initialPrompt?: string; shareToken?: string }
 	| { kind: 'project-list' }
 	| { kind: 'project'; projectId: string; initialTab: 'chats' | 'sources' }
@@ -28,7 +28,7 @@ export function useLlamaAIRouteState(): LlamaAIRouteState {
 		if (!router.isReady) return { kind: 'unknown' }
 
 		if (router.pathname === '/ai/chat') {
-			return { kind: 'chat-new' }
+			return { kind: 'chat-new', initialPrompt: firstString(router.query.prompt) }
 		}
 
 		if (router.pathname === '/ai/chat/[sessionId]') {

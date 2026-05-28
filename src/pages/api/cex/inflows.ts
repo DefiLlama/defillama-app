@@ -27,7 +27,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		const upstreamUrl = `${SERVER_URL}/inflows/${encodeURIComponent(slug)}/${startNum}?end=${endNum}&tokensToExclude=${encodeURIComponent(typeof tokensToExclude === 'string' ? tokensToExclude : '')}`
+		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/assets')
+		])
+		const cexRoute = resolveCexParamFromMetadata(slug, metadataCache)
+		if (!cexRoute) {
+			return res.status(404).json({ error: 'CEX not found' })
+		}
+
+		const upstreamUrl = `${SERVER_URL}/inflows/${encodeURIComponent(cexRoute.canonicalSlug)}/${startNum}?end=${endNum}&tokensToExclude=${encodeURIComponent(typeof tokensToExclude === 'string' ? tokensToExclude : '')}`
 		const upstream = await fetchWithPoolingOnServer(upstreamUrl)
 
 		if (!upstream.ok) {

@@ -41,7 +41,7 @@ export function articleHref(article: { slug: string; section?: ArticleSection | 
 export const RESEARCH_LANDING_SECTION_LIMITS = {
 	reportsHero: 9,
 	latest: 6,
-	spotlight: 4,
+	spotlight: 6,
 	interviews: 17,
 	reportHighlight: 1,
 	insights: 8,

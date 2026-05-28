@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { toNiceDayMonthAndYear, toNiceDayMonthAndYearAndTime } from '~/utils'
@@ -33,7 +34,15 @@ const isAtMidnight = (timestamp: number | null) => {
 	return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
 }
 
-export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
+export const DateFilter = ({
+	startDate,
+	endDate,
+	isLoading = false
+}: {
+	startDate: number | null
+	endDate: number | null
+	isLoading?: boolean
+}) => {
 	const router = useRouter()
 	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
 	const isSubscribed = !loaders.userLoading && isAuthenticated && hasActiveSubscription
@@ -105,8 +114,15 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 							setShouldRenderModal(true)
 						}
 					}}
+					aria-busy={isLoading}
 					className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
+					{isLoading ? (
+						<span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) shadow-xs">
+							<LoadingSpinner size={12} />
+							<span className="sr-only">Loading custom range inflows</span>
+						</span>
+					) : null}
 					<span>Custom Range Inflows</span>
 					{startDate != null || endDate != null ? (
 						<span className="text-(--link-text)">

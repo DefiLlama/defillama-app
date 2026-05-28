@@ -13,13 +13,20 @@ export default function Treasury() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-				<KpiCard label="Treasury LP Total" value={tlp?.totalFormatted} sub={`Unclaimed ${tlp?.unclaimedRewardsFormatted || ''}`} />
+				<KpiCard
+					label="Treasury LP Total"
+					value={tlp?.totalFormatted}
+					sub={`Unclaimed ${tlp?.unclaimedRewardsFormatted || ''}`}
+				/>
 				<KpiCard label="Plasma UniV3 Total" value={plasma?.totalFormatted} />
 				<KpiCard label="veAERO Locks" value={aero?.rows?.length != null ? String(aero.rows.length) : undefined} />
 			</div>
 
 			<SectionHeader>Treasury LP Positions</SectionHeader>
-			<ChartCard title="LP Positions (all chains)" subtitle={`${tlp?.rows?.length ?? 0} positions across Base, Optimism, Plasma`}>
+			<ChartCard
+				title="LP Positions (all chains)"
+				subtitle={`${tlp?.rows?.length ?? 0} positions across Base, Optimism, Plasma`}
+			>
 				<SimpleTable
 					rows={tlp?.rows}
 					cols={[

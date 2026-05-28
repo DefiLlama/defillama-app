@@ -385,6 +385,8 @@ export const EntityLink = Mark.create({
 			'a',
 			mergeAttributes(rest, {
 				href,
+				target: '_blank',
+				rel: 'noopener noreferrer',
 				'data-article-entity-link': 'true',
 				'data-entity-type': entityType,
 				'data-entity-slug': slug

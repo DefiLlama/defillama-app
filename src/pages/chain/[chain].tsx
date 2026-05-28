@@ -4,7 +4,6 @@ import { ChainOverview } from '~/containers/ChainOverview'
 import { ChainOverviewAnnouncement } from '~/containers/ChainOverview/Announcement'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -19,11 +18,13 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 		return { notFound: true }
 	}
 
-	const normalizedChain = chain === 'all' ? 'All' : chain
-	const metadataModule = await import('~/utils/metadata')
-	const metadataCache = metadataModule.default
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const { resolveChainParamFromMetadata } = await import('~/server/routeCache/chains')
+	const isAllChain = chain.toLowerCase() === 'all'
+	const chainRoute = isAllChain ? null : resolveChainParamFromMetadata(chain, metadataCache)
+	const normalizedChain = isAllChain ? 'All' : chainRoute?.canonicalName
 
-	if (normalizedChain !== 'All' && !metadataCache.chainMetadata[slug(normalizedChain)]) {
+	if (!normalizedChain) {
 		return { notFound: true }
 	}
 
@@ -59,11 +60,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const res = await fetchProtocols()
-
-	const paths = res.chains.map((chain) => ({
-		params: { chain: slug(chain) }
-	}))
+	const { getChainStaticPaths } = await import('~/server/routeCache/chains')
+	const paths = await getChainStaticPaths()
 
 	return { paths, fallback: 'blocking' }
 }

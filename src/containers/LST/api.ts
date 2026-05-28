@@ -1,4 +1,4 @@
-import { fetchCoinPrices } from '~/api'
+import { fetchCoinPrices } from '~/api/pricing'
 import { YIELD_POOLS_API, YIELDS_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { ILsdRateApiItem, IYieldPoolApiItem } from './api.types'

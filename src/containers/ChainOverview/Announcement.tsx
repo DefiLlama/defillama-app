@@ -2,13 +2,44 @@ import { Announcement } from '~/components/Announcement'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useAuthContext } from '../Subscription/auth'
 
+const NEAR_CHAIN_ICON = 'https://icons.llamao.fi/icons/chains/rsz_near'
+
 export const ChainOverviewAnnouncement = ({ chainName }: { chainName?: string }) => {
 	const { user } = useAuthContext()
+	const normalizedChainName = chainName?.toLowerCase()
 
 	if (chainName === 'MegaETH') {
 		return (
 			<Announcement announcementId="megaeth-ethena-tvl" version="2026-05-06" warning>
 				Most of MegaETH TVL comes from Ethena depositing it&apos;s balance sheet
+			</Announcement>
+		)
+	}
+
+	if (normalizedChainName === 'near') {
+		return (
+			<Announcement
+				announcementId="near-investor-relations"
+				version="2026-05-26-2"
+				className="border border-[#111827] bg-[linear-gradient(90deg,rgba(255,255,255,0.98),rgba(232,255,244,0.98)_42%,rgba(216,243,235,0.95)_100%)] text-[#111827] shadow-[0_8px_20px_rgba(0,236,151,0.13)] dark:border-[#38f5a6] dark:bg-[linear-gradient(90deg,rgba(13,18,17,0.96),rgba(17,44,33,0.94)_55%,rgba(10,61,50,0.94)_100%)] dark:text-[#d9fff0]"
+				contentClassName="text-center"
+			>
+				<span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+					<span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 px-2 py-0.5 text-xs font-semibold text-[#111827] shadow-sm dark:border-[#38f5a6]/30 dark:bg-white/10 dark:text-[#b6ffd8]">
+						<TokenLogo src={NEAR_CHAIN_ICON} size={14} alt="Logo of NEAR" />
+						NEAR IR
+					</span>
+					<span>View NEAR&apos;s</span>
+					<a
+						href={`https://investors.defillama.com/near${user?.id ? `?referrer=${user.id}` : ''}`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="underline decoration-2 underline-offset-[3px]"
+					>
+						investor relations dashboard
+					</a>
+					<span className="opacity-90">for deeper analytics and investor reports.</span>
+				</span>
 			</Announcement>
 		)
 	}

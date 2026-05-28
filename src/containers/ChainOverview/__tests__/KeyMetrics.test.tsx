@@ -50,15 +50,18 @@ const baseProps: React.ComponentProps<typeof KeyMetrics> = {
 	}
 }
 
+const textFromMarkup = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
+
 describe('ChainOverview KeyMetrics', () => {
 	it('renders unavailable token metrics as N/A instead of $0', () => {
 		const markup = renderToStaticMarkup(<KeyMetrics {...baseProps} />)
+		const text = textFromMarkup(markup)
 
-		expect(markup).toContain('$MEGA Price')
-		expect(markup).toContain('$MEGA Market Cap')
-		expect(markup).toContain('$MEGA FDV')
-		expect(markup).toContain('N/A')
-		expect(markup).not.toContain('$0</span>')
+		expect(text).toContain('$MEGA Price')
+		expect(text).toContain('$MEGA Market Cap')
+		expect(text).toContain('$MEGA FDV')
+		expect(text).toContain('N/A')
+		expect(text).not.toContain('$0')
 	})
 
 	it('preserves legitimate zero values for token metrics', () => {

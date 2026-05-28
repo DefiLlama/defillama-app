@@ -29,6 +29,7 @@ import {
 	EmptyConversationErrorState,
 	LoadingConversationState
 } from '~/containers/LlamaAI/components/ConversationView'
+import { DeepLinkPromptModal } from '~/containers/LlamaAI/components/DeepLinkPromptModal'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
@@ -78,12 +79,15 @@ import {
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
 import type {
+	AgenticAnswerMode,
 	ChartConfiguration,
 	DashboardArtifact,
 	DashboardItem,
+	FactCheckReference,
 	Message,
 	TodoItem,
-	ToolExecution
+	ToolExecution,
+	UpgradeOffer
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
 import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
@@ -95,6 +99,7 @@ import { useLlamaAINavigate, useProjectHomeSignal } from '~/contexts/LlamaAINavi
 import { useLlamaAIRouteContext } from '~/contexts/LlamaAIRouteState'
 import { useOptionalSessionAliases } from '~/contexts/SessionAliasRegistry'
 import { useMedia } from '~/hooks/useMedia'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import {
 	isSameAgenticRouteTransition,
 	shouldSkipCurrentSessionRouteRestore,
@@ -126,6 +131,9 @@ interface PersistedMessageMetadata extends RestoredAlertMetadata {
 	deliveryChannel?: 'email' | 'telegram'
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	x402_cost_usd?: string
+	factCheck?: {
+		references?: unknown[]
+	}
 }
 
 interface PersistedMessage {
@@ -146,7 +154,13 @@ interface PersistedMessage {
 	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
-	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
+	messageMetadata?: {
+		inputTokens?: number
+		outputTokens?: number
+		executionTimeMs?: number
+		x402CostUsd?: string
+		completionReason?: string
+	}
 	messageId?: string
 	parentId?: string
 	siblingInfo?: Message['siblingInfo']
@@ -198,9 +212,44 @@ interface RestoreSessionSnapshotResult {
 }
 
 interface UsageLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
-	details?: Partial<RateLimitDetails>
+	code?:
+		| 'USAGE_LIMIT_EXCEEDED'
+		| 'FREE_QUESTION_LIMIT'
+		| 'FREE_FORM_LIMIT'
+		| 'FREE_DAILY_LIMIT'
+		| 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
+	details?: Partial<RateLimitDetails> & { feature?: string }
 	upgradeUrl?: string
+}
+
+const FREE_LIMIT_CODES = ['FREE_QUESTION_LIMIT', 'FREE_FORM_LIMIT', 'FREE_DAILY_LIMIT'] as const
+
+type FreeLimitError = UsageLimitError & { code: UpgradeOffer['code'] }
+
+function isFreeLimitError(err: UsageLimitError | null | undefined): err is FreeLimitError {
+	return !!err?.code && (FREE_LIMIT_CODES as readonly string[]).includes(err.code)
+}
+
+function buildFreeLimitMessage(err: FreeLimitError): Message {
+	const isDaily = err.code === 'FREE_DAILY_LIMIT'
+	let content = isDaily ? "You've reached today's free question limit." : "You've reached your free question limit."
+	if (err.details?.resetTime) {
+		const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
+		if (resetMs > 0) {
+			const hours = Math.floor(resetMs / 3600000)
+			const minutes = Math.floor((resetMs % 3600000) / 60000)
+			const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
+			content += ` Resets in ${timeStr}.`
+		}
+	}
+	return {
+		role: 'assistant',
+		content,
+		upgradeOffer: {
+			code: err.code,
+			resetTime: err.details?.resetTime ?? null
+		}
+	}
 }
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'branch' | 'idle'
@@ -357,6 +406,9 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		messageMetadata: message.messageMetadata,
 		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
 		parentId: message.parentId,
@@ -437,6 +489,9 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 		generatedImages: message.generatedImages,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
 	}
 }
@@ -563,7 +618,9 @@ function createAgenticCallbacks({
 	replaceLocalUserMessageId,
 	setMessageSiblingInfo,
 	deferEmptyDone,
-	notify
+	notify,
+	onFactCheckStatus,
+	onFactCheckCitations
 }: {
 	requestId: number
 	activeRequestIdRef: RefObject<number>
@@ -580,6 +637,8 @@ function createAgenticCallbacks({
 	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
 	deferEmptyDone?: boolean
 	notify: () => void
+	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
+	onFactCheckCitations?: (sources: FactCheckReference[]) => void
 }): AgenticSSECallbacks {
 	return {
 		onToken: (content) => {
@@ -646,9 +705,9 @@ function createAgenticCallbacks({
 			buffer.toolExecutions.push(data)
 			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
 			if (data.name === 'todo' && data.success) {
-				const todos = (data.toolData as { todos?: TodoItem[] } | undefined)?.todos
-				if (Array.isArray(todos)) {
-					dispatch({ type: 'SET_TODOS', value: todos })
+				const toolData = data.toolData as { todos?: TodoItem[]; action?: string } | undefined
+				if (toolData?.action === 'write' && Array.isArray(toolData.todos)) {
+					dispatch({ type: 'SET_TODOS', value: toolData.todos })
 				}
 			}
 		},
@@ -731,6 +790,15 @@ function createAgenticCallbacks({
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 			dispatch({ type: 'RESET_STREAM' })
 			notify()
+		},
+		onFactCheckStatus: (status) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onFactCheckStatus?.(status)
+		},
+		onFactCheckCitations: (sources) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.factCheckReferences = sources
+			onFactCheckCitations?.(sources)
 		}
 	}
 }
@@ -819,6 +887,7 @@ export function AgenticChat({
 	const {
 		sessions,
 		researchUsage,
+		factCheckedUsage,
 		isLoading: isLoadingSessions,
 		error: sessionListError,
 		hasNextPage: hasMoreSessions,
@@ -860,7 +929,7 @@ export function AgenticChat({
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [currentSessionProjectId, setCurrentSessionProjectId] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
-	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [mode, setMode] = useState<AgenticAnswerMode>('quick')
 	const [quotedText, setQuotedText] = useState<string | null>(null)
 	const [
 		{
@@ -875,6 +944,7 @@ export function AgenticChat({
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
 	const [initialIntegrationsState, setInitialIntegrationsState] = useState<SettingsInitialState | null>(null)
+	const [deepLinkConfirmationPrompt, setDeepLinkConfirmationPrompt] = useState<string | null>(null)
 	const router = useRouter()
 	const {
 		settings,
@@ -889,6 +959,7 @@ export function AgenticChat({
 	const [viewError, setViewError] = useState<string | null>(null)
 	const [paginationError, setPaginationError] = useState<string | null>(null)
 	const researchModalStore = Ariakit.useDialogStore()
+	const [limitModalFeature, setLimitModalFeature] = useState<'research' | 'fact_checked'>('research')
 	const currentMessageIdRef = useRef<string | null>(null)
 	const activeRequestIdRef = useRef(0)
 	const activeRequestKindRef = useRef<RequestKind>('idle')
@@ -970,6 +1041,21 @@ export function AgenticChat({
 	const shouldStartDetachedForAnchor = typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
 
 	useEffect(() => {
+		if (!quotedText || readOnly) return
+
+		const frameId = window.requestAnimationFrame(() => {
+			const input = promptInputRef.current
+			if (!input) return
+
+			input.focus()
+			const cursorPosition = input.value.length
+			input.setSelectionRange(cursorPosition, cursorPosition)
+		})
+
+		return () => window.cancelAnimationFrame(frameId)
+	}, [quotedText, readOnly])
+
+	useEffect(() => {
 		currentSessionIdRef.current = sessionId
 	}, [sessionId])
 
@@ -1001,6 +1087,15 @@ export function AgenticChat({
 		setShowShareModal(true)
 	}, [])
 
+	const handleFactCheckedGated = useCallback(() => {
+		dispatchStream({
+			type: 'SET_RATE_LIMIT_DETAILS',
+			value: { period: 'blocked', limit: 0, resetTime: null }
+		})
+		setLimitModalFeature('fact_checked')
+		researchModalStore.show()
+	}, [researchModalStore])
+
 	const setShareModalOpen = useCallback((nextOpen: boolean) => {
 		setShowShareModal(nextOpen)
 		if (!nextOpen) {
@@ -1009,9 +1104,9 @@ export function AgenticChat({
 	}, [])
 
 	const triggerPromptTransition = useCallback(
-		(mode: PromptTransitionMode) => {
+		(nextMode: PromptTransitionMode) => {
 			clearPromptTransitionTimer()
-			setPromptTransitionMode(mode)
+			setPromptTransitionMode(nextMode)
 			promptTransitionTimerRef.current = window.setTimeout(() => {
 				setPromptTransitionMode('idle')
 				promptTransitionTimerRef.current = null
@@ -1541,7 +1636,7 @@ export function AgenticChat({
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
-			setCurrentSessionProjectId(result.projectId ?? null)
+			setCurrentSessionProjectId(result.projectId ?? match?.projectId ?? null)
 
 			const allDashboards = restored.flatMap((m) => m.dashboards || [])
 			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
@@ -1773,6 +1868,7 @@ export function AgenticChat({
 		clearConversationRuntimeState()
 		setMessages([])
 		setActiveLeafMessageId(null)
+		setQuotedText(null)
 		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
@@ -1800,17 +1896,11 @@ export function AgenticChat({
 				title: 'New Chat',
 				projectId: projectIdForNewChat
 			})
-			if (route.kind !== 'project') {
-				try {
-					await persistSession
-					void navigate.toSession(nextSessionId)
-				} catch (createSessionError) {
-					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
-				}
-			} else {
-				void persistSession.catch((createSessionError) => {
-					console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
-				})
+			try {
+				await persistSession
+				void navigate.toSession(nextSessionId)
+			} catch (createSessionError) {
+				console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
 			}
 			promptInputRef.current?.focus()
 			return
@@ -1960,6 +2050,7 @@ export function AgenticChat({
 				if (shouldSkipCurrentSessionRouteRestore(routeTransition, previousTransition, currentSessionIdRef.current))
 					return
 
+				setQuotedText(null)
 				setMessages([])
 				setActiveLeafMessageId(null)
 				setSessionTitle(null)
@@ -2082,7 +2173,7 @@ export function AgenticChat({
 					void fetchAgenticResponse({
 						message: trimmed,
 						sessionId: currentSessionId,
-						researchMode: isResearchMode,
+						mode,
 						entities: entities?.length ? entities : undefined,
 						images: images?.length ? images : undefined,
 						pageContext,
@@ -2142,6 +2233,12 @@ export function AgenticChat({
 									updateSessionTitle({ sessionId: currentSessionId, title, projectId: submitProjectId }).catch(() => {})
 									moveSessionToTop(currentSessionId)
 								}
+							},
+							onFactCheckStatus: (status) => {
+								dispatchStream({ type: 'SET_FACT_CHECK_PHASE', value: status })
+							},
+							onFactCheckCitations: (sources) => {
+								dispatchStream({ type: 'SET_FACT_CHECK_REFERENCES', references: sources })
 							}
 						})
 					})
@@ -2156,23 +2253,24 @@ export function AgenticChat({
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (
-								err?.code === 'FREE_QUESTION_LIMIT' ||
-								err?.code === 'FREE_FORM_LIMIT' ||
-								err?.code === 'FREE_DAILY_LIMIT'
-							) {
-								let msg = err.message || "You've reached the free question limit. Subscribe for unlimited access."
-								if (err.details?.resetTime) {
-									const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
-									if (resetMs > 0) {
-										const hours = Math.floor(resetMs / 3600000)
-										const minutes = Math.floor((resetMs % 3600000) / 60000)
-										const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
-										msg += `\n\nResets in ${timeStr}.`
-									}
-								}
-								appendMessage({ role: 'assistant', content: msg })
+							if (isFreeLimitError(err)) {
+								appendMessage(buildFreeLimitMessage(err))
 								dispatchStream({ type: 'RESET_STREAM' })
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+								return
+							}
+							if (err?.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+								dispatchStream({
+									type: 'SET_RATE_LIMIT_DETAILS',
+									value: {
+										period: 'blocked',
+										limit: 0,
+										resetTime: null
+									}
+								})
+								dispatchStream({ type: 'RESET_STREAM' })
+								setLimitModalFeature('fact_checked')
+								researchModalStore.show()
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
@@ -2186,6 +2284,7 @@ export function AgenticChat({
 									}
 								})
 								dispatchStream({ type: 'RESET_STREAM' })
+								setLimitModalFeature(err.details?.feature === 'fact_checked' ? 'fact_checked' : 'research')
 								researchModalStore.show()
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
@@ -2261,7 +2360,7 @@ export function AgenticChat({
 		[
 			isStreaming,
 			sessionId,
-			isResearchMode,
+			mode,
 			authorizedFetchCompat,
 			createSession,
 			createFakeSession,
@@ -2352,7 +2451,7 @@ export function AgenticChat({
 					message: trimmed,
 					sessionId,
 					editMessageId: isBranchingEdit ? messageId : undefined,
-					researchMode: isResearchMode,
+					mode,
 					quotedText: original.quotedText || undefined,
 					customInstructions: settings.customInstructions || undefined,
 					enablePremiumTools: settings.enablePremiumTools,
@@ -2380,6 +2479,12 @@ export function AgenticChat({
 						onTitle: (title) => {
 							setSessionTitle(title)
 							updateSessionTitle({ sessionId, title, projectId: currentSessionProjectId }).catch(() => {})
+						},
+						onFactCheckStatus: (status) => {
+							dispatchStream({ type: 'SET_FACT_CHECK_PHASE', value: status })
+						},
+						onFactCheckCitations: (sources) => {
+							dispatchStream({ type: 'SET_FACT_CHECK_REFERENCES', references: sources })
 						}
 					})
 				})
@@ -2436,6 +2541,14 @@ export function AgenticChat({
 						return
 					}
 				}
+				if (isFreeLimitError(editError)) {
+					setMessages(messagesSnapshot)
+					setActiveLeafMessageId(activeLeafSnapshot)
+					appendMessage(buildFreeLimitMessage(editError))
+					dispatchStream({ type: 'RESET_STREAM' })
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+					return
+				}
 				setMessages(messagesSnapshot)
 				setActiveLeafMessageId(activeLeafSnapshot)
 				setViewError(getErrorMessage(editError))
@@ -2461,7 +2574,7 @@ export function AgenticChat({
 			authorizedFetchCompat,
 			abortActiveRequest,
 			isMobileChatView,
-			isResearchMode,
+			mode,
 			messages,
 			notify,
 			resumeRunningExecution,
@@ -2572,16 +2685,71 @@ export function AgenticChat({
 		}
 	)
 
-	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
+	// Confirm shareable deep-link prompts before spending a user request. Prompts that were already
+	// confirmed before auth are still delivered through the existing pending-prompt queue.
+	const deepLinkPrompt = route.kind === 'chat-new' ? route.initialPrompt?.trim() || undefined : undefined
+	const deepLinkUtmSource = typeof router.query.utm_source === 'string' ? router.query.utm_source : null
+	const deepLinkUtmCampaign = typeof router.query.utm_campaign === 'string' ? router.query.utm_campaign : null
+	const deepLinkConsumedKeyRef = useRef<string | null>(null)
+
 	useEffect(() => {
 		if (route.kind !== 'chat-new' || sharedSession) return
+
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		const isSuggested = consumePendingSuggestedFlag()
 		if (pendingPrompt) {
+			if (deepLinkPrompt) {
+				deepLinkConsumedKeyRef.current = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+				setDeepLinkConfirmationPrompt(null)
+				void navigate.refineCurrent('/ai/chat')
+			}
 			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
+			return
 		}
-	}, [route.kind, sharedSession])
+
+		if (deepLinkPrompt) {
+			const deepLinkKey = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+			if (deepLinkConsumedKeyRef.current === deepLinkKey) return
+			deepLinkConsumedKeyRef.current = deepLinkKey
+			setDeepLinkConfirmationPrompt(deepLinkPrompt)
+			trackUmamiEvent('llamaai-deeplink-view', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+			return
+		}
+
+		deepLinkConsumedKeyRef.current = null
+		setDeepLinkConfirmationPrompt(null)
+	}, [route.kind, deepLinkPrompt, deepLinkUtmSource, deepLinkUtmCampaign, sharedSession, navigate])
+
+	const handleConfirmDeepLinkPrompt = useCallback(() => {
+		const prompt = deepLinkConfirmationPrompt?.trim()
+		if (!prompt) return
+		deepLinkConsumedKeyRef.current = `${prompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+		setDeepLinkConfirmationPrompt(null)
+		trackUmamiEvent('llamaai-deeplink-run', {
+			source: deepLinkUtmSource,
+			campaign: deepLinkUtmCampaign,
+			prompt: prompt.replace(/\s+/g, ' ').slice(0, 100)
+		})
+		void navigate.refineCurrent('/ai/chat')
+		submitPendingPromptEvent(prompt)
+	}, [deepLinkConfirmationPrompt, deepLinkUtmSource, deepLinkUtmCampaign, navigate])
+
+	const handleCloseDeepLinkPrompt = useCallback(() => {
+		if (deepLinkConfirmationPrompt) {
+			trackUmamiEvent('llamaai-deeplink-dismiss', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkConfirmationPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+		}
+		setDeepLinkConfirmationPrompt(null)
+		void navigate.refineCurrent('/ai/chat')
+	}, [deepLinkConfirmationPrompt, deepLinkUtmSource, deepLinkUtmCampaign, navigate])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
 	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
@@ -2685,10 +2853,10 @@ export function AgenticChat({
 				settingsModalStore.show()
 			},
 			openAlertsModal: alertsModalStore.show,
-			toggleResearchMode: () => setIsResearchMode((v) => !v),
+			toggleResearchMode: () => setMode((m) => (m === 'research' ? 'quick' : 'research')),
 			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore, alertsModalStore.show, setIsResearchMode, handleSubmit]
+		[settingsModalStore, alertsModalStore.show, setMode, handleSubmit]
 	)
 
 	const landingOverride =
@@ -2699,6 +2867,7 @@ export function AgenticChat({
 						<ProjectLanding
 							projectId={route.projectId}
 							tier={projectTier}
+							sessionList={sessions}
 							initialTab={route.initialTab}
 							onSubmit={api.handleSubmit}
 							isStreaming={api.isStreaming}
@@ -2825,9 +2994,11 @@ export function AgenticChat({
 											promptInputRef={promptInputRef}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
-											isResearchMode={isResearchMode}
-											setIsResearchMode={setIsResearchMode}
+											mode={mode}
+											setMode={setMode}
 											researchUsage={researchUsage}
+											factCheckedUsage={factCheckedUsage}
+											onFactCheckedGated={handleFactCheckedGated}
 											onOpenAlerts={alertsModalStore.show}
 											quotedText={quotedText}
 											onClearQuotedText={() => setQuotedText(null)}
@@ -2873,9 +3044,12 @@ export function AgenticChat({
 										onEditMessage={handleEditMessage}
 										onBranchSwitch={handleBranchSwitch}
 										isBranchSwitching={isSwitchingActiveLeaf}
-										isResearchMode={isResearchMode}
-										setIsResearchMode={setIsResearchMode}
+										mode={mode}
+										setMode={setMode}
 										researchUsage={researchUsage}
+										factCheckedUsage={factCheckedUsage}
+										onFactCheckedGated={handleFactCheckedGated}
+										factCheckPhase={streamState.factCheckPhase}
 										animateActiveExchange={false}
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
@@ -2898,9 +3072,11 @@ export function AgenticChat({
 									promptInputRef={promptInputRef}
 									handleStopRequest={handleStopRequest}
 									isStreaming={isStreaming}
-									isResearchMode={isResearchMode}
-									setIsResearchMode={setIsResearchMode}
+									mode={mode}
+									setMode={setMode}
 									researchUsage={researchUsage}
+									factCheckedUsage={factCheckedUsage}
+									onFactCheckedGated={handleFactCheckedGated}
 									onOpenAlerts={alertsModalStore.show}
 									quotedText={quotedText}
 									onClearQuotedText={() => setQuotedText(null)}
@@ -2945,9 +3121,12 @@ export function AgenticChat({
 								onEditMessage={handleEditMessage}
 								onBranchSwitch={handleBranchSwitch}
 								isBranchSwitching={isSwitchingActiveLeaf}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
+								mode={mode}
+								setMode={setMode}
 								researchUsage={researchUsage}
+								factCheckedUsage={factCheckedUsage}
+								onFactCheckedGated={handleFactCheckedGated}
+								factCheckPhase={streamState.factCheckPhase}
 								animateActiveExchange={shouldAnimateConversationTransition}
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
@@ -2984,9 +3163,7 @@ export function AgenticChat({
 						<TextSelectionPopup
 							onSelect={(text) => {
 								setQuotedText(text)
-								requestAnimationFrame(() => {
-									promptInputRef.current?.focus()
-								})
+								promptInputRef.current?.focus()
 							}}
 						/>
 					) : null}
@@ -2996,6 +3173,7 @@ export function AgenticChat({
 							period={rateLimitDetails.period}
 							limit={rateLimitDetails.limit}
 							resetTime={rateLimitDetails.resetTime}
+							feature={limitModalFeature}
 						/>
 					) : null}
 					{!readOnly ? (
@@ -3028,6 +3206,14 @@ export function AgenticChat({
 							}
 							initialState={initialIntegrationsState}
 							onInitialStateConsumed={() => setInitialIntegrationsState(null)}
+						/>
+					) : null}
+					{!readOnly ? (
+						<DeepLinkPromptModal
+							isOpen={!!deepLinkConfirmationPrompt}
+							prompt={deepLinkConfirmationPrompt}
+							onClose={handleCloseDeepLinkPrompt}
+							onConfirm={handleConfirmDeepLinkPrompt}
 						/>
 					) : null}
 				</div>

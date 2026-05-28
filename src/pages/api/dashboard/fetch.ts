@@ -19,6 +19,14 @@ export const config = { api: { responseLimit: false } }
 
 const FETCH_TIMEOUT = 15_000
 
+function dashboardProxyAuthHeader(req: NextApiRequest): string | undefined {
+	const authorization = req.headers?.authorization
+	const rawHeader = Array.isArray(authorization) ? authorization[0] : authorization
+	const token = rawHeader?.trim().replace(/^Bearer\s+/i, '')
+	if (!token) return undefined
+	return `Bearer ${token}`
+}
+
 async function dispatchFetch(type: string, params: any): Promise<any> {
 	switch (type) {
 		case 'chart': {
@@ -220,7 +228,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
+	const auth = await validateSubscription(dashboardProxyAuthHeader(req))
 	if (auth.valid === false) {
 		return res.status(auth.status).json({ error: auth.error })
 	}

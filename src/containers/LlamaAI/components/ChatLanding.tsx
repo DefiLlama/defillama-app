@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
-import { type Dispatch, type RefObject, type SetStateAction, useCallback, useEffect, useRef } from 'react'
+import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
@@ -8,7 +8,7 @@ import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { useTipActions } from '~/containers/LlamaAI/components/TipActionContext'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import { useActiveTip } from '~/containers/LlamaAI/hooks/useLlamaAITip'
-import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { isSettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
@@ -34,9 +34,11 @@ export interface ChatLandingProps {
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	handleStopRequest: () => void
 	isStreaming: boolean
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
@@ -51,9 +53,11 @@ export function ChatLanding({
 	promptInputRef,
 	handleStopRequest,
 	isStreaming,
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	researchUsage,
+	factCheckedUsage,
+	onFactCheckedGated,
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
@@ -153,9 +157,11 @@ export function ChatLanding({
 							isStreaming={isStreaming}
 							restoreRequest={null}
 							placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-							isResearchMode={isResearchMode}
-							setIsResearchMode={setIsResearchMode}
+							mode={mode}
+							setMode={setMode}
 							researchUsage={researchUsage}
+							factCheckedUsage={factCheckedUsage}
+							onFactCheckedGated={onFactCheckedGated}
 							onOpenAlerts={onOpenAlerts}
 							quotedText={quotedText}
 							onClearQuotedText={onClearQuotedText}
@@ -170,8 +176,8 @@ export function ChatLanding({
 
 			{!readOnly && !hasSeenWelcome ? (
 				<OnboardingWalkthrough
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
+					mode={mode}
+					setMode={setMode}
 					handleSubmit={handleSubmit}
 					promptInputRef={promptInputRef}
 					onComplete={markWelcomeSeen}

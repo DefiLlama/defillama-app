@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { EDITORIAL_TAGS, isEditorialTagSlug } from '../editorialTags'
 import type { ArticleCollaborator, ArticleImage, ArticleSection, LocalArticleDocument } from '../types'
@@ -12,8 +13,15 @@ import { MetaFieldHint, MetaSection, MetaSwitch } from './ArticleMetaFields'
 
 type DialogStore = ReturnType<typeof Ariakit.useDialogStore>
 
+function isFutureScheduleLocal(local: string): boolean {
+	const iso = fromDateTimeLocal(local)
+	if (!iso) return false
+	return new Date(iso) > new Date()
+}
+
 type ArticleMetaDialogProps = {
 	article: LocalArticleDocument
+	articleIsScheduled: boolean
 	collaboratorAdding: boolean
 	collaboratorEmail: string
 	collaboratorError: string | null
@@ -31,7 +39,7 @@ type ArticleMetaDialogProps = {
 	publishErrors: Record<string, string>
 	store: DialogStore
 	handleAddCollaborator: () => Promise<void>
-	handlePublish: () => Promise<boolean>
+	handlePublish: (opts?: { goLiveAt?: string | null }) => Promise<boolean>
 	handleRemoveCollaborator: (pbUserId: string) => Promise<void>
 	handleToggleHidden: (pbUserId: string, nextHidden: boolean) => Promise<void>
 	handleTransferOwnership: (pbUserId: string, displayName: string) => Promise<void>
@@ -43,6 +51,7 @@ type ArticleMetaDialogProps = {
 
 export function ArticleMetaDialog({
 	article,
+	articleIsScheduled,
 	collaboratorAdding,
 	collaboratorEmail,
 	collaboratorError,
@@ -69,6 +78,20 @@ export function ArticleMetaDialog({
 	store,
 	updateArticle
 }: ArticleMetaDialogProps) {
+	const dialogOpen = Ariakit.useStoreState(store, 'open')
+	const [scheduleMode, setScheduleMode] = useState(false)
+	const [scheduleAtLocal, setScheduleAtLocal] = useState('')
+	const [scheduleError, setScheduleError] = useState<string | null>(null)
+
+	useEffect(() => {
+		if (!dialogOpen) return
+		setScheduleMode(articleIsScheduled || article.goLiveAt != null)
+		setScheduleAtLocal(toDateTimeLocal(article.goLiveAt) || '')
+		setScheduleError(null)
+	}, [dialogOpen, article.goLiveAt, articleIsScheduled])
+
+	const minScheduleLocal = toDateTimeLocal(new Date().toISOString())
+
 	return (
 		<Ariakit.Dialog
 			store={store}
@@ -259,6 +282,57 @@ export function ArticleMetaDialog({
 							Shown on cards and the article header. Defaults to publish time.
 						</MetaFieldHint>
 					</label>
+					{!isPublished ? (
+						<>
+							{articleIsScheduled ? (
+								<div className="flex flex-wrap items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 px-3 py-2">
+									<span className="font-jetbrains text-[10px] tracking-[0.18em] text-sky-500 uppercase">Scheduled</span>
+									<span className="text-xs text-(--text-secondary)">
+										Goes live {formatArticleDate(article.goLiveAt)}
+									</span>
+								</div>
+							) : null}
+							<div className="-mx-3 grid">
+								<MetaSwitch
+									checked={scheduleMode}
+									onCheckedChange={(next) => {
+										setScheduleMode(next)
+										setScheduleError(null)
+										if (next && !scheduleAtLocal) {
+											const defaultAt = new Date(Date.now() + 3_600_000)
+											setScheduleAtLocal(toDateTimeLocal(defaultAt.toISOString()))
+										}
+									}}
+									label="Schedule publication"
+									description="Keeps the article as a draft until the chosen time. Times are shown in your local timezone."
+								/>
+							</div>
+							{scheduleMode ? (
+								<label className="grid gap-1.5">
+									<span className="text-xs text-(--text-secondary)">Go live at</span>
+									<input
+										type="datetime-local"
+										value={scheduleAtLocal}
+										min={minScheduleLocal}
+										onChange={(event) => {
+											setScheduleAtLocal(event.target.value)
+											setScheduleError(null)
+										}}
+										onClick={(event) => {
+											const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
+											input.showPicker?.()
+										}}
+										className={`cursor-pointer rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors focus:outline-none ${
+											scheduleError
+												? 'border-red-500/60 focus:border-red-500'
+												: 'border-(--form-control-border) focus:border-(--link-text)'
+										}`}
+									/>
+									<MetaFieldHint error={scheduleError}>Independent from display date.</MetaFieldHint>
+								</label>
+							) : null}
+						</>
+					) : null}
 					{article.firstPublishedAt || article.lastPublishedAt ? (
 						<div className="grid gap-1 rounded-md border border-(--cards-border) bg-(--app-bg)/50 px-3 py-2.5">
 							{article.firstPublishedAt ? (
@@ -597,18 +671,55 @@ export function ArticleMetaDialog({
 						</button>
 					)
 				) : (
-					<button
-						type="button"
-						disabled={isPublishing || !article.id}
-						onClick={async () => {
-							if (isDirty) await saveArticle()
-							const ok = await handlePublish()
-							if (ok) store.hide()
-						}}
-						className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
-					>
-						{isPublishing ? 'Publishing…' : 'Publish now'}
-					</button>
+					<>
+						{articleIsScheduled ? (
+							<button
+								type="button"
+								disabled={isPublishing || !article.id}
+								onClick={async () => {
+									if (isDirty) await saveArticle()
+									const ok = await handlePublish({ goLiveAt: null })
+									if (ok) store.hide()
+								}}
+								className="flex h-10 items-center justify-center gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) px-4 text-sm font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								{isPublishing ? 'Publishing…' : 'Publish now'}
+							</button>
+						) : null}
+						<button
+							type="button"
+							disabled={isPublishing || !article.id}
+							onClick={async () => {
+								if (scheduleMode) {
+									if (!isFutureScheduleLocal(scheduleAtLocal)) {
+										setScheduleError('Choose a date and time in the future')
+										return
+									}
+									const goLiveAt = fromDateTimeLocal(scheduleAtLocal)
+									if (!goLiveAt) {
+										setScheduleError('Invalid date and time')
+										return
+									}
+									if (isDirty) await saveArticle()
+									const ok = await handlePublish({ goLiveAt })
+									if (ok) store.hide()
+									return
+								}
+								if (isDirty) await saveArticle()
+								const ok = await handlePublish(article.goLiveAt != null ? { goLiveAt: null } : {})
+								if (ok) store.hide()
+							}}
+							className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{isPublishing
+								? scheduleMode
+									? 'Scheduling…'
+									: 'Publishing…'
+								: scheduleMode
+									? 'Schedule'
+									: 'Publish now'}
+						</button>
+					</>
 				)}
 				<button
 					type="button"

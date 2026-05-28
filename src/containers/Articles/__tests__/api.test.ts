@@ -6,7 +6,9 @@ import {
 	listArticles,
 	listArticlesByTag,
 	publishArticle,
+	reorderEditorialTag,
 	revalidateResearchLanding,
+	setEditorialTag,
 	updateEditorialTagMetadata,
 	updateReportHighlightSponsorLogo
 } from '../api'
@@ -53,6 +55,65 @@ describe('articles api client', () => {
 
 		const url = new URL(fetchFn.mock.calls[0][0])
 		expect(url.pathname).toBe('/articles/paths')
+	})
+
+	it('posts editorial tag without body when order is omitted', async () => {
+		const fetchFn = createFetchMock(
+			new Response(JSON.stringify({ articleId: 'article-id', tag: 'spotlight', order: 0 }))
+		)
+
+		await setEditorialTag('article-id', 'spotlight', fetchFn)
+
+		const [url, options] = fetchFn.mock.calls[0]
+		expect(new URL(url).pathname).toBe('/articles/article-id/editorial-tags/spotlight')
+		expect(options?.method).toBe('POST')
+		expect(options?.body).toBeUndefined()
+	})
+
+	it('posts editorial tag with optional order', async () => {
+		const fetchFn = createFetchMock(
+			new Response(JSON.stringify({ articleId: 'article-id', tag: 'spotlight', order: 2 }))
+		)
+
+		await setEditorialTag('article-id', 'spotlight', fetchFn, { order: 2 })
+
+		const [url, options] = fetchFn.mock.calls[0]
+		expect(new URL(url).pathname).toBe('/articles/article-id/editorial-tags/spotlight')
+		expect(options?.method).toBe('POST')
+		expect(JSON.parse(String(options?.body))).toEqual({ order: 2 })
+	})
+
+	it('patches editorial tag order for drag-and-drop', async () => {
+		const fetchFn = createFetchMock(
+			new Response(
+				JSON.stringify({
+					tag: 'spotlight',
+					items: [
+						{ articleId: 'uuid-a', order: 1 },
+						{ articleId: 'uuid-b', order: 0 }
+					]
+				})
+			)
+		)
+
+		await reorderEditorialTag(
+			'spotlight',
+			[
+				{ articleId: 'uuid-a', order: 1 },
+				{ articleId: 'uuid-b', order: 0 }
+			],
+			fetchFn
+		)
+
+		const [url, options] = fetchFn.mock.calls[0]
+		expect(new URL(url).pathname).toBe('/articles/editorial-tags/spotlight/order')
+		expect(options?.method).toBe('PATCH')
+		expect(JSON.parse(String(options?.body))).toEqual({
+			items: [
+				{ articleId: 'uuid-a', order: 1 },
+				{ articleId: 'uuid-b', order: 0 }
+			]
+		})
 	})
 
 	it('patches editorial tag metadata', async () => {
@@ -107,7 +168,25 @@ describe('articles api client', () => {
 
 		const [url, options] = fetchFn.mock.calls[0]
 		expect(url).toBe('/api/research/articles/article-id/publish?_n=1779199500000')
-		expect(options?.method).toBe('GET')
+		expect(options?.method).toBeUndefined()
+	})
+
+	it('sends goLiveAt when scheduling publish', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
+
+		await publishArticle('article-id', fetchFn, { goLiveAt: '2026-06-01T09:00:00.000Z' })
+
+		const [url] = fetchFn.mock.calls[0]
+		expect(url).toContain('goLiveAt=2026-06-01T09%3A00%3A00.000Z')
+	})
+
+	it('sends goLiveAt null when publishing immediately after schedule', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
+
+		await publishArticle('article-id', fetchFn, { goLiveAt: null })
+
+		const [url] = fetchFn.mock.calls[0]
+		expect(url).toContain('goLiveAt=null')
 	})
 
 	it('requests research landing revalidation with a nonce', async () => {

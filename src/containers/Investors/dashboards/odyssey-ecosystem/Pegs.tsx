@@ -26,20 +26,34 @@ function SynthTable({ rows }: { rows: PegRow[] }) {
 			<table className="w-full text-sm">
 				<thead>
 					<tr className="border-b border-(--cards-border) bg-(--app-bg)/40">
-						<th className="px-3 py-2.5 text-left text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">Chain</th>
-						<th className="px-3 py-2.5 text-left text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">Counter</th>
-						<th className="px-3 py-2.5 text-right text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">Spot Peg</th>
+						<th className="px-3 py-2.5 text-left text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">
+							Chain
+						</th>
+						<th className="px-3 py-2.5 text-left text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">
+							Counter
+						</th>
+						<th className="px-3 py-2.5 text-right text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">
+							Spot Peg
+						</th>
 						{SIZES.map((s) => (
-							<th key={s} className="px-3 py-2.5 text-right text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">
+							<th
+								key={s}
+								className="px-3 py-2.5 text-right text-[11px] font-semibold tracking-wider text-(--text-label) uppercase"
+							>
 								{fmtSize(s)}
 							</th>
 						))}
-						<th className="px-3 py-2.5 text-right text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">Kyber</th>
+						<th className="px-3 py-2.5 text-right text-[11px] font-semibold tracking-wider text-(--text-label) uppercase">
+							Kyber
+						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{rows.map((r) => (
-						<tr key={r.chain + r.counter} className="border-b border-(--cards-border)/60 last:border-0 hover:bg-(--sl-hover-bg)">
+						<tr
+							key={r.chain + r.counter}
+							className="border-b border-(--cards-border)/60 last:border-0 hover:bg-(--sl-hover-bg)"
+						>
 							<td className="px-3 py-2.5 text-(--text-primary) capitalize">{r.chain}</td>
 							<td className="px-3 py-2.5 text-(--text-secondary)">{r.counter}</td>
 							<td className="px-3 py-2.5 text-right">
@@ -56,7 +70,9 @@ function SynthTable({ rows }: { rows: PegRow[] }) {
 							<td className="px-3 py-2.5 text-right">
 								<span
 									className={`rounded px-2 py-0.5 text-[11px] font-semibold ${
-										r.kyberSupported ? 'bg-emerald-500/15 text-emerald-400' : 'bg-(--cards-border) text-(--text-secondary)'
+										r.kyberSupported
+											? 'bg-emerald-500/15 text-emerald-400'
+											: 'bg-(--cards-border) text-(--text-secondary)'
 									}`}
 								>
 									{r.kyberSupported ? 'yes' : 'no'}
@@ -107,7 +123,10 @@ export default function Pegs() {
 			</div>
 
 			<SectionHeader>msUSD · Peg Depth</SectionHeader>
-			<ChartCard title="msUSD across chains" subtitle="Effective peg at 5 trade sizes (DefiLlama coins · KyberSwap on supported chains)">
+			<ChartCard
+				title="msUSD across chains"
+				subtitle="Effective peg at 5 trade sizes (DefiLlama coins · KyberSwap on supported chains)"
+			>
 				<SynthTable rows={msUSD} />
 			</ChartCard>
 
@@ -123,8 +142,18 @@ export default function Pegs() {
 					cols={[
 						{ key: 'chain', label: 'Chain' },
 						{ key: 'synth', label: 'Synth' },
-						{ key: 'supply', label: 'Supply', right: true, render: (r) => r.supply?.toLocaleString(undefined, { maximumFractionDigits: 2 }) },
-						{ key: 'maxSupply', label: 'Max Supply', right: true, render: (r) => r.maxSupply?.toLocaleString(undefined, { maximumFractionDigits: 2 }) },
+						{
+							key: 'supply',
+							label: 'Supply',
+							right: true,
+							render: (r) => r.supply?.toLocaleString(undefined, { maximumFractionDigits: 2 })
+						},
+						{
+							key: 'maxSupply',
+							label: 'Max Supply',
+							right: true,
+							render: (r) => r.maxSupply?.toLocaleString(undefined, { maximumFractionDigits: 2 })
+						},
 						{ key: 'usagePct', label: 'Usage', right: true, render: (r) => `${(r.usagePct ?? 0).toFixed(1)}%` }
 					]}
 				/>

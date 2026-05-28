@@ -4,6 +4,7 @@ import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 import { fetchJson } from '../async'
 import { fetchWithPoolingOnServer } from '../http-client'
 import {
+	addRouteTelemetryAttributes,
 	buildStaticRouteRequestPath,
 	flushTelemetry,
 	recordDomainEvent,
@@ -127,6 +128,52 @@ describe('telemetry client', () => {
 		})
 	})
 
+	it('uses the Coolify source commit as the producer service version', async () => {
+		vi.stubEnv('GITHUB_SHA', 'github-sha')
+		vi.stubEnv('SOURCE_COMMIT', 'coolify-sha')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordTelemetry(runtimeError('versioned event'))
+		await flushTelemetry({ runtime: 'build', timeoutMs: 1000 })
+
+		expect(sentBatch(fetchMock).producer).toMatchObject({
+			app: 'defillama-app',
+			runtime: 'build',
+			serviceVersion: 'coolify-sha'
+		})
+		expect(sentEvents(fetchMock)[0]?.attributes).toMatchObject({
+			telemetry_target_id: 'defillama'
+		})
+	})
+
+	it('skips blank source commit env vars in producer service version fallback', async () => {
+		vi.stubEnv('GITHUB_SHA', 'github-sha')
+		vi.stubEnv('SOURCE_COMMIT', '')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordTelemetry(runtimeError('versioned event'))
+		await flushTelemetry({ runtime: 'build', timeoutMs: 1000 })
+
+		expect(sentBatch(fetchMock).producer).toMatchObject({
+			serviceVersion: 'github-sha'
+		})
+	})
+
+	it('uses the configured telemetry target id on emitted events', async () => {
+		vi.stubEnv('OPS_TELEMETRY_TARGET_ID', 'defillama-ayo3')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordDomainEvent('metadata.refresh', 'info', 'runtime_loop', 'Metadata refresh completed')
+		await flushTelemetry({ timeoutMs: 1000 })
+
+		expect(sentEvents(fetchMock)[0]?.attributes).toMatchObject({
+			telemetry_target_id: 'defillama-ayo3'
+		})
+	})
+
 	it('reuses the idempotency key for retries and opens the circuit after failures', async () => {
 		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 500 }))
 		vi.stubGlobal('fetch', fetchMock)
@@ -192,6 +239,48 @@ describe('telemetry client', () => {
 		expect(ticks[1]).toMatchObject({ parent_span_id: routes[1].span_id, route: '/second' })
 	})
 
+	it('records static notFound results as successful 404s with reasons', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry(
+			'protocol/[protocol]',
+			async () => {
+				addRouteTelemetryAttributes({ not_found_reason: 'unknown_protocol_slug', protocol_slug: 'missing' })
+				return { notFound: true }
+			},
+			staticRouteTelemetryAttributes({ protocol: 'missing' }),
+			buildStaticRouteRequestPath('protocol/[protocol]', { protocol: 'missing' })
+		)
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution')
+		const tick = events.find((event) => event.type === 'page_build_finish_tick')
+
+		expect(route).toMatchObject({
+			route: 'protocol/[protocol]',
+			request_path: '/protocol/missing',
+			status: 'success',
+			http_status: 404,
+			attributes: {
+				params: { protocol: 'missing' },
+				result: 'not_found',
+				not_found_reason: 'unknown_protocol_slug',
+				protocol_slug: 'missing'
+			}
+		})
+		expect(tick).toMatchObject({
+			route: 'protocol/[protocol]',
+			status: 'success',
+			attributes: {
+				params: { protocol: 'missing' },
+				result: 'not_found',
+				not_found_reason: 'unknown_protocol_slug',
+				protocol_slug: 'missing'
+			}
+		})
+	})
+
 	it('marks large page build finish gaps', async () => {
 		vi.useFakeTimers()
 		vi.setSystemTime(new Date('2026-04-27T00:00:00.000Z'))
@@ -219,6 +308,19 @@ describe('telemetry client', () => {
 		const success = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ props: { id: 'abc' } }))
 		await success(ssrContext('/ssr/abc?tab=one', 202, { id: 'abc' }, { id: 'abc', tab: 'one' }))
 
+		const notFound = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ notFound: true }))
+		await notFound(ssrContext('/ssr/missing', 200, { id: 'missing' }, { id: 'missing' }))
+
+		const redirect = withServerSidePropsTelemetry('/ssr/redirect', async () => ({
+			redirect: { destination: '/next', permanent: true }
+		}))
+		await redirect(ssrContext('/ssr/redirect'))
+
+		const temporaryRedirect = withServerSidePropsTelemetry('/ssr/temporary-redirect', async () => ({
+			redirect: { destination: '/next', statusCode: 302 }
+		}))
+		await temporaryRedirect(ssrContext('/ssr/temporary-redirect'))
+
 		const failure = withServerSidePropsTelemetry('/ssr/error', async () => {
 			throw new Error('ssr failed')
 		})
@@ -226,6 +328,13 @@ describe('telemetry client', () => {
 
 		const events = sentEvents(fetchMock)
 		const successRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/[id]')
+		const notFoundRoute = events.find(
+			(event) => event.type === 'route_execution' && event.route === '/ssr/[id]' && event.http_status === 404
+		)
+		const redirectRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/redirect')
+		const temporaryRedirectRoute = events.find(
+			(event) => event.type === 'route_execution' && event.route === '/ssr/temporary-redirect'
+		)
 		const errorRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/error')
 		const ssrRuntimeError = events.find((event) => event.type === 'runtime_error' && event.route === '/ssr/error')
 
@@ -235,6 +344,23 @@ describe('telemetry client', () => {
 			http_status: 202,
 			status: 'success',
 			attributes: { params: { id: 'abc' }, query: { id: 'abc', tab: 'one' }, props_bytes: 12 }
+		})
+		expect(notFoundRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			request_path: '/ssr/missing',
+			http_status: 404,
+			status: 'success',
+			attributes: { params: { id: 'missing' }, query: { id: 'missing' } }
+		})
+		expect(redirectRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			http_status: 308,
+			status: 'success'
+		})
+		expect(temporaryRedirectRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			http_status: 302,
+			status: 'success'
 		})
 		expect(errorRoute).toMatchObject({
 			operation_type: 'getServerSideProps',
@@ -361,6 +487,38 @@ describe('telemetry client', () => {
 			message: 'Skipped token rights entries',
 			attributes: { skipped_count: 1 }
 		})
+	})
+
+	it('records build and metadata marker domain events outside route traces', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordDomainEvent('build.complete', 'info', 'main', 'Build completed on main', {
+			branch: 'main',
+			commit_sha: 'abcdef123456'
+		})
+		recordDomainEvent('metadata.refresh', 'info', 'runtime_loop', 'Metadata refresh completed', {
+			duration_ms: 250,
+			source: 'runtime_loop'
+		})
+		await flushTelemetry({ timeoutMs: 1000 })
+
+		expect(sentEvents(fetchMock)).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					event_name: 'build.complete',
+					level: 'info',
+					message: 'Build completed on main',
+					subject: 'main'
+				}),
+				expect.objectContaining({
+					event_name: 'metadata.refresh',
+					level: 'info',
+					message: 'Metadata refresh completed',
+					subject: 'runtime_loop'
+				})
+			])
+		)
 	})
 
 	it('links outbound fetch events to the active route span', async () => {

@@ -4,16 +4,17 @@ import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
-import { YieldsTableWrapper } from './shared'
-import type { IYieldsTableProps, IYieldTableRow } from './types'
+import { PaginatedYieldsTableWrapper, YieldsTableWrapper } from './shared'
+import type { IYieldsTableProps, YieldLoopTableRow } from './types'
 
-const columnHelper = createColumnHelper<IYieldTableRow>()
+const columnHelper = createColumnHelper<YieldLoopTableRow>()
 const LOOP_COLUMN_IDS = [
 	'pool',
 	'project',
@@ -33,20 +34,7 @@ const columns = [
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue()
-			const exploited = isExploitedPool(row.original.projectslug, value)
-			return (
-				<span className="flex items-center gap-1">
-					<NameYieldPool value={value} configID={row.original.configID} url={row.original.url} borrow={true} />
-					{exploited ? (
-						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-							<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
-						</Tooltip>
-					) : null}
-				</span>
-			)
-		},
+		cell: ({ getValue, row }) => <LoopPoolCell value={getValue()} row={row} />,
 		meta: {
 			headerClassName:
 				'w-[160px] min-[812px]:w-[200px] 2xl:w-[240px] min-[1600px]:w-[280px] min-[1640px]:w-[320px] min-[1720px]:w-[420px]'
@@ -226,6 +214,34 @@ const columns = [
 	})
 ]
 
+function LoopPoolCell({
+	value,
+	row
+}: {
+	value: string
+	row: { id: string; index: number; original: YieldLoopTableRow }
+}) {
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+	const exploited = isExploitedPool(row.original.projectslug, value)
+
+	return (
+		<span className="flex items-center gap-1">
+			<NameYieldPool
+				value={value}
+				configID={row.original.configID}
+				url={row.original.url}
+				rowIndex={rowIndex ?? row.index + 1}
+				borrow={true}
+			/>
+			{exploited ? (
+				<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+					<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
+				</Tooltip>
+			) : null}
+		</span>
+	)
+}
+
 const columnOrders: Record<number, readonly LoopColumnId[]> = {
 	0: [
 		'pool',
@@ -276,14 +292,18 @@ const columnOrders: Record<number, readonly LoopColumnId[]> = {
 		'totalAvailableUsd'
 	]
 }
-export const LOOP_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, LoopColumnId> = {
+export const LOOP_TABLE_CONFIG: YieldsTableConfig<YieldLoopTableRow, LoopColumnId> = {
 	kind: 'loop',
 	columnIds: LOOP_COLUMN_IDS,
 	columns,
 	columnOrders
 }
 
-export function YieldsLoopTable({ data }: IYieldsTableProps) {
+export function YieldsLoopTable({ data }: IYieldsTableProps<YieldLoopTableRow>) {
 	const resolvedConfig = resolveVirtualYieldsTableConfig(LOOP_TABLE_CONFIG, undefined)
 	return <YieldsTableWrapper data={data} columns={resolvedConfig.columns} columnOrders={resolvedConfig.columnOrders} />
+}
+
+export function PaginatedYieldsLoopTable(props: IYieldsTableProps<YieldLoopTableRow>) {
+	return <PaginatedYieldsTableWrapper {...props} config={LOOP_TABLE_CONFIG} />
 }

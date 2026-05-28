@@ -6,6 +6,7 @@ const {
 	fetchProtocolsMock,
 	fetchAdapterChainMetricsMock,
 	fetchAdapterChainChartDataMock,
+	fetchCategoriesSummaryMock,
 	fetchCategoryChartMock,
 	fetchTagChartMock,
 	fetchJsonMock
@@ -13,6 +14,7 @@ const {
 	fetchProtocolsMock: vi.fn(),
 	fetchAdapterChainMetricsMock: vi.fn(),
 	fetchAdapterChainChartDataMock: vi.fn(),
+	fetchCategoriesSummaryMock: vi.fn(),
 	fetchCategoryChartMock: vi.fn(),
 	fetchTagChartMock: vi.fn(),
 	fetchJsonMock: vi.fn()
@@ -32,12 +34,17 @@ vi.mock('~/utils/async', () => ({
 }))
 
 vi.mock('../api', () => ({
-	fetchCategoriesSummary: vi.fn(),
+	fetchCategoriesSummary: fetchCategoriesSummaryMock,
 	fetchCategoryChart: fetchCategoryChartMock,
 	fetchTagChart: fetchTagChartMock
 }))
 
-import { buildCategoryCharts, getProtocolsByCategoryOrTag } from '../queries'
+import {
+	buildCategoryCharts,
+	getProtocolsByCategoryOrTag,
+	getProtocolsCategoriesChartData,
+	getProtocolsCategoriesPageData
+} from '../queries'
 
 const categoriesAndTags = {
 	categories: ['Interface'],
@@ -251,6 +258,88 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 		expect(chart.dataset.dimensions).toEqual(['timestamp', 'TVL', 'Spot Volume', 'Perp Volume'])
 		expect(chart.dataset.source).toEqual([{ timestamp: 1710000000000, TVL: 100, 'Spot Volume': 10, 'Perp Volume': 4 }])
 		expect(chart.charts.map((series) => series.name)).toEqual(['TVL', 'Spot Volume', 'Perp Volume'])
+	})
+
+	it('builds protocol categories page data without fetching category chart summary', async () => {
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [
+				{
+					defillamaId: 'dex-one',
+					name: 'Dex One',
+					symbol: '',
+					logo: '',
+					url: '',
+					category: 'Dexes',
+					tags: ['Trading'],
+					chains: ['Ethereum'],
+					chainTvls: {},
+					tvl: 100,
+					tvlPrevDay: 80,
+					tvlPrevWeek: 75,
+					tvlPrevMonth: 50,
+					mcap: null,
+					slug: 'dex-one'
+				} as ProtocolLite
+			],
+			parentProtocols: [],
+			chains: []
+		})
+		fetchAdapterChainMetricsMock.mockResolvedValue(
+			makeAdapterMetrics([
+				makeAdapterProtocol({
+					defillamaId: 'dex-one',
+					name: 'Dex One',
+					total24h: 12,
+					total7d: 84,
+					total30d: 360
+				})
+			])
+		)
+
+		const data = await getProtocolsCategoriesPageData()
+
+		expect(fetchCategoriesSummaryMock).not.toHaveBeenCalled()
+		expect(data.categories).toEqual(['Dexes'])
+		expect(data.chartSource).toEqual([])
+		expect(data.extraTvlCharts).toEqual({})
+		expect(data.tableData).toEqual([
+			expect.objectContaining({
+				name: 'Dexes',
+				protocols: 1,
+				tvl: 100,
+				revenue: 12
+			})
+		])
+	})
+
+	it('returns only requested categories extra TVL chart series', async () => {
+		fetchCategoriesSummaryMock.mockResolvedValue({
+			categories: ['Dexes'],
+			chart: {
+				'1': {
+					Dexes: {
+						tvl: 100,
+						staking: 25,
+						borrowed: 10
+					}
+				}
+			}
+		})
+
+		const data = await getProtocolsCategoriesChartData({
+			extraTvlTypes: ['staking']
+		})
+
+		expect(data).toEqual({
+			chartSource: [{ timestamp: 1000, Dexes: 100 }],
+			extraTvlCharts: {
+				Dexes: {
+					staking: {
+						1000: 25
+					}
+				}
+			}
+		})
 	})
 
 	it('merges adapter-only interface protocols and preserves both dex and perp metrics', async () => {

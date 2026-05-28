@@ -37,12 +37,16 @@ export interface ChartData {
 
 /* ──────────────────────────── chart helpers ──────────────────────────── */
 
-export function chartToTs(c: ChartData | undefined): Array<{ name: string; data: Array<[number, number | null]>; color?: string }> {
+export function chartToTs(
+	c: ChartData | undefined
+): Array<{ name: string; data: Array<[number, number | null]>; color?: string }> {
 	if (!c?.dates) return []
 	return c.series.map((s) => ({
 		name: s.name,
 		color: s.color,
-		data: c.dates.map((d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), s.data[i] ?? null] as [number, number | null])
+		data: c.dates.map(
+			(d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), s.data[i] ?? null] as [number, number | null]
+		)
 	}))
 }
 
@@ -51,7 +55,9 @@ export function seriesPairs(
 	vals: Array<number | null> | undefined
 ): Array<[number, number | null]> {
 	if (!dates || !vals) return []
-	return dates.map((d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), vals[i] ?? null] as [number, number | null])
+	return dates.map(
+		(d, i) => [Math.floor(new Date(d + 'T00:00:00Z').getTime() / 1000), vals[i] ?? null] as [number, number | null]
+	)
 }
 
 export function zoomStartPct(dates: string[] | undefined, fromDate: string): number {
@@ -63,7 +69,12 @@ export function zoomStartPct(dates: string[] | undefined, fromDate: string): num
 
 export function defaultZoomOptions(start: number): any {
 	if (start <= 0) return undefined
-	return { dataZoom: [{ start, end: 100 }, { start, end: 100 }] }
+	return {
+		dataZoom: [
+			{ start, end: 100 },
+			{ start, end: 100 }
+		]
+	}
 }
 
 export function assignColors(names: string[]): Record<string, string> {
@@ -131,7 +142,12 @@ export interface TvlResponse {
 	marketOverlay: ChartData
 	protocolByChain: Array<ChartData & { protocol: string }>
 	utilization?: {
-		kpis: { supply: FormattedValue; borrows: FormattedValue; avgUtilization: FormattedValue; idleLiquidity: FormattedValue }
+		kpis: {
+			supply: FormattedValue
+			borrows: FormattedValue
+			avgUtilization: FormattedValue
+			idleLiquidity: FormattedValue
+		}
 		vaults: MorphoVault[]
 		marketsByChain: Array<{ chain: string; markets: MorphoMarket[] }>
 	}
@@ -187,7 +203,15 @@ interface UnclaimedPipeline {
 	asOf: string
 	note: string
 	pie: Array<{ name: string; value: number }>
-	treasuryLps: Array<{ pool: string; treasury: string; stakedLp: string; rewards: string; rewardsUsd: number; value: string; valueUsd: number }>
+	treasuryLps: Array<{
+		pool: string
+		treasury: string
+		stakedLp: string
+		rewards: string
+		rewardsUsd: number
+		value: string
+		valueUsd: number
+	}>
 	ethUniv3: Array<{ position: string; pool: string; rewards: string; usd: number }>
 	plasmaUniv3: Array<{ position: string; pool: string; token: string; amount: number; rewards?: string; usd: number }>
 	amoPositions: Array<{
@@ -331,9 +355,20 @@ export interface TreasuryResponse {
 	treasuryLps: {
 		totalFormatted: string
 		unclaimedRewardsFormatted: string
-		rows: Array<{ pool: string; treasury?: string; stakedLp: string; rewards: string; rewardsUsd: number; value: string; valueUsd: number }>
+		rows: Array<{
+			pool: string
+			treasury?: string
+			stakedLp: string
+			rewards: string
+			rewardsUsd: number
+			value: string
+			valueUsd: number
+		}>
 	}
-	plasmaUniv3: { totalFormatted: string; rows: Array<{ pool: string; position?: string; token: string; amount: number; rewards?: string; usd: number }> }
+	plasmaUniv3: {
+		totalFormatted: string
+		rows: Array<{ pool: string; position?: string; token: string; amount: number; rewards?: string; usd: number }>
+	}
 	vlCvx: { rows: Array<{ type: string; status: string; balance: string; unlock: string }> }
 	veAero: { rows: Array<{ nft: string; locked: string; rewards: string; unlock: string }> }
 	metronomeAllocation: { rows: Array<{ bucket: string; share: string; value: string }> }

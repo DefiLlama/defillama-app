@@ -13,7 +13,7 @@ describe('researchLandingDedup', () => {
 	it('collections fetch limit equals the sum of all landing section limits', () => {
 		const expected = Object.values(RESEARCH_LANDING_SECTION_LIMITS).reduce((sum, limit) => sum + limit, 0)
 		expect(RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT).toBe(expected)
-		expect(RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT).toBe(90)
+		expect(RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT).toBe(92)
 	})
 
 	describe('takeUniqueArticles', () => {

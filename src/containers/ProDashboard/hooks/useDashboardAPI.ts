@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { TimePeriod } from '../ProDashboardAPIContext'
-import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { type Dashboard, DashboardError, dashboardAPI } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
@@ -148,8 +148,10 @@ export function useDashboardAPI() {
 				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
 				return dashboard
 			} catch (err) {
-				console.log('Failed to load dashboard:', err)
-				return null
+				if (err instanceof DashboardError && err.status === 404) {
+					return null
+				}
+				throw err
 			}
 		},
 		[isAuthenticated, authorizedFetch]

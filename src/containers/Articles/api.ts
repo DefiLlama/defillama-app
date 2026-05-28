@@ -1,4 +1,5 @@
 import { FEATURES_SERVER } from '~/constants'
+import type { EditorialTagOrderItem } from './editorialTagOrder'
 import type {
 	ArticleAuthorProfile,
 	ArticleCollaborator,
@@ -92,6 +93,7 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		tags: article.tags ?? [],
 		section: article.section ?? null,
 		displayDate: article.displayDate ?? null,
+		goLiveAt: article.goLiveAt ?? null,
 		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
 		featuredUntil: article.featuredUntil ? article.featuredUntil : null,
@@ -154,6 +156,9 @@ export type ArticleSectionListResponse = {
 	sections: { section: ArticleSection; items: ArticleDocument[] }[]
 }
 
+export type { EditorialTagOrderItem } from './editorialTagOrder'
+export { applyEditorialTagOrderPayload, buildEditorialTagReorderPayload } from './editorialTagOrder'
+
 export type ArticleByTagResponse = {
 	items: ArticleDocument[]
 }
@@ -192,13 +197,35 @@ export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch
 export async function setEditorialTag(
 	articleId: string,
 	tag: string,
-	authorizedFetch: AuthorizedFetch
-): Promise<{ articleId: string; tag: string }> {
+	authorizedFetch: AuthorizedFetch,
+	options?: { order?: number }
+): Promise<{ articleId: string; tag: string; order: number }> {
+	const hasOrder = options?.order !== undefined
 	return parseResponse(
 		await authorizedFetch(
 			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
-			{ method: 'POST' }
+			hasOrder
+				? {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ order: options.order })
+					}
+				: { method: 'POST' }
 		)
+	)
+}
+
+export async function reorderEditorialTag(
+	tag: string,
+	items: EditorialTagOrderItem[],
+	authorizedFetch: AuthorizedFetch
+): Promise<{ tag: string; items: EditorialTagOrderItem[] }> {
+	return parseResponse(
+		await authorizedFetch(articleUrl(`/articles/editorial-tags/${encodeURIComponent(tag)}/order`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ items })
+		})
 	)
 }
 
@@ -319,11 +346,25 @@ export async function updateReportHighlightSponsorLogo(
 	return data.article
 }
 
-export async function publishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
+export type PublishArticleOptions = {
+	goLiveAt?: string | null
+}
+
+export async function publishArticle(
+	id: string,
+	authorizedFetch: AuthorizedFetch,
+	options: PublishArticleOptions = {}
+): Promise<ArticleDocument> {
+	const params = new URLSearchParams({ _n: String(Date.now()) })
+	if ('goLiveAt' in options) {
+		if (options.goLiveAt === null) {
+			params.set('goLiveAt', 'null')
+		} else if (options.goLiveAt) {
+			params.set('goLiveAt', options.goLiveAt)
+		}
+	}
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish?_n=${Date.now()}`, {
-			method: 'GET'
-		})
+		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish?${params}`)
 	)
 	return data.article
 }

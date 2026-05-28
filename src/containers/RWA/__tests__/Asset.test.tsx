@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { IRWAAssetData } from '../api.types'
 import { RWAAssetPage } from '../Asset'
 
-vi.mock('~/containers/Yields/queries/client', () => ({
+vi.mock('~/containers/Yields/queries.client', () => ({
 	useYieldChartData: () => ({ data: null, isLoading: false })
 }))
 

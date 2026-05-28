@@ -1,3 +1,4 @@
+import { withDirectApiAuth } from './directApi'
 import { withOutboundTelemetry } from './telemetry'
 
 const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
@@ -45,10 +46,11 @@ export const fetchWithPoolingOnServer = async (
 	}
 
 	try {
-		const response = await withOutboundTelemetry(requestUrl, options, () =>
-			isServer && typeof requestUrl === 'string'
-				? fetchWithConnectionPooling(requestUrl, { ...requestOptions, signal: timeoutController.signal })
-				: fetch(requestUrl, { ...requestOptions, signal: timeoutController.signal })
+		const authenticatedRequestUrl = isServer ? withDirectApiAuth(requestUrl) : requestUrl
+		const response = await withOutboundTelemetry(authenticatedRequestUrl, options, () =>
+			isServer && typeof authenticatedRequestUrl === 'string'
+				? fetchWithConnectionPooling(authenticatedRequestUrl, { ...requestOptions, signal: timeoutController.signal })
+				: fetch(authenticatedRequestUrl, { ...requestOptions, signal: timeoutController.signal })
 		)
 		return response
 	} finally {

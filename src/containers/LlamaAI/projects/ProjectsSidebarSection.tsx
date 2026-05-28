@@ -2,11 +2,13 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
+import { useMedia } from '~/hooks/useMedia'
 import { CreateProjectModal } from './CreateProjectModal'
 import { useProjectList, useProjectSessions } from './hooks'
 import { getProjectTier } from './tier'
@@ -17,6 +19,7 @@ const NESTED_SESSIONS_LIMIT = 5
 const LAST_SELECTED_PROJECT_KEY_PREFIX = 'llamaai:last-selected-project-id'
 
 interface ProjectsSidebarSectionProps {
+	sessions?: ChatSession[]
 	currentProjectId?: string | null
 	currentSessionProjectId?: string | null
 	currentSessionId?: string | null
@@ -30,6 +33,7 @@ interface ProjectsSidebarSectionProps {
 }
 
 export function ProjectsSidebarSection({
+	sessions = [],
 	currentProjectId,
 	currentSessionProjectId,
 	currentSessionId,
@@ -61,6 +65,7 @@ export function ProjectsSidebarSection({
 	}, [expandedProjectId, projects])
 	const hasOverflow = projects.length > VISIBLE_LIMIT
 	const activeProjectSessions = projectSessions.data
+	const sessionById = useMemo(() => new Map(sessions.map((session) => [session.sessionId, session])), [sessions])
 	const visibleProjectSessions = useMemo(() => {
 		if (!activeProjectSessions) return []
 		const next = activeProjectSessions.slice(0, NESTED_SESSIONS_LIMIT)
@@ -72,6 +77,8 @@ export function ProjectsSidebarSection({
 	}, [activeProjectSessions, currentSessionId])
 
 	const navigate = useLlamaAINavigate()
+	const { hideSidebar } = useLlamaAIChrome()
+	const isDrawer = useMedia('(max-width: 1023px)')
 
 	useEffect(() => {
 		const activeProjectId = currentProjectId ?? currentSessionProjectId
@@ -92,19 +99,22 @@ export function ProjectsSidebarSection({
 		goToProject(project.id)
 	}
 
-	const toSidebarSession = (session: (typeof visibleProjectSessions)[number], projectId: string): ChatSession => ({
-		sessionId: session.sessionId,
-		title: session.title || 'Untitled chat',
-		createdAt: session.createdAt,
-		lastActivity: session.lastActivity ?? session.createdAt,
-		isActive: session.sessionId === currentSessionId,
-		isPinned: session.isPinned,
-		pinnedAt: session.pinnedAt ?? undefined,
-		isPublic: session.isPublic,
-		shareToken: session.shareToken ?? undefined,
-		hasUnseenCompletion: session.hasUnseenCompletion,
-		projectId
-	})
+	const toSidebarSession = (session: (typeof visibleProjectSessions)[number], projectId: string): ChatSession => {
+		const sessionListEntry = sessionById.get(session.sessionId)
+		return {
+			sessionId: session.sessionId,
+			title: session.title || 'Untitled chat',
+			createdAt: session.createdAt,
+			lastActivity: session.lastActivity ?? session.createdAt,
+			isActive: session.sessionId === currentSessionId,
+			isPinned: session.isPinned,
+			pinnedAt: session.pinnedAt ?? undefined,
+			isPublic: session.isPublic,
+			shareToken: session.shareToken ?? undefined,
+			hasUnseenCompletion: session.hasUnseenCompletion ?? sessionListEntry?.hasUnseenCompletion,
+			projectId
+		}
+	}
 
 	return (
 		<div className="flex flex-col gap-1 px-4">
@@ -205,7 +215,10 @@ export function ProjectsSidebarSection({
 													<li>
 														<button
 															type="button"
-															onClick={() => goToProject(p.id)}
+															onClick={() => {
+																goToProject(p.id)
+																if (isDrawer) hideSidebar()
+															}}
 															className="rounded-md px-2 py-1 text-left text-[10px] text-[#999] hover:underline dark:text-[#555]"
 														>
 															Show more
