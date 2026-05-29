@@ -140,7 +140,8 @@ describe('matchesYieldPoolForQuery token filters', () => {
 
 	it('keeps exact-token matching stricter than include-token matching', () => {
 		expect(matchesPool({ symbol: 'ETH-USDC' }, { exactTokens: ['eth'] })).toBe(true)
-		expect(matchesPool({ symbol: 'WETH-USDC' }, { exactTokens: ['eth'] })).toBe(true)
+		expect(matchesPool({ symbol: 'WETH-USDC' }, { exactTokens: ['eth'] })).toBe(false)
+		expect(matchesPool({ symbol: 'WETH-USDC' }, { exactTokens: ['weth'] })).toBe(true)
 		expect(matchesPool({ symbol: 'STETH-USDC' }, { exactTokens: ['eth'] })).toBe(false)
 		expect(matchesPool({ symbol: 'LINK-USDC' }, { exactTokens: ['in'] })).toBe(false)
 	})
