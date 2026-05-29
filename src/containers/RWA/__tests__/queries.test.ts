@@ -257,6 +257,26 @@ describe('rwa queries', () => {
 		}
 	})
 
+	it('requests initial other-rwas category chart data with stablecoins and governance enabled', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([])
+
+		await getRWAAssetsOverview({
+			category: 'other-rwas',
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['Other RWAs'],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(fetchRWAChartDataByAssetMock).toHaveBeenCalledWith({
+			target: { kind: 'category', slug: 'other-rwas' },
+			includeStablecoins: true,
+			includeGovernance: true
+		})
+	})
+
 	it('resolves perps-only platform slugs on platform overview routes', async () => {
 		fetchRWAActiveTVLsMock.mockResolvedValue([])
 		fetchRWAPerpsCurrentMock.mockResolvedValue([

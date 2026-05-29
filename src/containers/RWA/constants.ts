@@ -19,16 +19,26 @@ export type RWAOverviewInclusionContext = {
 type RWAOverviewPath = `/rwa${string}`
 
 export const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+export const OTHER_RWAS_SLUG = 'other-rwas'
+export const RWA_WRAPPERS_SLUG = 'rwa-wrappers'
 export const RWA_YIELD_WRAPPER_SLUG = 'rwa-yield-wrapper'
 export const EXCLUDED_STANDARD_RWA_CATEGORY_SLUGS = new Set(['rwa-perps'])
+const DEFAULT_INCLUDED_TYPES_BY_CATEGORY = new Map([
+	[OTHER_RWAS_SLUG, new Set(['Asset', 'Platform', 'Wrapper'])],
+	[RWA_WRAPPERS_SLUG, new Set(['Asset', 'Platform', 'Wrapper'])]
+])
 const STABLECOINS_DEFAULT_RWA_PATHS = new Set<RWAOverviewPath>([
 	'/rwa/category/fiat-stablecoins',
 	'/rwa/category/non-rwa-stablecoins',
+	'/rwa/category/other-rwas',
 	'/rwa/category/rwa-stablecoins',
 	'/rwa/category/rwa-yield-wrapper',
 	'/rwa/platform/apyx'
 ])
-const GOVERNANCE_DEFAULT_RWA_PATHS = new Set<RWAOverviewPath>(['/rwa/category/rwa-yield-wrapper'])
+const GOVERNANCE_DEFAULT_RWA_PATHS = new Set<RWAOverviewPath>([
+	'/rwa/category/other-rwas',
+	'/rwa/category/rwa-yield-wrapper'
+])
 
 export function isCategoryIncludedInStandardRwaOverview(category: string | null | undefined): boolean {
 	if (!category) return false
@@ -81,9 +91,14 @@ export function isTypeIncludedByDefault(
 	mode: RWAOverviewMode,
 	categorySlug?: string | null
 ): boolean {
+	const normalizedType = type || 'Unknown'
 	if (mode === 'platform' || mode === 'assetGroup') return true
+	if (mode === 'category' && categorySlug) {
+		const includedTypes = DEFAULT_INCLUDED_TYPES_BY_CATEGORY.get(categorySlug)
+		if (includedTypes) return includedTypes.has(normalizedType)
+	}
 	if (mode === 'category' && categorySlug === RWA_YIELD_WRAPPER_SLUG) return true
-	return !DEFAULT_EXCLUDED_TYPES.has(type || 'Unknown')
+	return !DEFAULT_EXCLUDED_TYPES.has(normalizedType)
 }
 
 export function getDefaultSelectedTypes(

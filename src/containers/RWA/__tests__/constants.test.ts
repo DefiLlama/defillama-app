@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getDefaultRWAOverviewInclusion } from '../constants'
+import { getDefaultRWAOverviewInclusion, getDefaultSelectedTypes } from '../constants'
 
 describe('getDefaultRWAOverviewInclusion', () => {
 	it('enables stablecoins and governance by default for rwa-yield-wrapper category pages', () => {
@@ -18,6 +18,14 @@ describe('getDefaultRWAOverviewInclusion', () => {
 				includeRwaPerps: false
 			})
 		}
+	})
+
+	it('enables stablecoins and governance by default for other-rwas category pages', () => {
+		expect(getDefaultRWAOverviewInclusion({ mode: 'category', categorySlug: 'other-rwas' })).toEqual({
+			includeStablecoins: true,
+			includeGovernance: true,
+			includeRwaPerps: false
+		})
 	})
 
 	it('enables stablecoins by default for APYX platform pages', () => {
@@ -44,5 +52,24 @@ describe('getDefaultRWAOverviewInclusion', () => {
 			includeGovernance: false,
 			includeRwaPerps: false
 		})
+	})
+})
+
+describe('getDefaultSelectedTypes', () => {
+	const allTypes = ['Asset', 'Platform', 'Wrapper', 'Perp', 'Unknown']
+
+	it('selects asset, platform, and wrapper types by default for other-rwas and rwa-wrappers category pages', () => {
+		for (const categorySlug of ['other-rwas', 'rwa-wrappers']) {
+			expect(getDefaultSelectedTypes(allTypes, 'category', categorySlug)).toEqual(['Asset', 'Platform', 'Wrapper'])
+		}
+	})
+
+	it('keeps wrapper type excluded by default for standard category pages', () => {
+		expect(getDefaultSelectedTypes(allTypes, 'category', 'private-credit')).toEqual([
+			'Asset',
+			'Platform',
+			'Perp',
+			'Unknown'
+		])
 	})
 })

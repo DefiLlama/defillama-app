@@ -47,6 +47,17 @@ describe('buildAssetBreakdownUrl', () => {
 			})
 		).toContain('/chart/category/rwa-yield-wrapper/asset-breakdown?includeStablecoin=false&includeGovernance=true')
 	})
+
+	it('uses the category asset-breakdown endpoint for other-rwas category data', () => {
+		expect(
+			buildAssetBreakdownUrl({
+				target: { kind: 'category', slug: 'other-rwas' },
+				key: 'activeMcap',
+				includeStablecoin: true,
+				includeGovernance: true
+			})
+		).toContain('/chart/category/other-rwas/asset-breakdown?includeStablecoin=true&includeGovernance=true')
+	})
 })
 
 describe('normalizeAssetBreakdownRows', () => {

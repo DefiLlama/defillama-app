@@ -518,6 +518,12 @@ describe('hasActiveChartFilters', () => {
 		expect(
 			hasActiveChartFilters({ includeGovernance: 'true' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
 		).toBe(false)
+		expect(
+			hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'category', categorySlug: 'other-rwas' })
+		).toBe(false)
+		expect(hasActiveChartFilters({ includeGovernance: 'true' }, { mode: 'category', categorySlug: 'other-rwas' })).toBe(
+			false
+		)
 		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
 			false
 		)
@@ -534,6 +540,12 @@ describe('hasActiveChartFilters', () => {
 		).toBe(true)
 		expect(
 			hasActiveChartFilters({ includeGovernance: 'false' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
+		).toBe(true)
+		expect(
+			hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'category', categorySlug: 'other-rwas' })
+		).toBe(true)
+		expect(
+			hasActiveChartFilters({ includeGovernance: 'false' }, { mode: 'category', categorySlug: 'other-rwas' })
 		).toBe(true)
 		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
 			true
