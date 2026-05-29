@@ -3,9 +3,6 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useYieldsPaginatedTable } from './queries.client'
-
-// Collapse rapid filter/sort/page changes into a single fetch once selections settle.
-const YIELDS_TABLE_QUERY_DEBOUNCE_MS = 300
 import { pushYieldsQuery } from './queryUpdates.client'
 import type { IYieldsTableProps } from './Tables/types'
 import {
@@ -14,6 +11,9 @@ import {
 	getYieldsTablePaginationFromQuery,
 	getYieldsTableSortingFromQuery
 } from './yieldsTableQuery'
+
+// Collapse rapid filter/sort/page changes into a single fetch once selections settle.
+const YIELDS_TABLE_QUERY_DEBOUNCE_MS = 300
 
 type QueryRecord = Record<string, string | string[] | undefined>
 
