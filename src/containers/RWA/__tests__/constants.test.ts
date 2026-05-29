@@ -10,6 +10,16 @@ describe('getDefaultRWAOverviewInclusion', () => {
 		})
 	})
 
+	it('enables stablecoins by default for stablecoin category pages', () => {
+		for (const categorySlug of ['rwa-stablecoins', 'non-rwa-stablecoins', 'fiat-stablecoins']) {
+			expect(getDefaultRWAOverviewInclusion({ mode: 'category', categorySlug })).toEqual({
+				includeStablecoins: true,
+				includeGovernance: false,
+				includeRwaPerps: false
+			})
+		}
+	})
+
 	it('enables stablecoins by default for APYX platform pages', () => {
 		expect(getDefaultRWAOverviewInclusion({ mode: 'platform', platformSlug: 'apyx' })).toEqual({
 			includeStablecoins: true,

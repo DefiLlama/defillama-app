@@ -22,6 +22,9 @@ export const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
 export const RWA_YIELD_WRAPPER_SLUG = 'rwa-yield-wrapper'
 export const EXCLUDED_STANDARD_RWA_CATEGORY_SLUGS = new Set(['rwa-perps'])
 const STABLECOINS_DEFAULT_RWA_PATHS = new Set<RWAOverviewPath>([
+	'/rwa/category/fiat-stablecoins',
+	'/rwa/category/non-rwa-stablecoins',
+	'/rwa/category/rwa-stablecoins',
 	'/rwa/category/rwa-yield-wrapper',
 	'/rwa/platform/apyx'
 ])

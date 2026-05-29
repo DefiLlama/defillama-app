@@ -521,6 +521,9 @@ describe('hasActiveChartFilters', () => {
 		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
 			false
 		)
+		for (const categorySlug of ['rwa-stablecoins', 'non-rwa-stablecoins', 'fiat-stablecoins']) {
+			expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'category', categorySlug })).toBe(false)
+		}
 		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'chain' })).toBe(false)
 		expect(hasActiveChartFilters({ includeRwaPerps: 'false' }, { mode: 'chain' })).toBe(false)
 	})
@@ -535,6 +538,9 @@ describe('hasActiveChartFilters', () => {
 		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
 			true
 		)
+		for (const categorySlug of ['rwa-stablecoins', 'non-rwa-stablecoins', 'fiat-stablecoins']) {
+			expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'category', categorySlug })).toBe(true)
+		}
 		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'chain' })).toBe(true)
 	})
 
