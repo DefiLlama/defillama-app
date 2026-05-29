@@ -1,7 +1,7 @@
 import type { HolderStatsMap } from '../queries/holderTypes'
 import type { YieldBorrowTableRow, YieldLoopTableRow, YieldPoolTableRow } from '../Tables/types'
 import type { LendBorrowPool, StablecoinInfoBySymbol, YieldPool } from '../types'
-import { extractYieldPoolTokens } from './poolFilters'
+import { getYieldPoolTokens } from './poolFilters'
 
 type VolatilityMap = Record<string, [number | null, number | null, number | null, number | null]>
 
@@ -15,7 +15,7 @@ export function mapPoolToYieldTableRow(
 	curr: YieldPool,
 	{ stablecoinInfoBySymbol, volatility, holderStats }: MapPoolToRowOptions = {}
 ): YieldPoolTableRow {
-	const poolTokens = curr.symbol ? extractYieldPoolTokens(curr.symbol) : []
+	const poolTokens = getYieldPoolTokens(curr).array
 	let pegInfo: { price: number | null; pegDeviation: number | null } | null = null
 	let maxAbsPegDeviation = -1
 

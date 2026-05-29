@@ -42,6 +42,28 @@ function mergeMainPoolBorrowData(pools: YieldPool[], lendBorrowPools: LendBorrow
 	return mergedPools
 }
 
+// The merged array depends only on the source datasets, not the request, so memoize it by their refs.
+// jsonCache mints a new ref on refresh, so a data update invalidates this automatically — no staleness.
+let mergedMainPoolsCache: {
+	pools: YieldPool[]
+	lendBorrowPools: LendBorrowPool[]
+	merged: YieldPool[]
+} | null = null
+
+function getMergedMainPools(pools: YieldPool[], lendBorrowPools: LendBorrowPool[]): YieldPool[] {
+	if (
+		mergedMainPoolsCache &&
+		mergedMainPoolsCache.pools === pools &&
+		mergedMainPoolsCache.lendBorrowPools === lendBorrowPools
+	) {
+		return mergedMainPoolsCache.merged
+	}
+
+	const merged = mergeMainPoolBorrowData(pools, lendBorrowPools)
+	mergedMainPoolsCache = { pools, lendBorrowPools, merged }
+	return merged
+}
+
 export function buildYieldPoolsPageResponse({
 	data,
 	lendBorrowPools = [],
@@ -52,7 +74,7 @@ export function buildYieldPoolsPageResponse({
 	query: ParsedUrlQuery
 }): YieldPoolsPageResponse {
 	const view = resolveYieldPoolsView(query)
-	const pools = view === 'main' ? mergeMainPoolBorrowData(data.pools, lendBorrowPools) : data.pools
+	const pools = view === 'main' ? getMergedMainPools(data.pools, lendBorrowPools) : data.pools
 	const filteredPools = filterYieldPools({
 		pools,
 		view,

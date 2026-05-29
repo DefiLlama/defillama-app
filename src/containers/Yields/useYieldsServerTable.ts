@@ -1,7 +1,11 @@
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useYieldsPaginatedTable } from './queries.client'
+
+// Collapse rapid filter/sort/page changes into a single fetch once selections settle.
+const YIELDS_TABLE_QUERY_DEBOUNCE_MS = 300
 import { pushYieldsQuery } from './queryUpdates.client'
 import type { IYieldsTableProps } from './Tables/types'
 import {
@@ -32,7 +36,8 @@ export function useYieldsServerTable<TRow>({
 		if (!enabled) return null
 		return buildYieldsTableQueryString({ query, pagination: requestedPagination, sorting, extraQuery })
 	}, [enabled, extraQuery, query, requestedPagination, sorting])
-	const rowsQuery = useYieldsPaginatedTable<TRow>(endpoint, queryString)
+	const debouncedQueryString = useDebouncedValue(queryString, YIELDS_TABLE_QUERY_DEBOUNCE_MS)
+	const rowsQuery = useYieldsPaginatedTable<TRow>(endpoint, debouncedQueryString)
 	const rows = rowsQuery.data?.rows ?? []
 	const total = rowsQuery.data?.total ?? 0
 	const pagination = React.useMemo<PaginationState>(() => {
