@@ -152,19 +152,14 @@ describe('/api/private/research/articles/[id]/publish', () => {
 		vi.stubEnv('CF_ZONE', 'zone')
 		vi.stubEnv('CF_PURGE_CACHE_AUTH', 'token')
 		const before = article()
-		const after = article({ slug: 'new-story' })
-		const fetchImpl = vi
-			.fn()
-			.mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
-			.mockResolvedValueOnce(new Response(JSON.stringify({ article: after }), { status: 200 }))
+		const fetchImpl = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
 		vi.stubGlobal('fetch', fetchImpl)
 		const res = createMockNextApiResponse()
 
 		await researchPublishHandler(request({ headers: { authorization: 'Bearer user-token' } }), res)
 
-		expect(res.revalidate).toHaveBeenCalledWith('/research')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/report')
-		expect(fetchImpl).toHaveBeenCalledTimes(2)
+		expect(res.revalidate).not.toHaveBeenCalled()
+		expect(fetchImpl).toHaveBeenCalledTimes(1)
 		expect(res.status).toHaveBeenCalledWith(502)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Cross-instance revalidation is not configured' })
 	})

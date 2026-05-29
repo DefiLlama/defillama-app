@@ -18,15 +18,17 @@ function secretsMatch(provided: string, expected: string): boolean {
 	return timingSafeEqual(a, b)
 }
 
-function parsePaths(body: unknown): string[] {
+function parseBody(body: unknown): { dryRun: boolean; paths: string[] } {
 	if (typeof body === 'string') {
 		try {
-			return normalizeCachePaths((JSON.parse(body) as { paths?: unknown })?.paths)
+			const payload = JSON.parse(body) as { dryRun?: unknown; paths?: unknown }
+			return { dryRun: payload?.dryRun === true, paths: normalizeCachePaths(payload?.paths) }
 		} catch {
-			return []
+			return { dryRun: false, paths: [] }
 		}
 	}
-	return normalizeCachePaths((body as { paths?: unknown } | null | undefined)?.paths)
+	const payload = body as { dryRun?: unknown; paths?: unknown } | null | undefined
+	return { dryRun: payload?.dryRun === true, paths: normalizeCachePaths(payload?.paths) }
 }
 
 export async function revalidateInstancesHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -47,16 +49,18 @@ export async function revalidateInstancesHandler(req: NextApiRequest, res: NextA
 		return res.status(401).json({ error: 'Unauthorized' })
 	}
 
-	const paths = parsePaths(req.body)
+	const { dryRun, paths } = parseBody(req.body)
 	const revalidated: string[] = []
 	const revalidateErrors: { path: string; reason: string }[] = []
 
-	for (const path of paths) {
-		try {
-			await res.revalidate(path)
-			revalidated.push(path)
-		} catch (error) {
-			revalidateErrors.push({ path, reason: error instanceof Error ? error.message : String(error) })
+	if (!dryRun) {
+		for (const path of paths) {
+			try {
+				await res.revalidate(path)
+				revalidated.push(path)
+			} catch (error) {
+				revalidateErrors.push({ path, reason: error instanceof Error ? error.message : String(error) })
+			}
 		}
 	}
 

@@ -32,6 +32,11 @@ type FanoutOptions = {
 const DEFAULT_TIMEOUT_MS = 4000
 const WORKER_PATH = '/api/private/revalidate-instances'
 
+type InstanceWorkerResponse = {
+	revalidated: string[]
+	revalidateErrors: { path: string; reason: string }[]
+}
+
 export function normalizeCachePath(value: unknown): string | null {
 	if (typeof value !== 'string') return null
 	const trimmed = value.trim()
@@ -89,6 +94,12 @@ export function assertRevalidateFanoutSucceeded(
 	if (failures.length > 0) {
 		throw new Error(`Cross-instance revalidation failed: ${JSON.stringify(failures)}`)
 	}
+}
+
+function isInstanceWorkerResponse(value: unknown): value is InstanceWorkerResponse {
+	if (!value || typeof value !== 'object') return false
+	const data = value as InstanceWorkerResponse
+	return Array.isArray(data.revalidated) && Array.isArray(data.revalidateErrors)
 }
 
 async function revalidateWithFetch(url: string, body: string, secret: string, fetchImpl: FetchLike, timeoutMs: number) {
@@ -154,6 +165,7 @@ async function revalidateOneInstance(
 	instance: string,
 	paths: string[],
 	secret: string,
+	dryRun: boolean,
 	{
 		fetchImpl,
 		hostHeader,
@@ -162,7 +174,7 @@ async function revalidateOneInstance(
 	}: Required<Pick<FanoutOptions, 'fetchImpl' | 'logger' | 'timeoutMs'>> & { hostHeader: string | null }
 ): Promise<InstanceRevalidateResult> {
 	const url = `${instance}${WORKER_PATH}`
-	const body = JSON.stringify({ paths })
+	const body = JSON.stringify(dryRun ? { dryRun: true, paths } : { paths })
 	try {
 		const response = hostHeader
 			? await revalidateWithHostHeader(url, body, secret, hostHeader, timeoutMs)
@@ -175,15 +187,17 @@ async function revalidateOneInstance(
 			return { instance, reason, status: 'failed' }
 		}
 
-		const data = (await response.json().catch(() => null)) as {
-			revalidated?: string[]
-			revalidateErrors?: { path: string; reason: string }[]
-		} | null
+		const data = await response.json().catch(() => null)
+		if (!isInstanceWorkerResponse(data)) {
+			const reason = 'Invalid revalidation response'
+			logger.log(`Revalidate fanout to ${instance} failed: ${reason}`)
+			return { instance, reason, status: 'failed' }
+		}
 
 		return {
 			instance,
-			revalidateErrors: data?.revalidateErrors ?? [],
-			revalidated: data?.revalidated ?? [],
+			revalidateErrors: data.revalidateErrors,
+			revalidated: data.revalidated,
 			status: 'revalidated'
 		}
 	} catch (error) {
@@ -193,9 +207,10 @@ async function revalidateOneInstance(
 	}
 }
 
-export async function fanoutRevalidate(
+async function fanoutRevalidateRequest(
 	paths: string[],
-	{ env = process.env, fetchImpl = fetch, logger = console, timeoutMs = DEFAULT_TIMEOUT_MS }: FanoutOptions = {}
+	dryRun: boolean,
+	{ env = process.env, fetchImpl = fetch, logger = console, timeoutMs = DEFAULT_TIMEOUT_MS }: FanoutOptions
 ): Promise<RevalidateFanoutResult> {
 	const secret = env.REVALIDATE_SECRET
 	const instances = revalidateInstancesFromEnv(env)
@@ -208,9 +223,20 @@ export async function fanoutRevalidate(
 
 	const results = await Promise.all(
 		instances.map((instance) =>
-			revalidateOneInstance(instance, normalized, secret, { fetchImpl, hostHeader, logger, timeoutMs })
+			revalidateOneInstance(instance, normalized, secret, dryRun, { fetchImpl, hostHeader, logger, timeoutMs })
 		)
 	)
 
 	return { instances: results, status: 'fanned-out' }
+}
+
+export async function checkRevalidateFanoutReady(
+	paths: string[],
+	options: FanoutOptions = {}
+): Promise<RevalidateFanoutResult> {
+	return fanoutRevalidateRequest(paths, true, options)
+}
+
+export async function fanoutRevalidate(paths: string[], options: FanoutOptions = {}): Promise<RevalidateFanoutResult> {
+	return fanoutRevalidateRequest(paths, false, options)
 }

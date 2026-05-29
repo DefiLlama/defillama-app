@@ -12,6 +12,7 @@ vi.mock('node:http', async (importOriginal) => {
 import { revalidateInstancesHandler } from '~/pages/api/private/revalidate-instances'
 import {
 	assertRevalidateFanoutSucceeded,
+	checkRevalidateFanoutReady,
 	fanoutRevalidate,
 	normalizeCachePaths,
 	revalidateInstancesFromEnv
@@ -110,6 +111,21 @@ describe('revalidate instance helpers', () => {
 		expect(fetchImpl.mock.calls[1][0]).toBe('https://b.internal/api/private/revalidate-instances')
 	})
 
+	it('can check fanout readiness without asking peers to revalidate', async () => {
+		const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({ revalidated: [], revalidateErrors: [] })))
+
+		const result = await checkRevalidateFanoutReady(['/research'], {
+			env: { ...baseEnv, REVALIDATE_INSTANCES: 'https://a.internal' },
+			fetchImpl,
+			logger: { log: vi.fn() }
+		})
+
+		expect(result.instances).toEqual([
+			{ instance: 'https://a.internal', revalidateErrors: [], revalidated: [], status: 'revalidated' }
+		])
+		expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toEqual({ dryRun: true, paths: ['/research'] })
+	})
+
 	it('sends the configured host header for IP-targeted Coolify instances', async () => {
 		let requestBody = ''
 		httpRequestMock.mockImplementation((_url, _options, callback) => {
@@ -151,6 +167,20 @@ describe('revalidate instance helpers', () => {
 		expect(httpRequestMock).toHaveBeenCalledTimes(1)
 		expect(httpRequestMock.mock.calls[0][1].headers.Host).toBe('put934bu3uvqg4ajainavlv9.65.109.53.23.sslip.io')
 		expect(JSON.parse(requestBody)).toEqual({ paths: ['/research'] })
+	})
+
+	it('marks an invalid peer response as failed', async () => {
+		const fetchImpl = vi.fn().mockResolvedValue(new Response('not json', { status: 200 }))
+
+		const result = await fanoutRevalidate(['/research'], {
+			env: { ...baseEnv, REVALIDATE_INSTANCES: 'https://a.internal' },
+			fetchImpl,
+			logger: { log: vi.fn() }
+		})
+
+		expect(result.instances).toEqual([
+			{ instance: 'https://a.internal', reason: 'Invalid revalidation response', status: 'failed' }
+		])
 	})
 
 	it('marks a failing instance as failed without rejecting the others', async () => {
@@ -208,6 +238,18 @@ describe('revalidate instance helpers', () => {
 })
 
 describe('/api/private/revalidate-instances', () => {
+	it('authenticates dry-run requests without revalidating paths', async () => {
+		vi.stubEnv('REVALIDATE_SECRET', 'shhh')
+		const res = createMockNextApiResponse()
+
+		await revalidateInstancesHandler(request({ body: { dryRun: true, paths: ['/research'] } }), res)
+
+		expect(res.revalidate).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith({ revalidateErrors: [], revalidated: [] })
+		vi.unstubAllEnvs()
+	})
+
 	it('returns 500 when any path revalidation fails', async () => {
 		vi.stubEnv('REVALIDATE_SECRET', 'shhh')
 		const res = createMockNextApiResponse()

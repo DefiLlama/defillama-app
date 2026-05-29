@@ -9,6 +9,7 @@ import {
 } from '~/server/cloudflarePurge'
 import {
 	assertRevalidateFanoutSucceeded,
+	checkRevalidateFanoutReady,
 	fanoutRevalidate,
 	type InstanceRevalidateResult
 } from '~/server/revalidateInstances'
@@ -121,6 +122,11 @@ async function revalidatePaths(paths: string[], res: NextApiResponse<ResponseDat
 	return { revalidateErrors, revalidated }
 }
 
+async function assertFanoutReady(paths: string[]) {
+	const fanout = await checkRevalidateFanoutReady(paths)
+	assertRevalidateFanoutSucceeded(fanout, paths)
+}
+
 export async function researchUnpublishHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
 
@@ -143,6 +149,13 @@ export async function researchUnpublishHandler(req: NextApiRequest, res: NextApi
 	}
 
 	const before = (await readJson<BackendArticleResponse>(beforeResponse))?.article ?? null
+	const targets = unpublishInvalidationTargets(before)
+	try {
+		await assertFanoutReady(targets.revalidatePaths)
+	} catch (error) {
+		return res.status(502).json({ error: error instanceof Error ? error.message : String(error) })
+	}
+
 	const unpublishResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/unpublish`), {
 		headers: authorizationHeader(req),
 		method: 'POST'
@@ -156,7 +169,6 @@ export async function researchUnpublishHandler(req: NextApiRequest, res: NextApi
 		return res.status(502).json({ error: 'Unpublish response did not include an article' })
 	}
 
-	const targets = unpublishInvalidationTargets(before)
 	const revalidate = await revalidatePaths(targets.revalidatePaths, res)
 	if (revalidate.revalidateErrors.length > 0) {
 		return res.status(502).json({ error: `Local revalidation failed: ${JSON.stringify(revalidate.revalidateErrors)}` })

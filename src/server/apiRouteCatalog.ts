@@ -173,7 +173,8 @@ const routeMethodOverrides: Partial<Record<ApiRoutePath, readonly ApiRouteMethod
 	'aave/graphql': ['POST'],
 	'cex/inflows/batch': ['POST'],
 	'charts/protocol': ['GET', 'POST'],
-	'maple/graphql': ['POST']
+	'maple/graphql': ['POST'],
+	'revalidate-instances': ['POST']
 }
 
 const cachePolicyByKind = {

@@ -89,4 +89,21 @@ describe('/api/private/research/articles/[id]/unpublish', () => {
 			}
 		})
 	})
+
+	it('fails closed in production when cross-instance revalidation is not configured', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		vi.stubEnv('CF_ZONE', 'zone')
+		vi.stubEnv('CF_PURGE_CACHE_AUTH', 'token')
+		const before = article()
+		const fetchImpl = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchUnpublishHandler(request({ headers: { authorization: 'Bearer user-token' } }), res)
+
+		expect(res.revalidate).not.toHaveBeenCalled()
+		expect(fetchImpl).toHaveBeenCalledTimes(1)
+		expect(res.status).toHaveBeenCalledWith(502)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Cross-instance revalidation is not configured' })
+	})
 })

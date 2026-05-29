@@ -9,6 +9,7 @@ import {
 } from '~/server/cloudflarePurge'
 import {
 	assertRevalidateFanoutSucceeded,
+	checkRevalidateFanoutReady,
 	fanoutRevalidate,
 	type InstanceRevalidateResult
 } from '~/server/revalidateInstances'
@@ -138,6 +139,18 @@ function publishRequestBodyFromQuery(req: NextApiRequest): string {
 	return JSON.stringify({ goLiveAt: value })
 }
 
+function publishesImmediately(req: NextApiRequest): boolean {
+	const raw = req.query.goLiveAt
+	if (raw === undefined) return true
+	const value = Array.isArray(raw) ? raw[0] : raw
+	return value === '' || value === 'null'
+}
+
+async function assertFanoutReady(paths: string[]) {
+	const fanout = await checkRevalidateFanoutReady(paths)
+	assertRevalidateFanoutSucceeded(fanout, paths)
+}
+
 export async function researchPublishHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
 
@@ -164,6 +177,14 @@ export async function researchPublishHandler(req: NextApiRequest, res: NextApiRe
 	}
 
 	const before = (await readJson<BackendArticleResponse>(beforeResponse))?.article ?? null
+	if (publishesImmediately(req) && before) {
+		try {
+			await assertFanoutReady(publishInvalidationTargets(before, { ...before, status: 'published' }).revalidatePaths)
+		} catch (error) {
+			return res.status(502).json({ error: error instanceof Error ? error.message : String(error) })
+		}
+	}
+
 	const publishBody = publishRequestBodyFromQuery(req)
 	const publishResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/publish`), {
 		headers,
