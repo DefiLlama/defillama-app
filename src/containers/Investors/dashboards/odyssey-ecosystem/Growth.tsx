@@ -272,7 +272,7 @@ export default function Growth() {
 				</>
 			)}
 
-			<SectionHeader>siUSD Case Study</SectionHeader>
+			<SectionHeader>{cs.title || 'siUSD Market Growth'}</SectionHeader>
 			<div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
 				<KpiCard label="siUSD TVL" value={csk.siusdTvl != null ? fmtUsd(csk.siusdTvl) : undefined} />
 				<KpiCard label="iUSD TVL" value={csk.iusdTvl != null ? fmtUsd(csk.iusdTvl) : undefined} />
