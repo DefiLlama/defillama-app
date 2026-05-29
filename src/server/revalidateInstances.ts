@@ -1,3 +1,6 @@
+import { request as httpRequest } from 'node:http'
+import { request as httpsRequest } from 'node:https'
+
 type FetchLike = typeof fetch
 
 export type InstanceRevalidateResult =
@@ -57,6 +60,11 @@ export function revalidateInstancesFromEnv(env: NodeJS.ProcessEnv = process.env)
 	return Array.from(instances)
 }
 
+function revalidateHostHeaderFromEnv(env: NodeJS.ProcessEnv = process.env): string | null {
+	const raw = env.REVALIDATE_HOST_HEADER?.trim()
+	return raw || null
+}
+
 export function assertRevalidateFanoutSucceeded(
 	result: RevalidateFanoutResult,
 	paths: string[],
@@ -83,18 +91,12 @@ export function assertRevalidateFanoutSucceeded(
 	}
 }
 
-async function revalidateOneInstance(
-	instance: string,
-	paths: string[],
-	secret: string,
-	{ fetchImpl, logger, timeoutMs }: Required<Pick<FanoutOptions, 'fetchImpl' | 'logger' | 'timeoutMs'>>
-): Promise<InstanceRevalidateResult> {
-	const url = `${instance}${WORKER_PATH}`
+async function revalidateWithFetch(url: string, body: string, secret: string, fetchImpl: FetchLike, timeoutMs: number) {
 	const controller = new AbortController()
 	const timer = setTimeout(() => controller.abort(), timeoutMs)
 	try {
-		const response = await fetchImpl(url, {
-			body: JSON.stringify({ paths }),
+		return await fetchImpl(url, {
+			body,
 			headers: {
 				'Content-Type': 'application/json',
 				'x-revalidate-secret': secret
@@ -102,10 +104,73 @@ async function revalidateOneInstance(
 			method: 'POST',
 			signal: controller.signal
 		})
+	} finally {
+		clearTimeout(timer)
+	}
+}
+
+async function revalidateWithHostHeader(
+	url: string,
+	body: string,
+	secret: string,
+	hostHeader: string,
+	timeoutMs: number
+) {
+	return new Promise<Response>((resolve, reject) => {
+		const parsed = new URL(url)
+		const request = parsed.protocol === 'https:' ? httpsRequest : httpRequest
+		const req = request(
+			parsed,
+			{
+				headers: {
+					'Content-Length': Buffer.byteLength(body),
+					'Content-Type': 'application/json',
+					Host: hostHeader,
+					'x-revalidate-secret': secret
+				},
+				method: 'POST',
+				timeout: timeoutMs
+			},
+			(res) => {
+				const chunks: Buffer[] = []
+				res.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)))
+				res.on('end', () => {
+					resolve(
+						new Response(Buffer.concat(chunks), {
+							status: res.statusCode ?? 500,
+							statusText: res.statusMessage
+						})
+					)
+				})
+			}
+		)
+		req.on('timeout', () => req.destroy(new Error('aborted')))
+		req.on('error', reject)
+		req.end(body)
+	})
+}
+
+async function revalidateOneInstance(
+	instance: string,
+	paths: string[],
+	secret: string,
+	{
+		fetchImpl,
+		hostHeader,
+		logger,
+		timeoutMs
+	}: Required<Pick<FanoutOptions, 'fetchImpl' | 'logger' | 'timeoutMs'>> & { hostHeader: string | null }
+): Promise<InstanceRevalidateResult> {
+	const url = `${instance}${WORKER_PATH}`
+	const body = JSON.stringify({ paths })
+	try {
+		const response = hostHeader
+			? await revalidateWithHostHeader(url, body, secret, hostHeader, timeoutMs)
+			: await revalidateWithFetch(url, body, secret, fetchImpl, timeoutMs)
 
 		if (!response.ok) {
-			const body = await response.text().catch(() => '')
-			const reason = body || response.statusText || `HTTP ${response.status}`
+			const responseBody = await response.text().catch(() => '')
+			const reason = responseBody || response.statusText || `HTTP ${response.status}`
 			logger.log(`Revalidate fanout to ${instance} failed: ${reason}`)
 			return { instance, reason, status: 'failed' }
 		}
@@ -125,8 +190,6 @@ async function revalidateOneInstance(
 		const reason = error instanceof Error ? error.message : String(error)
 		logger.log(`Revalidate fanout to ${instance} failed: ${reason}`)
 		return { instance, reason, status: 'failed' }
-	} finally {
-		clearTimeout(timer)
 	}
 }
 
@@ -136,6 +199,7 @@ export async function fanoutRevalidate(
 ): Promise<RevalidateFanoutResult> {
 	const secret = env.REVALIDATE_SECRET
 	const instances = revalidateInstancesFromEnv(env)
+	const hostHeader = revalidateHostHeaderFromEnv(env)
 	const normalized = normalizeCachePaths(paths)
 
 	if (!secret || instances.length === 0 || normalized.length === 0) {
@@ -143,7 +207,9 @@ export async function fanoutRevalidate(
 	}
 
 	const results = await Promise.all(
-		instances.map((instance) => revalidateOneInstance(instance, normalized, secret, { fetchImpl, logger, timeoutMs }))
+		instances.map((instance) =>
+			revalidateOneInstance(instance, normalized, secret, { fetchImpl, hostHeader, logger, timeoutMs })
+		)
 	)
 
 	return { instances: results, status: 'fanned-out' }

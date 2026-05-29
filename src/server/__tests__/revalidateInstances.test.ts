@@ -1,5 +1,14 @@
+import { EventEmitter } from 'node:events'
 import type { NextApiRequest } from 'next'
 import { describe, expect, it, vi } from 'vitest'
+
+const httpRequestMock = vi.hoisted(() => vi.fn())
+
+vi.mock('node:http', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('node:http')>()
+	return { ...actual, request: httpRequestMock }
+})
+
 import { revalidateInstancesHandler } from '~/pages/api/private/revalidate-instances'
 import {
 	assertRevalidateFanoutSucceeded,
@@ -12,6 +21,7 @@ import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 const baseEnv = {
 	...process.env,
 	REVALIDATE_INSTANCES: 'https://a.internal,https://b.internal/',
+	REVALIDATE_HOST_HEADER: '',
 	REVALIDATE_SECRET: 'shhh'
 }
 
@@ -44,7 +54,8 @@ describe('revalidate instance helpers', () => {
 		expect(
 			revalidateInstancesFromEnv({
 				...process.env,
-				REVALIDATE_INSTANCES: ' https://a.internal/ , https://a.internal, ,https://b.internal '
+				REVALIDATE_INSTANCES: ' https://a.internal/ , https://a.internal, ,https://b.internal ',
+				REVALIDATE_HOST_HEADER: ''
 			})
 		).toEqual(['https://a.internal', 'https://b.internal'])
 	})
@@ -52,7 +63,7 @@ describe('revalidate instance helpers', () => {
 	it('is disabled without a secret', async () => {
 		const fetchImpl = vi.fn()
 		const result = await fanoutRevalidate(['/research'], {
-			env: { ...process.env, REVALIDATE_INSTANCES: 'https://a.internal' },
+			env: { ...process.env, REVALIDATE_HOST_HEADER: '', REVALIDATE_INSTANCES: 'https://a.internal' },
 			fetchImpl,
 			logger: { log: vi.fn() }
 		})
@@ -63,7 +74,7 @@ describe('revalidate instance helpers', () => {
 	it('is disabled without configured instances', async () => {
 		const fetchImpl = vi.fn()
 		const result = await fanoutRevalidate(['/research'], {
-			env: { ...process.env, REVALIDATE_SECRET: 'shhh' },
+			env: { ...process.env, REVALIDATE_HOST_HEADER: '', REVALIDATE_SECRET: 'shhh' },
 			fetchImpl,
 			logger: { log: vi.fn() }
 		})
@@ -97,6 +108,49 @@ describe('revalidate instance helpers', () => {
 		expect(init.headers['x-revalidate-secret']).toBe('shhh')
 		expect(JSON.parse(init.body)).toEqual({ paths: ['/research', '/research/report/story'] })
 		expect(fetchImpl.mock.calls[1][0]).toBe('https://b.internal/api/private/revalidate-instances')
+	})
+
+	it('sends the configured host header for IP-targeted Coolify instances', async () => {
+		let requestBody = ''
+		httpRequestMock.mockImplementation((_url, _options, callback) => {
+			const req = new EventEmitter() as EventEmitter & {
+				destroy: (error: Error) => void
+				end: (body: string) => void
+			}
+			req.destroy = (error: Error) => req.emit('error', error)
+			req.end = (body: string) => {
+				requestBody = body
+				const res = new EventEmitter() as EventEmitter & { statusCode: number; statusMessage: string }
+				res.statusCode = 200
+				res.statusMessage = 'OK'
+				callback(res)
+				res.emit('data', Buffer.from(JSON.stringify({ revalidateErrors: [], revalidated: ['/research'] })))
+				res.emit('end')
+			}
+			return req
+		})
+
+		const result = await fanoutRevalidate(['/research'], {
+			env: {
+				...process.env,
+				REVALIDATE_HOST_HEADER: 'put934bu3uvqg4ajainavlv9.65.109.53.23.sslip.io',
+				REVALIDATE_INSTANCES: 'http://65.109.53.23',
+				REVALIDATE_SECRET: 'shhh'
+			},
+			logger: { log: vi.fn() }
+		})
+
+		expect(result.instances).toEqual([
+			{
+				instance: 'http://65.109.53.23',
+				revalidateErrors: [],
+				revalidated: ['/research'],
+				status: 'revalidated'
+			}
+		])
+		expect(httpRequestMock).toHaveBeenCalledTimes(1)
+		expect(httpRequestMock.mock.calls[0][1].headers.Host).toBe('put934bu3uvqg4ajainavlv9.65.109.53.23.sslip.io')
+		expect(JSON.parse(requestBody)).toEqual({ paths: ['/research'] })
 	})
 
 	it('marks a failing instance as failed without rejecting the others', async () => {
