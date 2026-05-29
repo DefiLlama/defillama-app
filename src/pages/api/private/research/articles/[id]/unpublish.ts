@@ -7,6 +7,7 @@ import {
 	purgeCloudflareResearchUrls,
 	type CloudflarePurgeResult
 } from '~/server/cloudflarePurge'
+import { fanoutRevalidate, type InstanceRevalidateResult } from '~/server/revalidateInstances'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type BackendArticleResponse = {
@@ -15,6 +16,7 @@ type BackendArticleResponse = {
 
 type CacheUpdateResult = {
 	cloudflare: CloudflarePurgeResult
+	instances: InstanceRevalidateResult[]
 	revalidateErrors: { path: string; reason: string }[]
 	revalidated: string[]
 }
@@ -52,6 +54,8 @@ function unpublishInvalidationPaths(before: ArticleDocument | null): string[] {
 	if (beforePath) {
 		paths.add('/research')
 		paths.add(beforePath)
+		const sectionPath = beforePath.split('/').slice(0, 3).join('/')
+		if (sectionPath !== beforePath) paths.add(sectionPath)
 	}
 	return normalizeResearchCachePaths(Array.from(paths))
 }
@@ -133,12 +137,14 @@ export async function researchUnpublishHandler(req: NextApiRequest, res: NextApi
 
 	const paths = unpublishInvalidationPaths(before)
 	const revalidate = await revalidatePaths(paths, res)
+	const fanout = await fanoutRevalidate(paths)
 	const cloudflare = await purgeCloudflareResearchUrls(paths)
 
 	return res.status(unpublishResponse.status).json({
 		...data,
 		cache: {
 			cloudflare,
+			instances: fanout.instances,
 			...revalidate
 		}
 	})

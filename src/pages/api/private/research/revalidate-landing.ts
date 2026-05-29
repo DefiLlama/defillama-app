@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { FEATURES_SERVER } from '~/constants'
 import { purgeCloudflareResearchUrls, type CloudflarePurgeResult } from '~/server/cloudflarePurge'
+import { fanoutRevalidate, type InstanceRevalidateResult } from '~/server/revalidateInstances'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type CacheUpdateResult = {
 	cloudflare: CloudflarePurgeResult
+	instances: InstanceRevalidateResult[]
 	revalidateErrors: { path: string; reason: string }[]
 	revalidated: string[]
 }
@@ -75,10 +77,12 @@ export async function researchLandingRevalidateHandler(req: NextApiRequest, res:
 	}
 
 	const revalidate = await revalidateResearchLanding(res)
+	const fanout = await fanoutRevalidate(['/research'])
 	const cloudflare = await purgeCloudflareResearchUrls(['/research'])
 
 	return res.status(200).json({
 		cloudflare,
+		instances: fanout.instances,
 		...revalidate
 	})
 }

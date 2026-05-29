@@ -57,13 +57,17 @@ describe('/api/private/research/articles/[id]/publish', () => {
 		})
 		expect(res.revalidate).toHaveBeenCalledWith('/research')
 		expect(res.revalidate).toHaveBeenCalledWith('/research/report/old-story')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/report')
 		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight/new-story')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight')
 		expect(fetchImpl).toHaveBeenLastCalledWith('https://api.cloudflare.com/client/v4/zones/zone/purge_cache', {
 			body: JSON.stringify({
 				files: [
 					'https://defillama.test/research',
 					'https://defillama.test/research/report/old-story',
-					'https://defillama.test/research/spotlight/new-story'
+					'https://defillama.test/research/report',
+					'https://defillama.test/research/spotlight/new-story',
+					'https://defillama.test/research/spotlight'
 				]
 			}),
 			headers: {
@@ -81,11 +85,20 @@ describe('/api/private/research/articles/[id]/publish', () => {
 					urls: [
 						'https://defillama.test/research',
 						'https://defillama.test/research/report/old-story',
-						'https://defillama.test/research/spotlight/new-story'
+						'https://defillama.test/research/report',
+						'https://defillama.test/research/spotlight/new-story',
+						'https://defillama.test/research/spotlight'
 					]
 				},
+				instances: [],
 				revalidateErrors: [],
-				revalidated: ['/research', '/research/report/old-story', '/research/spotlight/new-story']
+				revalidated: [
+					'/research',
+					'/research/report/old-story',
+					'/research/report',
+					'/research/spotlight/new-story',
+					'/research/spotlight'
+				]
 			}
 		})
 	})

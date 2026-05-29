@@ -1,0 +1,66 @@
+import { timingSafeEqual } from 'node:crypto'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { normalizeCachePaths } from '~/server/revalidateInstances'
+import { withApiRouteTelemetry } from '~/utils/telemetry'
+
+type ResponseData = { revalidated: string[]; revalidateErrors: { path: string; reason: string }[] } | { error: string }
+
+function headerValue(req: NextApiRequest, name: string): string | null {
+	const header = req.headers[name]
+	if (Array.isArray(header)) return header.find(Boolean) ?? null
+	return typeof header === 'string' && header ? header : null
+}
+
+function secretsMatch(provided: string, expected: string): boolean {
+	const a = Buffer.from(provided)
+	const b = Buffer.from(expected)
+	if (a.length !== b.length) return false
+	return timingSafeEqual(a, b)
+}
+
+function parsePaths(body: unknown): string[] {
+	if (typeof body === 'string') {
+		try {
+			return normalizeCachePaths((JSON.parse(body) as { paths?: unknown })?.paths)
+		} catch {
+			return []
+		}
+	}
+	return normalizeCachePaths((body as { paths?: unknown } | null | undefined)?.paths)
+}
+
+export async function revalidateInstancesHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
+
+	if (req.method !== 'POST') {
+		res.setHeader('Allow', ['POST'])
+		return res.status(405).json({ error: 'Method Not Allowed' })
+	}
+
+	const secret = process.env.REVALIDATE_SECRET
+	if (!secret) {
+		return res.status(503).json({ error: 'Revalidation is not configured' })
+	}
+
+	const provided = headerValue(req, 'x-revalidate-secret')
+	if (!provided || !secretsMatch(provided, secret)) {
+		return res.status(401).json({ error: 'Unauthorized' })
+	}
+
+	const paths = parsePaths(req.body)
+	const revalidated: string[] = []
+	const revalidateErrors: { path: string; reason: string }[] = []
+
+	for (const path of paths) {
+		try {
+			await res.revalidate(path)
+			revalidated.push(path)
+		} catch (error) {
+			revalidateErrors.push({ path, reason: error instanceof Error ? error.message : String(error) })
+		}
+	}
+
+	return res.status(200).json({ revalidateErrors, revalidated })
+}
+
+export default withApiRouteTelemetry('/api/private/revalidate-instances', revalidateInstancesHandler)

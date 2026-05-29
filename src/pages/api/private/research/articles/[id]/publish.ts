@@ -7,6 +7,7 @@ import {
 	purgeCloudflareResearchUrls,
 	type CloudflarePurgeResult
 } from '~/server/cloudflarePurge'
+import { fanoutRevalidate, type InstanceRevalidateResult } from '~/server/revalidateInstances'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type BackendArticleResponse = {
@@ -15,6 +16,7 @@ type BackendArticleResponse = {
 
 type CacheUpdateResult = {
 	cloudflare: CloudflarePurgeResult
+	instances: InstanceRevalidateResult[]
 	revalidateErrors: { path: string; reason: string }[]
 	revalidated: string[]
 }
@@ -53,8 +55,12 @@ function publishInvalidationPaths(before: ArticleDocument | null, after: Article
 	const afterPath = articlePublicPath(after)
 	const paths = new Set<string>()
 	if (beforePath || afterPath) paths.add('/research')
-	if (beforePath) paths.add(beforePath)
-	if (afterPath) paths.add(afterPath)
+	for (const articlePath of [beforePath, afterPath]) {
+		if (!articlePath) continue
+		paths.add(articlePath)
+		const sectionPath = articlePath.split('/').slice(0, 3).join('/')
+		if (sectionPath !== articlePath) paths.add(sectionPath)
+	}
 	return normalizeResearchCachePaths(Array.from(paths))
 }
 
@@ -149,12 +155,14 @@ export async function researchPublishHandler(req: NextApiRequest, res: NextApiRe
 
 	const paths = publishInvalidationPaths(before, data.article)
 	const revalidate = await revalidatePaths(paths, res)
+	const fanout = await fanoutRevalidate(paths)
 	const cloudflare = await purgeCloudflareResearchUrls(paths)
 
 	return res.status(publishResponse.status).json({
 		...data,
 		cache: {
 			cloudflare,
+			instances: fanout.instances,
 			...revalidate
 		}
 	})
