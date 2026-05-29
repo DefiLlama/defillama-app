@@ -371,7 +371,7 @@ export async function publishArticle(
 
 export async function unpublishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/unpublish`), { method: 'POST' })
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/unpublish`, { method: 'POST' })
 	)
 	return data.article
 }
