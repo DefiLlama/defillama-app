@@ -1,9 +1,28 @@
+import type { NextApiRequest } from 'next'
 import { describe, expect, it, vi } from 'vitest'
-import { fanoutRevalidate, normalizeCachePaths, revalidateInstancesFromEnv } from '~/server/revalidateInstances'
+import { revalidateInstancesHandler } from '~/pages/api/private/revalidate-instances'
+import {
+	assertRevalidateFanoutSucceeded,
+	fanoutRevalidate,
+	normalizeCachePaths,
+	revalidateInstancesFromEnv
+} from '~/server/revalidateInstances'
+import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 const baseEnv = {
+	...process.env,
 	REVALIDATE_INSTANCES: 'https://a.internal,https://b.internal/',
 	REVALIDATE_SECRET: 'shhh'
+}
+
+function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
+	return {
+		body: { paths: ['/research'] },
+		headers: { 'x-revalidate-secret': 'shhh' },
+		method: 'POST',
+		query: {},
+		...overrides
+	} as NextApiRequest
 }
 
 describe('revalidate instance helpers', () => {
@@ -24,6 +43,7 @@ describe('revalidate instance helpers', () => {
 	it('parses, trims, and dedupes the instance list', () => {
 		expect(
 			revalidateInstancesFromEnv({
+				...process.env,
 				REVALIDATE_INSTANCES: ' https://a.internal/ , https://a.internal, ,https://b.internal '
 			})
 		).toEqual(['https://a.internal', 'https://b.internal'])
@@ -32,7 +52,7 @@ describe('revalidate instance helpers', () => {
 	it('is disabled without a secret', async () => {
 		const fetchImpl = vi.fn()
 		const result = await fanoutRevalidate(['/research'], {
-			env: { REVALIDATE_INSTANCES: 'https://a.internal' },
+			env: { ...process.env, REVALIDATE_INSTANCES: 'https://a.internal' },
 			fetchImpl,
 			logger: { log: vi.fn() }
 		})
@@ -43,7 +63,7 @@ describe('revalidate instance helpers', () => {
 	it('is disabled without configured instances', async () => {
 		const fetchImpl = vi.fn()
 		const result = await fanoutRevalidate(['/research'], {
-			env: { REVALIDATE_SECRET: 'shhh' },
+			env: { ...process.env, REVALIDATE_SECRET: 'shhh' },
 			fetchImpl,
 			logger: { log: vi.fn() }
 		})
@@ -100,6 +120,9 @@ describe('revalidate instance helpers', () => {
 			revalidated: ['/research'],
 			status: 'revalidated'
 		})
+		expect(() => assertRevalidateFanoutSucceeded(result, ['/research'], { requireConfigured: true })).toThrow(
+			'Cross-instance revalidation failed'
+		)
 	})
 
 	it('marks a thrown/aborted instance as failed', async () => {
@@ -118,5 +141,32 @@ describe('revalidate instance helpers', () => {
 
 		expect(result.instances[0]).toEqual({ instance: 'https://a.internal', reason: 'aborted', status: 'failed' })
 		expect(result.instances[1].status).toBe('revalidated')
+	})
+
+	it('requires configuration when strict fanout is enabled', () => {
+		expect(() =>
+			assertRevalidateFanoutSucceeded({ instances: [], status: 'disabled' }, ['/research'], { requireConfigured: true })
+		).toThrow('Cross-instance revalidation is not configured')
+		expect(() =>
+			assertRevalidateFanoutSucceeded({ instances: [], status: 'disabled' }, [], { requireConfigured: true })
+		).not.toThrow()
+	})
+})
+
+describe('/api/private/revalidate-instances', () => {
+	it('returns 500 when any path revalidation fails', async () => {
+		vi.stubEnv('REVALIDATE_SECRET', 'shhh')
+		const res = createMockNextApiResponse()
+		res.revalidate.mockRejectedValueOnce(new Error('missing page'))
+
+		await revalidateInstancesHandler(request(), res)
+
+		expect(res.revalidate).toHaveBeenCalledWith('/research')
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({
+			revalidateErrors: [{ path: '/research', reason: 'missing page' }],
+			revalidated: []
+		})
+		vi.unstubAllEnvs()
 	})
 })

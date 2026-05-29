@@ -56,10 +56,10 @@ describe('/api/private/research/articles/[id]/publish', () => {
 			method: 'POST'
 		})
 		expect(res.revalidate).toHaveBeenCalledWith('/research')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/report/old-story')
 		expect(res.revalidate).toHaveBeenCalledWith('/research/report')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight/new-story')
 		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight')
+		expect(res.revalidate).not.toHaveBeenCalledWith('/research/report/old-story')
+		expect(res.revalidate).not.toHaveBeenCalledWith('/research/spotlight/new-story')
 		expect(fetchImpl).toHaveBeenLastCalledWith('https://api.cloudflare.com/client/v4/zones/zone/purge_cache', {
 			body: JSON.stringify({
 				files: [
@@ -92,13 +92,7 @@ describe('/api/private/research/articles/[id]/publish', () => {
 				},
 				instances: [],
 				revalidateErrors: [],
-				revalidated: [
-					'/research',
-					'/research/report/old-story',
-					'/research/report',
-					'/research/spotlight/new-story',
-					'/research/spotlight'
-				]
+				revalidated: ['/research', '/research/report', '/research/spotlight']
 			}
 		})
 	})
@@ -151,6 +145,28 @@ describe('/api/private/research/articles/[id]/publish', () => {
 			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
 			method: 'POST'
 		})
+	})
+
+	it('fails closed in production when cross-instance revalidation is not configured', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		vi.stubEnv('CF_ZONE', 'zone')
+		vi.stubEnv('CF_PURGE_CACHE_AUTH', 'token')
+		const before = article()
+		const after = article({ slug: 'new-story' })
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: after }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(request({ headers: { authorization: 'Bearer user-token' } }), res)
+
+		expect(res.revalidate).toHaveBeenCalledWith('/research')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/report')
+		expect(fetchImpl).toHaveBeenCalledTimes(2)
+		expect(res.status).toHaveBeenCalledWith(502)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Cross-instance revalidation is not configured' })
 	})
 
 	it('passes backend publish failures through without touching caches', async () => {

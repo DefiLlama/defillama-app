@@ -14,6 +14,11 @@ export type RevalidateFanoutResult = {
 	instances: InstanceRevalidateResult[]
 }
 
+type AssertFanoutOptions = {
+	env?: NodeJS.ProcessEnv
+	requireConfigured?: boolean
+}
+
 type FanoutOptions = {
 	env?: NodeJS.ProcessEnv
 	fetchImpl?: FetchLike
@@ -50,6 +55,32 @@ export function revalidateInstancesFromEnv(env: NodeJS.ProcessEnv = process.env)
 		if (base) instances.add(base)
 	}
 	return Array.from(instances)
+}
+
+export function assertRevalidateFanoutSucceeded(
+	result: RevalidateFanoutResult,
+	paths: string[],
+	{ env = process.env, requireConfigured = env.NODE_ENV === 'production' }: AssertFanoutOptions = {}
+): void {
+	if (normalizeCachePaths(paths).length === 0) return
+
+	if (result.status === 'disabled') {
+		if (requireConfigured) {
+			throw new Error('Cross-instance revalidation is not configured')
+		}
+		return
+	}
+
+	const failures: InstanceRevalidateResult[] = []
+	for (const instance of result.instances) {
+		if (instance.status === 'failed' || instance.revalidateErrors.length > 0) {
+			failures.push(instance)
+		}
+	}
+
+	if (failures.length > 0) {
+		throw new Error(`Cross-instance revalidation failed: ${JSON.stringify(failures)}`)
+	}
 }
 
 async function revalidateOneInstance(
