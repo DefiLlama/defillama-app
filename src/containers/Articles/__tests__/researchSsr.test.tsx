@@ -15,9 +15,7 @@ import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import ArticlesPage, { getStaticProps as getResearchStaticProps } from '~/pages/research'
 import SectionLandingPage, { getStaticProps as getSectionLandingStaticProps } from '~/pages/research/[section]'
-import SectionArticlePage, {
-	getServerSideProps as getArticleServerSideProps
-} from '~/pages/research/[section]/[slug]'
+import SectionArticlePage, { getServerSideProps as getArticleServerSideProps } from '~/pages/research/[section]/[slug]'
 
 const routerMock = vi.hoisted(() => vi.fn())
 
@@ -257,10 +255,11 @@ describe('research ISR data loading', () => {
 
 		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
-		expect(result.props.initialArticle.title).toBe('Canonical Research')
-		expect(result.props.initialArticle.author).toBe('DefiLlama Research')
-		expect(result.props.initialArticle).not.toHaveProperty('authorProfile')
-		expect(result.props.initialArticle).not.toHaveProperty('coAuthors')
+		const props = await result.props
+		expect(props.initialArticle.title).toBe('Canonical Research')
+		expect(props.initialArticle.author).toBe('DefiLlama Research')
+		expect(props.initialArticle).not.toHaveProperty('authorProfile')
+		expect(props.initialArticle).not.toHaveProperty('coAuthors')
 		expect(getArticleBanner).toHaveBeenCalledWith('article-id')
 
 		routerMock.mockReturnValue({
@@ -269,7 +268,7 @@ describe('research ISR data loading', () => {
 			query: { section: 'report', slug: 'canonical-research' },
 			replace: vi.fn()
 		})
-		const html = renderWithQueryClient(<SectionArticlePage {...result.props} />)
+		const html = renderWithQueryClient(<SectionArticlePage {...props} />)
 		expect(html).toContain('Canonical Research')
 		expect(html).toContain('Server rendered body')
 		expect(html).not.toContain('Internal Admin')

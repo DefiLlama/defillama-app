@@ -60,7 +60,7 @@ export async function revalidateInstancesHandler(req: NextApiRequest, res: NextA
 		}
 	}
 
-	return res.status(200).json({ revalidateErrors, revalidated })
+	return res.status(revalidateErrors.length > 0 ? 500 : 200).json({ revalidateErrors, revalidated })
 }
 
 export default withApiRouteTelemetry('/api/private/revalidate-instances', revalidateInstancesHandler)
