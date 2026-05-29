@@ -1,23 +1,26 @@
 import { useTreasuryData } from './api'
-import { KpiCard, ChartCard, SectionHeader, SimpleTable, fmtUsd } from './ui'
+import { KpiCard, ChartCard, SectionHeader, SimpleTable, fmtUsd, fmtNum } from './ui'
 
 export default function Treasury() {
 	const { data } = useTreasuryData()
 	const tlp = data?.treasuryLps
+	const eth = data?.ethUniv3
 	const plasma = data?.plasmaUniv3
 	const cvx = data?.vlCvx
 	const aero = data?.veAero
+	const gov = data?.govLocks
 	const met = data?.metronomeAllocation
 	const ves = data?.vesperAllocation
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
 				<KpiCard
 					label="Treasury LP Total"
 					value={tlp?.totalFormatted}
 					sub={`Unclaimed ${tlp?.unclaimedRewardsFormatted || ''}`}
 				/>
+				<KpiCard label="Ethereum UniV3 Total" value={eth?.totalFormatted} />
 				<KpiCard label="Plasma UniV3 Total" value={plasma?.totalFormatted} />
 				<KpiCard label="veAERO Locks" value={aero?.rows?.length != null ? String(aero.rows.length) : undefined} />
 			</div>
@@ -39,14 +42,29 @@ export default function Treasury() {
 				/>
 			</ChartCard>
 
+			{eth?.rows?.length ? (
+				<>
+					<SectionHeader>Ethereum UniV3 Positions</SectionHeader>
+					<ChartCard title="Ethereum positions">
+						<SimpleTable
+							rows={eth.rows}
+							cols={[
+								{ key: 'pool', label: 'Pool' },
+								{ key: 'rewards', label: 'Pending Rewards' },
+								{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
+							]}
+						/>
+					</ChartCard>
+				</>
+			) : null}
+
 			<SectionHeader>Plasma UniV3 Unclaimed Fees</SectionHeader>
-			<ChartCard title="Plasma positions (per token)" subtitle="One row per NFT × token">
+			<ChartCard title="Plasma positions" subtitle="One row per NFT">
 				<SimpleTable
 					rows={plasma?.rows}
 					cols={[
 						{ key: 'pool', label: 'Position' },
-						{ key: 'token', label: 'Token' },
-						{ key: 'amount', label: 'Amount', right: true, render: (r) => r.amount?.toFixed(4) },
+						{ key: 'rewards', label: 'Pending Rewards' },
 						{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
 					]}
 				/>
@@ -78,9 +96,48 @@ export default function Treasury() {
 				/>
 			</ChartCard>
 
-			<SectionHeader>Treasury Allocation · ETH / USD / BTC / Other</SectionHeader>
+			{gov?.rows?.length ? (
+				<>
+					<SectionHeader>{gov.title || 'Locked Governance Tokens'}</SectionHeader>
+					<ChartCard title="esMET / esVSP">
+						<SimpleTable
+							rows={gov.rows}
+							cols={[
+								{ key: 'token', label: 'Token' },
+								{
+									key: 'lockedTokens',
+									label: 'Locked',
+									right: true,
+									render: (r) => (typeof r.lockedTokens === 'number' ? fmtNum(r.lockedTokens) : r.lockedTokens)
+								},
+								{
+									key: 'supply',
+									label: 'Supply',
+									right: true,
+									render: (r) => (typeof r.supply === 'number' ? fmtNum(r.supply) : r.supply)
+								},
+								{ key: 'nftCount', label: 'NFTs', right: true },
+								{
+									key: 'avgLockYears',
+									label: 'Avg Lock (yrs)',
+									right: true,
+									render: (r) => (r.avgLockYears != null ? r.avgLockYears.toFixed(2) : '—')
+								},
+								{
+									key: 'avgRemainingYears',
+									label: 'Avg Remaining (yrs)',
+									right: true,
+									render: (r) => (r.avgRemainingYears != null ? r.avgRemainingYears.toFixed(2) : '—')
+								}
+							]}
+						/>
+					</ChartCard>
+				</>
+			) : null}
+
+			<SectionHeader>TVL Allocation by Bucket</SectionHeader>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<ChartCard title="Metronome Allocation" subtitle="Pre-categorised buckets">
+				<ChartCard title={met?.title || 'Metronome Allocation'}>
 					<SimpleTable
 						rows={met?.rows}
 						cols={[
@@ -90,7 +147,7 @@ export default function Treasury() {
 						]}
 					/>
 				</ChartCard>
-				<ChartCard title="Vesper Allocation" subtitle="Pre-categorised buckets">
+				<ChartCard title={ves?.title || 'Vesper Allocation'}>
 					<SimpleTable
 						rows={ves?.rows}
 						cols={[

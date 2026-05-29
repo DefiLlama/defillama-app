@@ -135,29 +135,43 @@ export default function Pegs() {
 				<SynthTable rows={msETH} />
 			</ChartCard>
 
-			<SectionHeader>Supply Caps · On-chain</SectionHeader>
-			<ChartCard title="totalSupply / maxTotalSupply" subtitle="Per-chain mint usage">
-				<SimpleTable
-					rows={data?.supplyCaps}
-					cols={[
-						{ key: 'chain', label: 'Chain' },
-						{ key: 'synth', label: 'Synth' },
-						{
-							key: 'supply',
-							label: 'Supply',
-							right: true,
-							render: (r) => r.supply?.toLocaleString(undefined, { maximumFractionDigits: 2 })
-						},
-						{
-							key: 'maxSupply',
-							label: 'Max Supply',
-							right: true,
-							render: (r) => r.maxSupply?.toLocaleString(undefined, { maximumFractionDigits: 2 })
-						},
-						{ key: 'usagePct', label: 'Usage', right: true, render: (r) => `${(r.usagePct ?? 0).toFixed(1)}%` }
-					]}
-				/>
-			</ChartCard>
+			<SectionHeader>Supply Caps · On-chain + Bridges</SectionHeader>
+			{(() => {
+				const capCols = [
+					{ key: 'chain', label: 'Chain' },
+					{ key: 'synth', label: 'Synth' },
+					{
+						key: 'supply',
+						label: 'Supply',
+						right: true,
+						render: (r: any) => r.supply?.toLocaleString(undefined, { maximumFractionDigits: 2 })
+					},
+					{
+						key: 'maxSupply',
+						label: 'Max Supply',
+						right: true,
+						render: (r: any) => r.maxSupply?.toLocaleString(undefined, { maximumFractionDigits: 2 })
+					},
+					{ key: 'usagePct', label: 'Usage', right: true, render: (r: any) => `${(r.usagePct ?? 0).toFixed(1)}%` }
+				]
+				return (
+					<>
+						<ChartCard title="Mint Caps" subtitle="totalSupply / maxTotalSupply">
+							<SimpleTable rows={data?.supplyCaps} cols={capCols as any} />
+						</ChartCard>
+						{data?.bridgeInCaps?.length ? (
+							<ChartCard title="Bridge-In Caps" subtitle="Per-chain bridged-in supply vs cap">
+								<SimpleTable rows={data.bridgeInCaps} cols={capCols as any} />
+							</ChartCard>
+						) : null}
+						{data?.bridgeOutCaps?.length ? (
+							<ChartCard title="Bridge-Out Caps" subtitle="Per-chain bridged-out supply vs cap">
+								<SimpleTable rows={data.bridgeOutCaps} cols={capCols as any} />
+							</ChartCard>
+						) : null}
+					</>
+				)
+			})()}
 		</div>
 	)
 }

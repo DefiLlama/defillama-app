@@ -59,11 +59,19 @@ export default function Tvl() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-				<KpiCard label="Total Ecosystem" value={k.total?.formatted} sub="Metronome + Vesper + Odyssey" />
+				<KpiCard
+					label="Total Ecosystem TVL"
+					value={k.total?.formatted}
+					info="Includes third-party TVL — the Metronome AMO supply in external Morpho markets — so it is broader than the sum of each protocol's own DefiLlama TVL (which by convention excludes AMO-supplied Morpho liquidity)."
+				/>
 				<KpiCard label="Metronome" value={k.metronome?.formatted} />
 				<KpiCard label="Vesper" value={k.vesper?.formatted} />
 				<KpiCard label="Odyssey" value={k.odyssey?.formatted} />
-				<KpiCard label="Morpho (Metronome Markets)" value={k.morpho?.formatted} />
+				<KpiCard
+					label="Morpho (Metronome Markets)"
+					value={k.morpho?.formatted}
+					info="Third-party TVL: the Metronome AMO's supply into external Morpho markets. Not part of Metronome's own DefiLlama TVL."
+				/>
 			</div>
 
 			<SectionHeader>Total Ecosystem TVL</SectionHeader>
@@ -148,6 +156,18 @@ export default function Tvl() {
 										right: true,
 										render: (r) => <UtilBar pct={r.utilizationPct} />
 									},
+									{
+										key: 'targetPct',
+										label: 'Target',
+										right: true,
+										render: (r) => (r.targetPct != null ? `${r.targetPct.toFixed(0)}%` : '—')
+									},
+									{
+										key: 'mintNeededUsd',
+										label: 'Mint Needed',
+										right: true,
+										render: (r) => fmtUsd(r.mintNeededUsd)
+									},
 									{ key: 'lltvPct', label: 'LLTV', right: true, render: (r) => `${(r.lltvPct ?? 0).toFixed(1)}%` },
 									{
 										key: 'supplyApyPct',
@@ -168,8 +188,62 @@ export default function Tvl() {
 				</>
 			)}
 
-			<SectionHeader>Synth DEX LP TVL</SectionHeader>
-			<ChartCard title="Synth Liquidity Pools" subtitle={data?.synthLpTvl?.subtitle}>
+			{data?.morphoMarketHistory?.markets?.length ? (
+				<>
+					<SectionHeader>{data.morphoMarketHistory.title || 'Morpho Market · Supply / Borrow / Utilization'}</SectionHeader>
+					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+						{data.morphoMarketHistory.markets.map((m) => {
+							const series = [
+								{
+									name: 'Supply',
+									type: 'line' as const,
+									color: '#6366f1',
+									data: m.series.map(
+										(p) => [Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.supplyUsd] as [number, number]
+									),
+									yAxisIndex: 0
+								},
+								{
+									name: 'Borrow',
+									type: 'line' as const,
+									color: '#fb923c',
+									data: m.series.map(
+										(p) => [Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.borrowUsd] as [number, number]
+									),
+									yAxisIndex: 0
+								},
+								{
+									name: 'Utilization %',
+									type: 'line' as const,
+									color: '#34d399',
+									data: m.series.map(
+										(p) =>
+											[Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.utilization] as [number, number]
+									),
+									yAxisIndex: 1
+								}
+							]
+							return (
+								<ChartCard
+									key={m.marketId}
+									title={m.name || m.marketId}
+									subtitle={`${m.chain}${m.source ? ` · ${m.source}` : ''}`}
+								>
+									<MultiSeriesChart
+										series={series as any}
+										valueSymbol="$"
+										yAxisSymbols={['$', '%']}
+										height="300px"
+									/>
+								</ChartCard>
+							)
+						})}
+					</div>
+				</>
+			) : null}
+
+			<SectionHeader>Ecosystem DEX LP TVL</SectionHeader>
+			<ChartCard title={data?.synthLpTvl?.title || 'Ecosystem Liquidity Pools'} subtitle={data?.synthLpTvl?.subtitle}>
 				<SimpleTable
 					rows={data?.synthLpTvl?.pools}
 					cols={[
@@ -183,7 +257,10 @@ export default function Tvl() {
 			</ChartCard>
 
 			<SectionHeader>MetBasis LP TVL</SectionHeader>
-			<ChartCard title="MetBasis Pools" subtitle={data?.metbasis?.subtitle}>
+			<ChartCard
+				title={data?.metbasis?.title || 'MetBasis LP TVL'}
+				subtitle={data?.metbasis?.totalFormatted ? `Total ${data.metbasis.totalFormatted}` : undefined}
+			>
 				<SimpleTable
 					rows={data?.metbasis?.pools}
 					cols={[

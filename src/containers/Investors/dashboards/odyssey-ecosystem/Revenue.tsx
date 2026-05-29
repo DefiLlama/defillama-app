@@ -131,12 +131,12 @@ export default function Revenue() {
 				<KpiCard
 					label="Vesper MTD"
 					value={cm.vesper?.formatted}
-					sub={vc ? `${vc.windowDays}d window · ${vc.source}` : undefined}
+					sub={vc ? `${vc.windowDays}d window` : undefined}
 				/>
 				<KpiCard
 					label="Odyssey MTD"
 					value={cm.odyssey?.formatted}
-					sub={oc ? `${oc.windowDays}d window · ${oc.source}` : undefined}
+					sub={oc ? `${oc.windowDays}d window` : undefined}
 				/>
 			</div>
 			{isLoading || !dailySeries ? (
@@ -165,7 +165,7 @@ export default function Revenue() {
 					<SectionHeader>Metronome Revenue Breakdown · {mc.monthLabel}</SectionHeader>
 					<ChartCard
 						title="Revenue by source"
-						subtitle={`Total ${mc.claimedFormatted} this month · source: ${mc.source}`}
+						subtitle={`Total ${mc.claimedFormatted} this month`}
 					>
 						{mc.hasBreakdown && mc.items?.length ? (
 							<SimpleTable
@@ -201,7 +201,6 @@ export default function Revenue() {
 					</div>
 					{up.asOf && <span className="text-[11px] text-(--text-secondary)">As of {up.asOf}</span>}
 				</div>
-				{up.note && <p className="mb-3 text-[12px] leading-relaxed text-(--text-secondary)">{up.note}</p>}
 				{up.pie && (
 					<PieChart
 						chartData={up.pie}
@@ -215,11 +214,7 @@ export default function Revenue() {
 			</div>
 
 			<SectionHeader>Treasury LP Positions · Pending Rewards</SectionHeader>
-			<SubSectionCard
-				title="Staked LP gauge rewards"
-				subtitle="Rewards accrued in Aerodrome / Velodrome / Lithos gauges. Becomes claimed on the next harvest cycle."
-				total={lpTotal}
-			>
+			<SubSectionCard title="Staked LP gauge rewards" total={lpTotal}>
 				<SimpleTable
 					rows={up.treasuryLps}
 					cols={[
@@ -234,11 +229,7 @@ export default function Revenue() {
 
 			<SectionHeader>UniV3 Concentrated Liquidity · Unclaimed Fees</SectionHeader>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<SubSectionCard
-					title="Ethereum UniV3"
-					subtitle="Trading fees accrued on Ethereum concentrated-liquidity positions"
-					total={ethUniv3Total}
-				>
+				<SubSectionCard title="Ethereum UniV3" total={ethUniv3Total}>
 					<SimpleTable
 						rows={up.ethUniv3}
 						cols={[
@@ -249,17 +240,13 @@ export default function Revenue() {
 						]}
 					/>
 				</SubSectionCard>
-				<SubSectionCard
-					title="Plasma UniV3"
-					subtitle="Trading fees on Plasma concentrated-liquidity positions (per token)"
-					total={plasmaTotal}
-				>
+				<SubSectionCard title="Plasma UniV3" total={plasmaTotal}>
 					<SimpleTable
 						rows={up.plasmaUniv3}
 						cols={[
 							{ key: 'position', label: 'Position' },
-							{ key: 'token', label: 'Token' },
-							{ key: 'amount', label: 'Amount', right: true, render: (r) => r.amount?.toFixed(4) },
+							{ key: 'pool', label: 'Pool' },
+							{ key: 'rewards', label: 'Pending Rewards' },
 							{ key: 'usd', label: 'USD', right: true, render: (r) => fmtUsd(r.usd) }
 						]}
 					/>
@@ -267,11 +254,7 @@ export default function Revenue() {
 			</div>
 
 			<SectionHeader>Gauge & Lock Rewards</SectionHeader>
-			<SubSectionCard
-				title="veAERO Locks (Base)"
-				subtitle="Bribe & emission rewards on locked AERO voting power"
-				total={veAeroTotal}
-			>
+			<SubSectionCard title="veAERO Locks (Base)" total={veAeroTotal}>
 				<SimpleTable
 					rows={up.aeroLocks}
 					cols={[
@@ -285,11 +268,7 @@ export default function Revenue() {
 			</SubSectionCard>
 
 			<SectionHeader>Morpho AMO · Unrealised PnL</SectionHeader>
-			<SubSectionCard
-				title="AMO vault positions"
-				subtitle="Yield earned by AMO vaults via convertToAssets — moves to claimed on harvest"
-				total={amoTotal}
-			>
+			<SubSectionCard title="AMO vault positions" total={amoTotal}>
 				<SimpleTable
 					rows={up.amoPositions}
 					cols={[
@@ -298,13 +277,7 @@ export default function Revenue() {
 						{ key: 'assetsUsd', label: 'NAV', right: true, render: (r) => fmtUsd(r.assetsUsd) },
 						{ key: 'grossPnlUsd', label: 'Gross PnL', right: true, render: (r) => fmtUsd(r.grossPnlUsd) },
 						{ key: 'feeRate', label: 'Fee', right: true, render: (r) => `${((r.feeRate ?? 0) * 100).toFixed(1)}%` },
-						{ key: 'pnlUsd', label: 'Net PnL', right: true, render: (r) => fmtUsd(r.pnlUsd) },
-						{
-							key: 'allTimeHarvestedUsd',
-							label: 'All-time Harvested',
-							right: true,
-							render: (r) => fmtUsd(r.allTimeHarvestedUsd)
-						},
+						{ key: 'pnlUsd', label: 'Unclaimed Yield', right: true, render: (r) => fmtUsd(r.pnlUsd) },
 						{ key: 'lastHarvestDate', label: 'Last Harvest', right: true, render: (r) => r.lastHarvestDate || '—' }
 					]}
 				/>
@@ -324,10 +297,10 @@ export default function Revenue() {
 			</SubSectionCard>
 
 			{/* Synth interest — informational, not in pipeline total */}
-			<SectionHeader>Synth Interest · Borrower-side Accrual (informational)</SectionHeader>
+			<SectionHeader>Synth Interest · Borrower-side Accrual</SectionHeader>
 			<SubSectionCard
 				title="Outstanding synth debt"
-				subtitle={`Interest accrues on user borrows of msUSD / msETH. Est. ${fmtUsd(synthDaily)} per day · ${fmtUsd(synthMonthly)} per month. Not part of pipeline total.`}
+				subtitle={`Est. ${fmtUsd(synthDaily)} per day · ${fmtUsd(synthMonthly)} per month`}
 			>
 				<div className="flex flex-col gap-4">
 					{(data?.synthInterestDetail || []).map((r) => (

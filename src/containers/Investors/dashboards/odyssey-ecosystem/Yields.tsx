@@ -8,25 +8,38 @@ export default function Yields() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-				<KpiCard label="Top Looper APY" value={k.topLooperApy?.formatted} />
-				<KpiCard label="Top Odyssey APY" value={k.topOdysseyApy?.formatted} />
-				<KpiCard label="Top Vesper APY" value={k.topVesperApy?.formatted} />
+				<KpiCard
+					label={k.topLooperApy?.label || 'Top Looper Max APY'}
+					value={k.topLooperApy?.formatted}
+					sub="At max leverage"
+				/>
+				<KpiCard
+					label={k.topOdysseyApy?.label || 'Top Odyssey Max APY'}
+					value={k.topOdysseyApy?.formatted}
+					sub="At max leverage"
+				/>
+				<KpiCard label={k.topVesperApy?.label || 'Top Vesper Net APY'} value={k.topVesperApy?.formatted} />
 				<KpiCard label="Active Odyssey Strategies" value={k.odysseyStrategyCount?.formatted} />
 			</div>
 
-			<SectionHeader>Odyssey Loopr · Net APY by Chain</SectionHeader>
-			<ChartCard title="Aggregated APY per chain" subtitle="Across all live Looper strategies">
+			<SectionHeader>Odyssey Loopr · Max APY by Chain</SectionHeader>
+			<ChartCard title="Aggregated APY per chain" subtitle="At max leverage, across all live Looper strategies">
 				<SimpleTable
 					rows={data?.odysseyApy?.rows}
 					cols={[
 						{ key: 'chain', label: 'Chain' },
 						{ key: 'strategies', label: 'Strategies', right: true },
-						{ key: 'netApyPct', label: 'Net APY', right: true, render: (r) => `${(r.netApyPct ?? 0).toFixed(2)}%` }
+						{
+							key: 'maxApyPct',
+							label: 'Max APY',
+							right: true,
+							render: (r) => `${(r.maxApyPct ?? r.netApyPct ?? 0).toFixed(2)}%`
+						}
 					]}
 				/>
 			</ChartCard>
 
-			<SectionHeader>Metronome Looper · Per-Strategy APY</SectionHeader>
+			<SectionHeader>Metronome Looper · Per-Strategy APY (Max Leverage)</SectionHeader>
 			<ChartCard title="Live strategies" subtitle="Collateral / borrow APY per pool (snapshot)">
 				<SimpleTable
 					rows={data?.looperApy?.rows}
@@ -36,10 +49,10 @@ export default function Yields() {
 						{ key: 'collateral', label: 'Collateral' },
 						{ key: 'borrow', label: 'Borrow' },
 						{
-							key: 'collateralApyPct',
-							label: 'Coll APY',
+							key: 'underlyingApyPct',
+							label: 'Underlying APY',
 							right: true,
-							render: (r) => `${(r.collateralApyPct ?? 0).toFixed(2)}%`
+							render: (r) => `${(r.underlyingApyPct ?? r.collateralApyPct ?? 0).toFixed(2)}%`
 						},
 						{
 							key: 'borrowApyPct',
@@ -47,7 +60,12 @@ export default function Yields() {
 							right: true,
 							render: (r) => `${(r.borrowApyPct ?? 0).toFixed(2)}%`
 						},
-						{ key: 'netApyPct', label: 'Net APY', right: true, render: (r) => `${(r.netApyPct ?? 0).toFixed(2)}%` }
+						{
+							key: 'maxApyPct',
+							label: 'Max APY',
+							right: true,
+							render: (r) => `${(r.maxApyPct ?? r.netApyPct ?? 0).toFixed(2)}%`
+						}
 					]}
 				/>
 			</ChartCard>
