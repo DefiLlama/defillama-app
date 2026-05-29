@@ -131,11 +131,7 @@ export default function Incentives() {
 					value={k.feesRolledIntoIncentives?.formatted}
 					sub="AERO/VELO emissions beyond what we paid in bribes"
 				/>
-				<KpiCard
-					label="Gov-Token Power (locked USD)"
-					value={k.govTokenPowerUsd?.formatted}
-					sub="vlCVX + veAERO"
-				/>
+				<KpiCard label="Gov-Token Power (locked USD)" value={k.govTokenPowerUsd?.formatted} sub="vlCVX + veAERO" />
 			</div>
 			<ChartCard title="30d Spend by Venue">
 				<SimpleTable
@@ -180,7 +176,9 @@ export default function Incentives() {
 					<SectionHeader>{data.nonSpendIncentives.title || 'Incentives not paid out of pocket'}</SectionHeader>
 					{data.nonSpendIncentives.feesRolledIntoIncentives && (
 						<ChartCard
-							title={data.nonSpendIncentives.feesRolledIntoIncentives.title || 'Protocol-issuance rolled into incentives'}
+							title={
+								data.nonSpendIncentives.feesRolledIntoIncentives.title || 'Protocol-issuance rolled into incentives'
+							}
 							subtitle={
 								data.nonSpendIncentives.feesRolledIntoIncentives.totalFormatted
 									? `Total ${data.nonSpendIncentives.feesRolledIntoIncentives.totalFormatted}`

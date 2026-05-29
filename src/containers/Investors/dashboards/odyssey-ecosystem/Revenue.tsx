@@ -128,16 +128,8 @@ export default function Revenue() {
 			<SectionHeader>Claimed Revenue · Month-to-Date</SectionHeader>
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 				<KpiCard label="Metronome MTD" value={cm.metronome?.formatted} />
-				<KpiCard
-					label="Vesper MTD"
-					value={cm.vesper?.formatted}
-					sub={vc ? `${vc.windowDays}d window` : undefined}
-				/>
-				<KpiCard
-					label="Odyssey MTD"
-					value={cm.odyssey?.formatted}
-					sub={oc ? `${oc.windowDays}d window` : undefined}
-				/>
+				<KpiCard label="Vesper MTD" value={cm.vesper?.formatted} sub={vc ? `${vc.windowDays}d window` : undefined} />
+				<KpiCard label="Odyssey MTD" value={cm.odyssey?.formatted} sub={oc ? `${oc.windowDays}d window` : undefined} />
 			</div>
 			{isLoading || !dailySeries ? (
 				<ChartSkeleton title="Daily Revenue" />
@@ -163,10 +155,7 @@ export default function Revenue() {
 			{mc && (
 				<>
 					<SectionHeader>Metronome Revenue Breakdown · {mc.monthLabel}</SectionHeader>
-					<ChartCard
-						title="Revenue by source"
-						subtitle={`Total ${mc.claimedFormatted} this month`}
-					>
+					<ChartCard title="Revenue by source" subtitle={`Total ${mc.claimedFormatted} this month`}>
 						{mc.hasBreakdown && mc.items?.length ? (
 							<SimpleTable
 								rows={mc.items}

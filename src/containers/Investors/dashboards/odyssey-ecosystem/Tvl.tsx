@@ -190,7 +190,9 @@ export default function Tvl() {
 
 			{data?.morphoMarketHistory?.markets?.length ? (
 				<>
-					<SectionHeader>{data.morphoMarketHistory.title || 'Morpho Market · Supply / Borrow / Utilization'}</SectionHeader>
+					<SectionHeader>
+						{data.morphoMarketHistory.title || 'Morpho Market · Supply / Borrow / Utilization'}
+					</SectionHeader>
 					<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 						{data.morphoMarketHistory.markets.map((m) => {
 							const series = [
@@ -199,7 +201,8 @@ export default function Tvl() {
 									type: 'line' as const,
 									color: '#6366f1',
 									data: m.series.map(
-										(p) => [Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.supplyUsd] as [number, number]
+										(p) =>
+											[Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.supplyUsd] as [number, number]
 									),
 									yAxisIndex: 0
 								},
@@ -208,7 +211,8 @@ export default function Tvl() {
 									type: 'line' as const,
 									color: '#fb923c',
 									data: m.series.map(
-										(p) => [Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.borrowUsd] as [number, number]
+										(p) =>
+											[Math.floor(new Date(p.date + 'T00:00:00Z').getTime() / 1000), p.borrowUsd] as [number, number]
 									),
 									yAxisIndex: 0
 								},
@@ -229,12 +233,7 @@ export default function Tvl() {
 									title={m.name || m.marketId}
 									subtitle={`${m.chain}${m.source ? ` · ${m.source}` : ''}`}
 								>
-									<MultiSeriesChart
-										series={series as any}
-										valueSymbol="$"
-										yAxisSymbols={['$', '%']}
-										height="300px"
-									/>
+									<MultiSeriesChart series={series as any} valueSymbol="$" yAxisSymbols={['$', '%']} height="300px" />
 								</ChartCard>
 							)
 						})}
