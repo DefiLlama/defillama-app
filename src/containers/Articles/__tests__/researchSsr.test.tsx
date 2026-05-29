@@ -16,8 +16,7 @@ import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/
 import ArticlesPage, { getStaticProps as getResearchStaticProps } from '~/pages/research'
 import SectionLandingPage, { getStaticProps as getSectionLandingStaticProps } from '~/pages/research/[section]'
 import SectionArticlePage, {
-	articlePathsToStaticPaths,
-	getStaticProps as getArticleStaticProps
+	getServerSideProps as getArticleServerSideProps
 } from '~/pages/research/[section]/[slug]'
 
 const routerMock = vi.hoisted(() => vi.fn())
@@ -205,25 +204,6 @@ describe('research ISR data loading', () => {
 		expect(html).not.toContain('translate(calc(0px + -147px))')
 	})
 
-	it('maps public article path metadata into static paths', () => {
-		expect(
-			articlePathsToStaticPaths([
-				{
-					slug: 'canonical-research',
-					section: 'report',
-					updatedAt: '2026-05-15T00:00:00.000Z'
-				}
-			])
-		).toEqual([
-			{
-				params: {
-					section: 'report',
-					slug: 'canonical-research'
-				}
-			}
-		])
-	})
-
 	it('loads section landing props for ISR and renders articles immediately', async () => {
 		const result = await getSectionLandingStaticProps({
 			params: { section: 'report' }
@@ -248,7 +228,7 @@ describe('research ISR data loading', () => {
 		).resolves.toMatchObject({ notFound: true })
 	})
 
-	it('loads sanitized article props for ISR and renders article body immediately', async () => {
+	it('loads sanitized article props for SSR and renders article body immediately', async () => {
 		const publicArticle = article({
 			author: 'Internal Admin',
 			coAuthors: [
@@ -267,11 +247,15 @@ describe('research ISR data loading', () => {
 		})
 		vi.mocked(getArticleBySlug).mockResolvedValue(publicArticle)
 
-		const result = await getArticleStaticProps({
-			params: { section: 'report', slug: 'canonical-research' }
+		const setHeader = vi.fn()
+		const result = await getArticleServerSideProps({
+			params: { section: 'report', slug: 'canonical-research' },
+			req: { method: 'GET' },
+			resolvedUrl: '/research/report/canonical-research',
+			res: { setHeader }
 		} as never)
 
-		expect(result).toMatchObject({ revalidate: expect.any(Number) })
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
 		expect(result.props.initialArticle.title).toBe('Canonical Research')
 		expect(result.props.initialArticle.author).toBe('DefiLlama Research')
@@ -308,15 +292,21 @@ describe('research ISR data loading', () => {
 	it('returns notFound for missing articles and redirects non-canonical article urls', async () => {
 		vi.mocked(getArticleBySlug).mockResolvedValueOnce(null)
 		await expect(
-			getArticleStaticProps({
-				params: { section: 'report', slug: 'missing' }
+			getArticleServerSideProps({
+				params: { section: 'report', slug: 'missing' },
+				req: { method: 'GET' },
+				resolvedUrl: '/research/report/missing',
+				res: { setHeader: vi.fn() }
 			} as never)
 		).resolves.toMatchObject({ notFound: true })
 
 		vi.mocked(getArticleBySlug).mockResolvedValueOnce(article())
 		await expect(
-			getArticleStaticProps({
-				params: { section: 'report', slug: 'old-research' }
+			getArticleServerSideProps({
+				params: { section: 'report', slug: 'old-research' },
+				req: { method: 'GET' },
+				resolvedUrl: '/research/report/old-research',
+				res: { setHeader: vi.fn() }
 			} as never)
 		).resolves.toMatchObject({
 			redirect: {
