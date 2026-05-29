@@ -1,4 +1,4 @@
-import { AUTH_SERVER, CONFIG_API, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { CONFIG_API, FEATURES_SERVER, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -58,7 +58,7 @@ export interface ProDashboardServerProps {
 
 export async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
 	try {
-		const url = `${AUTH_SERVER}/dashboards/${dashboardId}`
+		const url = `${FEATURES_SERVER}/dashboards/${dashboardId}`
 		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
 		const response = await fetchFn(url)
 		if (!response.ok) return null
@@ -581,10 +581,12 @@ async function fetchEmissionData(items: DashboardItemConfig[]): Promise<Record<s
 
 export async function getProDashboardServerData({
 	dashboardId,
-	authToken
+	authToken,
+	skipTableData
 }: {
 	dashboardId: string
 	authToken: string | null
+	skipTableData?: boolean
 }): Promise<ProDashboardServerProps> {
 	const [dashboard, protocolsAndChains, appMetadata] = await Promise.all([
 		fetchDashboardConfig(dashboardId, authToken),
@@ -617,12 +619,12 @@ export async function getProDashboardServerData({
 			emissionResult
 		] = await Promise.allSettled([
 			fetchAllChartData(dashboard.data.items, 'all', null),
-			fetchTableServerData(dashboard.data.items),
+			skipTableData ? Promise.resolve(null) : fetchTableServerData(dashboard.data.items),
 			fetchAllYieldsChartData(dashboard.data.items),
 			fetchProtocolFullData(dashboard.data.items),
 			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod, protocolsAndChains),
 			fetchAdvancedTvlBasicData(dashboard.data.items),
-			fetchUnifiedTableServerData(dashboard.data.items),
+			skipTableData ? Promise.resolve({}) : fetchUnifiedTableServerData(dashboard.data.items),
 			fetchStablecoinsChartData(dashboard.data.items),
 			fetchEmissionData(dashboard.data.items)
 		])

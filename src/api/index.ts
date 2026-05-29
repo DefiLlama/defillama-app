@@ -6,14 +6,10 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
-import { fetchJson } from '~/utils/async'
-import { runBatchPromises } from '~/utils/batchPromises'
-import { recordRuntimeError } from '~/utils/telemetry'
+import { fetchJson, getFastJsonTimeoutMs } from '~/utils/async'
 import type {
 	CoinsChartResponse,
-	CoinsPricesResponse,
 	LlamaConfigResponse,
-	PriceObject,
 	ProtocolLiquidityTokensResponse,
 	ProtocolLlamaswapDataset,
 	ProtocolTokenLiquidityChart,
@@ -42,7 +38,6 @@ export async function searchApi<T = Record<string, unknown>>(query: SearchQuery)
 // ---------------------------------------------------------------------------
 
 const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
-const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
@@ -52,53 +47,6 @@ const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidi
 /** Fetch the global DefiLlama protocol/chain config (chainCoingeckoIds, etc.). */
 export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
 	return fetchJson<LlamaConfigResponse>(CONFIG_API)
-}
-
-/** Fetch current prices for a list of coin identifiers, batched in groups of 10. */
-export async function fetchCoinPrices(
-	coins: Array<string>,
-	options?: { searchWidth?: string }
-): Promise<Record<string, PriceObject>> {
-	if (coins.length === 0) {
-		return {}
-	}
-
-	const batchSize = 10
-	const batches: Array<Array<string>> = []
-	for (let i = 0; i < coins.length; i += batchSize) {
-		batches.push(coins.slice(i, i + batchSize))
-	}
-
-	const batchResults = await runBatchPromises(
-		batches,
-		async (batch) => {
-			const searchParams = new URLSearchParams()
-			if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
-			const queryString = searchParams.toString()
-			const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
-			const response = await fetchJson<CoinsPricesResponse>(url)
-			return response.coins ?? {}
-		},
-		(batch, err) => {
-			recordRuntimeError(err, 'outboundFetch', {
-				target: `${COINS_PRICES_API_URL}/current`,
-				coins: batch,
-				search_width: options?.searchWidth ?? 'default'
-			})
-			return {}
-		}
-	)
-
-	const mergedPrices: Record<string, PriceObject | undefined> = {}
-	for (const batchResult of batchResults) {
-		Object.assign(mergedPrices, batchResult)
-	}
-
-	return coins.reduce<Record<string, PriceObject>>((acc, coin) => {
-		const val = mergedPrices[coin]
-		if (val !== undefined) acc[coin] = val
-		return acc
-	}, {})
 }
 
 /** Fetch historical price chart for a single coin from the coins.llama.fi chart API. */
@@ -165,5 +113,5 @@ const BLOCK_EXPLORERS_API_URL = `${DATASETS_SERVER_URL}/blockExplorers.json`
 
 /** Fetch block explorer URLs for all chains from the datasets server. */
 export async function fetchBlockExplorers(): Promise<BlockExplorersResponse> {
-	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL)
+	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL, { timeout: getFastJsonTimeoutMs() })
 }

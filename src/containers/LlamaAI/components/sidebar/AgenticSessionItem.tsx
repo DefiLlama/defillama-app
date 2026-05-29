@@ -1,6 +1,5 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import Router from 'next/router'
 import { memo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -8,8 +7,10 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AI_SERVER } from '~/constants'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { useClearUnseenCompletion } from '~/containers/LlamaAI/hooks/useClearUnseenCompletion'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
+import { MoveToProjectMenuItem } from '~/containers/LlamaAI/projects/MoveToProjectMenu'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -19,12 +20,12 @@ interface AgenticSessionItemProps {
 	session: ChatSession
 	isActive: boolean
 	onSessionSelect: (sessionId: string) => void
-	onDelete: (sessionId: string) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<void>
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
-	style: React.CSSProperties
+	style?: React.CSSProperties
 	selectMode?: boolean
 	isSelected?: boolean
 	onToggleSelect?: (sessionId: string) => void
@@ -34,7 +35,7 @@ interface AgenticSessionItemProps {
 export const AgenticSessionItem = memo(function AgenticSessionItem({
 	session,
 	isActive,
-	onSessionSelect: _onSessionSelect,
+	onSessionSelect,
 	onDelete,
 	onUpdateTitle,
 	isRestoring,
@@ -49,6 +50,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const { authorizedFetch } = useAuthContext()
 	const { hideSidebar } = useLlamaAIChrome()
 	const queryClient = useQueryClient()
+	const clearUnseenCompletion = useClearUnseenCompletion()
 
 	const [isEditing, setIsEditing] = useState(false)
 	const [isCopyingLink, setIsCopyingLink] = useState(false)
@@ -78,7 +80,8 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
 		trackUmamiEvent('llamaai-session-click')
-		void Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
+		if (session.hasUnseenCompletion) clearUnseenCompletion(sessionId, session.projectId)
+		onSessionSelect(sessionId)
 		if (document.documentElement.clientWidth < 1024) {
 			hideSidebar()
 		}
@@ -90,7 +93,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
 			try {
-				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim() })
+				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim(), projectId: session.projectId })
 				setIsEditing(false)
 			} catch (err) {
 				console.error('Failed to update title:', err)
@@ -102,7 +105,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		if (window.confirm('Are you sure you want to delete this chat?')) {
 			trackUmamiEvent('llamaai-session-delete')
 			try {
-				await onDelete(session.sessionId)
+				await onDelete(session.sessionId, session.projectId)
 				setIsEditing(false)
 			} catch (err) {
 				console.error('Failed to delete session:', err)
@@ -203,6 +206,11 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 				className="flex flex-1 items-center gap-1 overflow-hidden p-1.5 text-left aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.isPinned ? <Icon name="pin" height={10} width={10} className="shrink-0 opacity-40" /> : null}
+				{session.hasUnseenCompletion ? (
+					<Tooltip content="New response ready">
+						<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--old-blue)" aria-label="Unseen completion" />
+					</Tooltip>
+				) : null}
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
 			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
@@ -294,6 +302,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							)}
 							{session.isPublic ? 'Make Private' : 'Make Public'}
 						</Ariakit.MenuItem>
+						<MoveToProjectMenuItem sessionId={session.sessionId} currentProjectId={session.projectId ?? null} />
 						<Ariakit.MenuItem
 							onClick={() => {
 								void handleDelete()

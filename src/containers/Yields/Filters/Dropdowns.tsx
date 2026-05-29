@@ -5,7 +5,7 @@ import { AvailableRange } from '~/components/Filters/AvailableRange'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery } from '~/utils/routerQuery'
+import { pushYieldsQuery } from '../queryUpdates.client'
 import { APYRange } from './APYRange'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -68,13 +68,25 @@ export function YieldFilterDropdowns({
 		const nextAttributes = isBadDebtToggled
 			? safeSelectedAttributes.filter((attribute) => attribute !== BAD_DEBT_KEY)
 			: [...safeSelectedAttributes, BAD_DEBT_KEY]
-		void pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
+		void pushYieldsQuery(router, { attribute: nextAttributes }, { pathname: effectivePathname })
 	}
 	const toggleExcludeRewardApyFilter = () => {
-		void pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
+		void pushYieldsQuery(
+			router,
+			{
+				excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined
+			},
+			{ pathname: effectivePathname }
+		)
 	}
 	const toggleIncludeLsdApyFilter = () => {
-		void pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
+		void pushYieldsQuery(
+			router,
+			{
+				includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined
+			},
+			{ pathname: effectivePathname }
+		)
 	}
 
 	return (
@@ -144,6 +156,9 @@ export function YieldFilterDropdowns({
 					nestedMenu={nestedMenu}
 					variant="secondary"
 					placement="bottom-start"
+					pushQueryUpdates={(updates) => {
+						void pushYieldsQuery(router, updates, { pathname: effectivePathname })
+					}}
 					onValueChange={(min, max) => {
 						const eventData: Record<string, number> = {}
 						if (min != null) eventData.min = min
@@ -162,7 +177,16 @@ export function YieldFilterDropdowns({
 
 			{apyRange ? <APYRange nestedMenu={nestedMenu} placement="bottom-start" /> : null}
 
-			{availableRange ? <AvailableRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" /> : null}
+			{availableRange ? (
+				<AvailableRange
+					nestedMenu={nestedMenu}
+					variant="secondary"
+					placement="bottom-start"
+					pushQueryUpdates={(updates) => {
+						void pushYieldsQuery(router, updates, { pathname: effectivePathname })
+					}}
+				/>
+			) : null}
 
 			{enabledColumns && enabledColumns.length > 0 ? (
 				<ColumnFilters enabledColumns={enabledColumns} nestedMenu={nestedMenu} />

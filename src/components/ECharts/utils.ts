@@ -6,6 +6,38 @@ export function stringToColour() {
 	return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
 }
 
+const iconValidityCache = new Map<string, boolean | Promise<boolean>>()
+
+/** Returns true if `url` is known to load successfully. Use after `validateIconUrl` resolves. */
+export function isIconUrlValid(url: string): boolean {
+	return iconValidityCache.get(url) === true
+}
+
+/**
+ * Probes `url` with an HTMLImageElement and caches the result. Resolves to `true` if the
+ * image loaded, `false` on error. Concurrent calls share the same in-flight promise.
+ */
+export function validateIconUrl(url: string): Promise<boolean> {
+	const cached = iconValidityCache.get(url)
+	if (cached === true || cached === false) return Promise.resolve(cached)
+	if (cached) return cached
+	if (typeof Image === 'undefined') return Promise.resolve(false)
+	const pending = new Promise<boolean>((resolve) => {
+		const img = new Image()
+		img.onload = () => {
+			iconValidityCache.set(url, true)
+			resolve(true)
+		}
+		img.onerror = () => {
+			iconValidityCache.set(url, false)
+			resolve(false)
+		}
+		img.src = url
+	})
+	iconValidityCache.set(url, pending)
+	return pending
+}
+
 /**
  * Transform raw time-series tuples into `[timestampMs, value]` pairs for ECharts bar series.
  * Values within the same period are **summed** (appropriate for bar/volume charts).

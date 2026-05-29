@@ -1,10 +1,13 @@
 import { AI_SERVER } from '~/constants'
 import type {
+	AgenticAnswerMode,
 	AlertProposedData,
 	ChartConfiguration,
 	DashboardArtifact,
+	FactCheckReference,
 	GeneratedImage,
 	MessageMetadata,
+	TodoItem,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
@@ -43,17 +46,23 @@ export interface AgenticSSECallbacks {
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
+	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
+	onFactCheckCitations?: (sources: FactCheckReference[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onMdExport?: (exports: MdExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
 	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
+	onTodos?: (todos: TodoItem[]) => void
 	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
+	onUserMessageId?: (messageId: string) => void
+	onSiblingInfo?: (messageId: string, siblingInfo: SiblingInfoEvent['siblingInfo']) => void
 	onTokenLimit?: () => void
+	onContextWarning?: (warning: ContextWarningPayload) => void
 	onError: (content: string) => void
 	onDone: () => void
 }
@@ -139,6 +148,18 @@ interface CitationsEvent {
 	citations?: string[]
 }
 
+interface FactCheckStatusEvent {
+	type: 'fact_check_status'
+	status: 'drafting' | 'verifying' | 'finalizing'
+}
+
+interface FactCheckCitationsEvent {
+	type: 'fact_check_citations'
+	citations?: FactCheckReference[]
+	sources?: FactCheckReference[]
+	sessionId: string
+}
+
 interface TitleEvent {
 	type: 'title'
 	content: string
@@ -149,9 +170,43 @@ interface MessageIdEvent {
 	messageId: string
 }
 
+interface UserMessageIdEvent {
+	type: 'user_message_id'
+	messageId: string
+}
+
+interface SiblingInfoEvent {
+	type: 'sibling_info'
+	messageId: string
+	siblingInfo: {
+		currentVersion: number
+		totalVersions: number
+		siblings: Array<{ messageId: string; leafMessageId: string }>
+	}
+}
+
 interface TokenLimitEvent {
 	type: 'token_limit'
 	upgradeUrl?: string
+}
+
+export interface ContextWarningPayload {
+	kind: 'long_thread'
+	reason: 'tokens' | 'messages'
+	message: string
+	thresholds?: { input_tokens?: number; messages?: number }
+	observed?: { input_tokens?: number; messages?: number }
+}
+
+interface ContextWarningEvent {
+	type: 'context_warning'
+	content: ContextWarningPayload
+}
+
+interface TodoSnapshotEvent {
+	type: 'todo_snapshot'
+	todos?: TodoItem[]
+	summary?: Record<string, number>
 }
 
 interface ErrorEvent {
@@ -170,6 +225,7 @@ interface MessageMetadataEvent {
 		outputTokens?: number
 		executionTimeMs?: number
 		x402CostUsd?: string
+		completionReason?: string
 	}
 }
 
@@ -186,12 +242,18 @@ type AgenticSSEEvent =
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
 	| CompactionEvent
 	| ({ type: 'tool_execution' } & ToolExecution)
+	| TodoSnapshotEvent
 	| ThinkingEvent
 	| CitationsEvent
+	| FactCheckStatusEvent
+	| FactCheckCitationsEvent
 	| TitleEvent
 	| MessageIdEvent
+	| UserMessageIdEvent
+	| SiblingInfoEvent
 	| MessageMetadataEvent
 	| TokenLimitEvent
+	| ContextWarningEvent
 	| ErrorEvent
 	| DoneEvent
 
@@ -202,7 +264,12 @@ interface RateLimitErrorDetails {
 }
 
 interface RateLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	code?:
+		| 'USAGE_LIMIT_EXCEEDED'
+		| 'FREE_QUESTION_LIMIT'
+		| 'FREE_FORM_LIMIT'
+		| 'FREE_DAILY_LIMIT'
+		| 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
 	details?: RateLimitErrorDetails
 	upgradeUrl?: string
 }
@@ -221,10 +288,10 @@ interface FetchAgenticResponseParams {
 	sessionId?: string | null
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
-	researchMode?: boolean
+	mode?: AgenticAnswerMode
 	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
-	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
 	quotedText?: string
@@ -233,6 +300,8 @@ interface FetchAgenticResponseParams {
 	model?: string
 	effort?: string
 	shareToken?: string
+	editMessageId?: string
+	projectId?: string | null
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -258,9 +327,10 @@ export function parseSSEStream(
 	callbacks: AgenticSSECallbacks,
 	abortSignal?: AbortSignal,
 	eventCounter?: { count: number }
-) {
+): Promise<{ sawDone: boolean }> {
 	const decoder = new TextDecoder()
 	let lineBuffer = ''
+	let sawDone = false
 
 	const handleLine = (line: string) => {
 		if (!line.startsWith('data: ')) return
@@ -268,6 +338,7 @@ export function parseSSEStream(
 		try {
 			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
 			if (eventCounter) eventCounter.count++
+			if (data.type === 'done') sawDone = true
 
 			switch (data.type) {
 				case 'session':
@@ -324,6 +395,9 @@ export function parseSSEStream(
 				case 'tool_execution':
 					callbacks.onToolExecution?.(data)
 					break
+				case 'todo_snapshot':
+					callbacks.onTodos?.(Array.isArray(data.todos) ? data.todos : [])
+					break
 				case 'message_metadata':
 					callbacks.onMessageMetadata?.(data.content)
 					break
@@ -333,14 +407,29 @@ export function parseSSEStream(
 				case 'citations':
 					callbacks.onCitations(data.citations || [])
 					break
+				case 'fact_check_status':
+					callbacks.onFactCheckStatus?.(data.status)
+					break
+				case 'fact_check_citations':
+					callbacks.onFactCheckCitations?.(data.sources || data.citations || [])
+					break
 				case 'title':
 					callbacks.onTitle?.(data.content)
 					break
 				case 'message_id':
 					callbacks.onMessageId?.(data.messageId)
 					break
+				case 'user_message_id':
+					callbacks.onUserMessageId?.(data.messageId)
+					break
+				case 'sibling_info':
+					callbacks.onSiblingInfo?.(data.messageId, data.siblingInfo)
+					break
 				case 'token_limit':
 					callbacks.onTokenLimit?.()
+					break
+				case 'context_warning':
+					if (data.content) callbacks.onContextWarning?.(data.content)
 					break
 				case 'error':
 					callbacks.onError(data.content || 'Unknown error')
@@ -396,6 +485,7 @@ export function parseSSEStream(
 					handleLine(line)
 				}
 			}
+			return { sawDone }
 		} finally {
 			try {
 				reader.releaseLock()
@@ -411,7 +501,7 @@ export async function fetchAgenticResponse({
 	sessionId,
 	callbacks,
 	abortSignal,
-	researchMode,
+	mode,
 	enablePremiumTools,
 	entities,
 	images,
@@ -423,6 +513,8 @@ export async function fetchAgenticResponse({
 	model,
 	effort,
 	shareToken,
+	editMessageId,
+	projectId,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -433,11 +525,11 @@ export async function fetchAgenticResponse({
 		message: string
 		stream: true
 		sessionId?: string
-		researchMode?: true
+		mode?: AgenticAnswerMode
 		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
-		images?: Array<{ data: string; mimeType: string; filename?: string }>
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
 		quotedText?: string
@@ -446,6 +538,8 @@ export async function fetchAgenticResponse({
 		model?: string
 		effort?: string
 		shareToken?: string
+		editMessageId?: string
+		projectId?: string
 	} = {
 		message,
 		stream: true,
@@ -456,9 +550,8 @@ export async function fetchAgenticResponse({
 		requestBody.sessionId = sessionId
 	}
 
-	// Research mode is an opt-in backend feature, so only send the flag when enabled.
-	if (researchMode) {
-		requestBody.researchMode = true
+	if (mode && mode !== 'quick') {
+		requestBody.mode = mode
 	}
 
 	// Timezone helps the backend answer scheduling/date questions in the user's local context.
@@ -506,6 +599,14 @@ export async function fetchAgenticResponse({
 		requestBody.shareToken = shareToken
 	}
 
+	if (projectId) {
+		requestBody.projectId = projectId
+	}
+
+	if (editMessageId) {
+		requestBody.editMessageId = editMessageId
+	}
+
 	const response = await doFetch(`${AI_SERVER}/agentic`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
@@ -528,6 +629,14 @@ export async function fetchAgenticResponse({
 			err.details = errorData.details
 			throw err
 		}
+		if (response.status === 403 && errorData?.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+			const err = new Error(
+				errorData.content || 'Fact-checked answers require an active subscription.'
+			) as RateLimitError
+			err.code = 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
+			err.upgradeUrl = errorData.upgradeUrl
+			throw err
+		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {
 			const err = new Error(errorData.content || 'Usage limit exceeded') as RateLimitError
 			err.code = 'USAGE_LIMIT_EXCEEDED'
@@ -544,7 +653,13 @@ export async function fetchAgenticResponse({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(response.body.getReader(), callbacks, abortSignal, eventCounter)
+	const { sawDone } = await parseSSEStream(response.body.getReader(), callbacks, abortSignal, eventCounter)
+	if (!sawDone && !abortSignal?.aborted) {
+		// Server stream closed cleanly but never sent a `done` event — likely a
+		// dropped final chunk or upstream restart. Surface it as a connectivity
+		// error so the recovery cycle can probe /agentic/active and replay.
+		throw new Error('Stream ended without done event')
+	}
 }
 
 export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
@@ -636,5 +751,8 @@ export async function resumeAgenticStream({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
+	const { sawDone } = await parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
+	if (!sawDone && !abortSignal?.aborted) {
+		throw new Error('Stream ended without done event')
+	}
 }

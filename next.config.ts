@@ -1,21 +1,55 @@
 import type { NextConfig } from 'next'
+import { getDatasetCacheTraceIncludes, type DatasetDomain } from './src/server/datasetCache/registry'
+
+const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTraceIncludes(...domains)
+const buildIdEnvKeys = [
+	'SOURCE_COMMIT',
+	'VERCEL_GIT_COMMIT_SHA',
+	'NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA',
+	'GITHUB_SHA'
+] as const
+
+function resolveBuildIdFromEnv(): string | null {
+	for (const key of buildIdEnvKeys) {
+		const value = process.env[key]?.trim()
+		if (value) return value
+	}
+	return null
+}
 
 const nextConfig: NextConfig = {
 	output: 'standalone',
+	generateBuildId: resolveBuildIdFromEnv,
 	outputFileTracingIncludes: {
-		'/token/*': ['./.cache/datasets/**/*'],
-		'/token-rights': ['./.cache/datasets/**/*'],
-		'/protocol/token-rights/*': ['./.cache/datasets/**/*'],
-		'/protocol/yields/*': ['./.cache/datasets/**/*'],
-		'/api/datasets/*': ['./.cache/datasets/**/*'],
-		'/api/token-liquidations/*': ['./.cache/datasets/**/*'],
-		'/api/liquidations': ['./.cache/datasets/**/*'],
-		'/api/liquidations/*': ['./.cache/datasets/**/*'],
-		'/api/liquidations/*/*': ['./.cache/datasets/**/*']
+		'/*': ['./.cache/app-metadata/**/*'],
+		'/cex/*': datasetCacheIncludes('markets'),
+		'/cex/markets/*': datasetCacheIncludes('markets'),
+		'/token/*': datasetCacheIncludes(
+			'markets',
+			'liquidations',
+			'raises',
+			'treasuries',
+			'yields',
+			'liquidity',
+			'token-rights',
+			'risk'
+		),
+		'/token-rights': datasetCacheIncludes('token-rights'),
+		'/protocol/token-rights/*': datasetCacheIncludes('token-rights'),
+		'/protocol/yields/*': datasetCacheIncludes('yields'),
+		'/yields/pool/*': datasetCacheIncludes('yields'),
+		'/api/public/datasets/borrow': datasetCacheIncludes('yields'),
+		'/api/public/datasets/borrow-advanced': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields/pools': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields-token-borrow-routes': datasetCacheIncludes('yields'),
+		'/api/private/token-liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations/*/*': datasetCacheIncludes('liquidations')
 	},
 	reactStrictMode: true,
 	reactCompiler: true,
-	bundlePagesRouterDependencies: true,
 	experimental: {
 		// Note: 'echarts' intentionally omitted — codebase uses subpath imports only
 		// (echarts/core, echarts/charts, …); optimizePackageImports targets barrel-file

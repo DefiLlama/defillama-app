@@ -24,6 +24,8 @@ interface ISelectWithComboboxBase {
 	portal?: boolean
 	onValuesChange?: (values: string[], label: string) => void
 	defaultSelectedValues?: string[]
+	resetPageOnQueryChange?: boolean
+	pushQueryUpdates?: (updates: Record<string, string | string[] | undefined>) => void
 	unmountOnHide?: boolean
 }
 
@@ -58,6 +60,8 @@ export function SelectWithCombobox({
 	portal,
 	includeQueryKey,
 	excludeQueryKey,
+	resetPageOnQueryChange,
+	pushQueryUpdates,
 	onValuesChange,
 	defaultSelectedValues,
 	unmountOnHide = true
@@ -91,18 +95,39 @@ export function SelectWithCombobox({
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues: (values: string[]) => void = includeQueryKey
 		? (values: string[]) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues, {
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
+				})
 		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues, {
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
+				})
 		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
-		? () => updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues)
+		? () =>
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues, {
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
+				})
 		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), [value], defaultSelectedValues)
+				updateQueryFromSelected(
+					router,
+					includeQueryKey,
+					excludeQueryKey,
+					getAllKeys(),
+					[value],
+					defaultSelectedValues,
+					{
+						resetPage: resetPageOnQueryChange,
+						pushQueryUpdates
+					}
+				)
 		: (value: string) => setSelectedValuesFromState([value])
 	const providerValue = singleSelect ? (selectedValues[0] ?? '') : selectedValues
 	const normalizeNextValues = React.useCallback(
@@ -118,15 +143,14 @@ export function SelectWithCombobox({
 	)
 
 	const [searchValue, setSearchValue] = React.useState('')
-	const deferredSearchValue = React.useDeferredValue(searchValue)
 
 	const matches = React.useMemo(() => {
-		if (!deferredSearchValue) return allValues
+		if (!searchValue) return allValues
 
 		if (valuesAreAnArrayOfStrings) {
 			return matchSorter(
 				allValues.filter((value): value is string => typeof value === 'string'),
-				deferredSearchValue,
+				searchValue,
 				{
 					threshold: matchSorter.rankings.CONTAINS
 				}
@@ -135,13 +159,13 @@ export function SelectWithCombobox({
 
 		return matchSorter(
 			allValues.filter((value): value is SelectOption => typeof value !== 'string'),
-			deferredSearchValue,
+			searchValue,
 			{
 				keys: ['name'],
 				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
-	}, [valuesAreAnArrayOfStrings, allValues, deferredSearchValue])
+	}, [valuesAreAnArrayOfStrings, allValues, searchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

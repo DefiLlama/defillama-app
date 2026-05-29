@@ -1,11 +1,10 @@
-import { fetchCoinPrices } from '~/api'
 import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
+import { fetchCoinPrices } from '~/api/pricing'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchChainChart, fetchChainsByCategoryAll } from '~/containers/Chains/api'
 import type { ChainChartResponse } from '~/containers/Chains/api.types'
 import { fetchRaises } from '~/containers/Raises/api'
-import { fetchEmissionSupplyMetrics } from '~/containers/Unlocks/api'
 import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
@@ -538,24 +537,28 @@ export async function getProtocolsTokenPricesByChain({
 
 export async function getProtocolsAdjustedFDVsByChain({
 	chain,
-	protocolMetadata
+	protocolMetadata,
+	emissionsSupplyMetrics
 }: {
 	chain: string
 	protocolMetadata: Record<string, IProtocolMetadata>
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
-	const [{ protocols, chains, parentProtocols }, emissionsSupplyMetrics]: [
-		{ protocols: ProtocolLite[]; chains: string[]; parentProtocols: ParentProtocolLite[] },
-		ProtocolEmissionSupplyMetricsMap
-	] = await Promise.all([fetchProtocols(), fetchEmissionSupplyMetrics()])
+	const { protocols, chains, parentProtocols } = await fetchProtocols()
 
+	const emissionsSlugByName = new Map<string, string>()
 	const emissionGeckoIds: Record<string, string> = {}
 	for (const protocol of protocols) {
-		if (emissionsSupplyMetrics[slug(protocol.name)] && protocol.geckoId) {
+		const emissionSlug = slug(protocol.name)
+		emissionsSlugByName.set(protocol.name, emissionSlug)
+		if (emissionsSupplyMetrics[emissionSlug] && protocol.geckoId) {
 			emissionGeckoIds[protocol.name] = `coingecko:${protocol.geckoId}`
 		}
 	}
 	for (const parent of parentProtocols) {
-		if (emissionsSupplyMetrics[slug(parent.name)] && parent.gecko_id) {
+		const emissionSlug = slug(parent.name)
+		emissionsSlugByName.set(parent.name, emissionSlug)
+		if (emissionsSupplyMetrics[emissionSlug] && parent.gecko_id) {
 			emissionGeckoIds[parent.name] = `coingecko:${parent.gecko_id}`
 		}
 	}
@@ -564,7 +567,8 @@ export async function getProtocolsAdjustedFDVsByChain({
 
 	const chainsWithEmissions = new Set<string>()
 	for (const protocol of protocols) {
-		if (emissionsSupplyMetrics[slug(protocol.name)]) {
+		const emissionSlug = emissionsSlugByName.get(protocol.name) ?? slug(protocol.name)
+		if (emissionsSupplyMetrics[emissionSlug]) {
 			for (const c of protocol.chains) {
 				chainsWithEmissions.add(c)
 			}
@@ -573,7 +577,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 
 	const getAdjustedFdv = (geckoId: string | undefined, name: string): number | null => {
 		if (!geckoId) return null
-		const slugName = slug(name)
+		const slugName = emissionsSlugByName.get(name) ?? slug(name)
 		const adjustedSupply = emissionsSupplyMetrics[slugName]?.supplyMetrics?.adjustedSupply
 		const price = prices[`coingecko:${geckoId}`]?.price
 		if (adjustedSupply != null && price != null) return price * adjustedSupply

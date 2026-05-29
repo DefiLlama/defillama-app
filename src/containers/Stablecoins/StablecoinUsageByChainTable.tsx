@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
@@ -16,8 +15,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
+import { useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { formattedNum } from '~/utils'
@@ -80,7 +79,9 @@ const stablecoinsByChainColumns = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[160px] min-[900px]:w-[280px]'
+		}
 	}),
 	columnHelper.accessor('bridgeInfo', {
 		header: 'Bridge',
@@ -100,47 +101,47 @@ const stablecoinsByChainColumns = [
 				</>
 			)
 		},
-		size: 240,
 		meta: {
+			headerClassName: 'w-[240px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('bridgedAmount', {
 		header: 'Bridged Amount',
-		size: 145,
 		meta: {
+			headerClassName: 'w-[145px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('change_1d', {
 		header: '1d Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 110,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('change_7d', {
 		header: '7d Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 110,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('change_1m', {
 		header: '1m Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 110,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('circulating', {
 		header: 'Total Circulating',
 		cell: (info) => formattedNum(info.getValue()),
-		size: 145,
 		meta: {
+			headerClassName: 'w-[145px]',
 			align: 'end'
 		}
 	})
@@ -151,32 +152,9 @@ const assetsByChainColumnOrders: ColumnOrdersByBreakpoint = {
 	480: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
 	1024: ['name', 'bridgeInfo', 'bridgedAmount', 'change_1d', 'change_7d', 'change_1m', 'circulating']
 }
-
-const assetsByChainColumnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		name: 160,
-		bridgeInfo: 240,
-		bridgedAmount: 145,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
-		circulating: 145
-	},
-	900: {
-		name: 280,
-		bridgeInfo: 240,
-		bridgedAmount: 145,
-		change_1d: 110,
-		change_7d: 110,
-		change_1m: 110,
-		circulating: 145
-	}
-}
-
 export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainRow[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'circulating', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -187,7 +165,6 @@ export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainR
 			sorting,
 			expanded,
 			columnOrder,
-			columnSizing,
 			columnFilters
 		},
 		defaultColumn: {
@@ -198,7 +175,6 @@ export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainR
 		getSubRows: (row: StablecoinByChainRow) => row.subRows,
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -207,9 +183,8 @@ export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainR
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({
+	useSortColumnOrders({
 		instance,
-		columnSizes: assetsByChainColumnSizes,
 		columnOrders: assetsByChainColumnOrders
 	})
 

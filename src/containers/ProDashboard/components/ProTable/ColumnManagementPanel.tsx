@@ -391,8 +391,8 @@ export function ColumnManagementPanel({
 						<input
 							type="text"
 							placeholder="Search columns..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
+							defaultValue={searchTerm}
+							onInput={(e) => setSearchTerm(e.currentTarget.value)}
 							className="w-full border pro-divider pro-bg2 py-2 pr-3 pl-9 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

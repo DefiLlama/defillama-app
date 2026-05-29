@@ -1,7 +1,6 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { tvlOptions } from '~/components/Filters/options'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
@@ -48,6 +47,7 @@ export const getStaticProps = withPerformanceLogging(
 					kind: 'category',
 					category: categoryName,
 					chain,
+					categoriesAndTags,
 					chainMetadata: metadataCache.chainMetadata
 				})
 			: await getProtocolsByCategoryOrTag({
@@ -55,6 +55,7 @@ export const getStaticProps = withPerformanceLogging(
 					tag: tagName,
 					tagCategory,
 					chain,
+					categoriesAndTags,
 					chainMetadata: metadataCache.chainMetadata
 				})
 
@@ -81,11 +82,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const res = await fetchProtocols()
-
-	const paths = res.protocolCategories.map((category) => ({
-		params: { category: slug(category) }
-	}))
+	const { getProtocolListingStaticPaths } = await import('~/server/routeCache/assets')
+	const paths = await getProtocolListingStaticPaths()
 
 	return { paths, fallback: 'blocking' }
 }

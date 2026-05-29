@@ -255,6 +255,7 @@ interface ChartCsvExportButtonProps {
 	smol?: boolean
 	filename?: string
 	prepareCsvDirect?: () => { filename: string; rows: Array<Array<CsvCell>> }
+	onExport?: (info: { filename: string }) => void
 }
 
 const DEFAULT_CLASSNAME =
@@ -265,16 +266,22 @@ export function ChartCsvExportButton({
 	className = DEFAULT_CLASSNAME,
 	smol = true,
 	filename,
-	prepareCsvDirect
+	prepareCsvDirect,
+	onExport
 }: ChartCsvExportButtonProps) {
 	const prepareCsv = useCallback(() => {
-		if (prepareCsvDirect) return prepareCsvDirect()
-		const instance = chartInstance()
-		if (!instance) {
-			throw new Error('Failed to get chart instance')
-		}
-		return buildCsvFromChart({ instance, filenameBase: filename })
-	}, [chartInstance, filename, prepareCsvDirect])
+		const result = prepareCsvDirect
+			? prepareCsvDirect()
+			: (() => {
+					const instance = chartInstance()
+					if (!instance) {
+						throw new Error('Failed to get chart instance')
+					}
+					return buildCsvFromChart({ instance, filenameBase: filename })
+				})()
+		onExport?.({ filename: result.filename })
+		return result
+	}, [chartInstance, filename, prepareCsvDirect, onExport])
 
 	return (
 		<CSVDownloadButton prepareCsv={prepareCsv} replaceClassName className={className} smol={smol}>

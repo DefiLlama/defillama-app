@@ -4,9 +4,9 @@ import {
 	fetchCoinGeckoChartByIdWithCacheFallback,
 	fetchCoinGeckoIdByAddress,
 	fetchCoinGeckoTokensListFromDataset,
-	fetchCoinPriceByCoinGeckoIdViaLlamaPrices,
 	fetchDenominationPriceHistoryByCoinGeckoId
 } from '~/api/coingecko'
+import { fetchCoinPriceByCoinGeckoIdViaLlamaPrices } from '~/api/pricing'
 import type {
 	CgChartResponse,
 	DenominationPriceHistory,

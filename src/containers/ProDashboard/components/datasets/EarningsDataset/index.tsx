@@ -292,15 +292,17 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 			</div>
 			<TableBody table={instance} />
 			<TablePagination table={instance} />
-			<CategoryFilterModal
-				isOpen={showFilterModal}
-				onClose={() => setShowFilterModal(false)}
-				onApply={(include, exclude) => handleApplyCategoryFilters(include, exclude)}
-				onClear={handleClearCategoryFilters}
-				categories={availableCategories}
-				initialInclude={filteredIncludeCategories}
-				initialExclude={filteredExcludeCategories}
-			/>
+			{showFilterModal ? (
+				<CategoryFilterModal
+					isOpen
+					onClose={() => setShowFilterModal(false)}
+					onApply={(include, exclude) => handleApplyCategoryFilters(include, exclude)}
+					onClear={handleClearCategoryFilters}
+					categories={availableCategories}
+					initialInclude={filteredIncludeCategories}
+					initialExclude={filteredExcludeCategories}
+				/>
+			) : null}
 		</div>
 	)
 }

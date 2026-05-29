@@ -6,7 +6,6 @@ import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import metadataCache, { refreshMetadataIfStale } from '~/utils/metadata'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type BridgesPageData = Awaited<ReturnType<typeof getBridgeOverviewPageData>>
@@ -30,14 +29,12 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		await refreshMetadataIfStale()
-
 		const chainSlug = slug(params.chain)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const supportedChainSlugs = metadataCache.bridgeChainSlugs ?? []
-		const isChainCacheAvailable = supportedChainSlugs.length > 0
 		const isKnownChainRoute = supportedChainSlugs.includes(chainSlug)
 
-		if (isChainCacheAvailable && !isKnownChainRoute) {
+		if (!isKnownChainRoute) {
 			return {
 				notFound: true,
 				revalidate: maxAgeForNext([22])
@@ -50,26 +47,9 @@ export const getStaticProps = withPerformanceLogging(
 			const data = await getBridgeOverviewPageData(canonicalChain, { includeBridgeTxCounts: true })
 
 			if (!data) {
-				if (!isKnownChainRoute) {
-					return {
-						notFound: true,
-						revalidate: maxAgeForNext([22])
-					}
-				}
-
 				return {
 					props: { state: 'disabled', chainSlug, chainLabel: canonicalChain },
 					revalidate: maxAgeForNext([22])
-				}
-			}
-
-			if (!isChainCacheAvailable) {
-				const hasBridgeResults = (data.filteredBridges?.length ?? 0) + (data.messagingProtocols?.length ?? 0) > 0
-				if (!hasBridgeResults) {
-					return {
-						notFound: true,
-						revalidate: maxAgeForNext([22])
-					}
 				}
 			}
 
@@ -79,13 +59,6 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		} catch (error) {
 			console.error(`[bridges] failed to fetch data for ${canonicalChain}:`, error)
-
-			if (!isKnownChainRoute) {
-				return {
-					notFound: true,
-					revalidate: maxAgeForNext([22])
-				}
-			}
 
 			return {
 				props: { state: 'disabled', chainSlug, chainLabel: canonicalChain },

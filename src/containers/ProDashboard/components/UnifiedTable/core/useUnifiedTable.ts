@@ -14,8 +14,7 @@ import {
 	type VisibilityState,
 	type Table
 } from '@tanstack/react-table'
-import { useContext } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import { StreamDoneContext } from '../../../queries'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
@@ -73,7 +72,7 @@ const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHead
 
 const fetchUnifiedTableRows = async (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]) => {
 	const queryString = buildQueryString(config, rowHeaders)
-	const response = await fetch(`/api/unified-table/protocols?${queryString}`)
+	const response = await fetch(`/api/public/unified-table/protocols?${queryString}`)
 
 	if (!response.ok) {
 		throw new Error('Failed to load ProTable data')
@@ -125,10 +124,12 @@ export function useUnifiedTable({
 		setChainMetrics(data?.chainMetrics)
 	}, [data?.chainMetrics])
 
+	const deferredSearchTerm = useDeferredValue(searchTerm)
+
 	const filteredRows = useMemo(() => {
 		const withFilters = filterRowsByConfig(data?.rows ?? EMPTY_ROWS, config.filters)
-		return filterRowsBySearch(withFilters, searchTerm)
-	}, [data?.rows, config.filters, searchTerm])
+		return filterRowsBySearch(withFilters, deferredSearchTerm)
+	}, [data?.rows, config.filters, deferredSearchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.customColumns), [config.customColumns])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])

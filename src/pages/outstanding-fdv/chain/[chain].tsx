@@ -32,7 +32,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const data = await getProtocolsAdjustedFDVsByChain({
 			chain: metadataCache.chainMetadata[chain].name,
-			protocolMetadata: metadataCache.protocolMetadata
+			protocolMetadata: metadataCache.protocolMetadata,
+			emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
 		})
 
 		if (!data) throw new Error(`Missing page data for route=/outstanding-fdv/chain/[chain] chain=${chain}`)

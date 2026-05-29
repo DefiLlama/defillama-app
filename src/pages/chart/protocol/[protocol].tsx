@@ -33,7 +33,6 @@ export const getStaticProps = withPerformanceLogging(
 		const protocol = params.protocol
 		const normalizedName = slug(protocol)
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
@@ -53,7 +52,8 @@ export const getStaticProps = withPerformanceLogging(
 			currentProtocolMetadata: metadata[1],
 			chainMetadata: metadataCache.chainMetadata,
 			tokenlist: metadataCache.tokenlist,
-			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers,
+			emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
 		})
 
 		if (!data) {
@@ -151,10 +151,11 @@ export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 		tvlSettings,
 		feesSettings
 	})
+	const hasVisibleCharts = Object.keys(finalCharts).length > 0
 
 	return (
 		<div className="col-span-full flex min-h-[360px] flex-col">
-			{loadingCharts ? (
+			{!hasVisibleCharts && loadingCharts.length > 0 ? (
 				<div className="flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>

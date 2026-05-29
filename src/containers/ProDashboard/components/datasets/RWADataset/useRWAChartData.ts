@@ -180,11 +180,8 @@ function getTotalFromMap(map: Record<string, number> | null | undefined): number
 function resolveIconUrl(asset: IFetchedRWAProject): string | null {
 	if (asset.coingeckoId) return tokenIconUrl(asset.coingeckoId)
 	const logo = asset.logo
-	if (!logo) return null
-	if (typeof logo === 'boolean') return null
-	const first = Array.isArray(logo) ? logo[0] : logo
-	if (!first || !first.startsWith('http')) return null
-	return first
+	if (!logo || !logo.startsWith('http')) return null
+	return logo
 }
 
 export function useRWAAssetsList() {

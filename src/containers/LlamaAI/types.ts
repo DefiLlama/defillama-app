@@ -51,6 +51,7 @@ export interface ChartConfiguration {
 	}
 
 	hallmarks?: Array<[number] | [number, string]>
+	hallmarkStyle?: 'event-rail' | 'mark-line'
 
 	displayOptions?: {
 		canStack: boolean
@@ -59,6 +60,7 @@ export interface ChartConfiguration {
 		supportsGrouping: boolean
 		defaultStacked?: boolean
 		defaultPercentage?: boolean
+		defaultLogScale?: boolean
 		showLabels?: boolean
 	}
 }
@@ -83,6 +85,8 @@ export interface ChatSession {
 	pinnedAt?: string
 	forkedFromShareToken?: string | null
 	isOptimistic?: boolean
+	projectId?: string | null
+	hasUnseenCompletion?: boolean
 }
 
 export interface ResearchUsage {
@@ -100,7 +104,11 @@ export interface AlertProposedData {
 		hour: number
 		timezone: string
 		dayOfWeek?: number
-		deliveryChannel?: 'email' | 'telegram'
+		deliveryChannel?: 'email' | 'telegram' | 'slack'
+		slackTeamId?: string | null
+		slackTeamName?: string | null
+		slackChannelId?: string | null
+		slackChannelName?: string | null
 	}
 	schedule_expression: string
 	next_run_at: string
@@ -144,7 +152,11 @@ export interface AlertIntent {
 	hour: number
 	timezone: string
 	dayOfWeek?: number
-	deliveryChannel?: 'email' | 'telegram'
+	deliveryChannel?: 'email' | 'telegram' | 'slack'
+	slackTeamId?: string | null
+	slackTeamName?: string | null
+	slackChannelId?: string | null
+	slackChannelName?: string | null
 	toolExecutions: Array<{
 		toolName: string
 		arguments: JsonObject
@@ -213,6 +225,12 @@ export interface MessageMetadata {
 	outputTokens?: number
 	executionTimeMs?: number
 	x402CostUsd?: string
+	completionReason?: string
+}
+
+export interface UpgradeOffer {
+	code: 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	resetTime?: string | null
 }
 
 export interface Message {
@@ -222,17 +240,32 @@ export interface Message {
 	csvExports?: CsvExport[]
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	citations?: string[]
+	factCheckReferences?: FactCheckReference[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
-	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: GeneratedImage[]
 	id?: string
+	parentId?: string
+	siblingInfo?: {
+		currentVersion: number
+		totalVersions: number
+		siblings: Array<{ messageId: string; leafMessageId: string }>
+	}
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
 	thinking?: string
 	quotedText?: string
 	messageMetadata?: MessageMetadata
+	upgradeOffer?: UpgradeOffer
 }
 
 export interface ChartSet {
@@ -264,6 +297,12 @@ export interface SpawnAgentStatus {
 	findingsPreview?: string
 }
 
+export interface TodoItem {
+	id: string
+	content: string
+	status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+}
+
 export interface SearchMatch {
 	message_id: string | null
 	source_type: 'session_title' | 'user_message' | 'assistant_chunk'
@@ -276,4 +315,28 @@ export interface SearchResult {
 	session_title: string | null
 	last_activity: string | null
 	matches: SearchMatch[]
+}
+
+export type AgenticAnswerMode = 'quick' | 'fact_checked' | 'research'
+
+export interface FactCheckReference {
+	id?: number
+	label: string
+	url?: string
+	detail?: string
+	checked?: string
+	asOf?: string
+	evidence?: string[]
+	sourceType?: string
+}
+
+export interface FactCheckedUsage {
+	allowed: boolean
+	currentUsage: number
+	limit: number
+	period: 'daily' | 'lifetime' | 'unlimited' | 'blocked' | 'biweekly'
+	remaining: number
+	remainingUsage: number
+	resetTime?: string
+	message?: string
 }

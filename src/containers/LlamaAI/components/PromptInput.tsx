@@ -1,13 +1,4 @@
-import {
-	type Dispatch,
-	type RefObject,
-	type SetStateAction,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState
-} from 'react'
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { CapabilityChips } from '~/containers/LlamaAI/components/input/CapabilityChips'
@@ -20,7 +11,7 @@ import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
 import { fileToBase64, useImageUpload } from '~/containers/LlamaAI/hooks/useImageUpload'
-import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { setInputSize, syncHighlightScroll } from '~/containers/LlamaAI/utils/scrollUtils'
 import { highlightWord } from '~/containers/LlamaAI/utils/textUtils'
 import { useMedia } from '~/hooks/useMedia'
@@ -40,7 +31,7 @@ interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: undefined,
 		isSuggestedQuestion?: boolean
 	) => void | Promise<void>
@@ -54,15 +45,18 @@ interface PromptInputProps {
 		text: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
 	} | null
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
 	droppedFiles?: File[] | null
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
 	onOpenAlerts?: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 	walkthroughActive?: boolean
 }
 
@@ -84,15 +78,18 @@ export function PromptInput({
 	isStreaming,
 	placeholder,
 	restoreRequest,
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	researchUsage,
+	factCheckedUsage,
+	onFactCheckedGated,
 	droppedFiles,
 	clearDroppedFiles,
 	externalDragging,
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
+	enterToSend,
 	walkthroughActive
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
@@ -100,7 +97,6 @@ export function PromptInput({
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
 	const valueRef = useRef(value)
-	const selectedImageIdsRef = useRef<string[]>([])
 	const isSuggestedRef = useRef(false)
 	const shiftHeldRef = useRef(false)
 
@@ -137,6 +133,7 @@ export function PromptInput({
 			selectionEnd?: number
 			focus?: boolean
 		}) => {
+			valueRef.current = nextValue
 			pendingSelectionRef.current =
 				selectionStart == null
 					? null
@@ -202,10 +199,6 @@ export function PromptInput({
 		valueRef.current = value
 	}, [value])
 
-	useEffect(() => {
-		selectedImageIdsRef.current = imageUpload.selectedImages.map(({ id }) => id)
-	}, [imageUpload.selectedImages])
-
 	// Handle restore request (e.g., failed submission retry)
 	useEffect(() => {
 		if (!restoreRequest) return
@@ -258,34 +251,38 @@ export function PromptInput({
 		setSubmitError((current) => (current ? null : current))
 	}, [])
 
-	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File }>) => {
-		const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
+	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File; isPasted?: boolean }>) => {
+		const imagePromises: Promise<{ data: string; mimeType: string; filename: string; isPasted?: boolean }>[] = []
 		for (let i = 0; i < imagesToSend.length; i++) {
 			const file = imagesToSend[i].file
 			imagePromises.push(
 				fileToBase64(file).then((data) => ({
 					data,
 					mimeType: file.type,
-					filename: file.name
+					filename: file.name,
+					...(imagesToSend[i].isPasted ? { isPasted: true } : {})
 				}))
 			)
 		}
 		return Promise.all(imagePromises)
 	}, [])
 
-	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ id: string }>) => {
-		const currentValue = valueRef.current
-		const currentIds = selectedImageIdsRef.current
-		if (currentValue !== promptValue) return false
+	const shouldResetSubmittedDraft = useCallback(
+		(promptValue: string, imagesToSend: Array<{ id: string }>) => {
+			const currentValue = valueRef.current
+			const currentIds = imageUpload.getSelectedImageIds()
+			if (currentValue !== promptValue) return false
 
-		if (imagesToSend.length !== currentIds.length) return false
+			if (imagesToSend.length !== currentIds.length) return false
 
-		for (let index = 0; index < imagesToSend.length; index++) {
-			if (imagesToSend[index].id !== currentIds[index]) return false
-		}
+			for (let index = 0; index < imagesToSend.length; index++) {
+				if (imagesToSend[index].id !== currentIds[index]) return false
+			}
 
-		return true
-	}, [])
+			return true
+		},
+		[imageUpload]
+	)
 
 	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
@@ -324,19 +321,27 @@ export function PromptInput({
 		}
 	}
 
-	// Let the combobox own navigation keys first, then submit on Enter when no suggestion is active.
+	const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		// Ariakit's composite proxy forwards Enter to the active @ suggestion, swallowing
+		// the textarea's native newline. Stop capture propagation so the configured newline shortcut
+		// keeps the textarea behavior before combobox handlers see the event.
+		if (event.key === 'Enter' && event.shiftKey === enterToSend) {
+			event.stopPropagation()
+		}
+	}
+
+	// Let the combobox own navigation keys first, then submit on the configured shortcut.
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		const shouldSubmit = event.key === 'Enter' && event.shiftKey !== enterToSend
+
 		// First let entity combobox handle the event
-		entityCombobox.handleKeyDown(event)
+		if (!shouldSubmit) {
+			entityCombobox.handleKeyDown(event)
+		}
 		if (event.defaultPrevented) return
 
 		// Handle enter for submission
-		if (
-			event.key === 'Enter' &&
-			!event.shiftKey &&
-			!entityCombobox.hasRenderedItems &&
-			!event.nativeEvent.isComposing
-		) {
+		if (shouldSubmit && !entityCombobox.hasRenderedItems && !event.nativeEvent.isComposing) {
 			event.preventDefault()
 			if (isStreaming) return
 			void submitForm(value)
@@ -475,6 +480,7 @@ export function PromptInput({
 				isStreaming={isStreaming}
 				onScroll={handleScroll}
 				onChange={handleChange}
+				onKeyDownCapture={handleKeyDownCapture}
 				onKeyDown={handleKeyDown}
 				onPaste={handlePaste}
 				onCompositionStart={entityCombobox.handleCompositionStart}
@@ -497,15 +503,17 @@ export function PromptInput({
 			<div className="flex items-center justify-between gap-4 p-0">
 				<div className="hidden items-center gap-2 sm:flex">
 					<ModeToggle
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
+						mode={mode}
+						setMode={setMode}
 						researchUsage={researchUsage}
+						factCheckedUsage={factCheckedUsage}
+						onFactCheckedGated={onFactCheckedGated}
 					/>
 					<CapabilityChips
 						key={isPending || isStreaming ? 'capability-chips-disabled' : 'capability-chips-enabled'}
 						onPromptSelect={(prompt, categoryKey) => {
 							if (categoryKey === 'research') {
-								setIsResearchMode(true)
+								setMode('research')
 							}
 							isSuggestedRef.current = true
 							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
@@ -525,13 +533,15 @@ export function PromptInput({
 					) : null}
 				</div>
 				<MobileToolsPopover
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
+					mode={mode}
+					setMode={setMode}
 					researchUsage={researchUsage}
+					factCheckedUsage={factCheckedUsage}
+					onFactCheckedGated={onFactCheckedGated}
 					onOpenAlerts={onOpenAlerts}
 					onPromptSelect={(prompt, categoryKey) => {
 						if (categoryKey === 'research') {
-							setIsResearchMode(true)
+							setMode('research')
 						}
 						isSuggestedRef.current = true
 						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })

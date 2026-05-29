@@ -64,23 +64,35 @@ const protocolColumns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
 		}
 	}),
 	protocolColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.chainCount ?? undefined, {
 		id: 'chainCount',
 		header: 'Chains',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[90px]',
+			align: 'end'
+		}
 	}),
 	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 
@@ -98,23 +110,35 @@ const chainColumns = [
 					<span>{chain}</span>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]'
 		}
 	}),
 	chainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	chainColumnHelper.accessor((row) => row.protocolCount ?? undefined, {
 		id: 'protocolCount',
 		header: 'Protocols',
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	chainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[145px]',
+			align: 'end'
+		}
 	})
 ]
 

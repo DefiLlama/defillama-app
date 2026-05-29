@@ -22,8 +22,12 @@ export type PoolOptionalColumnOption = (typeof POOL_OPTIONAL_COLUMN_OPTIONS)[num
 export type PoolColumnQueryKey = PoolOptionalColumnOption['queryKey']
 export type PoolOptionalColumnId = PoolOptionalColumnOption['columnId']
 
-export const ALL_POOL_COLUMN_QUERY_KEYS = POOL_OPTIONAL_COLUMN_OPTIONS.map((option) => option.queryKey)
+const allPoolColumnQueryKeys: PoolColumnQueryKey[] = []
+const poolQueryKeyToColumnId = {} as Record<PoolColumnQueryKey, PoolOptionalColumnId>
+for (const option of POOL_OPTIONAL_COLUMN_OPTIONS) {
+	allPoolColumnQueryKeys.push(option.queryKey)
+	poolQueryKeyToColumnId[option.queryKey] = option.columnId
+}
 
-export const POOL_QUERY_KEY_TO_COLUMN_ID = Object.fromEntries(
-	POOL_OPTIONAL_COLUMN_OPTIONS.map((option) => [option.queryKey, option.columnId])
-) as Record<PoolColumnQueryKey, PoolOptionalColumnId>
+export const ALL_POOL_COLUMN_QUERY_KEYS = allPoolColumnQueryKeys
+export const POOL_QUERY_KEY_TO_COLUMN_ID = poolQueryKeyToColumnId

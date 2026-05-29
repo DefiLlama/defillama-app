@@ -18,11 +18,7 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 import type { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
-export function useModalActions(
-	editItem: DashboardItemConfig | null | undefined,
-	isOpen: boolean,
-	onClose: () => void
-) {
+export function useModalActions(editItem: DashboardItemConfig | null | undefined, onClose: () => void) {
 	const { protocols, chains, protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const {
@@ -46,7 +42,7 @@ export function useModalActions(
 		handleEditItem
 	} = useProDashboardEditorActions()
 
-	const { state, actions } = useModalState(editItem, isOpen)
+	const { state, actions } = useModalState(editItem)
 
 	const selectedProtocolData = useMemo(
 		() => protocols.find((p: Protocol) => p.slug === state.selectedProtocol),
@@ -85,7 +81,7 @@ export function useModalActions(
 
 		parentsOrSolo.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
-		const options: Array<{ value: string; label: string; logo?: string; isChild?: boolean }> = []
+		const options: Array<{ value: string; label: string; logo?: string; isChild?: boolean; parentValue?: string }> = []
 
 		for (const parent of parentsOrSolo) {
 			options.push({ value: parent.slug, label: parent.name, logo: parent.logo })
@@ -93,7 +89,13 @@ export function useModalActions(
 			if (children.length > 0) {
 				children.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 				for (const child of children) {
-					options.push({ value: child.slug, label: child.name, logo: child.logo, isChild: true })
+					options.push({
+						value: child.slug,
+						label: child.name,
+						logo: child.logo,
+						isChild: true,
+						parentValue: parent.slug
+					})
 				}
 			}
 		}

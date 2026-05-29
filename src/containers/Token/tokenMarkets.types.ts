@@ -39,3 +39,16 @@ export interface TokenMarketsResponse {
 	dex: TokenMarketsByCategory
 	totals: Record<TokenMarketVenue, TokenMarketsTotalsByCategory>
 }
+
+export interface TokenMarketsListEntry {
+	exchange_count: number
+	market_count: number
+	symbol: string
+	total_oi_usd: number | null
+	total_volume_24h: number | null
+}
+
+export interface TokenMarketsListResponse {
+	last_updated?: string
+	tokens: TokenMarketsListEntry[]
+}

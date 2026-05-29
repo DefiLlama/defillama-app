@@ -67,6 +67,7 @@ export function formatAdapterData({
 			total24h: data.total24h ?? null,
 			total7d: data.total7d ?? null,
 			total30d: data.total30d ?? null,
+			total1y: data.total1y ?? null,
 			totalAllTime: data.totalAllTime ?? null,
 			...(methodologyKey === 'HoldersRevenue'
 				? {
@@ -94,6 +95,7 @@ export function formatAdapterData({
 		total24h: data.total24h ?? null,
 		total7d: data.total7d ?? null,
 		total30d: data.total30d ?? null,
+		total1y: data.total1y ?? null,
 		totalAllTime: data.totalAllTime ?? null,
 		methodology: methodologyKey
 			? (data.methodology?.[methodologyKey] ?? commonMethodologyMap[methodologyKey] ?? null)

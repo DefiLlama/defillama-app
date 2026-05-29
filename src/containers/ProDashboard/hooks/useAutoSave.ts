@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
-import { AUTH_SERVER } from '~/constants'
 import pb from '~/utils/pocketbase'
 import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
+import { buildDashboardSaveRequest } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
 
 interface UseAutoSaveOptions {
@@ -31,6 +31,7 @@ interface UseAutoSaveOptions {
 	}) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
 	isFreeUser: boolean
+	mode?: 'view' | 'edit'
 	delay?: number
 }
 
@@ -71,13 +72,16 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 		const token = pb.authStore.token
 
 		if (pending && token) {
-			void fetch(`${AUTH_SERVER}/dashboards/${pending.dashboardId}`, {
-				method: 'POST',
+			const { url, options: requestOptions } = buildDashboardSaveRequest({
+				id: pending.dashboardId,
+				data: pending.data
+			})
+			void fetch(url, {
+				...requestOptions,
 				headers: {
-					'Content-Type': 'application/json',
+					...requestOptions.headers,
 					Authorization: `Bearer ${token}`
 				},
-				body: JSON.stringify({ data: pending.data }),
 				keepalive: true
 			})
 			pendingDataRef.current = null
@@ -121,11 +125,12 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 			cleanItemsForSaving,
 			updateDashboard,
 			isFreeUser,
+			mode = 'edit',
 			delay = 800
 		} = optionsRef.current
 
 		const isOwner = currentDashboard && userId && currentDashboard.user === userId
-		const shouldBlock = !dashboardId || !isAuthenticated || isReadOnly || !isOwner
+		const shouldBlock = mode === 'view' || !dashboardId || !isAuthenticated || isReadOnly || !isOwner
 
 		if (shouldBlock) {
 			return

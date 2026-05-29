@@ -44,7 +44,7 @@ const buildAdapterProtocolBreakdownApiUrl = ({
 		searchParams.set('dataType', dataType)
 	}
 
-	return `/api/charts/protocol?${searchParams.toString()}`
+	return `/api/public/charts/protocol?${searchParams.toString()}`
 }
 
 export const DimensionProtocolChartByType = ({

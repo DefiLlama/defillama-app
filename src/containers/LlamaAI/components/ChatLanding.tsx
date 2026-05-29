@@ -1,11 +1,15 @@
 import * as Ariakit from '@ariakit/react'
-import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef } from 'react'
+import Router from 'next/router'
+import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { useTipActions } from '~/containers/LlamaAI/components/TipActionContext'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
-import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import { useActiveTip } from '~/containers/LlamaAI/hooks/useLlamaAITip'
+import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
+import { isSettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
@@ -18,67 +22,153 @@ const FEATURED_CAPABILITIES = FEATURED_KEYS.map((key) => CAPABILITIES.find((c) =
 
 export interface ChatLandingProps {
 	readOnly: boolean
+	isSharedView?: boolean
 	title: string
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
 		isSuggestedQuestion?: boolean
 	) => void | Promise<void>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	handleStopRequest: () => void
 	isStreaming: boolean
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 }
 
 export function ChatLanding({
 	readOnly,
+	isSharedView = false,
 	title,
 	handleSubmit,
 	promptInputRef,
 	handleStopRequest,
 	isStreaming,
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	researchUsage,
+	factCheckedUsage,
+	onFactCheckedGated,
 	onOpenAlerts,
 	quotedText,
-	onClearQuotedText
+	onClearQuotedText,
+	enterToSend
 }: ChatLandingProps) {
 	const { hasActiveSubscription } = useAuthContext()
 	const [hasSeenWelcome, markWelcomeSeen] = useLlamaAIWelcome(hasActiveSubscription)
+	const { tip, dismissTip, clickTip } = useActiveTip()
+	const tipActions = useTipActions()
+	const greetingTip = !readOnly && !isSharedView && hasSeenWelcome && tip?.placement === 'greeting' ? tip : null
+	const showBanner = !readOnly && !isSharedView && hasSeenWelcome && !greetingTip
+
+	useEffect(() => {
+		if (readOnly || isSharedView || !hasSeenWelcome) return
+		promptInputRef.current?.focus()
+	}, [readOnly, isSharedView, hasSeenWelcome, promptInputRef])
+
+	const onGreetingCta = () => {
+		if (!greetingTip || greetingTip.cta.kind === 'none') return
+		void clickTip(greetingTip, greetingTip.cta.kind === 'link' ? 'link' : greetingTip.cta.action)
+		if (greetingTip.cta.kind === 'link') {
+			if (greetingTip.cta.external) window.open(greetingTip.cta.href, '_blank', 'noopener,noreferrer')
+			else void Router.push(greetingTip.cta.href)
+			return
+		}
+		switch (greetingTip.cta.action) {
+			case 'open-settings': {
+				const payload = greetingTip.cta.kind === 'action' ? greetingTip.cta.payload : undefined
+				const tab = isSettingsTabId(payload?.tab) ? payload.tab : undefined
+				tipActions.openSettingsModal?.(tab)
+				break
+			}
+			case 'open-alerts':
+				tipActions.openAlertsModal?.()
+				break
+			case 'open-research-mode':
+				tipActions.toggleResearchMode?.()
+				break
+			case 'submit-prompt':
+				if (greetingTip.cta.prompt) tipActions.submitPrompt?.(greetingTip.cta.prompt)
+				break
+		}
+	}
 
 	return (
-		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden">
+		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden px-2.5">
 			<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 lg:mt-[100px] lg:flex-none lg:justify-start">
 				<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-				<h1 className="text-center text-2xl font-semibold">{title}</h1>
+				{greetingTip && greetingTip.cta.kind !== 'none' ? (
+					<span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8c089]/30 bg-[#e8c089]/[0.07] px-2.5 py-1 text-[10px] font-medium tracking-[0.18em] text-[#a17f47] uppercase dark:text-[#e8c089]/85">
+						<Icon name="sparkles" height={11} width={11} />
+						Suggested for you
+					</span>
+				) : null}
+				<h1 className="text-center text-2xl font-semibold">{greetingTip ? greetingTip.title : title}</h1>
+				{greetingTip && greetingTip.cta.kind !== 'none' ? (
+					<div className="flex items-center gap-3 text-[13px]">
+						<button
+							type="button"
+							onClick={onGreetingCta}
+							className="group inline-flex items-center gap-1.5 font-medium text-[#a17f47] transition-colors hover:text-[#86663a] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e8c089]/60 dark:text-[#e8c089] dark:hover:text-[#f3d6a3]"
+						>
+							<span className="border-b border-[#e8c089]/0 pb-px transition-colors duration-200 group-hover:border-[#e8c089]/50">
+								{greetingTip.cta.label}
+							</span>
+							<Icon
+								name="arrow-right"
+								height={12}
+								width={12}
+								className="transition-transform duration-200 group-hover:translate-x-0.5"
+							/>
+						</button>
+						<span className="h-3 w-px bg-[#9aa4b2]/30 dark:bg-[#71717a]/30" aria-hidden />
+						<button
+							type="button"
+							onClick={() => void dismissTip(greetingTip)}
+							className="text-[#9aa4b2]/75 transition-colors hover:text-[#5f6b7c] dark:text-[#71717a]/70 dark:hover:text-[#a1a1aa]"
+						>
+							Not now
+						</button>
+					</div>
+				) : null}
+				{showBanner ? (
+					<div className="w-full">
+						<TipOrNotifyBanner />
+					</div>
+				) : null}
 			</div>
 			{!readOnly ? (
 				<>
-					{hasSeenWelcome ? <TipOrNotifyBanner /> : null}
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={isStreaming}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-						restoreRequest={null}
-						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={researchUsage}
-						onOpenAlerts={onOpenAlerts}
-						quotedText={quotedText}
-						onClearQuotedText={onClearQuotedText}
-						walkthroughActive={!hasSeenWelcome}
-					/>
+					<div className="relative w-full">
+						<PromptInput
+							handleSubmit={handleSubmit}
+							promptInputRef={promptInputRef}
+							isPending={isStreaming}
+							handleStopRequest={handleStopRequest}
+							isStreaming={isStreaming}
+							restoreRequest={null}
+							placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+							mode={mode}
+							setMode={setMode}
+							researchUsage={researchUsage}
+							factCheckedUsage={factCheckedUsage}
+							onFactCheckedGated={onFactCheckedGated}
+							onOpenAlerts={onOpenAlerts}
+							quotedText={quotedText}
+							onClearQuotedText={onClearQuotedText}
+							enterToSend={enterToSend}
+							walkthroughActive={!hasSeenWelcome}
+						/>
+					</div>
 
 					<CapabilityRow promptInputRef={promptInputRef} />
 				</>
@@ -86,8 +176,8 @@ export function ChatLanding({
 
 			{!readOnly && !hasSeenWelcome ? (
 				<OnboardingWalkthrough
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
+					mode={mode}
+					setMode={setMode}
 					handleSubmit={handleSubmit}
 					promptInputRef={promptInputRef}
 					onComplete={markWelcomeSeen}

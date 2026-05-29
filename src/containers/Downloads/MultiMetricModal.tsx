@@ -204,7 +204,7 @@ export function MultiMetricModal({
 				queryFn: async () => {
 					if (!datasetValue) throw new Error(`Not available for this ${PARAM_LABELS[paramType].singular}`)
 					const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-					const url = `/api/downloads/chart/${slug}?param=${encodeURIComponent(datasetValue)}${nonce}`
+					const url = `/api/private/downloads/chart/${slug}?param=${encodeURIComponent(datasetValue)}${nonce}`
 					const resp = isPreview ? await fetch(url) : await authorizedFetch(url)
 					if (!resp || !resp.ok) {
 						const msg = (await resp?.json().catch(() => null))?.error ?? `Download failed (${resp?.status})`

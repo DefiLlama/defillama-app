@@ -67,7 +67,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 		cell: ({ getValue }) => (
 			<span className="whitespace-nowrap text-(--text-secondary)">{toNiceDayAndHour(getValue())}</span>
 		),
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]'
+		}
 	}),
 	columnHelper.accessor('bridge_name', {
 		header: 'Bridge',
@@ -79,7 +81,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				{row.original.bridge_name}
 			</BasicLink>
 		),
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]'
+		}
 	}),
 	columnHelper.accessor('chain', {
 		header: 'Chain',
@@ -89,7 +93,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				<span>{getValue()}</span>
 			</span>
 		),
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
 	columnHelper.accessor('is_deposit', {
 		header: 'Direction',
@@ -106,7 +112,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				</span>
 			)
 		},
-		size: 130
+		meta: {
+			headerClassName: 'w-[130px]'
+		}
 	}),
 	columnHelper.accessor('token', {
 		header: 'Token',
@@ -144,7 +152,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				</a>
 			)
 		},
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
 	columnHelper.accessor('amount', {
 		header: 'Amount',
@@ -153,8 +163,10 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				{getValue()}
 			</span>
 		),
-		size: 120,
-		meta: { align: 'end' as const }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end' as const
+		}
 	}),
 	columnHelper.accessor('usd_value', {
 		header: 'USD Value',
@@ -163,8 +175,10 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 			if (value == null) return <span className="text-(--text-tertiary)">—</span>
 			return <span className="font-medium tabular-nums">{formattedNum(value, true)}</span>
 		},
-		size: 130,
-		meta: { align: 'end' as const }
+		meta: {
+			headerClassName: 'w-[130px]',
+			align: 'end' as const
+		}
 	}),
 	columnHelper.accessor('tx_from', {
 		header: 'From',
@@ -192,7 +206,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				</a>
 			)
 		},
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]'
+		}
 	}),
 	columnHelper.accessor('tx_to', {
 		header: 'To',
@@ -220,7 +236,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				</a>
 			)
 		},
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]'
+		}
 	}),
 	columnHelper.accessor('tx_hash', {
 		header: 'Transaction',
@@ -253,7 +271,9 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 				</a>
 			)
 		},
-		size: 170
+		meta: {
+			headerClassName: 'w-[170px]'
+		}
 	})
 ]
 

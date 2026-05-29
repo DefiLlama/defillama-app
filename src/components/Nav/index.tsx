@@ -16,6 +16,7 @@ type DefillamaPage = {
 	umamiEvent?: string
 	oldCategory?: string
 	oldName?: string
+	requireLlama?: boolean
 }
 
 type DefillamaPages = Record<string, DefillamaPage[]> & {
@@ -87,19 +88,23 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, user } = useAuthContext()
 	const shouldSkipLanding = isAuthenticated
+	const isLlamaUser = user?.flags?.is_llama === true
 
 	const mainLinks = useMemo(() => {
-		const premium = premiumPages.map((p) => {
-			const route = normalizeAiRoute(p.route, shouldSkipLanding)
-			return route !== p.route ? { ...p, route } : p
-		})
+		const main = mainPages.filter((p) => !p.requireLlama || isLlamaUser)
+		const premium = premiumPages
+			.filter((p) => !p.requireLlama || isLlamaUser)
+			.map((p) => {
+				const route = normalizeAiRoute(p.route, shouldSkipLanding)
+				return route !== p.route ? { ...p, route } : p
+			})
 		return [
-			{ category: 'Main', pages: mainPages },
+			{ category: 'Main', pages: main },
 			{ category: 'Premium', pages: premium }
 		]
-	}, [shouldSkipLanding])
+	}, [shouldSkipLanding, isLlamaUser])
 
 	const userDashboards = useMemo(
 		() =>

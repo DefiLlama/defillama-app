@@ -5,7 +5,6 @@ import { matchSorter } from 'match-sorter'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useDeferredValue, useMemo, useState } from 'react'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import {
 	ChartGroupingSelector,
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
@@ -161,11 +160,6 @@ export function TokenPageHero({
 					<span className="font-bold">{overview.name}</span>
 					{overview.symbol ? <span className="font-normal">({overview.symbol})</span> : null}
 				</Heading>
-				<span className="ml-auto flex items-center gap-2">
-					{overview.llamaswapChains?.length ? (
-						<BuyOnLlamaswap chains={overview.llamaswapChains} placement="token_page" size="large" />
-					) : null}
-				</span>
 			</div>
 			{hasPriceBreakdown ? (
 				<details className="group/price">
@@ -584,7 +578,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									placeholder="Search..."
 									value={metricsSearchValue}
 									className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
-									onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+									onChange={(e) => setMetricsSearchValue(e.currentTarget.value)}
 								/>
 							</label>
 

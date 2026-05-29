@@ -1,43 +1,16 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DIRECTORY_API } from '~/constants'
-import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api.types'
-import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
-import { getErrorMessage } from '~/utils/error'
-import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRuntimeError } from '~/utils/telemetry'
-import type { TokenDirectory } from '~/utils/tokenDirectory'
-import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
+import { COINS_SERVER_URL } from '~/constants'
+import {
+	buildUnlocksHistoricalPriceRequests,
+	type UnlockHistoricalPriceProtocol
+} from '~/utils/unlocks/historicalPriceRequests'
+import type { CoreMetadataPayload } from './artifactContract'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
+import { fetchMetadataJson } from './http'
 import { extractLiquidationsTokenSymbols } from './liquidations'
-import type {
-	ICategoriesAndTags,
-	ICexItem,
-	IChainMetadata,
-	IProtocolMetadata,
-	IRWAList,
-	IRWAPerpsList,
-	ITokenListEntry,
-	ProtocolLlamaswapMetadata
-} from './types'
-
-type RawBridgeInfo = {
-	id?: number
-	name?: string
-	displayName?: string
-	slug?: string
-	chains?: string[]
-	destinationChain?: string
-}
-
-type RawBridgesResponse = {
-	bridges?: RawBridgeInfo[]
-}
-
-type RawCexsResponse = {
-	cexs: ICexItem[]
-	cg_volume_cexs: string[]
-}
-
-type RawTokenListItem = ITokenListEntry & { id: string }
+import { fetchMetadataRouteIndexes } from './routeIndexes'
+import { fetchCoreMetadataSources } from './sources'
+import { dedupeNonEmpty } from './strings'
+import type { IEmissionsHistoricalPrices, ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
 
 const normalizeSlug = (value: unknown): string =>
 	String(value ?? '')
@@ -45,165 +18,68 @@ const normalizeSlug = (value: unknown): string =>
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
 
-const dedupeNonEmpty = (values: string[]): string[] => {
-	const seen = new Set<string>()
-	for (const value of values) {
-		if (!value) continue
-		seen.add(value)
-	}
-	return [...seen]
-}
+const EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE = 50
 
-function previewResponseBody(body: string, length = 200): string {
-	return body.replace(/\s+/g, ' ').trim().slice(0, length)
-}
+async function fetchEmissionsHistoricalPrices(
+	emissions: UnlockHistoricalPriceProtocol[]
+): Promise<IEmissionsHistoricalPrices> {
+	const { priceReqs, hasPriceRequests } = buildUnlocksHistoricalPriceRequests(emissions)
+	if (!hasPriceRequests) return {}
 
-function sanitizeUrlForMetadataLogs(inputUrl: string): string {
-	try {
-		const parsed = new URL(inputUrl)
-		let pathname = parsed.pathname
+	const prices: IEmissionsHistoricalPrices = {}
+	let batchReqs: Record<string, number[]> = {}
+	let batchCount = 0
 
-		// Normalize pro-api paths to avoid exposing API key segments.
-		pathname = pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
-		pathname = pathname.replace(/^\/[^/]+\/rwa(\/|$)/, '/rwa$1')
-		pathname = pathname.replace(/^\/[^/]+\/rwa-perps(\/|$)/, '/rwa-perps$1')
-		pathname = pathname.replace(/^\/[^/]+\/bridges(\/|$)/, '/bridges$1')
+	for (const coin in priceReqs) {
+		batchReqs[coin] = priceReqs[coin]
+		batchCount++
+		if (batchCount < EMISSIONS_HISTORICAL_PRICES_BATCH_SIZE) continue
 
-		return `${pathname}${parsed.search}${parsed.hash}` || '/'
-	} catch {
-		return inputUrl
-	}
-}
-
-async function fetchJson<T = any>(url: string): Promise<T> {
-	const res = await fetchWithPoolingOnServer(url)
-	const body = await res.text()
-	const contentType = res.headers.get('content-type') ?? 'unknown'
-	const urlToLog = sanitizeUrlForMetadataLogs(url)
-	if (!res.ok) {
-		throw new Error(
-			`Metadata request failed for URL: ${urlToLog} (status ${res.status}). Body preview: "${previewResponseBody(body)}"`
-		)
+		Object.assign(prices, await fetchEmissionsHistoricalPriceBatch(batchReqs))
+		batchReqs = {}
+		batchCount = 0
 	}
 
-	try {
-		return JSON.parse(body) as T
-	} catch (error) {
-		throw new Error(
-			`Failed to parse JSON for URL: ${urlToLog} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
-				body
-			)}". Original error: ${getErrorMessage(error)}`
-		)
+	if (batchCount > 0) {
+		Object.assign(prices, await fetchEmissionsHistoricalPriceBatch(batchReqs))
 	}
+
+	return prices
 }
 
-export async function fetchCoreMetadata({
-	existingProtocolLlamaswapDataset
-}: {
-	existingProtocolLlamaswapDataset?: ProtocolLlamaswapMetadata
-} = {}): Promise<{
-	protocols: Record<string, IProtocolMetadata>
-	chains: Record<string, IChainMetadata>
-	categoriesAndTags: ICategoriesAndTags
-	cexs: ICexItem[]
-	rwaList: IRWAList
-	rwaPerpsList: IRWAPerpsList
-	tokenlist: Record<string, ITokenListEntry>
-	tokenDirectory: TokenDirectory
-	protocolDisplayNames: Record<string, string>
-	chainDisplayNames: Record<string, string>
-	liquidationsTokenSymbols: string[]
-	emissionsProtocolsList: string[]
-	cgExchangeIdentifiers: string[]
-	bridgeProtocolSlugs: string[]
-	bridgeChainSlugs: string[]
-	bridgeChainSlugToName: Record<string, string>
-	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
-}> {
-	const API_KEY = process.env.API_KEY
-	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
-	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
-	const RWA_PERPS_SERVER_URL = API_KEY
-		? `https://pro-api.llama.fi/${API_KEY}/rwa-perps`
-		: 'https://api.llama.fi/rwa-perps'
-	const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
-	const DATASETS_SERVER_URL = API_KEY
-		? `https://pro-api.llama.fi/${API_KEY}/datasets`
-		: 'https://defillama-datasets.llama.fi'
-	const LIQUIDATIONS_DATA_URL = `${LIQUIDATIONS_SERVER_URL_V2}/all?zz=14`
+async function fetchEmissionsHistoricalPriceBatch(coins: Record<string, number[]>) {
+	const response = await fetchMetadataJson<{ coins?: IEmissionsHistoricalPrices }>(
+		`${COINS_SERVER_URL}/pro/prices/historical`,
+		{
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ coins, searchWidth: '6h' })
+		}
+	)
+	if (!response.coins) throw new Error('Emissions historical prices response did not include coins')
+	return response.coins
+}
 
-	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=14`
-	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=14`
-	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=14`
-	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=14`
-	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=14`
-	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=14`
-	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=14`
-	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
-
-	const isDev = process.env.NODE_ENV === 'development'
-
-	const fetchWithDevFallback = <T>(url: string, fallback: T): Promise<T> =>
-		isDev
-			? fetchJson<T>(url).catch((error) => {
-					recordRuntimeError(error, 'pageBuild')
-					return fallback
-				})
-			: fetchJson<T>(url)
-
+export async function fetchCoreMetadata(): Promise<CoreMetadataPayload> {
 	const [
-		protocols,
-		chains,
-		categoriesAndTags,
-		cexsResponse,
-		rwaList,
-		rwaPerpsList,
-		tokenlistArray,
-		tokenDirectory,
-		liquidationsResponse,
-		bridgesResponse
-	] = await Promise.all([
-		fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
-		fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
-		fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
-			categories: [],
-			tags: [],
-			tagCategoryMap: {},
-			configs: {}
-		}),
-		fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
-		fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
-			canonicalMarketIds: [],
-			platforms: [],
-			chains: [],
-			categories: [],
-			assetGroups: [],
-			idMap: {}
-		}),
-		fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
-			contracts: [],
-			venues: [],
-			categories: [],
-			assetGroups: [],
-			total: 0
-		}),
-		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
-		fetchWithDevFallback<TokenDirectory>(TOKEN_DIRECTORY_API, {}),
-		fetchWithDevFallback<RawAllLiquidationsResponse>(LIQUIDATIONS_DATA_URL, {
-			data: {},
-			tokens: {},
-			validThresholds: [],
-			timestamp: 0
-		}),
-		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
-	])
-
-	const emissionsProtocolsList = await (isDev
-		? fetchEmissionsProtocolsList().catch((error) => {
-				recordRuntimeError(error, 'pageBuild')
-				return []
-			})
-		: fetchEmissionsProtocolsList())
+		{
+			protocols,
+			chains,
+			categoriesAndTags,
+			chainCategories,
+			cexsResponse,
+			rwaList,
+			rwaPerpsList,
+			tokenlistArray,
+			tokenDirectory,
+			liquidationsResponse,
+			bridgesResponse,
+			emissionsProtocolsList,
+			emissionsSupplyMetrics,
+			emissions
+		},
+		routeIndexes
+	] = await Promise.all([fetchCoreMetadataSources(), fetchMetadataRouteIndexes()])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -250,25 +126,18 @@ export async function fetchCoreMetadata({
 		})
 	)
 
-	const protocolLlamaswapDataset = ENABLE_LLAMASWAP_PROTOCOLS_CHAINS
-		? await (isDev
-				? buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }).catch(
-						(error) => {
-							recordRuntimeError(error, 'pageBuild')
-							return {} as ProtocolLlamaswapMetadata
-						}
-					)
-				: buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }))
-		: ({} as ProtocolLlamaswapMetadata)
+	const protocolLlamaswapDataset = {} as ProtocolLlamaswapMetadata
 
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
 	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse)
+	const emissionsHistoricalPrices = await fetchEmissionsHistoricalPrices(emissions)
 
 	return {
 		protocols,
 		chains,
 		categoriesAndTags,
+		chainCategories,
 		cexs: cexsResponse.cexs,
 		cgExchangeIdentifiers: cexsResponse.cg_volume_cexs,
 		rwaList,
@@ -279,9 +148,15 @@ export async function fetchCoreMetadata({
 		chainDisplayNames,
 		liquidationsTokenSymbols,
 		emissionsProtocolsList,
+		emissionsSupplyMetrics,
+		emissionsHistoricalPrices,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,
-		protocolLlamaswapDataset
+		protocolLlamaswapDataset,
+		narrativeCategories: routeIndexes.narrativeCategories,
+		oracleRoutes: routeIndexes.oracleRoutes,
+		digitalAssetTreasuryRoutes: routeIndexes.digitalAssetTreasuryRoutes,
+		stablecoinPeggedAssetSlugs: routeIndexes.stablecoinPeggedAssetSlugs
 	}
 }

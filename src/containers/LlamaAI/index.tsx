@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
-import Router from 'next/router'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
 import {
 	lazy,
 	memo,
@@ -28,11 +29,12 @@ import {
 	EmptyConversationErrorState,
 	LoadingConversationState
 } from '~/containers/LlamaAI/components/ConversationView'
+import { DeepLinkPromptModal } from '~/containers/LlamaAI/components/DeepLinkPromptModal'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
-import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { getToolLabel } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TipActionProvider } from '~/containers/LlamaAI/components/TipActionContext'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
@@ -57,13 +59,18 @@ import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useLlamaAISetting, useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
+import { useSettingsRouteIntent } from '~/containers/LlamaAI/hooks/useSettingsRouteIntent'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
+import { ProjectLanding } from '~/containers/LlamaAI/projects/ProjectLanding'
+import { ProjectsGrid } from '~/containers/LlamaAI/projects/ProjectsGrid'
+import { getProjectTier } from '~/containers/LlamaAI/projects/tier'
 import {
 	buildAssistantMessage,
 	createInitialStreamState,
 	createStreamBuffer,
+	hasStreamBufferContent,
 	streamReducer,
 	type ChatPageContext,
 	type FailedRequest,
@@ -72,18 +79,32 @@ import {
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
 import type {
+	AgenticAnswerMode,
 	ChartConfiguration,
 	DashboardArtifact,
 	DashboardItem,
+	FactCheckReference,
 	Message,
-	ToolExecution
+	TodoItem,
+	ToolExecution,
+	UpgradeOffer
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
 import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
+import type { SettingsInitialState, SettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
+import { useLlamaAINavigate, useProjectHomeSignal } from '~/contexts/LlamaAINavigate'
+import { useLlamaAIRouteContext } from '~/contexts/LlamaAIRouteState'
+import { useOptionalSessionAliases } from '~/contexts/SessionAliasRegistry'
 import { useMedia } from '~/hooks/useMedia'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
+import {
+	isSameAgenticRouteTransition,
+	shouldSkipCurrentSessionRouteRestore,
+	type AgenticRouteTransition
+} from './routeTransition'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -110,6 +131,9 @@ interface PersistedMessageMetadata extends RestoredAlertMetadata {
 	deliveryChannel?: 'email' | 'telegram'
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	x402_cost_usd?: string
+	factCheck?: {
+		references?: unknown[]
+	}
 }
 
 interface PersistedMessage {
@@ -120,11 +144,26 @@ interface PersistedMessage {
 	citations?: string[]
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
-	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
+	messageMetadata?: {
+		inputTokens?: number
+		outputTokens?: number
+		executionTimeMs?: number
+		x402CostUsd?: string
+		completionReason?: string
+	}
 	messageId?: string
+	parentId?: string
+	siblingInfo?: Message['siblingInfo']
 	timestamp?: string | number
 	savedAlertIds?: string[]
 }
@@ -132,6 +171,7 @@ interface PersistedMessage {
 interface SharedSession {
 	session: { sessionId: string; title: string; createdAt: string; isPublic: boolean }
 	messages: SharedSessionMessage[]
+	activeLeafMessageId?: string
 	isPublicView: true
 }
 
@@ -140,7 +180,14 @@ interface SharedSessionMessage {
 	content: string
 	messageId?: string
 	timestamp: number
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	charts?: ChartConfiguration[]
@@ -153,7 +200,10 @@ interface SharedSessionMessage {
 
 interface SessionRestoreResult {
 	messages?: PersistedMessage[]
+	todos?: TodoItem[]
+	activeLeafMessageId?: string
 	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
+	projectId?: string | null
 }
 
 interface RestoreSessionSnapshotResult {
@@ -162,12 +212,47 @@ interface RestoreSessionSnapshotResult {
 }
 
 interface UsageLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
-	details?: Partial<RateLimitDetails>
+	code?:
+		| 'USAGE_LIMIT_EXCEEDED'
+		| 'FREE_QUESTION_LIMIT'
+		| 'FREE_FORM_LIMIT'
+		| 'FREE_DAILY_LIMIT'
+		| 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
+	details?: Partial<RateLimitDetails> & { feature?: string }
 	upgradeUrl?: string
 }
 
-type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+const FREE_LIMIT_CODES = ['FREE_QUESTION_LIMIT', 'FREE_FORM_LIMIT', 'FREE_DAILY_LIMIT'] as const
+
+type FreeLimitError = UsageLimitError & { code: UpgradeOffer['code'] }
+
+function isFreeLimitError(err: UsageLimitError | null | undefined): err is FreeLimitError {
+	return !!err?.code && (FREE_LIMIT_CODES as readonly string[]).includes(err.code)
+}
+
+function buildFreeLimitMessage(err: FreeLimitError): Message {
+	const isDaily = err.code === 'FREE_DAILY_LIMIT'
+	let content = isDaily ? "You've reached today's free question limit." : "You've reached your free question limit."
+	if (err.details?.resetTime) {
+		const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
+		if (resetMs > 0) {
+			const hours = Math.floor(resetMs / 3600000)
+			const minutes = Math.floor((resetMs % 3600000) / 60000)
+			const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
+			content += ` Resets in ${timeStr}.`
+		}
+	}
+	return {
+		role: 'assistant',
+		content,
+		upgradeOffer: {
+			code: err.code,
+			resetTime: err.details?.resetTime ?? null
+		}
+	}
+}
+
+type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'branch' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
 
 type RecoveryController = {
@@ -321,8 +406,13 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		messageMetadata: message.messageMetadata,
 		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
+		parentId: message.parentId,
+		siblingInfo: message.siblingInfo,
 		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
 	}
 }
@@ -360,14 +450,12 @@ function normalizePaginationState(
 ): {
 	hasMore: boolean
 	cursor: number | null
-	isLoadingMore: false
 	hasNewer?: boolean
 	newerCursor?: number | null
 } {
 	return {
 		hasMore: pagination?.hasMore || false,
 		cursor: pagination?.cursor ?? null,
-		isLoadingMore: false,
 		hasNewer: pagination?.hasNewer ?? false,
 		newerCursor: pagination?.newerCursor ?? null
 	}
@@ -401,17 +489,26 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 		generatedImages: message.generatedImages,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
+		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
+			? (message.metadata.factCheck.references as FactCheckReference[])
+			: undefined,
 		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
 	}
 }
 
+export interface LandingOverrideApi {
+	handleSubmit: (prompt: string) => void
+	isStreaming: boolean
+}
+
 interface AgenticChatProps {
-	initialSessionId?: string
 	sharedSession?: SharedSession
 	readOnly?: boolean
 	onForkSubmit?: (prompt: string) => void
+	onSharedSessionFork?: (sessionId: string) => void
 	initialPrompt?: string
 	shareToken?: string
+	rightPanel?: React.ReactNode
 }
 
 // Consume the current streamed message id once the buffered assistant message is committed.
@@ -441,18 +538,7 @@ function appendBufferedAssistantMessage(
 	currentMessageIdRef: RefObject<string | null>,
 	appendMessage: (message: Message) => void
 ) {
-	const hasBufferedContent =
-		buffer.text ||
-		buffer.charts.length > 0 ||
-		buffer.csvExports.length > 0 ||
-		buffer.mdExports.length > 0 ||
-		buffer.alerts.length > 0 ||
-		buffer.dashboards.length > 0 ||
-		buffer.citations.length > 0 ||
-		buffer.toolExecutions.length > 0 ||
-		buffer.thinking
-
-	if (!hasBufferedContent) {
+	if (!hasStreamBufferContent(buffer)) {
 		currentMessageIdRef.current = null
 		return
 	}
@@ -507,6 +593,15 @@ function createRequestSettleState(requestId: number): Exclude<RequestSettleState
 	return { requestId, promise, resolve }
 }
 
+function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, timeoutMs = 5000) {
+	return Promise.race([
+		settleState.promise,
+		new Promise<void>((resolve) => {
+			window.setTimeout(resolve, timeoutMs)
+		})
+	])
+}
+
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
@@ -520,7 +615,12 @@ function createAgenticCallbacks({
 	onTokenLimit,
 	onDashboardArtifact,
 	appendMessage,
-	notify
+	replaceLocalUserMessageId,
+	setMessageSiblingInfo,
+	deferEmptyDone,
+	notify,
+	onFactCheckStatus,
+	onFactCheckCitations
 }: {
 	requestId: number
 	activeRequestIdRef: RefObject<number>
@@ -533,7 +633,12 @@ function createAgenticCallbacks({
 	onTokenLimit?: () => void
 	onDashboardArtifact?: (dashboard: DashboardArtifact) => void
 	appendMessage: (message: Message) => void
+	replaceLocalUserMessageId?: (realId: string) => void
+	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
+	deferEmptyDone?: boolean
 	notify: () => void
+	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
+	onFactCheckCitations?: (sources: FactCheckReference[]) => void
 }): AgenticSSECallbacks {
 	return {
 		onToken: (content) => {
@@ -591,7 +696,7 @@ function createAgenticCallbacks({
 		},
 		onProgress: (toolName, isPremium) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			const label = TOOL_LABELS[toolName] || toolName
+			const label = getToolLabel(toolName)
 			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label, ...(isPremium && { isPremium }) }
 			dispatch({ type: 'APPEND_TOOL_CALL', value: toolCall })
 		},
@@ -599,6 +704,16 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.toolExecutions.push(data)
 			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
+			if (data.name === 'todo' && data.success) {
+				const toolData = data.toolData as { todos?: TodoItem[]; action?: string } | undefined
+				if (toolData?.action === 'write' && Array.isArray(toolData.todos)) {
+					dispatch({ type: 'SET_TODOS', value: toolData.todos })
+				}
+			}
+		},
+		onTodos: (todos) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_TODOS', value: todos })
 		},
 		onMessageMetadata: (data) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -644,6 +759,14 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			currentMessageIdRef.current = messageId
 		},
+		onUserMessageId: (messageId) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			replaceLocalUserMessageId?.(messageId)
+		},
+		onSiblingInfo: (messageId, siblingInfo) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			setMessageSiblingInfo?.(messageId, siblingInfo)
+		},
 		onTitle: (title) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTitle?.(title)
@@ -652,30 +775,63 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTokenLimit?.()
 		},
+		onContextWarning: (warning) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_CONTEXT_WARNING', value: warning })
+		},
 		onError: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.error = content
 			dispatch({ type: 'SET_ERROR', value: content })
 		},
 		onDone: () => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 			dispatch({ type: 'RESET_STREAM' })
 			notify()
+		},
+		onFactCheckStatus: (status) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onFactCheckStatus?.(status)
+		},
+		onFactCheckCitations: (sources) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.factCheckReferences = sources
+			onFactCheckCitations?.(sources)
 		}
 	}
 }
 
 export function AgenticChat({
-	initialSessionId,
 	sharedSession,
 	readOnly = false,
 	onForkSubmit,
+	onSharedSessionFork,
 	initialPrompt,
-	shareToken
+	shareToken,
+	rightPanel
 }: AgenticChatProps = {}) {
-	const { authorizedFetch, user } = useAuthContext()
+	const { authorizedFetch, user, hasActiveSubscription, isTrial } = useAuthContext()
 	const hasUser = !!user
 	const isMobileChatView = useMedia('(max-width: 1023px)')
+	const route = useLlamaAIRouteContext()
+	const navigate = useLlamaAINavigate()
+	const projectHomeSignal = useProjectHomeSignal()
+	const projectHomeSignalRef = useRef(projectHomeSignal)
+	const sessionAliases = useOptionalSessionAliases()
+	const resolveSessionAlias = useCallback((id: string) => sessionAliases?.resolve(id) ?? id, [sessionAliases])
+	const registerSessionAlias = useCallback(
+		(fakeId: string, realId: string) => {
+			sessionAliases?.register(fakeId, realId)
+		},
+		[sessionAliases]
+	)
+	const routeProjectId = route.kind === 'project' ? route.projectId : null
+	const routeInitialPrompt = route.kind === 'chat-session' ? route.initialPrompt : initialPrompt
+	const routeShareToken = route.kind === 'chat-session' ? route.shareToken : undefined
+	const effectiveShareToken = shareToken ?? routeShareToken
+	const projectTier = getProjectTier(user, hasActiveSubscription, isTrial)
 
 	// Send shareToken only on the first agentic request so the backend can copy shared messages.
 	// Uses a "consumed" flag so we always read the current prop but only forward it once per mount.
@@ -731,6 +887,7 @@ export function AgenticChat({
 	const {
 		sessions,
 		researchUsage,
+		factCheckedUsage,
 		isLoading: isLoadingSessions,
 		error: sessionListError,
 		hasNextPage: hasMoreSessions,
@@ -745,12 +902,15 @@ export function AgenticChat({
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
+		switchActiveLeaf,
 		deleteSession,
 		updateSessionTitle,
 		isDeletingSession,
 		isUpdatingTitle,
 		bulkDeleteSessions,
-		pinSession
+		pinSession,
+		isSwitchingActiveLeaf,
+		replaceOptimisticSessionId
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
@@ -764,10 +924,12 @@ export function AgenticChat({
 	})
 
 	const [messages, setMessages] = useState<Message[]>([])
+	const [activeLeafMessageId, setActiveLeafMessageId] = useState<string | null>(null)
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
+	const [currentSessionProjectId, setCurrentSessionProjectId] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
-	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [mode, setMode] = useState<AgenticAnswerMode>('quick')
 	const [quotedText, setQuotedText] = useState<string | null>(null)
 	const [
 		{
@@ -781,16 +943,24 @@ export function AgenticChat({
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
-	const { settings, actions, availableModels, availableEfforts } = useLlamaAISettings()
+	const [initialIntegrationsState, setInitialIntegrationsState] = useState<SettingsInitialState | null>(null)
+	const [deepLinkConfirmationPrompt, setDeepLinkConfirmationPrompt] = useState<string | null>(null)
+	const router = useRouter()
+	const {
+		settings,
+		actions,
+		availableModels,
+		availableEfforts,
+		telegramStatus,
+		queryState: settingsQueryState
+	} = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
-	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
-		initialSessionId && !sharedSession ? initialSessionId : null
-	)
+	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
 	const [viewError, setViewError] = useState<string | null>(null)
 	const [paginationError, setPaginationError] = useState<string | null>(null)
 	const researchModalStore = Ariakit.useDialogStore()
+	const [limitModalFeature, setLimitModalFeature] = useState<'research' | 'fact_checked'>('research')
 	const currentMessageIdRef = useRef<string | null>(null)
-	const pendingInitialSessionIdRef = useRef(initialSessionId)
 	const activeRequestIdRef = useRef(0)
 	const activeRequestKindRef = useRef<RequestKind>('idle')
 	const activeSessionIdRef = useRef<string | null>(null)
@@ -802,11 +972,9 @@ export function AgenticChat({
 	const [paginationState, setPaginationState] = useState<{
 		hasMore: boolean
 		cursor: number | null
-		isLoadingMore: boolean
 		hasNewer?: boolean
 		newerCursor?: number | null
-		isLoadingNewer?: boolean
-	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	}>({ hasMore: false, cursor: null })
 	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
@@ -819,6 +987,10 @@ export function AgenticChat({
 	const promptSubmissionLockRef = useRef(false)
 	const isFirstMessageRef = useRef(true)
 	const promptTransitionTimerRef = useRef<number | null>(null)
+	const currentSessionIdRef = useRef<string | null>(null)
+	const currentSessionProjectIdRef = useRef<string | null>(null)
+	const previousRouteTransitionRef = useRef<AgenticRouteTransition | null>(null)
+	const consumedInitialPromptRef = useRef<{ sessionId: string; prompt: string } | null>(null)
 	const {
 		isStreaming,
 		isCompacting,
@@ -835,11 +1007,14 @@ export function AgenticChat({
 		spawnProgress,
 		spawnStartTime,
 		spawnIsResearchMode,
+		todos: streamingTodos,
+		todosStartTime,
 		executionStartedAt,
 		recovery,
 		error,
 		lastFailedRequest,
-		rateLimitDetails
+		rateLimitDetails,
+		contextWarning
 	} = streamState
 
 	const sharedMessages = useMemo(
@@ -847,10 +1022,15 @@ export function AgenticChat({
 		[sharedSession]
 	)
 	const forkedFromShared = sharedSession && sessionId
+	const isSharedView = !!sharedSession && !forkedFromShared
 	const effectiveMessages = (forkedFromShared ? null : sharedMessages) ?? messages
 	const effectiveSessionId = (forkedFromShared ? sessionId : sharedSession?.session.sessionId) ?? sessionId
-	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
+	const routeSessionId = route.kind === 'chat-session' ? resolveSessionAlias(route.sessionId) : null
+	const lookupSessionId = sessionId ?? routeSessionId ?? null
+	const sessionListEntry = lookupSessionId ? (sessions.find((s) => s.sessionId === lookupSessionId) ?? null) : null
+	const sessionListTitle = sessionListEntry?.title ?? null
 	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
+	const effectiveSessionProjectId = currentSessionProjectId ?? sessionListEntry?.projectId ?? null
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
 	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
@@ -861,9 +1041,34 @@ export function AgenticChat({
 	const shouldStartDetachedForAnchor = typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
 
 	useEffect(() => {
+		if (!quotedText || readOnly) return
+
+		const frameId = window.requestAnimationFrame(() => {
+			const input = promptInputRef.current
+			if (!input) return
+
+			input.focus()
+			const cursorPosition = input.value.length
+			input.setSelectionRange(cursorPosition, cursorPosition)
+		})
+
+		return () => window.cancelAnimationFrame(frameId)
+	}, [quotedText, readOnly])
+
+	useEffect(() => {
+		currentSessionIdRef.current = sessionId
+	}, [sessionId])
+
+	useEffect(() => {
+		currentSessionProjectIdRef.current = currentSessionProjectId
+	}, [currentSessionProjectId])
+
+	useEffect(() => {
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
 		return () => clearTimeout(timer)
 	}, [dashboardPanelIsOpen, dashboardPanelMountedConfig])
+
+	useSettingsRouteIntent({ router, user, settingsModalStore, setInitialIntegrationsState })
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -882,6 +1087,15 @@ export function AgenticChat({
 		setShowShareModal(true)
 	}, [])
 
+	const handleFactCheckedGated = useCallback(() => {
+		dispatchStream({
+			type: 'SET_RATE_LIMIT_DETAILS',
+			value: { period: 'blocked', limit: 0, resetTime: null }
+		})
+		setLimitModalFeature('fact_checked')
+		researchModalStore.show()
+	}, [researchModalStore])
+
 	const setShareModalOpen = useCallback((nextOpen: boolean) => {
 		setShowShareModal(nextOpen)
 		if (!nextOpen) {
@@ -890,9 +1104,9 @@ export function AgenticChat({
 	}, [])
 
 	const triggerPromptTransition = useCallback(
-		(mode: PromptTransitionMode) => {
+		(nextMode: PromptTransitionMode) => {
 			clearPromptTransitionTimer()
-			setPromptTransitionMode(mode)
+			setPromptTransitionMode(nextMode)
 			promptTransitionTimerRef.current = window.setTimeout(() => {
 				setPromptTransitionMode('idle')
 				promptTransitionTimerRef.current = null
@@ -941,9 +1155,30 @@ export function AgenticChat({
 		streamingGeneratedImages
 	])
 
+	const loadMoreMessagesMutation = useMutation({
+		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
+			loadMoreMessages(targetSessionId, cursor)
+	})
+	const loadNewerMessagesMutation = useMutation({
+		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
+			loadNewerMessages(targetSessionId, cursor)
+	})
+	const isLoadingMoreCurrentSession =
+		loadMoreMessagesMutation.isPending && loadMoreMessagesMutation.variables?.targetSessionId === sessionId
+	const isLoadingNewerCurrentSession =
+		loadNewerMessagesMutation.isPending && loadNewerMessagesMutation.variables?.targetSessionId === sessionId
+	const renderedPaginationState = useMemo(
+		() => ({
+			...paginationState,
+			isLoadingMore: isLoadingMoreCurrentSession,
+			isLoadingNewer: isLoadingNewerCurrentSession
+		}),
+		[paginationState, isLoadingMoreCurrentSession, isLoadingNewerCurrentSession]
+	)
+
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || isStreaming) return
+		if (!sessionId || !paginationState.hasMore || loadMoreMessagesMutation.isPending || isStreaming) return
 
 		const requestId = beginRequest(
 			activeRequestIdRef,
@@ -953,20 +1188,19 @@ export function AgenticChat({
 			sessionId
 		)
 		setPaginationError(null)
-		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 		await waitForNextPaint()
 		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
-		const result = await loadMoreMessages(sessionId, paginationState.cursor!).catch(() => {
-			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
-				setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
-				setPaginationError('Failed to load older messages')
-			}
-			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			return null
-		})
+		const result = await loadMoreMessagesMutation
+			.mutateAsync({ targetSessionId: sessionId, cursor: paginationState.cursor! })
+			.catch(() => {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setPaginationError('Failed to load older messages')
+				}
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return null
+			})
 		if (!result) return
 		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
-			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
@@ -980,11 +1214,11 @@ export function AgenticChat({
 
 		setPaginationState(normalizePaginationState(result.pagination))
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-	}, [sessionId, paginationState, loadMoreMessages, isStreaming])
+	}, [sessionId, paginationState, loadMoreMessagesMutation, isStreaming])
 
 	// Load newer messages when the user reaches the bottom of a mid-conversation restore window.
 	const handleLoadNewerMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasNewer || paginationState.isLoadingNewer || isStreaming) return
+		if (!sessionId || !paginationState.hasNewer || loadNewerMessagesMutation.isPending || isStreaming) return
 
 		const requestId = beginRequest(
 			activeRequestIdRef,
@@ -994,18 +1228,17 @@ export function AgenticChat({
 			sessionId
 		)
 		setPaginationError(null)
-		setPaginationState((prev) => ({ ...prev, isLoadingNewer: true }))
-		const result = await loadNewerMessages(sessionId, paginationState.newerCursor!).catch(() => {
-			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
-				setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
-				setPaginationError('Failed to load newer messages')
-			}
-			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			return null
-		})
+		const result = await loadNewerMessagesMutation
+			.mutateAsync({ targetSessionId: sessionId, cursor: paginationState.newerCursor! })
+			.catch(() => {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setPaginationError('Failed to load newer messages')
+				}
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return null
+			})
 		if (!result) return
 		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
-			setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
@@ -1015,12 +1248,11 @@ export function AgenticChat({
 
 		setPaginationState((prev) => ({
 			...prev,
-			isLoadingNewer: false,
 			hasNewer: result.pagination?.hasNewer ?? false,
 			newerCursor: result.pagination?.newerCursor ?? null
 		}))
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-	}, [sessionId, paginationState, loadNewerMessages, isStreaming])
+	}, [sessionId, paginationState, loadNewerMessagesMutation, isStreaming])
 
 	// Expose the load-more callback through a stable event wrapper for the scroll listener.
 	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
@@ -1031,12 +1263,17 @@ export function AgenticChat({
 		void handleLoadNewerMessages()
 	})
 
-	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
+	const {
+		attach,
+		scrollToBottom,
+		isAttached: isScrollAttached,
+		showScrollToBottom
+	} = useChatScroll({
 		scrollContainerRef,
 		isStreaming,
 		items: effectiveMessages,
 		hasMessages,
-		paginationState,
+		paginationState: renderedPaginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
 		onLoadNewerMessages: handleLoadNewerMessagesEvent,
 		keyboardOpen,
@@ -1093,6 +1330,33 @@ export function AgenticChat({
 				return prev.map((m) => (m.id === message.id ? message : m))
 			}
 			return [...prev, message]
+		})
+	}, [])
+
+	// When the backend persists a freshly-sent user message, swap the
+	// optimistic `local-N` id for the real UUID so edit/branch controls work.
+	const replaceLocalUserMessageId = useCallback((realId: string) => {
+		setMessages((prev) => {
+			for (let i = prev.length - 1; i >= 0; i--) {
+				const m = prev[i]
+				if (m.role === 'user' && m.id?.startsWith('local-')) {
+					const next = prev.slice()
+					next[i] = { ...m, id: realId }
+					return next
+				}
+			}
+			return prev
+		})
+	}, [])
+
+	// Apply siblingInfo to a specific message by id (avoids a full restore roundtrip after edits).
+	const setMessageSiblingInfo = useCallback((messageId: string, siblingInfo: Message['siblingInfo']) => {
+		setMessages((prev) => {
+			const idx = prev.findIndex((m) => m.id === messageId)
+			if (idx < 0) return prev
+			const next = prev.slice()
+			next[idx] = { ...next[idx], siblingInfo }
+			return next
 		})
 	}, [])
 
@@ -1181,12 +1445,18 @@ export function AgenticChat({
 						currentMessageIdRef,
 						toolCallIdRef,
 						appendMessage,
+						replaceLocalUserMessageId,
+						setMessageSiblingInfo,
 						notify,
 						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 						onTokenLimit: () => setShowTokenLimitModal(true),
 						onTitle: (title) => {
 							setSessionTitle(title)
-							updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+							updateSessionTitle({
+								sessionId: targetSessionId,
+								title,
+								projectId: currentSessionProjectIdRef.current
+							}).catch(() => {})
 							moveSessionToTop(targetSessionId)
 						}
 					})
@@ -1262,12 +1532,18 @@ export function AgenticChat({
 				currentMessageIdRef,
 				toolCallIdRef,
 				appendMessage,
+				replaceLocalUserMessageId,
+				setMessageSiblingInfo,
 				notify,
 				onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 				onTokenLimit: () => setShowTokenLimitModal(true),
 				onTitle: (title) => {
 					setSessionTitle(title)
-					updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+					updateSessionTitle({
+						sessionId: targetSessionId,
+						title,
+						projectId: currentSessionProjectIdRef.current
+					}).catch(() => {})
 					moveSessionToTop(targetSessionId)
 				}
 			})
@@ -1317,7 +1593,16 @@ export function AgenticChat({
 
 			return true
 		},
-		[authorizedFetchCompat, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
+		[
+			authorizedFetchCompat,
+			appendMessage,
+			clearRecoveryController,
+			moveSessionToTop,
+			notify,
+			replaceLocalUserMessageId,
+			setMessageSiblingInfo,
+			updateSessionTitle
+		]
 	)
 
 	const restoreSessionSnapshot = useCallback(
@@ -1341,10 +1626,17 @@ export function AgenticChat({
 			}
 
 			setMessages(restored)
+			dispatchStream({ type: 'SET_TODOS', value: Array.isArray(result.todos) ? result.todos : [] })
+			setActiveLeafMessageId(
+				'activeLeafMessageId' in result
+					? (result.activeLeafMessageId ?? restored[restored.length - 1]?.id ?? null)
+					: (restored[restored.length - 1]?.id ?? null)
+			)
 			setConversationViewResetKey((current) => current + 1)
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
+			setCurrentSessionProjectId(result.projectId ?? match?.projectId ?? null)
 
 			const allDashboards = restored.flatMap((m) => m.dashboards || [])
 			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
@@ -1356,7 +1648,6 @@ export function AgenticChat({
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
-				isLoadingMore: false,
 				hasNewer: result.pagination?.hasNewer ?? false,
 				newerCursor: result.pagination?.newerCursor ?? null
 			})
@@ -1440,11 +1731,11 @@ export function AgenticChat({
 				return
 			}
 
-			const { restored: didRestore } = await restoreSessionSnapshot(
+			const { restored: didRestore, recoveredResponse } = await restoreSessionSnapshot(
 				currentController.sessionId,
 				activeRequestIdRef.current
 			)
-			if (didRestore) {
+			if (didRestore && recoveredResponse) {
 				dispatchStream({ type: 'RESET_STREAM' })
 				clearRecoveryController()
 				return
@@ -1547,7 +1838,7 @@ export function AgenticChat({
 
 		if (controller && settleState?.requestId === requestId) {
 			controller.abort()
-			await settleState.promise.catch(() => {})
+			await waitForRequestSettle(settleState)
 		}
 
 		activeRequestIdRef.current += 1
@@ -1569,32 +1860,76 @@ export function AgenticChat({
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
+		dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })
 	}, [clearRecoveryController, resetPromptTransition])
 
-	// Start a brand-new chat, or route away from a session page back to the base chat route.
-	const handleNewChat = useCallback(async () => {
-		if (initialSessionId || sharedSession) {
-			void Router.push('/ai/chat', undefined, { shallow: true })
-			return
-		}
+	const clearConversationState = useCallback(async () => {
 		await abortActiveRequest()
 		clearConversationRuntimeState()
 		setMessages([])
+		setActiveLeafMessageId(null)
+		setQuotedText(null)
 		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
+		setCurrentSessionProjectId(null)
 		dispatchDashboardPanel({ type: 'RESET' })
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
-		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
+		setPaginationState({ hasMore: false, cursor: null })
+	}, [abortActiveRequest, attach, clearConversationRuntimeState])
+
+	// Start a brand-new chat, keeping project-owned sessions inside their project.
+	const handleNewChat = useCallback(async () => {
+		const projectIdForNewChat = route.kind === 'project' ? route.projectId : currentSessionProjectId
+		if (projectIdForNewChat && !sharedSession) {
+			await clearConversationState()
+			const nextSessionId = createFakeSession(projectIdForNewChat)
+			setSessionId(nextSessionId)
+			setSessionTitle('New Chat')
+			setCurrentSessionProjectId(projectIdForNewChat)
+			restoredSessionIdRef.current = nextSessionId
+			isFirstMessageRef.current = false
+			const persistSession = createSession({
+				sessionId: nextSessionId,
+				title: 'New Chat',
+				projectId: projectIdForNewChat
+			})
+			try {
+				await persistSession
+				void navigate.toSession(nextSessionId)
+			} catch (createSessionError) {
+				console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+			}
+			promptInputRef.current?.focus()
+			return
+		}
+
+		if (route.kind !== 'chat-new' || sharedSession) {
+			void navigate.toNewChat()
+			return
+		}
+		await clearConversationState()
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sharedSession, abortActiveRequest, attach, clearConversationRuntimeState])
+	}, [
+		clearConversationState,
+		createFakeSession,
+		createSession,
+		currentSessionProjectId,
+		navigate,
+		route,
+		sharedSession
+	])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string, options?: { around?: string }) => {
-			if (selectedSessionId === restoredSessionIdRef.current && selectedSessionId === sessionId && !options?.around)
+			if (
+				selectedSessionId === restoredSessionIdRef.current &&
+				selectedSessionId === currentSessionIdRef.current &&
+				!options?.around
+			)
 				return
 			setRestoringSessionId(selectedSessionId)
 			await abortActiveRequest()
@@ -1622,11 +1957,6 @@ export function AgenticChat({
 			}
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			window.history.replaceState(
-				null,
-				'',
-				`/ai/chat/${selectedSessionId}${options?.around ? `#msg-${options.around}` : ''}`
-			)
 			setRestoringSessionId(null)
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1656,7 +1986,6 @@ export function AgenticChat({
 			}
 		},
 		[
-			sessionId,
 			abortActiveRequest,
 			clearConversationRuntimeState,
 			restoreSessionSnapshot,
@@ -1667,17 +1996,96 @@ export function AgenticChat({
 
 	const handleSearchMatchClick = useCallback(
 		(targetSessionId: string, messageId: string) => {
-			void handleSessionSelect(targetSessionId, { around: messageId })
+			void navigate.toSession(targetSessionId, { around: messageId })
 		},
-		[handleSessionSelect]
+		[navigate]
 	)
+
+	const routeTransition = useMemo<AgenticRouteTransition | null>(() => {
+		if (readOnly || sharedSession) return null
+		if (route.kind === 'chat-new') return { kind: 'new-chat' }
+		if (route.kind === 'chat-session') {
+			return {
+				kind: 'session',
+				sessionId: resolveSessionAlias(route.sessionId),
+				aroundMessageId: route.aroundMessageId
+			}
+		}
+		if (route.kind === 'project-list') return { kind: 'project-list' }
+		if (route.kind === 'project') return { kind: 'project', projectId: route.projectId }
+		return null
+	}, [readOnly, sharedSession, route, resolveSessionAlias])
+
+	// Same-URL project clicks (sidebar click while already on /ai/projects/[id]) bump the project-home
+	// signal so we can reset the inline chat back to the project landing — Next.js doesn't fire route
+	// change events for same-URL navigation, so we need a separate trigger.
+	useEffect(() => {
+		if (projectHomeSignal === projectHomeSignalRef.current) return
+		projectHomeSignalRef.current = projectHomeSignal
+		if (readOnly || sharedSession) return
+		if (route.kind !== 'project') return
+		void clearConversationState()
+	}, [projectHomeSignal, route.kind, readOnly, sharedSession, clearConversationState])
+
+	useEffect(() => {
+		if (!routeTransition) return
+
+		const previousTransition = previousRouteTransitionRef.current
+
+		// Bail out if the route hasn't actually changed. The effect can re-fire if a callback
+		// in its dep list re-creates (e.g. after we dispatch state changes inside the transition),
+		// and re-running the transition body would loop the clear/restore actions indefinitely.
+		if (previousTransition && isSameAgenticRouteTransition(previousTransition, routeTransition)) return
+		previousRouteTransitionRef.current = routeTransition
+
+		const transition = async () => {
+			if (routeTransition.kind === 'new-chat') {
+				await clearConversationState()
+				promptInputRef.current?.focus()
+				return
+			}
+
+			if (routeTransition.kind === 'session') {
+				const nextSessionId = routeTransition.sessionId
+				if (shouldSkipCurrentSessionRouteRestore(routeTransition, previousTransition, currentSessionIdRef.current))
+					return
+
+				setQuotedText(null)
+				setMessages([])
+				setActiveLeafMessageId(null)
+				setSessionTitle(null)
+				dispatchDashboardPanel({ type: 'RESET' })
+				setPaginationState({ hasMore: false, cursor: null })
+				restoredSessionIdRef.current = null
+				await handleSessionSelect(
+					nextSessionId,
+					routeTransition.aroundMessageId ? { around: routeTransition.aroundMessageId } : undefined
+				)
+				return
+			}
+
+			if (routeTransition.kind === 'project-list') {
+				await clearConversationState()
+				return
+			}
+
+			if (routeTransition.kind === 'project') {
+				// Always reset to the project landing on navigation. The submit-from-landing flow
+				// keeps the inline chat visible because URL doesn't change (no transition fires);
+				// any actual navigation to /ai/projects/[id] should land you on the project home.
+				await clearConversationState()
+			}
+		}
+
+		void transition()
+	}, [routeTransition, clearConversationState, handleSessionSelect])
 
 	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
 	const handleSubmit = useCallback(
 		(
 			prompt: string,
 			entities?: Array<{ term: string; slug: string; type?: string }>,
-			images?: Array<{ data: string; mimeType: string; filename?: string }>,
+			images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 			pageContext?: ChatPageContext,
 			isSuggestedQuestion?: boolean
 		) => {
@@ -1704,19 +2112,21 @@ export function AgenticChat({
 					currentMessageIdRef.current = null
 
 					let currentSessionId = sessionId
+					const submitProjectId = routeProjectId ?? currentSessionProjectId
 
 					// Fork shared session in-place: seed messages, create session, update URL
 					if (sharedSession && !currentSessionId) {
-						currentSessionId = createFakeSession()
+						currentSessionId = createFakeSession(submitProjectId)
 						setSessionId(currentSessionId)
+						setCurrentSessionProjectId(submitProjectId)
 						setSessionTitle(sharedSession.session.title)
 						const seeded = sharedSession.messages.map((msg, i) => mapSharedSessionMessage(msg, i))
 						setMessages(seeded)
 						isFirstMessageRef.current = false
-						window.history.replaceState(null, '', `/ai/chat/${currentSessionId}`)
 					} else if (isFirstMessageRef.current && !currentSessionId) {
-						currentSessionId = createFakeSession()
+						currentSessionId = createFakeSession(submitProjectId)
 						setSessionId(currentSessionId)
+						setCurrentSessionProjectId(submitProjectId)
 						isFirstMessageRef.current = false
 					}
 
@@ -1750,13 +2160,20 @@ export function AgenticChat({
 					activeRequestSettleRef.current = settleState
 
 					const eventCounter = { count: 0 }
-					const currentShareToken = !shareTokenConsumedRef.current ? shareToken : undefined
+					const currentShareToken = !shareTokenConsumedRef.current ? effectiveShareToken : undefined
 					if (currentShareToken) shareTokenConsumedRef.current = true
+					const failedRequest: FailedRequest = {
+						prompt: trimmed,
+						entities: entities?.length ? entities : undefined,
+						images: images?.length ? images : undefined,
+						pageContext
+					}
+					let didFetchResolve = false
 
 					void fetchAgenticResponse({
 						message: trimmed,
 						sessionId: currentSessionId,
-						researchMode: isResearchMode,
+						mode,
 						entities: entities?.length ? entities : undefined,
 						images: images?.length ? images : undefined,
 						pageContext,
@@ -1768,6 +2185,7 @@ export function AgenticChat({
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						shareToken: currentShareToken,
+						projectId: submitProjectId,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
 						eventCounter,
@@ -1779,6 +2197,9 @@ export function AgenticChat({
 							currentMessageIdRef,
 							toolCallIdRef,
 							appendMessage,
+							replaceLocalUserMessageId,
+							setMessageSiblingInfo,
+							deferEmptyDone: true,
 							notify,
 							onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 							onTokenLimit: () => setShowTokenLimitModal(true),
@@ -1788,10 +2209,18 @@ export function AgenticChat({
 								setSessionId(id)
 								currentSessionId = id
 								activeSessionIdRef.current = id
+								if (previousSessionId && previousSessionId !== id) {
+									registerSessionAlias(previousSessionId, id)
+									replaceOptimisticSessionId(previousSessionId, id, submitProjectId)
+								}
+								if (sharedSession) {
+									onSharedSessionFork?.(id)
+								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
 									void createSession({
 										sessionId: id,
-										title: sessionTitle ?? undefined
+										title: sessionTitle ?? undefined,
+										projectId: submitProjectId
 									}).catch((createSessionError) => {
 										console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
 									})
@@ -1801,43 +2230,47 @@ export function AgenticChat({
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
 								setSessionTitle(title)
 								if (currentSessionId) {
-									updateSessionTitle({ sessionId: currentSessionId, title }).catch(() => {})
+									updateSessionTitle({ sessionId: currentSessionId, title, projectId: submitProjectId }).catch(() => {})
 									moveSessionToTop(currentSessionId)
 								}
+							},
+							onFactCheckStatus: (status) => {
+								dispatchStream({ type: 'SET_FACT_CHECK_PHASE', value: status })
+							},
+							onFactCheckCitations: (sources) => {
+								dispatchStream({ type: 'SET_FACT_CHECK_REFERENCES', references: sources })
 							}
 						})
 					})
+						.then(() => {
+							didFetchResolve = true
+						})
 						.catch(async (err: UsageLimitError) => {
 							if (!isActiveRequest(activeRequestIdRef, requestId)) return
-							const failedRequest: FailedRequest = {
-								prompt: trimmed,
-								entities: entities?.length ? entities : undefined,
-								images: images?.length ? images : undefined,
-								pageContext
-							}
 							if (err?.name === 'AbortError') {
 								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 								dispatchStream({ type: 'RESET_STREAM' })
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (
-								err?.code === 'FREE_QUESTION_LIMIT' ||
-								err?.code === 'FREE_FORM_LIMIT' ||
-								err?.code === 'FREE_DAILY_LIMIT'
-							) {
-								let msg = err.message || "You've reached the free question limit. Subscribe for unlimited access."
-								if (err.details?.resetTime) {
-									const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
-									if (resetMs > 0) {
-										const hours = Math.floor(resetMs / 3600000)
-										const minutes = Math.floor((resetMs % 3600000) / 60000)
-										const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
-										msg += `\n\nResets in ${timeStr}.`
-									}
-								}
-								appendMessage({ role: 'assistant', content: msg })
+							if (isFreeLimitError(err)) {
+								appendMessage(buildFreeLimitMessage(err))
 								dispatchStream({ type: 'RESET_STREAM' })
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+								return
+							}
+							if (err?.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+								dispatchStream({
+									type: 'SET_RATE_LIMIT_DETAILS',
+									value: {
+										period: 'blocked',
+										limit: 0,
+										resetTime: null
+									}
+								})
+								dispatchStream({ type: 'RESET_STREAM' })
+								setLimitModalFeature('fact_checked')
+								researchModalStore.show()
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
@@ -1851,11 +2284,12 @@ export function AgenticChat({
 									}
 								})
 								dispatchStream({ type: 'RESET_STREAM' })
+								setLimitModalFeature(err.details?.feature === 'fact_checked' ? 'fact_checked' : 'research')
 								researchModalStore.show()
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
+							if (currentSessionId && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -1877,8 +2311,38 @@ export function AgenticChat({
 							dispatchStream({ type: 'RESET_STREAM' })
 							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 						})
-						.then(() => {
-							if (isActiveRequest(activeRequestIdRef, requestId)) {
+						.then(async () => {
+							let handedOffToResume = false
+							let recoveryStarted = false
+							if (
+								didFetchResolve &&
+								isActiveRequest(activeRequestIdRef, requestId) &&
+								currentSessionId &&
+								!buffer.error &&
+								!hasStreamBufferContent(buffer)
+							) {
+								buffer.receivedEventCount = eventCounter.count
+								const resumeSessionId = currentSessionId
+								handedOffToResume = await resumeRunningExecution({
+									targetSessionId: resumeSessionId,
+									buffer,
+									resetStream: false,
+									onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+										recoveryStarted = startRecoveryCycle({
+											targetSessionId: resumeSessionId,
+											buffer: streamBuffer,
+											failedRequest,
+											error: disconnectError
+										})
+									}
+								})
+								if (!handedOffToResume && !recoveryStarted && isActiveRequest(activeRequestIdRef, requestId)) {
+									dispatchStream({ type: 'RESET_STREAM' })
+								}
+							}
+
+							if (!handedOffToResume && isActiveRequest(activeRequestIdRef, requestId)) {
+								setActiveLeafMessageId(currentMessageIdRef.current)
 								abortControllerRef.current = null
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 							}
@@ -1896,7 +2360,7 @@ export function AgenticChat({
 		[
 			isStreaming,
 			sessionId,
-			isResearchMode,
+			mode,
 			authorizedFetchCompat,
 			createSession,
 			createFakeSession,
@@ -1908,8 +2372,11 @@ export function AgenticChat({
 			settings.customInstructions,
 			settings.enablePremiumTools,
 			appendMessage,
+			replaceLocalUserMessageId,
 			abortActiveRequest,
+			resumeRunningExecution,
 			startRecoveryCycle,
+			setMessageSiblingInfo,
 			sessionTitle,
 			sessions,
 			attach,
@@ -1920,10 +2387,242 @@ export function AgenticChat({
 			settings.model,
 			settings.effort,
 			sharedSession,
-			shareToken,
+			effectiveShareToken,
+			routeProjectId,
+			currentSessionProjectId,
+			registerSessionAlias,
+			replaceOptimisticSessionId,
+			onSharedSessionFork,
 			hasUser,
 			onForkSubmit
 		]
+	)
+
+	const handleEditMessage = useCallback(
+		async (messageId: string, newText: string, original: Message): Promise<void> => {
+			const trimmed = newText.trim()
+			if (!sessionId || !trimmed) return
+			const idx = messages.findIndex((message) => message.id === messageId && message.role === 'user')
+			if (idx < 0) return
+
+			const messagesSnapshot = messages
+			const activeLeafSnapshot = activeLeafMessageId
+			const truncated = messages.slice(0, idx)
+			const isBranchingEdit = !/^(local|persisted|shared)-/.test(messageId)
+
+			// Abort any in-flight submission FIRST — its `.finally` releases the prompt lock,
+			// otherwise the lock check below would always bail during streaming.
+			try {
+				await abortActiveRequest()
+			} catch {
+				return
+			}
+
+			if (promptSubmissionLockRef.current) return
+			promptSubmissionLockRef.current = true
+			triggerPromptTransition('conversation')
+
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'START_STREAM' })
+			currentMessageIdRef.current = null
+			setMessages([
+				...truncated,
+				{
+					role: 'user',
+					content: trimmed,
+					images: original.images,
+					quotedText: original.quotedText,
+					id: `local-edit-${Date.now()}`
+				}
+			])
+			attach()
+
+			const buffer = createStreamBuffer()
+			const controller = new AbortController()
+			abortControllerRef.current = controller
+			const requestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'prompt', sessionId)
+			const settleState = createRequestSettleState(requestId)
+			activeRequestSettleRef.current = settleState
+			const eventCounter = { count: 0 }
+
+			try {
+				await fetchAgenticResponse({
+					message: trimmed,
+					sessionId,
+					editMessageId: isBranchingEdit ? messageId : undefined,
+					mode,
+					quotedText: original.quotedText || undefined,
+					customInstructions: settings.customInstructions || undefined,
+					enablePremiumTools: settings.enablePremiumTools,
+					model: settings.model || undefined,
+					effort: settings.effort || undefined,
+					blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
+					projectId: currentSessionProjectId,
+					abortSignal: controller.signal,
+					fetchFn: authorizedFetchCompat,
+					eventCounter,
+					callbacks: createAgenticCallbacks({
+						requestId,
+						activeRequestIdRef,
+						buffer,
+						dispatch: dispatchStream,
+						currentMessageIdRef,
+						toolCallIdRef,
+						appendMessage,
+						replaceLocalUserMessageId,
+						setMessageSiblingInfo,
+						deferEmptyDone: true,
+						notify,
+						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
+						onTokenLimit: () => setShowTokenLimitModal(true),
+						onTitle: (title) => {
+							setSessionTitle(title)
+							updateSessionTitle({ sessionId, title, projectId: currentSessionProjectId }).catch(() => {})
+						},
+						onFactCheckStatus: (status) => {
+							dispatchStream({ type: 'SET_FACT_CHECK_PHASE', value: status })
+						},
+						onFactCheckCitations: (sources) => {
+							dispatchStream({ type: 'SET_FACT_CHECK_REFERENCES', references: sources })
+						}
+					})
+				})
+				if (isActiveRequest(activeRequestIdRef, requestId) && !buffer.error && !hasStreamBufferContent(buffer)) {
+					buffer.receivedEventCount = eventCounter.count
+					let recoveryStarted = false
+					const handedOffToResume = await resumeRunningExecution({
+						targetSessionId: sessionId,
+						buffer,
+						resetStream: false,
+						onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+							recoveryStarted = startRecoveryCycle({
+								targetSessionId: sessionId,
+								buffer: streamBuffer,
+								failedRequest: null,
+								error: disconnectError
+							})
+						}
+					})
+					if (handedOffToResume) return
+					if (recoveryStarted) {
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						return
+					}
+					if (isActiveRequest(activeRequestIdRef, requestId)) {
+						dispatchStream({ type: 'RESET_STREAM' })
+					}
+				}
+				if (isActiveRequest(activeRequestIdRef, requestId)) {
+					setActiveLeafMessageId(currentMessageIdRef.current)
+					abortControllerRef.current = null
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				}
+				// siblingInfo arrives via SSE `sibling_info` mid-stream — no extra restore call needed
+			} catch (err) {
+				const editError = err as UsageLimitError
+				if (controller.signal.aborted || editError?.name === 'AbortError') {
+					appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+					dispatchStream({ type: 'RESET_STREAM' })
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+					return
+				}
+				if (isTemporaryConnectivityError(editError)) {
+					buffer.receivedEventCount = eventCounter.count
+					if (
+						startRecoveryCycle({
+							targetSessionId: sessionId,
+							buffer,
+							failedRequest: null,
+							error: editError instanceof Error ? editError : new Error(getErrorMessage(editError))
+						})
+					) {
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						return
+					}
+				}
+				if (isFreeLimitError(editError)) {
+					setMessages(messagesSnapshot)
+					setActiveLeafMessageId(activeLeafSnapshot)
+					appendMessage(buildFreeLimitMessage(editError))
+					dispatchStream({ type: 'RESET_STREAM' })
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+					return
+				}
+				setMessages(messagesSnapshot)
+				setActiveLeafMessageId(activeLeafSnapshot)
+				setViewError(getErrorMessage(editError))
+				dispatchStream({ type: 'RESET_STREAM' })
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				throw err
+			} finally {
+				if (abortControllerRef.current === controller) {
+					abortControllerRef.current = null
+				}
+				settleState.resolve()
+				if (activeRequestSettleRef.current?.requestId === requestId) {
+					activeRequestSettleRef.current = null
+				}
+				promptSubmissionLockRef.current = false
+			}
+		},
+		[
+			activeLeafMessageId,
+			appendMessage,
+			replaceLocalUserMessageId,
+			attach,
+			authorizedFetchCompat,
+			abortActiveRequest,
+			isMobileChatView,
+			mode,
+			messages,
+			notify,
+			resumeRunningExecution,
+			sessionId,
+			currentSessionProjectId,
+			settings.customInstructions,
+			settings.enablePremiumTools,
+			settings.effort,
+			settings.model,
+			setMessageSiblingInfo,
+			startRecoveryCycle,
+			triggerPromptTransition,
+			updateSessionTitle
+		]
+	)
+
+	const handleBranchSwitch = useCallback(
+		async (leafMessageId: string) => {
+			if (!sessionId || isStreaming) return
+			await abortActiveRequest()
+			const requestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'branch', sessionId)
+			setViewError(null)
+			setPaginationError(null)
+			try {
+				const result = await switchActiveLeaf({ sessionId, leafMessageId })
+				if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) return
+				setActiveLeafMessageId(result.activeLeafMessageId)
+				if (Array.isArray(result.messages)) {
+					const restored = mapPersistedMessages(result.messages as PersistedMessage[])
+					setMessages(restored)
+					setConversationViewResetKey((current) => current + 1)
+					dispatchDashboardPanel({ type: 'RESTORE', value: restored.flatMap((message) => message.dashboards || []) })
+					setPaginationState(normalizePaginationState(result.pagination))
+					dispatchStream({ type: 'SET_ERROR', value: null })
+					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+					dispatchStream({ type: 'RESET_RECOVERY' })
+				} else {
+					await restoreSessionSnapshot(sessionId, requestId)
+				}
+			} catch (switchError) {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setViewError(getErrorMessage(switchError))
+				}
+			} finally {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+			}
+		},
+		[abortActiveRequest, isStreaming, restoreSessionSnapshot, sessionId, switchActiveLeaf]
 	)
 
 	// Stop the active streamed response while preserving already-buffered output.
@@ -1986,16 +2685,71 @@ export function AgenticChat({
 		}
 	)
 
-	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
+	// Confirm shareable deep-link prompts before spending a user request. Prompts that were already
+	// confirmed before auth are still delivered through the existing pending-prompt queue.
+	const deepLinkPrompt = route.kind === 'chat-new' ? route.initialPrompt?.trim() || undefined : undefined
+	const deepLinkUtmSource = typeof router.query.utm_source === 'string' ? router.query.utm_source : null
+	const deepLinkUtmCampaign = typeof router.query.utm_campaign === 'string' ? router.query.utm_campaign : null
+	const deepLinkConsumedKeyRef = useRef<string | null>(null)
+
 	useEffect(() => {
-		if (initialSessionId || sharedSession) return
+		if (route.kind !== 'chat-new' || sharedSession) return
+
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		const isSuggested = consumePendingSuggestedFlag()
 		if (pendingPrompt) {
+			if (deepLinkPrompt) {
+				deepLinkConsumedKeyRef.current = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+				setDeepLinkConfirmationPrompt(null)
+				void navigate.refineCurrent('/ai/chat')
+			}
 			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
+			return
 		}
-	}, [initialSessionId, sharedSession])
+
+		if (deepLinkPrompt) {
+			const deepLinkKey = `${deepLinkPrompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+			if (deepLinkConsumedKeyRef.current === deepLinkKey) return
+			deepLinkConsumedKeyRef.current = deepLinkKey
+			setDeepLinkConfirmationPrompt(deepLinkPrompt)
+			trackUmamiEvent('llamaai-deeplink-view', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+			return
+		}
+
+		deepLinkConsumedKeyRef.current = null
+		setDeepLinkConfirmationPrompt(null)
+	}, [route.kind, deepLinkPrompt, deepLinkUtmSource, deepLinkUtmCampaign, sharedSession, navigate])
+
+	const handleConfirmDeepLinkPrompt = useCallback(() => {
+		const prompt = deepLinkConfirmationPrompt?.trim()
+		if (!prompt) return
+		deepLinkConsumedKeyRef.current = `${prompt}\n${deepLinkUtmSource ?? ''}\n${deepLinkUtmCampaign ?? ''}`
+		setDeepLinkConfirmationPrompt(null)
+		trackUmamiEvent('llamaai-deeplink-run', {
+			source: deepLinkUtmSource,
+			campaign: deepLinkUtmCampaign,
+			prompt: prompt.replace(/\s+/g, ' ').slice(0, 100)
+		})
+		void navigate.refineCurrent('/ai/chat')
+		submitPendingPromptEvent(prompt)
+	}, [deepLinkConfirmationPrompt, deepLinkUtmSource, deepLinkUtmCampaign, navigate])
+
+	const handleCloseDeepLinkPrompt = useCallback(() => {
+		if (deepLinkConfirmationPrompt) {
+			trackUmamiEvent('llamaai-deeplink-dismiss', {
+				source: deepLinkUtmSource,
+				campaign: deepLinkUtmCampaign,
+				prompt: deepLinkConfirmationPrompt.replace(/\s+/g, ' ').slice(0, 100)
+			})
+		}
+		setDeepLinkConfirmationPrompt(null)
+		void navigate.refineCurrent('/ai/chat')
+	}, [deepLinkConfirmationPrompt, deepLinkUtmSource, deepLinkUtmCampaign, navigate])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
 	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
@@ -2061,25 +2815,6 @@ export function AgenticChat({
 		return () => window.clearInterval(intervalId)
 	}, [isStreaming, error, sessionId, readOnly, resumeRunningExecution])
 
-	// Mirror route param updates into a ref so the restore effect can consume them once.
-	useEffect(() => {
-		pendingInitialSessionIdRef.current = initialSessionId
-	}, [initialSessionId])
-
-	// Restore the requested session as soon as the routed session id becomes available.
-	// If the URL contains a #msg-<id> hash, extract it and pass as the `around` anchor
-	// so the restore window centers on that message instead of loading from the bottom.
-	useEffect(() => {
-		const nextSessionId = pendingInitialSessionIdRef.current
-		if (!nextSessionId) return
-
-		pendingInitialSessionIdRef.current = undefined
-		restoredSessionIdRef.current = null
-		const hash = typeof window !== 'undefined' ? window.location.hash : ''
-		const anchorMatch = hash.match(/^#msg-(.+)$/)
-		void handleSessionSelect(nextSessionId, anchorMatch ? { around: anchorMatch[1] } : undefined)
-	}, [initialSessionId, handleSessionSelect])
-
 	// Shared/public sessions are read-only snapshots, so they should never create a fake local session.
 	useEffect(() => {
 		if (!sharedSession) return
@@ -2087,29 +2822,62 @@ export function AgenticChat({
 	}, [sharedSession])
 
 	// Auto-send the initial prompt after a forked session finishes restoring.
-	const initialPromptSentRef = useRef(false)
 	useEffect(() => {
-		if (!initialPrompt || initialPromptSentRef.current) return
+		if (!routeInitialPrompt) return
+		if (!sharedSession && !routeSessionId) return
+		const nextToken = { sessionId: routeSessionId ?? 'shared', prompt: routeInitialPrompt }
+		const currentToken = consumedInitialPromptRef.current
+		if (currentToken?.sessionId === nextToken.sessionId && currentToken.prompt === nextToken.prompt) return
+		consumedInitialPromptRef.current = nextToken
+	}, [routeInitialPrompt, routeSessionId, sharedSession])
+
+	useEffect(() => {
+		const token = consumedInitialPromptRef.current
+		if (!token) return
 		if (restoringSessionId) return
-		initialPromptSentRef.current = true
+		if (!sharedSession && resolveSessionAlias(token.sessionId) !== sessionId) return
+		consumedInitialPromptRef.current = null
 		const frameId = window.requestAnimationFrame(() => {
-			handleSubmit(initialPrompt)
+			handleSubmit(token.prompt)
 		})
 
 		return () => {
 			window.cancelAnimationFrame(frameId)
 		}
-	}, [initialPrompt, restoringSessionId, handleSubmit])
+	}, [restoringSessionId, sessionId, sharedSession, resolveSessionAlias, handleSubmit])
 
 	const tipActionHandlers = useMemo(
 		() => ({
-			openSettingsModal: settingsModalStore.show,
+			openSettingsModal: (tab?: SettingsTabId) => {
+				if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
+				settingsModalStore.show()
+			},
 			openAlertsModal: alertsModalStore.show,
-			toggleResearchMode: () => setIsResearchMode((v) => !v)
+			toggleResearchMode: () => setMode((m) => (m === 'research' ? 'quick' : 'research')),
+			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode]
+		[settingsModalStore, alertsModalStore.show, setMode, handleSubmit]
 	)
 
+	const landingOverride =
+		route.kind === 'project-list'
+			? () => <ProjectsGrid />
+			: route.kind === 'project'
+				? (api: LandingOverrideApi) => (
+						<ProjectLanding
+							projectId={route.projectId}
+							tier={projectTier}
+							sessionList={sessions}
+							initialTab={route.initialTab}
+							onSubmit={api.handleSubmit}
+							isStreaming={api.isStreaming}
+							enterToSend={settings.enterToSend}
+							onPickSession={(nextSessionId) => {
+								void navigate.toSession(nextSessionId)
+							}}
+						/>
+					)
+				: null
 	if (!user && !readOnly && !sharedSession) {
 		return (
 			<>
@@ -2151,10 +2919,10 @@ export function AgenticChat({
 								sessions={sessions}
 								isLoading={isLoadingSessions}
 								loadError={sessionListError}
-								currentSessionId={sessionId}
+								currentSessionId={routeSessionId ?? sessionId ?? null}
 								restoringSessionId={restoringSessionId}
 								onSessionSelect={(nextSessionId) => {
-									void handleSessionSelect(nextSessionId)
+									void navigate.toSession(nextSessionId)
 								}}
 								onNewChat={handleNewChat}
 								onDelete={deleteSession}
@@ -2171,13 +2939,15 @@ export function AgenticChat({
 								isFetchingMoreSessions={isFetchingMoreSessions}
 								loadMoreSessionsError={loadMoreSessionsError}
 								onLoadMoreSessions={loadMoreSessions}
+								currentProjectId={routeProjectId}
+								currentSessionProjectId={effectiveSessionProjectId}
 							/>
 							<div className="flex min-h-11 lg:hidden" />
 						</>
 					) : null}
 
 					<div
-						className={`llamaai-chat-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+						className={`llamaai-chat-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 					>
 						{!readOnly && !sidebarVisible ? (
 							<ChatControls
@@ -2185,11 +2955,11 @@ export function AgenticChat({
 								onOpenSettings={settingsModalStore.show}
 								hasCustomInstructions={settings.customInstructions.trim().length > 0}
 								sessionTitle={effectiveSessionTitle}
-								canShare={!sharedSession && effectiveMessages.length > 0}
+								canShare={!isSharedView && effectiveMessages.length > 0}
 								onShare={() => openShareModal()}
 							/>
 						) : null}
-						{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
+						{!readOnly && !isSharedView && effectiveMessages.length > 0 ? (
 							<button
 								onClick={() => openShareModal()}
 								data-umami-event="llamaai-share-modal-open"
@@ -2213,25 +2983,34 @@ export function AgenticChat({
 									aria-hidden="true"
 									className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
 								>
-									<ChatLanding
-										readOnly={readOnly}
-										title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-										handleSubmit={handleSubmit}
-										promptInputRef={promptInputRef}
-										handleStopRequest={handleStopRequest}
-										isStreaming={isStreaming}
-										isResearchMode={isResearchMode}
-										setIsResearchMode={setIsResearchMode}
-										researchUsage={researchUsage}
-										onOpenAlerts={alertsModalStore.show}
-										quotedText={quotedText}
-										onClearQuotedText={() => setQuotedText(null)}
-									/>
+									{landingOverride ? (
+										landingOverride({ handleSubmit, isStreaming })
+									) : (
+										<ChatLanding
+											readOnly={readOnly}
+											isSharedView={isSharedView}
+											title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+											handleSubmit={handleSubmit}
+											promptInputRef={promptInputRef}
+											handleStopRequest={handleStopRequest}
+											isStreaming={isStreaming}
+											mode={mode}
+											setMode={setMode}
+											researchUsage={researchUsage}
+											factCheckedUsage={factCheckedUsage}
+											onFactCheckedGated={handleFactCheckedGated}
+											onOpenAlerts={alertsModalStore.show}
+											quotedText={quotedText}
+											onClearQuotedText={() => setQuotedText(null)}
+											enterToSend={settings.enterToSend}
+										/>
+									)}
 								</div>
 								<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 									<ConversationView
 										key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										messages={effectiveMessages}
 										sessionId={effectiveSessionId}
 										isLlama={isLlama}
@@ -2239,12 +3018,14 @@ export function AgenticChat({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={streamingTodos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										spawnIsResearchMode={spawnIsResearchMode}
 										streamingThinking={streamingThinking}
 										streamingDraft={streamingDraft}
 										isCompacting={isCompacting}
-										paginationState={paginationState}
+										paginationState={renderedPaginationState}
 										paginationError={paginationError}
 										recovery={recovery}
 										error={visibleError}
@@ -2254,42 +3035,59 @@ export function AgenticChat({
 										scrollContainerRef={scrollContainerRef}
 										messagesEndRef={messagesEndRef}
 										promptInputRef={promptInputRef}
+										isScrollAttached={isScrollAttached}
 										showScrollToBottom={showScrollToBottom}
 										scrollToBottom={scrollToBottom}
 										handleSubmit={handleSubmit}
 										handleStopRequest={handleStopRequest}
 										handleActionClick={handleActionClick}
-										isResearchMode={isResearchMode}
-										setIsResearchMode={setIsResearchMode}
+										onEditMessage={handleEditMessage}
+										onBranchSwitch={handleBranchSwitch}
+										isBranchSwitching={isSwitchingActiveLeaf}
+										mode={mode}
+										setMode={setMode}
 										researchUsage={researchUsage}
+										factCheckedUsage={factCheckedUsage}
+										onFactCheckedGated={handleFactCheckedGated}
+										factCheckPhase={streamState.factCheckPhase}
 										animateActiveExchange={false}
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 										onTableFullscreenOpen={hideSidebar}
 										onShare={openShareModal}
 									/>
 								</div>
 							</div>
 						) : !hasMessages && !visibleError ? (
-							<ChatLanding
-								readOnly={readOnly}
-								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-								handleSubmit={handleSubmit}
-								promptInputRef={promptInputRef}
-								handleStopRequest={handleStopRequest}
-								isStreaming={isStreaming}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={researchUsage}
-								onOpenAlerts={alertsModalStore.show}
-								quotedText={quotedText}
-								onClearQuotedText={() => setQuotedText(null)}
-							/>
+							landingOverride ? (
+								landingOverride({ handleSubmit, isStreaming })
+							) : (
+								<ChatLanding
+									readOnly={readOnly}
+									isSharedView={isSharedView}
+									title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+									mode={mode}
+									setMode={setMode}
+									researchUsage={researchUsage}
+									factCheckedUsage={factCheckedUsage}
+									onFactCheckedGated={handleFactCheckedGated}
+									onOpenAlerts={alertsModalStore.show}
+									quotedText={quotedText}
+									onClearQuotedText={() => setQuotedText(null)}
+									enterToSend={settings.enterToSend}
+								/>
+							)
 						) : (
 							<ConversationView
 								key={`conversation-${conversationViewResetKey}`}
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								messages={effectiveMessages}
 								sessionId={effectiveSessionId}
 								isLlama={isLlama}
@@ -2297,12 +3095,14 @@ export function AgenticChat({
 								activeToolCalls={activeToolCalls}
 								spawnProgress={spawnProgress}
 								spawnStartTime={spawnStartTime}
+								todos={streamingTodos}
+								todosStartTime={todosStartTime}
 								executionStartedAt={executionStartedAt}
 								streamingThinking={streamingThinking}
 								spawnIsResearchMode={spawnIsResearchMode}
 								streamingDraft={streamingDraft}
 								isCompacting={isCompacting}
-								paginationState={paginationState}
+								paginationState={renderedPaginationState}
 								paginationError={paginationError}
 								recovery={recovery}
 								error={visibleError}
@@ -2312,23 +3112,39 @@ export function AgenticChat({
 								scrollContainerRef={scrollContainerRef}
 								messagesEndRef={messagesEndRef}
 								promptInputRef={promptInputRef}
+								isScrollAttached={isScrollAttached}
 								showScrollToBottom={showScrollToBottom}
 								scrollToBottom={scrollToBottom}
 								handleSubmit={handleSubmit}
 								handleStopRequest={handleStopRequest}
 								handleActionClick={handleActionClick}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
+								onEditMessage={handleEditMessage}
+								onBranchSwitch={handleBranchSwitch}
+								isBranchSwitching={isSwitchingActiveLeaf}
+								mode={mode}
+								setMode={setMode}
 								researchUsage={researchUsage}
+								factCheckedUsage={factCheckedUsage}
+								onFactCheckedGated={handleFactCheckedGated}
+								factCheckPhase={streamState.factCheckPhase}
 								animateActiveExchange={shouldAnimateConversationTransition}
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 								onTableFullscreenOpen={hideSidebar}
 								onShare={openShareModal}
+								contextWarning={contextWarning}
+								onDismissContextWarning={() => dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })}
+								onStartNewChat={() => void handleNewChat()}
 							/>
 						)}
 					</div>
+					{rightPanel ? (
+						<aside className="hidden w-[340px] shrink-0 flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--cards-bg) lg:ml-2 lg:flex dark:border-[#222324]">
+							{rightPanel}
+						</aside>
+					) : null}
 					{dashboardVersions.length > 0 ? (
 						<Suspense fallback={null}>
 							<DashboardPanel
@@ -2347,9 +3163,7 @@ export function AgenticChat({
 						<TextSelectionPopup
 							onSelect={(text) => {
 								setQuotedText(text)
-								requestAnimationFrame(() => {
-									promptInputRef.current?.focus()
-								})
+								promptInputRef.current?.focus()
 							}}
 						/>
 					) : null}
@@ -2359,6 +3173,7 @@ export function AgenticChat({
 							period={rateLimitDetails.period}
 							limit={rateLimitDetails.limit}
 							resetTime={rateLimitDetails.resetTime}
+							feature={limitModalFeature}
 						/>
 					) : null}
 					{!readOnly ? (
@@ -2385,6 +3200,20 @@ export function AgenticChat({
 							actions={actions}
 							availableModels={availableModels}
 							availableEfforts={availableEfforts}
+							telegramStatus={telegramStatus}
+							isSettingsLoading={
+								settingsQueryState.isLoading || (settingsQueryState.isFetching && !settingsQueryState.data)
+							}
+							initialState={initialIntegrationsState}
+							onInitialStateConsumed={() => setInitialIntegrationsState(null)}
+						/>
+					) : null}
+					{!readOnly ? (
+						<DeepLinkPromptModal
+							isOpen={!!deepLinkConfirmationPrompt}
+							prompt={deepLinkConfirmationPrompt}
+							onClose={handleCloseDeepLinkPrompt}
+							onConfirm={handleConfirmDeepLinkPrompt}
 						/>
 					) : null}
 				</div>
@@ -2441,7 +3270,7 @@ const ChatControls = memo(function ChatControls({
 							data-umami-event-source="collapsed_controls"
 						/>
 					}
-					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+					className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="panel-left-open" height={16} width={16} />
 					<span className="sr-only">Open Chat History</span>
@@ -2449,7 +3278,7 @@ const ChatControls = memo(function ChatControls({
 				<Tooltip
 					content="New Chat"
 					render={<button onClick={handleNewChat} />}
-					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue) max-lg:ml-auto"
+					className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue) max-lg:ml-auto"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span className="sr-only">New Chat</span>
@@ -2476,7 +3305,7 @@ const ChatControls = memo(function ChatControls({
 								data-umami-event-source="collapsed_controls"
 							/>
 						}
-						className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+						className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 					>
 						<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
 						<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
@@ -2486,12 +3315,12 @@ const ChatControls = memo(function ChatControls({
 			<Tooltip
 				content="Settings"
 				render={<button onClick={onOpenSettings} />}
-				className="absolute bottom-2.5 left-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white max-lg:hidden"
+				className="absolute bottom-2.5 left-2.5 z-10 flex size-6 items-center justify-center rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white max-lg:hidden"
 			>
 				<div className="relative">
 					<Icon name="settings" height={16} width={16} />
 					{hasCustomInstructions ? (
-						<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+						<span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
 					) : null}
 				</div>
 				<span className="sr-only">Settings</span>

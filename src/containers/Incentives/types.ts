@@ -8,6 +8,7 @@ export interface ChainIncentivesSummary {
 }
 
 export interface ProtocolIncentivesSummary extends ChainIncentivesSummary {
+	emissions1y: number | null
 	emissionsAllTime: number | null
 	emissionsMonthlyAverage1y: number | null
 	methodology: string
@@ -38,10 +39,12 @@ export interface DimensionEarningsEmissionMatch {
 
 export type DimensionEarningsOverviewBase = IAdapterChainMetrics
 export type DimensionEarningsProtocol = IAdapterChainMetrics['protocols'][0]
-export type DimensionEarningsProtocolWithEmissions = DimensionEarningsProtocol & {
+export type DimensionEarningsProtocolWithEmissions = Omit<DimensionEarningsProtocol, 'total1y'> & {
+	total1y: number | null
 	_emissions?: DimensionEarningsEmissionMatch
 }
 
-export interface DimensionEarningsOverview extends Omit<IAdapterChainOverview, 'protocols'> {
+export interface DimensionEarningsOverview extends Omit<IAdapterChainOverview, 'protocols' | 'total1y'> {
+	total1y: number | null
 	protocols: DimensionEarningsProtocolWithEmissions[]
 }

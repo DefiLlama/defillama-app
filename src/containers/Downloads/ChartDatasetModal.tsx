@@ -320,7 +320,7 @@ export function ChartDatasetModal({
 						queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
 						queryFn: async () => {
 							const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-							const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
+							const url = `/api/private/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
 							const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 							if (!response || !response.ok) {
 								const errorData = await response?.json().catch(() => null)
@@ -343,7 +343,7 @@ export function ChartDatasetModal({
 			const cat = selectedCategory
 			if (!cat) throw new Error('No category selected')
 			const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-			const url = `/api/downloads/chart-breakdown/${dataset.slug}?category=${encodeURIComponent(cat)}${nonce}`
+			const url = `/api/private/downloads/chart-breakdown/${dataset.slug}?category=${encodeURIComponent(cat)}${nonce}`
 			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)

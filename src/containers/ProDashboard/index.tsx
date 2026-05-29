@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -16,6 +17,7 @@ import { useFreeTierStatus } from './hooks'
 import {
 	type AIGeneratedData,
 	type TimePeriod,
+	useDashboardMode,
 	useProDashboardCatalog,
 	useProDashboardDashboard,
 	useProDashboardItemsState,
@@ -51,7 +53,7 @@ function ProDashboardContent() {
 		focusSection?: UnifiedTableFocusSection
 	}>({ item: null, focusSection: undefined })
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription, user } = useAuthContext()
 	const { canCreateDashboard } = useFreeTierStatus()
 	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
 		open: false,
@@ -65,6 +67,8 @@ function ProDashboardContent() {
 		setSignupSource('pro-dashboard')
 		setPaywallState({ open: true, reason })
 	}
+	const router = useRouter()
+	const mode = useDashboardMode()
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod, setTimePeriod, setCustomTimePeriod } = useProDashboardTime()
@@ -122,7 +126,8 @@ function ProDashboardContent() {
 			item?.kind === 'advanced-borrowed' ||
 			item?.kind === 'income-statement' ||
 			item?.kind === 'unlocks-schedule' ||
-			item?.kind === 'unlocks-pie'
+			item?.kind === 'unlocks-pie' ||
+			item?.kind === 'llamaai-chart'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()
@@ -202,6 +207,28 @@ function ProDashboardContent() {
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						{isAuthenticated ? (
 							<>
+								{mode === 'view' && dashboardId && currentDashboard?.user === user?.id ? (
+									<button
+										onClick={() => {
+											void router.push(`/pro/${dashboardId}/edit`)
+										}}
+										className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-1"
+									>
+										<Icon name="pencil" height={16} width={16} />
+										<span>Edit</span>
+									</button>
+								) : null}
+								{mode === 'edit' && dashboardId ? (
+									<button
+										onClick={() => {
+											void router.push(`/pro/${dashboardId}`)
+										}}
+										className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-1"
+									>
+										<Icon name="check" height={16} width={16} />
+										<span>Done</span>
+									</button>
+								) : null}
 								{isReadOnly ? (
 									<button
 										onClick={() => {
@@ -271,7 +298,7 @@ function ProDashboardContent() {
 				</Suspense>
 			) : null}
 
-			{!isReadOnly ? (
+			{hasChartItems || mode === 'edit' ? (
 				<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 					<Tooltip
 						content={!hasChartItems ? 'Add chart items to enable time period selection' : null}
@@ -302,7 +329,7 @@ function ProDashboardContent() {
 						</div>
 					</Tooltip>
 					<div className="order-3 flex items-center gap-2">
-						{dashboardId ? (
+						{!isReadOnly && dashboardId ? (
 							<button
 								onClick={() => setShowSettingsModal(true)}
 								className="hidden rounded-md pro-glass pro-hover-bg p-2 transition-colors md:flex"
@@ -311,7 +338,7 @@ function ProDashboardContent() {
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
 							</button>
 						) : null}
-						{items.length > 0 ? (
+						{!isReadOnly && items.length > 0 ? (
 							<button
 								className="hidden animate-ai-glow items-center gap-2 rounded-md pro-btn-blue-outline px-4 py-2 text-base whitespace-nowrap md:flex"
 								onClick={() => {
@@ -327,7 +354,7 @@ function ProDashboardContent() {
 								Edit with LlamaAI
 							</button>
 						) : null}
-						{canUndo ? (
+						{!isReadOnly && canUndo ? (
 							<button
 								className="hidden items-center gap-2 rounded-md border pro-border pro-hover-bg px-4 py-2 text-base whitespace-nowrap pro-text2 transition-colors hover:pro-text1 md:flex"
 								onClick={() => {
@@ -340,14 +367,16 @@ function ProDashboardContent() {
 							</button>
 						) : null}
 
-						<button
-							className="hidden items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-base whitespace-nowrap md:flex"
-							onClick={openAddModal}
-							disabled={isReadOnly}
-						>
-							<Icon name="plus" height={16} width={16} />
-							Add Item
-						</button>
+						{!isReadOnly ? (
+							<button
+								className="hidden items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-base whitespace-nowrap md:flex"
+								onClick={openAddModal}
+								disabled={isReadOnly}
+							>
+								<Icon name="plus" height={16} width={16} />
+								Add Item
+							</button>
+						) : null}
 					</div>
 				</div>
 			) : null}
@@ -355,15 +384,18 @@ function ProDashboardContent() {
 			{items.length > 0 ? <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} /> : null}
 
 			<Suspense fallback={<></>}>
-				<AddChartModal
-					isOpen={showAddModal}
-					onClose={() => {
-						setShowAddModal(false)
-						setEditModalState({ item: null, focusSection: undefined })
-					}}
-					editItem={editModalState.item}
-					initialUnifiedFocusSection={editModalState.focusSection}
-				/>
+				{showAddModal ? (
+					<AddChartModal
+						key={editModalState.item?.id ?? 'new-dashboard-item'}
+						isOpen
+						onClose={() => {
+							setShowAddModal(false)
+							setEditModalState({ item: null, focusSection: undefined })
+						}}
+						editItem={editModalState.item}
+						initialUnifiedFocusSection={editModalState.focusSection}
+					/>
+				) : null}
 			</Suspense>
 
 			{!protocolsLoading && items.length === 0 ? (

@@ -4,16 +4,17 @@ import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
-import { YieldsTableWrapper } from './shared'
-import type { IYieldsTableProps, IYieldTableRow } from './types'
+import { PaginatedYieldsTableWrapper, YieldsTableWrapper } from './shared'
+import type { IYieldsTableProps, YieldLoopTableRow } from './types'
 
-const columnHelper = createColumnHelper<IYieldTableRow>()
+const columnHelper = createColumnHelper<YieldLoopTableRow>()
 const LOOP_COLUMN_IDS = [
 	'pool',
 	'project',
@@ -33,21 +34,11 @@ const columns = [
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue()
-			const exploited = isExploitedPool(row.original.projectslug, value)
-			return (
-				<span className="flex items-center gap-1">
-					<NameYieldPool value={value} configID={row.original.configID} url={row.original.url} borrow={true} />
-					{exploited ? (
-						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-							<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
-						</Tooltip>
-					) : null}
-				</span>
-			)
-		},
-		size: 160
+		cell: ({ getValue, row }) => <LoopPoolCell value={getValue()} row={row} />,
+		meta: {
+			headerClassName:
+				'w-[160px] min-[812px]:w-[200px] 2xl:w-[240px] min-[1600px]:w-[280px] min-[1640px]:w-[320px] min-[1720px]:w-[420px]'
+		}
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
@@ -62,7 +53,9 @@ const columns = [
 				borrow={true}
 			/>
 		),
-		size: 160
+		meta: {
+			headerClassName: 'w-[180px] min-[812px]:w-[160px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		id: 'chains',
@@ -70,9 +63,9 @@ const columns = [
 		enableSorting: false,
 		cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
 		meta: {
+			headerClassName: 'w-[60px]',
 			align: 'end'
-		},
-		size: 60
+		}
 	}),
 	columnHelper.accessor((row) => row.loopApy ?? undefined, {
 		id: 'loopApy',
@@ -96,8 +89,8 @@ const columns = [
 				</>
 			)
 		},
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end',
 			headerHelperText: 'Leveraged APY consisting of deposit -> borrow (same asset, max LTV) -> deposit (same asset)'
 		}
@@ -109,8 +102,8 @@ const columns = [
 		cell: (info) => {
 			return <ColoredAPY data-variant="supply">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[100px] min-[812px]:w-[120px]',
 			align: 'end',
 			headerHelperText: 'Total net APY for supplying (Base + Reward)'
 		}
@@ -124,8 +117,8 @@ const columns = [
 			if (value == null || !Number.isFinite(Number(value))) return null
 			return <ColoredAPY data-variant="borrow">{formattedNum(value) + 'x'}</ColoredAPY>
 		},
-		size: 80,
 		meta: {
+			headerClassName: 'w-[80px]',
 			align: 'end',
 			headerHelperText: 'Loop APY / Supply APY'
 		}
@@ -145,8 +138,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 60,
 		meta: {
+			headerClassName: 'w-[60px]',
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
@@ -165,8 +158,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 80,
 		meta: {
+			headerClassName: 'w-[80px]',
 			align: 'end'
 		}
 	}),
@@ -184,8 +177,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
@@ -214,12 +207,40 @@ const columns = [
 				</span>
 			)
 		},
-		size: 80,
 		meta: {
+			headerClassName: 'w-[80px]',
 			align: 'end'
 		}
 	})
 ]
+
+function LoopPoolCell({
+	value,
+	row
+}: {
+	value: string
+	row: { id: string; index: number; original: YieldLoopTableRow }
+}) {
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+	const exploited = isExploitedPool(row.original.projectslug, value)
+
+	return (
+		<span className="flex items-center gap-1">
+			<NameYieldPool
+				value={value}
+				configID={row.original.configID}
+				url={row.original.url}
+				rowIndex={rowIndex ?? row.index + 1}
+				borrow={true}
+			/>
+			{exploited ? (
+				<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+					<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
+				</Tooltip>
+			) : null}
+		</span>
+	)
+}
 
 const columnOrders: Record<number, readonly LoopColumnId[]> = {
 	0: [
@@ -271,98 +292,18 @@ const columnOrders: Record<number, readonly LoopColumnId[]> = {
 		'totalAvailableUsd'
 	]
 }
-
-const columnSizes: Record<number, Partial<Record<LoopColumnId, number>>> = {
-	0: {
-		pool: 160,
-		project: 180,
-		chains: 60,
-		loopApy: 100,
-		netSupplyApy: 100,
-		boost: 80,
-		ltv: 60,
-		totalSupplyUsd: 80,
-		totalBorrowUsd: 100,
-		totalAvailableUsd: 80
-	},
-	812: {
-		pool: 200,
-		project: 160,
-		chains: 60,
-		loopApy: 100,
-		netSupplyApy: 120,
-		boost: 80,
-		ltv: 60,
-		totalSupplyUsd: 80,
-		totalBorrowUsd: 100,
-		totalAvailableUsd: 80
-	},
-	1536: {
-		pool: 240,
-		project: 160,
-		chains: 60,
-		loopApy: 100,
-		netSupplyApy: 120,
-		boost: 80,
-		ltv: 60,
-		totalSupplyUsd: 80,
-		totalBorrowUsd: 100,
-		totalAvailableUsd: 80
-	},
-	1600: {
-		pool: 280,
-		project: 160,
-		chains: 60,
-		loopApy: 100,
-		netSupplyApy: 120,
-		boost: 80,
-		ltv: 60,
-		totalSupplyUsd: 80,
-		totalBorrowUsd: 100,
-		totalAvailableUsd: 80
-	},
-	1640: {
-		pool: 320,
-		project: 160,
-		chains: 60,
-		loopApy: 100,
-		netSupplyApy: 120,
-		boost: 80,
-		ltv: 60,
-		totalSupplyUsd: 80,
-		totalBorrowUsd: 100,
-		totalAvailableUsd: 80
-	},
-	1720: {
-		pool: 420,
-		project: 160,
-		chains: 60,
-		loopApy: 100,
-		netSupplyApy: 120,
-		boost: 80,
-		ltv: 60,
-		totalSupplyUsd: 80,
-		totalBorrowUsd: 100,
-		totalAvailableUsd: 80
-	}
-}
-
-export const LOOP_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, LoopColumnId> = {
+export const LOOP_TABLE_CONFIG: YieldsTableConfig<YieldLoopTableRow, LoopColumnId> = {
 	kind: 'loop',
 	columnIds: LOOP_COLUMN_IDS,
 	columns,
-	columnOrders,
-	columnSizes
+	columnOrders
 }
 
-export function YieldsLoopTable({ data }: IYieldsTableProps) {
+export function YieldsLoopTable({ data }: IYieldsTableProps<YieldLoopTableRow>) {
 	const resolvedConfig = resolveVirtualYieldsTableConfig(LOOP_TABLE_CONFIG, undefined)
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={resolvedConfig.columns}
-			columnSizes={resolvedConfig.columnSizes}
-			columnOrders={resolvedConfig.columnOrders}
-		/>
-	)
+	return <YieldsTableWrapper data={data} columns={resolvedConfig.columns} columnOrders={resolvedConfig.columnOrders} />
+}
+
+export function PaginatedYieldsLoopTable(props: IYieldsTableProps<YieldLoopTableRow>) {
+	return <PaginatedYieldsTableWrapper {...props} config={LOOP_TABLE_CONFIG} />
 }

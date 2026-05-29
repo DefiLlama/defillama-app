@@ -44,6 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 					kind: 'category',
 					category: categoryName,
 					chain,
+					categoriesAndTags,
 					chainMetadata: metadataCache.chainMetadata
 				})
 			: await getProtocolsByCategoryOrTag({
@@ -51,6 +52,7 @@ export const getStaticProps = withPerformanceLogging(
 					tag: tagName,
 					tagCategory,
 					chain,
+					categoriesAndTags,
 					chainMetadata: metadataCache.chainMetadata
 				})
 

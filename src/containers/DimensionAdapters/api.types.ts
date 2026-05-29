@@ -10,6 +10,7 @@ export interface IAdapterProtocolMetrics {
 	total14dto7d: number
 	total60dto30d: number
 	total30d: number
+	total1y?: number
 	change_1d: number
 	change_7d: number
 	change_1m: number

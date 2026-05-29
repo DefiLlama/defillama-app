@@ -6,7 +6,7 @@ import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } fro
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
-import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
@@ -16,27 +16,20 @@ import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
-import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, getFastJsonTimeoutMs, getSlowJsonTimeoutMs } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { buildProtocolOverviewHallmarks } from '~/utils/hallmarks'
 import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
-import {
-	fetchProtocolExpenses,
-	fetchProtocolOverviewMetrics,
-	fetchProtocolTreasuryChart,
-	fetchProtocolTvlChart
-} from './api'
+import { fetchProtocolExpenses, fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
 import type { IProtocolValueChart, IProtocolMetricsV2, IProtocolExpenses } from './api.types'
 import { resolveProtocolCategory } from './category'
-import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
-import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
-import type { ProtocolChartsLabels } from './constants'
+import { normalizeChartPointsToMs } from './chartSeries.utils'
 import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
 import { formatAdapterData } from './formatAdapterData'
-import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
+import type { IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 
 interface IProtocolDataExtended extends IProtocolMetricsV2 {
@@ -114,6 +107,7 @@ export const getProtocolMetricFlags = ({
 type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
 type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
 type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
+type IProtocolTvlChartSeedResult = { data: IProtocolValueChart; failed: boolean }
 
 export const getProtocolOverviewPageData = async ({
 	protocolId,
@@ -122,6 +116,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata,
 	tokenlist,
 	cgExchangeIdentifiers,
+	emissionsSupplyMetrics,
 	protocolLlamaswapDataset
 }: {
 	protocolId: string
@@ -130,15 +125,17 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	tokenlist: Record<string, import('~/utils/metadata/types').ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 }): Promise<IProtocolOverviewPageData> => {
 	const displayName = currentProtocolMetadata.displayName ?? ''
+	const currentProtocolSlug = slug(displayName)
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
 	const isOracleProtocol = Boolean(oracleProtocolName)
 
 	const [
 		protocolData,
-		protocolTvlChartData,
+		protocolTvlChartSeed,
 		feesData,
 		revenueData,
 		holdersRevenueData,
@@ -155,7 +152,6 @@ export const getProtocolOverviewPageData = async ({
 		optionsNotionalVolumeData,
 		treasury,
 		yieldsData,
-		articles,
 		incentives,
 		adjustedSupply,
 		activeUsers,
@@ -174,7 +170,7 @@ export const getProtocolOverviewPageData = async ({
 		blockExplorersData
 	]: [
 		IProtocolDataExtended,
-		IProtocolValueChart,
+		IProtocolTvlChartSeedResult,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
@@ -191,7 +187,6 @@ export const getProtocolOverviewPageData = async ({
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		IProtocolOverviewPageData['treasury'],
 		IYieldsDataResult,
-		IArticle[],
 		IProtocolOverviewPageData['incentives'],
 		number | null,
 		number | null,
@@ -209,29 +204,34 @@ export const getProtocolOverviewPageData = async ({
 		IProtocolOverviewPageData['oracleTvs'],
 		BlockExplorersResponse
 	] = await Promise.all([
-		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
-			async (data): Promise<IProtocolDataExtended> => {
-				try {
-					const geckoId = data.gecko_id
-					const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
-					const tickers =
-						tokenEntry && geckoId
-							? await fetchCoinGeckoChartByIdWithCacheFallback(geckoId)
-									.then((res) => res?.data?.coinData?.tickers)
-									.catch(() => undefined)
-							: undefined
-					return { ...data, tokenCGData: getTokenCGData(tokenEntry, tickers, cgExchangeIdentifiers) }
-				} catch (e) {
-					console.log('[HTTP]:[ERROR]:[TOKEN_CG_DATA]:', e)
-					return data
-				}
+		fetchProtocolOverviewMetrics(currentProtocolSlug).then(async (data): Promise<IProtocolDataExtended> => {
+			try {
+				const geckoId = data.gecko_id
+				const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
+				const tickers =
+					tokenEntry && geckoId
+						? await fetchCoinGeckoChartByIdWithCacheFallback(geckoId)
+								.then((res) => res?.data?.coinData?.tickers)
+								.catch(() => undefined)
+						: undefined
+				return { ...data, tokenCGData: getTokenCGData(tokenEntry, tickers, cgExchangeIdentifiers) }
+			} catch (e) {
+				console.log('[HTTP]:[ERROR]:[TOKEN_CG_DATA]:', e)
+				return data
 			}
-		),
+		}),
 		currentProtocolMetadata.tvl && !isOracleProtocol
-			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName ?? '') }).then(
-					(chart) => chart ?? []
-				)
-			: Promise.resolve([] as Array<[number, number]>),
+			? fetchProtocolTvlChart({ protocol: currentProtocolSlug, timeout: getFastJsonTimeoutMs() })
+					.then((chart): IProtocolTvlChartSeedResult => ({ data: chart ?? [], failed: false }))
+					.catch((err) => {
+						console.log(
+							'[HTTP]:[ERROR]:[PROTOCOL_TVL_CHART]:',
+							currentProtocolSlug,
+							err instanceof Error ? err.message : err
+						)
+						return { data: [], failed: true }
+					})
+			: Promise.resolve({ data: [], failed: false }),
 		currentProtocolMetadata.fees
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
@@ -344,15 +344,9 @@ export const getProtocolOverviewPageData = async ({
 						}
 					})
 			: Promise.resolve(null),
-		currentProtocolMetadata.yields ? fetchJson<IYieldsDataResult>(YIELD_POOLS_API) : null,
-		fetchArticles({ tags: slug(currentProtocolMetadata.displayName) }).catch((err) => {
-			console.log(
-				'[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',
-				slug(currentProtocolMetadata.displayName),
-				err instanceof Error ? err.message : ''
-			)
-			return []
-		}),
+		currentProtocolMetadata.yields
+			? fetchJson<IYieldsDataResult>(YIELD_POOLS_API, { timeout: getSlowJsonTimeoutMs() })
+			: null,
 		currentProtocolMetadata?.incentives && protocolId
 			? getProtocolIncentivesFromAggregatedEmissions({
 					protocolId,
@@ -360,9 +354,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
-			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName)).then(
-					(data) => data?.supplyMetrics?.adjustedSupply ?? null
-				)
+			? (emissionsSupplyMetrics[currentProtocolSlug]?.supplyMetrics?.adjustedSupply ?? null)
 			: null,
 		currentProtocolMetadata.activeUsers
 			? fetchAdapterProtocolMetrics({
@@ -393,7 +385,9 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.expenses && protocolId
 			? fetchProtocolExpenses().then((data) => data.find((item) => item.protocolId === protocolId) ?? null)
 			: null,
-		currentProtocolMetadata.liquidity ? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API) : null,
+		currentProtocolMetadata.liquidity
+			? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API, { timeout: getSlowJsonTimeoutMs() })
+			: null,
 		currentProtocolMetadata?.liquidity ? fetchLiquidityTokensDataset() : [],
 		fetchProtocols().catch((): ProtocolsResponse => ({ protocols: [], chains: [], parentProtocols: [] })),
 		fetchHacks().catch(() => []),
@@ -628,9 +622,12 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	const protocolTvlChartData = protocolTvlChartSeed.data
 	const availableCharts = buildAvailableCharts({
 		isCEX,
-		hasTvlChart: Boolean(currentProtocolMetadata.tvl && protocolTvlChartData.length > 0),
+		hasTvlChart: Boolean(
+			currentProtocolMetadata.tvl && (protocolTvlChartData.length > 0 || protocolTvlChartSeed.failed)
+		),
 		hasTvsChart: Boolean(oracleChartData?.length),
 		hasGeckoId: Boolean(tokenGeckoId),
 		hasLiquidity: Boolean(currentProtocolMetadata.liquidity),
@@ -676,17 +673,6 @@ export const getProtocolOverviewPageData = async ({
 
 	const name = protocolData.name ?? currentProtocolMetadata.displayName ?? ''
 
-	const defaultToggledCharts = buildDefaultToggledCharts({
-		isCEX,
-		isOracleProtocol,
-		protocolMetricsTvl: protocolMetrics.tvl,
-		protocolTvlChartData,
-		currentChainTvls: protocolData.currentChainTvls,
-		availableCharts,
-		category: resolvedCategory
-	})
-
-	const protocolSlug = slug(currentProtocolMetadata.displayName ?? '')
 	const initialMultiSeriesChartData: IProtocolOverviewPageData['initialMultiSeriesChartData'] = {}
 	if (protocolTvlChartData.length > 0) {
 		initialMultiSeriesChartData[isCEX ? 'Total Assets' : 'TVL'] = protocolTvlChartData
@@ -694,68 +680,21 @@ export const getProtocolOverviewPageData = async ({
 	if (oracleChartData?.length) {
 		initialMultiSeriesChartData['TVS'] = oracleChartData
 	}
-
-	type ChartSeries = Array<[number, number]>
-	type ChartPrefetcher = () => Promise<ChartSeries | null>
-	const chartPrefetchers: Partial<Record<ProtocolChartsLabels, ChartPrefetcher>> = {
-		...Object.fromEntries(
-			ADAPTER_CHART_DESCRIPTORS.map((descriptor) => [
-				descriptor.label,
-				() =>
-					fetchAdapterProtocolChartData({
-						...descriptor.chartRequest,
-						protocol: currentProtocolMetadata.displayName ?? ''
-					}).then((data) => normalizeChartPointsToMs(data))
-			])
-		),
-		'Bridge Volume': () => Promise.resolve(normalizeBridgeVolumeToChartMs(bridgeVolumeData)),
-		Treasury: () =>
-			fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((data) => normalizeChartPointsToMs(data)),
-		Staking: () =>
-			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'staking' }).then((data) => normalizeChartPointsToMs(data)),
-		'Active Loans': () =>
-			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' }).then((data) => normalizeChartPointsToMs(data)),
-		'Active Addresses': () =>
-			fetchAdapterProtocolChartData({
-				adapterType: 'active-users',
-				protocol: currentProtocolMetadata.displayName ?? ''
-			}).then((data) => normalizeChartPointsToMs(data)),
-		'New Addresses': () =>
-			fetchAdapterProtocolChartData({
-				adapterType: 'new-users',
-				protocol: currentProtocolMetadata.displayName ?? ''
-			}).then((data) => normalizeChartPointsToMs(data)),
-		Transactions: () =>
-			fetchAdapterProtocolChartData({
-				adapterType: 'active-users',
-				protocol: currentProtocolMetadata.displayName ?? '',
-				dataType: 'dailyTransactionsCount'
-			}).then((data) => normalizeChartPointsToMs(data)),
-		'Gas Used': () =>
-			fetchAdapterProtocolChartData({
-				adapterType: 'active-users',
-				protocol: currentProtocolMetadata.displayName ?? '',
-				dataType: 'dailyGasUsed'
-			}).then((data) => normalizeChartPointsToMs(data))
+	const availableChartSet = new Set(availableCharts)
+	const primaryTvlChartLabel = isCEX ? 'Total Assets' : ('TVL' as const)
+	const defaultToggledCharts = buildDefaultToggledCharts({
+		isCEX,
+		isOracleProtocol,
+		protocolMetricsTvl: Boolean(currentProtocolMetadata.tvl),
+		protocolTvlChartData,
+		currentChainTvls: protocolData.currentChainTvls ?? undefined,
+		availableCharts,
+		category: resolvedCategory
+	})
+	if (protocolTvlChartSeed.failed && availableChartSet.has(primaryTvlChartLabel)) {
+		defaultToggledCharts.unshift(primaryTvlChartLabel)
 	}
 
-	const missingDefaultCharts = defaultToggledCharts.filter(
-		(chartLabel) => !initialMultiSeriesChartData[chartLabel] && chartPrefetchers[chartLabel]
-	)
-	if (missingDefaultCharts.length > 0) {
-		const prefetchedDefaults = await Promise.all(
-			missingDefaultCharts.map(async (chartLabel) => {
-				const fetcher = chartPrefetchers[chartLabel]
-				if (!fetcher) return [chartLabel, null] as const
-				return [chartLabel, await fetcher()] as const
-			})
-		)
-		for (const [chartLabel, series] of prefetchedDefaults) {
-			if (series?.length) {
-				initialMultiSeriesChartData[chartLabel] = series
-			}
-		}
-	}
 	const titleMetrics: string[] = []
 	const seoExcludedCharts = ['Successful Proposals', 'Total Proposals', 'Max Votes']
 	if (incomeStatement) {
@@ -871,7 +810,7 @@ export const getProtocolOverviewPageData = async ({
 		unlocks: null,
 		governance: null,
 		yields,
-		articles,
+		articles: [],
 		incentives,
 		users:
 			activeUsers || newUsers || transactions || gasUsd
@@ -950,29 +889,6 @@ export const getProtocolOverviewPageData = async ({
 	}
 }
 
-const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes = await fetchJson<IArticlesResponse>(`https://api.llama.fi/news/articles`, {
-		timeout: 10_000
-	}).catch((err) => {
-		console.log(err)
-		return { type: '', version: '', content_elements: [] }
-	})
-
-	const target = tags.toLowerCase()
-
-	const articles: IArticle[] =
-		articlesRes?.content_elements
-			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.slug.toLowerCase() === target))
-			.map((element) => ({
-				headline: element.headlines.basic,
-				date: element.display_date,
-				href: `https://dlnews.com${element.canonical_url}`,
-				imgSrc: element.promo_items?.basic?.url ?? null
-			})) ?? []
-
-	return articles.slice(0, size)
-}
-
 function getTokenCGData(
 	tokenEntry: import('~/utils/metadata/types').ITokenListEntry | null,
 	tickers: CgChartResponse['data']['coinData']['tickers'] | undefined,
@@ -1029,7 +945,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		if (typeof window !== 'undefined') {
 			const protocol = slug(metadata.displayName)
-			return fetchJson(`/api/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
+			return fetchJson(`/api/public/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
 		}
 
 		const incomeStatement = await fetchJson(

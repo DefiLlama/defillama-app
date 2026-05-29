@@ -2,56 +2,23 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { getLendBorrowData } from '~/containers/Yields/queries/index'
-import { disclaimer, exploitWarning, findOptimizerPools } from '~/containers/Yields/utils'
+import { buildBorrowRowsQueryString, type BorrowPageRow } from '~/containers/Yields/borrowSimple'
+import { disclaimer, exploitWarning } from '~/containers/Yields/constants'
+import { useBorrowRows } from '~/containers/Yields/queries.client'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getQueryValue, pushShallowQuery } from '~/utils/routerQuery'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
-	const {
-		props: { pools, ...data }
-	} = await getLendBorrowData()
-
-	let cgList = await fetchCoinGeckoTokensListFromDataset()
-	// const cgTokens = cgList.filter((x) => x.symbol)
-	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
-	const searchData = {
-		['USD_STABLES']: {
-			name: `All USD Stablecoins`,
-			symbol: 'USD_STABLES'
-		}
-	}
-
-	const sortedSymbols = data.symbols.sort((a, b) => cgPositions[a] - cgPositions[b])
-	for (const sRaw of sortedSymbols) {
-		const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
-
-		// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
-
-		searchData[s] = {
-			name: s,
-			symbol: s
-		}
-	}
+	const { getBorrowPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const metadata = await getBorrowPageMetadata()
 
 	return {
-		props: {
-			// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
-			// setting to uppercase, we only show subset of available pools when applying `findOptimizerPools`
-			pools: pools
-				.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
-				.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
-			cdpPools: pools
-				.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
-				.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } })),
-			searchData
-		},
+		props: metadata,
 		revalidate: maxAgeForNext([23])
 	}
 })
@@ -66,6 +33,9 @@ export default function YieldBorrow(data) {
 	const borrowToken = getQueryValue(router.query, 'borrow')
 
 	const collateralToken = getQueryValue(router.query, 'collateral')
+	const rowsQueryString = React.useMemo(() => buildBorrowRowsQueryString(router.query), [router.query])
+	const { data: rowsData, isLoading, isError } = useBorrowRows(rowsQueryString)
+	const filteredPools = rowsData?.rows ?? []
 
 	const handleSwap = () => {
 		const newBorrow = collateralToken ?? ''
@@ -76,13 +46,6 @@ export default function YieldBorrow(data) {
 			collateral: newCollateral || undefined
 		})
 	}
-
-	const filteredPools = findOptimizerPools({
-		pools: data.pools,
-		tokenToLend: collateralToken,
-		tokenToBorrow: borrowToken,
-		cdpRoutes: data.cdpPools
-	})
 
 	const hasSelection = borrowToken || collateralToken
 
@@ -163,7 +126,15 @@ export default function YieldBorrow(data) {
 				</div>
 
 				<div className="min-w-0 flex-1">
-					{hasSelection ? (
+					{hasSelection && isLoading && !rowsData ? (
+						<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+							Loading borrow routes...
+						</p>
+					) : hasSelection && isError ? (
+						<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+							Couldn't load borrow routes.
+						</p>
+					) : hasSelection ? (
 						<PoolsList pools={filteredPools} />
 					) : (
 						<div className="flex flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) px-6 py-16 text-center">
@@ -202,14 +173,13 @@ const TokensSelect = ({
 	const searchDataArray = Object.values(searchData)
 
 	const [searchValue, setSearchValue] = React.useState('')
-	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
-		if (!deferredSearchValue) return searchDataArray
-		return matchSorter(searchDataArray, deferredSearchValue, {
+		if (!searchValue) return searchDataArray
+		return matchSorter(searchDataArray, searchValue, {
 			keys: ['name', 'symbol'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [searchDataArray, deferredSearchValue])
+	}, [searchDataArray, searchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
@@ -338,24 +308,8 @@ const safeProjects = [
 	'Compound V3'
 ].map((x) => x.toLowerCase())
 
-interface IPool {
-	projectName: string
-	totalAvailableUsd: number
-	chain: string
-	pool: string | null
-	poolMeta: string | null
-	tvlUsd: number
-	borrow: any
-	apyBaseBorrow?: number | null
-	apyBase?: number | null
-	apy?: number | null
-	apyReward?: number | null
-	apyRewardBorrow?: number | null
-	ltv?: number | null
-}
-
 const getAPY = (
-	pool: IPool,
+	pool: BorrowPageRow,
 	borrow: string | string[],
 	collateral: string | string[],
 	incentives: string | string[]
@@ -378,7 +332,7 @@ const getAPY = (
 	return supplyApy ?? 0
 }
 
-const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
+const PoolsList = ({ pools }: { pools: Array<BorrowPageRow> }) => {
 	const [tab, setTab] = React.useState('safe')
 
 	const filteredPools = pools
@@ -401,7 +355,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 		}
 	}
 
-	const finalPools: Array<IPool> = Object.values(filteredPools2)
+	const finalPools: Array<BorrowPageRow> = Object.values(filteredPools2)
 
 	const apyLabel = borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'
 	const showAvailable = Boolean(borrow)

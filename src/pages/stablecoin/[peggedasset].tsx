@@ -1,6 +1,5 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
 import StablecoinAssetOverview from '~/containers/Stablecoins/StablecoinOverview'
 import type { PeggedAssetPageProps } from '~/containers/Stablecoins/types'
@@ -21,7 +20,13 @@ export const getStaticProps = withPerformanceLogging<PeggedAssetPageProps>(
 			return { notFound: true }
 		}
 
-		const data = await getStablecoinAssetPageData(peggedasset)
+		const peggedAssetSlug = slug(peggedasset)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		if (!metadataCache.stablecoinPeggedAssetSlugsSet.has(peggedAssetSlug)) {
+			return { notFound: true }
+		}
+
+		const data = await getStablecoinAssetPageData(peggedAssetSlug)
 		if (!data) {
 			return {
 				notFound: true,
@@ -47,13 +52,10 @@ export const getStaticPaths: GetStaticPaths<StablecoinAssetRouteParams> = async 
 		}
 	}
 
-	const res = await fetchStablecoinAssetsApi()
+	const { getStablecoinAssetStaticPaths } = await import('~/server/routeCache/assets')
+	const paths = await getStablecoinAssetStaticPaths()
 
-	const paths = res.peggedAssets.map(({ name }) => ({
-		params: { peggedasset: slug(name) }
-	}))
-
-	return { paths: paths.slice(0, 1), fallback: 'blocking' }
+	return { paths, fallback: 'blocking' }
 }
 
 export default function StablecoinAssetPage(props: InferGetStaticPropsType<typeof getStaticProps>) {

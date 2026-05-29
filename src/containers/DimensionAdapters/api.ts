@@ -1,4 +1,5 @@
 import { fetchCoinGeckoExchanges, fetchCoinGeckoSimplePrice } from '~/api/coingecko'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -32,7 +33,17 @@ export async function fetchAdapterChainMetrics({
 		metricsUrl.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), { timeout: 30_000 })
+	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), {
+		timeout: 30_000,
+		telemetry: {
+			attributes: {
+				adapter_type: adapterType,
+				...(dataType ? { data_type: dataType } : null),
+				chain,
+				...(category ? { category } : null)
+			}
+		}
+	})
 }
 
 /**
@@ -83,7 +94,17 @@ export async function fetchAdapterChainChartData({
 		totalDataChart.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChart>(totalDataChart.toString(), { timeout: 30_000 })
+	return fetchJson<IAdapterChart>(totalDataChart.toString(), {
+		timeout: 30_000,
+		telemetry: {
+			attributes: {
+				adapter_type: adapterType,
+				...(dataType ? { data_type: dataType } : null),
+				chain,
+				...(category ? { category } : null)
+			}
+		}
+	})
 }
 
 /**
@@ -171,6 +192,19 @@ export async function fetchAdapterChartDataByChainBreakdown({
 	}
 
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
+}
+
+export async function fetchChainsByAdapterPageChartData({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+}): Promise<{ chartData: MultiSeriesChart2Dataset }> {
+	const searchParams = new URLSearchParams({ adapterType, dataType })
+	return fetchJson<{ chartData: MultiSeriesChart2Dataset }>(
+		`/api/public/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
+	)
 }
 
 /**

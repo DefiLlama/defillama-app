@@ -35,8 +35,14 @@ const CHART_SYMBOLS: Record<string, string> = {
 }
 
 // Helper to get the symbol for a series name in tooltip
-const getSeriesSymbol = (seriesName: string, valueSymbol: string, unlockTokenSymbol: string): string => {
+const getSeriesSymbol = (
+	seriesName: string,
+	valueSymbol: string,
+	unlockTokenSymbol: string,
+	seriesValueSymbols: Record<string, string> | undefined
+): string => {
 	if (seriesName === 'Unlocks') return unlockTokenSymbol
+	if (seriesValueSymbols?.[seriesName]) return seriesValueSymbols[seriesName]
 	if (seriesName.includes('Users')) return 'Addresses'
 	if (seriesName.includes('Addresses')) return ''
 	if (seriesName.includes('Transactions')) return 'TXs'
@@ -74,6 +80,7 @@ interface IUseDefaultsProps {
 	alwaysShowTooltip?: boolean
 	showAggregateInTooltip?: boolean
 	xAxisType?: 'time' | 'category'
+	seriesValueSymbols?: Record<string, string>
 }
 
 export function useDefaults({
@@ -91,7 +98,8 @@ export function useDefaults({
 	groupBy,
 	alwaysShowTooltip,
 	showAggregateInTooltip: _showAggregateInTooltip = false,
-	xAxisType = 'time'
+	xAxisType = 'time',
+	seriesValueSymbols
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -141,7 +149,10 @@ export function useDefaults({
 			trigger: 'axis',
 			confine: true,
 			formatter: function (params) {
-				let chartdate = formatTooltipChartDate(params[0].value[0], groupBy)
+				let chartdate =
+					typeof params[0].value[0] === 'string'
+						? `<strong>${params[0].value[0]}</strong><br/>`
+						: formatTooltipChartDate(params[0].value[0], groupBy)
 
 				let vals
 				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1])
@@ -179,7 +190,10 @@ export function useDefaults({
 						curr.marker +
 						curr.seriesName +
 						'&nbsp;&nbsp;' +
-						formatTooltipValue(displayValue, getSeriesSymbol(curr.seriesName, valueSymbol, unlockTokenSymbol)) +
+						formatTooltipValue(
+							displayValue,
+							getSeriesSymbol(curr.seriesName, valueSymbol, unlockTokenSymbol, seriesValueSymbols)
+						) +
 						'</li>')
 				}, '')
 
@@ -466,7 +480,8 @@ export function useDefaults({
 		tooltipValuesRelative,
 		groupBy,
 		alwaysShowTooltip,
-		xAxisType
+		xAxisType,
+		seriesValueSymbols
 	])
 
 	return defaults

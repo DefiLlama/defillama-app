@@ -187,7 +187,7 @@ export async function getDimensionAdapterChainEarningsOverview({
 	let chainSpecificTotal24h = 0
 	let chainSpecificTotal7d = 0
 	let chainSpecificTotal30d = 0
-	let chainSpecificTotal1y = 0
+	let chainSpecificTotal1y: number | null = null
 
 	if (chain && chain !== 'All') {
 		const internalChainName = resolveInternalChainName(chain, chainNameMap)
@@ -245,7 +245,8 @@ export async function getDimensionAdapterChainEarningsOverview({
 				return {
 					...protocol,
 					total24h: chainEarnings24h,
-					total30d: chainEarnings30d
+					total30d: chainEarnings30d,
+					total1y: null
 				}
 			})
 	} else {
@@ -354,6 +355,7 @@ export function extractProtocolIncentivesFromAggregatedEmissions({
 		emissions24h: protocolEmissionsData.emission24h ?? null,
 		emissions7d: protocolEmissionsData.emission7d ?? null,
 		emissions30d: protocolEmissionsData.emission30d ?? null,
+		emissions1y: protocolEmissionsData.emissions1y ?? null,
 		emissionsAllTime: protocolEmissionsData.emissionsAllTime ?? null,
 		emissionsMonthlyAverage1y: protocolEmissionsData.emissionsMonthlyAverage1y ?? null,
 		methodology: INCENTIVES_METHODOLOGY

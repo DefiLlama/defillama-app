@@ -15,17 +15,15 @@ import { ALL_POOL_COLUMN_QUERY_KEYS } from '~/containers/Yields/Filters/poolColu
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import {
-	buildYieldTableRowsWithBorrowData,
 	buildPoolsTrackingStats,
 	filterPoolTableRows,
 	getPoolRowChains,
 	getPoolRowTokens
 } from '~/containers/Yields/poolsPipeline'
-import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
+import { useHolderStats, useVolatility } from '~/containers/Yields/queries.client'
 import { clearYieldsQueries, hasActiveYieldsQueries } from '~/containers/Yields/queryState'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -75,37 +73,17 @@ export const getStaticProps = withPerformanceLogging(
 		let poolsError: string | null = null
 		let poolsList: IYieldTableRow[] = []
 		try {
-			if (!isDatasetCacheEnabled()) {
-				const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
-				const yieldsData = await getYieldPageData()
-				const dataBorrow = await getLendBorrowData().catch(() => ({ props: { pools: [] as any[] } }))
-				const allRows = buildYieldTableRowsWithBorrowData(yieldsData?.props?.pools ?? [], dataBorrow.props.pools)
-				const rows: IYieldTableRow[] = []
-
-				for (const pool of allRows) {
-					if (
-						pool.projectslug !== protocolSlug &&
-						(protocolData.parentProtocol || !otherProtocolsSet.has(pool.projectslug))
-					) {
-						continue
-					}
-					rows.push(pool)
-				}
-
-				poolsList = rows
-			} else {
-				const protocolSlugs = [protocolSlug]
-				if (!protocolData.parentProtocol) {
-					for (const otherProtocolSlug of otherProtocolsSet) {
-						if (otherProtocolSlug !== protocolSlug) {
-							protocolSlugs.push(otherProtocolSlug)
-						}
+			const protocolSlugs = [protocolSlug]
+			if (!protocolData.parentProtocol) {
+				for (const otherProtocolSlug of otherProtocolsSet) {
+					if (otherProtocolSlug !== protocolSlug) {
+						protocolSlugs.push(otherProtocolSlug)
 					}
 				}
-
-				const { getProtocolYieldRowsFromCache } = await import('~/server/datasetCache/yields')
-				poolsList = await getProtocolYieldRowsFromCache(protocolSlugs)
 			}
+
+			const { getProtocolYieldRows } = await import('~/server/datasetCache/runtime/yields')
+			poolsList = await getProtocolYieldRows(protocolSlugs)
 		} catch (err) {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
 			poolsError = 'Failed to fetch'

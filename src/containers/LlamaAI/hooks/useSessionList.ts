@@ -35,7 +35,7 @@ export function useSessionList() {
 		queryKey: [SESSIONS_QUERY_KEY, user?.id],
 		queryFn: async ({ pageParam }) => {
 			try {
-				if (!user) return { sessions: [], usage: null, hasMore: false }
+				if (!user) return { sessions: [], usage: null, factCheckedUsage: null, hasMore: false }
 				const responseData = (await authorizedFetch(`${AI_SERVER}/user/sessions?offset=${pageParam}`)
 					.then((response) => assertResponse(response, 'Failed to fetch sessions'))
 					.then(handleSimpleFetchResponse)
@@ -54,8 +54,8 @@ export function useSessionList() {
 		initialPageParam: 0,
 		getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextOffset : undefined),
 		enabled: isAuthenticated && !!user,
-		refetchOnWindowFocus: false,
-		staleTime: 30000
+		refetchOnWindowFocus: true,
+		staleTime: 10000
 	})
 
 	const data = useMemo(() => flattenSessionListData(queryData), [queryData])
@@ -74,6 +74,7 @@ export function useSessionList() {
 	return {
 		sessions: data.sessions,
 		researchUsage: data.usage,
+		factCheckedUsage: data.factCheckedUsage,
 		isLoading,
 		error: !isFetchNextPageError && queryError instanceof Error ? queryError.message : null,
 		hasNextPage,

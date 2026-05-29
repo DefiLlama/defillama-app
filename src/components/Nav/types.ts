@@ -7,6 +7,7 @@ export type TNavLink = {
 	attention?: boolean
 	freeTrial?: boolean
 	isNew?: boolean
+	requireLlama?: boolean
 	/** Only for external links - internal pages are auto-tracked by Umami */
 	umamiEvent?: string
 }

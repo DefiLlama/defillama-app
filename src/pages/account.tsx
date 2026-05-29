@@ -17,10 +17,14 @@ export default function Account() {
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 	const topupProcessedRef = useRef(false)
 	const successProcessedRef = useRef(false)
+	const teamCheckoutProcessedRef = useRef(false)
 	const [showSuccessModal, setShowSuccessModal] = useState(false)
 
 	const topupSuccess = Array.isArray(router.query.topup) ? router.query.topup[0] : router.query.topup
 	const success = Array.isArray(router.query.success) ? router.query.success[0] : router.query.success
+	const teamCheckout = Array.isArray(router.query['team-checkout'])
+		? router.query['team-checkout'][0]
+		: router.query['team-checkout']
 
 	// Handle ?topup=success
 	useEffect(() => {
@@ -59,6 +63,22 @@ export default function Account() {
 		}
 	}, [isSubscriptionLoading, hasActiveSubscription])
 
+	// Handle ?team-checkout=success
+	useEffect(() => {
+		if (teamCheckout !== 'success' || !isAuthenticated || teamCheckoutProcessedRef.current) return
+		teamCheckoutProcessedRef.current = true
+		void queryClient.invalidateQueries({ queryKey: ['team'] })
+		toast.success('Seats purchased successfully!')
+		const { 'team-checkout': _ignored, ...nextQuery } = router.query
+		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [teamCheckout, isAuthenticated, queryClient, router])
+
+	useEffect(() => {
+		if (teamCheckout !== 'success') {
+			teamCheckoutProcessedRef.current = false
+		}
+	}, [teamCheckout])
+
 	return (
 		<WalletProvider>
 			<Layout
@@ -66,7 +86,7 @@ export default function Account() {
 				description="Manage your DefiLlama account settings and authentication."
 				canonicalUrl="/account"
 			>
-				<div className="mx-auto w-full max-w-[573px] py-6">
+				<div className="mx-auto w-full max-w-[720px] py-6">
 					<ManageAccount />
 				</div>
 

@@ -1,11 +1,9 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type { LiquidationsProtocolShell } from '~/containers/LiquidationsV2/api.types'
 import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsProtocolRouteContent } from '~/containers/LiquidationsV2/RouteContent'
 import Layout from '~/layout'
-import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -17,12 +15,11 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const protocolsResponse = await fetchProtocolsList()
+	const { getLiquidationsProtocolStaticPaths } = await import('~/server/routeCache/liquidations')
+	const paths = await getLiquidationsProtocolStaticPaths()
 
 	return {
-		paths: protocolsResponse.protocols.map((protocolId) => {
-			return { params: { protocol: protocolId } }
-		}),
+		paths,
 		fallback: 'blocking'
 	}
 }
@@ -38,15 +35,20 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const protocolParam = slug(params.protocol)
-
-		const protocolsResponse = await fetchProtocolsList()
-		if (!protocolsResponse.protocols.includes(protocolParam)) {
+		const { resolveLiquidationsProtocolParam } = await import('~/server/routeCache/liquidations')
+		const protocolParam = await resolveLiquidationsProtocolParam(params.protocol)
+		if (!protocolParam) {
 			return { notFound: true }
 		}
 
-		const metadataModule = await import('~/utils/metadata')
-		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
+		const [{ getLiquidationsProtocolsResponseFromCache }, metadataModule] = await Promise.all([
+			import('~/server/datasetCache/liquidations'),
+			import('~/utils/metadata')
+		])
+		const [protocolsResponse, protocolMetadataLookup] = [
+			await getLiquidationsProtocolsResponseFromCache(),
+			createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
+		]
 
 		const protocolLinks = [
 			{ label: 'Overview', to: '/liquidations' },

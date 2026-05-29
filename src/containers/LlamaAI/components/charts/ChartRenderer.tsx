@@ -14,6 +14,7 @@ import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '~/conta
 import { ChartDataTransformer } from '~/containers/LlamaAI/utils/chartDataTransformer'
 import { buildRenderPlan, type ChartRenderPlan } from '~/containers/LlamaAI/utils/chartRenderPlan'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
@@ -28,6 +29,8 @@ interface ChartRendererProps {
 	hasError?: boolean
 	chartTypes?: string[]
 	resizeTrigger?: number
+	sessionId?: string | null
+	messageId?: string
 }
 
 interface SingleChartProps {
@@ -35,6 +38,8 @@ interface SingleChartProps {
 	data: any[]
 	isActive: boolean
 	title?: string
+	sessionId?: string | null
+	messageId?: string
 }
 
 type ChartAction =
@@ -44,6 +49,7 @@ type ChartAction =
 	| { type: 'SET_GROUPING'; payload: ChartViewState['grouping'] }
 	| { type: 'SET_HALLMARKS'; payload: boolean }
 	| { type: 'SET_LABELS'; payload: boolean }
+	| { type: 'SET_LOG_SCALE'; payload: boolean }
 
 const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewState => {
 	switch (action.type) {
@@ -59,6 +65,8 @@ const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewStat
 			return { ...state, showHallmarks: action.payload }
 		case 'SET_LABELS':
 			return { ...state, showLabels: action.payload }
+		case 'SET_LOG_SCALE':
+			return { ...state, logScale: action.payload }
 		default:
 			return state
 	}
@@ -71,7 +79,8 @@ function createInitialChartState(config: ChartConfiguration): ChartViewState {
 		cumulative: false,
 		grouping: 'day',
 		showHallmarks: true,
-		showLabels: config.displayOptions?.showLabels || false
+		showLabels: config.displayOptions?.showLabels || false,
+		logScale: config.displayOptions?.defaultLogScale || false
 	}
 }
 
@@ -86,7 +95,7 @@ function buildChartPresentation(config: ChartConfiguration, data: any[], chartSt
 	// adapt base data -> derive intrinsic capabilities -> normalize view state -> transform -> render plan.
 	const baseAdaptedChart = removeAdaptedChartTitle(adaptChartData(config, data))
 	const capabilities = deriveCapabilities(config, baseAdaptedChart)
-	const normalizedState = normalizeViewState(chartState, capabilities, config)
+	const normalizedState = normalizeViewState(chartState, capabilities)
 	const transformedChart = ChartDataTransformer.applyViewState(baseAdaptedChart, normalizedState, capabilities)
 	return buildRenderPlan(config, transformedChart, normalizedState, capabilities)
 }
@@ -131,16 +140,50 @@ function ChartExportButtonsSlot({
 	chartInstance,
 	exportModel,
 	renderPlan,
-	chartTitle
+	chartTitle,
+	chartId,
+	sessionId,
+	messageId
 }: {
 	chartInstance: () => any
 	exportModel: ChartRenderPlan['exportModel']
 	renderPlan: ChartRenderPlan
 	chartTitle: string | undefined
+	chartId: string
+	sessionId?: string | null
+	messageId?: string
 }) {
 	const prepareCsvDirect = useMemo(
 		() => (exportModel ? () => ({ filename: exportModel.csvFilename, rows: exportModel.csvRows }) : undefined),
 		[exportModel]
+	)
+
+	const onCsvExport = useCallback(
+		(info: { filename: string }) => {
+			trackUmamiEvent('llamaai-download', {
+				kind: 'chart-csv',
+				filename: info.filename,
+				chartId,
+				chartTitle: chartTitle ?? '',
+				sessionId: sessionId ?? '',
+				messageId: messageId ?? ''
+			})
+		},
+		[chartId, chartTitle, sessionId, messageId]
+	)
+
+	const onPngExport = useCallback(
+		(info: { kind: 'download' | 'copy'; filename: string }) => {
+			trackUmamiEvent('llamaai-download', {
+				kind: info.kind === 'copy' ? 'chart-png-copy' : 'chart-png',
+				filename: info.filename,
+				chartId,
+				chartTitle: chartTitle ?? '',
+				sessionId: sessionId ?? '',
+				messageId: messageId ?? ''
+			})
+		},
+		[chartId, chartTitle, sessionId, messageId]
 	)
 
 	return (
@@ -152,6 +195,8 @@ function ChartExportButtonsSlot({
 			showCsv={!!exportModel}
 			prepareCsvDirect={prepareCsvDirect}
 			pngProfile={exportModel?.pngProfile}
+			onCsvExport={onCsvExport}
+			onPngExport={onPngExport}
 		/>
 	)
 }
@@ -167,7 +212,7 @@ function tryBuildPresentation(config: ChartConfiguration, data: any[], chartStat
 	}
 }
 
-function SingleChart({ config, data, isActive, title }: SingleChartProps) {
+function SingleChart({ config, data, isActive, title, sessionId, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const handleStackedChange = useCallback((stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }), [])
@@ -189,6 +234,10 @@ function SingleChart({ config, data, isActive, title }: SingleChartProps) {
 	)
 	const handleLabelsChange = useCallback(
 		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
+		[]
+	)
+	const handleLogScaleChange = useCallback(
+		(logScale: boolean) => dispatch({ type: 'SET_LOG_SCALE', payload: logScale }),
 		[]
 	)
 
@@ -238,7 +287,7 @@ function SingleChart({ config, data, isActive, title }: SingleChartProps) {
 	const normalizedState = renderPlan.controls.state
 	const exportModel = renderPlan.exportModel
 	const chartTitle = title ?? config.title
-	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
+	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}-${normalizedState.logScale}`
 	const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
 
 	return (
@@ -251,12 +300,16 @@ function SingleChart({ config, data, isActive, title }: SingleChartProps) {
 				onGroupingChange={handleGroupingChange}
 				onHallmarksChange={handleHallmarksChange}
 				onLabelsChange={handleLabelsChange}
+				onLogScaleChange={handleLogScaleChange}
 			>
 				<ChartExportButtonsSlot
 					chartInstance={chartInstance}
 					exportModel={exportModel}
 					renderPlan={renderPlan}
 					chartTitle={chartTitle}
+					chartId={config.id}
+					sessionId={sessionId}
+					messageId={messageId}
 				/>
 			</ChartControls>
 			{chartContent}
@@ -264,15 +317,19 @@ function SingleChart({ config, data, isActive, title }: SingleChartProps) {
 	)
 }
 
-const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
+const ChartLoadingSpinner = () => <div className="size-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
 const ChartLoadingPlaceholder = ({ chartTypes }: { chartTypes?: string[] }) => (
 	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
 		<p className="text-[#666] dark:text-[#919296]">
-			{chartTypes?.length
-				? `Creating ${chartTypes.join(', ')} visualization${chartTypes.length > 1 ? 's' : ''}...`
-				: 'Creating visualization...'}
+			{chartTypes?.length ? (
+				<>
+					Creating {chartTypes.join(', ')} visualization{chartTypes.length > 1 ? 's' : ''}&hellip;
+				</>
+			) : (
+				<>Creating visualization&hellip;</>
+			)}
 		</p>
 	</div>
 )
@@ -290,9 +347,15 @@ export function ChartRenderer({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	sessionId,
+	messageId
 }: ChartRendererProps) {
-	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger }} />
+	return (
+		<ChartRendererMemoized
+			{...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, messageId }}
+		/>
+	)
 }
 
 function ChartRendererImpl({
@@ -301,7 +364,9 @@ function ChartRendererImpl({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	sessionId,
+	messageId
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
@@ -374,6 +439,8 @@ function ChartRendererImpl({
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					title={chart.title}
+					sessionId={sessionId}
+					messageId={messageId}
 				/>
 			))}
 		</div>
@@ -385,6 +452,8 @@ const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
 		prev.isLoading === next.isLoading &&
 		prev.hasError === next.hasError &&
 		prev.resizeTrigger === next.resizeTrigger &&
+		prev.sessionId === next.sessionId &&
+		prev.messageId === next.messageId &&
 		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
 		areChartsEqual(prev.charts, next.charts) &&
 		areChartDataEqual(prev.chartData, next.chartData)

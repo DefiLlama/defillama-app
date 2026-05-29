@@ -5,28 +5,148 @@ import {
 	prependSessionToInfiniteData,
 	removeSessionFromInfiniteData,
 	removeSessionsFromInfiniteData,
+	replaceSessionIdInInfiniteData,
 	SESSIONS_QUERY_KEY,
 	type SessionListInfiniteData,
 	updateSessionInInfiniteData
 } from '~/containers/LlamaAI/hooks/sessionListCache'
+import { isProjectSessionsQueryKey, projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
+import type { ProjectChatSession } from '~/containers/LlamaAI/projects/types'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 
+type SwitchActiveLeafResponse = {
+	activeLeafMessageId: string
+	messages?: unknown[]
+	pagination?: {
+		hasMore?: boolean
+		cursor?: number | null
+		hasNewer?: boolean
+		newerCursor?: number | null
+	}
+}
+
+function assertSwitchActiveLeafResponse(response: unknown): asserts response is SwitchActiveLeafResponse {
+	if (!response || typeof response !== 'object' || Array.isArray(response)) {
+		throw new Error('Invalid branch switch response')
+	}
+
+	const result = response as {
+		activeLeafMessageId?: unknown
+		messages?: unknown
+		pagination?: unknown
+	}
+
+	if (typeof result.activeLeafMessageId !== 'string' || result.activeLeafMessageId.trim() === '') {
+		throw new Error('Invalid branch switch response: missing active leaf message')
+	}
+
+	if (result.messages !== undefined && !Array.isArray(result.messages)) {
+		throw new Error('Invalid branch switch response: messages must be an array')
+	}
+
+	if (result.pagination === undefined) return
+
+	if (!result.pagination || typeof result.pagination !== 'object' || Array.isArray(result.pagination)) {
+		throw new Error('Invalid branch switch response: pagination must be an object')
+	}
+
+	const pagination = result.pagination as {
+		hasMore?: unknown
+		cursor?: unknown
+		hasNewer?: unknown
+		newerCursor?: unknown
+	}
+
+	if (pagination.hasMore !== undefined && typeof pagination.hasMore !== 'boolean') {
+		throw new Error('Invalid branch switch response: pagination.hasMore must be a boolean')
+	}
+	if (pagination.cursor !== undefined && pagination.cursor !== null && typeof pagination.cursor !== 'number') {
+		throw new Error('Invalid branch switch response: pagination.cursor must be a number or null')
+	}
+	if (pagination.hasNewer !== undefined && typeof pagination.hasNewer !== 'boolean') {
+		throw new Error('Invalid branch switch response: pagination.hasNewer must be a boolean')
+	}
+	if (
+		pagination.newerCursor !== undefined &&
+		pagination.newerCursor !== null &&
+		typeof pagination.newerCursor !== 'number'
+	) {
+		throw new Error('Invalid branch switch response: pagination.newerCursor must be a number or null')
+	}
+}
+
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
 
+	const invalidateProjectSessions = (projectId?: string | null) => {
+		if (projectId) {
+			void queryClient.invalidateQueries({ queryKey: projectSessionsKey(projectId) })
+			return
+		}
+		void queryClient.invalidateQueries({ predicate: (query) => isProjectSessionsQueryKey(query.queryKey) })
+	}
+
+	const prependProjectSession = useCallback(
+		(projectId: string, session: ProjectChatSession) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) => {
+				const sessions = old?.filter((item) => item.sessionId !== session.sessionId) ?? []
+				return [session, ...sessions]
+			})
+		},
+		[queryClient]
+	)
+
+	const removeProjectSession = useCallback(
+		(projectId: string, sessionId: string) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+				old?.filter((item) => item.sessionId !== sessionId)
+			)
+		},
+		[queryClient]
+	)
+
+	const replaceOptimisticSessionId = useCallback(
+		(previousSessionId: string, nextSessionId: string, projectId?: string | null) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					replaceSessionIdInInfiniteData(old, previousSessionId, nextSessionId)
+				)
+			}
+
+			if (projectId) {
+				queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+					old?.map((session) =>
+						session.sessionId === previousSessionId
+							? { ...session, sessionId: nextSessionId, isOptimistic: false }
+							: session
+					)
+				)
+			}
+		},
+		[user, queryClient]
+	)
+
 	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
+		mutationFn: async ({
+			sessionId,
+			title,
+			projectId
+		}: {
+			sessionId: string
+			title?: string
+			projectId?: string | null
+		}) => {
 			try {
 				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, title })
+					body: JSON.stringify({ sessionId, title, projectId })
 				})
 					.then((res) => assertResponse(res, 'Failed to create session'))
 					.then(handleSimpleFetchResponse)
@@ -38,8 +158,27 @@ export function useSessionMutations() {
 				throw new Error(`Failed to create session: ${getErrorMessage(error)}`)
 			}
 		},
-		onSuccess: () => {
-			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+		onSuccess: (_data, variables) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					updateSessionInInfiniteData(old, variables.sessionId, (session) => ({
+						...session,
+						isOptimistic: false,
+						projectId: variables.projectId ?? null
+					}))
+				)
+			}
+			if (!variables.projectId) {
+				void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			}
+		},
+		onError: (_error, variables) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					removeSessionFromInfiniteData(old, variables.sessionId)
+				)
+			}
+			if (variables.projectId) removeProjectSession(variables.projectId, variables.sessionId)
 		}
 	})
 
@@ -79,9 +218,31 @@ export function useSessionMutations() {
 		}
 	})
 
+	const switchActiveLeafMutation = useMutation({
+		mutationKey: ['llamaai', 'switch-active-leaf'],
+		mutationFn: async ({ sessionId, leafMessageId }: { sessionId: string; leafMessageId: string }) => {
+			try {
+				const response: unknown = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ leafMessageId })
+				})
+					.then((res) => assertResponse(res, 'Failed to switch branch'))
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+
+				assertSwitchActiveLeafResponse(response)
+				return response
+			} catch (error) {
+				console.error('[llama-ai] [switchActiveLeaf] failed:', getErrorMessage(error))
+				throw error instanceof Error ? error : new Error('Failed to switch branch')
+			}
+		}
+	})
+
 	// Delete from both the backend and the optimistic sidebar/session cache.
 	const deleteSessionMutation = useMutation({
-		mutationFn: async (sessionId: string) => {
+		mutationFn: async ({ sessionId }: { sessionId: string; projectId?: string | null }) => {
 			try {
 				await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
@@ -93,7 +254,7 @@ export function useSessionMutations() {
 				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
 			}
 		},
-		onMutate: async (sessionId) => {
+		onMutate: async ({ sessionId }) => {
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
 
@@ -113,9 +274,10 @@ export function useSessionMutations() {
 				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
 			}
 		},
-		onSettled: () => {
+		onSettled: (_data, _error, variables) => {
 			// Always invalidate after mutation settles (success or error)
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		}
 	})
 
@@ -145,12 +307,13 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			invalidateProjectSessions()
 		}
 	})
 
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
-		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
+		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string; projectId?: string | null }) => {
 			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/title`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
@@ -169,7 +332,7 @@ export function useSessionMutations() {
 			// Snapshot previous value for rollback
 			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
-			// Optimistically update
+			// Optimistically update the global session cache
 			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
 				updateSessionInInfiniteData(old, sessionId, (session) => ({ ...session, title }))
 			)
@@ -182,8 +345,11 @@ export function useSessionMutations() {
 				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
 			}
 		},
-		onSettled: () => {
-			// Always invalidate after mutation settles (success or error)
+		onSettled: (_data, _error, variables) => {
+			if (variables.projectId) {
+				invalidateProjectSessions(variables.projectId)
+				return
+			}
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
@@ -218,31 +384,50 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			invalidateProjectSessions()
 		}
 	})
 
 	// Insert a temporary session into the cache so first-message submits have a stable local target.
-	const createFakeSession = useCallback(() => {
-		const sessionId = crypto.randomUUID()
-		const title = 'New Chat'
+	const createFakeSession = useCallback(
+		(projectId?: string | null) => {
+			const sessionId = crypto.randomUUID()
+			const title = 'New Chat'
+			const now = new Date().toISOString()
 
-		if (user) {
-			const fakeSession: ChatSession = {
-				sessionId,
-				title,
-				createdAt: new Date().toISOString(),
-				lastActivity: new Date().toISOString(),
-				isActive: true,
-				isOptimistic: true
+			if (user) {
+				const fakeSession: ChatSession = {
+					sessionId,
+					title,
+					createdAt: now,
+					lastActivity: now,
+					isActive: true,
+					isOptimistic: true,
+					projectId: projectId ?? null
+				}
+
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					prependSessionToInfiniteData(old, fakeSession)
+				)
+
+				if (projectId) {
+					prependProjectSession(projectId, {
+						sessionId,
+						title,
+						createdAt: now,
+						lastActivity: now,
+						isPinned: false,
+						pinnedAt: null,
+						isPublic: false,
+						shareToken: null
+					})
+				}
 			}
 
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
-				prependSessionToInfiniteData(old, fakeSession)
-			)
-		}
-
-		return sessionId
-	}, [user, queryClient])
+			return sessionId
+		},
+		[user, queryClient, prependProjectSession]
+	)
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
@@ -263,7 +448,9 @@ export function useSessionMutations() {
 						hasNewer: result.hasNewer ?? false,
 						newerCursor: result.newerCursor
 					},
-					streaming: result.streaming
+					streaming: result.streaming,
+					todos: result.todos,
+					projectId: result.projectId ?? null
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
@@ -314,16 +501,24 @@ export function useSessionMutations() {
 		[restoreSessionMutation]
 	)
 
+	const deleteSession = useCallback(
+		(sessionId: string, projectId?: string | null) => deleteSessionMutation.mutateAsync({ sessionId, projectId }),
+		[deleteSessionMutation]
+	)
+
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
+		replaceOptimisticSessionId,
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
-		deleteSession: deleteSessionMutation.mutateAsync,
+		switchActiveLeaf: switchActiveLeafMutation.mutateAsync,
+		deleteSession,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
+		isSwitchingActiveLeaf: switchActiveLeafMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending,
 		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,

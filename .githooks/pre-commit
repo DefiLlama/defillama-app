@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+status=0
+
+echo "Running bun run lint..."
+bun run lint || status=$?
+
+echo "Running bun run ts..."
+bun run ts || status=$?
+
+if [ "$status" -ne 0 ]; then
+	echo "Pre-commit checks failed."
+	exit "$status"
+fi

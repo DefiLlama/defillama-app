@@ -13,7 +13,7 @@ import {
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
@@ -23,12 +23,13 @@ import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
-import { getErrorMessage } from '~/utils/error'
+import { getErrorMessage, normalizeError } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainChartDataByProtocolBreakdown,
-	fetchAdapterChartDataByChainBreakdown
+	fetchAdapterChartDataByChainBreakdown,
+	fetchChainsByAdapterPageChartData
 } from './api'
 import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
@@ -725,10 +726,9 @@ export const AdapterByChainChart = ({
 					{breakdownChartDataState.message}
 				</p>
 			) : chartViewMode === 'Breakdown' && breakdownChartDataState.kind === 'loading' ? (
-				<p className="flex min-h-[360px] items-center justify-center gap-1">
-					Loading
-					<LoadingDots />
-				</p>
+				<div className="flex min-h-[360px] items-center justify-center">
+					<LocalLoader />
+				</div>
 			) : chartViewMode === 'Breakdown' ? (
 				<React.Suspense
 					fallback={
@@ -842,7 +842,7 @@ function useAdapterByChainBreakdownChartData({
 
 			const baseResult = requests[0]
 			if (baseResult?.status !== 'fulfilled') {
-				throw baseResult?.reason ?? new Error('Failed to fetch breakdown chart data')
+				throw normalizeError(baseResult?.reason ?? 'Failed to fetch breakdown chart data')
 			}
 
 			const failedMetrics: FeesExtraMetric[] = []
@@ -909,10 +909,11 @@ function useAdapterByChainBreakdownChartData({
 
 export const ChainsByAdapterChart = ({
 	adapterType,
+	dataType,
 	chartData,
 	allChains,
 	chartName
-}: Pick<IChainsByAdapterPageData, 'adapterType' | 'chartData' | 'allChains'> & {
+}: Pick<IChainsByAdapterPageData, 'adapterType' | 'dataType' | 'chartData' | 'allChains'> & {
 	chartName: string
 }) => {
 	const router = useRouter()
@@ -956,6 +957,20 @@ export const ChainsByAdapterChart = ({
 			? baseSelectedChains.filter((chain) => !excludedChainsSet.has(chain))
 			: baseSelectedChains
 	}, [allChains, router.query.chain, router.query.excludeChain])
+	const shouldFetchBaseChartData = chartData.source.length === 0 && dataType != null
+	const {
+		data: baseChartData,
+		error: baseChartError,
+		isLoading: isBaseChartLoading
+	} = useQuery({
+		queryKey: ['page-data', 'dimension-adapters', 'chains-chart', adapterType, dataType],
+		queryFn: () => fetchChainsByAdapterPageChartData({ adapterType, dataType: dataType! }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: shouldFetchBaseChartData
+	})
+	const currentChartData = baseChartData?.chartData ?? chartData
 
 	const { data: bribesChartData, error: bribesChartError } = useQuery({
 		queryKey: ['adapter-chain-breakdown-chart', adapterType, chartName, 'dailyBribesRevenue'],
@@ -978,16 +993,16 @@ export const ChainsByAdapterChart = ({
 	const mergedChartData = React.useMemo(() => {
 		switch (feesChartMode.kind) {
 			case 'plain':
-				return chartData
+				return currentChartData
 			case 'fees':
 				return mergeNamedDimensionChartDataset({
-					chartData,
+					chartData: currentChartData,
 					extraCharts: [bribesChartData ?? [], tokenTaxChartData ?? []]
 				})
 			default:
 				return assertNever(feesChartMode)
 		}
-	}, [bribesChartData, chartData, feesChartMode, tokenTaxChartData])
+	}, [bribesChartData, currentChartData, feesChartMode, tokenTaxChartData])
 
 	const failedMetrics = React.useMemo(() => {
 		if (feesChartMode.kind === 'plain') {
@@ -1110,6 +1125,7 @@ export const ChainsByAdapterChart = ({
 				return assertNever(deferredChartPresentation)
 		}
 	}, [deferredChartPresentation])
+	const baseChartErrorMessage = baseChartError ? getErrorMessage(baseChartError) : null
 	const canExportChart =
 		(deferredChartPresentation.kind !== 'treemap' && deferredChartPresentation.kind !== 'hbar') ||
 		deferredChartPresentation.data.length > 0
@@ -1190,7 +1206,18 @@ export const ChainsByAdapterChart = ({
 					/>
 				}
 			>
-				{deferredChartPresentation.kind === 'treemap' ? (
+				{isBaseChartLoading ? (
+					<div className="flex items-center justify-center text-(--text-tertiary)" style={{ height: chartHeight }}>
+						<LocalLoader />
+					</div>
+				) : baseChartErrorMessage ? (
+					<div
+						className="flex items-center justify-center p-4 text-center text-sm text-(--text-tertiary)"
+						style={{ height: chartHeight }}
+					>
+						Failed to load chart data: {baseChartErrorMessage}
+					</div>
+				) : deferredChartPresentation.kind === 'treemap' ? (
 					<TreeMapBuilderChart data={deferredChartPresentation.data} height={chartHeight} onReady={handleChartReady} />
 				) : deferredChartPresentation.kind === 'hbar' ? (
 					<HBarChart

@@ -126,8 +126,8 @@ const overviewColumns = [
 				</span>
 			)
 		},
-		size: 228,
 		meta: {
+			headerClassName: 'w-[min(228px,40vw)]',
 			align: 'start'
 		}
 	}),
@@ -158,8 +158,8 @@ const overviewColumns = [
 					</Tooltip>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end'
 			}
 		}
@@ -167,16 +167,16 @@ const overviewColumns = [
 	columnHelper.accessor('totalCost', {
 		header: 'Cost Basis',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('totalUsdValue', {
 		header: "Today's Holdings Value",
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 196,
 		meta: {
+			headerClassName: 'w-[min(196px,40vw)]',
 			align: 'end'
 		}
 	}),
@@ -203,16 +203,16 @@ const overviewColumns = [
 				</Tooltip>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('realized_mNAV', {
 		header: 'Realized mNAV',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value based only on the current outstanding common shares, with no dilution considered.'
@@ -221,8 +221,8 @@ const overviewColumns = [
 	columnHelper.accessor('realistic_mNAV', {
 		header: 'Realistic mNAV',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised'
@@ -231,8 +231,8 @@ const overviewColumns = [
 	columnHelper.accessor('max_mNAV', {
 		header: 'Max mNAV',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)'

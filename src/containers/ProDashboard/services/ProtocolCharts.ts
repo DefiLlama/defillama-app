@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { fetchLiquidityTokensDataset, fetchProtocolTokenLiquidityChart } from '~/api'
-import { CACHE_SERVER, YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
+import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import {
@@ -189,10 +190,8 @@ export default class ProtocolCharts {
 	static async getTokenData(geckoId: string) {
 		if (!geckoId) return { mcaps: [], prices: [], volumes: [] }
 
-		const url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
-		const response = await fetchWithPoolingOnServer(url)
-		const { data } = await response.json()
-		return data
+		const result = await fetchCoinGeckoChartByIdWithCacheFallback(geckoId, { fullChart: true })
+		return result?.data ?? { mcaps: [], prices: [], volumes: [] }
 	}
 
 	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
@@ -293,7 +292,7 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		try {
 			const res = await fetchWithPoolingOnServer(
-				`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`
+				`/api/public/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`
 			)
 			if (!res.ok) return []
 			const data = await res.json()
@@ -308,7 +307,7 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		try {
 			const res = await fetchWithPoolingOnServer(
-				`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`
+				`/api/public/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`
 			)
 			if (!res.ok) return []
 			const data = await res.json()

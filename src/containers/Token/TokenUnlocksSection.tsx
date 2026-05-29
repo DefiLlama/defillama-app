@@ -23,7 +23,7 @@ async function fetchTokenUnlocksClient(
 	resolvedUnlocksSlug: string,
 	authorizedFetch: (url: string) => Promise<Response | null>
 ): Promise<ProtocolEmissionResult> {
-	const res = await authorizedFetch(`/api/token-unlocks/${encodeURIComponent(resolvedUnlocksSlug)}`)
+	const res = await authorizedFetch(`/api/private/token-unlocks/${encodeURIComponent(resolvedUnlocksSlug)}`)
 	if (!res) throw new Error('Authentication required')
 	return handleSimpleFetchResponse(res).then((response) => response.json() as Promise<ProtocolEmissionResult>)
 }

@@ -9,7 +9,7 @@ export function useBridgeAggregatorsData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'bridge-aggregators-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/datasets/bridge-aggregators${queryParams}`),
 		staleTime: Infinity,
 		retry: 1
 	})

@@ -26,13 +26,19 @@ import { useMedia } from './useMedia'
  * const order = width > 1024 ? desktopOrder : mobileOrder
  * ```
  */
-export function useBreakpointWidth(): number {
-	const is2xl = useMedia('(min-width: 1536px)')
-	const isXl = useMedia('(min-width: 1280px)')
-	const isLg = useMedia('(min-width: 1024px)')
-	const isMd = useMedia('(min-width: 768px)')
-	const isSm = useMedia('(min-width: 640px)')
-	const isXsPlus = useMedia('(min-width: 480px)')
+export function useBreakpointWidth(): number
+export function useBreakpointWidth(enabled: true): number
+export function useBreakpointWidth(enabled: false): null
+export function useBreakpointWidth(enabled: boolean): number | null
+export function useBreakpointWidth(enabled = true): number | null {
+	const is2xl = useMedia('(min-width: 1536px)', enabled)
+	const isXl = useMedia('(min-width: 1280px)', enabled)
+	const isLg = useMedia('(min-width: 1024px)', enabled)
+	const isMd = useMedia('(min-width: 768px)', enabled)
+	const isSm = useMedia('(min-width: 640px)', enabled)
+	const isXsPlus = useMedia('(min-width: 480px)', enabled)
+
+	if (!enabled) return null
 
 	if (is2xl) return 1536
 	if (isXl) return 1280
