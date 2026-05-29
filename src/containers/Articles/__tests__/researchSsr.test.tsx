@@ -255,7 +255,7 @@ describe('research ISR data loading', () => {
 			res: { setHeader }
 		} as never)
 
-		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('no-cache'))
 		if (!('props' in result)) throw new Error('expected props')
 		expect(result.props.initialArticle.title).toBe('Canonical Research')
 		expect(result.props.initialArticle.author).toBe('DefiLlama Research')

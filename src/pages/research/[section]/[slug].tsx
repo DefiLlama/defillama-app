@@ -27,7 +27,7 @@ import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-const ARTICLE_EDGE_CACHE_CONTROL = 'public, s-maxage=60, must-revalidate'
+const ARTICLE_EDGE_CACHE_CONTROL = 'public, no-cache'
 const ARTICLE_NO_STORE_CACHE_CONTROL = 'private, no-store'
 
 type ArticleRouteParams = {
