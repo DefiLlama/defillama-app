@@ -63,6 +63,12 @@ describe('api route catalog', () => {
 		}
 	})
 
+	it('marks the cross-instance revalidation route as POST-only', () => {
+		expect(
+			apiRouteCatalog.find((entry) => entry.canonicalPath === '/api/private/revalidate-instances')?.methods
+		).toEqual(['POST'])
+	})
+
 	it('keeps auth-sensitive reads out of public routes', () => {
 		const forbiddenPatterns = [
 			/validateSubscription/,

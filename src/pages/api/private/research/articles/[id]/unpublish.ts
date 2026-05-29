@@ -7,6 +7,12 @@ import {
 	purgeCloudflareResearchUrls,
 	type CloudflarePurgeResult
 } from '~/server/cloudflarePurge'
+import {
+	assertRevalidateFanoutSucceeded,
+	checkRevalidateFanoutReady,
+	fanoutRevalidate,
+	type InstanceRevalidateResult
+} from '~/server/revalidateInstances'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type BackendArticleResponse = {
@@ -15,11 +21,17 @@ type BackendArticleResponse = {
 
 type CacheUpdateResult = {
 	cloudflare: CloudflarePurgeResult
+	instances: InstanceRevalidateResult[]
 	revalidateErrors: { path: string; reason: string }[]
 	revalidated: string[]
 }
 
 type ResponseData = (BackendArticleResponse & { cache?: CacheUpdateResult }) | { error: string }
+
+type ResearchInvalidationTargets = {
+	purgePaths: string[]
+	revalidatePaths: string[]
+}
 
 function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
@@ -46,14 +58,28 @@ function articlePublicPath(article: Pick<ArticleDocument, 'section' | 'slug'> | 
 	return sectionSlug ? `/research/${sectionSlug}/${article.slug}` : null
 }
 
-function unpublishInvalidationPaths(before: ArticleDocument | null): string[] {
+function sectionPathForArticlePath(articlePath: string): string {
+	return articlePath.split('/').slice(0, 3).join('/')
+}
+
+function unpublishInvalidationTargets(before: ArticleDocument | null): ResearchInvalidationTargets {
 	const beforePath = articlePublicPath(before)
-	const paths = new Set<string>()
+	const purgePaths = new Set<string>()
+	const nextPaths = new Set<string>()
 	if (beforePath) {
-		paths.add('/research')
-		paths.add(beforePath)
+		purgePaths.add('/research')
+		purgePaths.add(beforePath)
+		nextPaths.add('/research')
+		const sectionPath = sectionPathForArticlePath(beforePath)
+		if (sectionPath !== beforePath) {
+			purgePaths.add(sectionPath)
+			nextPaths.add(sectionPath)
+		}
 	}
-	return normalizeResearchCachePaths(Array.from(paths))
+	return {
+		purgePaths: normalizeResearchCachePaths(Array.from(purgePaths)),
+		revalidatePaths: normalizeResearchCachePaths(Array.from(nextPaths))
+	}
 }
 
 async function readJson<T>(response: Response): Promise<T | null> {
@@ -96,6 +122,11 @@ async function revalidatePaths(paths: string[], res: NextApiResponse<ResponseDat
 	return { revalidateErrors, revalidated }
 }
 
+async function assertFanoutReady(paths: string[]) {
+	const fanout = await checkRevalidateFanoutReady(paths)
+	assertRevalidateFanoutSucceeded(fanout, paths)
+}
+
 export async function researchUnpublishHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
 
@@ -118,6 +149,13 @@ export async function researchUnpublishHandler(req: NextApiRequest, res: NextApi
 	}
 
 	const before = (await readJson<BackendArticleResponse>(beforeResponse))?.article ?? null
+	const targets = unpublishInvalidationTargets(before)
+	try {
+		await assertFanoutReady(targets.revalidatePaths)
+	} catch (error) {
+		return res.status(502).json({ error: error instanceof Error ? error.message : String(error) })
+	}
+
 	const unpublishResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/unpublish`), {
 		headers: authorizationHeader(req),
 		method: 'POST'
@@ -131,14 +169,23 @@ export async function researchUnpublishHandler(req: NextApiRequest, res: NextApi
 		return res.status(502).json({ error: 'Unpublish response did not include an article' })
 	}
 
-	const paths = unpublishInvalidationPaths(before)
-	const revalidate = await revalidatePaths(paths, res)
-	const cloudflare = await purgeCloudflareResearchUrls(paths)
+	const revalidate = await revalidatePaths(targets.revalidatePaths, res)
+	if (revalidate.revalidateErrors.length > 0) {
+		return res.status(502).json({ error: `Local revalidation failed: ${JSON.stringify(revalidate.revalidateErrors)}` })
+	}
+	const fanout = await fanoutRevalidate(targets.revalidatePaths)
+	try {
+		assertRevalidateFanoutSucceeded(fanout, targets.revalidatePaths)
+	} catch (error) {
+		return res.status(502).json({ error: error instanceof Error ? error.message : String(error) })
+	}
+	const cloudflare = await purgeCloudflareResearchUrls(targets.purgePaths)
 
 	return res.status(unpublishResponse.status).json({
 		...data,
 		cache: {
 			cloudflare,
+			instances: fanout.instances,
 			...revalidate
 		}
 	})

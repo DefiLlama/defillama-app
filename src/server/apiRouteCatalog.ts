@@ -24,7 +24,9 @@ export const privateApiRoutePaths = [
 	'liquidations/[protocol]',
 	'liquidations/[protocol]/[chain]',
 	'research/articles/[id]/publish',
+	'research/articles/[id]/unpublish',
 	'research/revalidate-landing',
+	'revalidate-instances',
 	'token-liquidations/[symbol]',
 	'token-unlocks/[protocol]',
 	'token-usage/[symbol]'
@@ -136,9 +138,11 @@ export const allApiRoutePaths = [
 	'protocols/split/[dataType]',
 	'protocols/split/protocol-chain',
 	'research/articles/[id]/publish',
+	'research/articles/[id]/unpublish',
 	'research/entities/preview',
 	'research/entities/search',
 	'research/revalidate-landing',
+	'revalidate-instances',
 	'roundupMarkdown',
 	'rwa/asset-breakdown',
 	'rwa/overview-breakdown',
@@ -169,7 +173,8 @@ const routeMethodOverrides: Partial<Record<ApiRoutePath, readonly ApiRouteMethod
 	'aave/graphql': ['POST'],
 	'cex/inflows/batch': ['POST'],
 	'charts/protocol': ['GET', 'POST'],
-	'maple/graphql': ['POST']
+	'maple/graphql': ['POST'],
+	'revalidate-instances': ['POST']
 }
 
 const cachePolicyByKind = {

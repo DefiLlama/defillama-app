@@ -61,6 +61,7 @@ describe('/api/private/research/revalidate-landing', () => {
 		expect(res.status).toHaveBeenCalledWith(200)
 		expect(res.json).toHaveBeenCalledWith({
 			cloudflare: { status: 'purged', urls: ['https://defillama.test/research'] },
+			instances: [],
 			revalidateErrors: [],
 			revalidated: ['/research']
 		})

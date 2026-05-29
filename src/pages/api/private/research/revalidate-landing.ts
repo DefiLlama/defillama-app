@@ -1,10 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { FEATURES_SERVER } from '~/constants'
 import { purgeCloudflareResearchUrls, type CloudflarePurgeResult } from '~/server/cloudflarePurge'
+import {
+	assertRevalidateFanoutSucceeded,
+	fanoutRevalidate,
+	type InstanceRevalidateResult
+} from '~/server/revalidateInstances'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 type CacheUpdateResult = {
 	cloudflare: CloudflarePurgeResult
+	instances: InstanceRevalidateResult[]
 	revalidateErrors: { path: string; reason: string }[]
 	revalidated: string[]
 }
@@ -75,10 +81,20 @@ export async function researchLandingRevalidateHandler(req: NextApiRequest, res:
 	}
 
 	const revalidate = await revalidateResearchLanding(res)
+	if (revalidate.revalidateErrors.length > 0) {
+		return res.status(502).json({ error: `Local revalidation failed: ${JSON.stringify(revalidate.revalidateErrors)}` })
+	}
+	const fanout = await fanoutRevalidate(['/research'])
+	try {
+		assertRevalidateFanoutSucceeded(fanout, ['/research'])
+	} catch (error) {
+		return res.status(502).json({ error: error instanceof Error ? error.message : String(error) })
+	}
 	const cloudflare = await purgeCloudflareResearchUrls(['/research'])
 
 	return res.status(200).json({
 		cloudflare,
+		instances: fanout.instances,
 		...revalidate
 	})
 }
