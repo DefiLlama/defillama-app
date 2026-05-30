@@ -3,7 +3,7 @@ import {
 	buildAssetBreakdownUrl,
 	normalizeAssetBreakdownRows,
 	parseAssetBreakdownRequest
-} from '~/pages/api/rwa/asset-breakdown'
+} from '~/pages/api/public/rwa/asset-breakdown'
 
 describe('parseAssetBreakdownRequest', () => {
 	it('rejects requests when inclusion flags are omitted', () => {
@@ -46,6 +46,17 @@ describe('buildAssetBreakdownUrl', () => {
 				includeGovernance: true
 			})
 		).toContain('/chart/category/rwa-yield-wrapper/asset-breakdown?includeStablecoin=false&includeGovernance=true')
+	})
+
+	it('uses the category asset-breakdown endpoint for other-rwas category data', () => {
+		expect(
+			buildAssetBreakdownUrl({
+				target: { kind: 'category', slug: 'other-rwas' },
+				key: 'activeMcap',
+				includeStablecoin: true,
+				includeGovernance: true
+			})
+		).toContain('/chart/category/other-rwas/asset-breakdown?includeStablecoin=true&includeGovernance=true')
 	})
 })
 

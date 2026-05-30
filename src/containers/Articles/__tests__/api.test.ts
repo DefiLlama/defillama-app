@@ -167,7 +167,7 @@ describe('articles api client', () => {
 		await publishArticle('article-id', fetchFn)
 
 		const [url, options] = fetchFn.mock.calls[0]
-		expect(url).toBe('/api/research/articles/article-id/publish?_n=1779199500000')
+		expect(url).toBe('/api/private/research/articles/article-id/publish?_n=1779199500000')
 		expect(options?.method).toBeUndefined()
 	})
 
@@ -200,7 +200,7 @@ describe('articles api client', () => {
 		await revalidateResearchLanding(fetchFn)
 
 		const [url, options] = fetchFn.mock.calls[0]
-		expect(url).toBe('/api/research/revalidate-landing?_n=1779199600000')
+		expect(url).toBe('/api/private/research/revalidate-landing?_n=1779199600000')
 		expect(options?.method).toBe('GET')
 	})
 

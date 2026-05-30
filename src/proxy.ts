@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { INVESTORS_PROTOCOL_IDS } from '~/containers/Investors/config'
+import {
+	DEFAULT_INVESTORS_PROTOCOL_ID,
+	INVESTORS_LANDING_PROTOCOL_IDS,
+	INVESTORS_PROTOCOL_IDS,
+	SHOW_INVESTORS_COMING_SOON_PROJECT,
+	isActiveInvestorsHost
+} from '~/containers/Investors/config'
 
 const ALLOWED_METHODS = 'GET,POST,PUT,PATCH,DELETE,OPTIONS'
 const DEFAULT_ALLOWED_HEADERS = 'Content-Type,Authorization,X-Requested-With'
@@ -45,7 +51,12 @@ function appendPreflightVaryHeaders(response: NextResponse) {
 	appendVaryHeader(response, 'Access-Control-Request-Headers')
 }
 
-function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedOrigin: string) {
+function applyCorsHeaders(
+	response: NextResponse,
+	request: NextRequest,
+	allowedOrigin: string,
+	varyByOrigin = !allowAnyOrigin
+) {
 	response.headers.set('Access-Control-Allow-Origin', allowedOrigin)
 	response.headers.set('Access-Control-Allow-Methods', ALLOWED_METHODS)
 	response.headers.set(
@@ -54,23 +65,38 @@ function applyCorsHeaders(response: NextResponse, request: NextRequest, allowedO
 	)
 	response.headers.set('Access-Control-Max-Age', MAX_AGE_SECONDS)
 
-	if (!allowAnyOrigin) {
+	if (varyByOrigin) {
 		appendVaryHeader(response, 'Origin')
 	}
 }
 
+function isPublicApiPath(pathname: string) {
+	return pathname.startsWith('/api/public/')
+}
+
 function getInvestorsRewrite(request: NextRequest) {
-	const dashboardId = process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID
-	if (!dashboardId) return null
+	if (!isActiveInvestorsHost(request.headers.get('host'))) return null
 
 	const { pathname } = request.nextUrl
+	const isSingleProject = INVESTORS_PROTOCOL_IDS.length === 1
+	const hasLandingPage = INVESTORS_LANDING_PROTOCOL_IDS.length > 1 || SHOW_INVESTORS_COMING_SOON_PROJECT
 
 	if (pathname === '/') {
-		return new URL('/investors', request.url)
+		return new URL(
+			isSingleProject && !hasLandingPage && DEFAULT_INVESTORS_PROTOCOL_ID
+				? `/investors/${DEFAULT_INVESTORS_PROTOCOL_ID}`
+				: '/investors',
+			request.url
+		)
 	}
 
 	if (pathname === '/all') {
-		return new URL('/investors/all', request.url)
+		return new URL(
+			isSingleProject && DEFAULT_INVESTORS_PROTOCOL_ID
+				? `/investors/${DEFAULT_INVESTORS_PROTOCOL_ID}`
+				: '/investors/all',
+			request.url
+		)
 	}
 
 	const segment = pathname.slice(1)
@@ -88,9 +114,10 @@ export function proxy(request: NextRequest) {
 	}
 
 	const origin = request.headers.get('origin')
-	const allowedOrigin = resolveAllowedOrigin(origin, request.nextUrl.origin)
+	const isPublicApi = isPublicApiPath(request.nextUrl.pathname)
+	const allowedOrigin = isPublicApi ? '*' : resolveAllowedOrigin(origin, request.nextUrl.origin)
 
-	if (origin && !allowedOrigin) {
+	if (!isPublicApi && origin && !allowedOrigin) {
 		const response = new NextResponse('CORS origin denied', { status: 403 })
 		appendVaryHeader(response, 'Origin')
 		if (request.method === 'OPTIONS') {
@@ -103,7 +130,7 @@ export function proxy(request: NextRequest) {
 		const response = new NextResponse(null, { status: 204 })
 
 		if (allowedOrigin) {
-			applyCorsHeaders(response, request, allowedOrigin)
+			applyCorsHeaders(response, request, allowedOrigin, !isPublicApi && !allowAnyOrigin)
 			appendPreflightVaryHeaders(response)
 		}
 
@@ -113,7 +140,7 @@ export function proxy(request: NextRequest) {
 	const response = NextResponse.next()
 
 	if (allowedOrigin) {
-		applyCorsHeaders(response, request, allowedOrigin)
+		applyCorsHeaders(response, request, allowedOrigin, !isPublicApi && !allowAnyOrigin)
 	}
 
 	return response
@@ -131,6 +158,7 @@ export const config = {
 		'/aave',
 		'/sonic',
 		'/near',
-		'/flare'
+		'/flare',
+		'/odyssey-ecosystem'
 	]
 }

@@ -47,7 +47,7 @@ export default function Network() {
 	const query = useQuery<NetworkAPIResponse>({
 		queryKey: ['flare-network'],
 		queryFn: async () => {
-			const res = await fetch('/api/flare/network')
+			const res = await fetch('/api/public/flare/network')
 			if (!res.ok) throw new Error(`Flare network API error: ${res.status}`)
 			return res.json()
 		},

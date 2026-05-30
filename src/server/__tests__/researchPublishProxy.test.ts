@@ -1,7 +1,7 @@
 import type { NextApiRequest } from 'next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ArticleDocument } from '~/containers/Articles/types'
-import { researchPublishHandler } from '~/pages/api/research/articles/[id]/publish'
+import { researchPublishHandler } from '~/pages/api/private/research/articles/[id]/publish'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
@@ -24,7 +24,7 @@ function article(overrides: Partial<ArticleDocument> = {}): ArticleDocument {
 	} as ArticleDocument
 }
 
-describe('/api/research/articles/[id]/publish', () => {
+describe('/api/private/research/articles/[id]/publish', () => {
 	afterEach(() => {
 		vi.unstubAllEnvs()
 		vi.unstubAllGlobals()
@@ -56,14 +56,18 @@ describe('/api/research/articles/[id]/publish', () => {
 			method: 'POST'
 		})
 		expect(res.revalidate).toHaveBeenCalledWith('/research')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/report/old-story')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight/new-story')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/report')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight')
+		expect(res.revalidate).not.toHaveBeenCalledWith('/research/report/old-story')
+		expect(res.revalidate).not.toHaveBeenCalledWith('/research/spotlight/new-story')
 		expect(fetchImpl).toHaveBeenLastCalledWith('https://api.cloudflare.com/client/v4/zones/zone/purge_cache', {
 			body: JSON.stringify({
 				files: [
 					'https://defillama.test/research',
 					'https://defillama.test/research/report/old-story',
-					'https://defillama.test/research/spotlight/new-story'
+					'https://defillama.test/research/report',
+					'https://defillama.test/research/spotlight/new-story',
+					'https://defillama.test/research/spotlight'
 				]
 			}),
 			headers: {
@@ -81,11 +85,14 @@ describe('/api/research/articles/[id]/publish', () => {
 					urls: [
 						'https://defillama.test/research',
 						'https://defillama.test/research/report/old-story',
-						'https://defillama.test/research/spotlight/new-story'
+						'https://defillama.test/research/report',
+						'https://defillama.test/research/spotlight/new-story',
+						'https://defillama.test/research/spotlight'
 					]
 				},
+				instances: [],
 				revalidateErrors: [],
-				revalidated: ['/research', '/research/report/old-story', '/research/spotlight/new-story']
+				revalidated: ['/research', '/research/report', '/research/spotlight']
 			}
 		})
 	})
@@ -138,6 +145,23 @@ describe('/api/research/articles/[id]/publish', () => {
 			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
 			method: 'POST'
 		})
+	})
+
+	it('fails closed in production when cross-instance revalidation is not configured', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		vi.stubEnv('CF_ZONE', 'zone')
+		vi.stubEnv('CF_PURGE_CACHE_AUTH', 'token')
+		const before = article()
+		const fetchImpl = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(request({ headers: { authorization: 'Bearer user-token' } }), res)
+
+		expect(res.revalidate).not.toHaveBeenCalled()
+		expect(fetchImpl).toHaveBeenCalledTimes(1)
+		expect(res.status).toHaveBeenCalledWith(502)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Cross-instance revalidation is not configured' })
 	})
 
 	it('passes backend publish failures through without touching caches', async () => {

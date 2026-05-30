@@ -72,7 +72,7 @@ const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHead
 
 const fetchUnifiedTableRows = async (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]) => {
 	const queryString = buildQueryString(config, rowHeaders)
-	const response = await fetch(`/api/unified-table/protocols?${queryString}`)
+	const response = await fetch(`/api/public/unified-table/protocols?${queryString}`)
 
 	if (!response.ok) {
 		throw new Error('Failed to load ProTable data')

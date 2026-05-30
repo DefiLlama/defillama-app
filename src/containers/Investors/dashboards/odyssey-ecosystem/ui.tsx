@@ -1,9 +1,28 @@
 import * as React from 'react'
+import { Tooltip } from '~/components/Tooltip'
 
-export function KpiCard({ label, value, sub }: { label: string; value?: string | number; sub?: string }) {
+export function KpiCard({
+	label,
+	value,
+	sub,
+	info
+}: {
+	label: string
+	value?: string | number
+	sub?: string
+	/** When set, renders a "*" next to the label that reveals this text on hover. */
+	info?: string
+}) {
 	return (
 		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
+			<span className="flex items-center gap-0.5 text-xs font-medium tracking-wide text-(--text-label)">
+				{label}
+				{info && (
+					<Tooltip content={info} className="cursor-help">
+						<span className="text-(--text-secondary)">*</span>
+					</Tooltip>
+				)}
+			</span>
 			{value != null ? (
 				<span className="text-2xl font-semibold text-(--text-primary)">{value}</span>
 			) : (

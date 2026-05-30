@@ -17,7 +17,7 @@ describe('buildStablecoinChartSeriesUrl', () => {
 		})
 
 		expect(url).toBe(
-			'/api/stablecoins/chart-series?scope=overview&chart=tokenMcaps&chain=All&attribute=STABLE&attribute=YIELDBEARING&excludePegtype=PEGGEDEUR&minMcap=100'
+			'/api/public/stablecoins/chart-series?scope=overview&chart=tokenMcaps&chain=All&attribute=STABLE&attribute=YIELDBEARING&excludePegtype=PEGGEDEUR&minMcap=100'
 		)
 	})
 
@@ -29,26 +29,26 @@ describe('buildStablecoinChartSeriesUrl', () => {
 				chart: 'totalCirc',
 				includeUnreleased: true
 			})
-		).toBe('/api/stablecoins/chart-series?scope=asset&chart=totalCirc&stablecoin=tether&unreleased=true')
+		).toBe('/api/public/stablecoins/chart-series?scope=asset&chart=totalCirc&stablecoin=tether&unreleased=true')
 	})
 })
 
 describe('buildStablecoinVolumeChartUrl', () => {
 	it('encodes global volume requests', () => {
 		expect(buildStablecoinVolumeChartUrl({ scope: 'global', chart: 'chain', limit: 10 })).toBe(
-			'/api/stablecoins/volume-chart?scope=global&chart=chain&limit=10'
+			'/api/public/stablecoins/volume-chart?scope=global&chart=chain&limit=10'
 		)
 	})
 
 	it('encodes chain scoped volume requests without dimension filters', () => {
 		expect(buildStablecoinVolumeChartUrl({ scope: 'chain', chain: 'Ethereum', chart: 'token' })).toBe(
-			'/api/stablecoins/volume-chart?scope=chain&chart=token&limit=20&chain=Ethereum'
+			'/api/public/stablecoins/volume-chart?scope=chain&chart=token&limit=20&chain=Ethereum'
 		)
 	})
 
 	it('encodes token scoped volume requests without fallback filters', () => {
 		expect(buildStablecoinVolumeChartUrl({ scope: 'token', token: 'USDT', chart: 'chain' })).toBe(
-			'/api/stablecoins/volume-chart?scope=token&chart=chain&limit=20&token=USDT'
+			'/api/public/stablecoins/volume-chart?scope=token&chart=chain&limit=20&token=USDT'
 		)
 	})
 })

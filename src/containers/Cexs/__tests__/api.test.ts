@@ -46,7 +46,7 @@ describe('cex api', () => {
 
 		await api.fetchExchangeMarkets('Binance')
 
-		expect(mocks.fetchJson).toHaveBeenCalledWith('/api/markets/exchanges/binance')
+		expect(mocks.fetchJson).toHaveBeenCalledWith('/api/public/markets/exchanges/binance')
 	})
 
 	it('requests exchange inflows through the batch proxy', async () => {
@@ -57,7 +57,7 @@ describe('cex api', () => {
 			api.fetchCexInflowsBatchProxy([{ slug: 'Binance', tokensToExclude: 'BNB' }], 1000, 2000, authorizedFetch)
 		).resolves.toEqual({ Binance: { outflows: 100 } })
 
-		expect(authorizedFetch).toHaveBeenCalledWith('/api/cex/inflows/batch', {
+		expect(authorizedFetch).toHaveBeenCalledWith('/api/private/cex/inflows/batch', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ cexs: [{ slug: 'Binance', tokensToExclude: 'BNB' }], start: 1000, end: 2000 })
@@ -89,8 +89,11 @@ describe('cex api', () => {
 
 		expect(authorizedFetch).toHaveBeenNthCalledWith(
 			2,
-			'/api/cex/inflows?slug=Binance&start=1000&end=2000&tokensToExclude=BNB'
+			'/api/private/cex/inflows?slug=Binance&start=1000&end=2000&tokensToExclude=BNB'
 		)
-		expect(authorizedFetch).toHaveBeenNthCalledWith(3, '/api/cex/inflows?slug=OKX&start=1000&end=2000&tokensToExclude=')
+		expect(authorizedFetch).toHaveBeenNthCalledWith(
+			3,
+			'/api/private/cex/inflows?slug=OKX&start=1000&end=2000&tokensToExclude='
+		)
 	})
 })

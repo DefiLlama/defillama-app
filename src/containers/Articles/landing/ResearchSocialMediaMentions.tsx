@@ -99,7 +99,7 @@ const QuoteBlock: React.FC<{
 	const textStyles = mobile
 		? 'text-[16px] leading-[20px] text-center px-[26px] py-[12px]'
 		: size === 'small'
-			? 'text-[24px] leading-[28px] text-center px-[45px] py-[20px]'
+			? 'text-[20px] leading-[28px] text-center px-[45px] py-[20px]'
 			: 'text-[20px] leading-[24px] px-[30px] py-[20px]'
 
 	const containerHeight = mobile ? 'h-[160px] min-h-[160px]' : 'h-[215px]'
@@ -116,7 +116,7 @@ const QuoteBlock: React.FC<{
 					<div className={`absolute top-0 left-0 ${textColor}`}>
 						<OpenQuoteIcon />
 					</div>
-					<div className="line-clamp-4">{quote.quote}</div>
+					<div className="line-clamp-5">{quote.quote}</div>
 					<div className={`absolute right-0 bottom-0 ${textColor}`}>
 						<CloseQuoteIcon />
 					</div>
@@ -141,12 +141,12 @@ const TweetWidget: React.FC<{ tweetId: string; mobile?: boolean }> = ({ tweetId,
 		sourceUrl
 	}
 
-	const wrapperClass = mobile
-		? 'w-full min-w-0 h-[356px] overflow-hidden rounded-[4px] bg-white'
-		: 'w-[215px] min-w-[215px] h-[215px] overflow-hidden rounded-[4px] bg-white'
+	const wrapperClass = mobile ? 'w-full min-w-0 h-[356px]' : 'w-[252px] min-w-[252px] h-[215px]'
 
 	return (
-		<div className={wrapperClass}>
+		<div
+			className={`${wrapperClass} overflow-hidden rounded-[13px] border border-[#cfd9de] bg-white [&_.twitter-tweet]:m-0!`}
+		>
 			<TweetEmbed config={config} action="Open" />
 		</div>
 	)
@@ -177,7 +177,7 @@ const BlockContent: React.FC<{ block: MentionBlock; isEven: boolean }> = ({ bloc
 	if (!hasContent) return null
 
 	return (
-		<div className="grid w-[955px] gap-[24px]" style={{ gridTemplateColumns: '215px 716px' }}>
+		<div className="grid w-[992px] gap-[24px]" style={{ gridTemplateColumns: '252px 716px' }}>
 			<div className={`flex gap-[24px] ${isEven ? 'flex-col-reverse' : 'flex-col'}`}>
 				<QuoteBlock quote={quote1} size="small" />
 				<TweetWidget tweetId={quote1.x_post_id} />

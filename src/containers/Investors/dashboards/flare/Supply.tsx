@@ -38,7 +38,7 @@ export default function Supply() {
 	const query = useQuery<SupplyAPIResponse>({
 		queryKey: ['flare-supply'],
 		queryFn: async () => {
-			const res = await fetch('/api/flare/supply')
+			const res = await fetch('/api/public/flare/supply')
 			if (!res.ok) throw new Error(`Flare supply API error: ${res.status}`)
 			return res.json()
 		},

@@ -12,7 +12,7 @@ export function usePerpsData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'perps-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/datasets/perps${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/datasets/perps${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1

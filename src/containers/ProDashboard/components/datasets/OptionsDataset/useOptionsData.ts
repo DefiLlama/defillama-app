@@ -14,7 +14,7 @@ export function useOptionsData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'options-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/datasets/options${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/datasets/options${queryParams}`),
 		staleTime: Infinity,
 		retry: 1
 	})

@@ -7,6 +7,7 @@ import {
 	getAdapterByChainPageData,
 	getDimensionAdapterOverviewOfAllChains
 } from '~/containers/DimensionAdapters/queries'
+import { addDimensionChainRouteTelemetry } from '~/containers/DimensionAdapters/telemetry'
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
@@ -51,15 +52,24 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadata = metadataCache.chainMetadata[chain]
 
-		if (!metadataCache.chainMetadata[chain]?.fees) {
+		addDimensionChainRouteTelemetry({
+			adapterType,
+			chain: metadata?.name ?? chain,
+			canonicalRoute: '/revenue/chain/[chain]',
+			dataType,
+			metadataFlag: 'fees'
+		})
+
+		if (!metadata?.fees) {
 			return { notFound: true }
 		}
 
 		const data = await getAdapterByChainPageData({
 			adapterType,
 			dataType,
-			chain: metadataCache.chainMetadata[chain].name,
+			chain: metadata.name,
 			route: 'revenue',
 			metricName: type
 		})

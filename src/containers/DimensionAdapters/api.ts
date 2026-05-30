@@ -33,7 +33,17 @@ export async function fetchAdapterChainMetrics({
 		metricsUrl.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), { timeout: 30_000 })
+	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), {
+		timeout: 30_000,
+		telemetry: {
+			attributes: {
+				adapter_type: adapterType,
+				...(dataType ? { data_type: dataType } : null),
+				chain,
+				...(category ? { category } : null)
+			}
+		}
+	})
 }
 
 /**
@@ -84,7 +94,17 @@ export async function fetchAdapterChainChartData({
 		totalDataChart.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChart>(totalDataChart.toString(), { timeout: 30_000 })
+	return fetchJson<IAdapterChart>(totalDataChart.toString(), {
+		timeout: 30_000,
+		telemetry: {
+			attributes: {
+				adapter_type: adapterType,
+				...(dataType ? { data_type: dataType } : null),
+				chain,
+				...(category ? { category } : null)
+			}
+		}
+	})
 }
 
 /**
@@ -183,7 +203,7 @@ export async function fetchChainsByAdapterPageChartData({
 }): Promise<{ chartData: MultiSeriesChart2Dataset }> {
 	const searchParams = new URLSearchParams({ adapterType, dataType })
 	return fetchJson<{ chartData: MultiSeriesChart2Dataset }>(
-		`/api/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
+		`/api/public/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
 	)
 }
 

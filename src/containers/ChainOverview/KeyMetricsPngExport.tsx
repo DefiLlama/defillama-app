@@ -79,7 +79,7 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
 
 async function loadChainIcon(slug: string): Promise<string | null> {
 	try {
-		const response = await fetch(`/api/chain-icon?slug=${encodeURIComponent(slug)}`)
+		const response = await fetch(`/api/public/chain-icon?slug=${encodeURIComponent(slug)}`)
 		if (!response.ok) return null
 		const blob = await response.blob()
 		return new Promise((resolve, reject) => {

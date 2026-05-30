@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseOverviewBreakdownRequest } from '~/pages/api/rwa/overview-breakdown'
+import { parseOverviewBreakdownRequest } from '~/pages/api/public/rwa/overview-breakdown'
 
 describe('parseOverviewBreakdownRequest', () => {
 	it('accepts platform requests when both flags are false', () => {

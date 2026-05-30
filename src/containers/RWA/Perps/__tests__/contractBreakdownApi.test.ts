@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseContractBreakdownRequest } from '~/pages/api/rwa/perps/contract-breakdown'
+import { parseContractBreakdownRequest } from '~/pages/api/public/rwa/perps/contract-breakdown'
 
 describe('parseContractBreakdownRequest', () => {
 	it('accepts overview contract requests', () => {

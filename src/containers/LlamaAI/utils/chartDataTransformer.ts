@@ -154,20 +154,29 @@ function applyLogScaleToYAxis(
 	chartOptions: Record<string, any> | undefined,
 	eligibleAxes: number[]
 ): Record<string, any> | undefined {
-	if (!chartOptions || eligibleAxes.length === 0) return chartOptions
+	if (eligibleAxes.length === 0) return chartOptions
+	const options = chartOptions ?? {}
 	const eligible = new Set(eligibleAxes)
-	const yAxis = chartOptions.yAxis
+	const yAxis = options.yAxis
+	const toLogAxis = (axis: Record<string, any> | undefined) => {
+		const min = axis?.min
+		return {
+			...(axis ?? {}),
+			type: 'log',
+			min: min === 'dataMin' || (typeof min === 'number' && min > 0) ? min : undefined
+		}
+	}
 
 	if (Array.isArray(yAxis)) {
 		return {
-			...chartOptions,
-			yAxis: yAxis.map((axis, index) => (eligible.has(index) ? { ...axis, type: 'log' } : axis))
+			...options,
+			yAxis: yAxis.map((axis, index) => (eligible.has(index) ? toLogAxis(axis) : axis))
 		}
 	}
 
 	// Single-object form represents axis 0.
 	if (!eligible.has(0)) return chartOptions
-	return { ...chartOptions, yAxis: { ...(yAxis ?? {}), type: 'log' } }
+	return { ...options, yAxis: toLogAxis(yAxis) }
 }
 
 export class ChartDataTransformer {

@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import type { NextRouter } from 'next/router'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { toast } from 'react-hot-toast'
 import { consumeSlackLogin } from '~/containers/LlamaAI/api/slack'
 import { LLAMA_AI_SLACK_STATUS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
@@ -42,6 +42,11 @@ function emitSlackToast(result: SlackResult, teamName: string | null, detail: st
 
 type SettingsDialogStore = { show: () => void }
 
+/** @internal Exported for the route-intent unit test. */
+export function shouldConsumeSlackLoginToken(lastConsumedToken: string | null, nextToken: string | null | undefined) {
+	return !!nextToken && lastConsumedToken !== nextToken
+}
+
 export function useSettingsRouteIntent({
 	router,
 	user,
@@ -56,6 +61,7 @@ export function useSettingsRouteIntent({
 	const { isReady, pathname, query, replace } = router
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
+	const consumedSlackLoginTokenRef = useRef<string | null>(null)
 	const openSettingsIntent = useCallback(
 		(initialState: SettingsInitialState) => {
 			if (initialState.slackResult) {
@@ -69,8 +75,10 @@ export function useSettingsRouteIntent({
 					void queryClient.invalidateQueries({ queryKey: ['llama-ai', 'slack-workspaces'] })
 				}
 			}
-			if (initialState.slackloginToken) {
-				void consumeSlackLogin(authorizedFetch, initialState.slackloginToken)
+			const slackloginToken = initialState.slackloginToken
+			if (shouldConsumeSlackLoginToken(consumedSlackLoginTokenRef.current, slackloginToken)) {
+				consumedSlackLoginTokenRef.current = slackloginToken
+				void consumeSlackLogin(authorizedFetch, slackloginToken)
 					.then(() => {
 						toast.success('Slack account connected')
 						void queryClient.invalidateQueries({ queryKey: LLAMA_AI_SLACK_STATUS_QUERY_KEY })

@@ -32,7 +32,7 @@ export default function Overview() {
 	const query = useQuery<OverviewAPIResponse>({
 		queryKey: ['flare-overview'],
 		queryFn: async () => {
-			const res = await fetch('/api/flare/overview')
+			const res = await fetch('/api/public/flare/overview')
 			if (!res.ok) throw new Error(`Flare overview API error: ${res.status}`)
 			return res.json()
 		},

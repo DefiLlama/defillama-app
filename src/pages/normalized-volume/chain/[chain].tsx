@@ -6,6 +6,7 @@ import {
 	getAdapterByChainPageData,
 	getDimensionAdapterOverviewOfAllChains
 } from '~/containers/DimensionAdapters/queries'
+import { addDimensionChainRouteTelemetry } from '~/containers/DimensionAdapters/telemetry'
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -49,14 +50,23 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadata = metadataCache.chainMetadata[chain]
 
-		if (!metadataCache.chainMetadata[chain]?.normalizedVolume) {
+		addDimensionChainRouteTelemetry({
+			adapterType,
+			chain: metadata?.name ?? chain,
+			canonicalRoute: '/normalized-volume/chain/[chain]',
+			dataType,
+			metadataFlag: 'normalizedVolume'
+		})
+
+		if (!metadata?.normalizedVolume) {
 			return { notFound: true }
 		}
 
 		const data = await getAdapterByChainPageData({
 			adapterType,
-			chain: metadataCache.chainMetadata[chain].name,
+			chain: metadata.name,
 			route: 'normalized-volume',
 			metricName: type
 		})

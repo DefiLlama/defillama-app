@@ -9,7 +9,7 @@ import {
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { INVESTORS_PROJECTS, isInvestorsEnabled } from './config'
+import { INVESTORS_PROJECTS, SHOW_INVESTORS_COMING_SOON_PROJECT, isInvestorsEnabled } from './config'
 import { CustomServerDataContext } from './CustomServerDataContext'
 import { Logo } from './Logo'
 import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
@@ -22,7 +22,9 @@ const HIDE_DUPLICATE_BUTTON = isInvestorsEnabled()
 
 const ALL_PROJECTS = [
 	...INVESTORS_PROJECTS.map((p) => ({ ...p, comingSoon: false })),
-	{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true, customOnly: false }
+	...(SHOW_INVESTORS_COMING_SOON_PROJECT
+		? [{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true, customOnly: false }]
+		: [])
 ]
 
 const SKELETON_WIDTHS = [

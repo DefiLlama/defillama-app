@@ -25,6 +25,19 @@ const viewState: ChartViewState = {
 	logScale: false
 }
 
+const logViewState: ChartViewState = {
+	...viewState,
+	percentage: false,
+	logScale: true
+}
+
+const logCapabilities: ChartCapabilities = {
+	...capabilities,
+	allowPercentage: false,
+	allowLogScale: true,
+	logEligibleYAxes: [0]
+}
+
 function makeMixedAxisChart(axisType: 'time' | 'category'): AdaptedLlamaAICartesianChart {
 	const dimensionName = axisType === 'time' ? 'timestamp' : 'category'
 	const xValue = axisType === 'time' ? Date.UTC(2026, 0, 1) : 'Protocols'
@@ -278,5 +291,45 @@ describe('ChartDataTransformer', () => {
 			{ timestamp: Date.UTC(2026, 0, 1), Revenue: 10 },
 			{ timestamp: Date.UTC(2026, 1, 1), Revenue: 30 }
 		])
+	})
+
+	it('clears non-positive lower bounds when applying log scale', () => {
+		const chart = makeMixedAxisChart('time')
+		chart.props.chartOptions = { yAxis: [{ min: 0 }, { min: 0 }] } as any
+
+		const transformed = ChartDataTransformer.applyViewState(chart, logViewState, logCapabilities)
+		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		const yAxis = transformed.props.chartOptions?.yAxis as unknown as any[]
+
+		expect(yAxis[0].type).toBe('log')
+		expect(Object.prototype.hasOwnProperty.call(yAxis[0], 'min')).toBe(true)
+		expect(yAxis[0].min).toBeUndefined()
+		expect(yAxis[1].type).toBeUndefined()
+		expect(yAxis[1].min).toBe(0)
+	})
+
+	it('preserves valid lower bounds when applying log scale', () => {
+		const chart = makeMixedAxisChart('time')
+		chart.props.chartOptions = { yAxis: { min: 10 } } as any
+
+		const transformed = ChartDataTransformer.applyViewState(chart, logViewState, logCapabilities)
+		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		const yAxis = transformed.props.chartOptions?.yAxis as any
+
+		expect(yAxis.type).toBe('log')
+		expect(yAxis.min).toBe(10)
+
+		const dataMinChart = makeMixedAxisChart('time')
+		dataMinChart.props.chartOptions = { yAxis: { min: 'dataMin' } } as any
+
+		const dataMinTransformed = ChartDataTransformer.applyViewState(dataMinChart, logViewState, logCapabilities)
+		if (dataMinTransformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
+
+		const dataMinYAxis = dataMinTransformed.props.chartOptions?.yAxis as any
+
+		expect(dataMinYAxis.type).toBe('log')
+		expect(dataMinYAxis.min).toBe('dataMin')
 	})
 })

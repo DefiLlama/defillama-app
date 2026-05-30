@@ -29,7 +29,7 @@ export function useDistributionData() {
 	const query = useQuery<DistributionResponse>({
 		queryKey: ['spark-distribution-rewards'],
 		queryFn: async () => {
-			const res = await fetch('/api/spark/distribution-rewards')
+			const res = await fetch('/api/public/spark/distribution-rewards')
 			if (!res.ok) throw new Error(`Distribution API error: ${res.status}`)
 			return res.json()
 		},

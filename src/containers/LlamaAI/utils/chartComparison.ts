@@ -39,6 +39,7 @@ function areRowsEqual(a: unknown, b: unknown): boolean {
 	const bKeys = Object.keys(bRecord)
 	if (aKeys.length !== bKeys.length) return false
 	for (const key of aKeys) {
+		if (!Object.prototype.hasOwnProperty.call(bRecord, key)) return false
 		if (aRecord[key] !== bRecord[key]) return false
 	}
 	return true

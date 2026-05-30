@@ -131,7 +131,7 @@ export default function PressReleases() {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		fetch('/api/spark/reports')
+		fetch('/api/public/spark/reports')
 			.then((res) => res.json())
 			.then((apiData) => {
 				const posts = apiData.items || []

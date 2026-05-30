@@ -1,9 +1,22 @@
+import type { GetServerSideProps } from 'next'
+import type { ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { ThemeSwitch } from '~/components/Nav/ThemeSwitch'
 import { SEO } from '~/components/SEO'
-import { isInvestorsEnabled } from '~/containers/Investors/config'
+import {
+	DEFAULT_INVESTORS_PROTOCOL_ID,
+	INVESTORS_LANDING_PROJECTS,
+	INVESTORS_PROJECTS,
+	SHOW_INVESTORS_COMING_SOON_PROJECT,
+	getInvestorsLandingProjectHref,
+	isInvestorsEnabled,
+	isInvestorsLandingProjectExternal,
+	type InvestorsProject,
+	type InvestorsProjectId
+} from '~/containers/Investors/config'
 import { Logo } from '~/containers/Investors/Logo'
+import { tokenIconUrl } from '~/utils/icons'
 
 function SonicIcon() {
 	return (
@@ -93,6 +106,131 @@ function SparkBolt() {
 	)
 }
 
+function OdysseyIcon() {
+	return (
+		<img
+			src={tokenIconUrl('odyssey-finance', 64)}
+			alt="Odyssey Finance"
+			className="h-9 w-9 shrink-0 rounded-full bg-(--cards-bg) object-contain"
+		/>
+	)
+}
+
+type LandingCardContent = {
+	icon: ReactNode
+	description: string
+	tags: readonly string[]
+	accent: string
+	hoverClass: string
+}
+
+const PROJECT_CARD_CONTENT = {
+	spark: {
+		icon: <SparkBolt />,
+		description: 'Financials, protocol overview, distribution rewards, and reports for the Spark ecosystem.',
+		tags: ['Financials', 'Lending', 'Rewards', 'Reports'],
+		accent: 'linear-gradient(90deg, #FA43BD, #FFA930)',
+		hoverClass: 'hover:border-[#FA43BD]/15 hover:shadow-lg hover:shadow-[#FA43BD]/[0.03]'
+	},
+	sonic: {
+		icon: <SonicIcon />,
+		description: 'Fees, ecosystem, vertical integration, and network stats for Sonic.',
+		tags: ['Financials', 'Vertical Integration', 'Yield', 'Network Stats'],
+		accent: 'linear-gradient(90deg, #fac461, #e3570a, #3b5d88, #203f55)',
+		hoverClass: 'hover:border-[#e3570a]/20 hover:shadow-lg hover:shadow-[#e3570a]/[0.04]'
+	},
+	near: {
+		icon: <NearIcon className="h-9 w-9 shrink-0" />,
+		description: 'Revenue, ecosystem activity, products, and research for NEAR Protocol.',
+		tags: ['Revenue', 'Ecosystem', 'Products', 'Research'],
+		accent: 'linear-gradient(90deg, #00C1DE, #00E4AA, #00EC97)',
+		hoverClass: 'hover:border-[#00EC97]/20 hover:shadow-lg hover:shadow-[#00EC97]/[0.04]'
+	},
+	'odyssey-ecosystem': {
+		icon: <OdysseyIcon />,
+		description: 'TVL, revenue, incentives, pegs, treasury, and yield analytics for the Odyssey ecosystem.',
+		tags: ['TVL', 'Revenue', 'Incentives', 'Yields'],
+		accent: 'linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd)',
+		hoverClass: 'hover:border-[#3b82f6]/20 hover:shadow-lg hover:shadow-[#3b82f6]/[0.04]'
+	}
+} satisfies Partial<Record<InvestorsProjectId, LandingCardContent>>
+
+function ProjectFallbackIcon({ name }: { name: string }) {
+	return (
+		<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--sl-accent-muted) text-sm font-semibold text-(--sl-accent)">
+			{name.slice(0, 1)}
+		</span>
+	)
+}
+
+function ProjectCard({ project }: { project: InvestorsProject }) {
+	const content = PROJECT_CARD_CONTENT[project.id]
+	const href = getInvestorsLandingProjectHref(project.id)
+	const isExternal = isInvestorsLandingProjectExternal(project.id)
+	const tags = content?.tags ?? ['Metrics', 'Reporting', 'Analytics']
+
+	return (
+		<div
+			className={`group relative isolate flex flex-col overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow] duration-200 ${
+				content?.hoverClass ?? 'hover:border-(--sl-accent)'
+			}`}
+		>
+			<div className="h-1 w-full" style={{ background: content?.accent ?? 'var(--sl-accent)' }} />
+			<div className="flex flex-1 flex-col gap-4 p-5">
+				<div className="flex items-center gap-3">
+					{content?.icon ?? <ProjectFallbackIcon name={project.name} />}
+					<span className="text-lg font-semibold text-(--text-primary)">{project.name}</span>
+				</div>
+				<p className="text-sm leading-relaxed text-(--text-secondary)">
+					{content?.description ?? `Verified metrics and reporting for ${project.name}.`}
+				</p>
+				<div className="flex flex-wrap gap-1.5">
+					{tags.map((tag) => (
+						<span
+							key={tag}
+							className="rounded-full bg-(--sl-accent-muted) px-2.5 py-0.5 text-[11px] font-medium text-(--sl-accent)"
+						>
+							{tag}
+						</span>
+					))}
+				</div>
+				<div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-(--sl-accent)">
+					{isExternal ? 'Open Dashboard' : 'View Dashboard'}
+					<Icon name={isExternal ? 'external-link' : 'arrow-right'} className="h-3.5 w-3.5" />
+				</div>
+			</div>
+			<BasicLink
+				href={href}
+				target={isExternal ? '_blank' : undefined}
+				rel={isExternal ? 'noopener noreferrer' : undefined}
+				className="absolute inset-0"
+			>
+				<span className="sr-only">
+					{isExternal ? 'Open' : 'View'} {project.name} Dashboard
+				</span>
+			</BasicLink>
+		</div>
+	)
+}
+
+export const getServerSideProps: GetServerSideProps = async () => {
+	if (
+		isInvestorsEnabled() &&
+		INVESTORS_LANDING_PROJECTS.length <= 1 &&
+		INVESTORS_PROJECTS.length === 1 &&
+		DEFAULT_INVESTORS_PROTOCOL_ID
+	) {
+		return {
+			redirect: {
+				destination: `/${DEFAULT_INVESTORS_PROTOCOL_ID}`,
+				permanent: false
+			}
+		}
+	}
+
+	return { props: {} }
+}
+
 export default function InvestorsPage() {
 	if (!isInvestorsEnabled()) {
 		return null
@@ -128,111 +266,23 @@ export default function InvestorsPage() {
 				</p>
 
 				<div className="relative mt-12 grid w-full max-w-3xl auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2">
-					<div className="group relative isolate flex flex-col overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow] duration-200 hover:border-[#FA43BD]/15 hover:shadow-lg hover:shadow-[#FA43BD]/[0.03]">
-						<div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #FA43BD, #FFA930)' }} />
-						<div className="flex flex-1 flex-col gap-4 p-5">
-							<div className="flex items-center gap-3">
-								<SparkBolt />
-								<span className="text-lg font-semibold text-(--text-primary)">Spark</span>
-							</div>
-							<p className="text-sm leading-relaxed text-(--text-secondary)">
-								Financials, protocol overview, distribution rewards, and reports for the Spark ecosystem.
-							</p>
-							<div className="flex flex-wrap gap-1.5">
-								{['Financials', 'Lending', 'Rewards', 'Reports'].map((tag) => (
-									<span
-										key={tag}
-										className="rounded-full bg-(--sl-accent-muted) px-2.5 py-0.5 text-[11px] font-medium text-(--sl-accent)"
-									>
-										{tag}
-									</span>
-								))}
-							</div>
-							<div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-(--sl-accent)">
-								View Dashboard
-								<Icon name="arrow-right" className="h-3.5 w-3.5" />
-							</div>
-						</div>
-						<BasicLink href="/spark" className="absolute inset-0">
-							<span className="sr-only">View Spark Dashboard</span>
-						</BasicLink>
-					</div>
-
-					<div className="group relative isolate flex flex-col overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow] duration-200 hover:border-[#e3570a]/20 hover:shadow-lg hover:shadow-[#e3570a]/[0.04]">
-						<div
-							className="h-1 w-full"
-							style={{ background: 'linear-gradient(90deg, #fac461, #e3570a, #3b5d88, #203f55)' }}
-						/>
-						<div className="flex flex-1 flex-col gap-4 p-5">
-							<div className="flex items-center gap-3">
-								<SonicIcon />
-								<span className="text-lg font-semibold text-(--text-primary)">Sonic</span>
-							</div>
-							<p className="text-sm leading-relaxed text-(--text-secondary)">
-								Fees, ecosystem, vertical integration, and network stats for Sonic
-							</p>
-							<div className="flex flex-wrap gap-1.5">
-								{['Financials', 'Vertical Integration', 'Yield', 'Network Stats'].map((tag) => (
-									<span
-										key={tag}
-										className="rounded-full bg-(--sl-accent-muted) px-2.5 py-0.5 text-[11px] font-medium text-(--sl-accent)"
-									>
-										{tag}
-									</span>
-								))}
-							</div>
-							<div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-(--sl-accent)">
-								View Dashboard
-								<Icon name="arrow-right" className="h-3.5 w-3.5" />
-							</div>
-						</div>
-						<BasicLink href="/sonic" className="absolute inset-0">
-							<span className="sr-only">View Sonic Dashboard</span>
-						</BasicLink>
-					</div>
-
-					<div className="group relative isolate flex flex-col overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow] duration-200 hover:border-[#00EC97]/20 hover:shadow-lg hover:shadow-[#00EC97]/[0.04]">
-						<div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #00C1DE, #00E4AA, #00EC97)' }} />
-						<div className="flex flex-1 flex-col gap-4 p-5">
-							<div className="flex items-center gap-3">
-								<NearIcon className="h-9 w-9 shrink-0" />
-								<span className="text-lg font-semibold text-(--text-primary)">NEAR</span>
-							</div>
-							<p className="text-sm leading-relaxed text-(--text-secondary)">
-								Revenue, ecosystem activity, products, and research for NEAR Protocol.
-							</p>
-							<div className="flex flex-wrap gap-1.5">
-								{['Revenue', 'Ecosystem', 'Products', 'Research'].map((tag) => (
-									<span
-										key={tag}
-										className="rounded-full bg-(--sl-accent-muted) px-2.5 py-0.5 text-[11px] font-medium text-(--sl-accent)"
-									>
-										{tag}
-									</span>
-								))}
-							</div>
-							<div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-(--sl-accent)">
-								View Dashboard
-								<Icon name="arrow-right" className="h-3.5 w-3.5" />
-							</div>
-						</div>
-						<BasicLink href="/near" className="absolute inset-0">
-							<span className="sr-only">View NEAR Dashboard</span>
-						</BasicLink>
-					</div>
-
-					{[{ icon: <BerachainIcon />, name: 'Berachain' }].map((item) => (
-						<div
-							key={item.name}
-							className="relative isolate flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center opacity-60"
-						>
-							{item.icon}
-							<span className="mt-3 text-lg font-semibold text-(--text-primary)">{item.name}</span>
-							<span className="mt-2 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">
-								Coming Soon
-							</span>
-						</div>
+					{INVESTORS_LANDING_PROJECTS.map((project) => (
+						<ProjectCard key={project.id} project={project} />
 					))}
+
+					{SHOW_INVESTORS_COMING_SOON_PROJECT &&
+						[{ icon: <BerachainIcon />, name: 'Berachain' }].map((item) => (
+							<div
+								key={item.name}
+								className="relative isolate flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center opacity-60"
+							>
+								{item.icon}
+								<span className="mt-3 text-lg font-semibold text-(--text-primary)">{item.name}</span>
+								<span className="mt-2 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">
+									Coming Soon
+								</span>
+							</div>
+						))}
 				</div>
 
 				<p className="mt-16 text-center text-sm text-(--text-tertiary)">

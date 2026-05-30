@@ -78,7 +78,7 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
 
 async function loadProtocolIcon(name: string): Promise<string | null> {
 	try {
-		const response = await fetch(`/api/protocol-icon?slug=${encodeURIComponent(name)}`)
+		const response = await fetch(`/api/public/protocol-icon?slug=${encodeURIComponent(name)}`)
 		if (!response.ok) return null
 		const blob = await response.blob()
 		return new Promise((resolve, reject) => {

@@ -13,4 +13,8 @@ describe('areChartDataEqual', () => {
 	it('compares tuple rows used by scatter and pie chart adapters', () => {
 		expect(areChartDataEqual({ scatter: [[1, 2, 'Aave', 'aave']] }, { scatter: [[1, 2, 'Aave', 'aave']] })).toBe(true)
 	})
+
+	it('does not treat rows with different undefined keys as equal', () => {
+		expect(areChartDataEqual({ chart_1: [{ a: undefined }] }, { chart_1: [{ b: undefined }] })).toBe(false)
+	})
 })

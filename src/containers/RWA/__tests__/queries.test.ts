@@ -227,6 +227,56 @@ describe('rwa queries', () => {
 		expect(result?.platforms).toEqual(['Ondo'])
 	})
 
+	it('requests initial category chart data with stablecoins enabled for stablecoin categories', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([])
+
+		const stablecoinCategories = [
+			{ label: 'RWA Stablecoins', slug: 'rwa-stablecoins' },
+			{ label: 'Non-RWA Stablecoins', slug: 'non-rwa-stablecoins' },
+			{ label: 'Fiat Stablecoins', slug: 'fiat-stablecoins' }
+		]
+
+		for (const category of stablecoinCategories) {
+			fetchRWAChartDataByAssetMock.mockClear()
+
+			await getRWAAssetsOverview({
+				category: category.slug,
+				rwaList: {
+					chains: ['Ethereum'],
+					categories: stablecoinCategories.map(({ label }) => label),
+					platforms: [],
+					assetGroups: []
+				} as never
+			})
+
+			expect(fetchRWAChartDataByAssetMock).toHaveBeenCalledWith({
+				target: { kind: 'category', slug: category.slug },
+				includeStablecoins: true,
+				includeGovernance: false
+			})
+		}
+	})
+
+	it('requests initial other-rwas category chart data with stablecoins and governance enabled', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([])
+
+		await getRWAAssetsOverview({
+			category: 'other-rwas',
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['Other RWAs'],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(fetchRWAChartDataByAssetMock).toHaveBeenCalledWith({
+			target: { kind: 'category', slug: 'other-rwas' },
+			includeStablecoins: true,
+			includeGovernance: true
+		})
+	})
+
 	it('resolves perps-only platform slugs on platform overview routes', async () => {
 		fetchRWAActiveTVLsMock.mockResolvedValue([])
 		fetchRWAPerpsCurrentMock.mockResolvedValue([

@@ -123,9 +123,15 @@ export default function Incentives() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="grid grid-cols-2 gap-3">
+			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
 				<KpiCard label="30d Total Spend" value={k.thirtyDayTotal?.formatted} />
 				<KpiCard label="All-time Total Spend" value={k.allTimeTotal?.formatted} />
+				<KpiCard
+					label="Fees Rolled Into Incentives (30d)"
+					value={k.feesRolledIntoIncentives?.formatted}
+					sub="AERO/VELO emissions beyond what we paid in bribes"
+				/>
+				<KpiCard label="Gov-Token Power (locked USD)" value={k.govTokenPowerUsd?.formatted} sub="vlCVX + veAERO" />
 			</div>
 			<ChartCard title="30d Spend by Venue">
 				<SimpleTable
@@ -148,10 +154,7 @@ export default function Incentives() {
 			)}
 
 			<SectionHeader>Weekly Spend per Pool</SectionHeader>
-			<ChartCard
-				title="Per-pool weekly spend"
-				subtitle="Per-pool breakdown starts when bribe contracts were indexed; earlier weeks are shown as 'Historical Aggregate'."
-			>
+			<ChartCard title="Per-pool weekly spend">
 				<TabBtns active={poolTab} onChange={setPoolTab} options={VENUES} />
 				{poolSeries.length ? (
 					<MultiSeriesChart key={poolTab} series={poolSeries as any} valueSymbol="$" height="360px" />
@@ -167,6 +170,83 @@ export default function Incentives() {
 					<SimpleTable rows={data?.epochTables?.[epochTab]} cols={epochCols(epochTab) as any} />
 				</div>
 			</ChartCard>
+
+			{data?.nonSpendIncentives && (
+				<>
+					<SectionHeader>{data.nonSpendIncentives.title || 'Incentives not paid out of pocket'}</SectionHeader>
+					{data.nonSpendIncentives.feesRolledIntoIncentives && (
+						<ChartCard
+							title={
+								data.nonSpendIncentives.feesRolledIntoIncentives.title || 'Protocol-issuance rolled into incentives'
+							}
+							subtitle={
+								data.nonSpendIncentives.feesRolledIntoIncentives.totalFormatted
+									? `Total ${data.nonSpendIncentives.feesRolledIntoIncentives.totalFormatted}`
+									: undefined
+							}
+						>
+							<SimpleTable
+								rows={data.nonSpendIncentives.feesRolledIntoIncentives.rows}
+								cols={[
+									{ key: 'venue', label: 'Venue' },
+									{ key: 'pool', label: 'Pool' },
+									{ key: 'bribesUsd', label: 'Bribes', right: true, render: (r) => fmtUsd(r.bribesUsd) },
+									{ key: 'emissionsUsd', label: 'Emissions', right: true, render: (r) => fmtUsd(r.emissionsUsd) },
+									{
+										key: 'feesRolledInUsd',
+										label: 'Fees Rolled In',
+										right: true,
+										render: (r) => fmtUsd(r.feesRolledInUsd)
+									},
+									{
+										key: 'multiplier',
+										label: 'Multiplier',
+										right: true,
+										render: (r) => (r.multiplier != null ? `${r.multiplier.toFixed(2)}x` : '—')
+									}
+								]}
+							/>
+						</ChartCard>
+					)}
+
+					{data.nonSpendIncentives.govTokenPower && (
+						<ChartCard title={data.nonSpendIncentives.govTokenPower.title || 'Gov-token incentive power'}>
+							<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+								<KpiCard label="vlCVX locked" value={fmtUsd(data.nonSpendIncentives.govTokenPower.vlCvxLockedUsd)} />
+								<KpiCard label="veAERO locked" value={fmtUsd(data.nonSpendIncentives.govTokenPower.veAeroLockedUsd)} />
+								<KpiCard
+									label="Total locked"
+									value={
+										data.nonSpendIncentives.govTokenPower.totalFormatted ||
+										fmtUsd(data.nonSpendIncentives.govTokenPower.totalUsd)
+									}
+								/>
+							</div>
+						</ChartCard>
+					)}
+
+					{data.nonSpendIncentives.thirdPartySponsorship && (
+						<ChartCard title="3rd-party sponsorship">
+							<SimpleTable
+								rows={data.nonSpendIncentives.thirdPartySponsorship.knownSponsors}
+								cols={[
+									{ key: 'sponsor', label: 'Sponsor' },
+									{ key: 'pool', label: 'Pool' },
+									{ key: 'venue', label: 'Venue' },
+									{ key: 'chain', label: 'Chain' },
+									{ key: 'token', label: 'Token', render: (r) => r.token || '—' },
+									{
+										key: 'amountUsd',
+										label: 'Amount',
+										right: true,
+										render: (r) => (r.amountUsd != null ? fmtUsd(r.amountUsd) : '—')
+									}
+								]}
+							/>
+						</ChartCard>
+					)}
+				</>
+			)}
 
 			<SectionHeader>Gauges</SectionHeader>
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

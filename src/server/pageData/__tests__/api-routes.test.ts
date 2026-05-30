@@ -42,9 +42,9 @@ vi.mock('~/utils/telemetry', () => ({
 	withApiRouteTelemetry: (_route: string, handler: unknown) => handler
 }))
 
-import categoriesChartsHandler from '~/pages/api/page-data/categories/charts'
-import chainsChartsHandler from '~/pages/api/page-data/chains/charts'
-import dimensionAdapterChainsChartHandler from '~/pages/api/page-data/dimension-adapters/chains-chart'
+import categoriesChartsHandler from '~/pages/api/public/page-data/categories/charts'
+import chainsChartsHandler from '~/pages/api/public/page-data/chains/charts'
+import dimensionAdapterChainsChartHandler from '~/pages/api/public/page-data/dimension-adapters/chains-chart'
 
 describe('page data chart api routes', () => {
 	beforeEach(() => {
@@ -59,7 +59,7 @@ describe('page data chart api routes', () => {
 		const req = {
 			method: 'GET',
 			query: { extraTvlTypes: 'staking,borrowed' },
-			url: '/api/page-data/categories/charts?extraTvlTypes=staking,borrowed'
+			url: '/api/public/page-data/categories/charts?extraTvlTypes=staking,borrowed'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
@@ -84,7 +84,7 @@ describe('page data chart api routes', () => {
 		const req = {
 			method: 'GET',
 			query: { extraTvlTypes: ['staking', 'borrowed'] },
-			url: '/api/page-data/categories/charts?extraTvlTypes=staking&extraTvlTypes=borrowed'
+			url: '/api/public/page-data/categories/charts?extraTvlTypes=staking&extraTvlTypes=borrowed'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
@@ -109,7 +109,7 @@ describe('page data chart api routes', () => {
 		const req = {
 			method: 'GET',
 			query: { category: 'All', sampledChart: 'true', extraTvlTypes: 'staking,borrowed' },
-			url: '/api/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking,borrowed'
+			url: '/api/public/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking,borrowed'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
@@ -136,7 +136,7 @@ describe('page data chart api routes', () => {
 		const req = {
 			method: 'GET',
 			query: { category: 'All', sampledChart: 'true', extraTvlTypes: ['staking', 'borrowed'] },
-			url: '/api/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking&extraTvlTypes=borrowed'
+			url: '/api/public/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking&extraTvlTypes=borrowed'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
@@ -178,7 +178,7 @@ describe('page data chart api routes', () => {
 		const req = {
 			method: 'GET',
 			query: { adapterType: ADAPTER_TYPES.DEXS, dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME },
-			url: '/api/page-data/dimension-adapters/chains-chart?adapterType=dexs&dataType=dailyVolume'
+			url: '/api/public/page-data/dimension-adapters/chains-chart?adapterType=dexs&dataType=dailyVolume'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
@@ -210,7 +210,7 @@ describe('page data chart api routes', () => {
 		const req = {
 			method: 'GET',
 			query: { adapterType: ADAPTER_TYPES.DEXS, dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME },
-			url: '/api/page-data/dimension-adapters/chains-chart?adapterType=dexs&dataType=dailyVolume'
+			url: '/api/public/page-data/dimension-adapters/chains-chart?adapterType=dexs&dataType=dailyVolume'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 

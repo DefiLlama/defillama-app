@@ -200,7 +200,7 @@ const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) =>
 			searchParams.set(key, value)
 		}
 	}
-	return `/api/charts/protocol?${searchParams.toString()}`
+	return `/api/public/charts/protocol?${searchParams.toString()}`
 }
 
 export const useFetchProtocolChartData = ({
@@ -266,7 +266,7 @@ export const useFetchProtocolChartData = ({
 	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'denomination-price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`/api/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
+			fetchJson(`/api/public/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
 				(res: { data?: { prices?: Array<[number, number]> } }) => {
 					if (!res.data?.prices?.length) return null
 					const store: Record<string, number> = {}
@@ -287,7 +287,7 @@ export const useFetchProtocolChartData = ({
 		useQuery<DenominationPriceHistory | null>({
 			queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 			queryFn: () =>
-				fetchJson(`/api/charts/coingecko/${encodeURIComponent(geckoId!)}?fullChart=true`).then(
+				fetchJson(`/api/public/charts/coingecko/${encodeURIComponent(geckoId!)}?fullChart=true`).then(
 					(res: { data?: DenominationPriceHistory }) => (res.data?.prices?.length ? res.data : null)
 				),
 			staleTime: 60 * 60 * 1000,
@@ -307,7 +307,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'token-supply', geckoId],
 		queryFn: () =>
 			fetchJson<{ totalSupply: number | null }>(
-				`/api/charts/coingecko/${encodeURIComponent(geckoId!)}?kind=supply`
+				`/api/public/charts/coingecko/${encodeURIComponent(geckoId!)}?kind=supply`
 			).then((res) => res.totalSupply ?? null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

@@ -124,7 +124,7 @@ export interface SyrupDripTx {
 const STALE_TIME = 10 * 60 * 1000
 
 async function fetchMapleQuery<T>(queryName: string): Promise<T> {
-	const response = await fetch('/api/maple/graphql', {
+	const response = await fetch('/api/dynamic/maple/graphql', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ queryName })

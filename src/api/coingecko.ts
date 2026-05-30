@@ -35,7 +35,7 @@ const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const COINGECKO_EXCHANGES_MAX_PAGE_SIZE = 250
 const COINGECKO_TICKERS_PAGE_SIZE = 100
 const CG_CHART_CACHE_TTL_SECONDS = 60 * 60
-const CG_CHART_LOCAL_API_PATH = '/api/charts/protocol'
+const CG_CHART_LOCAL_API_PATH = '/api/public/charts/protocol'
 
 function createCoinGeckoUrl(pathname: string): URL {
 	return new URL(pathname.replace(/^\//, ''), `${COINGECKO_API_BASE_URL}/`)

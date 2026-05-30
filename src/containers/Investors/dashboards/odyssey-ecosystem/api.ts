@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 
-const BASE = '/api/odyssey-ecosystem'
+const BASE = '/api/public/odyssey-ecosystem'
 const STALE_MS = 10 * 60 * 1000
 
 function useTab<T>(tab: string) {
@@ -132,8 +132,28 @@ interface PoolRow {
 	venue: string
 	chain: string
 	pool: string
+	poolAddress?: string
+	feePct?: number
 	tvl: string
+	tvlUsd?: number
 	apy: string
+	apySource?: string
+	source?: string
+}
+
+export interface MorphoMarketHistoryPoint {
+	date: string
+	supplyUsd: number
+	borrowUsd: number
+	utilization: number
+}
+
+export interface MorphoMarketHistory {
+	marketId: string
+	chain: string
+	name: string
+	source?: string
+	series: MorphoMarketHistoryPoint[]
 }
 
 export interface TvlResponse {
@@ -151,10 +171,15 @@ export interface TvlResponse {
 		vaults: MorphoVault[]
 		marketsByChain: Array<{ chain: string; markets: MorphoMarket[] }>
 	}
-	synthLpTvl?: { subtitle: string; pools: PoolRow[] }
-	metbasis?: { subtitle: string; pools: PoolRow[] }
+	morphoMarketHistory?: {
+		title?: string
+		subtitle?: string
+		markets: MorphoMarketHistory[]
+	}
+	synthLpTvl?: { title?: string; subtitle?: string; pools: PoolRow[] }
+	metbasis?: { title?: string; subtitle?: string; totalUsd?: number; totalFormatted?: string; pools: PoolRow[] }
 	kpis: {
-		total: FormattedValue
+		total: FormattedValue & { label?: string }
 		metronome: FormattedValue
 		vesper: FormattedValue
 		odyssey: FormattedValue
@@ -213,7 +238,7 @@ interface UnclaimedPipeline {
 		valueUsd: number
 	}>
 	ethUniv3: Array<{ position: string; pool: string; rewards: string; usd: number }>
-	plasmaUniv3: Array<{ position: string; pool: string; token: string; amount: number; rewards?: string; usd: number }>
+	plasmaUniv3: Array<{ position: string; pool: string; rewards?: string; usd: number }>
 	amoPositions: Array<{
 		vaultName: string
 		asset: string
@@ -282,6 +307,45 @@ export interface SpendWindowRow {
 	spend: string
 }
 
+export interface NonSpendIncentives {
+	title?: string
+	subtitle?: string
+	feesRolledIntoIncentives?: {
+		title?: string
+		subtitle?: string
+		totalUsd?: number
+		totalFormatted?: string
+		rows: Array<{
+			venue: string
+			pool: string
+			bribesUsd: number
+			emissionsUsd: number
+			feesRolledInUsd: number
+			multiplier?: number
+		}>
+	}
+	govTokenPower?: {
+		title?: string
+		subtitle?: string
+		vlCvxLockedUsd?: number
+		veAeroLockedUsd?: number
+		totalUsd?: number
+		totalFormatted?: string
+	}
+	thirdPartySponsorship?: {
+		note?: string
+		knownSponsors: Array<{
+			sponsor: string
+			pool: string
+			venue: string
+			chain: string
+			token?: string
+			amountUsd: number | null
+			source?: string
+		}>
+	}
+}
+
 export interface IncentivesResponse {
 	weeklyHistoryChart: ChartData
 	weeklyPoolCharts: Record<string, ChartData>
@@ -298,10 +362,13 @@ export interface IncentivesResponse {
 		lithos: Array<{ pool: string; tvl: string; apy: string }>
 	}
 	curvePools: Array<{ pool: string; apy: string; balances: string; tvlUsd: string }>
+	nonSpendIncentives?: NonSpendIncentives
 	kpis: {
 		thirtyDayTotal: FormattedValue
 		allTimeTotal: FormattedValue
 		thirtyDayByVenue: Array<{ venue: string; id: string; chain: string; amountUsd: number; amountFormatted: string }>
+		feesRolledIntoIncentives?: FormattedValue
+		govTokenPowerUsd?: FormattedValue
 	}
 }
 
@@ -324,7 +391,7 @@ export interface LpApyPool {
 }
 
 export interface YieldsResponse {
-	odysseyApy: { rows: Array<{ chain: string; strategies: number; netApyPct: number }> }
+	odysseyApy: { rows: Array<{ chain: string; strategies: number; netApyPct: number; maxApyPct?: number }> }
 	looperApy: {
 		rows: Array<{
 			name: string
@@ -334,15 +401,17 @@ export interface YieldsResponse {
 			collateralApyPct: number
 			borrowApyPct: number
 			netApyPct: number
+			maxApyPct?: number
+			underlyingApyPct?: number
 		}>
 	}
 	vesperApy: { pools: VesperPool[] }
 	lpApyHistory: Record<string, { venue: string; pools: LpApyPool[] }>
 	lpPools: { rows: Array<{ venue: string; chain: string; pool: string; tvl: string; apy: string; apyPct: number }> }
 	kpis: {
-		topLooperApy: FormattedValue
-		topOdysseyApy: FormattedValue
-		topVesperApy: FormattedValue
+		topLooperApy: FormattedValue & { label?: string }
+		topOdysseyApy: FormattedValue & { label?: string }
+		topVesperApy: FormattedValue & { label?: string }
 		odysseyStrategyCount: FormattedValue
 	}
 }
@@ -365,14 +434,38 @@ export interface TreasuryResponse {
 			valueUsd: number
 		}>
 	}
+	ethUniv3?: {
+		totalFormatted?: string
+		rows: Array<{ pool: string; rewards: string; usd: number }>
+	}
 	plasmaUniv3: {
 		totalFormatted: string
-		rows: Array<{ pool: string; position?: string; token: string; amount: number; rewards?: string; usd: number }>
+		rows: Array<{ pool: string; position?: string; rewards?: string; usd: number }>
 	}
 	vlCvx: { rows: Array<{ type: string; status: string; balance: string; unlock: string }> }
 	veAero: { rows: Array<{ nft: string; locked: string; rewards: string; unlock: string }> }
-	metronomeAllocation: { rows: Array<{ bucket: string; share: string; value: string }> }
-	vesperAllocation: { rows: Array<{ bucket: string; share: string; value: string }> }
+	govLocks?: {
+		title?: string
+		subtitle?: string
+		rows: Array<{
+			token: string
+			lockedTokens: number | string
+			supply: number | string
+			nftCount: number
+			avgLockYears: number
+			avgRemainingYears: number
+		}>
+	}
+	metronomeAllocation: {
+		title?: string
+		subtitle?: string
+		rows: Array<{ bucket: string; share: string; value: string }>
+	}
+	vesperAllocation: {
+		title?: string
+		subtitle?: string
+		rows: Array<{ bucket: string; share: string; value: string }>
+	}
 }
 
 export const useTreasuryData = () => useTab<TreasuryResponse>('treasury')
@@ -416,6 +509,7 @@ export interface GrowthResponse {
 	}
 	depositsByChain: ChartData
 	caseStudies: {
+		title?: string
 		morphoMarkets: Array<ChartData & { id: string; label: string; title: string }>
 		spendVsTvl: Array<ChartData & { venue: string; title: string; latestTvl: number }>
 		kelpExploitDate?: string | null
@@ -488,6 +582,8 @@ export interface PegsResponse {
 	>
 	rows: PegRow[]
 	supplyCaps: PegSupplyCap[]
+	bridgeInCaps?: Array<PegSupplyCap & { capType?: string }>
+	bridgeOutCaps?: Array<PegSupplyCap & { capType?: string }>
 }
 
 export const usePegsData = () => useTab<PegsResponse>('pegs')
