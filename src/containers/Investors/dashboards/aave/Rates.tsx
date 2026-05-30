@@ -4,7 +4,7 @@ import { lazy, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import { useAaveMarkets, useAaveAPYHistory } from './api'
-import type { FlatReserve, TimeWindow } from './api'
+import type { TimeWindow } from './api'
 import {
 	InvestorsTable,
 	PageLoader,
@@ -95,7 +95,7 @@ function RateComparisonTable({ data }: { data: RateComparisonRow[] }) {
 }
 
 export default function Rates() {
-	const { markets, reserves, isLoading: marketsLoading } = useAaveMarkets()
+	const { reserves, isLoading: marketsLoading } = useAaveMarkets()
 
 	const assetOptions = useMemo(() => {
 		const assetMap = new Map<string, { symbol: string; totalSize: number }>()

@@ -1,5 +1,5 @@
 import { usePegsData, type PegRow } from './api'
-import { KpiCard, ChartCard, SectionHeader, SimpleTable, fmtUsd } from './ui'
+import { KpiCard, ChartCard, SectionHeader, SimpleTable } from './ui'
 
 const SIZES = [10_000, 50_000, 100_000, 500_000, 1_000_000]
 

@@ -5,10 +5,9 @@ import {
 	getSortedRowModel,
 	getPaginationRowModel
 } from '@tanstack/react-table'
-import { lazy, useEffect, useMemo } from 'react'
+import { lazy, useEffect } from 'react'
 import type { IChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/Investors/index'
-import { lastNDaysZoom } from './chartDefaults'
 import { useYieldsEmissionsData, type YieldPool } from './yieldsEmissionsApi'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
