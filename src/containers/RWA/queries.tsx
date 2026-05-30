@@ -429,13 +429,6 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				: aggregatedMetrics.totals.defiActiveTvl
 
 			const isTrueRWA = item.rwaClassification === 'True RWA'
-			const sortedCategories =
-				selectedCategory && Array.isArray(item.category)
-					? [
-							...item.category.filter((c) => c && rwaSlug(c) === selectedCategory),
-							...item.category.filter((c) => c && rwaSlug(c) !== selectedCategory)
-						]
-					: (item.category ?? null)
 			const asset: RWASpotOverviewAsset = {
 				id: item.id,
 				kind: 'spot',
@@ -452,7 +445,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				volume30d: null,
 				assetGroup: item.assetGroup ?? null,
 				parentPlatform: item.parentPlatform ?? null,
-				category: sortedCategories,
+				category: item.category ?? null,
 				assetClass: item.assetClass ?? null,
 				accessModel: item.accessModel ?? null,
 				type: item.type ?? null,

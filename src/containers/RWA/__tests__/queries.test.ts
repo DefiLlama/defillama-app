@@ -277,6 +277,57 @@ describe('rwa queries', () => {
 		})
 	})
 
+	it('preserves original category order when filtering by a secondary category', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([
+			{
+				id: 'stablecoin-1',
+				ticker: 'RUSD',
+				assetName: 'RWA USD',
+				category: ['RWA Stablecoins', 'Other RWAs'],
+				onChainMcap: { Ethereum: 100 },
+				activeMcap: { Ethereum: 90 },
+				defiActiveTvl: { Ethereum: { Aave: 20 } }
+			},
+			{
+				id: 'other-1',
+				ticker: 'ART',
+				assetName: 'Art Token',
+				category: ['Other RWAs'],
+				onChainMcap: { Ethereum: 50 },
+				activeMcap: { Ethereum: 45 },
+				defiActiveTvl: { Ethereum: { Aave: 10 } }
+			}
+		])
+
+		const result = await getRWAAssetsOverview({
+			category: 'other-rwas',
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['RWA Stablecoins', 'Other RWAs'],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(result?.assets[0]?.category).toEqual(['RWA Stablecoins', 'Other RWAs'])
+		expect(result?.categoryValues).toEqual([
+			{ name: 'RWA Stablecoins', value: 100 },
+			{ name: 'Other RWAs', value: 50 }
+		])
+		expect(result?.categoriesOptions).toEqual([
+			{
+				key: 'RWA Stablecoins',
+				name: 'RWA Stablecoins',
+				help: expect.stringContaining('Fiat-pegged stablecoins')
+			},
+			{
+				key: 'Other RWAs',
+				name: 'Other RWAs',
+				help: expect.stringContaining('alternative or niche real-world assets')
+			}
+		])
+	})
+
 	it('resolves perps-only platform slugs on platform overview routes', async () => {
 		fetchRWAActiveTVLsMock.mockResolvedValue([])
 		fetchRWAPerpsCurrentMock.mockResolvedValue([
