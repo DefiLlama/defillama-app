@@ -38,6 +38,28 @@ describe('settingsIntent', () => {
 		expect(readPendingSettingsIntent(storage)).toBeNull()
 	})
 
+	it('parses an authenticated Slack login intent for the integrations tab', () => {
+		expect(getSettingsIntentFromQuery({ slacklogin: 'slack-token', keep: '1', modal: 'settings', tab: 'app' })).toEqual(
+			{
+				initialState: { tab: 'integrations', tgloginToken: null, slackloginToken: 'slack-token' },
+				nextQuery: { keep: '1' }
+			}
+		)
+	})
+
+	it('stashes and consumes unauthenticated Slack login intent after login', () => {
+		const storage = new MemoryStorage()
+
+		stashSettingsIntent(storage, { tab: 'integrations', tgloginToken: null, slackloginToken: 'slack-token' })
+
+		expect(readPendingSettingsIntent(storage)).toEqual({
+			tab: 'integrations',
+			tgloginToken: null,
+			slackloginToken: 'slack-token'
+		})
+		expect(readPendingSettingsIntent(storage)).toBeNull()
+	})
+
 	it('parses the settings modal tab intent and removes consumed query params', () => {
 		expect(getSettingsIntentFromQuery({ modal: 'settings', tab: 'integrations', chain: 'Ethereum' })).toEqual({
 			initialState: { tab: 'integrations', tgloginToken: null },

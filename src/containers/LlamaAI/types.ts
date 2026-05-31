@@ -115,6 +115,12 @@ export interface AlertProposedData {
 }
 
 export type DashboardItem = DashboardItemConfig
+export type ChartDataSeries = unknown[]
+export type ChartDataByKey = Record<string, ChartDataSeries>
+export type DashboardChartData = Record<
+	string,
+	{ config: ChartConfiguration; data: ChartDataSeries; toolChain: unknown[] }
+>
 
 export interface DashboardArtifact {
 	id: string
@@ -122,7 +128,7 @@ export interface DashboardArtifact {
 	items: DashboardItem[]
 	timePeriod?: string
 	sourceDashboardId?: string
-	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	chartData?: DashboardChartData
 }
 
 export type JsonPrimitive = string | number | boolean | null
@@ -208,7 +214,7 @@ export interface ChartItem {
 	type: 'chart'
 	id: string
 	chart: ChartConfiguration
-	chartData: any[] | Record<string, any[]>
+	chartData: ChartDataSeries | ChartDataByKey
 }
 
 export interface CsvItem {
@@ -236,7 +242,7 @@ export interface UpgradeOffer {
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
-	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
+	charts?: Array<{ charts: ChartConfiguration[]; chartData: ChartDataByKey }>
 	csvExports?: CsvExport[]
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	citations?: string[]
@@ -270,7 +276,7 @@ export interface Message {
 
 export interface ChartSet {
 	charts: ChartConfiguration[]
-	chartData: Record<string, any[]>
+	chartData: ChartDataByKey
 }
 
 export interface GeneratedImage {

@@ -1,6 +1,7 @@
 import type {
 	AlertProposedData,
 	ChartConfiguration,
+	ChartDataByKey,
 	DashboardArtifact,
 	FactCheckReference,
 	GeneratedImage,
@@ -12,7 +13,7 @@ export type ChartArtifactRecord = {
 	type: 'chart'
 	id: string
 	charts: ChartConfiguration[]
-	chartData: Record<string, any[]>
+	chartData: ChartDataByKey
 }
 
 export type CsvArtifactRecord = {
@@ -186,6 +187,8 @@ export function parseMessageToRenderModel(
 			!part.content.trim() &&
 			parsed.parts.slice(index + 1).some((nextPart) => nextPart.type === 'action')
 		) {
+			// Consecutive action placeholders are rendered as one button group; blank
+			// markdown between them should not split the group into separate blocks.
 			continue
 		}
 
@@ -283,6 +286,8 @@ export function parseMessageToRenderModel(
 
 	if (citations.length > 0) {
 		if (lastMarkdownIndex >= 0) {
+			// Sources belong immediately after the final prose block, before fallback
+			// artifacts that may have arrived out-of-band.
 			blocks.splice(lastMarkdownIndex + 1, 0, {
 				type: 'sources',
 				key: `sources-${blocks.length}`,

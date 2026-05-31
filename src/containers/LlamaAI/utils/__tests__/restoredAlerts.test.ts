@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseMessageToRenderModel } from '~/containers/LlamaAI/renderModel'
 import type { AlertProposedData, Message } from '~/containers/LlamaAI/types'
-import { buildRestoredAlerts } from '../restoredAlerts'
+import { buildRestoredAlerts, normalizeAlertProposedData } from '../restoredAlerts'
 
 const alertIntent = {
 	frequency: 'daily' as const,
@@ -52,6 +52,63 @@ describe('buildRestoredAlerts', () => {
 		})
 
 		expect(restoredAlertId(alerts)).toBe('restored_message-1')
+	})
+})
+
+describe('normalizeAlertProposedData', () => {
+	it('adds restored-alert defaults to partial live alert proposals', () => {
+		expect(
+			normalizeAlertProposedData({
+				alertId: 'alert-1',
+				title: 'Alert',
+				delivery_channel: 'slack',
+				slack_team_id: 'T1',
+				slack_channel_name: 'alerts',
+				alertIntent: {}
+			})
+		).toEqual({
+			alertId: 'alert-1',
+			title: 'Alert',
+			alertIntent: {
+				frequency: 'daily',
+				hour: 9,
+				timezone: 'UTC',
+				dayOfWeek: undefined,
+				deliveryChannel: 'slack',
+				slackTeamId: 'T1',
+				slackTeamName: null,
+				slackChannelId: null,
+				slackChannelName: 'alerts'
+			},
+			schedule_expression: '',
+			next_run_at: ''
+		})
+	})
+
+	it('clamps invalid live alert schedule fields', () => {
+		expect(
+			normalizeAlertProposedData({
+				alertId: 'alert-1',
+				alertIntent: { hour: Infinity, dayOfWeek: 9 }
+			}).alertIntent
+		).toMatchObject({ hour: 9, dayOfWeek: undefined })
+
+		expect(
+			normalizeAlertProposedData({
+				alertId: 'alert-1',
+				alertIntent: { hour: 27.9, dayOfWeek: 6 }
+			}).alertIntent
+		).toMatchObject({ hour: 23, dayOfWeek: 6 })
+	})
+
+	it('clamps invalid restored alert schedule fields', () => {
+		const alerts = buildRestoredAlerts({
+			content: '[ALERT:alert-1]',
+			messageId: 'message-1',
+			metadata: { alertIntent: { ...alertIntent, hour: -3.2, dayOfWeek: 7 } }
+		})
+
+		expect(alerts?.[0]?.alertIntent).toMatchObject({ hour: 0, dayOfWeek: undefined })
 	})
 })
 

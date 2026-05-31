@@ -61,6 +61,7 @@ function WorkspaceRow({
 	onReconnect: () => void
 	isDisconnecting: boolean
 }) {
+	const needsReconnect = !workspace.revoked && workspace.needs_reconnect === true
 	return (
 		<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/[0.06] bg-black/[0.02] p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
 			<div className="min-w-0 flex-1">
@@ -69,6 +70,10 @@ function WorkspaceRow({
 					{workspace.revoked ? (
 						<span className="text-amber-600 dark:text-amber-400">
 							Disconnected by Slack. Reconnect to resume alerts.
+						</span>
+					) : needsReconnect ? (
+						<span className="text-amber-600 dark:text-amber-400">
+							Reconnect to enable LlamaAI chat in this workspace.
 						</span>
 					) : workspace.default_channel_name ? (
 						<>Default channel: #{workspace.default_channel_name}</>
@@ -81,7 +86,7 @@ function WorkspaceRow({
 				)}
 			</div>
 			<div className="flex shrink-0 gap-2">
-				{workspace.revoked ? (
+				{workspace.revoked || needsReconnect ? (
 					<button
 						type="button"
 						onClick={onReconnect}
@@ -141,8 +146,28 @@ export function SlackIntegrationRow({ title, description, glyph }: Props) {
 
 			{link.state.status === 'pending' && (
 				<div className="mt-3 rounded-lg bg-black/[0.04] p-3 text-xs text-[#777] dark:bg-white/[0.04] dark:text-[#919296]">
-					Waiting for confirmation in Slack… Once you finish in Slack, come back to this page to see your workspace
-					here.
+					<div>
+						Waiting for confirmation in Slack. Once you finish in Slack, come back to this page to see your workspace
+						here.
+					</div>
+					<div className="mt-3 flex flex-wrap gap-2">
+						<button
+							type="button"
+							onClick={() => link.connect()}
+							disabled={link.isStarting}
+							className="rounded-lg bg-[#4A154B] px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white hover:bg-[#3a1140] disabled:opacity-50"
+						>
+							{link.isStarting ? 'Opening…' : 'Start over'}
+						</button>
+						<button
+							type="button"
+							onClick={() => link.cancelPending()}
+							disabled={link.isCancelingPending}
+							className="rounded-lg border border-black/[0.08] px-3 py-1.5 text-xs whitespace-nowrap hover:bg-black/[0.04] disabled:opacity-50 dark:border-white/[0.08] dark:hover:bg-white/[0.04]"
+						>
+							{link.isCancelingPending ? 'Canceling…' : 'Cancel'}
+						</button>
+					</div>
 				</div>
 			)}
 

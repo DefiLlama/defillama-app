@@ -68,6 +68,8 @@ export function deriveTelegramLinkState({
 	isStarting: boolean
 	isConfirming: boolean
 }): IntegrationLinkState {
+	// Local mutation state wins over query state so confirmation prompts and
+	// forced-switch errors remain visible while polling catches up.
 	if (localState.status === 'error') return localState
 	if (isStarting) return { status: 'starting' }
 	if (isConfirming) return { status: 'confirming' }
@@ -239,6 +241,8 @@ export function useIntegrationLink(opts: Options = {}) {
 			await confirmMutation.mutateAsync({ token, short_code, force: true })
 			return true
 		} catch (error: any) {
+			// Another tab/device can finish the link before this confirmation lands.
+			// Treat that as success after refreshing server state.
 			if (error?.status === 409 && error?.body?.error === 'link_state_changed') {
 				confirmMutation.reset()
 				await statusQuery.refetch()

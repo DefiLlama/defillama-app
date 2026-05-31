@@ -27,6 +27,7 @@ import { SignInModal } from '~/containers/Subscription/SignInModal'
 import type { BillingCycle, PlanKey } from '~/containers/Subscription/types'
 import { useSubscriptionPageState } from '~/containers/Subscription/usePageState'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
+import { applySlackAcquisitionFromQuery } from '~/containers/Subscription/utils/slackAcquisition'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { safeInternalPath } from '~/utils/routerQuery'
 
@@ -82,6 +83,12 @@ function SubscriptionContent() {
 			console.error('Failed to end trial:', error)
 		}
 	}
+
+	/* ── Slack acquisition source capture ─────────────────────────────── */
+	useEffect(() => {
+		if (typeof window === 'undefined' || !router.isReady) return
+		applySlackAcquisitionFromQuery(router.query, window.sessionStorage)
+	}, [router.isReady, router.query])
 
 	/* ── Return modal (redirect after sign-in) ────────────────────────── */
 	const [showReturnModal, setShowReturnModal] = useState(false)

@@ -26,6 +26,87 @@ function getFirstAlertMarkerId(content?: string) {
 	return content?.match(/\[ALERT:([^\]]+)\]/)?.[1]
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function normalizeDeliveryChannel(value: unknown): 'email' | 'telegram' | 'slack' | undefined {
+	return value === 'email' || value === 'telegram' || value === 'slack' ? value : undefined
+}
+
+function getStringValue(...values: unknown[]): string | null {
+	for (const value of values) {
+		if (typeof value === 'string') return value
+	}
+	return null
+}
+
+function normalizeHour(value: unknown) {
+	if (typeof value !== 'number' || !Number.isFinite(value)) return 9
+	return Math.min(23, Math.max(0, Math.trunc(value)))
+}
+
+function normalizeDayOfWeek(value: unknown) {
+	return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value) && value >= 0 && value <= 6
+		? value
+		: undefined
+}
+
+export function normalizeAlertProposedData(value: unknown): AlertProposedData {
+	const outerEvent = isRecord(value) ? value : {}
+	const event = isRecord(outerEvent.content) ? outerEvent.content : outerEvent
+	const rawIntent = isRecord(event.alertIntent) ? event.alertIntent : {}
+	const restoredDeliveryChannel =
+		normalizeDeliveryChannel(rawIntent.deliveryChannel) ||
+		normalizeDeliveryChannel(event.deliveryChannel) ||
+		normalizeDeliveryChannel(event.delivery_channel)
+
+	return {
+		alertId: typeof event.alertId === 'string' && event.alertId ? event.alertId : 'alert_proposed_fallback',
+		title:
+			(typeof event.title === 'string' && event.title) ||
+			(typeof rawIntent.title === 'string' && rawIntent.title) ||
+			(typeof rawIntent.dataQuery === 'string' ? rawIntent.dataQuery : ''),
+		alertIntent: {
+			frequency: rawIntent.frequency === 'weekly' ? 'weekly' : 'daily',
+			hour: normalizeHour(rawIntent.hour),
+			timezone: typeof rawIntent.timezone === 'string' && rawIntent.timezone ? rawIntent.timezone : 'UTC',
+			dayOfWeek: normalizeDayOfWeek(rawIntent.dayOfWeek),
+			deliveryChannel: restoredDeliveryChannel,
+			...(restoredDeliveryChannel === 'slack'
+				? {
+						slackTeamId: getStringValue(
+							rawIntent.slackTeamId,
+							rawIntent.slack_team_id,
+							event.slackTeamId,
+							event.slack_team_id
+						),
+						slackTeamName: getStringValue(
+							rawIntent.slackTeamName,
+							rawIntent.slack_team_name,
+							event.slackTeamName,
+							event.slack_team_name
+						),
+						slackChannelId: getStringValue(
+							rawIntent.slackChannelId,
+							rawIntent.slack_channel_id,
+							event.slackChannelId,
+							event.slack_channel_id
+						),
+						slackChannelName: getStringValue(
+							rawIntent.slackChannelName,
+							rawIntent.slack_channel_name,
+							event.slackChannelName,
+							event.slack_channel_name
+						)
+					}
+				: {})
+		},
+		schedule_expression: typeof event.schedule_expression === 'string' ? event.schedule_expression : '',
+		next_run_at: typeof event.next_run_at === 'string' ? event.next_run_at : ''
+	}
+}
+
 // Rebuild alert artifacts from persisted assistant metadata when restoring a session.
 export function buildRestoredAlerts({
 	content,
@@ -47,6 +128,7 @@ export function buildRestoredAlerts({
 		metadata.savedAlertId ||
 		`restored_${messageId}`
 
+	// PR #38 added deliveryChannel after Telegram support; older saved alert metadata may omit it.
 	const restoredDeliveryChannel = metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
 	return [
 		{
@@ -54,9 +136,9 @@ export function buildRestoredAlerts({
 			title: metadata.alertIntent.title || metadata.alertIntent.dataQuery || '',
 			alertIntent: {
 				frequency: metadata.alertIntent.frequency || 'daily',
-				hour: metadata.alertIntent.hour ?? 9,
+				hour: normalizeHour(metadata.alertIntent.hour),
 				timezone: metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: metadata.alertIntent.dayOfWeek,
+				dayOfWeek: normalizeDayOfWeek(metadata.alertIntent.dayOfWeek),
 				deliveryChannel: restoredDeliveryChannel,
 				...(restoredDeliveryChannel === 'slack'
 					? {

@@ -284,12 +284,15 @@ export class ChartDataTransformer {
 		if (interval === 'week' || interval === 'month') {
 			const groupBy = interval === 'week' ? 'weekly' : 'monthly'
 			const formattedSeries = nextChart.seriesMeta.map((meta) => {
-				const data = nextChart.props.dataset.source.flatMap((row) => {
+				const data: Array<[number, number]> = []
+				for (const row of nextChart.props.dataset.source) {
+					// Pre-March-2026 restored sessions (PR #2666 era) can carry string
+					// timestamps; malformed rows must not produce NaN buckets.
 					const timestamp = Number(row.timestamp)
 					const value = row[meta.name]
-					if (!Number.isFinite(timestamp) || typeof value !== 'number' || Number.isNaN(value)) return []
-					return [[timestamp, value] as [number, number]]
-				})
+					if (!Number.isFinite(timestamp) || typeof value !== 'number' || Number.isNaN(value)) continue
+					data.push([timestamp, value])
+				}
 
 				return {
 					name: meta.name,
@@ -341,13 +344,14 @@ export class ChartDataTransformer {
 		const seriesCount = nextChart.seriesMeta.length
 
 		const formattedSeries = nextChart.seriesMeta.map((meta) => {
-			const data = nextChart.props.dataset.source.flatMap((row) => {
+			const data: Array<[number, number]> = []
+			for (const row of nextChart.props.dataset.source) {
 				const timestamp = Number(row.timestamp)
-				if (!Number.isFinite(timestamp)) return []
+				if (!Number.isFinite(timestamp)) continue
 				const rawValue = row[meta.name]
 				const numericValue = typeof rawValue === 'number' && !Number.isNaN(rawValue) ? rawValue : 0
-				return [[timestamp, numericValue] as [number, number]]
-			})
+				data.push([timestamp, numericValue])
+			}
 
 			return {
 				name: meta.name,

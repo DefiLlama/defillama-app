@@ -2,7 +2,7 @@ import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useReducer, useR
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
 import { ChartControls } from '~/containers/LlamaAI/components/charts/ChartControls'
-import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import type { ChartConfiguration, ChartDataByKey, ChartDataSeries } from '~/containers/LlamaAI/types'
 import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
 import { adaptCandlestickData, adaptChartData } from '~/containers/LlamaAI/utils/chartAdapter'
 import {
@@ -24,7 +24,7 @@ const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
 interface ChartRendererProps {
 	charts: ChartConfiguration[]
-	chartData: any[] | Record<string, any[]>
+	chartData: ChartDataSeries | ChartDataByKey
 	isLoading?: boolean
 	hasError?: boolean
 	chartTypes?: string[]
@@ -35,7 +35,7 @@ interface ChartRendererProps {
 
 interface SingleChartProps {
 	config: ChartConfiguration
-	data: any[]
+	data: ChartDataSeries
 	isActive: boolean
 	title?: string
 	sessionId?: string | null
@@ -90,7 +90,11 @@ function removeAdaptedChartTitle<T extends AdaptedChartData>(adaptedChart: T): T
 	return { ...adaptedChart, props: restProps } as T
 }
 
-function buildChartPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): ChartRenderPlan {
+function buildChartPresentation(
+	config: ChartConfiguration,
+	data: ChartDataSeries,
+	chartState: ChartViewState
+): ChartRenderPlan {
 	// Pipeline order matters:
 	// adapt base data -> derive intrinsic capabilities -> normalize view state -> transform -> render plan.
 	const baseAdaptedChart = removeAdaptedChartTitle(adaptChartData(config, data))
@@ -203,7 +207,11 @@ function ChartExportButtonsSlot({
 
 type PresentationResult = { ok: true; plan: ChartRenderPlan } | { ok: false; error: unknown }
 
-function tryBuildPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): PresentationResult {
+function tryBuildPresentation(
+	config: ChartConfiguration,
+	data: ChartDataSeries,
+	chartState: ChartViewState
+): PresentationResult {
 	try {
 		return { ok: true, plan: buildChartPresentation(config, data, chartState) }
 	} catch (error) {
@@ -376,6 +384,8 @@ function ChartRendererImpl({
 		if (!el) return
 		let lastWidth = el.getBoundingClientRect().width
 		let timer: ReturnType<typeof setTimeout> | null = null
+		// ECharts instances listen for the shared resize event; debounce container
+		// width changes so side panels and fullscreen toggles do not thrash charts.
 		const observer = new ResizeObserver((entries) => {
 			const w = entries[0]?.contentRect.width ?? 0
 			if (Math.abs(w - lastWidth) < 1) return
@@ -432,17 +442,22 @@ function ChartRendererImpl({
 					))}
 				</div>
 			) : null}
-			{charts.map((chart, index) => (
-				<SingleChart
-					key={chart.id}
-					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
-					isActive={!hasMultipleCharts || activeTabIndex === index}
-					title={chart.title}
-					sessionId={sessionId}
-					messageId={messageId}
-				/>
-			))}
+			{charts.map((chart, index) => {
+				// Backend sessions before the keyed chart-data transition (commit a6035b1)
+				// stored one flat row array. PR #2666 kept this branch load-bearing.
+				const data = Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []
+				return (
+					<SingleChart
+						key={chart.id}
+						config={chart}
+						data={data}
+						isActive={!hasMultipleCharts || activeTabIndex === index}
+						title={chart.title}
+						sessionId={sessionId}
+						messageId={messageId}
+					/>
+				)
+			})}
 		</div>
 	)
 }

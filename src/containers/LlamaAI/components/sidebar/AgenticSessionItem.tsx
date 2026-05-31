@@ -21,7 +21,7 @@ interface AgenticSessionItemProps {
 	isActive: boolean
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<unknown>
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
@@ -29,7 +29,7 @@ interface AgenticSessionItemProps {
 	selectMode?: boolean
 	isSelected?: boolean
 	onToggleSelect?: (sessionId: string) => void
-	onPinSession?: (sessionId: string) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<unknown>
 }
 
 export const AgenticSessionItem = memo(function AgenticSessionItem({
