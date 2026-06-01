@@ -13,7 +13,7 @@ import {
 } from '~/containers/Articles/api'
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
-import ArticlesPage, { getStaticProps as getResearchStaticProps } from '~/pages/research'
+import ArticlesPage, { getServerSideProps as getResearchServerSideProps } from '~/pages/research'
 import SectionLandingPage, { getStaticProps as getSectionLandingStaticProps } from '~/pages/research/[section]'
 import SectionArticlePage, { getServerSideProps as getArticleServerSideProps } from '~/pages/research/[section]/[slug]'
 
@@ -171,10 +171,15 @@ describe('research ISR data loading', () => {
 		vi.mocked(getAllArticlesBanner).mockResolvedValue(emptyBanner)
 	})
 
-	it('loads landing page props for ISR and renders article content immediately', async () => {
-		const result = await getResearchStaticProps({} as never)
+	it('loads landing page props for SSR and renders article content immediately', async () => {
+		const setHeader = vi.fn()
+		const result = await getResearchServerSideProps({
+			req: { method: 'GET' },
+			res: { setHeader },
+			resolvedUrl: '/research'
+		} as never)
 
-		expect(result).toMatchObject({ revalidate: expect.any(Number) })
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
 		expect(result.props.landingData.heroReports[0]?.title).toBe('Canonical Research')
 		expect(getLandingBanner).toHaveBeenCalledTimes(1)

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { InferGetStaticPropsType } from 'next'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { ArticleApiError, getLandingBanner, listArticles, listArticlesByTag } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { EDITORIAL_TAGS } from '~/containers/Articles/editorialTags'
@@ -28,8 +28,9 @@ import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBanner
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { withPerformanceLogging } from '~/utils/perf'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
+
+const RESEARCH_LANDING_CACHE_CONTROL = 'public, s-maxage=60'
 
 export type ResearchLandingArticles = {
 	heroReports: ArticleDocument[]
@@ -135,16 +136,18 @@ export async function loadResearchLandingData(): Promise<ArticlesPageProps> {
 	}
 }
 
-export const getStaticProps = withPerformanceLogging<ArticlesPageProps>('research', async () => {
+const getServerSidePropsHandler: GetServerSideProps<ArticlesPageProps> = async ({ res }) => {
 	const { landingData, landingBanner } = await loadResearchLandingData()
+	res.setHeader('Cache-Control', RESEARCH_LANDING_CACHE_CONTROL)
 	return {
 		props: {
 			landingData,
 			landingBanner
-		},
-		revalidate: maxAgeForNext([22])
+		}
 	}
-})
+}
+
+export const getServerSideProps = withServerSidePropsTelemetry('/research', getServerSidePropsHandler)
 
 function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps }) {
 	const landingQuery = useQuery({
@@ -281,7 +284,7 @@ function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps 
 	)
 }
 
-export default function ArticlesPage({ landingData, landingBanner }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function ArticlesPage({ landingData, landingBanner }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const { showSearch } = useResearchSearchParams()
 
 	return (
