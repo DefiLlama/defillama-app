@@ -5,6 +5,7 @@ import {
 	listArticlePaths,
 	listArticles,
 	listArticlesByTag,
+	listArticlesByTopic,
 	publishArticle,
 	reorderEditorialTag,
 	revalidateResearchLanding,
@@ -46,6 +47,20 @@ describe('articles api client', () => {
 		const url = new URL(fetchFn.mock.calls[0][0])
 		expect(url.pathname).toBe('/articles/by-tag/report-highlight')
 		expect(url.searchParams.get('limit')).toBe('1')
+	})
+
+	it('lists articles by topic via listArticles tags param', async () => {
+		const fetchFn = createFetchMock(
+			new Response(JSON.stringify({ items: [], page: 1, perPage: 60, totalItems: 0, totalPages: 1 }))
+		)
+
+		await listArticlesByTopic('lending', { limit: 60, sort: 'newest' }, fetchFn)
+
+		const url = new URL(fetchFn.mock.calls[0][0])
+		expect(url.pathname).toBe('/articles')
+		expect(url.searchParams.get('tags')).toBe('lending')
+		expect(url.searchParams.get('sort')).toBe('newest')
+		expect(url.searchParams.get('limit')).toBe('60')
 	})
 
 	it('requests public article path metadata', async () => {

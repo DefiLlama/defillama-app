@@ -21,8 +21,8 @@ export function getArticleBylineAuthorEntries(article: LocalArticleDocument): Ar
 	return [owner, ...coAuthors]
 }
 
-export function formatDate(value: string | null) {
-	if (!value) return ''
+export function formatDate(value: string | null, emptyLabel = '') {
+	if (!value) return emptyLabel
 	const date = new Date(value)
 	const day = date.getDate()
 	const month = date.toLocaleString('en', { month: 'short' })
@@ -35,6 +35,12 @@ export function articleHref(article: { slug: string; section?: ArticleSection | 
 		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
 	}
 	return '/research'
+}
+
+export function readingMinutes(article: { plainText?: string | null; excerpt?: string | null }) {
+	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
+	const words = text ? text.split(/\s+/).length : 0
+	return Math.max(1, Math.ceil(words / 220))
 }
 
 /** Per-widget limits for research landing */

@@ -284,7 +284,10 @@ function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps 
 	)
 }
 
-export default function ArticlesPage({ landingData, landingBanner }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function ArticlesPage({
+	landingData,
+	landingBanner
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const { showSearch } = useResearchSearchParams()
 
 	return (

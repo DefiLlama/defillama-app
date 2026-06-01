@@ -13,15 +13,14 @@ import {
 	type ResearchSearchQuery,
 	useResearchSearchParams
 } from '~/containers/Articles/landing/useResearchSearchParams'
-import { articleHref, formatDate, getArticleBylineAuthorEntries } from '~/containers/Articles/landing/utils'
+import {
+	articleHref,
+	formatDate,
+	getArticleBylineAuthorEntries,
+	readingMinutes
+} from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
-
-function readingMinutes(article: ArticleDocument) {
-	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
-	const words = text ? text.split(/\s+/).length : 0
-	return Math.max(1, Math.ceil(words / 220))
-}
 
 function humanizeTag(tag: string) {
 	return tag.replace(/-/g, ' ')

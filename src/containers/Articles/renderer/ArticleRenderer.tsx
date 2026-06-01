@@ -430,12 +430,18 @@ function formatHeaderDate(iso: string | null | undefined) {
 	return `${day} ${month} ${year} at ${hh}:${mm} ${ampm}`
 }
 
-function MetaChip({ children }: { children: ReactNode }) {
-	return (
-		<span className="inline-flex items-center rounded-[3px] bg-(--link-text) px-2 py-[3px] text-[10px] leading-none font-semibold tracking-tight whitespace-nowrap text-white">
-			{children}
-		</span>
-	)
+const metaChipClassName =
+	'inline-flex items-center rounded-[3px] bg-(--link-text) px-2 py-[3px] text-[10px] leading-none font-semibold tracking-tight whitespace-nowrap text-white transition-opacity hover:opacity-90'
+
+function MetaChip({ children, href }: { children: ReactNode; href?: string }) {
+	if (href) {
+		return (
+			<Link href={href} className={metaChipClassName}>
+				{children}
+			</Link>
+		)
+	}
+	return <span className={metaChipClassName}>{children}</span>
 }
 
 type TocEntry = { id: string; text: string; level: number }
@@ -811,6 +817,7 @@ export function ArticleRenderer({
 	collectToc(contentJson, toc)
 
 	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
+	const sectionHref = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}` : null
 	const tagChips = (article.tags ?? []).filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
 
 	const sectionPath = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}` : null
@@ -996,9 +1003,11 @@ export function ArticleRenderer({
 						</div>
 						{(sectionLabel || tagChips.length > 0) && (
 							<div className="flex flex-wrap items-center gap-1.5">
-								{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
+								{sectionLabel && sectionHref ? <MetaChip href={sectionHref}>{sectionLabel}</MetaChip> : null}
 								{tagChips.map((tag) => (
-									<MetaChip key={tag}>{tag}</MetaChip>
+									<MetaChip key={tag} href={`/research/topics/${encodeURIComponent(tag)}`}>
+										{tag}
+									</MetaChip>
 								))}
 							</div>
 						)}
@@ -1020,9 +1029,11 @@ export function ArticleRenderer({
 					</div>
 					{(sectionLabel || tagChips.length > 0) && (
 						<div className="flex flex-wrap items-center gap-1.5">
-							{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
+							{sectionLabel && sectionHref ? <MetaChip href={sectionHref}>{sectionLabel}</MetaChip> : null}
 							{tagChips.map((tag) => (
-								<MetaChip key={tag}>{tag}</MetaChip>
+								<MetaChip key={tag} href={`/research/topics/${encodeURIComponent(tag)}`}>
+									{tag}
+								</MetaChip>
 							))}
 						</div>
 					)}
