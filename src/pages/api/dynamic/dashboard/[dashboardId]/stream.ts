@@ -706,15 +706,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		// Chart builder items
 		const chartBuilderItems = items.filter((item): item is ChartBuilderConfig => item.kind === 'builder')
 		const CHAIN_ONLY_METRICS = new Set(['chain-fees', 'chain-revenue', 'tvl', 'stablecoins'])
+		const resolveChartBuilderFilterMode = (value?: string, fallback?: string) => {
+			if (value === 'include' || value === 'exclude') return value
+			if (fallback === 'include' || fallback === 'exclude') return fallback
+			return 'include'
+		}
 		const seenChartBuilderKeys = new Set<string>()
 		for (const builderItem of chartBuilderItems) {
 			const cfg: any = builderItem.config
 			if (!cfg?.metric) continue
 			const filterMode = cfg.filterMode
-			const chainFilterMode = cfg.chainFilterMode ?? filterMode
-			const categoryFilterMode = cfg.categoryFilterMode ?? filterMode
-			const chainCategoryFilterMode = cfg.chainCategoryFilterMode ?? filterMode
-			const protocolCategoryFilterMode = cfg.protocolCategoryFilterMode ?? filterMode
+			const chainFilterMode = resolveChartBuilderFilterMode(cfg.chainFilterMode, filterMode)
+			const categoryFilterMode = resolveChartBuilderFilterMode(cfg.categoryFilterMode, filterMode)
+			const chainCategoryFilterMode = resolveChartBuilderFilterMode(cfg.chainCategoryFilterMode, filterMode)
+			const protocolCategoryFilterMode = resolveChartBuilderFilterMode(cfg.protocolCategoryFilterMode, filterMode)
 			const cacheKey = JSON.stringify([
 				'pro-dashboard',
 				'chartBuilder',
