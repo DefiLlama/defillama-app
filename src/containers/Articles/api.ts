@@ -355,16 +355,16 @@ export async function publishArticle(
 	authorizedFetch: AuthorizedFetch,
 	options: PublishArticleOptions = {}
 ): Promise<ArticleDocument> {
-	const params = new URLSearchParams({ _n: String(Date.now()) })
+	const body: { goLiveAt?: string | null } = {}
 	if ('goLiveAt' in options) {
-		if (options.goLiveAt === null) {
-			params.set('goLiveAt', 'null')
-		} else if (options.goLiveAt) {
-			params.set('goLiveAt', options.goLiveAt)
-		}
+		body.goLiveAt = options.goLiveAt
 	}
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/publish?${params}`)
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/publish`, {
+			body: JSON.stringify(body),
+			headers: { 'Content-Type': 'application/json' },
+			method: 'POST'
+		})
 	)
 	return data.article
 }

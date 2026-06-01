@@ -8,7 +8,7 @@ function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
 	return {
 		body: {},
 		headers: {},
-		method: 'GET',
+		method: 'POST',
 		query: { id: 'article-id' },
 		...overrides
 	} as NextApiRequest
@@ -109,8 +109,8 @@ describe('/api/private/research/articles/[id]/publish', () => {
 
 		await researchPublishHandler(
 			request({
-				headers: { authorization: 'Bearer user-token' },
-				query: { goLiveAt: '2026-06-01T09:00:00.000Z', id: 'article-id' }
+				body: { goLiveAt: '2026-06-01T09:00:00.000Z' },
+				headers: { authorization: 'Bearer user-token' }
 			}),
 			res
 		)
@@ -134,8 +134,8 @@ describe('/api/private/research/articles/[id]/publish', () => {
 
 		await researchPublishHandler(
 			request({
-				headers: { authorization: 'Bearer user-token' },
-				query: { goLiveAt: 'null', id: 'article-id' }
+				body: { goLiveAt: null },
+				headers: { authorization: 'Bearer user-token' }
 			}),
 			res
 		)

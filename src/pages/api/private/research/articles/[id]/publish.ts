@@ -131,19 +131,28 @@ async function revalidatePaths(paths: string[], res: NextApiResponse<ResponseDat
 	return { revalidateErrors, revalidated }
 }
 
-function publishRequestBodyFromQuery(req: NextApiRequest): string {
-	const raw = req.query.goLiveAt
+function publishGoLiveAt(req: NextApiRequest): unknown {
+	if (typeof req.body === 'string') {
+		try {
+			return (JSON.parse(req.body) as { goLiveAt?: unknown })?.goLiveAt
+		} catch {
+			return undefined
+		}
+	}
+	return (req.body as { goLiveAt?: unknown } | null | undefined)?.goLiveAt
+}
+
+function publishRequestBody(req: NextApiRequest): string {
+	const raw = publishGoLiveAt(req)
 	if (raw === undefined) return JSON.stringify({})
-	const value = Array.isArray(raw) ? raw[0] : raw
-	if (value === '' || value === 'null') return JSON.stringify({ goLiveAt: null })
-	return JSON.stringify({ goLiveAt: value })
+	if (raw === null || raw === '' || raw === 'null') return JSON.stringify({ goLiveAt: null })
+	return JSON.stringify({ goLiveAt: String(raw) })
 }
 
 function publishesImmediately(req: NextApiRequest): boolean {
-	const raw = req.query.goLiveAt
+	const raw = publishGoLiveAt(req)
 	if (raw === undefined) return true
-	const value = Array.isArray(raw) ? raw[0] : raw
-	return value === '' || value === 'null'
+	return raw === null || raw === '' || raw === 'null'
 }
 
 async function assertFanoutReady(paths: string[]) {
@@ -154,8 +163,8 @@ async function assertFanoutReady(paths: string[]) {
 export async function researchPublishHandler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	res.setHeader('Cache-Control', 'private, no-store, max-age=0')
 
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
+	if (req.method !== 'POST') {
+		res.setHeader('Allow', ['POST'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
@@ -185,7 +194,7 @@ export async function researchPublishHandler(req: NextApiRequest, res: NextApiRe
 		}
 	}
 
-	const publishBody = publishRequestBodyFromQuery(req)
+	const publishBody = publishRequestBody(req)
 	const publishResponse = await fetch(articleUrl(`/articles/${encodedArticleId}/publish`), {
 		headers,
 		method: 'POST',

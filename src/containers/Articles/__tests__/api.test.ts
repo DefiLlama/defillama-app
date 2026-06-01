@@ -161,14 +161,14 @@ describe('articles api client', () => {
 	})
 
 	it('routes publish through the local research API proxy', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1779199500000)
 		const fetchFn = createFetchMock(new Response(JSON.stringify({ article: { id: 'article-id' } })))
 
 		await publishArticle('article-id', fetchFn)
 
 		const [url, options] = fetchFn.mock.calls[0]
-		expect(url).toBe('/api/private/research/articles/article-id/publish?_n=1779199500000')
-		expect(options?.method).toBeUndefined()
+		expect(url).toBe('/api/private/research/articles/article-id/publish')
+		expect(options?.method).toBe('POST')
+		expect(JSON.parse(options?.body as string)).toEqual({})
 	})
 
 	it('sends goLiveAt when scheduling publish', async () => {
@@ -176,8 +176,9 @@ describe('articles api client', () => {
 
 		await publishArticle('article-id', fetchFn, { goLiveAt: '2026-06-01T09:00:00.000Z' })
 
-		const [url] = fetchFn.mock.calls[0]
-		expect(url).toContain('goLiveAt=2026-06-01T09%3A00%3A00.000Z')
+		const [, options] = fetchFn.mock.calls[0]
+		expect(options?.method).toBe('POST')
+		expect(JSON.parse(options?.body as string)).toEqual({ goLiveAt: '2026-06-01T09:00:00.000Z' })
 	})
 
 	it('sends goLiveAt null when publishing immediately after schedule', async () => {
@@ -185,8 +186,9 @@ describe('articles api client', () => {
 
 		await publishArticle('article-id', fetchFn, { goLiveAt: null })
 
-		const [url] = fetchFn.mock.calls[0]
-		expect(url).toContain('goLiveAt=null')
+		const [, options] = fetchFn.mock.calls[0]
+		expect(options?.method).toBe('POST')
+		expect(JSON.parse(options?.body as string)).toEqual({ goLiveAt: null })
 	})
 
 	it('requests research landing revalidation with a nonce', async () => {
