@@ -62,7 +62,13 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 async function resolveCanonicalProtocolParam(protocol: string): Promise<string | null> {
 	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
 	const protocolRoute = await resolveProtocolParam(protocol)
-	return protocolRoute?.canonicalSlug ?? null
+	if (protocolRoute?.canonicalSlug) {
+		return protocolRoute.canonicalSlug
+	}
+
+	const { resolveCexParam } = await import('~/server/routeCache/assets')
+	const cexRoute = await resolveCexParam(protocol)
+	return cexRoute?.canonicalSlug ?? null
 }
 
 const isValidAdapterType = (value: string): value is `${ADAPTER_TYPES}` => VALID_ADAPTER_TYPES.has(value)

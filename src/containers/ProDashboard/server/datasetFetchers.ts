@@ -125,7 +125,12 @@ export const DIMENSION_DATASET_SPECS: DimensionDatasetSpec[] = [
 		datasetType: 'perps',
 		hookPrefix: 'perps-overview',
 		keyChainsMode: 'raw',
-		options: { adapterType: ADAPTER_TYPES.PERPS, route: 'perps', metricName: 'Perp Volume', hasOpenInterestByChain: true }
+		options: {
+			adapterType: ADAPTER_TYPES.PERPS,
+			route: 'perps',
+			metricName: 'Perp Volume',
+			hasOpenInterestByChain: true
+		}
 	},
 	{
 		datasetType: 'aggregators',
@@ -185,7 +190,12 @@ export const DIMENSION_DATASET_SPECS: DimensionDatasetSpec[] = [
 		datasetType: 'options',
 		hookPrefix: 'options-overview',
 		keyChainsMode: 'filtered',
-		options: { adapterType: ADAPTER_TYPES.OPTIONS, route: 'options', metricName: 'Options Volume', withChainBreakdown: true }
+		options: {
+			adapterType: ADAPTER_TYPES.OPTIONS,
+			route: 'options',
+			metricName: 'Options Volume',
+			withChainBreakdown: true
+		}
 	},
 	{
 		datasetType: 'bridge-aggregators',

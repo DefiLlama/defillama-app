@@ -666,9 +666,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			if (needsSnapshot || needsTotals || shareSpecs.size > 0) {
 				phase2Promises.push(
 					(async () => {
-						const { getCexAnalyticsMarketShare, getCexAnalyticsSnapshot, getCexAnalyticsTotals } = await import(
-							'~/server/cexAnalytics/queries'
-						)
+						const { getCexAnalyticsMarketShare, getCexAnalyticsSnapshot, getCexAnalyticsTotals } =
+							await import('~/server/cexAnalytics/queries')
 						const tasks: Promise<void>[] = []
 						if (needsSnapshot) {
 							tasks.push(
@@ -740,10 +739,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			phase2Promises.push(
 				(async () => {
 					const { getTokenYieldsRows } = await import('~/server/datasetCache/runtime/yields')
-					const data = await withTimeout(
-						getTokenYieldsRows('', itemChains.length ? itemChains : undefined),
-						15_000
-					)
+					const data = await withTimeout(getTokenYieldsRows('', itemChains.length ? itemChains : undefined), 15_000)
 					if (data) writeLine({ type: 'yieldsDatasetData', key: cacheKey, data })
 				})().catch(() => {})
 			)
