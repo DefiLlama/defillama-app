@@ -15,7 +15,7 @@ vi.mock('~/server/datasetCache/markets', () => ({
 	fetchExchangeMarketsListFromCache: fetchExchangeMarketsListFromCacheMock
 }))
 
-import handler from '~/pages/api/markets/exchanges/[exchange]'
+import handler from '~/pages/api/public/markets/exchanges/[exchange]'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -35,12 +35,12 @@ beforeEach(() => {
 	fetchExchangeMarketsFromNetworkMock.mockResolvedValue({ exchange: 'binance', categories: {} })
 })
 
-describe('/api/markets/exchanges/[exchange]', () => {
+describe('/api/public/markets/exchanges/[exchange]', () => {
 	it('validates against the markets dataset and preserves the markets exchange id', async () => {
 		const req = {
 			method: 'GET',
 			query: { exchange: 'Binance' },
-			url: '/api/markets/exchanges/Binance'
+			url: '/api/public/markets/exchanges/Binance'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 

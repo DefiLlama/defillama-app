@@ -13,6 +13,7 @@ import type {
 	ToolCall,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
+import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 export interface ChatPageContext {
 	entitySlug?: string
@@ -40,7 +41,15 @@ export interface RecoveryState {
 	lastErrorMessage: string | null
 }
 
+export type StreamPhase =
+	| { status: 'idle' }
+	| { status: 'streaming' }
+	| { status: 'reconnecting'; startedAt: number; attemptCount: number; lastErrorMessage: string | null }
+	| { status: 'failed'; error: string }
+	| { status: 'committed' }
+
 export interface StreamState {
+	phase: StreamPhase
 	isStreaming: boolean
 	isCompacting: boolean
 	text: string
@@ -70,7 +79,7 @@ export interface StreamState {
 	factCheckReferences: FactCheckReference[]
 }
 
-export interface StreamBuffer {
+export interface StreamAccumulator {
 	text: string
 	charts: ChartSet[]
 	csvExports: CsvExport[]
@@ -89,9 +98,12 @@ export interface StreamBuffer {
 	factCheckReferences: FactCheckReference[]
 }
 
+export type StreamBuffer = StreamAccumulator
+
 export type StreamAction =
 	| { type: 'START_STREAM' }
 	| { type: 'RESET_STREAM' }
+	| { type: 'COMMIT_STREAM' }
 	| { type: 'SET_COMPACTING'; value: boolean }
 	| { type: 'SET_ERROR'; value: string | null }
 	| { type: 'SET_LAST_FAILED_REQUEST'; value: FailedRequest | null }
@@ -113,7 +125,7 @@ export type StreamAction =
 	| { type: 'SET_SPAWN_RESEARCH_MODE'; value: boolean }
 	| { type: 'SET_EXECUTION_STARTED_AT'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
-	| { type: 'SET_TODOS'; value: TodoItem[] }
+	| { type: 'SET_TODOS'; value: unknown }
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
@@ -154,6 +166,7 @@ const createEmptyRuntimeState = () => ({
 
 // Full stream state starts from the empty runtime snapshot plus error/retry metadata.
 export const createInitialStreamState = (): StreamState => ({
+	phase: { status: 'idle' },
 	...createEmptyRuntimeState(),
 	error: null,
 	lastFailedRequest: null,
@@ -162,7 +175,7 @@ export const createInitialStreamState = (): StreamState => ({
 })
 
 // Keep a mutable buffer while SSE events arrive, then commit it as one assistant message at the end.
-export const createStreamBuffer = (): StreamBuffer => ({
+export const createStreamAccumulator = (): StreamAccumulator => ({
 	text: '',
 	charts: [],
 	csvExports: [],
@@ -180,6 +193,8 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	factCheckReferences: []
 })
 
+export const createStreamBuffer = createStreamAccumulator
+
 export function hasStreamBufferContent(buffer: StreamBuffer) {
 	return Boolean(
 		buffer.text ||
@@ -190,6 +205,7 @@ export function hasStreamBufferContent(buffer: StreamBuffer) {
 		buffer.dashboards.length > 0 ||
 		buffer.generatedImages.length > 0 ||
 		buffer.citations.length > 0 ||
+		buffer.factCheckReferences.length > 0 ||
 		buffer.toolExecutions.length > 0 ||
 		buffer.thinking
 	)
@@ -202,27 +218,36 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return {
 				...state,
 				...createEmptyRuntimeState(),
+				phase: { status: 'streaming' },
 				isStreaming: true,
 				error: null,
 				lastFailedRequest: null,
 				rateLimitDetails: null
 			}
 		case 'RESET_STREAM':
-			return { ...state, ...createEmptyRuntimeState() }
+			// Clear only in-flight runtime fields. Error/rate-limit metadata is managed
+			// by separate actions so callers can reset the draft without hiding failures.
+			return { ...state, ...createEmptyRuntimeState(), phase: { status: 'idle' } }
+		case 'COMMIT_STREAM':
+			return { ...state, ...createEmptyRuntimeState(), phase: { status: 'committed' } }
 		case 'SET_COMPACTING':
 			return { ...state, isCompacting: action.value }
 		case 'SET_ERROR':
-			return { ...state, error: action.value }
+			return {
+				...state,
+				error: action.value,
+				phase: action.value
+					? { status: 'failed', error: action.value }
+					: state.phase.status === 'failed'
+						? { status: 'idle' }
+						: state.phase
+			}
 		case 'SET_LAST_FAILED_REQUEST':
 			return { ...state, lastFailedRequest: action.value }
 		case 'SET_RATE_LIMIT_DETAILS':
 			return { ...state, rateLimitDetails: action.value }
 		case 'APPEND_TOKEN': {
-			let newText = state.text + action.value
-			const reportIdx = newText.indexOf('[REPORT_START]')
-			if (reportIdx !== -1) {
-				newText = newText.slice(reportIdx + '[REPORT_START]'.length).trimStart()
-			}
+			const newText = stripBeforeReportStart(state.text + action.value)
 			return { ...state, text: newText }
 		}
 		case 'APPEND_CHARTS':
@@ -265,23 +290,36 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 		case 'UPSERT_SPAWN_PROGRESS': {
 			const next = new Map(state.spawnProgress)
 			const existing = next.get(action.value.id)
-			next.set(action.value.id, {
+			const progress: SpawnAgentStatus = {
 				...existing,
-				...action.value
-			})
+				id: action.value.id,
+				status: action.value.status
+			}
+			if (action.value.tool !== undefined) progress.tool = action.value.tool
+			if (action.value.toolCount !== undefined) progress.toolCount = action.value.toolCount
+			if (action.value.chartCount !== undefined) progress.chartCount = action.value.chartCount
+			if (action.value.findingsPreview !== undefined) progress.findingsPreview = action.value.findingsPreview
+			next.set(action.value.id, progress)
 			return { ...state, spawnProgress: next }
 		}
 		case 'SET_TODOS': {
-			const todosStartTime =
-				Array.isArray(action.value) && action.value.length > 0
-					? state.todosStartTime || Date.now()
-					: state.todosStartTime
-			return { ...state, todos: action.value, todosStartTime }
+			const todos = Array.isArray(action.value) ? (action.value as TodoItem[]) : []
+			if (state.isStreaming && todos.length === 0 && state.todos.length > 0) return state
+			// Keep the first non-empty todo timestamp stable while later snapshots
+			// update item statuses; the elapsed timer should not restart per update.
+			const todosStartTime = todos.length > 0 ? state.todosStartTime || Date.now() : state.todosStartTime
+			return { ...state, todos, todosStartTime }
 		}
 		case 'START_RECOVERY':
 			return {
 				...state,
 				recovery: {
+					status: 'reconnecting',
+					startedAt: action.startedAt,
+					attemptCount: 0,
+					lastErrorMessage: action.lastErrorMessage
+				},
+				phase: {
 					status: 'reconnecting',
 					startedAt: action.startedAt,
 					attemptCount: 0,
@@ -296,6 +334,12 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					status: 'reconnecting',
 					attemptCount: action.attemptCount,
 					lastErrorMessage: action.lastErrorMessage
+				},
+				phase: {
+					status: 'reconnecting',
+					startedAt: state.recovery.startedAt ?? Date.now(),
+					attemptCount: action.attemptCount,
+					lastErrorMessage: action.lastErrorMessage
 				}
 			}
 		case 'RESET_RECOVERY':
@@ -306,7 +350,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					startedAt: null,
 					attemptCount: 0,
 					lastErrorMessage: null
-				}
+				},
+				phase: state.phase.status === 'reconnecting' ? { status: 'idle' } : state.phase
 			}
 		case 'SET_CONTEXT_WARNING':
 			return { ...state, contextWarning: action.value }

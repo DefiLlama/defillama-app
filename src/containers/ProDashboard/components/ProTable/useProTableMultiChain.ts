@@ -507,7 +507,7 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
@@ -524,7 +524,7 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
@@ -541,7 +541,7 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
@@ -558,7 +558,7 @@ export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone

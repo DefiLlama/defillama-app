@@ -3,13 +3,14 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import Router from 'next/router'
-import Script from 'next/script'
 import '@rainbow-me/rainbowkit/styles.css'
 import '~/tailwind.css'
+import Script from 'next/script'
 import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
 import { RouteProgressIndicator } from '~/components/RouteProgressIndicator'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
+import { isInvestorsEnabled } from '~/containers/Investors/config'
 import { AuthProvider } from '~/containers/Subscription/auth'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
@@ -25,6 +26,9 @@ type AppPropsWithLayout = AppProps & {
 }
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
+const MAIN_UMAMI_WEBSITE_ID = 'ca346731-f7ec-437f-9727-162f29bb67ae'
+const IR_UMAMI_WEBSITE_ID = '11de15eb-61d0-41c5-9e73-0bf496cc653c'
+const UMAMI_WEBSITE_ID = isInvestorsEnabled() ? IR_UMAMI_WEBSITE_ID : MAIN_UMAMI_WEBSITE_ID
 
 const isChunkLoadError = (error: unknown) => {
 	if (!error) return false
@@ -96,6 +100,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 
 	useAuthBridge()
 	useParentAuthTracker()
+
 	useUmamiIdentityTracker()
 	useReferrer()
 	const getLayout = Component.getLayout ?? ((page: ReactElement) => page)
@@ -112,7 +117,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 			<Script
 				src="/script2.js"
 				strategy="lazyOnload"
-				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
+				data-website-id={UMAMI_WEBSITE_ID}
 				data-host-url="https://tasty.defillama.com"
 			/>
 

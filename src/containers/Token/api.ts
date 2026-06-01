@@ -21,7 +21,7 @@ export async function getTokenRiskTimeline(tokenSymbol: string): Promise<RiskTim
 }
 
 export async function fetchTokenMarkets(tokenSymbol: string): Promise<TokenMarketsResponse> {
-	return fetchJson<TokenMarketsResponse>(`/api/markets/${encodeURIComponent(tokenSymbol.toLowerCase())}`)
+	return fetchJson<TokenMarketsResponse>(`/api/public/markets/${encodeURIComponent(tokenSymbol.toLowerCase())}`)
 }
 
 export async function fetchTokenMarketsListFromNetwork(): Promise<TokenMarketsListResponse> {

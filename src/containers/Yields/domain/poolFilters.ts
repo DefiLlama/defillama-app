@@ -19,6 +19,21 @@ export function extractYieldPoolTokens(symbol: string): string[] {
 	return tokens
 }
 
+type YieldPoolTokens = { array: string[]; set: Set<string> }
+
+// Memoize the NFKC-heavy token extraction per pool object; callers read only.
+// Dataset refreshes mint new pool refs, so the WeakMap drops stale entries automatically.
+const poolTokensCache = new WeakMap<object, YieldPoolTokens>()
+
+export function getYieldPoolTokens(pool: { symbol?: string | null }): YieldPoolTokens {
+	const cached = poolTokensCache.get(pool)
+	if (cached) return cached
+	const array = pool.symbol ? extractYieldPoolTokens(pool.symbol) : []
+	const entry: YieldPoolTokens = { array, set: new Set(array) }
+	poolTokensCache.set(pool, entry)
+	return entry
+}
+
 type TokenCategory = { addresses: string[]; symbols: string[]; label: string; filterKey: string }
 
 function findTokenCategory(token: string, tokenCategories: YieldTokenCategories): TokenCategory | undefined {
@@ -195,8 +210,7 @@ export function matchesYieldPoolForQuery({
 	usdPeggedSymbols,
 	tokenCategories = {}
 }: YieldPoolQueryMatchOptions) {
-	const tokensInPoolArray = extractYieldPoolTokens(curr.symbol)
-	const tokensInPoolSet = new Set<string>(tokensInPoolArray)
+	const { array: tokensInPool, set: tokensInPoolSet } = getYieldPoolTokens(curr)
 
 	let toFilter = true
 	const defaultPathname = viewPathForDefaultPredicates(view)
@@ -222,8 +236,6 @@ export function matchesYieldPoolForQuery({
 	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
 	toFilter = toFilter && selectedChainsSet.has(curr.chain)
 	toFilter = toFilter && selectedCategoriesSet.has(curr.category)
-
-	const tokensInPool: string[] = tokensInPoolArray
 
 	if (pairTokens.length > 0) {
 		let atLeastOnePairToken = false
@@ -313,13 +325,6 @@ export function matchesYieldPoolForQuery({
 			if (tokensInPoolSet.has(token)) {
 				exactToken = true
 				break
-			} else if (token === 'eth') {
-				for (const x of tokensInPool) {
-					if (x.includes('weth')) {
-						exactToken = true
-						break
-					}
-				}
 			}
 			if (exactToken) break
 		}

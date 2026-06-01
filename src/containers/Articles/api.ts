@@ -1,4 +1,5 @@
 import { FEATURES_SERVER } from '~/constants'
+import type { EditorialTagOrderItem } from './editorialTagOrder'
 import type {
 	ArticleAuthorProfile,
 	ArticleCollaborator,
@@ -155,6 +156,9 @@ export type ArticleSectionListResponse = {
 	sections: { section: ArticleSection; items: ArticleDocument[] }[]
 }
 
+export type { EditorialTagOrderItem } from './editorialTagOrder'
+export { applyEditorialTagOrderPayload, buildEditorialTagReorderPayload } from './editorialTagOrder'
+
 export type ArticleByTagResponse = {
 	items: ArticleDocument[]
 }
@@ -184,7 +188,7 @@ export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<Arti
 
 export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch): Promise<void> {
 	await parseResponse(
-		await authorizedFetch(`/api/research/revalidate-landing?_n=${Date.now()}`, {
+		await authorizedFetch(`/api/private/research/revalidate-landing?_n=${Date.now()}`, {
 			method: 'GET'
 		})
 	)
@@ -193,13 +197,35 @@ export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch
 export async function setEditorialTag(
 	articleId: string,
 	tag: string,
-	authorizedFetch: AuthorizedFetch
-): Promise<{ articleId: string; tag: string }> {
+	authorizedFetch: AuthorizedFetch,
+	options?: { order?: number }
+): Promise<{ articleId: string; tag: string; order: number }> {
+	const hasOrder = options?.order !== undefined
 	return parseResponse(
 		await authorizedFetch(
 			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
-			{ method: 'POST' }
+			hasOrder
+				? {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ order: options.order })
+					}
+				: { method: 'POST' }
 		)
+	)
+}
+
+export async function reorderEditorialTag(
+	tag: string,
+	items: EditorialTagOrderItem[],
+	authorizedFetch: AuthorizedFetch
+): Promise<{ tag: string; items: EditorialTagOrderItem[] }> {
+	return parseResponse(
+		await authorizedFetch(articleUrl(`/articles/editorial-tags/${encodeURIComponent(tag)}/order`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ items })
+		})
 	)
 }
 
@@ -235,7 +261,7 @@ export async function unsetEditorialTag(
 }
 
 export async function getArticleBySlug(slug: string, fetchFn: FetchLike = fetch): Promise<ArticleDocument | null> {
-	const response = await fetchFn(articleUrl(`/articles/${encodeURIComponent(slug)}`))
+	const response = await fetchFn(articleUrlWithCacheNonce(`/articles/${encodeURIComponent(slug)}`))
 	if (response.status === 404) return null
 	const data = await parseResponse<{ article: ArticleDocument }>(response)
 	return data.article
@@ -329,23 +355,23 @@ export async function publishArticle(
 	authorizedFetch: AuthorizedFetch,
 	options: PublishArticleOptions = {}
 ): Promise<ArticleDocument> {
-	const params = new URLSearchParams({ _n: String(Date.now()) })
+	const body: { goLiveAt?: string | null } = {}
 	if ('goLiveAt' in options) {
-		if (options.goLiveAt === null) {
-			params.set('goLiveAt', 'null')
-		} else if (options.goLiveAt) {
-			params.set('goLiveAt', options.goLiveAt)
-		}
+		body.goLiveAt = options.goLiveAt
 	}
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(`/api/research/articles/${encodeURIComponent(id)}/publish?${params}`)
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/publish`, {
+			body: JSON.stringify(body),
+			headers: { 'Content-Type': 'application/json' },
+			method: 'POST'
+		})
 	)
 	return data.article
 }
 
 export async function unpublishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/unpublish`), { method: 'POST' })
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/unpublish`, { method: 'POST' })
 	)
 	return data.article
 }

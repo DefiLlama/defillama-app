@@ -4,7 +4,7 @@ import type { TokenBorrowRoutesResponse } from './tokenBorrowRoutes.types'
 
 async function fetchTokenBorrowRoutes(tokenSymbol: string): Promise<TokenBorrowRoutesResponse> {
 	return fetchJson<TokenBorrowRoutesResponse>(
-		`/api/datasets/yields-token-borrow-routes?token=${encodeURIComponent(tokenSymbol)}`
+		`/api/public/datasets/yields-token-borrow-routes?token=${encodeURIComponent(tokenSymbol)}`
 	)
 }
 

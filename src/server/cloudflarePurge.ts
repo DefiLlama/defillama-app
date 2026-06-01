@@ -45,7 +45,7 @@ export function researchPathsToUrls(paths: string[], env: NodeJS.ProcessEnv = pr
 
 export function dashboardPathsToUrls(dashboardId: string, env: NodeJS.ProcessEnv = process.env): string[] {
 	const siteUrl = siteUrlFromEnv(env)
-	return [`/pro/${dashboardId}`, `/api/dashboard/${dashboardId}/stream`].map((path) =>
+	return [`/pro/${dashboardId}`, `/api/dynamic/dashboard/${dashboardId}/stream`].map((path) =>
 		new URL(path, siteUrl).toString()
 	)
 }

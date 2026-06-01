@@ -1339,11 +1339,11 @@ async function fetchRwaAssetChartData(params: {
 			assertNever(params.target)
 	}
 
-	return fetchJson<IRWAChartMetricRows>(`/api/rwa/asset-breakdown?${searchParams.toString()}`)
+	return fetchJson<IRWAChartMetricRows>(`/api/public/rwa/asset-breakdown?${searchParams.toString()}`)
 }
 
 async function fetchRwaOpenInterestChartData(): Promise<RWAChartDataset> {
-	return fetchJson<RWAChartDataset>('/api/rwa/perps/contract-breakdown?key=openInterest')
+	return fetchJson<RWAChartDataset>('/api/public/rwa/perps/contract-breakdown?key=openInterest')
 }
 
 export function useRwaChartDataset({

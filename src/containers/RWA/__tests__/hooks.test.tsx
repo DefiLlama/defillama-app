@@ -367,7 +367,7 @@ describe('useRwaChartDataset', () => {
 		await capturedOptions?.queryFn()
 
 		expect(fetchJsonMock).toHaveBeenCalledWith(
-			'/api/rwa/asset-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
+			'/api/public/rwa/asset-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
 		)
 	})
 
@@ -518,9 +518,18 @@ describe('hasActiveChartFilters', () => {
 		expect(
 			hasActiveChartFilters({ includeGovernance: 'true' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
 		).toBe(false)
+		expect(
+			hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'category', categorySlug: 'other-rwas' })
+		).toBe(false)
+		expect(hasActiveChartFilters({ includeGovernance: 'true' }, { mode: 'category', categorySlug: 'other-rwas' })).toBe(
+			false
+		)
 		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
 			false
 		)
+		for (const categorySlug of ['rwa-stablecoins', 'non-rwa-stablecoins', 'fiat-stablecoins']) {
+			expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'category', categorySlug })).toBe(false)
+		}
 		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'chain' })).toBe(false)
 		expect(hasActiveChartFilters({ includeRwaPerps: 'false' }, { mode: 'chain' })).toBe(false)
 	})
@@ -532,9 +541,18 @@ describe('hasActiveChartFilters', () => {
 		expect(
 			hasActiveChartFilters({ includeGovernance: 'false' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
 		).toBe(true)
+		expect(
+			hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'category', categorySlug: 'other-rwas' })
+		).toBe(true)
+		expect(
+			hasActiveChartFilters({ includeGovernance: 'false' }, { mode: 'category', categorySlug: 'other-rwas' })
+		).toBe(true)
 		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
 			true
 		)
+		for (const categorySlug of ['rwa-stablecoins', 'non-rwa-stablecoins', 'fiat-stablecoins']) {
+			expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'category', categorySlug })).toBe(true)
+		}
 		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'chain' })).toBe(true)
 	})
 

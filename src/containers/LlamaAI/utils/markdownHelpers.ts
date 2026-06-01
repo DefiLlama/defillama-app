@@ -4,6 +4,7 @@
 
 import DOMPurify from 'dompurify'
 import type { FactCheckReference } from '~/containers/LlamaAI/types'
+import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 /**
  * Only allow secure external links in user-generated citations and artifacts.
@@ -76,10 +77,7 @@ interface ParsedContent {
  * Placeholders follow the format [CHART:id], [CSV:id], and [ALERT:id].
  */
 export function parseArtifactPlaceholders(content: string): ParsedContent {
-	const reportStartIdx = content.indexOf('[REPORT_START]')
-	if (reportStartIdx !== -1) {
-		content = content.slice(reportStartIdx + '[REPORT_START]'.length).trimStart()
-	}
+	content = stripBeforeReportStart(content)
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
 	const mdPlaceholderPattern = /\[MD:([^\]]+)\]/g
@@ -121,6 +119,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		})
 	}
 
+	// Each placeholder type is scanned independently, then sorted back into source
+	// order so mixed artifacts keep their authored placement.
 	allMatches.sort((a, b) => a.index - b.index)
 
 	let lastIndex = 0

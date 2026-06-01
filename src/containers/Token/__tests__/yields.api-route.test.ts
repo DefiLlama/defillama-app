@@ -10,7 +10,7 @@ vi.mock('~/containers/Token/tokenYields.server', () => ({
 	getTokenYieldsRowsFromNetwork: getTokenYieldsRowsMock
 }))
 
-import handler from '~/pages/api/datasets/yields'
+import handler from '~/pages/api/public/datasets/yields'
 
 beforeEach(() => {
 	vi.clearAllMocks()

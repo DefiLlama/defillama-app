@@ -10,7 +10,7 @@ vi.mock('~/server/datasetCache/runtime/yields', () => ({
 	getBorrowPageRows: getBorrowPageRowsMock
 }))
 
-import handler from '~/pages/api/datasets/borrow'
+import handler from '~/pages/api/public/datasets/borrow'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -29,7 +29,7 @@ describe('borrow api route', () => {
 	it('serves filtered simple borrow rows with CDN cache headers', async () => {
 		const req = {
 			method: 'GET',
-			url: '/api/datasets/borrow?collateral=ETH&borrow=USDC',
+			url: '/api/public/datasets/borrow?collateral=ETH&borrow=USDC',
 			query: { collateral: 'ETH', borrow: 'USDC' }
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

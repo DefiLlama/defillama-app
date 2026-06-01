@@ -1,15 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../constants'
 
-const { fetchJsonMock } = vi.hoisted(() => ({
-	fetchJsonMock: vi.fn()
+const { fetchJsonMock, fetchProtocolsMock } = vi.hoisted(() => ({
+	fetchJsonMock: vi.fn(),
+	fetchProtocolsMock: vi.fn()
 }))
 
 vi.mock('~/utils/async', () => ({
 	fetchJson: fetchJsonMock
 }))
 
-import { getChainsByAdapterChartData, getChainsByAdapterPageData } from '../queries'
+vi.mock('~/containers/Protocols/api', () => ({
+	fetchProtocols: fetchProtocolsMock
+}))
+
+import { getAdapterByChainPageData, getChainsByAdapterChartData, getChainsByAdapterPageData } from '../queries'
 
 const chainMetadata = {
 	ethereum: {
@@ -31,6 +36,8 @@ const chainMetadata = {
 describe('chains by adapter page data', () => {
 	beforeEach(() => {
 		fetchJsonMock.mockReset()
+		fetchProtocolsMock.mockReset()
+		fetchProtocolsMock.mockResolvedValue({ protocols: [], parentProtocols: [] })
 	})
 
 	it('omits chart data when includeChartData is false', async () => {
@@ -100,5 +107,18 @@ describe('chains by adapter page data', () => {
 			dimensions: ['timestamp', 'Ethereum'],
 			source: []
 		})
+	})
+
+	it('keeps main DEX chain page fetch failures loud', async () => {
+		fetchJsonMock.mockRejectedValue(new Error('backend contract failed'))
+
+		await expect(
+			getAdapterByChainPageData({
+				adapterType: ADAPTER_TYPES.DEXS,
+				chain: 'Litecoin',
+				route: 'dexs',
+				metricName: 'DEX Volume'
+			})
+		).rejects.toThrow('backend contract failed')
 	})
 })

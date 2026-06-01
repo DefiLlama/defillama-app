@@ -87,7 +87,7 @@ export function AppMetadataProvider({
 		queryFn: async () => {
 			const fetchPfPs = async (): Promise<{ pf: string[]; ps: string[] }> => {
 				try {
-					const res = await fetch('/api/dashboard/pf-ps-protocols')
+					const res = await fetch('/api/public/dashboard/pf-ps-protocols')
 					if (!res.ok) return { pf: [], ps: [] }
 					return res.json()
 				} catch {

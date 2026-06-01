@@ -23,7 +23,7 @@ type RuntimeErrorPhase =
 	| 'clientRuntime'
 	| 'unknown'
 
-type TelemetryAttributes = Record<string, unknown>
+export type TelemetryAttributes = Record<string, unknown>
 
 type RouteExecutionEvent = {
 	type: 'route_execution'
@@ -145,6 +145,7 @@ type RouteTelemetryOptions<T> = {
 }
 
 type OutboundTelemetryOptions = {
+	attributes?: TelemetryAttributes
 	attempt?: number
 	maxAttempts?: number
 	singleflightRole?: 'leader'
@@ -1070,9 +1071,16 @@ function requestAttributes(
 ): TelemetryAttributes | undefined {
 	const attributes: TelemetryAttributes = {}
 	let hasOutboundAttributes = false
+	const telemetryAttributes = options?.telemetry?.attributes
 	const requestBytes = requestByteAttribute(options)
 	const requestBody = sanitizedRequestBodyAttribute(method, url, options)
 
+	if (telemetryAttributes) {
+		for (const key in telemetryAttributes) {
+			attributes[key] = telemetryAttributes[key]
+			hasOutboundAttributes = true
+		}
+	}
 	if (requestBytes?.request_bytes !== undefined) {
 		attributes.request_bytes = requestBytes.request_bytes
 		hasOutboundAttributes = true

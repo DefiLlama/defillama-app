@@ -80,6 +80,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	}
 	groupBy?: ChartTimeGrouping
 	orientation?: 'vertical' | 'horizontal'
+	xAxisType?: 'time' | 'category'
 }
 
 export interface IHBarChartProps {
@@ -260,6 +261,7 @@ export interface IMultiSeriesChartProps {
 	valueSymbol?: string
 	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
+	showAggregateInTooltip?: boolean
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string

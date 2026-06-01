@@ -2,6 +2,12 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { memo, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AI_SERVER } from '~/constants'
+import {
+	DAYS_OF_WEEK,
+	getBlockedLocalHours,
+	getTimezoneLabel,
+	getValidHourForTimezone
+} from '~/containers/LlamaAI/components/alerts/schedule'
 import { useSlackChannels } from '~/containers/LlamaAI/hooks/useSlackChannels'
 import { useSlackWorkspaces } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
 import type { AlertIntent } from '~/containers/LlamaAI/types'
@@ -36,20 +42,10 @@ interface AlertArtifactProps {
 	defaultTitle?: string
 }
 
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 type TestSentState = 'sent' | 'already' | null
 
-const getTimezoneLabel = (timezone: string): string => {
-	if (timezone === 'UTC') return 'UTC'
-	try {
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
-		const parts = formatter.formatToParts(new Date())
-		const tzPart = parts.find((p) => p.type === 'timeZoneName')
-		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'UTC')
-		}
-	} catch {}
-	return timezone.split('/').pop()?.replace(/_/g, ' ') || timezone
+export function getInitialAlertArtifactHour(hour: number, timezone: string) {
+	return getValidHourForTimezone(hour, timezone)
 }
 
 export const AlertArtifact = memo(function AlertArtifact({
@@ -62,7 +58,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
 	const [title, setTitle] = useState(defaultTitle || 'Untitled alert')
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency)
-	const [hour, setHour] = useState(alertIntent.hour)
+	const [hour, setHour] = useState(() => getInitialAlertArtifactHour(alertIntent.hour, alertIntent.timezone))
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
 	const [timezone] = useState(alertIntent.timezone)
 	const [savedDbId, setSavedDbId] = useState<string | null>(savedAlertIds?.includes(alertId) ? alertId : null)
@@ -90,6 +86,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const slackTeamName = selectedWorkspace?.team_name ?? alertIntent.slackTeamName ?? null
 	const slackChannelName = selectedChannel?.name ?? alertIntent.slackChannelName ?? null
 	const isSaved = savedDbId !== null
+	const blockedHours = useMemo(() => getBlockedLocalHours(timezone), [timezone])
+	const proposedHourWasBlocked = blockedHours.includes(alertIntent.hour)
 
 	useEffect(() => {
 		if (!isSlack || slackTeamId || activeWorkspaces.length !== 1) return
@@ -281,14 +279,22 @@ export const AlertArtifact = memo(function AlertArtifact({
 					className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324] dark:bg-[#222]"
 				>
 					{Array.from({ length: 24 }, (_, h) => (
-						<option key={`llamai-alert-h${h}`} value={h}>
-							{h.toString().padStart(2, '0')}:00
+						<option key={`llamai-alert-h${h}`} value={h} disabled={blockedHours.includes(h)}>
+							{h.toString().padStart(2, '0')}:00{blockedHours.includes(h) ? ' (blocked)' : ''}
 						</option>
 					))}
 				</select>
 
 				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
 			</div>
+
+			{proposedHourWasBlocked && !isSaved ? (
+				<p className="m-0 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
+					The proposed {alertIntent.hour.toString().padStart(2, '0')}:00 time is blocked for maintenance, so this alert
+					was moved to {hour.toString().padStart(2, '0')}:00.
+				</p>
+			) : null}
 
 			{isSlack ? (
 				<div className="flex flex-wrap items-center gap-2">

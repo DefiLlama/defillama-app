@@ -8,7 +8,7 @@ const batchFetchHistoricalPricesMock = vi.fn<(...args: unknown[]) => Promise<{ r
 	() => Promise.resolve({ results: {} })
 )
 
-vi.mock('~/api', () => ({
+vi.mock('~/api/pricing', () => ({
 	fetchCoinPrices: (...args: unknown[]) => fetchCoinPricesMock(...args)
 }))
 

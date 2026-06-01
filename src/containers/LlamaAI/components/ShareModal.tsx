@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
+import { toShareToken, type ShareToken } from '~/containers/LlamaAI/ids'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -19,11 +20,11 @@ interface ShareModalProps {
 }
 
 interface ShareResult {
-	shareToken: string
+	shareToken: ShareToken
 	isPublic: boolean
 }
 
-function buildShareLink(origin: string, shareToken: string, messageId?: string | null) {
+function buildShareLink(origin: string, shareToken: ShareToken, messageId?: string | null) {
 	const baseLink = `${origin}/ai/chat/shared/${shareToken}`
 	return messageId ? `${baseLink}#msg-${messageId}` : baseLink
 }
@@ -89,11 +90,11 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, m
 			})
 				.then((response) => assertResponse(response, 'Failed to share session'))
 				.then(handleSimpleFetchResponse)
-				.then((res: Response) => res.json())) as ShareResult
+				.then((res: Response) => res.json())) as { shareToken: string; isPublic: boolean }
 
 			if (!data.shareToken) throw new Error('No share link returned')
 
-			return data
+			return { ...data, shareToken: toShareToken(data.shareToken) }
 		},
 		onSuccess: (data) => {
 			setShareResult(data)

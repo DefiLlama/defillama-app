@@ -214,7 +214,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		await lastUseQueryOptions.queryFn()
 
 		expect(fetchJson).toHaveBeenCalledWith(
-			'/api/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest&excludeAssetClass=Forex+Perps'
+			'/api/public/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest&excludeAssetClass=Forex+Perps'
 		)
 	})
 
@@ -234,7 +234,9 @@ describe('RWAPerpsDashboard treemap controls', () => {
 
 		await lastUseQueryOptions.queryFn()
 
-		expect(fetchJson).toHaveBeenCalledWith('/api/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest')
+		expect(fetchJson).toHaveBeenCalledWith(
+			'/api/public/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest'
+		)
 	})
 
 	it('fetches all-market default time-series data when the include-Forex toggle overrides the preloaded no-Forex dataset', () => {
@@ -274,7 +276,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		await lastUseQueryOptions.queryFn()
 
 		expect(fetchJson).toHaveBeenCalledWith(
-			'/api/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest&assetClass=Forex+Perps'
+			'/api/public/rwa/perps/overview-breakdown?breakdown=assetGroup&key=openInterest&assetClass=Forex+Perps'
 		)
 	})
 
@@ -302,7 +304,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		await lastUseQueryOptions.queryFn()
 
 		expect(fetchJson).toHaveBeenCalledWith(
-			'/api/rwa/perps/overview-breakdown?breakdown=baseAsset&key=openInterest&assetClass=Forex+Perps'
+			'/api/public/rwa/perps/overview-breakdown?breakdown=baseAsset&key=openInterest&assetClass=Forex+Perps'
 		)
 	})
 
@@ -315,7 +317,9 @@ describe('RWAPerpsDashboard treemap controls', () => {
 
 		await lastUseQueryOptions.queryFn()
 
-		expect(fetchJson).toHaveBeenCalledWith('/api/rwa/perps/contract-breakdown?key=openInterest&assetClass=Forex+Perps')
+		expect(fetchJson).toHaveBeenCalledWith(
+			'/api/public/rwa/perps/contract-breakdown?key=openInterest&assetClass=Forex+Perps'
+		)
 	})
 
 	it('hides the treemap nested-grouping selector when parent grouping is Contract', () => {

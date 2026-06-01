@@ -28,7 +28,7 @@ vi.mock('~/containers/Stablecoins/api', async (importOriginal) => {
 	}
 })
 
-import handler from '~/pages/api/stablecoins/volume-chart'
+import handler from '~/pages/api/public/stablecoins/volume-chart'
 
 const volumeData = [
 	[1609459200, 100],
@@ -42,7 +42,7 @@ beforeEach(() => {
 	fetchTokenMock.mockResolvedValue(volumeData)
 })
 
-describe('/api/stablecoins/volume-chart', () => {
+describe('/api/public/stablecoins/volume-chart', () => {
 	it('rejects non-GET requests', async () => {
 		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

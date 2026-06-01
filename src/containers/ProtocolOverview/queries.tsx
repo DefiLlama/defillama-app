@@ -945,7 +945,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		if (typeof window !== 'undefined') {
 			const protocol = slug(metadata.displayName)
-			return fetchJson(`/api/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
+			return fetchJson(`/api/public/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
 		}
 
 		const incomeStatement = await fetchJson(

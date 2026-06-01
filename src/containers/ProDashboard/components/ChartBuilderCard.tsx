@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useContext, useMemo, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
-import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
@@ -117,7 +117,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handleEditItem,
 		handleDuplicateChartBuilder
 	} = useProDashboardEditorActions()
-	const { isReadOnly } = useProDashboardPermissions()
+	const { isReadOnly, hideDuplicateButton } = useProDashboardPermissions()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chartInstance, handleChartReady } = useChartImageExport()
@@ -157,6 +157,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		return timePeriod || 'all'
 	}, [timePeriod, customTimePeriod])
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
 			'pro-dashboard',
@@ -174,9 +175,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			chainFilterMode,
 			categoryFilterMode,
 			chainCategoryFilterMode,
-			protocolCategoryFilterMode,
-			timePeriod,
-			customTimePeriod
+			protocolCategoryFilterMode
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
@@ -197,13 +196,6 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				}
 
 				let series = data.series
-				if (timePeriod && timePeriod !== 'all') {
-					series = series.map((s) => ({
-						...s,
-						data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
-					}))
-				}
-
 				if (
 					config.hideOthers ||
 					(config.mode === 'protocol' &&
@@ -235,20 +227,22 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			}
 
 			let series = data.series
-			if (timePeriod && timePeriod !== 'all') {
-				series = series.map((s) => ({
-					...s,
-					data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
-				}))
-			}
-
 			if (config.hideOthers || (config.chainCategories && config.chainCategories.length > 0)) {
 				series = series.filter((s) => !s.name.startsWith('Others'))
 			}
 
 			return { series }
 		},
-		enabled: !!config.metric,
+		select: (data) => {
+			if (!data?.series || !timePeriod || timePeriod === 'all') return data
+			return {
+				series: data.series.map((s: any) => ({
+					...s,
+					data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
+				}))
+			}
+		},
+		enabled: streamDone && !!config.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -679,6 +673,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					{chartSeries.length > 0 ? (
 						<button
 							type="button"
+							data-btn="colors"
 							onClick={() => setShowColors((prev) => !prev)}
 							disabled={isReadOnly}
 							aria-pressed={effectiveShowColors}
@@ -704,7 +699,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							variant="pro"
 						/>
 					) : null}
-					{!isReadOnly ? (
+					{!isReadOnly && !hideDuplicateButton ? (
 						<button
 							type="button"
 							onClick={() => setShowDuplicateConfirm(true)}

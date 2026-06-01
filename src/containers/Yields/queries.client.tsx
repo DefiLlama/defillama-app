@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchCoinPrices } from '~/api'
+import { fetchCoinPrices } from '~/api/pricing'
 import {
 	CONFIG_API,
 	YIELD_BORROW_ADVANCED_API,
@@ -33,7 +33,7 @@ export const useBorrowAdvancedRows = (queryString: string | null) => {
 	const url = queryString ? `${YIELD_BORROW_ADVANCED_API}${queryString}` : null
 	return useQuery<BorrowAdvancedRow[]>({
 		queryKey: ['yield-borrow-advanced-rows', queryString],
-		queryFn: async () => (url ? fetchJson<BorrowAdvancedRow[]>(url) : []),
+		queryFn: async ({ signal }) => (url ? fetchJson<BorrowAdvancedRow[]>(url, { signal }) : []),
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
@@ -45,9 +45,9 @@ export const useBorrowRows = (queryString: string | null) => {
 	const url = queryString ? `${YIELD_BORROW_API}${queryString}` : null
 	return useQuery<BorrowPageRowsResponse>({
 		queryKey: ['yield-borrow-rows', queryString],
-		queryFn: async () =>
+		queryFn: async ({ signal }) =>
 			url
-				? fetchJson<BorrowPageRowsResponse>(url)
+				? fetchJson<BorrowPageRowsResponse>(url, { signal })
 				: {
 						rows: [],
 						total: 0
@@ -64,9 +64,9 @@ export const useYieldsPaginatedTable = <TRow,>(endpoint: string, queryString: st
 	const url = queryString ? `${endpoint}${queryString}` : null
 	return useQuery<YieldsPaginatedTableResponse<TRow>>({
 		queryKey: ['yield-paginated-table', endpoint, queryString],
-		queryFn: async () =>
+		queryFn: async ({ signal }) =>
 			url
-				? fetchJson<YieldsPaginatedTableResponse<TRow>>(url)
+				? fetchJson<YieldsPaginatedTableResponse<TRow>>(url, { signal })
 				: {
 						rows: [],
 						total: 0,

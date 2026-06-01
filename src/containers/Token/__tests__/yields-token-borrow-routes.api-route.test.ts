@@ -10,7 +10,7 @@ vi.mock('~/containers/Token/tokenBorrowRoutes.server', () => ({
 	getTokenBorrowRoutesDataFromNetwork: getTokenBorrowRoutesDataMock
 }))
 
-import handler from '~/pages/api/datasets/yields-token-borrow-routes'
+import handler from '~/pages/api/public/datasets/yields-token-borrow-routes'
 
 beforeEach(() => {
 	vi.clearAllMocks()

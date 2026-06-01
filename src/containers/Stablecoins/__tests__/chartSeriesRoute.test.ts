@@ -14,7 +14,7 @@ vi.mock('~/containers/Stablecoins/queries.server', () => ({
 	getStablecoinOverviewChartSeries: getOverviewMock
 }))
 
-import handler from '~/pages/api/stablecoins/chart-series'
+import handler from '~/pages/api/public/stablecoins/chart-series'
 
 const payload = {
 	dataset: { source: [{ timestamp: 1, Mcap: 2 }], dimensions: ['timestamp', 'Mcap'] },
@@ -29,7 +29,7 @@ beforeEach(() => {
 	getOverviewMock.mockResolvedValue(payload)
 })
 
-describe('/api/stablecoins/chart-series', () => {
+describe('/api/public/stablecoins/chart-series', () => {
 	it('rejects non-GET requests', async () => {
 		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

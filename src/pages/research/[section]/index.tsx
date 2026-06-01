@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import Link from 'next/link'
-import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ArticleApiError, getSectionBanner, listArticles } from '~/containers/Articles/api'
 import type { ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
@@ -11,12 +10,12 @@ import type { ArticleDocument, ArticleSection, BannerLookupResult } from '~/cont
 import {
 	ARTICLE_SECTION_FROM_SLUG,
 	ARTICLE_SECTION_LABELS,
-	ARTICLE_SECTION_SLUGS,
-	ARTICLE_SECTIONS
+	ARTICLE_SECTION_SLUGS
 } from '~/containers/Articles/types'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { withPerformanceLogging } from '~/utils/perf'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
+
+const SECTION_LANDING_CACHE_CONTROL = 'public, s-maxage=60'
 
 type SectionRouteParams = {
 	section: string
@@ -45,51 +44,26 @@ async function loadSectionLandingData(section: ArticleSection): Promise<SectionL
 	}
 }
 
-export const getStaticPaths: GetStaticPaths<SectionRouteParams> = async () => {
-	if (SKIP_BUILD_STATIC_GENERATION) {
-		return {
-			paths: [],
-			fallback: 'blocking'
-		}
+const getServerSidePropsHandler: GetServerSideProps<SectionLandingPageProps, SectionRouteParams> = async ({
+	params,
+	res
+}) => {
+	res.setHeader('Cache-Control', SECTION_LANDING_CACHE_CONTROL)
+
+	const sectionSlug = params?.section
+	if (!sectionSlug) {
+		return { notFound: true }
 	}
 
-	const paths = ARTICLE_SECTIONS.map((section) => ({
-		params: { section: ARTICLE_SECTION_SLUGS[section] }
-	}))
-
-	return {
-		paths,
-		fallback: 'blocking'
+	const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
+	if (!section) {
+		return { notFound: true }
 	}
+
+	return { props: await loadSectionLandingData(section) }
 }
 
-export const getStaticProps = withPerformanceLogging<SectionLandingPageProps, SectionRouteParams>(
-	'research/[section]',
-	async ({ params }: GetStaticPropsContext<SectionRouteParams>) => {
-		const sectionSlug = params?.section
-		if (!sectionSlug) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-		if (!section) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const props = await loadSectionLandingData(section)
-
-		return {
-			props,
-			revalidate: maxAgeForNext([22])
-		}
-	}
-)
+export const getServerSideProps = withServerSidePropsTelemetry('/research/[section]', getServerSidePropsHandler)
 
 function formatDate(value: string | null) {
 	if (!value) return 'Draft'
@@ -294,7 +268,7 @@ export default function SectionLandingPage({
 	section,
 	initialArticles,
 	sectionBanner
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const canonical = `/research/${ARTICLE_SECTION_SLUGS[section]}`
 
 	return (
