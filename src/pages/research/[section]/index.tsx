@@ -5,6 +5,7 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ArticleApiError, getSectionBanner, listArticles } from '~/containers/Articles/api'
 import type { ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
+import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/landing/utils'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection, BannerLookupResult } from '~/containers/Articles/types'
@@ -90,22 +91,6 @@ export const getStaticProps = withPerformanceLogging<SectionLandingPageProps, Se
 		}
 	}
 )
-
-function formatDate(value: string | null) {
-	if (!value) return 'Draft'
-	return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
-}
-
-function readingMinutes(article: ArticleDocument) {
-	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
-	const words = text ? text.split(/\s+/).length : 0
-	return Math.max(1, Math.ceil(words / 220))
-}
-
-function articleHref(article: ArticleDocument) {
-	if (article.section) return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
-	return '/research'
-}
 
 function intervieweeLabel(article: ArticleDocument): string | null {
 	const list = (article.interviewees ?? []).filter((p) => p?.name?.trim()).map((p) => p.name)

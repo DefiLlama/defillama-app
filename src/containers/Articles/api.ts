@@ -182,6 +182,14 @@ export async function listArticlesByTag(
 	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
 }
 
+export async function listArticlesByTopic(
+	topic: string,
+	params: Omit<NonNullable<Parameters<typeof listArticles>[0]>, 'tags'> = {},
+	fetchFn: FetchLike = fetch
+): Promise<ArticleListResponse> {
+	return listArticles({ ...params, tags: [topic] }, fetchFn)
+}
+
 export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<ArticlePathsResponse> {
 	return parseResponse(await fetchFn(articleUrl('/articles/paths')))
 }

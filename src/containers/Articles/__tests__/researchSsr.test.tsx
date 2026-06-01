@@ -9,13 +9,15 @@ import {
 	getLandingBanner,
 	getSectionBanner,
 	listArticles,
-	listArticlesByTag
+	listArticlesByTag,
+	listArticlesByTopic
 } from '~/containers/Articles/api'
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import ArticlesPage, { getServerSideProps as getResearchServerSideProps } from '~/pages/research'
 import SectionLandingPage, { getStaticProps as getSectionLandingStaticProps } from '~/pages/research/[section]'
 import SectionArticlePage, { getServerSideProps as getArticleServerSideProps } from '~/pages/research/[section]/[slug]'
+import TopicLandingPage, { getStaticProps as getTopicLandingStaticProps } from '~/pages/research/topics/[topic]'
 
 const routerMock = vi.hoisted(() => vi.fn())
 
@@ -38,7 +40,8 @@ vi.mock('~/containers/Articles/api', () => ({
 	getSectionBanner: vi.fn(),
 	listArticlePaths: vi.fn(),
 	listArticles: vi.fn(),
-	listArticlesByTag: vi.fn()
+	listArticlesByTag: vi.fn(),
+	listArticlesByTopic: vi.fn()
 }))
 
 vi.mock('~/containers/Articles/ArticleProxyAuthProvider', () => ({
@@ -148,6 +151,14 @@ function articleList(items: ArticleDocument[]) {
 	}
 }
 
+function topicArticleList(count: number) {
+	return articleList(
+		Array.from({ length: count }, (_, index) =>
+			article({ tags: ['lending'], id: `topic-article-${index}`, slug: `topic-article-${index}` })
+		)
+	)
+}
+
 const emptyBanner: BannerLookupResult = {
 	text: null,
 	image: null,
@@ -165,6 +176,7 @@ describe('research ISR data loading', () => {
 		})
 		vi.mocked(listArticles).mockResolvedValue(articleList([article()]))
 		vi.mocked(listArticlesByTag).mockResolvedValue({ items: [article()] })
+		vi.mocked(listArticlesByTopic).mockResolvedValue(topicArticleList(4))
 		vi.mocked(getLandingBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getArticleBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getSectionBanner).mockResolvedValue(emptyBanner)
@@ -181,10 +193,11 @@ describe('research ISR data loading', () => {
 
 		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
-		expect(result.props.landingData.heroReports[0]?.title).toBe('Canonical Research')
+		const props = await Promise.resolve(result.props)
+		expect(props.landingData.heroReports[0]?.title).toBe('Canonical Research')
 		expect(getLandingBanner).toHaveBeenCalledTimes(1)
 
-		const html = renderWithQueryClient(<ArticlesPage {...result.props} />)
+		const html = renderWithQueryClient(<ArticlesPage {...props} />)
 		expect(html).toContain('Canonical Research')
 	})
 
@@ -229,6 +242,53 @@ describe('research ISR data loading', () => {
 				params: { section: 'not-a-section' }
 			} as never)
 		).resolves.toMatchObject({ notFound: true })
+	})
+
+	it('loads topic landing props for ISR and renders articles immediately', async () => {
+		const result = await getTopicLandingStaticProps({
+			params: { topic: 'lending' }
+		} as never)
+
+		expect(result).toMatchObject({ revalidate: expect.any(Number) })
+		if (!('props' in result)) throw new Error('expected props')
+		expect(result.props.topic).toBe('lending')
+		expect(result.props.initialArticles.items[0]?.title).toBe('Canonical Research')
+		expect(listArticlesByTopic).toHaveBeenCalledWith('lending', { sort: 'newest', limit: 60 })
+
+		const html = renderWithQueryClient(<TopicLandingPage {...result.props} />)
+		expect(html).toContain('Canonical Research')
+		expect(html).toContain('lending')
+	})
+
+	it('returns notFound for invalid topic slugs', async () => {
+		await expect(
+			getTopicLandingStaticProps({
+				params: { topic: '!!!' }
+			} as never)
+		).resolves.toMatchObject({ notFound: true })
+	})
+
+	it('returns notFound when a topic has fewer than four articles', async () => {
+		vi.mocked(listArticlesByTopic).mockResolvedValueOnce(topicArticleList(3))
+
+		await expect(
+			getTopicLandingStaticProps({
+				params: { topic: 'lending' }
+			} as never)
+		).resolves.toMatchObject({ notFound: true })
+	})
+
+	it('redirects non-canonical topic slugs to the normalized path', async () => {
+		await expect(
+			getTopicLandingStaticProps({
+				params: { topic: 'Lending' }
+			} as never)
+		).resolves.toMatchObject({
+			redirect: {
+				destination: '/research/topics/lending',
+				permanent: true
+			}
+		})
 	})
 
 	it('loads sanitized article props for SSR and renders article body immediately', async () => {
