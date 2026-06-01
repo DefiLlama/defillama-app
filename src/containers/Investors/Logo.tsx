@@ -1,3 +1,9 @@
+import { ACTIVE_INVESTORS_SITE_ID } from './config'
+
+const IS_ENTERPRISE = ACTIVE_INVESTORS_SITE_ID === 'enterprise'
+const LOGO_SUBTITLE = IS_ENTERPRISE ? 'Enterprise' : 'Investor Relations'
+const LOGO_SUBTITLE_SM = IS_ENTERPRISE ? 'ENT' : 'IR'
+
 export function Logo({
 	animate = false,
 	size = 'default',
@@ -31,7 +37,7 @@ export function Logo({
 						: 'rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase'
 				}
 			>
-				{sm ? 'IR' : 'Investor Relations'}
+				{sm ? LOGO_SUBTITLE_SM : LOGO_SUBTITLE}
 			</span>
 		</>
 	)
@@ -50,6 +56,18 @@ export function Logo({
 }
 
 export function TextLoader() {
+	if (IS_ENTERPRISE) {
+		return (
+			<div className="sl-loader text-center leading-none select-none">
+				<span
+					className="block text-[34px] font-black tracking-[0.08em] text-transparent"
+					style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
+				>
+					ENTERPRISE
+				</span>
+			</div>
+		)
+	}
 	return (
 		<div className="sl-loader text-center leading-none select-none">
 			<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">INVESTOR</span>
