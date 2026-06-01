@@ -4,7 +4,7 @@ import { useContext, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { fetchEquitiesStatements } from '~/containers/Equities/api'
 import type { IEquitiesStatementsResponse } from '~/containers/Equities/api.types'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { fetchEquitiesStatementsViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { abbreviateNumber } from '~/utils'
 import { downloadCSV } from '~/utils/download'
@@ -179,6 +179,7 @@ const STALE_TIME = 5 * 60 * 1000
 
 function useEquitiesStatementsData(ticker: string) {
 	const authToken = useContext(ProxyAuthTokenContext)
+	const streamDone = useContext(StreamDoneContext)
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'equities-statements-table', ticker],
@@ -191,7 +192,7 @@ function useEquitiesStatementsData(ticker: string) {
 		staleTime: STALE_TIME,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: Boolean(ticker)
+		enabled: Boolean(ticker) && streamDone
 	})
 }
 

@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -12,7 +11,15 @@ import {
 	fetchSingleChartData,
 	withTimeout
 } from '~/containers/ProDashboard/queries.server'
-import { fetchDimensionDataset } from '~/containers/ProDashboard/server/datasetFetchers'
+import {
+	DIMENSION_DATASET_SPECS,
+	fetchChainsDatasetRows,
+	fetchDimensionDataset
+} from '~/containers/ProDashboard/server/datasetFetchers'
+import {
+	fetchStablecoinAssetChartCacheValue,
+	fetchStablecoinsTableData
+} from '~/containers/ProDashboard/server/stablecoinFetchers'
 import { fetchTableServerData } from '~/containers/ProDashboard/server/tableQueries'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
 import ProtocolSplitCharts from '~/containers/ProDashboard/services/ProtocolSplitCharts'
@@ -611,68 +618,167 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			)
 		}
 
-		// Dimension dataset tables (dexs, perps, aggregators) — seed under the per-card hook keys
-		type DimensionDatasetSpec = {
-			datasetType: 'dexs' | 'perps' | 'aggregators'
-			hookPrefix: string
-			adapterType: `${ADAPTER_TYPES}`
-			route: string
-			metricName: string
-			hasOpenInterestByChain?: boolean
-			withChainBreakdown?: boolean
-		}
-		const dimensionDatasetSpecs: DimensionDatasetSpec[] = [
-			{
-				datasetType: 'dexs',
-				hookPrefix: 'dexs-overview',
-				adapterType: ADAPTER_TYPES.DEXS,
-				route: 'dexs',
-				metricName: 'DEX Volume'
-			},
-			{
-				datasetType: 'perps',
-				hookPrefix: 'perps-overview',
-				adapterType: ADAPTER_TYPES.PERPS,
-				route: 'perps',
-				metricName: 'Perp Volume',
-				hasOpenInterestByChain: true
-			},
-			{
-				datasetType: 'aggregators',
-				hookPrefix: 'aggregators-overview',
-				adapterType: ADAPTER_TYPES.AGGREGATORS,
-				route: 'dex-aggregators',
-				metricName: 'DEX Aggregator Volume',
-				withChainBreakdown: true
-			}
-		]
+		// Dimension dataset tables — seed under the per-card hook keys
 		const seenDimensionDatasetKeys = new Set<string>()
-		for (const spec of dimensionDatasetSpecs) {
+		for (const spec of DIMENSION_DATASET_SPECS) {
 			const matchingItems = items.filter((item: any) => item.kind === 'table' && item.datasetType === spec.datasetType)
 			for (const item of matchingItems) {
 				const itemChains: string[] = Array.isArray((item as any).chains) ? (item as any).chains : []
-				const sortedChainsKey = [...itemChains].sort().join(',')
+				const keyChains =
+					spec.keyChainsMode === 'filtered' ? (itemChains.includes('All') ? [] : itemChains) : itemChains
+				const sortedChainsKey = keyChains.length ? [...keyChains].sort().join(',') : ''
 				const cacheKey = JSON.stringify(['pro-dashboard', spec.hookPrefix, sortedChainsKey])
 				if (seenDimensionDatasetKeys.has(cacheKey)) continue
 				seenDimensionDatasetKeys.add(cacheKey)
 				phase2Promises.push(
-					withTimeout(
-						fetchDimensionDataset({
-							adapterType: spec.adapterType,
-							route: spec.route,
-							metricName: spec.metricName,
-							chains: itemChains,
-							hasOpenInterestByChain: spec.hasOpenInterestByChain,
-							withChainBreakdown: spec.withChainBreakdown
-						}),
-						15_000
-					)
+					withTimeout(fetchDimensionDataset({ ...spec.options, chains: itemChains }), 15_000)
 						.then((data) => {
 							if (data) writeLine({ type: 'dimensionDatasetData', key: cacheKey, data })
 						})
 						.catch(() => {})
 				)
 			}
+		}
+
+		// CEX analytics dataset tables — seed under the per-view hook keys
+		const cexAnalyticsItems = items.filter(
+			(item: any) => item.kind === 'table' && (item.datasetType === 'cex' || item.datasetType === 'cex-analytics')
+		)
+		if (cexAnalyticsItems.length > 0) {
+			let needsSnapshot = false
+			let needsTotals = false
+			const shareSpecs = new Map<string, { metric: 'spot' | 'derivatives'; topNData: number }>()
+			for (const item of cexAnalyticsItems) {
+				const rawView = (item as any).datasetType === 'cex' ? 'comparison' : (item as any).cexAnalyticsView
+				const view = rawView === 'efficiency' ? 'comparison' : rawView || 'comparison'
+				if (view === 'summary' || view === 'comparison') {
+					needsSnapshot = true
+				} else if (view === 'spot-vs-derivatives') {
+					needsTotals = true
+				} else if (view === 'market-share') {
+					const metric = (item as any).cexAnalyticsMetric === 'spot' ? 'spot' : 'derivatives'
+					const topNRaw = (item as any).cexAnalyticsTopN || 8
+					const topNData = Number.isFinite(topNRaw) ? Math.min(Math.max(Math.trunc(topNRaw), 1), 12) : 8
+					const shareKey = JSON.stringify(['pro-dashboard', 'cex-analytics', 'share', metric, topNRaw])
+					if (!shareSpecs.has(shareKey)) shareSpecs.set(shareKey, { metric, topNData })
+				}
+			}
+			if (needsSnapshot || needsTotals || shareSpecs.size > 0) {
+				phase2Promises.push(
+					(async () => {
+						const { getCexAnalyticsMarketShare, getCexAnalyticsSnapshot, getCexAnalyticsTotals } = await import(
+							'~/server/cexAnalytics/queries'
+						)
+						const tasks: Promise<void>[] = []
+						if (needsSnapshot) {
+							tasks.push(
+								withTimeout(getCexAnalyticsSnapshot(), 15_000)
+									.then((data) => {
+										if (data)
+											writeLine({
+												type: 'cexAnalyticsData',
+												key: JSON.stringify(['pro-dashboard', 'cex-analytics', 'snapshot']),
+												data
+											})
+									})
+									.catch(() => {})
+							)
+						}
+						if (needsTotals) {
+							tasks.push(
+								withTimeout(getCexAnalyticsTotals(), 15_000)
+									.then((data) => {
+										if (data)
+											writeLine({
+												type: 'cexAnalyticsData',
+												key: JSON.stringify(['pro-dashboard', 'cex-analytics', 'totals']),
+												data
+											})
+									})
+									.catch(() => {})
+							)
+						}
+						for (const [shareKey, { metric, topNData }] of shareSpecs) {
+							tasks.push(
+								withTimeout(getCexAnalyticsMarketShare(metric, topNData), 15_000)
+									.then((data) => {
+										if (data) writeLine({ type: 'cexAnalyticsData', key: shareKey, data })
+									})
+									.catch(() => {})
+							)
+						}
+						await Promise.allSettled(tasks)
+					})().catch(() => {})
+				)
+			}
+		}
+
+		// Chains dataset tables
+		const seenChainsKeys = new Set<string>()
+		for (const item of items.filter((i: any) => i.kind === 'table' && i.datasetType === 'chains')) {
+			const category = (item as any).datasetChain
+			const cacheKey = JSON.stringify(['pro-dashboard', 'chains-overview', category || 'all'])
+			if (seenChainsKeys.has(cacheKey)) continue
+			seenChainsKeys.add(cacheKey)
+			phase2Promises.push(
+				withTimeout(fetchChainsDatasetRows({ category }), 15_000)
+					.then((data) => {
+						if (data) writeLine({ type: 'chainsDatasetData', key: cacheKey, data })
+					})
+					.catch(() => {})
+			)
+		}
+
+		// Yields dataset tables
+		const seenYieldsTableKeys = new Set<string>()
+		for (const item of items.filter((i: any) => i.kind === 'table' && i.datasetType === 'yields')) {
+			const itemChains: string[] = Array.isArray((item as any).chains) ? (item as any).chains : []
+			const sortedChainsKey = itemChains.length ? [...itemChains].sort().join(',') : ''
+			const cacheKey = JSON.stringify(['pro-dashboard', 'yields-overview', sortedChainsKey])
+			if (seenYieldsTableKeys.has(cacheKey)) continue
+			seenYieldsTableKeys.add(cacheKey)
+			phase2Promises.push(
+				(async () => {
+					const { getTokenYieldsRows } = await import('~/server/datasetCache/runtime/yields')
+					const data = await withTimeout(
+						getTokenYieldsRows('', itemChains.length ? itemChains : undefined),
+						15_000
+					)
+					if (data) writeLine({ type: 'yieldsDatasetData', key: cacheKey, data })
+				})().catch(() => {})
+			)
+		}
+
+		// Stablecoins dataset tables
+		const seenStablecoinsTableKeys = new Set<string>()
+		for (const item of items.filter((i: any) => i.kind === 'table' && i.datasetType === 'stablecoins')) {
+			const chain = (item as any).datasetChain || 'All'
+			const cacheKey = JSON.stringify(['pro-dashboard', 'stablecoins-overview', chain])
+			if (seenStablecoinsTableKeys.has(cacheKey)) continue
+			seenStablecoinsTableKeys.add(cacheKey)
+			phase2Promises.push(
+				withTimeout(fetchStablecoinsTableData(chain), 15_000)
+					.then((data) => {
+						if (data) writeLine({ type: 'stablecoinsTableData', key: cacheKey, data })
+					})
+					.catch(() => {})
+			)
+		}
+
+		// Stablecoin asset chart items
+		const seenStablecoinAssetSlugs = new Set<string>()
+		for (const item of items.filter((i: any) => i.kind === 'stablecoin-asset')) {
+			const slugId = (item as any).stablecoinId
+			if (!slugId || seenStablecoinAssetSlugs.has(slugId)) continue
+			seenStablecoinAssetSlugs.add(slugId)
+			const cacheKey = JSON.stringify(['pro-dashboard', 'stablecoin-asset-chart-data', slugId])
+			phase2Promises.push(
+				withTimeout(fetchStablecoinAssetChartCacheValue(slugId), 15_000)
+					.then((data) => {
+						if (data) writeLine({ type: 'stablecoinAssetData', key: cacheKey, data })
+					})
+					.catch(() => {})
+			)
 		}
 
 		// Income statement items

@@ -236,6 +236,11 @@ export function useDashboardStream(
 					case 'dimensionDatasetData':
 					case 'incomeStatementData':
 					case 'chartBuilderData':
+					case 'cexAnalyticsData':
+					case 'chainsDatasetData':
+					case 'yieldsDatasetData':
+					case 'stablecoinsTableData':
+					case 'stablecoinAssetData':
 						if (chunk.key && chunk.data) {
 							try {
 								queryClient.setQueryData(JSON.parse(chunk.key), chunk.data, { updatedAt: now })
