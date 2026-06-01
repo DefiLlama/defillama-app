@@ -1,10 +1,89 @@
-import { lazy } from 'react'
+import { lazy, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import { useRevenueData, chartToTs } from './api'
 import { KpiCard, ChartCard, SectionHeader, ChartSkeleton, SimpleTable, fmtUsd } from './ui'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart')) as React.FC<IMultiSeriesChartProps>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+function Toggle<T extends string>({
+	value,
+	onChange,
+	options
+}: {
+	value: T
+	onChange: (v: T) => void
+	options: { id: T; label: string }[]
+}) {
+	return (
+		<div className="flex w-fit items-center rounded-md border border-(--cards-border) text-(--text-secondary)">
+			{options.map((o) => (
+				<button
+					key={o.id}
+					type="button"
+					onClick={() => onChange(o.id)}
+					className="px-3 py-1 text-xs transition-colors data-[active=true]:font-medium data-[active=true]:text-(--text-primary)"
+					data-active={value === o.id}
+				>
+					{o.label}
+				</button>
+			))}
+		</div>
+	)
+}
+
+const INCOME_STATEMENT_PROTOCOL = 'metronome-synth'
+const INCOME_STATEMENT_NAME = 'Metronome Synth'
+
+function useMetronomeIncomeStatement() {
+	return useQuery({
+		queryKey: ['odyssey-ecosystem', 'income-statement', INCOME_STATEMENT_PROTOCOL],
+		queryFn: () =>
+			fetch(`/api/public/income-statement?protocol=${INCOME_STATEMENT_PROTOCOL}`).then((r) => (r.ok ? r.json() : null)),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false
+	})
+}
+
+function MetronomeIncomeStatement() {
+	const { data: incomeStatement, isLoading } = useMetronomeIncomeStatement()
+
+	const hasData =
+		incomeStatement?.data &&
+		(['monthly', 'quarterly', 'yearly'] as const).some(
+			(k) => Object.keys(incomeStatement.data[k] ?? {}).length > 0
+		)
+
+	if (isLoading || !hasData) return null
+
+	return (
+		<>
+			<SectionHeader>Metronome · Income Statement</SectionHeader>
+			<ChartCard title="Income Statement" subtitle={`${INCOME_STATEMENT_NAME} — fees & revenue`}>
+				<IncomeStatement
+					name={INCOME_STATEMENT_NAME}
+					incomeStatement={incomeStatement}
+					view="table"
+					anchorId="metronome-income-statement"
+					className="border-none bg-transparent p-0"
+					showTitles={false}
+				/>
+			</ChartCard>
+			<ChartCard title="Income Statement Visualization" subtitle="Sankey flow of fees → revenue → token holders">
+				<IncomeStatement
+					name={INCOME_STATEMENT_NAME}
+					incomeStatement={incomeStatement}
+					view="sankey"
+					anchorId="metronome-income-statement-sankey"
+					className="border-none bg-transparent p-0"
+					showTitles={false}
+				/>
+			</ChartCard>
+		</>
+	)
+}
 
 const PROTO_COLORS: Record<string, string> = { Metronome: '#fb923c', Vesper: '#a78bfa', Odyssey: '#60a5fa' }
 const PIE_COLORS = ['#6366f1', '#22d3ee', '#34d399', '#fbbf24', '#f472b6', '#fb923c', '#a78bfa']
@@ -49,12 +128,13 @@ export default function Revenue() {
 	const k = data?.kpis ?? ({} as Partial<NonNullable<typeof data>['kpis']>)
 	const ra = k.revenueAllTime ?? ({} as Partial<NonNullable<typeof k.revenueAllTime>>)
 	const ha = k.holdersAllTime ?? ({} as Partial<NonNullable<typeof k.holdersAllTime>>)
-	const cm = k.claimedMtd ?? ({} as Partial<NonNullable<typeof k.claimedMtd>>)
+	const cm = k.claimed30d ?? ({} as Partial<NonNullable<typeof k.claimed30d>>)
 	const up = data?.unclaimedPipeline ?? ({} as Partial<NonNullable<typeof data>['unclaimedPipeline']>)
 	const mc = data?.metronomeClaimed
 	const vc = data?.vesperClaimed
 	const oc = data?.odysseyClaimed
 	const hbm = data?.holdersByMonth
+	const [holderMode, setHolderMode] = useState<'daily' | 'monthly'>('monthly')
 
 	const dailySeries = data?.llamaDailyChart
 		? chartToTs(data.llamaDailyChart).map((s) => ({
@@ -119,17 +199,22 @@ export default function Revenue() {
 				<KpiCard label="Vesper" value={ra.vesper?.formatted} sub="All-time" />
 				<KpiCard label="Odyssey" value={ra.odyssey?.formatted} sub="All-time" />
 			</div>
-			<div className="grid grid-cols-2 gap-3">
+			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+				<KpiCard
+					label="Unclaimed Pipeline"
+					value={k.unclaimedPipeline?.formatted}
+					sub="Pending claim / harvest"
+				/>
 				<KpiCard label="MET Holder Buybacks" value={ha.metronome?.formatted} sub="All-time" />
 				<KpiCard label="VSP Holder Buybacks" value={ha.vesper?.formatted} sub="All-time" />
 			</div>
 
-			{/* Claimed MTD */}
-			<SectionHeader>Claimed Revenue · Month-to-Date</SectionHeader>
+			{/* 1 · Claimed revenue */}
+			<SectionHeader>Claimed Revenue · Last 30 Days</SectionHeader>
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-				<KpiCard label="Metronome MTD" value={cm.metronome?.formatted} />
-				<KpiCard label="Vesper MTD" value={cm.vesper?.formatted} sub={vc ? `${vc.windowDays}d window` : undefined} />
-				<KpiCard label="Odyssey MTD" value={cm.odyssey?.formatted} sub={oc ? `${oc.windowDays}d window` : undefined} />
+				<KpiCard label="Metronome 30d" value={cm.metronome?.formatted} />
+				<KpiCard label="Vesper 30d" value={cm.vesper?.formatted} sub={vc ? `${vc.windowDays}d window` : undefined} />
+				<KpiCard label="Odyssey 30d" value={cm.odyssey?.formatted} sub={oc ? `${oc.windowDays}d window` : undefined} />
 			</div>
 			{isLoading || !dailySeries ? (
 				<ChartSkeleton title="Daily Revenue" />
@@ -138,16 +223,31 @@ export default function Revenue() {
 					<MultiSeriesChart series={dailySeries as any} valueSymbol="$" height="320px" />
 				</ChartCard>
 			)}
-			{isLoading || !holderSeries ? (
-				<ChartSkeleton title="Holder Buybacks (daily)" />
+			{isLoading || (!holderSeries && !holdersByMonthSeries) ? (
+				<ChartSkeleton title="Holder Buybacks" />
 			) : (
-				<ChartCard title="Holder Buybacks (daily)" subtitle="Revenue routed to token holders (MET / VSP)">
-					<MultiSeriesChart series={holderSeries as any} valueSymbol="$" height="260px" />
-				</ChartCard>
-			)}
-			{holdersByMonthSeries && (
-				<ChartCard title="Holder Buybacks by Month" subtitle="Monthly totals routed to MET / VSP holders">
-					<MultiSeriesChart series={holdersByMonthSeries as any} valueSymbol="$" height="280px" />
+				<ChartCard title="Holder Buybacks" subtitle="Revenue routed to token holders (MET / VSP)">
+					<div className="mb-3 flex justify-end">
+						<Toggle<'daily' | 'monthly'>
+							value={holderMode}
+							onChange={setHolderMode}
+							options={[
+								{ id: 'monthly', label: 'Monthly' },
+								{ id: 'daily', label: 'Daily' }
+							]}
+						/>
+					</div>
+					{holderMode === 'monthly' ? (
+						holdersByMonthSeries ? (
+							<MultiSeriesChart key="hb-monthly" series={holdersByMonthSeries as any} valueSymbol="$" height="300px" />
+						) : (
+							<div className="px-2 py-6 text-xs text-(--text-secondary)">No monthly holder data</div>
+						)
+					) : holderSeries ? (
+						<MultiSeriesChart key="hb-daily" series={holderSeries as any} valueSymbol="$" height="300px" />
+					) : (
+						<div className="px-2 py-6 text-xs text-(--text-secondary)">No daily holder data</div>
+					)}
 				</ChartCard>
 			)}
 
@@ -180,7 +280,10 @@ export default function Revenue() {
 				</>
 			)}
 
-			{/* Unclaimed pipeline */}
+			{/* 2 · Income statement */}
+			<MetronomeIncomeStatement />
+
+			{/* 3 · Unclaimed pipeline */}
 			<SectionHeader>Unclaimed Pipeline · Overview</SectionHeader>
 			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 				<div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">

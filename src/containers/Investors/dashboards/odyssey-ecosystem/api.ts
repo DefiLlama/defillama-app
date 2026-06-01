@@ -280,7 +280,7 @@ export interface RevenueResponse {
 			vesper: FormattedValue
 			odyssey: FormattedValue
 		}
-		claimedMtd: { metronome: FormattedValue; vesper: FormattedValue; odyssey: FormattedValue }
+		claimed30d: { metronome: FormattedValue; vesper: FormattedValue; odyssey: FormattedValue }
 		unclaimedPipeline: FormattedValue
 		holdersAllTime: { metronome: FormattedValue; vesper: FormattedValue }
 	}

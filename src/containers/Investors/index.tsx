@@ -215,6 +215,7 @@ function InvestorsContent({
 
 			{tabs.map((tab) => {
 				if (tab.id === 'dashboard') return null
+				if (tab.externalHref) return null
 				if (!visitedTabs.has(tab.id)) return null
 				if (!tab.component) {
 					return (
@@ -275,6 +276,7 @@ function CustomOnlyContent({
 			)}
 
 			{tabs.map((tab) => {
+				if (tab.externalHref) return null
 				if (!visitedTabs.has(tab.id)) return null
 				if (tab.proDashboardId) {
 					return (
@@ -445,19 +447,46 @@ function InvestorsShell({
 																{tab.group}
 															</div>
 														)}
-														<button
-															onClick={() => {
-																setActiveTab(tab.id)
-																closeSidebar()
-															}}
-															className={`w-full rounded-md px-3 py-1.5 text-left text-[12px] tracking-wide transition-colors ${isSoloGroup ? `font-semibold${idx === 0 ? '' : ' mt-3'}` : 'font-medium'} ${
-																resolvedTab === tab.id
-																	? 'bg-(--sl-accent-muted) text-(--sl-accent)'
-																	: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
-															}`}
-														>
-															{tab.label}
-														</button>
+														{tab.externalHref ? (
+															<a
+																href={tab.externalHref}
+																target="_blank"
+																rel="noopener noreferrer"
+																title={tab.externalTooltip ?? 'Opens in a new tab on a third-party site'}
+																onClick={closeSidebar}
+																className={`flex w-full items-center gap-1.5 rounded-md px-3 py-1.5 text-left text-[12px] tracking-wide transition-colors ${isSoloGroup ? `font-semibold${idx === 0 ? '' : ' mt-3'}` : 'font-medium'} text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)`}
+															>
+																<span className="flex-1">{tab.label}</span>
+																<svg
+																	viewBox="0 0 24 24"
+																	fill="none"
+																	stroke="currentColor"
+																	strokeWidth="2"
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	className="h-3 w-3 shrink-0 opacity-70"
+																	aria-hidden="true"
+																>
+																	<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+																	<polyline points="15 3 21 3 21 9" />
+																	<line x1="10" y1="14" x2="21" y2="3" />
+																</svg>
+															</a>
+														) : (
+															<button
+																onClick={() => {
+																	setActiveTab(tab.id)
+																	closeSidebar()
+																}}
+																className={`w-full rounded-md px-3 py-1.5 text-left text-[12px] tracking-wide transition-colors ${isSoloGroup ? `font-semibold${idx === 0 ? '' : ' mt-3'}` : 'font-medium'} ${
+																	resolvedTab === tab.id
+																		? 'bg-(--sl-accent-muted) text-(--sl-accent)'
+																		: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
+																}`}
+															>
+																{tab.label}
+															</button>
+														)}
 													</div>
 												)
 											})}
