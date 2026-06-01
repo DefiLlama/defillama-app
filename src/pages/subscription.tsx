@@ -47,7 +47,7 @@ function SubscriptionContent() {
 		userBillingCycle,
 		isLoading: isPageStateLoading
 	} = useSubscriptionPageState()
-	const { user, loaders } = useAuthContext()
+	const { user, loaders, promptVerifyEmail } = useAuthContext()
 	const {
 		handleSubscribe,
 		loading,
@@ -144,7 +144,7 @@ function SubscriptionContent() {
 
 	const requireVerified = (action: () => void) => {
 		if (!user?.verified && !user?.walletAddress) {
-			toast.error('Please verify your email first to subscribe')
+			promptVerifyEmail(user?.email)
 			return
 		}
 		action()
