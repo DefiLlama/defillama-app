@@ -180,7 +180,8 @@ function SectionArticleContent({
 		},
 		enabled: !!slug && !!expectedSection,
 		initialData: initialArticle?.slug === slug ? initialArticle : undefined,
-		staleTime: 60_000,
+		staleTime: 0,
+		refetchOnMount: 'always',
 		retry: false
 	})
 

@@ -14,7 +14,7 @@ import {
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import ArticlesPage, { getServerSideProps as getResearchServerSideProps } from '~/pages/research'
-import SectionLandingPage, { getStaticProps as getSectionLandingStaticProps } from '~/pages/research/[section]'
+import SectionLandingPage, { getServerSideProps as getSectionLandingServerSideProps } from '~/pages/research/[section]'
 import SectionArticlePage, { getServerSideProps as getArticleServerSideProps } from '~/pages/research/[section]/[slug]'
 
 const routerMock = vi.hoisted(() => vi.fn())
@@ -207,12 +207,16 @@ describe('research ISR data loading', () => {
 		expect(html).not.toContain('translate(calc(0px + -147px))')
 	})
 
-	it('loads section landing props for ISR and renders articles immediately', async () => {
-		const result = await getSectionLandingStaticProps({
-			params: { section: 'report' }
+	it('loads section landing props for SSR and renders articles immediately', async () => {
+		const setHeader = vi.fn()
+		const result = await getSectionLandingServerSideProps({
+			params: { section: 'report' },
+			req: { method: 'GET' },
+			res: { setHeader },
+			resolvedUrl: '/research/report'
 		} as never)
 
-		expect(result).toMatchObject({ revalidate: expect.any(Number) })
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
 		expect(result.props.section).toBe('report')
 		expect(result.props.initialArticles.items[0]?.title).toBe('Canonical Research')
@@ -225,8 +229,11 @@ describe('research ISR data loading', () => {
 
 	it('returns notFound for invalid section slugs', async () => {
 		await expect(
-			getSectionLandingStaticProps({
-				params: { section: 'not-a-section' }
+			getSectionLandingServerSideProps({
+				params: { section: 'not-a-section' },
+				req: { method: 'GET' },
+				res: { setHeader: vi.fn() },
+				resolvedUrl: '/research/not-a-section'
 			} as never)
 		).resolves.toMatchObject({ notFound: true })
 	})

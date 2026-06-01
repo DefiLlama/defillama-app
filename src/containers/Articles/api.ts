@@ -261,7 +261,7 @@ export async function unsetEditorialTag(
 }
 
 export async function getArticleBySlug(slug: string, fetchFn: FetchLike = fetch): Promise<ArticleDocument | null> {
-	const response = await fetchFn(articleUrl(`/articles/${encodeURIComponent(slug)}`))
+	const response = await fetchFn(articleUrlWithCacheNonce(`/articles/${encodeURIComponent(slug)}`))
 	if (response.status === 404) return null
 	const data = await parseResponse<{ article: ArticleDocument }>(response)
 	return data.article
