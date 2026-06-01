@@ -302,22 +302,25 @@ describe('research ISR data loading', () => {
 
 	it('returns notFound for missing articles and redirects non-canonical article urls', async () => {
 		vi.mocked(getArticleBySlug).mockResolvedValueOnce(null)
+		const notFoundSetHeader = vi.fn()
 		await expect(
 			getArticleServerSideProps({
 				params: { section: 'report', slug: 'missing' },
 				req: { method: 'GET' },
 				resolvedUrl: '/research/report/missing',
-				res: { setHeader: vi.fn() }
+				res: { setHeader: notFoundSetHeader }
 			} as never)
 		).resolves.toMatchObject({ notFound: true })
+		expect(notFoundSetHeader).toHaveBeenCalledWith('Cache-Control', 'no-store')
 
 		vi.mocked(getArticleBySlug).mockResolvedValueOnce(article())
+		const redirectSetHeader = vi.fn()
 		await expect(
 			getArticleServerSideProps({
 				params: { section: 'report', slug: 'old-research' },
 				req: { method: 'GET' },
 				resolvedUrl: '/research/report/old-research',
-				res: { setHeader: vi.fn() }
+				res: { setHeader: redirectSetHeader }
 			} as never)
 		).resolves.toMatchObject({
 			redirect: {
@@ -325,5 +328,6 @@ describe('research ISR data loading', () => {
 				permanent: false
 			}
 		})
+		expect(redirectSetHeader).toHaveBeenCalledWith('Cache-Control', 'no-store')
 	})
 })

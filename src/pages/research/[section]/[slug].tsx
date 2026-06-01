@@ -28,6 +28,7 @@ import Layout from '~/layout'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const ARTICLE_CACHE_CONTROL = 'public, s-maxage=60'
+const ARTICLE_NO_STORE = 'no-store'
 
 type ArticleRouteParams = {
 	section: string
@@ -88,25 +89,25 @@ const getServerSidePropsHandler: GetServerSideProps<SectionArticlePageProps, Art
 	const sectionSlug = params?.section
 	const slug = params?.slug
 	if (!sectionSlug || !slug) {
-		res.setHeader('Cache-Control', ARTICLE_CACHE_CONTROL)
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
 		return { notFound: true }
 	}
 
 	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
 	if (!expectedSection) {
-		res.setHeader('Cache-Control', ARTICLE_CACHE_CONTROL)
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
 		return { notFound: true }
 	}
 
 	const article = await getArticleBySlug(slug)
 	if (!article || !article.section) {
-		res.setHeader('Cache-Control', ARTICLE_CACHE_CONTROL)
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
 		return { notFound: true }
 	}
 
 	const canonicalSectionSlug = ARTICLE_SECTION_SLUGS[article.section]
 	if (article.slug !== slug || article.section !== expectedSection) {
-		res.setHeader('Cache-Control', ARTICLE_CACHE_CONTROL)
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
 		return {
 			redirect: {
 				destination: `/research/${canonicalSectionSlug}/${article.slug}`,
