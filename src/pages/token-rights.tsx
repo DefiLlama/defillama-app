@@ -99,18 +99,20 @@ const TOKEN_RIGHTS_FILTERS: Array<{ key: TokenRightsFilter; label: string }> = [
 const DEFAULT_TOKEN_RIGHTS_SORTING: SortingState = [{ id: 'holdersRevenue24h', desc: true }]
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
-	const tokenRightsEntriesPromise = import('~/server/datasetCache/runtime/tokenRights').then((mod) =>
-		mod.fetchTokenRightsEntries()
-	)
-	const metadataModule = await import('~/utils/metadata')
-	const holdersRevenue = await import('~/containers/DimensionAdapters/api').then((m) =>
-		m.fetchAdapterChainMetrics({
-			adapterType: ADAPTER_TYPES.FEES,
-			chain: 'All',
-			dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
-		})
-	)
-	const entries = await tokenRightsEntriesPromise
+	const [entries, metadataModule, holdersRevenue, { protocols: liteProtocols, parentProtocols }] = await Promise.all([
+		import('~/server/datasetCache/runtime/tokenRights').then((mod) => mod.fetchTokenRightsEntries()),
+		import('~/utils/metadata'),
+		import('~/containers/DimensionAdapters/api').then((m) =>
+			m.fetchAdapterChainMetrics({
+				adapterType: ADAPTER_TYPES.FEES,
+				chain: 'All',
+				dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+			})
+		),
+		import('~/containers/Protocols/api')
+			.then((m) => m.fetchProtocols())
+			.catch(() => ({ protocols: [], parentProtocols: [] }))
+	])
 
 	const { chainMetadata, protocolMetadata, tokenDirectory, cexs } = metadataModule.default as {
 		chainMetadata: Record<string, IChainMetadata>
@@ -118,9 +120,6 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 		tokenDirectory: TokenDirectory
 		cexs: ICexItem[]
 	}
-	const { protocols: liteProtocols, parentProtocols } = await import('~/containers/Protocols/api')
-		.then((m) => m.fetchProtocols())
-		.catch(() => ({ protocols: [], parentProtocols: [] }))
 	const holdersRevenueByDefillamaId = buildHoldersRevenueByDefillamaId(
 		holdersRevenue.protocols,
 		liteProtocols,
@@ -837,7 +836,7 @@ function TooltipStatusPill({
 	return (
 		<Tooltip
 			content={tooltip}
-			render={<button type="button" />}
+			render={<button type="button" aria-label={label} />}
 			className={getStatusPillClassName(tone, extraClassName)}
 		>
 			{label}

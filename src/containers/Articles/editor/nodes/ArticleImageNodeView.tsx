@@ -93,11 +93,15 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	}, [attrs.caption])
 
 	useEffect(() => {
-		if (linkOpen) setTimeout(() => linkInputRef.current?.focus(), 0)
+		if (!linkOpen) return
+		const timeout = setTimeout(() => linkInputRef.current?.focus(), 0)
+		return () => clearTimeout(timeout)
 	}, [linkOpen])
 
 	useEffect(() => {
-		if (altOpen) setTimeout(() => altInputRef.current?.focus(), 0)
+		if (!altOpen) return
+		const timeout = setTimeout(() => altInputRef.current?.focus(), 0)
+		return () => clearTimeout(timeout)
 	}, [altOpen])
 
 	useEffect(() => {
@@ -113,7 +117,9 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	}, [attrs.headline])
 
 	useEffect(() => {
-		if (creditOpen) setTimeout(() => headlineInputRef.current?.focus(), 0)
+		if (!creditOpen) return
+		const timeout = setTimeout(() => headlineInputRef.current?.focus(), 0)
+		return () => clearTimeout(timeout)
 	}, [creditOpen])
 
 	const isEditable = editor?.isEditable !== false
@@ -446,6 +452,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						ref={captionInputRef}
 						value={captionDraft}
 						onChange={(e) => setCaptionDraft(e.target.value)}
+						aria-label="Image caption"
 						onFocus={() => setCaptionFocused(true)}
 						onBlur={() => {
 							setCaptionFocused(false)

@@ -9,8 +9,10 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/perps/asset-groups`, async () => {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const { rows: assetGroups, initialChartDataset } = await getRWAPerpsAssetGroupsOverview()
+	const [metadataCache, { rows: assetGroups, initialChartDataset }] = await Promise.all([
+		import('~/utils/metadata').then((m) => m.default),
+		getRWAPerpsAssetGroupsOverview()
+	])
 
 	return {
 		props: {

@@ -173,11 +173,11 @@ export function MetricSentenceBuilder({
 	useEffect(() => {
 		if (activeToken === 'subject') {
 			subjectCombobox.setOpen(true)
-			setTimeout(() => {
+			const timeout = setTimeout(() => {
 				const portal = document.querySelector('[data-metric-token] input') as HTMLInputElement | null
 				portal?.focus()
 			}, 10)
-			return
+			return () => clearTimeout(timeout)
 		}
 
 		subjectCombobox.setValue('')
@@ -456,6 +456,7 @@ export function MetricSentenceBuilder({
 							<input
 								value={searchTerm}
 								onChange={(event) => setSearchTerm(event.target.value)}
+								aria-label="Search metrics"
 								placeholder="Search metrics..."
 								className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							/>

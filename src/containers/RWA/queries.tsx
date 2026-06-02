@@ -965,8 +965,10 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 }
 
 async function fetchYieldPoolData() {
-	const { fetchJson } = await import('~/utils/async')
-	const { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API } = await import('~/constants')
+	const [{ fetchJson }, { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API }] = await Promise.all([
+		import('~/utils/async'),
+		import('~/constants')
+	])
 
 	const [poolsRes, configRes, urlsRes] = await Promise.all([
 		fetchJson(YIELD_POOLS_API),

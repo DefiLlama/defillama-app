@@ -30,9 +30,11 @@ export async function buildTokenRightsDomain(rootDir: string): Promise<DatasetDo
 	const entries = await fetchJson<IRawTokenRightsEntry[]>(`${SERVER_URL}/token-rights`)
 	const indexes = buildTokenRightsIndexes(entries)
 
-	await writeJsonFile(path.join(domainDir, files.full), entries)
-	await writeJsonFile(path.join(domainDir, files.byDefillamaId), indexes.byDefillamaId)
-	await writeJsonFile(path.join(domainDir, files.byProtocolName), indexes.byProtocolName)
+	await Promise.all([
+		writeJsonFile(path.join(domainDir, files.full), entries),
+		writeJsonFile(path.join(domainDir, files.byDefillamaId), indexes.byDefillamaId),
+		writeJsonFile(path.join(domainDir, files.byProtocolName), indexes.byProtocolName)
+	])
 
 	return { builtAt }
 }
@@ -107,9 +109,11 @@ export async function buildLiquidationsDomain(rootDir: string): Promise<DatasetD
 		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	])
 
-	await writeJsonFile(path.join(domainDir, files.rawProtocols), protocolsResponse)
-	await writeJsonFile(path.join(domainDir, files.rawAll), allResponse)
-	await writeJsonFile(path.join(domainDir, files.rawBlockExplorers), blockExplorers)
+	await Promise.all([
+		writeJsonFile(path.join(domainDir, files.rawProtocols), protocolsResponse),
+		writeJsonFile(path.join(domainDir, files.rawAll), allResponse),
+		writeJsonFile(path.join(domainDir, files.rawBlockExplorers), blockExplorers)
+	])
 
 	return { builtAt }
 }
@@ -125,8 +129,10 @@ export async function buildMarketsDomain(rootDir: string): Promise<DatasetDomain
 		fetchExchangeMarketsListFromNetwork()
 	])
 
-	await writeJsonFile(path.join(domainDir, files.tokensList), tokensList)
-	await writeJsonFile(path.join(domainDir, files.exchangesList), exchangesList)
+	await Promise.all([
+		writeJsonFile(path.join(domainDir, files.tokensList), tokensList),
+		writeJsonFile(path.join(domainDir, files.exchangesList), exchangesList)
+	])
 
 	return { builtAt }
 }

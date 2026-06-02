@@ -8,10 +8,12 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {
-	const data = await getYieldPageData()
-	const { questions: entityQuestions } = await fetchEntityQuestions('yields', 'page').catch(() => ({
-		questions: [] as string[]
-	}))
+	const [data, { questions: entityQuestions }] = await Promise.all([
+		getYieldPageData(),
+		fetchEntityQuestions('yields', 'page').catch(() => ({
+			questions: [] as string[]
+		}))
+	])
 	const {
 		pools: _pools,
 		stablecoinInfoBySymbol: _stablecoinInfoBySymbol,
