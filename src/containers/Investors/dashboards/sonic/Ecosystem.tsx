@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { lazy, useEffect, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { lastNDaysZoom } from './chartDefaults'
 import { useEcosystemData, type TopProtocolEntry, type AssetCategory } from './ecosystemApi'
 
@@ -79,14 +79,14 @@ function makeProtocolColumns(valueLabel: string) {
 							<img
 								src={row.logo}
 								alt=""
-								className="h-5 w-5 shrink-0 rounded-full"
+								className="size-5 shrink-0 rounded-full"
 								loading="lazy"
 								onError={(e) => {
 									;(e.target as HTMLImageElement).style.display = 'none'
 								}}
 							/>
 						) : (
-							<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-(--sl-accent-muted) text-[10px] font-bold text-(--sl-accent)">
+							<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-(--sl-accent-muted) text-[10px] font-bold text-(--sl-accent)">
 								{row.name.charAt(0)}
 							</span>
 						)}
@@ -259,7 +259,7 @@ function AssetBreakdownSection({
 										<span className="w-4 shrink-0 text-[10px] text-(--text-label)">
 											{hasChildren ? (isOpen ? '\u25BC' : '\u25B6') : ''}
 										</span>
-										<span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
+										<span className="inline-block size-2 shrink-0 rounded-full" style={{ background: color }} />
 										<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary) capitalize">{cat.name}</span>
 										<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{cat.formatted}</span>
 										<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{cat.pct}%</span>
@@ -424,7 +424,7 @@ export default function Ecosystem() {
 											key={coin.name}
 											className="flex items-center gap-2 border-b border-(--cards-border) py-2.5 last:border-b-0"
 										>
-											<span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
+											<span className="inline-block size-2 shrink-0 rounded-full" style={{ background: color }} />
 											<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary)">{coin.name}</span>
 											<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{coin.formatted}</span>
 											<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{coin.pct}%</span>

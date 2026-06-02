@@ -51,6 +51,15 @@ const LinkedInIcon = () => (
 	</svg>
 )
 
+const RssFeedIcon = () => (
+	<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<circle cx="18" cy="18" r="18" fill="white" />
+		<circle cx="13" cy="24" r="2.4" fill="#237BFF" />
+		<path d="M11 15.5a9.5 9.5 0 0 1 9.5 9.5" stroke="#237BFF" strokeWidth="2.6" strokeLinecap="round" />
+		<path d="M11 10.5a14.5 14.5 0 0 1 14.5 14.5" stroke="#237BFF" strokeWidth="2.6" strokeLinecap="round" />
+	</svg>
+)
+
 const BookCallIcon = () => (
 	<svg xmlns="http://www.w3.org/2000/svg" width={28} height={29} fill="none">
 		<g fill="#fff" clipPath="url(#a)">
@@ -80,7 +89,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 					</h2>
 
 					<div className="flex flex-col items-center gap-[36px] lg:flex-row">
-						<div className="flex space-x-[12px]">
+						<div className="flex gap-[12px]">
 							<a
 								href="mailto:research@defillama.com"
 								className="flex items-center rounded-full bg-white px-[14px] py-[12px] text-[16px] leading-[50%] text-[#237BFF] md:px-[24px] md:py-[14px]"
@@ -91,7 +100,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								href="https://calendly.com/research-defillama/30min"
 								target="_blank"
 								rel="noopener noreferrer"
-								className="flex items-center space-x-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
+								className="flex items-center gap-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
 							>
 								<span>Book a call</span>
 
@@ -99,7 +108,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 							</Link>
 						</div>
 
-						<div className="flex space-x-[7px]">
+						<div className="flex gap-[7px]">
 							<Link
 								href="https://x.com/defillama_res"
 								aria-label="Follow us on X"
@@ -123,6 +132,9 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								target="_blank"
 							>
 								<LinkedInIcon />
+							</Link>
+							<Link href="/research/feed" aria-label="Subscribe via RSS">
+								<RssFeedIcon />
 							</Link>
 						</div>
 					</div>

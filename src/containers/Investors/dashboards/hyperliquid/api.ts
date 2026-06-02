@@ -50,7 +50,7 @@ export function useHyperliquidWs(subscriptions: WsSubscription[], onMessage: (ms
 	const cbRef = useRef(onMessage)
 	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-	const lastMessageAtRef = useRef<number>(Date.now())
+	const lastMessageAtRef = useRef<number>(0)
 	const backoffRef = useRef(1000)
 	const mountedRef = useRef(true)
 	const prevSubsRef = useRef<Map<string, WsSubscription>>(new Map())
@@ -332,7 +332,7 @@ export function useHyperliquidHlpPortfolio(window: 'day' | 'week' | 'month' | 'a
 }
 
 export function useCountdown(targetMs: number | null) {
-	const [now, setNow] = useState(Date.now())
+	const [now, setNow] = useState(() => Date.now())
 
 	useEffect(() => {
 		if (!targetMs) return

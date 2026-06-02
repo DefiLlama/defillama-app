@@ -123,7 +123,7 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 			}}
 			className="flex items-center gap-1.5 rounded-full border border-[#e6e6e6] bg-white/90 px-3 py-1.5 text-xs font-medium text-[#333] shadow-[0_2px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)] active:scale-95 dark:border-[#39393E] dark:bg-[#1a1a1d]/90 dark:text-[#ccc] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)]"
 		>
-			<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-3.5 w-3.5" />
+			<img src="/assets/llamaai/llama-ai.svg" alt="" className="size-3.5" />
 			Ask LlamaAI
 		</button>,
 		document.body

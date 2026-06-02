@@ -479,7 +479,7 @@ export function BannerForm({ banner }: Props) {
 						type="checkbox"
 						checked={state.enabled}
 						onChange={(e) => update({ enabled: e.target.checked })}
-						className="h-4 w-4 accent-(--link-text)"
+						className="size-4 accent-(--link-text)"
 					/>
 					<span className="text-sm text-(--text-primary)">Enabled</span>
 				</label>
@@ -490,7 +490,7 @@ export function BannerForm({ banner }: Props) {
 					<span className="inline-flex items-center gap-2 text-xs text-(--text-tertiary)">
 						<span
 							aria-hidden
-							className={`h-1.5 w-1.5 rounded-full transition-colors ${dirty ? 'bg-amber-500' : 'bg-emerald-500'}`}
+							className={`size-1.5 rounded-full transition-colors ${dirty ? 'bg-amber-500' : 'bg-emerald-500'}`}
 						/>
 						{dirty ? 'Unsaved changes' : banner ? 'All changes saved' : 'New banner'}
 					</span>

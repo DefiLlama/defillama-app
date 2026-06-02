@@ -97,13 +97,6 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 	})
 
 	useEffect(() => {
-		const timers = flashTimers.current
-		return () => {
-			for (const t of Object.values(timers)) clearTimeout(t)
-		}
-	}, [])
-
-	useEffect(() => {
 		const track = trackRef.current
 		if (!track) return
 
@@ -173,6 +166,8 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 		return () => {
 			ro.disconnect()
 			cancelAnimationFrame(rafRef.current)
+			for (const timer of Object.values(flashTimers.current)) clearTimeout(timer)
+			flashTimers.current = {}
 			lastTsRef.current = null
 		}
 	}, [coins])

@@ -131,7 +131,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 	const header = (
 		<div className="mb-5 flex items-center justify-between">
 			<div className="flex items-center gap-2">
-				<img src="/assets/logo_white.webp" alt="" className="h-7 w-7" />
+				<img src="/assets/logo_white.webp" alt="" className="size-7" />
 				<span className="text-sm font-semibold text-(--text-primary)">DefiLlama</span>
 			</div>
 			<Ariakit.DialogDismiss className="rounded-full p-1 text-(--text-tertiary) transition-colors hover:text-(--text-primary)">
@@ -319,7 +319,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 					<label className="flex items-start gap-2">
 						<input
 							type="checkbox"
-							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-(--primary)"
+							className="mt-0.5 size-4 shrink-0 rounded accent-(--primary)"
 							checked={acceptedTerms}
 							onChange={(e) => setAcceptedTerms(e.target.checked)}
 						/>
@@ -338,7 +338,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 					<label className="flex items-start gap-2">
 						<input
 							type="checkbox"
-							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-(--primary)"
+							className="mt-0.5 size-4 shrink-0 rounded accent-(--primary)"
 							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>

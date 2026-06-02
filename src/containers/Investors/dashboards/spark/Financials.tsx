@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { assignColors } from './api'
 import { useFinancialsData, type AllocatedAssetsData, type AllocatedAssetsEntry } from './financialsApi'
 
@@ -176,7 +176,7 @@ function AllocatedAssetsSection({
 												<span className="w-4 shrink-0 text-[10px] text-(--text-label)">
 													{hasChildren ? (isOpen ? '▼' : '▶') : ''}
 												</span>
-												<span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
+												<span className="inline-block size-2 shrink-0 rounded-full" style={{ background: color }} />
 												<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary)">{entry.name}</span>
 												<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{entry.formatted}</span>
 												<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{entry.pct}%</span>
@@ -643,7 +643,7 @@ export default function Financials() {
 										<tr key={item.name} className="border-b border-(--cards-border) last:border-b-0">
 											<td className="py-2.5 text-sm text-(--text-primary)">
 												<span
-													className="mr-2 inline-block h-2 w-2 rounded-full"
+													className="mr-2 inline-block size-2 rounded-full"
 													style={{ background: data.breakdownColors[item.name] || '#8b949e' }}
 												/>
 												{item.name}

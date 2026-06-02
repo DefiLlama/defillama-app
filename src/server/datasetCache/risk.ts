@@ -1,7 +1,7 @@
 import type { TokenRiskBorrowCapacityResponse, TokenRiskBorrowCapacityTokenEntry } from '~/containers/Token/api.types'
 import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
+import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { readDatasetDomainJson } from './core'
-import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
 const RISK_FILES = DATASET_DOMAIN_ARTIFACTS.risk.files
 

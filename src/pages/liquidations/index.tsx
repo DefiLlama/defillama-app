@@ -13,9 +13,10 @@ export const getStaticProps = withPerformanceLogging(
 		props: LiquidationsOverviewShell
 		revalidate: number
 	}> => {
-		const metadataModule = await import('~/utils/metadata')
-		const { getLiquidationsProtocolsList } = await import('~/server/datasetCache/runtime/liquidations')
-		const protocolsResponse = await getLiquidationsProtocolsList()
+		const [metadataModule, protocolsResponse] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/datasetCache/runtime/liquidations').then((m) => m.getLiquidationsProtocolsList())
+		])
 		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
 		const protocolLinks = [
 			{ label: 'Overview', to: '/liquidations' },

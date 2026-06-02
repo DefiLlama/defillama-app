@@ -17,7 +17,7 @@ function formatSize(bytes: number): string {
 	return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function PdfIcon({ className = 'h-5 w-5' }: { className?: string }) {
+function PdfIcon({ className = 'size-5' }: { className?: string }) {
 	return (
 		<svg
 			viewBox="0 0 24 24"
@@ -66,7 +66,7 @@ export function PdfUploadButton({ articleId, currentPdf, onUploaded, onCleared, 
 			{currentPdf ? (
 				<div className="grid gap-2">
 					<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<PdfIcon className="h-6 w-6 shrink-0 text-(--link-text)" />
+						<PdfIcon className="size-6 shrink-0 text-(--link-text)" />
 						<div className="flex min-w-0 flex-col">
 							<a
 								href={currentPdf.url}
@@ -110,7 +110,7 @@ export function PdfUploadButton({ articleId, currentPdf, onUploaded, onCleared, 
 					onClick={open}
 					className="group flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 				>
-					<PdfIcon className="h-5 w-5" />
+					<PdfIcon className="size-5" />
 					<span className="text-xs font-medium">{isUploading ? 'Uploading…' : 'Upload PDF'}</span>
 				</button>
 			)}

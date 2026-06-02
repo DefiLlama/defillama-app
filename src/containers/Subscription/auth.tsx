@@ -770,6 +770,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			<VerifyEmailDialog
 				isOpen={verifyEmailPrompt.isOpen}
 				email={verifyEmailPrompt.email}
+				sendOtp={contextValue.sendOtp}
+				verifyOtp={contextValue.verifyOtp}
+				loaders={contextValue.loaders}
 				onClose={() => setVerifyEmailPrompt({ isOpen: false })}
 			/>
 		</AuthContext.Provider>

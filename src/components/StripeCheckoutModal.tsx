@@ -168,7 +168,7 @@ export function StripeCheckoutModal({
 					<div className={checkoutHeaderClassName}>
 						<h2 className={checkoutTitleClassName}>Checkout</h2>
 						<Ariakit.DialogDismiss className={checkoutCloseButtonClassName}>
-							<Icon name="x" className="h-6 w-6" />
+							<Icon name="x" className="size-6" />
 						</Ariakit.DialogDismiss>
 					</div>
 					<div className="px-5 py-8 text-center text-(--sub-text-muted)">
@@ -190,7 +190,7 @@ export function StripeCheckoutModal({
 					<div className={checkoutHeaderClassName}>
 						<h2 className={checkoutTitleClassName}>Complete Your Upgrade</h2>
 						<Ariakit.DialogDismiss className={checkoutCloseButtonClassName}>
-							<Icon name="x" className="h-6 w-6" />
+							<Icon name="x" className="size-6" />
 						</Ariakit.DialogDismiss>
 					</div>
 
@@ -264,7 +264,7 @@ export function StripeCheckoutModal({
 				<div className={checkoutHeaderClassName}>
 					<h2 className={checkoutTitleClassName}>Complete Your Purchase</h2>
 					<Ariakit.DialogDismiss className={checkoutCloseButtonClassName}>
-						<Icon name="x" className="h-6 w-6" />
+						<Icon name="x" className="size-6" />
 					</Ariakit.DialogDismiss>
 				</div>
 

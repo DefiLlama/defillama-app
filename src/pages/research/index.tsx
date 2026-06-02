@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import Head from 'next/head'
+import Link from 'next/link'
+import { Icon } from '~/components/Icon'
 import { ArticleApiError, getLandingBanner, getResearchLanding } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
+import { RssMark } from '~/containers/Articles/feed/RssMark'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
 import { ResearchCollections } from '~/containers/Articles/landing/ResearchCollections'
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
@@ -251,9 +255,27 @@ function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps 
 					</ResearchSectionWithSharedHeightProvider>
 
 					<ResearchCollections title="Collections" articles={landingData?.collections ?? []} />
+
+					<ResearchLandingFooter />
 				</div>
 			</div>
 		</div>
+	)
+}
+
+function ResearchLandingFooter() {
+	return (
+		<footer className="flex flex-col items-center justify-between gap-4 border-t border-[#0c2956]/15 pt-6 text-[#0c2956] sm:flex-row dark:border-white/15 dark:text-white">
+			<span className="text-[14px] leading-[150%] opacity-70">DefiLlama Research</span>
+			<Link
+				href="/research/feed"
+				className="group inline-flex items-center gap-2.5 text-[14px] leading-[150%] font-medium transition-opacity hover:opacity-100"
+			>
+				<RssMark size={18} />
+				<span>Subscribe via RSS</span>
+				<Icon name="arrow-right" height={14} width={14} className="transition-transform group-hover:translate-x-0.5" />
+			</Link>
+		</footer>
 	)
 }
 
@@ -270,6 +292,14 @@ export default function ArticlesPage({
 			canonicalUrl="/research"
 			hideDesktopSearch
 		>
+			<Head>
+				<link
+					rel="alternate"
+					type="application/rss+xml"
+					title="DefiLlama Research"
+					href="https://defillama.com/research/feed.xml"
+				/>
+			</Head>
 			<style>{`main{padding:0}#__next{gap:0;}`}</style>
 			<ArticleProxyAuthProvider>
 				<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">

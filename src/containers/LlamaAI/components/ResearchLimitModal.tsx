@@ -82,12 +82,12 @@ export function ResearchLimitModal({
 					onClick={handleClose}
 					className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white"
 				>
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</button>
 
 				<div className="relative z-10 px-8 py-10">
 					<div className="mb-6 flex justify-center">
-						<div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFF3E0] dark:bg-[#3D2F1F]">
+						<div className="flex size-16 items-center justify-center rounded-full bg-[#FFF3E0] dark:bg-[#3D2F1F]">
 							<Icon name="circle-x" height={32} width={32} className="text-[#FF9800]" />
 						</div>
 					</div>

@@ -73,7 +73,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 							<button
 								key={coin.name}
 								onClick={() => selectCoin(coin)}
-								className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+								className="flex w-full items-center gap-2 rounded-md p-2 text-sm hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							>
 								<img
 									alt={''}
@@ -96,7 +96,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 					})}
 					{resultsLength < filteredCoins.length ? (
 						<button
-							className="w-full px-3 py-3 text-left text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="w-full p-3 text-left text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							onClick={showMoreResults}
 						>
 							See more...
@@ -158,7 +158,7 @@ function CorrelationCell({
 		<td
 			title={`Aligned prices: ${aligned}\nReturns used: ${returns}\nMinimum required: ${requiredReturnPoints}`}
 			style={{ backgroundColor }}
-			className="relative h-12 w-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
+			className="relative size-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
 		>
 			{corr == null ? '--' : corr.toFixed(2)}
 		</td>
@@ -377,7 +377,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 								onClick={dialogStore.toggle}
 								className="flex h-12 items-center gap-1 rounded-md px-3.25 py-2 text-sm text-(--link) hover:bg-(--link-hover-bg)"
 							>
-								<Icon name="plus" className="h-3.5 w-3.5" />
+								<Icon name="plus" className="size-3.5" />
 								<span>Add token</span>
 							</button>
 						</div>
@@ -389,7 +389,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 										{coins.map((coin) => (
 											<td
 												key={`h-${coin.id}`}
-												className="relative h-12 w-12 font-bold hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
+												className="relative size-12 font-bold hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
 											>
 												{coin.symbol.toUpperCase()}
 											</td>
@@ -397,7 +397,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 										<td>
 											<button
 												onClick={dialogStore.toggle}
-												className="flex h-12 w-12 items-center justify-center text-(--link) hover:bg-[rgba(59,130,246,0.12)] focus-visible:bg-[rgba(59,130,246,0.12)]"
+												className="flex size-12 items-center justify-center text-(--link) hover:bg-[rgba(59,130,246,0.12)] focus-visible:bg-[rgba(59,130,246,0.12)]"
 											>
 												<Icon name="plus" height={16} width={16} />
 											</button>
@@ -407,14 +407,14 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 								<tbody>
 									{coins.map((coin) => (
 										<tr key={`r-${coin.id}`} className="hover:bg-[rgba(59,130,246,0.12)]">
-											<td className="relative h-12 w-12 font-bold hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']">
+											<td className="relative size-12 font-bold hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']">
 												{coin.symbol.toUpperCase()}
 											</td>
 											{coins.map((coin1) =>
 												coin1.id === coin.id ? (
 													<td
 														key={`d-${coin.id}`}
-														className="relative h-12 w-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
+														className="relative size-12 hover:after:pointer-events-none hover:after:absolute hover:after:top-[-5000px] hover:after:left-0 hover:after:h-[10000px] hover:after:w-full hover:after:bg-[rgba(59,130,246,0.12)] hover:after:content-['']"
 													>
 														<CoinImage src={coin.image} />
 													</td>
@@ -436,7 +436,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 										<td>
 											<button
 												onClick={dialogStore.toggle}
-												className="flex h-12 w-12 items-center justify-center text-(--link) hover:bg-[rgba(59,130,246,0.12)] focus-visible:bg-[rgba(59,130,246,0.12)]"
+												className="flex size-12 items-center justify-center text-(--link) hover:bg-[rgba(59,130,246,0.12)] focus-visible:bg-[rgba(59,130,246,0.12)]"
 											>
 												<Icon name="plus" height={16} width={16} />
 											</button>

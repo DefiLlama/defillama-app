@@ -156,7 +156,7 @@ export function ArticleEditorHeader({
 								: 'border-transparent text-(--text-secondary) hover:border-(--cards-border) hover:bg-(--link-hover-bg) disabled:hover:border-transparent disabled:hover:bg-transparent'
 					}`}
 				>
-					<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${pillDot}`} />
+					<span aria-hidden className={`size-1.5 rounded-full ${pillDot}`} />
 					<span className="tabular-nums">
 						{pillState === 'error' ? 'Save failed · Retry' : pillState === 'unsaved' ? 'Save' : pillLabel}
 					</span>
@@ -195,7 +195,7 @@ export function ArticleEditorHeader({
 										: 'text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
 								}`}
 							>
-								<Icon name={item.icon} className="h-3.5 w-3.5" />
+								<Icon name={item.icon} className="size-3.5" />
 								<span className="hidden sm:inline">{item.label}</span>
 							</button>
 						)
@@ -207,10 +207,10 @@ export function ArticleEditorHeader({
 						type="button"
 						onClick={onOpenHistory}
 						title="Revision history"
-						className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+						className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
 					>
 						<svg
-							className="h-4 w-4"
+							className="size-4"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -253,7 +253,7 @@ export function ArticleEditorHeader({
 							<Ariakit.MenuButton className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40">
 								<span
 									aria-hidden
-									className={`h-1.5 w-1.5 rounded-full ${hasPendingEdits ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
+									className={`size-1.5 rounded-full ${hasPendingEdits ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
 								/>
 								<span>{hasPendingEdits ? 'Live · Pending' : 'Live'}</span>
 								<span aria-hidden className="text-(--text-tertiary)">
@@ -275,23 +275,23 @@ export function ArticleEditorHeader({
 									}
 								>
 									<span className="flex items-center gap-2">
-										<Icon name="eye" className="h-3.5 w-3.5" />
+										<Icon name="eye" className="size-3.5" />
 										View live
 									</span>
-									<Icon name="external" className="h-3 w-3 text-(--text-tertiary)" />
+									<Icon name="external" className="size-3 text-(--text-tertiary)" />
 								</Ariakit.MenuItem>
 								<Ariakit.MenuItem
 									onClick={onOpenMeta}
 									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 								>
-									<Icon name="sliders" className="h-3.5 w-3.5" />
+									<Icon name="sliders" className="size-3.5" />
 									Edit listing
 								</Ariakit.MenuItem>
 								<Ariakit.MenuItem
 									onClick={onOpenHistory}
 									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 								>
-									<Icon name="check" className="h-3.5 w-3.5" />
+									<Icon name="check" className="size-3.5" />
 									Revision history
 								</Ariakit.MenuItem>
 								<Ariakit.MenuItem
@@ -299,7 +299,7 @@ export function ArticleEditorHeader({
 									disabled={isPublishing}
 									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 								>
-									<Icon name="undo" className="h-3.5 w-3.5" />
+									<Icon name="undo" className="size-3.5" />
 									Move to drafts
 								</Ariakit.MenuItem>
 								{isOwner ? (
@@ -309,7 +309,7 @@ export function ArticleEditorHeader({
 											onClick={handleDeleteArticle}
 											className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
 										>
-											<Icon name="trash" className="h-3.5 w-3.5" />
+											<Icon name="trash" className="size-3.5" />
 											Delete
 										</Ariakit.MenuItem>
 									</>
@@ -326,7 +326,7 @@ export function ArticleEditorHeader({
 								title="Set a section"
 								className="flex h-9 items-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-transparent px-3 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-secondary)"
 							>
-								<Icon name="sliders" className="h-3.5 w-3.5" />
+								<Icon name="sliders" className="size-3.5" />
 								<span>Set section</span>
 							</button>
 						) : null}
@@ -337,9 +337,9 @@ export function ArticleEditorHeader({
 								title="Delete draft"
 								disabled={deletePending}
 								onClick={handleDeleteArticle}
-								className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+								className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 							>
-								<Icon name="trash" className="h-3.5 w-3.5" />
+								<Icon name="trash" className="size-3.5" />
 							</button>
 						) : null}
 						<button

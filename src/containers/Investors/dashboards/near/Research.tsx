@@ -86,7 +86,7 @@ function ReportCard({ source, title, url, color }: { source: string; title: stri
 			className="group flex gap-4 rounded-xl border border-(--cards-border) bg-(--cards-bg) p-5 transition-all hover:border-(--sl-accent)/20 hover:shadow-md"
 		>
 			<div
-				className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+				className="flex size-10 shrink-0 items-center justify-center rounded-lg"
 				style={{ backgroundColor: color + '18' }}
 			>
 				<span className="text-sm font-bold" style={{ color }}>
@@ -106,7 +106,7 @@ function ReportCard({ source, title, url, color }: { source: string; title: stri
 				fill="none"
 				stroke="currentColor"
 				strokeWidth="2"
-				className="mt-1 h-4 w-4 shrink-0 text-(--text-tertiary) transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--sl-accent)"
+				className="mt-1 size-4 shrink-0 text-(--text-tertiary) transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--sl-accent)"
 			>
 				<path d="M7 17L17 7M17 7H7M17 7v10" />
 			</svg>
@@ -132,7 +132,7 @@ function PaperCard({
 			rel="noopener noreferrer"
 			className="group flex gap-4 rounded-xl border border-(--cards-border) bg-(--cards-bg) p-5 transition-all hover:border-(--sl-accent)/20 hover:shadow-md"
 		>
-			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--sl-accent-muted)">
+			<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-(--sl-accent-muted)">
 				<span className="text-sm font-bold text-(--sl-accent)">{icon}</span>
 			</div>
 			<div className="flex flex-1 flex-col gap-1">
@@ -146,7 +146,7 @@ function PaperCard({
 				fill="none"
 				stroke="currentColor"
 				strokeWidth="2"
-				className="mt-1 h-4 w-4 shrink-0 text-(--text-tertiary) transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--sl-accent)"
+				className="mt-1 size-4 shrink-0 text-(--text-tertiary) transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--sl-accent)"
 			>
 				<path d="M7 17L17 7M17 7H7M17 7v10" />
 			</svg>
@@ -170,7 +170,7 @@ function LinkItem({ title, url }: { title: string; url: string }) {
 				fill="none"
 				stroke="currentColor"
 				strokeWidth="2"
-				className="h-4 w-4 shrink-0 text-(--text-tertiary) transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--sl-accent)"
+				className="size-4 shrink-0 text-(--text-tertiary) transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--sl-accent)"
 			>
 				<path d="M7 17L17 7M17 7H7M17 7v10" />
 			</svg>

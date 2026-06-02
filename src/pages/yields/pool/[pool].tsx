@@ -236,7 +236,7 @@ function HolderFlowSummaryBar({
 					key={seg.label}
 					className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${seg.pillClass}`}
 				>
-					<span className={`h-1.5 w-1.5 rounded-full ${seg.dotClass}`} />
+					<span className={`size-1.5 rounded-full ${seg.dotClass}`} />
 					{seg.count} {seg.label}
 				</span>
 			))}
@@ -430,7 +430,7 @@ function TopHoldersTable({
 								<td className="py-1.5 pl-2">
 									<div className="flex items-center gap-2">
 										<span
-											className="h-2.5 w-2.5 shrink-0 rounded-full transition-transform duration-200"
+											className="size-2.5 shrink-0 rounded-full transition-transform duration-200"
 											style={{
 												backgroundColor: barColor,
 												transform: hoveredIndex === i ? 'scale(1.5)' : 'scale(1)'
@@ -829,7 +829,7 @@ const PageView = ({ pool, config, poolId }: { pool: IYieldTableRow; config: any;
 										<span className="font-semibold">Top 10 %</span>
 										<span className="ml-auto flex items-center gap-1.5 font-jetbrains">
 											<span
-												className="h-2 w-2 rounded-full"
+												className="size-2 rounded-full"
 												style={{
 													backgroundColor:
 														holderStats.top10Pct >= 80 ? '#ef4444' : holderStats.top10Pct >= 50 ? '#eab308' : '#22c55e'

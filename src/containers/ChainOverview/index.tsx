@@ -60,7 +60,7 @@ export function ChainOverview(props: IChainOverviewData) {
 									</span>
 								)}
 							</span>
-							<Icon name="arrow-up-right-2" className="h-6 w-6 shrink-0" />
+							<Icon name="arrow-up-right-2" className="size-6 shrink-0" />
 						</a>
 					))}
 				</div>

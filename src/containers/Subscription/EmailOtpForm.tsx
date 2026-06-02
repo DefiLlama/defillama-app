@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 
 const inputCls =
@@ -11,18 +10,26 @@ const RESEND_COOLDOWN_MS = 30_000
 
 export function EmailOtpForm({
 	email,
+	sendOtp,
+	verifyOtp,
+	loaders,
 	autoSend = true,
 	onVerified,
 	dismissLabel = 'Cancel',
 	onDismiss
 }: {
 	email?: string
+	sendOtp: () => Promise<void>
+	verifyOtp: (otp: string) => Promise<void>
+	loaders: {
+		sendOtp: boolean
+		verifyOtp: boolean
+	}
 	autoSend?: boolean
 	onVerified?: () => void
 	dismissLabel?: string
 	onDismiss?: () => void
 }) {
-	const { sendOtp, verifyOtp, loaders } = useAuthContext()
 	const [otp, setOtp] = useState('')
 	const [error, setError] = useState('')
 	const [cooldownLeft, setCooldownLeft] = useState(0)

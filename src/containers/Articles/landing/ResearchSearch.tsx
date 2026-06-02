@@ -124,7 +124,7 @@ function SearchBar({ searchQuery, routePath }: { searchQuery: ResearchSearchQuer
 			</label>
 			<button
 				type="submit"
-				className="ml-2 inline-flex items-center gap-1 px-1 py-1 font-jetbrains text-[11px] tracking-[0.18em] text-[#237BFF] uppercase transition-colors hover:text-[#0c2956] dark:hover:text-white"
+				className="ml-2 inline-flex items-center gap-1 p-1 font-jetbrains text-[11px] tracking-[0.18em] text-[#237BFF] uppercase transition-colors hover:text-[#0c2956] dark:hover:text-white"
 			>
 				<span>Search</span>
 				<span aria-hidden>→</span>
@@ -195,18 +195,11 @@ function ResultCard({ article }: { article: ArticleDocument }) {
 						alt={article.coverImage?.alt}
 						loading="lazy"
 						decoding="async"
-						className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+						className="size-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
 					/>
 				) : (
-					<div className="grid h-full w-full place-items-center text-[#0c2956]/20 dark:text-white/20">
-						<svg
-							viewBox="0 0 32 32"
-							className="h-6 w-6"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							aria-hidden
-						>
+					<div className="grid size-full place-items-center text-[#0c2956]/20 dark:text-white/20">
+						<svg viewBox="0 0 32 32" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
 							<path d="M4 10h24v18H4z" />
 							<path d="M9 6h14v4" />
 						</svg>
@@ -314,7 +307,7 @@ function EmptyState({ query, tag, section }: { query: string; tag: string; secti
 			<div className="grid max-w-md gap-3">
 				<svg
 					viewBox="0 0 64 64"
-					className="mx-auto h-12 w-12 text-[#0c2956]/25 dark:text-white/25"
+					className="mx-auto size-12 text-[#0c2956]/25 dark:text-white/25"
 					fill="none"
 					stroke="currentColor"
 					strokeWidth="2"

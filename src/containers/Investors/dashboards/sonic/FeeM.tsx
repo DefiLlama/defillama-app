@@ -11,7 +11,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { lazy, useEffect, useId, useMemo, useRef } from 'react'
 import type { IMultiSeriesChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { lastNDaysZoom } from './chartDefaults'
 import { useFeeMData, type FeeMLeaderboardEntry } from './feemApi'
@@ -187,19 +187,19 @@ const columns = [
 			const content = (
 				<div className="flex items-center gap-2">
 					{isSonicFallback ? (
-						<SonicIcon className="h-5 w-5 shrink-0" />
+						<SonicIcon className="size-5 shrink-0" />
 					) : row.imageUrl ? (
 						<img
 							src={row.imageUrl}
 							alt=""
-							className="h-5 w-5 shrink-0 rounded-full"
+							className="size-5 shrink-0 rounded-full"
 							loading="lazy"
 							onError={(e) => {
 								;(e.target as HTMLImageElement).style.display = 'none'
 							}}
 						/>
 					) : (
-						<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-(--sl-accent-muted) text-[10px] font-bold text-(--sl-accent)">
+						<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-(--sl-accent-muted) text-[10px] font-bold text-(--sl-accent)">
 							{displayName.charAt(0)}
 						</span>
 					)}

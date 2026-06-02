@@ -164,9 +164,9 @@ export const EntitySuggestionList = forwardRef<EntitySuggestionListHandle, Props
 					command(item)
 				}}
 			>
-				<span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
+				<span className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
 					{item.logo ? (
-						<img src={item.logo} alt="" className="h-full w-full object-cover" loading="lazy" />
+						<img src={item.logo} alt="" className="size-full object-cover" loading="lazy" />
 					) : (
 						<span className="text-[9px] font-medium tracking-wider text-(--text-tertiary)">
 							{item.label.slice(0, 2).toUpperCase()}

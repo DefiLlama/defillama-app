@@ -244,11 +244,12 @@ describe('research ISR data loading', () => {
 
 		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
-		expect(result.props.section).toBe('report')
-		expect(result.props.initialArticles.items[0]?.title).toBe('Canonical Research')
+		const props = await Promise.resolve(result.props)
+		expect(props.section).toBe('report')
+		expect(props.initialArticles.items[0]?.title).toBe('Canonical Research')
 		expect(getSectionBanner).toHaveBeenCalledWith('report')
 
-		const html = renderWithQueryClient(<SectionLandingPage {...result.props} />)
+		const html = renderWithQueryClient(<SectionLandingPage {...props} />)
 		expect(html).toContain('Canonical Research')
 		expect(html).toContain('Report')
 	})

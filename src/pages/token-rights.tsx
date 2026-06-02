@@ -99,18 +99,20 @@ const TOKEN_RIGHTS_FILTERS: Array<{ key: TokenRightsFilter; label: string }> = [
 const DEFAULT_TOKEN_RIGHTS_SORTING: SortingState = [{ id: 'holdersRevenue24h', desc: true }]
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
-	const tokenRightsEntriesPromise = import('~/server/datasetCache/runtime/tokenRights').then((mod) =>
-		mod.fetchTokenRightsEntries()
-	)
-	const metadataModule = await import('~/utils/metadata')
-	const holdersRevenue = await import('~/containers/DimensionAdapters/api').then((m) =>
-		m.fetchAdapterChainMetrics({
-			adapterType: ADAPTER_TYPES.FEES,
-			chain: 'All',
-			dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
-		})
-	)
-	const entries = await tokenRightsEntriesPromise
+	const [entries, metadataModule, holdersRevenue, { protocols: liteProtocols, parentProtocols }] = await Promise.all([
+		import('~/server/datasetCache/runtime/tokenRights').then((mod) => mod.fetchTokenRightsEntries()),
+		import('~/utils/metadata'),
+		import('~/containers/DimensionAdapters/api').then((m) =>
+			m.fetchAdapterChainMetrics({
+				adapterType: ADAPTER_TYPES.FEES,
+				chain: 'All',
+				dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+			})
+		),
+		import('~/containers/Protocols/api')
+			.then((m) => m.fetchProtocols())
+			.catch(() => ({ protocols: [], parentProtocols: [] }))
+	])
 
 	const { chainMetadata, protocolMetadata, tokenDirectory, cexs } = metadataModule.default as {
 		chainMetadata: Record<string, IChainMetadata>
@@ -118,9 +120,6 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 		tokenDirectory: TokenDirectory
 		cexs: ICexItem[]
 	}
-	const { protocols: liteProtocols, parentProtocols } = await import('~/containers/Protocols/api')
-		.then((m) => m.fetchProtocols())
-		.catch(() => ({ protocols: [], parentProtocols: [] }))
 	const holdersRevenueByDefillamaId = buildHoldersRevenueByDefillamaId(
 		holdersRevenue.protocols,
 		liteProtocols,
@@ -744,8 +743,8 @@ function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; l
 					<span
 						className={
 							active
-								? 'h-2 w-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
-								: 'h-2 w-2 rounded-full border border-green-600/40'
+								? 'size-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+								: 'size-2 rounded-full border border-green-600/40'
 						}
 					/>
 					<span>
@@ -764,8 +763,8 @@ function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; l
 						key={labels[index]}
 						className={
 							active
-								? 'h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
-								: 'h-3 w-3 rounded-full border-2 border-green-600/40'
+								? 'size-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+								: 'size-3 rounded-full border-2 border-green-600/40'
 						}
 					/>
 				))}
@@ -837,7 +836,7 @@ function TooltipStatusPill({
 	return (
 		<Tooltip
 			content={tooltip}
-			render={<button type="button" />}
+			render={<button type="button" aria-label={label} />}
 			className={getStatusPillClassName(tone, extraClassName)}
 		>
 			{label}
@@ -862,11 +861,11 @@ function TokenRightsLegend() {
 		<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-(--text-secondary)">
 			<span className="text-xs font-semibold tracking-widest text-(--text-label) uppercase">Legend</span>
 			<span className="inline-flex items-center gap-2">
-				<span className="h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]" />
+				<span className="size-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]" />
 				Active
 			</span>
 			<span className="inline-flex items-center gap-2">
-				<span className="h-3 w-3 rounded-full border-2 border-green-600/40" />
+				<span className="size-3 rounded-full border-2 border-green-600/40" />
 				Inactive
 			</span>
 			<span className="inline-flex items-center gap-2">

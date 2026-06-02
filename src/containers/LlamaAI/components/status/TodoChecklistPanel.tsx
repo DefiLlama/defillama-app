@@ -95,7 +95,7 @@ export function TodoChecklistPanel({
 					const isCompleted = todo.status === 'completed'
 					const isCancelled = todo.status === 'cancelled'
 					return (
-						<li key={todo.id} className="flex items-start gap-2 px-0.5 py-0.5">
+						<li key={todo.id} className="flex items-start gap-2 p-0.5">
 							<span className="mt-0.5">
 								<TodoStatusIcon status={todo.status} animated={isLive} />
 							</span>

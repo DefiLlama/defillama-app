@@ -256,7 +256,7 @@ function renderTaskItem(node: TiptapJson, key: string, ctx: RenderContext) {
 	const checked = !!node.attrs?.checked
 	return (
 		<li key={key} className="article-task-item not-prose flex items-start gap-2 pl-0" data-checked={checked}>
-			<input type="checkbox" checked={checked} readOnly className="mt-1.5 h-3.5 w-3.5 shrink-0 accent-(--link-text)" />
+			<input type="checkbox" checked={checked} readOnly className="mt-1.5 size-3.5 shrink-0 accent-(--link-text)" />
 			<div className={`min-w-0 flex-1 ${checked ? 'text-(--text-tertiary) line-through' : 'text-(--text-primary)'}`}>
 				{renderChildren(node, key, ctx)}
 			</div>
@@ -594,7 +594,7 @@ function CompactTocBar({ toc, groups, active }: { toc: TocEntry[]; groups: TocGr
 				</span>
 				<span className="flex items-center gap-1 text-[10px] leading-none font-medium tracking-[0.12em] text-(--text-tertiary) uppercase transition-colors group-hover:text-(--link-text)">
 					<span>Top</span>
-					<Icon name="arrow-up" className="h-3 w-3" />
+					<Icon name="arrow-up" className="size-3" />
 				</span>
 			</div>
 			<div className="flex items-baseline gap-3">
@@ -670,7 +670,7 @@ function ArticleToc({ toc, compactMode = false }: { toc: TocEntry[]; compactMode
 									</a>
 									<Icon
 										name={isCollapsed ? 'chevron-right' : 'chevron-down'}
-										className="h-3 w-3 shrink-0 text-(--text-secondary)"
+										className="size-3 shrink-0 text-(--text-secondary)"
 									/>
 								</button>
 							) : (
@@ -736,8 +736,8 @@ function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; s
 			setTimeout(() => setCopied(false), 1500)
 		} catch {}
 	}
-	const dim = size === 'sm' ? 'h-9 w-9' : 'h-11 w-11'
-	const iconDim = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
+	const dim = size === 'sm' ? 'size-9' : 'size-11'
+	const iconDim = size === 'sm' ? 'size-4' : 'size-5'
 	const buttonClass = `flex ${dim} items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-(--text-primary) transition-colors hover:border-(--link-text)/50 hover:text-(--link-text)`
 	return (
 		<div className="flex items-center gap-1.5">
@@ -772,7 +772,7 @@ function ShareBlock({ url, title, compactMode = false }: { url: string; title: s
 			<div className="flex items-center justify-between gap-3 border-y border-(--cards-border) py-3.5">
 				<span className="flex items-center gap-1.5 text-[10px] leading-none font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
 					Share
-					<Icon name="share" className="h-3 w-3" />
+					<Icon name="share" className="size-3" />
 				</span>
 				<ShareIcons url={url} title={title} size="sm" />
 			</div>
@@ -784,7 +784,7 @@ function ShareBlock({ url, title, compactMode = false }: { url: string; title: s
 			<div className="flex flex-col items-center gap-5">
 				<div className="flex items-center gap-1.5">
 					<span className="text-[18px] leading-none font-semibold tracking-wide text-(--text-primary)">SHARE</span>
-					<Icon name="share" className="h-4 w-4 text-(--text-primary)" />
+					<Icon name="share" className="size-4 text-(--text-primary)" />
 				</div>
 				<ShareIcons url={url} title={title} />
 			</div>
@@ -904,7 +904,7 @@ export function ArticleRenderer({
 								<img
 									src={person.avatarUrl}
 									alt=""
-									className="h-5 w-5 shrink-0 rounded-full border border-(--cards-border) object-cover"
+									className="size-5 shrink-0 rounded-full border border-(--cards-border) object-cover"
 								/>
 							) : null}
 							<span className="font-semibold text-(--text-primary)">{person.name}</span>
@@ -960,7 +960,7 @@ export function ArticleRenderer({
 							>
 								<svg
 									viewBox="0 0 24 24"
-									className="h-4 w-4"
+									className="size-4"
 									fill="none"
 									stroke="currentColor"
 									strokeWidth="2"
@@ -981,7 +981,7 @@ export function ArticleRenderer({
 				{cover ? (
 					<figure className="mt-5 grid gap-2">
 						<div className="aspect-[700/400] w-full overflow-hidden">
-							<img src={cover.url} alt={cover.alt || ''} className="block h-full w-full object-cover" />
+							<img src={cover.url} alt={cover.alt || ''} className="block size-full object-cover" />
 						</div>
 						{hasCoverMeta ? (
 							<figcaption className="grid gap-1 text-xs text-(--text-tertiary)">
@@ -1039,7 +1039,7 @@ export function ArticleRenderer({
 					)}
 					<div className="flex items-center gap-2">
 						<span className="text-[13px] leading-none font-semibold tracking-wide text-(--text-primary)">SHARE</span>
-						<Icon name="share" className="h-3.5 w-3.5 text-(--text-primary)" />
+						<Icon name="share" className="size-3.5 text-(--text-primary)" />
 						<div className="ml-1">
 							<ShareIcons url={shareUrl} title={article.title} size="sm" />
 						</div>

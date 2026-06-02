@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { useNetworkStatsData } from './networkStatsApi'
 
 interface BurnBlock {
@@ -37,31 +37,31 @@ function useBurnStream() {
 
 	useEffect(() => {
 		let es: EventSource | null = null
+		const handleInit = (e: MessageEvent) => {
+			const data = JSON.parse(e.data)
+			initialized.current = true
+			setState({
+				totalBurnedS: parseFloat(data.total_burned_s),
+				blockNumber: data.block_number,
+				recentBlocks: (data.recent_blocks || []).slice(0, 15),
+				burnWindows: data.burn_windows || null,
+				connected: true
+			})
+		}
+		const handleBlock = (e: MessageEvent) => {
+			const block: BurnBlock = JSON.parse(e.data)
+			setState((prev) => ({
+				...prev,
+				totalBurnedS: parseFloat(block.total_burned_s),
+				blockNumber: block.block_number,
+				recentBlocks: [block, ...prev.recentBlocks.slice(0, 14)]
+			}))
+		}
 
 		try {
 			es = new EventSource('/api/dynamic/sonic/burn-stream')
-
-			es.addEventListener('init', (e) => {
-				const data = JSON.parse(e.data)
-				initialized.current = true
-				setState({
-					totalBurnedS: parseFloat(data.total_burned_s),
-					blockNumber: data.block_number,
-					recentBlocks: (data.recent_blocks || []).slice(0, 15),
-					burnWindows: data.burn_windows || null,
-					connected: true
-				})
-			})
-
-			es.addEventListener('block', (e) => {
-				const block: BurnBlock = JSON.parse(e.data)
-				setState((prev) => ({
-					...prev,
-					totalBurnedS: parseFloat(block.total_burned_s),
-					blockNumber: block.block_number,
-					recentBlocks: [block, ...prev.recentBlocks.slice(0, 14)]
-				}))
-			})
+			es.addEventListener('init', handleInit)
+			es.addEventListener('block', handleBlock)
 
 			es.onerror = () => {
 				setState((prev) => ({ ...prev, connected: false }))
@@ -71,7 +71,10 @@ function useBurnStream() {
 		}
 
 		return () => {
-			es?.close()
+			if (!es) return
+			es.removeEventListener('init', handleInit)
+			es.removeEventListener('block', handleBlock)
+			es.close()
 		}
 	}, [])
 
@@ -183,7 +186,7 @@ export default function NetworkStats() {
 							<span className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">Total S Burned</span>
 							{stream.connected && (
 								<span className="flex items-center gap-1.5 text-[11px] text-green-500">
-									<span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+									<span className="inline-block size-1.5 animate-pulse rounded-full bg-green-500" />
 									Live
 								</span>
 							)}
@@ -333,7 +336,7 @@ export default function NetworkStats() {
 					fill="none"
 					stroke="currentColor"
 					strokeWidth="2"
-					className="h-4 w-4 text-(--text-label) transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+					className="size-4 text-(--text-label) transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
 				>
 					<path d="M7 17L17 7M17 7H7M17 7v10" />
 				</svg>

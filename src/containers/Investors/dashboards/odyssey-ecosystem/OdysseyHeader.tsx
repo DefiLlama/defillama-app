@@ -2,29 +2,29 @@ import { tokenIconUrl } from '~/utils/icons'
 
 const LINK_ICONS: Record<string, React.ReactNode> = {
 	website: (
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4 shrink-0">
 			<circle cx="12" cy="12" r="10" />
 			<path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
 		</svg>
 	),
 	docs: (
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4 shrink-0">
 			<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
 			<polyline points="14 2 14 8 20 8" />
 		</svg>
 	),
 	metronome: (
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4 shrink-0">
 			<path d="M12 3v18M5 9l14 12M19 9L5 21" />
 		</svg>
 	),
 	vesper: (
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4 shrink-0">
 			<path d="M12 2L4 9l8 13 8-13z" />
 		</svg>
 	),
 	debank: (
-		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-4 shrink-0">
 			<path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6" />
 		</svg>
 	)
@@ -46,7 +46,7 @@ const LINKS: Record<string, string> = {
 	debank: 'https://debank.com/profile/0xd44a3e93a256c445f17a12f35a0ffef975ec6817'
 }
 
-export function OdysseyIcon({ className = 'h-7 w-7' }: { className?: string }) {
+export function OdysseyIcon({ className = 'size-7' }: { className?: string }) {
 	return (
 		<img
 			src={tokenIconUrl('odyssey-finance', 64)}
@@ -59,7 +59,7 @@ export function OdysseyIcon({ className = 'h-7 w-7' }: { className?: string }) {
 function OdysseyLogo() {
 	return (
 		<div className="flex items-center gap-2.5">
-			<OdysseyIcon className="h-7 w-7 shrink-0" />
+			<OdysseyIcon className="size-7 shrink-0" />
 			<span className="text-lg font-bold text-(--text-primary)">Odyssey Ecosystem</span>
 		</div>
 	)

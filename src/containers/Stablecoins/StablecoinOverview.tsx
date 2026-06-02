@@ -413,7 +413,7 @@ export const PeggedAssetInfo = ({
 										rel="noopener noreferrer"
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									>
-										<Icon name="earth" className="h-3 w-3" />
+										<Icon name="earth" className="size-3" />
 										<span>Website</span>
 									</a>
 								) : null}
@@ -424,7 +424,7 @@ export const PeggedAssetInfo = ({
 										rel="noopener noreferrer"
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									>
-										<Icon name="twitter" className="h-3 w-3" />
+										<Icon name="twitter" className="size-3" />
 										<span>Twitter</span>
 									</a>
 								) : null}
@@ -457,7 +457,7 @@ export const PeggedAssetInfo = ({
 										rel="noopener noreferrer"
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 									>
-										<Icon name="github" className="h-3 w-3" />
+										<Icon name="github" className="size-3" />
 										<span>Check the code</span>
 									</a>
 								) : null}

@@ -68,6 +68,7 @@ function unpublishInvalidationTargets(before: ArticleDocument | null): ResearchI
 	const nextPaths = new Set<string>()
 	if (beforePath) {
 		purgePaths.add('/research')
+		purgePaths.add('/research/feed.xml')
 		purgePaths.add(beforePath)
 		nextPaths.add('/research')
 		const sectionPath = sectionPathForArticlePath(beforePath)

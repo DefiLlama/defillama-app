@@ -180,7 +180,7 @@ export function ProjectLanding({
 	const connectGithubValue = Array.isArray(connectGithubQuery) ? connectGithubQuery[0] : connectGithubQuery
 
 	return (
-		<div className="thin-scrollbar h-full w-full overflow-y-auto overscroll-contain px-6 pt-6 pb-16">
+		<div className="thin-scrollbar size-full overflow-y-auto overscroll-contain px-6 pt-6 pb-16">
 			<div className="mx-auto flex w-full max-w-[760px] flex-col">
 				<header className="flex items-center justify-between gap-3 pb-6">
 					<button
@@ -218,7 +218,7 @@ export function ProjectLanding({
 				</header>
 
 				<div className="flex items-center gap-3 pb-5">
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--old-blue)/20 to-(--old-blue)/5 ring-1 ring-(--old-blue)/30 ring-inset">
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--old-blue)/20 to-(--old-blue)/5 ring-1 ring-(--old-blue)/30 ring-inset">
 						<Icon name="folder-plus" height={15} width={15} className="text-(--old-blue)" />
 					</div>
 					<div className="min-w-0 flex-1">
@@ -244,7 +244,7 @@ export function ProjectLanding({
 							<button
 								type="button"
 								aria-label="Add sources"
-								className="-ml-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-(--old-blue) dark:text-[#919296] dark:hover:bg-[#1c1d1e]"
+								className="-ml-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-(--old-blue) dark:text-[#919296] dark:hover:bg-[#1c1d1e]"
 							>
 								<Icon name="plus" height={15} width={15} />
 							</button>
@@ -264,7 +264,7 @@ export function ProjectLanding({
 						type="submit"
 						disabled={!prompt.trim() || isStreaming}
 						aria-label="Send message"
-						className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-white transition-all hover:scale-105 hover:bg-(--old-blue)/90 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-30"
+						className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-white transition-all hover:scale-105 hover:bg-(--old-blue)/90 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-30"
 					>
 						<Icon name="arrow-up" height={13} width={13} />
 					</button>
@@ -331,12 +331,12 @@ export function ProjectLanding({
 																	setRenamingSessionId(null)
 																}
 															}}
-															className="min-w-0 flex-1 bg-transparent px-1 py-1 text-[13px] text-inherit focus:outline-none"
+															className="min-w-0 flex-1 bg-transparent p-1 text-[13px] text-inherit focus:outline-none"
 														/>
 														<button
 															type="submit"
 															disabled={isBusy}
-															className="flex h-7 w-7 items-center justify-center rounded-md bg-(--old-blue) text-white disabled:opacity-60"
+															className="flex size-7 items-center justify-center rounded-md bg-(--old-blue) text-white disabled:opacity-60"
 															aria-label="Save title"
 														>
 															{isBusy ? <LoadingSpinner size={12} /> : <Icon name="check" height={13} width={13} />}
@@ -345,7 +345,7 @@ export function ProjectLanding({
 															type="button"
 															onClick={() => setRenamingSessionId(null)}
 															disabled={isBusy}
-															className="flex h-7 w-7 items-center justify-center rounded-md bg-red-500/15 text-red-600 disabled:opacity-60 dark:text-red-400"
+															className="flex size-7 items-center justify-center rounded-md bg-red-500/15 text-red-600 disabled:opacity-60 dark:text-red-400"
 															aria-label="Cancel rename"
 														>
 															<Icon name="x" height={13} width={13} />
@@ -361,12 +361,12 @@ export function ProjectLanding({
 														type="button"
 														onClick={() => handlePickSession(s)}
 														disabled={isBusy}
-														className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-2 text-left disabled:opacity-60"
+														className="flex min-w-0 flex-1 items-center gap-1.5 p-2 text-left disabled:opacity-60"
 													>
 														{s.hasUnseenCompletion ? (
 															<Tooltip content="New response ready">
 																<span
-																	className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--old-blue)"
+																	className="size-1.5 shrink-0 rounded-full bg-(--old-blue)"
 																	aria-label="Unseen completion"
 																/>
 															</Tooltip>
@@ -390,7 +390,7 @@ export function ProjectLanding({
 																	}}
 																/>
 															}
-															className="flex h-7 w-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50 dark:text-[#666]"
+															className="flex size-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50 dark:text-[#666]"
 														>
 															<Icon name="pencil" height={13} width={13} />
 														</Tooltip>
@@ -407,7 +407,7 @@ export function ProjectLanding({
 																	}}
 																/>
 															}
-															className="flex h-7 w-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:bg-red-500/10 focus-visible:text-red-600 disabled:opacity-50 dark:text-[#666] dark:hover:text-red-400 dark:focus-visible:text-red-400"
+															className="flex size-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:bg-red-500/10 focus-visible:text-red-600 disabled:opacity-50 dark:text-[#666] dark:hover:text-red-400 dark:focus-visible:text-red-400"
 														>
 															{isBusy && isDeletingSession ? (
 																<LoadingSpinner size={12} />

@@ -223,7 +223,7 @@ function PreviewBody({
 							<span className="text-[10px] tracking-wider text-(--text-tertiary) uppercase">Top protocols</span>
 							{preview.topProtocols.map((p) => (
 								<span key={p.slug} className="flex items-center gap-2">
-									{p.logo ? <img src={p.logo} alt="" className="h-4 w-4 shrink-0 rounded-full" loading="lazy" /> : null}
+									{p.logo ? <img src={p.logo} alt="" className="size-4 shrink-0 rounded-full" loading="lazy" /> : null}
 									<span className="truncate text-xs text-(--text-secondary)">{p.name}</span>
 									<span className="ml-auto text-[11px] text-(--text-tertiary) tabular-nums">
 										{fmtCompactUsd(p.tvl)}
@@ -421,7 +421,7 @@ export function EntityPreviewLink({
 						alt=""
 						height={14}
 						width={14}
-						className="relative top-[2px] inline-block h-3.5 w-3.5 shrink-0 rounded-full"
+						className="relative top-[2px] inline-block size-3.5 shrink-0 rounded-full"
 					/>
 				) : null}
 				{children}
@@ -433,9 +433,9 @@ export function EntityPreviewLink({
 				className="article-entity-popover z-50 w-80 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl outline-none"
 			>
 				<div className="flex items-center gap-3 px-3 pt-3 pb-2">
-					<span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
+					<span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
 						{logo ? (
-							<img src={logo} alt="" height={36} width={36} className="h-full w-full object-cover" />
+							<img src={logo} alt="" height={36} width={36} className="size-full object-cover" />
 						) : (
 							<span className="text-[10px] text-(--text-tertiary)">{entity.label.slice(0, 2).toUpperCase()}</span>
 						)}

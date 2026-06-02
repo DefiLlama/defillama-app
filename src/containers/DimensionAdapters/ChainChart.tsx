@@ -1260,7 +1260,7 @@ function FailedFeesMetricsPopover({ failedMetrics }: { failedMetrics: FeesExtraM
 	return (
 		<Ariakit.PopoverProvider>
 			<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
-				<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+				<Icon name="alert-triangle" className="size-3.5" />
 				<span className="sr-only">Show failed metric APIs</span>
 			</Ariakit.PopoverDisclosure>
 			<Ariakit.Popover

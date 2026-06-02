@@ -60,7 +60,7 @@ export function SavePresetDialog({
 						onClick={onClose}
 						className="rounded-md p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 					>
-						<Icon name="x" className="h-4 w-4" />
+						<Icon name="x" className="size-4" />
 					</button>
 				</div>
 
@@ -101,7 +101,7 @@ export function SavePresetDialog({
 							disabled={isEmpty}
 							className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
 						>
-							<Icon name="bookmark" className="h-3.5 w-3.5" />
+							<Icon name="bookmark" className="size-3.5" />
 							{isDuplicate ? replaceLabel : submitLabel}
 						</button>
 					</div>

@@ -62,7 +62,7 @@ export function StabilityCell({
 				<div className="flex items-center justify-between gap-4">
 					<span className="font-semibold">Yield Score · 30d</span>
 					<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
-						<LockIcon className="h-2.5 w-2.5" />
+						<LockIcon className="size-2.5" />
 						Pro
 					</span>
 				</div>
@@ -93,7 +93,7 @@ export function StabilityCell({
 					className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
 				>
 					<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-500/15 px-3 py-1 dark:bg-(--cards-border)/40">
-						<LockIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+						<LockIcon className="size-3 text-gray-400 dark:text-gray-500" />
 						<span className="text-xs text-gray-400 blur-[3px] select-none dark:text-gray-300">Hidden</span>
 					</span>
 				</button>

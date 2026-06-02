@@ -20,14 +20,14 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 					data-umami-event="llamaai-welcome-dismiss"
 					className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white"
 				>
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</Ariakit.DialogDismiss>
 
 				<div className="relative z-10 px-8 py-10">
 					<div className="mb-6 flex justify-center">
 						<span className="relative flex flex-col items-center justify-center">
 							<span
-								className="absolute block h-24.5 w-24.5 shrink-0"
+								className="absolute block size-24.5 shrink-0"
 								style={{ background: 'linear-gradient(90deg, #FEE2AD 0%, #FEE2AD 100%)', filter: 'blur(32px)' }}
 							></span>
 							<img
@@ -54,7 +54,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						className="llamaai-glow relative mx-auto flex items-center justify-center gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-center text-xl font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						onClick={onClose}
 					>
-						<svg className="h-4 w-4 shrink-0">
+						<svg className="size-4 shrink-0">
 							<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 						</svg>
 						<span className="whitespace-nowrap">Try LlamaAI</span>

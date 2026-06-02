@@ -144,7 +144,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 									{protocol.logo ? (
 										<TokenLogo src={protocol.logo} alt={`Logo of ${protocol.name}`} />
 									) : (
-										<div className="h-6 w-6 rounded bg-(--bg-secondary)" />
+										<div className="size-6 rounded bg-(--bg-secondary)" />
 									)}
 									<span className="truncate">{protocol.name}</span>
 								</button>

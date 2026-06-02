@@ -38,7 +38,7 @@ export function ManageAccount() {
 	if (!isClient || loaders.userLoading) {
 		return (
 			<div className="flex h-64 items-center justify-center">
-				<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
+				<div className="size-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
 			</div>
 		)
 	}
@@ -46,7 +46,7 @@ export function ManageAccount() {
 	if (!isAuthenticated || !user) {
 		return (
 			<div className="flex flex-col items-center gap-6 py-16">
-				<img src="/assets/account_avatar.png" alt="" className="h-16 w-16 rounded-full" />
+				<img src="/assets/account_avatar.png" alt="" className="size-16 rounded-full" />
 				<div className="flex flex-col gap-2 text-center">
 					<h2 className="text-xl font-semibold text-(--sub-ink-primary) dark:text-white">Account Access Required</h2>
 					<p className="max-w-md text-sm text-(--sub-text-muted)">

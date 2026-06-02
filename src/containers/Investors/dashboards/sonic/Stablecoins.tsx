@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 
 const SKELETON_WIDTHS = [
 	['w-16', 'w-2/3', 'w-12', 'w-24', 'w-10'],

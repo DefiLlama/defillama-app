@@ -170,7 +170,7 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 			) : isLoading ? (
 				<p className="text-sm text-(--text-tertiary)">Loading…</p>
 			) : items.length === 0 ? (
-				<p className="rounded-md border border-dashed border-(--cards-border) bg-(--app-bg)/40 px-3 py-3 text-center text-xs text-(--text-tertiary)">
+				<p className="rounded-md border border-dashed border-(--cards-border) bg-(--app-bg)/40 p-3 text-center text-xs text-(--text-tertiary)">
 					No articles tagged as {definition.label.toLowerCase()} yet.
 				</p>
 			) : canReorder ? (

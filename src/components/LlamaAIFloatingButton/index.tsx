@@ -196,7 +196,7 @@ export function LlamaAIFloatingButton() {
 					render={
 						<button
 							onClick={handleButtonClick}
-							className="fixed right-6 bottom-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95"
+							className="fixed right-6 bottom-6 z-50 flex size-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95"
 							style={{
 								background: 'linear-gradient(135deg, #FDE0A9 0%, #FBEDCB 50%, #FDE0A9 100%)',
 								boxShadow: '0 4px 20px rgba(253, 224, 169, 0.5), 0 2px 8px rgba(0, 0, 0, 0.1)'
@@ -206,7 +206,7 @@ export function LlamaAIFloatingButton() {
 							<img
 								src="/assets/llamaai/llama-ai.svg"
 								alt=""
-								className="h-8 w-8 object-contain"
+								className="size-8 object-contain"
 								style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
 							/>
 						</button>
@@ -234,17 +234,17 @@ export function LlamaAIFloatingButton() {
 				>
 					<div className="flex items-center gap-3 border-b border-[#e6e6e6] px-5 py-4 dark:border-[#39393E]">
 						<div
-							className="flex h-10 w-10 items-center justify-center rounded-full"
+							className="flex size-10 items-center justify-center rounded-full"
 							style={{ background: 'linear-gradient(135deg, #FDE0A9 0%, #FBEDCB 100%)' }}
 						>
-							<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-6 w-6 object-contain" />
+							<img src="/assets/llamaai/llama-ai.svg" alt="" className="size-6 object-contain" />
 						</div>
 						<div className="flex-1">
 							<h3 className="text-base font-semibold text-black dark:text-white">Ask LlamaAI</h3>
 							<p className="text-sm text-[#666] dark:text-[#919296]">AI-powered DeFi insights</p>
 						</div>
 						<Ariakit.DialogDismiss className="rounded-full p-2 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
-							<svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+							<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
 								<path d="M18 6L6 18M6 6l12 12" />
 							</svg>
 						</Ariakit.DialogDismiss>
@@ -285,13 +285,13 @@ export function LlamaAIFloatingButton() {
 								<button
 									type="submit"
 									disabled={!value.trim()}
-									className="absolute right-3 bottom-3 flex h-9 w-9 items-center justify-center rounded-lg transition-all disabled:opacity-40"
+									className="absolute right-3 bottom-3 flex size-9 items-center justify-center rounded-lg transition-all disabled:opacity-40"
 									style={{
 										background: value.trim() ? 'linear-gradient(135deg, #FDE0A9 0%, #FBEDCB 100%)' : 'transparent'
 									}}
 								>
 									<svg
-										className="h-5 w-5 text-black"
+										className="size-5 text-black"
 										viewBox="0 0 24 24"
 										fill="none"
 										stroke="currentColor"

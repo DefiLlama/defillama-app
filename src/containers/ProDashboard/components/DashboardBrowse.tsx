@@ -66,7 +66,7 @@ export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
 		<div className="flex flex-col gap-6">
 			<div>
 				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-(--text-primary)">
-					<span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500/15">
+					<span className="flex size-6 items-center justify-center rounded-md bg-blue-500/15">
 						<Icon name="tag" height={14} width={14} className="text-blue-500" />
 					</span>
 					Trending Tags

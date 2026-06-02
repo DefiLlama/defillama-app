@@ -50,7 +50,7 @@ export function ResultsPanel({
 	if (!result && !busy) {
 		return (
 			<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-10 text-center">
-				<Icon name="bar-chart-2" className="h-5 w-5 text-(--text-tertiary)" />
+				<Icon name="bar-chart-2" className="size-5 text-(--text-tertiary)" />
 				<p className="text-sm text-(--text-secondary)">
 					Run a query to see results here. Press{' '}
 					<kbd className="inline-flex h-[17px] items-center rounded-[3px] border border-(--divider) bg-(--app-bg) px-1 font-mono text-[10px] text-(--text-secondary)">
@@ -160,7 +160,7 @@ function ToggleButton({
 					: 'text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
 			}`}
 		>
-			<Icon name={icon} className="h-3 w-3" />
+			<Icon name={icon} className="size-3" />
 			{label}
 		</button>
 	)

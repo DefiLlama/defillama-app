@@ -195,6 +195,7 @@ export default function Trades() {
 	const [nSigFigs, setNSigFigs] = useState(5)
 	const [trades, setTrades] = useState<Trade[]>([])
 	const [book, setBook] = useState<{ bids: BookLevel[]; asks: BookLevel[] }>({ bids: [], asks: [] })
+	const [now, setNow] = useState(() => Date.now())
 
 	const { book: snapshotBook } = useHyperliquidL2Book(coin, nSigFigs)
 
@@ -254,13 +255,18 @@ export default function Trades() {
 		}
 	})
 
+	useEffect(() => {
+		if (trades.length === 0) return
+		const id = setInterval(() => setNow(Date.now()), 1000)
+		return () => clearInterval(id)
+	}, [trades.length])
+
 	const metrics = useMemo(() => {
 		const bestBid = book.bids[0]?.px ?? 0
 		const bestAsk = book.asks[0]?.px ?? 0
 		const mid = bestBid && bestAsk ? (bestBid + bestAsk) / 2 : 0
 		const spreadPct = bestBid && bestAsk && mid > 0 ? ((bestAsk - bestBid) / mid) * 100 : 0
 
-		const now = Date.now()
 		const oneMinute = now - 60_000
 		const fiveMinute = now - 5 * 60_000
 
@@ -304,7 +310,7 @@ export default function Trades() {
 			depth025: depth(0.0025),
 			depth1: depth(0.01)
 		}
-	}, [book.asks, book.bids, trades])
+	}, [book.asks, book.bids, now, trades])
 
 	return (
 		<div className="flex flex-col gap-4">

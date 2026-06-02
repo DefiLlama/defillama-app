@@ -90,7 +90,7 @@ export function TableBody({ table, isLoading, isEmptyProtocols, moveColumnUp, mo
 							<td colSpan={table.getAllLeafColumns().length} className="py-8 text-center">
 								{isLoading ? (
 									<div className="flex items-center justify-center gap-2">
-										<div className="h-5 w-5 animate-spin rounded-full border-b-2 border-(--primary)" />
+										<div className="size-5 animate-spin rounded-full border-b-2 border-(--primary)" />
 										<span className="text-(--text-tertiary)">Loading data...</span>
 									</div>
 								) : (

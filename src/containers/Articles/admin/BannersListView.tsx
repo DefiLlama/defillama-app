@@ -100,7 +100,7 @@ export function BannersListView() {
 			) : (
 				<ul className="grid divide-y divide-(--cards-border) overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{items.map((banner) => (
-						<li key={banner.id} className="grid gap-3 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
+						<li key={banner.id} className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
 							<div className="grid min-w-0 gap-1">
 								<div className="flex flex-wrap items-center gap-2">
 									<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
@@ -118,7 +118,7 @@ export function BannersListView() {
 												: 'bg-(--text-tertiary)/10 text-(--text-tertiary)'
 										}`}
 									>
-										<span aria-hidden className="h-1 w-1 rounded-full bg-current" />
+										<span aria-hidden className="size-1 rounded-full bg-current" />
 										{banner.enabled ? 'Live' : 'Disabled'}
 									</span>
 								</div>
@@ -139,7 +139,7 @@ export function BannersListView() {
 												src={banner.imageUrl}
 												alt=""
 												className={`shrink-0 rounded border border-(--cards-border) object-cover ${
-													banner.type === 'image-horizontal' ? 'h-8 w-20' : 'h-12 w-12'
+													banner.type === 'image-horizontal' ? 'h-8 w-20' : 'size-12'
 												}`}
 											/>
 										) : null}

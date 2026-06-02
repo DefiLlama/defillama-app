@@ -47,7 +47,7 @@ function SavedFilters({ currentFilters }) {
 		<div className="ml-auto flex items-center gap-2">
 			<button
 				onClick={() => setDialogOpen(true)}
-				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
+				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) p-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Save Current Filters
 			</button>
@@ -84,7 +84,7 @@ function SavedFilters({ currentFilters }) {
 					className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.PopoverDismiss>
 
 					{savedFiltersEntries.map(([name]) => (

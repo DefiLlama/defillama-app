@@ -49,7 +49,7 @@ export function TableChipRail({
 								className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
 								title={`Browse all ${totalSchemaCount} available datasets`}
 							>
-								<Icon name="layers" className="h-3 w-3" />
+								<Icon name="layers" className="size-3" />
 								Browse schema
 								<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
 							</button>
@@ -116,7 +116,7 @@ function TableChip({
 			>
 				<Icon
 					name="chevron-right"
-					className={`h-3 w-3 shrink-0 text-(--text-tertiary) transition-transform ${
+					className={`size-3 shrink-0 text-(--text-tertiary) transition-transform ${
 						open ? 'rotate-90 text-(--primary)' : ''
 					}`}
 				/>
@@ -129,7 +129,7 @@ function TableChip({
 				aria-label={`Remove ${table.name}`}
 				className="flex w-6 items-center justify-center border-l border-(--divider) text-(--text-tertiary) opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500"
 			>
-				<Icon name="x" className="h-3 w-3" />
+				<Icon name="x" className="size-3" />
 			</button>
 		</div>
 	)
@@ -154,13 +154,13 @@ function PendingChip({ table }: { table: PendingTable }) {
 						: 'border-(--divider) bg-(--cards-bg)/40 text-(--text-secondary)'
 			} ${loading ? 'animate-pulse' : ''}`}
 		>
-			<span className="flex h-3 w-3 shrink-0 items-center justify-center">
+			<span className="flex size-3 shrink-0 items-center justify-center">
 				{failed ? (
-					<Icon name="alert-triangle" className="h-3 w-3 text-red-500" />
+					<Icon name="alert-triangle" className="size-3 text-red-500" />
 				) : loading ? (
 					<LoadingSpinner size={10} />
 				) : (
-					<span className="h-1.5 w-1.5 rounded-full bg-(--text-tertiary)/60" />
+					<span className="size-1.5 rounded-full bg-(--text-tertiary)/60" />
 				)}
 			</span>
 			<span className="max-w-[180px] truncate font-mono font-medium">{table.name}</span>
@@ -189,9 +189,9 @@ function ColumnDrawer({ table, onClose }: { table: RegisteredTable; onClose: () 
 					type="button"
 					onClick={onClose}
 					aria-label="Close column list"
-					className="flex h-6 w-6 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+					className="flex size-6 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 				>
-					<Icon name="x" className="h-3 w-3" />
+					<Icon name="x" className="size-3" />
 				</button>
 			</div>
 			<ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5">
@@ -237,7 +237,7 @@ function EmptyTablesPrompt({
 					className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90"
 					title={`Browse all ${totalSchemaCount} available datasets`}
 				>
-					<Icon name="layers" className="h-3 w-3" />
+					<Icon name="layers" className="size-3" />
 					Browse datasets
 					<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
 				</button>
@@ -276,7 +276,7 @@ function CopyForAIButton() {
 					: 'border-(--divider) bg-transparent text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--primary)'
 			}`}
 		>
-			{copied ? <Icon name="check" className="h-3 w-3" /> : <Icon name="sparkles" className="h-3 w-3" />}
+			{copied ? <Icon name="check" className="size-3" /> : <Icon name="sparkles" className="size-3" />}
 			{copied ? 'Copied for AI' : 'Copy for AI'}
 		</button>
 	)

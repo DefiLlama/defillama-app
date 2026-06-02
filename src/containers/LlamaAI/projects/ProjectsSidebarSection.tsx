@@ -162,7 +162,7 @@ export function ProjectsSidebarSection({
 									className="-mx-1.5 flex h-[26px] items-center gap-1.5 px-1.5 py-1"
 									style={{ opacity: 1 - i * 0.25 }}
 								>
-									<span className="h-3 w-3 shrink-0 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
+									<span className="size-3 shrink-0 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
 									<span className="h-3 flex-1 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
 								</li>
 							))}

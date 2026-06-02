@@ -183,7 +183,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 				disabled={isClient ? isLoading : true}
 			>
 				{!isLoading || !isClient ? (
-					<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+					<Icon name="download-paper" className="size-3 shrink-0" />
 				) : (
 					<LoadingSpinner size={12} />
 				)}

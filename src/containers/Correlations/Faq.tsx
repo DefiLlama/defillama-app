@@ -19,19 +19,19 @@ export const FAQ = () => (
 				<h3 className="text-sm font-semibold">Values</h3>
 				<div className="flex flex-col gap-2 text-sm">
 					<div className="flex items-start gap-2">
-						<span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-sm bg-[rgba(53,222,59,0.8)]" />
+						<span className="mt-0.5 inline-block size-3 shrink-0 rounded-sm bg-[rgba(53,222,59,0.8)]" />
 						<p>
 							<span className="font-medium">Positive:</span> Indicates a positive correlation between two variables.
 						</p>
 					</div>
 					<div className="flex items-start gap-2">
-						<span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-sm bg-[rgba(255,0,0,0.8)]" />
+						<span className="mt-0.5 inline-block size-3 shrink-0 rounded-sm bg-[rgba(255,0,0,0.8)]" />
 						<p>
 							<span className="font-medium">Negative:</span> Indicates a negative correlation between two variables.
 						</p>
 					</div>
 					<div className="flex items-start gap-2">
-						<span className="mt-0.5 inline-block h-3 w-3 shrink-0 rounded-sm bg-(--bg-tertiary)" />
+						<span className="mt-0.5 inline-block size-3 shrink-0 rounded-sm bg-(--bg-tertiary)" />
 						<p>
 							<span className="font-medium">Zero:</span> No correlation between two variables.
 						</p>

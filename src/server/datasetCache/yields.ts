@@ -6,9 +6,9 @@ import { getYieldTokenVariantSet } from '~/containers/Yields/domain/tokenFilter'
 import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import type { YieldPageData } from '~/containers/Yields/types'
+import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { getDatasetDomainDir, isMissingDatasetArtifactError, readDatasetDomainJson } from './core'
 import { getDatasetIndexFileName } from './indexKeys'
-import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
 type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
 

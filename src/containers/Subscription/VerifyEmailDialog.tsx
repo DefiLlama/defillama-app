@@ -8,10 +8,19 @@ const dialogCls =
 export function VerifyEmailDialog({
 	isOpen,
 	email,
+	sendOtp,
+	verifyOtp,
+	loaders,
 	onClose
 }: {
 	isOpen: boolean
 	email?: string
+	sendOtp: () => Promise<void>
+	verifyOtp: (otp: string) => Promise<void>
+	loaders: {
+		sendOtp: boolean
+		verifyOtp: boolean
+	}
 	onClose: () => void
 }) {
 	return (
@@ -24,7 +33,9 @@ export function VerifyEmailDialog({
 						<span className="sr-only">Close</span>
 					</Ariakit.DialogDismiss>
 				</div>
-				{isOpen ? <EmailOtpForm email={email} onVerified={onClose} /> : null}
+				{isOpen ? (
+					<EmailOtpForm email={email} sendOtp={sendOtp} verifyOtp={verifyOtp} loaders={loaders} onVerified={onClose} />
+				) : null}
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

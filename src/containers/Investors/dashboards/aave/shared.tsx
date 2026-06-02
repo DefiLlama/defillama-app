@@ -59,7 +59,7 @@ export function InvestorsTable<T extends RowData>({
 export function PageLoader() {
 	return (
 		<div className="flex min-h-[60vh] items-center justify-center">
-			<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
+			<div className="size-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
 		</div>
 	)
 }
@@ -78,7 +78,7 @@ export function CardSkeleton({ title }: { title: string }) {
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 			<h3 className="mb-4 text-[11px] font-semibold tracking-wider text-(--text-tertiary) uppercase">{title}</h3>
 			<div className="flex h-[400px] items-center justify-center">
-				<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
+				<div className="size-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
 			</div>
 		</div>
 	)

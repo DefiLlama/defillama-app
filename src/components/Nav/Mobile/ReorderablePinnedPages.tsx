@@ -70,21 +70,21 @@ function ReorderableRow({ page }: { page: TNavLink }) {
 				<div className="flex w-full items-center gap-2">
 					<button
 						type="button"
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 						aria-label={`Drag ${page.name}`}
 						{...attributes}
 						{...listeners}
 					>
-						<Icon name="menu" className="h-4 w-4" />
+						<Icon name="menu" className="size-4" />
 					</button>
 					<NavItemContent name={page.name} icon={page.icon} attention={page.attention} />
 					<button
 						type="button"
-						className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-(--error) hover:bg-(--error)/10 focus-visible:bg-(--error)/10"
+						className="ml-auto flex size-7 items-center justify-center rounded-md text-(--error) hover:bg-(--error)/10 focus-visible:bg-(--error)/10"
 						aria-label={`Unpin ${page.name}`}
 						onClick={() => handleUnpin()}
 					>
-						<Icon name="x" className="h-4 w-4" />
+						<Icon name="x" className="size-4" />
 					</button>
 				</div>
 			</div>

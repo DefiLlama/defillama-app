@@ -72,13 +72,13 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 			>
 				<div className="flex items-center justify-between border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 					<div className="flex items-center gap-3">
-						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
-							<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
+						<div className="flex size-9 items-center justify-center rounded-lg bg-amber-500/10">
+							<Icon name="calendar-plus" className="size-5 text-amber-500" />
 						</div>
 						<h2 className="text-lg font-semibold text-black dark:text-white">Your Alerts</h2>
 					</div>
 					<Ariakit.DialogDismiss className="rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.DialogDismiss>
 				</div>
 
@@ -95,8 +95,8 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 					) : !alerts || alerts.length === 0 ? (
 						alertsError ? null : (
 							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-								<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
-									<Icon name="calendar" className="h-7 w-7 text-[#999]" />
+								<div className="flex size-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
+									<Icon name="calendar" className="size-7 text-[#999]" />
 								</div>
 								<p className="text-sm text-[#666] dark:text-[#919296]">No alerts yet</p>
 								<p className="max-w-xs text-xs text-[#999] dark:text-[#666]">
@@ -385,7 +385,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					onClick={() => setSelectedExecId(null)}
 					className="mb-3 flex items-center gap-1 text-xs text-[#2172E5] hover:underline"
 				>
-					<Icon name="arrow-left" className="h-3 w-3" />
+					<Icon name="arrow-left" className="size-3" />
 					Back to executions
 				</button>
 				<div className="mb-2 flex items-center justify-between">
@@ -481,25 +481,25 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					{alert.run_count > 0 ? (
 						<button
 							onClick={handleToggleExecutions}
-							className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${showExecutions ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+							className={`flex size-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${showExecutions ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 							title="View history"
 						>
-							<Icon name="clock" className="h-3.5 w-3.5" />
+							<Icon name="clock" className="size-3.5" />
 						</button>
 					) : null}
 					<button
 						onClick={() => switchMode(mode === 'editing' ? 'view' : 'editing')}
-						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+						className={`flex size-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 						title="Edit"
 					>
-						<Icon name="pencil" className="h-3.5 w-3.5" />
+						<Icon name="pencil" className="size-3.5" />
 					</button>
 					<button
 						onClick={() => switchMode('deleting')}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
+						className="flex size-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
 						title="Delete"
 					>
-						<Icon name="trash-2" className="h-3.5 w-3.5" />
+						<Icon name="trash-2" className="size-3.5" />
 					</button>
 					<button
 						onClick={() => {
@@ -510,7 +510,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						title={alert.enabled ? 'Disable' : 'Enable'}
 					>
 						<span
-							className={`h-6 w-6 rounded-full bg-white shadow transition-transform ${alert.enabled ? 'translate-x-5' : 'translate-x-0'}`}
+							className={`size-6 rounded-full bg-white shadow transition-transform ${alert.enabled ? 'translate-x-5' : 'translate-x-0'}`}
 						/>
 					</button>
 				</div>
@@ -754,7 +754,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							{updateAlertMutation.isPending ? (
 								<LoadingSpinner size={12} />
 							) : (
-								<Icon name="check" className="h-3.5 w-3.5" />
+								<Icon name="check" className="size-3.5" />
 							)}
 							Save
 						</button>

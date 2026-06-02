@@ -62,13 +62,13 @@ export function NavItemContent({
 	return (
 		<>
 			{icon ? (
-				<Icon name={icon} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
+				<Icon name={icon} className="size-4 shrink-0 group-hover/link:animate-wiggle" />
 			) : name === 'LlamaAI' ? (
-				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
+				<svg className="size-4 shrink-0 group-hover/link:animate-wiggle">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : name === 'DefiLlama Research' ? (
-				<svg viewBox="0 0 21 29" className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
+				<svg viewBox="0 0 21 29" className="size-4 shrink-0 group-hover/link:animate-wiggle">
 					<use href="/assets/research/research-icon.svg#research-icon" />
 				</svg>
 			) : null}
@@ -77,7 +77,7 @@ export function NavItemContent({
 				{attention ? (
 					<span
 						aria-hidden
-						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
+						className="inline-block size-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
 					/>
 				) : null}
 				{freeTrial ? (

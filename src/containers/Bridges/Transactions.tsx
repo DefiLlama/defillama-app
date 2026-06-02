@@ -392,7 +392,7 @@ function StatCard({ label, value, sublabel, accent = 'default' }: StatCardProps)
 function EmptyState({ hasFetched }: { hasFetched: boolean }) {
 	return (
 		<div className="flex flex-col items-center gap-3 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) px-6 py-16 text-center">
-			<div className="flex h-12 w-12 items-center justify-center rounded-full bg-(--link-bg) text-(--link-text)">
+			<div className="flex size-12 items-center justify-center rounded-full bg-(--link-bg) text-(--link-text)">
 				<Icon name={hasFetched ? 'search' : 'activity'} height={22} width={22} />
 			</div>
 			<h2 className="text-lg font-semibold">
@@ -815,7 +815,7 @@ function PagerButton({ children, disabled, onClick, ...rest }: React.ButtonHTMLA
 			type="button"
 			onClick={onClick}
 			disabled={disabled}
-			className="flex h-7 w-7 items-center justify-center rounded-md border border-(--cards-border) text-(--text-secondary) transition-colors hover:bg-(--link-bg) hover:text-(--link-text) disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+			className="flex size-7 items-center justify-center rounded-md border border-(--cards-border) text-(--text-secondary) transition-colors hover:bg-(--link-bg) hover:text-(--link-text) disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
 			{...rest}
 		>
 			{children}

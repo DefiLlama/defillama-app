@@ -24,16 +24,16 @@ export function DeepLinkPromptModal({ isOpen, prompt, onClose, onConfirm }: Deep
 				className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white"
 				aria-label="Close"
 			>
-				<Icon name="x" className="h-5 w-5" />
+				<Icon name="x" className="size-5" />
 			</button>
 
 			<div className="relative z-10 px-8 py-10">
 				<div className="mb-6 flex justify-center">
 					<div
-						className="flex h-16 w-16 items-center justify-center rounded-full shadow-[0_4px_16px_-4px_rgba(232,168,71,0.45)]"
+						className="flex size-16 items-center justify-center rounded-full shadow-[0_4px_16px_-4px_rgba(232,168,71,0.45)]"
 						style={{ background: 'linear-gradient(135deg, #FDE0A9 0%, #FBEDCB 60%, #FDE0A9 100%)' }}
 					>
-						<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-9 w-9 object-contain" />
+						<img src="/assets/llamaai/llama-ai.svg" alt="" className="size-9 object-contain" />
 					</div>
 				</div>
 

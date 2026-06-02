@@ -86,7 +86,7 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 			</div>
 			{cover ? (
 				<div className="aspect-[16/9] w-full overflow-hidden">
-					<img src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+					<img src={cover} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
 				</div>
 			) : null}
 			{interviewee ? (
@@ -96,7 +96,7 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 						<img
 							src={firstInterviewee.avatarUrl}
 							alt=""
-							className="h-9 w-9 shrink-0 rounded-full border border-(--cards-border) object-cover"
+							className="size-9 shrink-0 rounded-full border border-(--cards-border) object-cover"
 						/>
 					) : null}
 					<div className="grid">

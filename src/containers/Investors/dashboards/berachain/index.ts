@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { DashboardTabConfig } from '../../registry'
+import type { DashboardTabConfig } from '../../dashboardTypes'
 
 const IncomeBreakdown = lazy(() => import('./IncomeBreakdown'))
 const Blockchain = lazy(() => import('./Blockchain'))

@@ -546,7 +546,7 @@ export function MultiMetricModal({
 									className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) sm:flex"
 									title="Save as preset"
 								>
-									<Icon name="bookmark" className="h-3.5 w-3.5" />
+									<Icon name="bookmark" className="size-3.5" />
 									<span className="hidden lg:inline">Save preset</span>
 								</button>
 							) : null}
@@ -559,7 +559,7 @@ export function MultiMetricModal({
 									className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 									title="Copy shareable link"
 								>
-									<Icon name="link" className="h-3.5 w-3.5" />
+									<Icon name="link" className="size-3.5" />
 								</button>
 							) : null}
 
@@ -571,7 +571,7 @@ export function MultiMetricModal({
 										disabled={topBarDownloadDisabled}
 										className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
 									>
-										<Icon name="download-cloud" className="h-3.5 w-3.5" />
+										<Icon name="download-cloud" className="size-3.5" />
 										<span className="hidden sm:inline">{downloadLabel}</span>
 									</button>
 								) : (
@@ -589,7 +589,7 @@ export function MultiMetricModal({
 								className="rounded-md p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 								aria-label="Close"
 							>
-								<Icon name="x" className="h-4 w-4" />
+								<Icon name="x" className="size-4" />
 							</button>
 						</div>
 
@@ -654,7 +654,7 @@ export function MultiMetricModal({
 							) : !parsedActiveFiltered || parsedActiveFiltered.rows.length === 0 ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
-										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+										<Icon name="search" className="size-6 text-(--text-tertiary)" />
 										<p className="text-sm text-(--text-secondary)">No rows in selected date range</p>
 										<button
 											type="button"
@@ -766,8 +766,8 @@ function ParamPickerEmpty({
 	return (
 		<div className="flex flex-1 items-center justify-center px-6 py-8">
 			<div className="flex w-full max-w-md flex-col items-center gap-4 text-center">
-				<div className="flex h-11 w-11 items-center justify-center rounded-full bg-(--primary)/10">
-					<Icon name="layers" className="h-5 w-5 text-(--primary)" />
+				<div className="flex size-11 items-center justify-center rounded-full bg-(--primary)/10">
+					<Icon name="layers" className="size-5 text-(--primary)" />
 				</div>
 				<div className="flex flex-col gap-1">
 					<p className="text-base font-medium text-(--text-primary)">Choose a {labels.singular} to begin</p>
@@ -782,12 +782,12 @@ function ParamPickerEmpty({
 					<Ariakit.PopoverProvider store={popoverStore}>
 						<Ariakit.PopoverDisclosure className="group flex w-full items-center justify-between gap-3 rounded-lg border border-(--form-control-border) bg-(--bg-primary) px-3.5 py-2.5 text-sm transition-colors hover:border-(--primary)/50 focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 focus:outline-none">
 							<span className="flex items-center gap-2 text-(--text-tertiary)">
-								<Icon name="search" className="h-4 w-4" />
+								<Icon name="search" className="size-4" />
 								Search a {labels.singular}
 							</span>
 							<Icon
 								name="chevron-down"
-								className="h-4 w-4 text-(--text-tertiary) transition-transform group-aria-expanded:rotate-180"
+								className="size-4 text-(--text-tertiary) transition-transform group-aria-expanded:rotate-180"
 							/>
 						</Ariakit.PopoverDisclosure>
 						<Ariakit.Popover
@@ -821,7 +821,7 @@ function ParamPickerEmpty({
 											}}
 											className={`flex w-full items-center gap-2 py-1.5 pr-3 text-left text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 										>
-											<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--text-tertiary)/30" />
+											<span className="size-1.5 shrink-0 rounded-full bg-(--text-tertiary)/30" />
 											<span className="truncate">{opt.label}</span>
 										</button>
 									))
@@ -872,8 +872,8 @@ function EmptyState({
 	return (
 		<div className="flex flex-1 items-center justify-center px-6">
 			<div className="flex max-w-sm flex-col items-center gap-3 text-center">
-				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--primary)/10">
-					<Icon name="layers" className="h-5 w-5 text-(--primary)" />
+				<div className="flex size-10 items-center justify-center rounded-full bg-(--primary)/10">
+					<Icon name="layers" className="size-5 text-(--primary)" />
 				</div>
 				<div className="flex flex-col gap-1">
 					<p className="text-sm font-medium text-(--text-primary)">Select metrics to combine</p>
@@ -889,7 +889,7 @@ function EmptyState({
 						onClick={onSelectAll}
 						className="mt-1 inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/5 px-3 py-1.5 text-xs font-medium text-(--primary) transition-colors hover:bg-(--primary)/10"
 					>
-						<Icon name="check" className="h-3.5 w-3.5" />
+						<Icon name="check" className="size-3.5" />
 						Select all {availableCount}
 					</button>
 				) : null}
@@ -914,7 +914,7 @@ function CenteredError({ error }: { error: unknown }) {
 	return (
 		<div className="flex flex-1 items-center justify-center px-6">
 			<div className="flex max-w-md flex-col items-center gap-2 text-center">
-				<Icon name="alert-triangle" className="h-6 w-6 text-red-500" />
+				<Icon name="alert-triangle" className="size-6 text-red-500" />
 				<p className="text-sm text-red-500">{msg}</p>
 			</div>
 		</div>
@@ -925,7 +925,7 @@ function CenteredHint({ icon, text }: { icon: IIcon['name']; text: string }) {
 	return (
 		<div className="flex flex-1 items-center justify-center">
 			<div className="flex flex-col items-center gap-2 text-center">
-				<Icon name={icon} className="h-6 w-6 text-(--text-tertiary)" />
+				<Icon name={icon} className="size-6 text-(--text-tertiary)" />
 				<p className="text-sm text-(--text-secondary)">{text}</p>
 			</div>
 		</div>
@@ -1025,7 +1025,7 @@ function PreviewTable({
 								href="/subscribe"
 								className="mt-1 inline-flex items-center gap-2 rounded-lg bg-(--primary) px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
 							>
-								<Icon name="arrow-up-right" className="h-4 w-4" />
+								<Icon name="arrow-up-right" className="size-4" />
 								Subscribe
 							</Link>
 						</div>
@@ -1107,13 +1107,13 @@ function MetricsSidebar({
 								className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
 								title={`Preview ${metric.name}`}
 							>
-								<span className="flex h-4 w-4 shrink-0 items-center justify-center">
+								<span className="flex size-4 shrink-0 items-center justify-center">
 									{isQueryLoading ? (
 										<LoadingSpinner size={12} />
 									) : hasError ? (
-										<Icon name="alert-triangle" className="h-3.5 w-3.5 text-red-500" />
+										<Icon name="alert-triangle" className="size-3.5 text-red-500" />
 									) : isReady ? (
-										<Icon name="check" className="h-3.5 w-3.5 text-green-500" />
+										<Icon name="check" className="size-3.5 text-green-500" />
 									) : null}
 								</span>
 								<span
@@ -1129,7 +1129,7 @@ function MetricsSidebar({
 								title={isPreview ? 'Subscribe to download' : 'Download this CSV'}
 								className="shrink-0 rounded p-1 text-(--text-tertiary) transition-colors hover:bg-(--bg-main) hover:text-(--primary) disabled:cursor-not-allowed disabled:opacity-30"
 							>
-								<Icon name="download-cloud" className="h-3.5 w-3.5" />
+								<Icon name="download-cloud" className="size-3.5" />
 							</button>
 							<button
 								type="button"
@@ -1137,7 +1137,7 @@ function MetricsSidebar({
 								title="Remove"
 								className="shrink-0 rounded p-1 text-(--text-tertiary) transition-colors hover:bg-(--bg-main) hover:text-red-500"
 							>
-								<Icon name="x" className="h-3.5 w-3.5" />
+								<Icon name="x" className="size-3.5" />
 							</button>
 						</div>
 					)
@@ -1150,7 +1150,7 @@ function MetricsSidebar({
 						onClick={onSubscribeClick}
 						className="flex w-full items-center justify-center gap-1.5 rounded-md bg-(--primary) px-3 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90"
 					>
-						<Icon name="arrow-up-right" className="h-3.5 w-3.5" />
+						<Icon name="arrow-up-right" className="size-3.5" />
 						Subscribe to download
 					</button>
 				) : (
@@ -1161,7 +1161,7 @@ function MetricsSidebar({
 							disabled={combinedDisabled}
 							className="flex w-full items-center justify-center gap-1.5 rounded-md bg-(--primary) px-3 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-40"
 						>
-							<Icon name="download-cloud" className="h-3.5 w-3.5" />
+							<Icon name="download-cloud" className="size-3.5" />
 							Download combined CSV
 						</button>
 						<p className="mt-1.5 text-center text-[10px] text-(--text-tertiary)">
@@ -1210,7 +1210,7 @@ function ParamPickerPopover({
 					value ? 'border-(--divider) text-(--text-secondary)' : 'border-(--primary)/40 text-(--primary)'
 				}`}
 			>
-				<Icon name="chevron-down" className="h-3.5 w-3.5" />
+				<Icon name="chevron-down" className="size-3.5" />
 				{value ? (
 					<span className="capitalize">
 						{labels.singular}: <span className="text-(--text-primary) normal-case">{value.label}</span>
@@ -1257,7 +1257,7 @@ function ParamPickerPopover({
 									} ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 								>
 									<span
-										className={`h-1.5 w-1.5 shrink-0 rounded-full transition-colors ${
+										className={`size-1.5 shrink-0 rounded-full transition-colors ${
 											isSelected ? 'bg-(--primary)' : 'bg-(--text-tertiary)/30'
 										}`}
 									/>
@@ -1321,7 +1321,7 @@ function MetricMultiPickerPopover({
 	return (
 		<Ariakit.PopoverProvider>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="chevron-down" className="h-3.5 w-3.5" />
+				<Icon name="chevron-down" className="size-3.5" />
 				<span>{triggerLabel}</span>
 				{selected.length > 0 ? (
 					<span className="rounded bg-(--primary) px-1 text-[10px] font-semibold text-white">{selected.length}</span>
@@ -1356,7 +1356,7 @@ function MetricMultiPickerPopover({
 				</div>
 				<div className="thin-scrollbar flex-1 overflow-auto">
 					{grouped.length === 0 ? (
-						<p className="px-3 py-3 text-xs text-(--text-tertiary)">No matches</p>
+						<p className="p-3 text-xs text-(--text-tertiary)">No matches</p>
 					) : (
 						grouped.map(([category, items]) => (
 							<div key={category} className="py-1">
@@ -1378,11 +1378,11 @@ function MetricMultiPickerPopover({
 											}`}
 										>
 											<span
-												className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+												className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
 													isSelected ? 'border-(--primary) bg-(--primary) text-white' : 'border-(--divider)'
 												}`}
 											>
-												{isSelected ? <Icon name="check" className="h-2.5 w-2.5" /> : null}
+												{isSelected ? <Icon name="check" className="size-2.5" /> : null}
 											</span>
 											<span className="truncate">{metricDisplayName(metric)}</span>
 										</button>

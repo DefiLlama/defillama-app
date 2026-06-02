@@ -195,7 +195,7 @@ function PickerChip({
 					className="inline-flex max-w-[200px] items-center gap-1 rounded-md border border-(--divider) bg-(--bg-primary) px-2 py-1 font-mono text-[11px] text-(--text-primary) hover:bg-(--link-hover-bg)"
 				>
 					<span className="truncate">{value == null ? '—' : optionLabel ? optionLabel(value) : value}</span>
-					<Icon name="chevron-down" className="h-3 w-3 shrink-0" />
+					<Icon name="chevron-down" className="size-3 shrink-0" />
 				</Ariakit.MenuButton>
 				<Ariakit.Menu
 					gutter={4}
@@ -262,7 +262,7 @@ function YSeriesPicker({
 					className="inline-flex max-w-[240px] items-center gap-1 rounded-md border border-(--divider) bg-(--bg-primary) px-2 py-1 font-mono text-[11px] text-(--text-primary) hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					<span className="truncate">{label}</span>
-					<Icon name="chevron-down" className="h-3 w-3 shrink-0" />
+					<Icon name="chevron-down" className="size-3 shrink-0" />
 				</Ariakit.MenuButton>
 				<Ariakit.Menu
 					gutter={4}
@@ -303,7 +303,7 @@ function YSeriesPicker({
 									onClick={() => onToggle(name)}
 									className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 font-mono text-[11px] text-(--text-primary) hover:bg-(--link-hover-bg)"
 								>
-									<Icon name="plus" className="h-3 w-3 text-(--text-tertiary)" />
+									<Icon name="plus" className="size-3 text-(--text-tertiary)" />
 									<span className="truncate">{name}</span>
 								</Ariakit.MenuItem>
 							))

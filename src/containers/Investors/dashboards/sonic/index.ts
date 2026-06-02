@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { DashboardTabConfig } from '../../registry'
+import type { DashboardTabConfig } from '../../dashboardTypes'
 import FeeM from './FeeM'
 
 const VerticalIntegration = lazy(() => import('./VerticalIntegration'))

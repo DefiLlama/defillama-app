@@ -11,9 +11,9 @@ const Definition = ({ header, id, children }: { header: string; id: string; chil
 					aria-hidden="true"
 					tabIndex={-1}
 					href={`#${id}`}
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					className="absolute top-0 right-0 z-10 flex size-full items-center"
 				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<hr className="border-black/20 dark:border-white/20" />
 			{children}

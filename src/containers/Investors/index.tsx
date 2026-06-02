@@ -1,4 +1,4 @@
-import { createContext, Suspense, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
 import { EmptyState } from '~/containers/ProDashboard/components/EmptyState'
@@ -10,12 +10,13 @@ import {
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { INVESTORS_PROJECTS, SHOW_INVESTORS_COMING_SOON_PROJECT, isInvestorsEnabled } from './config'
+import { ContentReadyContext } from './ContentReadyContext'
 import { CustomServerDataContext } from './CustomServerDataContext'
+import type { DashboardModule, DashboardTabConfig } from './dashboardTypes'
 import { Logo } from './Logo'
-import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
+import { getDashboardModule } from './registry'
 
-const ContentReadyContext = createContext<() => void>(() => {})
-export const useContentReady = () => useContext(ContentReadyContext)
+export { useContentReady } from './ContentReadyContext'
 
 const NOOP = () => {}
 const HIDE_DUPLICATE_BUTTON = isInvestorsEnabled()
@@ -360,7 +361,7 @@ function InvestorsShell({
 				<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
 					<button
 						onClick={() => setSidebarOpen(true)}
-						className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
+						className="flex size-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
 					>
 						<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
 							<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -464,7 +465,7 @@ function InvestorsShell({
 																	strokeWidth="2"
 																	strokeLinecap="round"
 																	strokeLinejoin="round"
-																	className="h-3 w-3 shrink-0 opacity-70"
+																	className="size-3 shrink-0 opacity-70"
 																	aria-hidden="true"
 																>
 																	<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -500,7 +501,7 @@ function InvestorsShell({
 					<div className="mt-auto flex items-center justify-end pt-4">
 						<button
 							onClick={toggleTheme}
-							className="flex h-8 w-8 items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
+							className="flex size-8 items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
 						>
 							{isDark ? (
 								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">

@@ -152,7 +152,7 @@ export function UnconstrainedSmolLineChart({
 							>
 								<p>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</p>
 								<p className="flex items-center gap-1">
-									<span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: stroke }} />
+									<span className="inline-block size-[10px] rounded-full" style={{ backgroundColor: stroke }} />
 									Price: ${formattedNum(series[hoveredIndex][1])}
 								</p>
 								<div className="mt-1 opacity-80">

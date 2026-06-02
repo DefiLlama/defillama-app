@@ -244,7 +244,7 @@ export function SelectWithCombobox({
 										</span>
 									)}
 									{showCheckboxes ? (
-										<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+										<Ariakit.SelectItemCheck className="ml-auto flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 									) : (
 										<Ariakit.SelectItemCheck className="ml-auto" />
 									)}
@@ -328,7 +328,7 @@ export function SelectWithCombobox({
 					portal={portal || false}
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.PopoverDismiss>
 
 					<span className="relative mb-2 p-3">
@@ -413,7 +413,7 @@ export function SelectWithCombobox({
 												</button>
 											) : null}
 											{showCheckboxes ? (
-												<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+												<Ariakit.SelectItemCheck className="ml-auto flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 											) : (
 												<Ariakit.SelectItemCheck className="ml-auto" />
 											)}

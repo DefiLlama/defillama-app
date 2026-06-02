@@ -2,7 +2,9 @@ import { Node, mergeAttributes, type Editor } from '@tiptap/core'
 import { Plugin } from '@tiptap/pm/state'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import type { UploadResult } from '../../upload/useImageUpload'
+import type { ArticleImageAttrs } from './ArticleImage.shared'
 import { ArticleImageNodeView } from './ArticleImageNodeView'
+export { normalizeImageHref, type ArticleImageAttrs } from './ArticleImage.shared'
 
 export type ArticleImageUploadFn = (file: File, placeholderId: string) => Promise<UploadResult>
 
@@ -108,28 +110,6 @@ export async function triggerInlineImagePicker(
 	const file = await pickInlineImageFile()
 	if (!file) return
 	await runInlineImageUpload(editor, uploadRef, file, pos)
-}
-
-export type ArticleImageAttrs = {
-	imageId: string | null
-	src: string | null
-	alt: string
-	caption: string
-	credit: string
-	copyright: string
-	headline: string
-	href: string
-	width: number | null
-	height: number | null
-	uploading: boolean
-	placeholderId: string | null
-}
-
-export function normalizeImageHref(value: string): string {
-	const trimmed = (value ?? '').trim()
-	if (!trimmed) return ''
-	if (/^(https?:\/\/|mailto:)/i.test(trimmed)) return trimmed
-	return `https://${trimmed}`
 }
 
 declare module '@tiptap/core' {

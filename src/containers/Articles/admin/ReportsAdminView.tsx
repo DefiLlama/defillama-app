@@ -115,7 +115,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 								isPublished ? 'bg-emerald-500/10 text-emerald-500' : 'bg-(--text-tertiary)/10 text-(--text-tertiary)'
 							}`}
 						>
-							<span aria-hidden className="h-1 w-1 rounded-full bg-current" />
+							<span aria-hidden className="size-1 rounded-full bg-current" />
 							{isPublished ? 'Live' : 'Draft'}
 						</span>
 						{hasPending ? (

@@ -31,7 +31,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 				className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</Ariakit.PopoverDismiss>
 
 				{options.map((option) => (

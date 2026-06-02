@@ -18,7 +18,7 @@ export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (
 		<div className="my-2 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
 			<div className="flex items-center gap-3">
-				<div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
+				<div className="size-10 shrink-0 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
 				<div className="flex min-w-0 flex-1 flex-col gap-1.5">
 					<div className="h-4 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
 					<div className="h-3 w-44 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
@@ -183,8 +183,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 	if (!isAuthenticated) {
 		return (
 			<div className="my-2 flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
-				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
-					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
+				<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+					<Icon name="calendar-plus" className="size-5 text-amber-500" />
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<h3 className="m-0 text-sm font-medium text-(--text1)">Sign in to save alerts</h3>
@@ -217,8 +217,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 				}
 			`}</style>
 			<div className="flex items-center gap-3">
-				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
-					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
+				<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
+					<Icon name="calendar-plus" className="size-5 text-amber-500" />
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<h3 className="m-0 text-sm font-medium text-(--text1)">Schedule Alert</h3>
@@ -290,7 +290,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 			{proposedHourWasBlocked && !isSaved ? (
 				<p className="m-0 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
+					<Icon name="alert-triangle" className="size-3.5 shrink-0" />
 					The proposed {alertIntent.hour.toString().padStart(2, '0')}:00 time is blocked for maintenance, so this alert
 					was moved to {hour.toString().padStart(2, '0')}:00.
 				</p>
@@ -356,7 +356,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 			{!isSaved ? (
 				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
+					<Icon name="alert-triangle" className="size-3.5 shrink-0" />
 					Action required — confirm your alert settings and save
 				</p>
 			) : null}
@@ -372,14 +372,14 @@ export const AlertArtifact = memo(function AlertArtifact({
 			>
 				{isSaved ? (
 					<>
-						<Icon name="check" className="h-4 w-4" />
+						<Icon name="check" className="size-4" />
 						<span>Saved</span>
 					</>
 				) : isSaving ? (
 					<span>Saving...</span>
 				) : (
 					<>
-						<Icon name="calendar-plus" className="h-4 w-4" />
+						<Icon name="calendar-plus" className="size-4" />
 						<span>Save Alert</span>
 					</>
 				)}
@@ -392,21 +392,21 @@ export const AlertArtifact = memo(function AlertArtifact({
 					disabled={alertDetailQuery.isLoading}
 					className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-[#222324] dark:hover:bg-[#222324]"
 				>
-					<Icon name="mail" className="h-4 w-4" />
+					<Icon name="mail" className="size-4" />
 					<span>Send test alert</span>
 				</button>
 			) : null}
 
 			{isSaved && testSent === 'already' && !testMutation.isPending ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
-					<Icon name="check" className="h-3.5 w-3.5" />
+					<Icon name="check" className="size-3.5" />
 					Test already sent for this alert
 				</p>
 			) : null}
 
 			{isSaved && testSent === 'sent' && !testMutation.isPending ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-					<Icon name="check" className="h-3.5 w-3.5" />
+					<Icon name="check" className="size-3.5" />
 					{deliveryChannel === 'slack'
 						? slackChannelName
 							? `Test sent! Check #${slackChannelName} in Slack`
@@ -419,7 +419,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 			{testMutation.isPending ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
-					<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+					<span className="inline-block size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 					Sending test alert...
 				</p>
 			) : null}

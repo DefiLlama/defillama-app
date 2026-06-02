@@ -52,7 +52,7 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 	return (
 		<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]">
 			<div className="mr-auto flex items-center gap-1 p-1 md:p-3">
-				<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-xs text-white">
+				<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-xs text-white">
 					{itemName.charAt(0).toUpperCase()}
 				</div>
 				<h2 className="text-base font-semibold">

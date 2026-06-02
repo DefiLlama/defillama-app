@@ -327,7 +327,7 @@ export default function Protocols({
 						className="mt-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						<span>View unlocks calendar</span>
-						<Icon name="arrow-right" className="h-4 w-4" />
+						<Icon name="arrow-right" className="size-4" />
 					</BasicLink>
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">

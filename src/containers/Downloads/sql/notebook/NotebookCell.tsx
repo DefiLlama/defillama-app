@@ -121,7 +121,7 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 						onMouseLeave={() => setDraggable(false)}
 						className="flex h-5 w-4 shrink-0 cursor-grab items-center justify-center text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 active:cursor-grabbing"
 					>
-						<Icon name="menu" className="h-3 w-3" />
+						<Icon name="menu" className="size-3" />
 					</button>
 				) : null}
 				<span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-(--text-tertiary)">
@@ -135,7 +135,7 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 					</span>
 				) : cell.runError ? (
 					<span className="inline-flex items-center gap-1 text-[11px] text-red-500">
-						<Icon name="alert-triangle" className="h-3 w-3" />
+						<Icon name="alert-triangle" className="size-3" />
 						error
 					</span>
 				) : null}
@@ -150,7 +150,7 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 								className="inline-flex items-center gap-1.5 rounded-md border border-red-500/50 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
 							>
 								<LoadingSpinner size={10} />
-								<svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+								<svg className="size-2.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 									<rect x="6" y="6" width="12" height="12" rx="1" />
 								</svg>
 								Stop
@@ -162,7 +162,7 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 								disabled={!canRun || !cell.source.trim()}
 								className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2 py-1 text-[11px] font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
 							>
-								<svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+								<svg className="size-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 									<path d="M8 5v14l11-7z" />
 								</svg>
 								Run
@@ -257,10 +257,10 @@ function CellMenu({
 	return (
 		<Ariakit.MenuProvider>
 			<Ariakit.MenuButton
-				className="flex h-6 w-6 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+				className="flex size-6 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 				aria-label="Cell actions"
 			>
-				<Icon name="ellipsis" className="h-3.5 w-3.5" />
+				<Icon name="ellipsis" className="size-3.5" />
 			</Ariakit.MenuButton>
 			<Ariakit.Menu
 				gutter={4}
@@ -273,7 +273,7 @@ function CellMenu({
 							onClick={onRunAbove}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 						>
-							<Icon name="chevron-up" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="chevron-up" className="size-3 text-(--text-tertiary)" />
 							Run cells above
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
@@ -281,7 +281,7 @@ function CellMenu({
 							onClick={onRunBelow}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 						>
-							<Icon name="chevron-down" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="chevron-down" className="size-3 text-(--text-tertiary)" />
 							Run cells below
 						</Ariakit.MenuItem>
 						<div className="my-1 h-px bg-(--divider)" />
@@ -292,7 +292,7 @@ function CellMenu({
 					onClick={onMoveUp}
 					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 				>
-					<Icon name="arrow-up" className="h-3 w-3 text-(--text-tertiary)" />
+					<Icon name="arrow-up" className="size-3 text-(--text-tertiary)" />
 					Move up
 				</Ariakit.MenuItem>
 				<Ariakit.MenuItem
@@ -300,7 +300,7 @@ function CellMenu({
 					onClick={onMoveDown}
 					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 				>
-					<Icon name="arrow-down" className="h-3 w-3 text-(--text-tertiary)" />
+					<Icon name="arrow-down" className="size-3 text-(--text-tertiary)" />
 					Move down
 				</Ariakit.MenuItem>
 				<div className="my-1 h-px bg-(--divider)" />
@@ -310,7 +310,7 @@ function CellMenu({
 						onClick={() => onConvertType(t)}
 						className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 					>
-						<Icon name="repeat" className="h-3 w-3 text-(--text-tertiary)" />
+						<Icon name="repeat" className="size-3 text-(--text-tertiary)" />
 						Convert to {t === 'sql' ? 'SQL' : t === 'markdown' ? 'Markdown' : 'Chart'}
 					</Ariakit.MenuItem>
 				))}
@@ -320,7 +320,7 @@ function CellMenu({
 					onClick={onDelete}
 					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-red-500 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40"
 				>
-					<Icon name="trash-2" className="h-3 w-3" />
+					<Icon name="trash-2" className="size-3" />
 					Delete cell
 				</Ariakit.MenuItem>
 			</Ariakit.Menu>

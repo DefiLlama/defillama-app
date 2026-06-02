@@ -177,7 +177,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 				<Suspense
 					fallback={
 						<div className="flex h-96 items-center justify-center">
-							<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)" />
+							<div className="size-8 animate-spin rounded-full border-b-2 border-(--primary)" />
 						</div>
 					}
 				>
@@ -214,7 +214,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 					}}
 					className="flex flex-col items-center gap-4 rounded-xl border-2 border-(--cards-border) bg-(--cards-bg) p-6 text-center transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 				>
-					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--cards-bg-alt) text-(--text-secondary)">
+					<div className="flex size-14 items-center justify-center rounded-2xl bg-(--cards-bg-alt) text-(--text-secondary)">
 						<Icon name="file-plus" height={28} width={28} />
 					</div>
 					<div>
@@ -231,7 +231,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 					}}
 					className="flex flex-col items-center gap-4 rounded-xl border-2 border-(--cards-border) bg-(--cards-bg) p-6 text-center transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 				>
-					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--primary)/10 text-(--primary)">
+					<div className="flex size-14 items-center justify-center rounded-2xl bg-(--primary)/10 text-(--primary)">
 						<Icon name="bar-chart-2" height={28} width={28} />
 					</div>
 					<div>

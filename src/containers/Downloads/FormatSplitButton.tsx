@@ -25,7 +25,7 @@ export function FormatSplitButton({ onDownload, disabled, label = 'Download' }: 
 				disabled={disabled}
 				className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black/10 disabled:opacity-40"
 			>
-				<Icon name="download-cloud" className="h-3.5 w-3.5" />
+				<Icon name="download-cloud" className="size-3.5" />
 				<span className="hidden sm:inline">
 					{label} {FORMAT_LABELS[format]}
 				</span>
@@ -36,7 +36,7 @@ export function FormatSplitButton({ onDownload, disabled, label = 'Download' }: 
 					aria-label="Choose download format"
 					className="flex items-center border-l border-white/20 px-1.5 text-white transition-colors hover:bg-black/10 disabled:opacity-40"
 				>
-					<Icon name="chevron-down" className="h-3.5 w-3.5" />
+					<Icon name="chevron-down" className="size-3.5" />
 				</Ariakit.MenuButton>
 				<Ariakit.Menu
 					gutter={4}
@@ -57,9 +57,9 @@ export function FormatSplitButton({ onDownload, disabled, label = 'Download' }: 
 						>
 							<span>{FORMAT_LABELS[fmt]}</span>
 							{format === fmt ? (
-								<Icon name="check" className="h-3.5 w-3.5 text-(--primary)" />
+								<Icon name="check" className="size-3.5 text-(--primary)" />
 							) : (
-								<span className="h-3.5 w-3.5" aria-hidden="true" />
+								<span className="size-3.5" aria-hidden="true" />
 							)}
 						</Ariakit.MenuItem>
 					))}
