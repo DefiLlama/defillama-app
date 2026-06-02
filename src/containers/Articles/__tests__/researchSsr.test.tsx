@@ -7,6 +7,7 @@ import {
 	getArticleBanner,
 	getArticleBySlug,
 	getLandingBanner,
+	getResearchLanding,
 	getSectionBanner,
 	listArticles,
 	listArticlesByTag,
@@ -37,6 +38,7 @@ vi.mock('~/containers/Articles/api', () => ({
 	getArticleBanner: vi.fn(),
 	getArticleBySlug: vi.fn(),
 	getLandingBanner: vi.fn(),
+	getResearchLanding: vi.fn(),
 	getSectionBanner: vi.fn(),
 	listArticlePaths: vi.fn(),
 	listArticles: vi.fn(),
@@ -177,6 +179,17 @@ describe('research ISR data loading', () => {
 		vi.mocked(listArticles).mockResolvedValue(articleList([article()]))
 		vi.mocked(listArticlesByTag).mockResolvedValue({ items: [article()] })
 		vi.mocked(listArticlesByTopic).mockResolvedValue(topicArticleList(4))
+		vi.mocked(getResearchLanding).mockResolvedValue({
+			heroReports: [article()],
+			latest: [article()],
+			spotlight: [article()],
+			interviews: [article()],
+			highlight: [article()],
+			insights: [article()],
+			moreReportsCandidates: [article()],
+			spotlightColumnCandidates: [article()],
+			collectionsCandidates: [article()]
+		})
 		vi.mocked(getLandingBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getArticleBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getSectionBanner).mockResolvedValue(emptyBanner)

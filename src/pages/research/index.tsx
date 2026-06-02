@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
-import { ArticleApiError, getLandingBanner, listArticles, listArticlesByTag } from '~/containers/Articles/api'
+import { ArticleApiError, getLandingBanner, getResearchLanding } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { EDITORIAL_TAGS } from '~/containers/Articles/editorialTags'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
 import { ResearchCollections } from '~/containers/Articles/landing/ResearchCollections'
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
@@ -57,58 +56,31 @@ async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
 	const reportsHeroLimit = RESEARCH_LANDING_SECTION_LIMITS.reportsHero
 	const spotlightLimit = RESEARCH_LANDING_SECTION_LIMITS.spotlight
 
-	const settled = await Promise.allSettled([
-		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, reportsHeroLimit),
-		listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest),
-		listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, spotlightLimit),
-		listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }),
-		listArticlesByTag(EDITORIAL_TAGS['report-highlight'].slug, reportHighlightLimit),
-		listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights),
-		listArticles({
-			section: 'report',
-			sort: 'newest',
-			// Buffer: we dedupe by ID later, so we fetch enough candidates to avoid ending up with <limit items.
-			limit: reportsHeroLimit + reportHighlightLimit + moreReportsLimit
-		}),
-		listArticles({
-			section: 'spotlight',
-			sort: 'newest',
-			// Buffer: we dedupe by ID later, so we fetch enough candidates to avoid ending up with <limit items.
-			limit: spotlightLimit + spotlightColumnLimit
-		}),
-		listArticles({
-			sort: 'newest',
-			limit: RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT
-		})
-	])
+	const buckets = await getResearchLanding({
+		hero: reportsHeroLimit,
+		latest: RESEARCH_LANDING_SECTION_LIMITS.latest,
+		spotlight: spotlightLimit,
+		interviews: RESEARCH_LANDING_SECTION_LIMITS.interviews,
+		highlight: reportHighlightLimit,
+		insights: RESEARCH_LANDING_SECTION_LIMITS.insights,
+		reportsCandidates: reportsHeroLimit + reportHighlightLimit + moreReportsLimit,
+		spotlightCandidates: spotlightLimit + spotlightColumnLimit,
+		collectionsCandidates: RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT
+	})
 
-	const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
-
-	if (settled.every((r) => r.status === 'rejected')) {
-		const firstRejected = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected')
-		throw firstRejected?.reason ?? new Error('Failed to load research')
-	}
-
-	const heroReports = itemsOrEmpty(0)
-	const latest = itemsOrEmpty(1)
-	const spotlight = itemsOrEmpty(2)
-	const interviews = itemsOrEmpty(3)
-	const highlight = itemsOrEmpty(4)
-	const insights = itemsOrEmpty(5)
-	const moreReportsCandidates = itemsOrEmpty(6)
-	const spotlightColumnCandidates = itemsOrEmpty(7)
+	const { heroReports, latest, spotlight, interviews, highlight, insights } = buckets
 
 	const usedIds = new Set<string>(
 		[...heroReports, ...latest, ...spotlight, ...interviews, ...highlight, ...insights].map((article) => article.id)
 	)
 
-	const moreReports = takeUniqueArticles(moreReportsCandidates, usedIds, moreReportsLimit)
+	const moreReports = takeUniqueArticles(buckets.moreReportsCandidates, usedIds, moreReportsLimit)
 	for (const article of moreReports) usedIds.add(article.id)
 
-	const spotlightColumn = takeUniqueArticles(spotlightColumnCandidates, usedIds, spotlightColumnLimit)
+	const spotlightColumn = takeUniqueArticles(buckets.spotlightColumnCandidates, usedIds, spotlightColumnLimit)
 	for (const article of spotlightColumn) usedIds.add(article.id)
 
-	const collections = takeUniqueArticles(itemsOrEmpty(8), usedIds, collectionsLimit)
+	const collections = takeUniqueArticles(buckets.collectionsCandidates, usedIds, collectionsLimit)
 
 	return {
 		heroReports,
@@ -155,7 +127,8 @@ function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps 
 		retry: false,
 		queryFn: loadResearchLandingData,
 		initialData,
-		staleTime: 60_000
+		staleTime: 0,
+		refetchOnMount: 'always'
 	})
 
 	const landingData = landingQuery.data?.landingData
