@@ -154,6 +154,12 @@ export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
 		<Head>
 			<title>{titleTag}</title>
 			<link rel="canonical" href={canonical} />
+			<link
+				rel="alternate"
+				type="application/rss+xml"
+				title="DefiLlama Research"
+				href={`${SITE_ORIGIN}/research/feed.xml`}
+			/>
 			<meta key="og:title" property="og:title" content={titleTag} />
 			<meta key="twitter:title" name="twitter:title" content={titleTag} />
 			{description ? <meta key="description" name="description" content={description} /> : null}

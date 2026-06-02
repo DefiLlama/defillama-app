@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import Head from 'next/head'
 import { ArticleApiError, getLandingBanner, getResearchLanding } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
@@ -270,6 +271,14 @@ export default function ArticlesPage({
 			canonicalUrl="/research"
 			hideDesktopSearch
 		>
+			<Head>
+				<link
+					rel="alternate"
+					type="application/rss+xml"
+					title="DefiLlama Research"
+					href="https://defillama.com/research/feed.xml"
+				/>
+			</Head>
 			<style>{`main{padding:0}#__next{gap:0;}`}</style>
 			<ArticleProxyAuthProvider>
 				<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">
