@@ -61,8 +61,8 @@ function formatTimestamp(ts: number | null | undefined) {
 
 function PriceTickerTape({ coins }: { coins: string[] }) {
 	const trackRef = useRef<HTMLDivElement>(null)
-	const priceEls = useRef<Map<string, HTMLElement[]> | null>(null)
-	const itemEls = useRef<Map<string, HTMLElement[]> | null>(null)
+	const priceEls = useRef<Map<string, HTMLElement[]>>(new Map())
+	const itemEls = useRef<Map<string, HTMLElement[]>>(new Map())
 	const prevPrices = useRef<Record<string, string>>({})
 	const latestMidsRef = useRef<Record<string, string> | null>(null)
 	const flashTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
@@ -70,8 +70,6 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 	const halfWidthRef = useRef(0)
 	const lastTsRef = useRef<number | null>(null)
 	const rafRef = useRef(0)
-	if (priceEls.current === null) priceEls.current = new Map()
-	if (itemEls.current === null) itemEls.current = new Map()
 
 	useEffect(() => {
 		const track = trackRef.current
@@ -122,7 +120,7 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 				const prev = prevPrices.current
 				for (const coin of coins) {
 					if (!mids[coin]) continue
-					const pEls = priceEls.current?.get(coin)
+					const pEls = priceEls.current.get(coin)
 					if (!pEls) continue
 
 					const price = parseFloat(mids[coin])
@@ -133,7 +131,7 @@ function PriceTickerTape({ coins }: { coins: string[] }) {
 
 					if (prev[coin] && mids[coin] !== prev[coin]) {
 						const flashColor = price > parseFloat(prev[coin]) ? '#4ade80' : '#f87171'
-						const iEls = itemEls.current?.get(coin)
+						const iEls = itemEls.current.get(coin)
 						if (iEls) {
 							iEls.forEach((el) => {
 								el.style.color = flashColor

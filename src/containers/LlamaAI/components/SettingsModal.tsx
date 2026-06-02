@@ -90,13 +90,12 @@ export const SettingsModal = memo(function SettingsModal({
 	const [isRequestingNotif, setIsRequestingNotif] = useState(false)
 	const [activeTab, setActiveTab] = useState<TabId>('persona')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const baselineRef = useRef<string | null>(null)
+	const baselineRef = useRef(settings.customInstructions.trim())
 	const draftValueRef = useRef(settings.customInstructions)
 	const latestCustomInstructionsRef = useRef(settings.customInstructions)
 	const wasOpenRef = useRef(false)
 	const [modalState, dispatch] = useReducer(modalReducer, { status: 'closed' })
 	const [charCount, setCharCount] = useState(settings.customInstructions.length)
-	if (baselineRef.current === null) baselineRef.current = settings.customInstructions.trim()
 
 	useEffect(() => {
 		latestCustomInstructionsRef.current = settings.customInstructions

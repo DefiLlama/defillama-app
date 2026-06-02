@@ -410,7 +410,9 @@ export function DatasetPreviewModal({
 		const toggles = dataset.excludeToggles
 		if (!toggles || toggles.length === 0) return rows
 		const headerIndices = new Map<string, number>()
-		headers.forEach((header, index) => headerIndices.set(header, index))
+		headers.forEach((header, index) => {
+			if (!headerIndices.has(header)) headerIndices.set(header, index)
+		})
 		const fieldIndices: number[] = []
 		for (const toggle of toggles) {
 			if (!excludeState[toggle.field]) continue

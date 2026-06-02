@@ -7,11 +7,10 @@ type TokenPageSectionNavItem = {
 
 export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNavItem[] }) {
 	const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? '')
-	const observerEntries = useRef<Map<string, IntersectionObserverEntry> | null>(null)
+	const observerEntries = useRef(new Map<string, IntersectionObserverEntry>())
 	const navRef = useRef<HTMLElement | null>(null)
 	const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
 	const clickLockTargetId = useRef<string | null>(null)
-	if (observerEntries.current === null) observerEntries.current = new Map()
 	const sectionIds = useMemo(() => sections.map((section) => section.id), [sections])
 	const initialHashSectionId = useMemo(() => {
 		if (typeof window === 'undefined') return null
@@ -62,7 +61,6 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 	useEffect(() => {
 		if (sectionIds.length === 0 || typeof window === 'undefined') return
 		const observerEntriesMap = observerEntries.current
-		if (observerEntriesMap === null) return
 
 		const maybeReleaseClickLock = () => {
 			if (!clickLockTargetId.current) return false

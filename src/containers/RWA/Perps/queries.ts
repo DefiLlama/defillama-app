@@ -221,7 +221,7 @@ export function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' 
 }
 
 function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
-	return markets.toSorted((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
+	return Array.from(markets).sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
 }
 
 function derivePreviousValueFromPercentChange(
