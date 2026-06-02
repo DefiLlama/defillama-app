@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { RESEARCH_FEED_URL } from '~/containers/Articles/researchFeed'
-import { FEED_READERS, feedSchemeUrl } from './readers'
+import { feedSchemeUrl } from './readers'
 import { RssMark } from './RssMark'
 
 export type ResearchFeedPreviewItem = {
@@ -52,26 +52,6 @@ function CopyFeedUrlButton({ value }: { value: string }) {
 			<Icon name={copied ? 'check' : 'copy'} height={15} width={15} />
 			{copied ? 'Copied' : 'Copy'}
 		</button>
-	)
-}
-
-function ReaderLinkButton({ href, label, dotColor }: { href: string; label: string; dotColor: string }) {
-	return (
-		<a
-			href={href}
-			target="_blank"
-			rel="noopener noreferrer"
-			className="group inline-flex items-center gap-2.5 rounded-full border border-(--cards-border) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-[color,background-color,border-color,transform] duration-150 hover:border-(--link-text)/50 hover:bg-(--cards-bg) motion-safe:active:scale-[0.98]"
-		>
-			<span className="size-2 rounded-full" style={{ backgroundColor: dotColor }} />
-			{label}
-			<Icon
-				name="arrow-up-right"
-				height={14}
-				width={14}
-				className="text-(--text-tertiary) transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-			/>
-		</a>
 	)
 }
 
@@ -150,26 +130,17 @@ export function ResearchFeedLanding({ items }: { items: ResearchFeedPreviewItem[
 							<CopyFeedUrlButton value={RESEARCH_FEED_URL} />
 						</div>
 
-						<div className="dl-feed-reveal mt-9" style={{ animationDelay: '190ms' }}>
-							<p className="font-jetbrains text-[11px] tracking-[0.2em] text-(--text-tertiary) uppercase">
-								Open in your reader
-							</p>
-							<div className="mt-4 flex flex-wrap gap-3">
-								{FEED_READERS.map((reader) => (
-									<ReaderLinkButton
-										key={reader.id}
-										href={reader.subscribeUrl(RESEARCH_FEED_URL)}
-										label={reader.name}
-										dotColor={reader.brandColor}
-									/>
-								))}
-							</div>
-							<p className="mt-6 max-w-xl text-sm leading-relaxed text-(--text-tertiary)">
-								On Apple devices with NetNewsWire or Reeder?{' '}
-								<a href={feedSchemeUrl(RESEARCH_FEED_URL)} className="text-(--link-text) hover:underline">
-									Open in your default reader
-								</a>
-								. Readwise Reader, Feeder, and every other RSS app work too. Just paste the URL above.
+						<div className="dl-feed-reveal mt-8" style={{ animationDelay: '190ms' }}>
+							<a
+								href={feedSchemeUrl(RESEARCH_FEED_URL)}
+								className="inline-flex items-center gap-2.5 rounded-lg border border-(--cards-border) px-5 py-2.5 text-sm font-semibold text-(--text-primary) transition-[color,background-color,border-color,transform] duration-150 hover:border-(--link-text)/50 hover:bg-(--cards-bg) motion-safe:active:scale-[0.98]"
+							>
+								<RssMark size={16} />
+								Open in your RSS app
+							</a>
+							<p className="mt-4 max-w-xl text-sm leading-relaxed text-(--text-tertiary)">
+								Works with any reader: NetNewsWire, Reeder, Readwise Reader, Feedly, and more. Or paste the URL above
+								into the app you already use.
 							</p>
 						</div>
 					</div>
