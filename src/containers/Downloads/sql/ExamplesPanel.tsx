@@ -25,9 +25,9 @@ function CollapsedExamplesRail({ onExpand }: { onExpand?: () => void }) {
 				onClick={onExpand}
 				title="Expand playbook"
 				aria-label="Expand playbook"
-				className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+				className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 			>
-				<Icon name="panel-left-open" className="h-3.5 w-3.5 rotate-180" />
+				<Icon name="panel-left-open" className="size-3.5 rotate-180" />
 			</button>
 			<button
 				type="button"
@@ -38,7 +38,7 @@ function CollapsedExamplesRail({ onExpand }: { onExpand?: () => void }) {
 			>
 				<Icon
 					name="sparkles"
-					className="h-3.5 w-3.5 text-(--text-tertiary) transition-colors group-hover:text-(--primary)"
+					className="size-3.5 text-(--text-tertiary) transition-colors group-hover:text-(--primary)"
 				/>
 				<span
 					className="font-semibold tracking-[0.16em] uppercase [writing-mode:vertical-rl]"
@@ -100,16 +100,16 @@ function ExpandedExamplesPanel({
 					<span className="text-[11px] text-(--text-tertiary) tabular-nums">{EXAMPLE_QUERIES.length}</span>
 				</div>
 				<div className="flex items-center gap-1">
-					<Icon name="sparkles" className="h-3.5 w-3.5 text-(--text-tertiary)" />
+					<Icon name="sparkles" className="size-3.5 text-(--text-tertiary)" />
 					{onCollapse ? (
 						<button
 							type="button"
 							onClick={onCollapse}
 							title="Collapse playbook"
 							aria-label="Collapse playbook"
-							className="flex h-5 w-5 items-center justify-center rounded-sm text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+							className="flex size-5 items-center justify-center rounded-sm text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 						>
-							<Icon name="panel-left-close" className="h-3 w-3 rotate-180" />
+							<Icon name="panel-left-close" className="size-3 rotate-180" />
 						</button>
 					) : null}
 				</div>
@@ -118,7 +118,7 @@ function ExpandedExamplesPanel({
 			<div className="relative">
 				<Icon
 					name="search"
-					className="pointer-events-none absolute top-1/2 left-0 h-3 w-3 -translate-y-1/2 text-(--text-tertiary)"
+					className="pointer-events-none absolute top-1/2 left-0 size-3 -translate-y-1/2 text-(--text-tertiary)"
 				/>
 				<input
 					type="text"
@@ -132,9 +132,9 @@ function ExpandedExamplesPanel({
 						type="button"
 						onClick={() => setFilter('')}
 						aria-label="Clear filter"
-						className="absolute top-1/2 right-0 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-sm text-(--text-tertiary) hover:text-(--text-primary)"
+						className="absolute top-1/2 right-0 flex size-4 -translate-y-1/2 items-center justify-center rounded-sm text-(--text-tertiary) hover:text-(--text-primary)"
 					>
-						<Icon name="x" className="h-3 w-3" />
+						<Icon name="x" className="size-3" />
 					</button>
 				) : null}
 			</div>
@@ -155,7 +155,7 @@ function ExpandedExamplesPanel({
 							<h4 className="flex items-center gap-1.5 text-[11px] font-semibold text-(--text-secondary)">
 								<span
 									aria-hidden
-									className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+									className="inline-block size-1.5 shrink-0 rounded-full"
 									style={{ background: meta.color }}
 								/>
 								{meta.name}
@@ -189,7 +189,7 @@ function ExpandedExamplesPanel({
 				<p className="flex items-baseline gap-1.5 text-[11px] leading-snug text-(--text-tertiary)">
 					<span
 						aria-hidden
-						className="inline-block h-1 w-1 shrink-0 translate-y-[-1px] rounded-full"
+						className="inline-block size-1 shrink-0 translate-y-[-1px] rounded-full"
 						style={{ background: activeBlurb.color }}
 					/>
 					<span>
@@ -245,7 +245,7 @@ function PlaybookItem({
 					!isDisabled && !isBusy ? 'group-hover/item:translate-x-0.5' : ''
 				}`}
 			>
-				<span className="flex h-4 w-4 items-center justify-center">
+				<span className="flex size-4 items-center justify-center">
 					{isBusy ? (
 						<LoadingSpinner size={10} />
 					) : (
@@ -263,7 +263,7 @@ function PlaybookItem({
 				</span>
 				<Icon
 					name="arrow-right"
-					className={`h-3 w-3 transition-all duration-200 ${
+					className={`size-3 transition-all duration-200 ${
 						isBusy
 							? 'translate-x-0 text-(--primary) opacity-100'
 							: '-translate-x-1 text-(--text-tertiary) opacity-0 group-hover/item:translate-x-0 group-hover/item:text-(--primary) group-hover/item:opacity-100'

@@ -131,7 +131,7 @@ function DashboardPanelInner({
 				>
 					<div className="flex items-center justify-between border-b border-[#e6e6e6] px-4 py-3 dark:border-[#222324]">
 						<div className="flex items-center gap-2 overflow-hidden">
-							<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
+							<Icon name="layout-grid" className="size-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
 							<span className="truncate text-sm font-medium text-[#1a1a2e] dark:text-[#e2e8f0]">
 								{config.dashboardName}
 							</span>
@@ -150,9 +150,9 @@ function DashboardPanelInner({
 							<button
 								onClick={onClose}
 								aria-label="Close"
-								className="flex h-7 w-7 items-center justify-center rounded-md text-[#636e72] transition-colors hover:bg-[#e6e6e6] dark:text-[#8a8f98] dark:hover:bg-[#222324]"
+								className="flex size-7 items-center justify-center rounded-md text-[#636e72] transition-colors hover:bg-[#e6e6e6] dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 							>
-								<Icon name="x" className="h-4 w-4" />
+								<Icon name="x" className="size-4" />
 							</button>
 						</div>
 					</div>
@@ -171,9 +171,9 @@ function DashboardPanelInner({
 								onClick={() => onVersionChange(versionIndex - 1)}
 								disabled={versionIndex === 0}
 								aria-label="Previous version"
-								className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
+								className="flex size-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 							>
-								<Icon name="chevron-left" className="h-3.5 w-3.5" />
+								<Icon name="chevron-left" className="size-3.5" />
 							</button>
 							<span className="text-xs text-[#636e72] dark:text-[#8a8f98]">
 								Version {versionIndex + 1} of {versions.length}
@@ -182,9 +182,9 @@ function DashboardPanelInner({
 								onClick={() => onVersionChange(versionIndex + 1)}
 								disabled={versionIndex === versions.length - 1}
 								aria-label="Next version"
-								className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
+								className="flex size-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 							>
-								<Icon name="chevron-right" className="h-3.5 w-3.5" />
+								<Icon name="chevron-right" className="size-3.5" />
 							</button>
 						</div>
 					) : null}

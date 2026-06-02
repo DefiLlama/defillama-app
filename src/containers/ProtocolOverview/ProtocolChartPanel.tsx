@@ -306,7 +306,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 					<Ariakit.DialogProvider store={metricsDialogStore}>
 						<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 							<span>Add Metrics</span>
-							<Icon name="plus" className="h-3.5 w-3.5" />
+							<Icon name="plus" className="size-3.5" />
 						</Ariakit.DialogDisclosure>
 						<Ariakit.Dialog
 							className="fixed inset-(--inset) top-0 right-0 bottom-0 left-0 z-50 m-auto mb-0 flex max-h-[85dvh] min-h-[40dvh] w-full max-w-full flex-col overflow-hidden rounded-t-xl border border-[color-mix(in_oklch,black_8%,transparent)] bg-(--app-bg) pb-[max(0px,env(safe-area-inset-bottom))] shadow-[0_24px_64px_-16px_rgb(0_0_0/0.45),0_0_0_1px_color-mix(in_oklch,black_4%,transparent)] max-sm:drawer sm:mb-auto sm:h-fit sm:max-h-[min(720px,calc(100%-32px))] sm:min-h-[initial] sm:max-w-[min(calc(100%-32px),600px)] sm:rounded-xl sm:pb-0 dark:border-[color-mix(in_oklch,white_9%,transparent)] dark:shadow-[0_24px_64px_-16px_rgb(0_0_0/0.6),0_0_0_1px_color-mix(in_oklch,white_3%,transparent)_inset]"
@@ -322,7 +322,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 									</span>
 								</div>
 								<Ariakit.DialogDismiss className="-mr-1 rounded-md p-1.5 text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary) focus-visible:bg-(--link-hover-bg)">
-									<Icon name="x" className="h-4 w-4" />
+									<Icon name="x" className="size-4" />
 									<span className="sr-only">Close</span>
 								</Ariakit.DialogDismiss>
 							</div>
@@ -354,9 +354,9 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 											<button
 												type="button"
 												onClick={() => setMetricsSearchValue('')}
-												className="flex h-5 w-5 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+												className="flex size-5 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 											>
-												<Icon name="x" className="h-3.5 w-3.5" />
+												<Icon name="x" className="size-3.5" />
 												<span className="sr-only">Clear search</span>
 											</button>
 										</div>
@@ -364,7 +364,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 								</label>
 							</div>
 
-							<div className="flex thin-scrollbar flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-4 py-4">
+							<div className="flex thin-scrollbar flex-1 flex-col gap-5 overflow-y-auto overscroll-contain p-4">
 								{groupedFilteredOptions.map((group) => (
 									<section key={`category-${group.label}`} className="flex flex-col gap-2">
 										<div className="flex items-baseline gap-1.5">
@@ -391,18 +391,18 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 														{option.active ? (
 															<span
 																aria-hidden
-																className="h-1.5 w-1.5 rounded-full"
+																className="size-1.5 rounded-full"
 																style={{ backgroundColor: dotColor! }}
 															/>
 														) : (
 															<Icon
 																name="plus"
-																className="h-3 w-3 text-(--text-tertiary) group-hover:text-(--old-blue)"
+																className="size-3 text-(--text-tertiary) group-hover:text-(--old-blue)"
 															/>
 														)}
 														<span>{option.label}</span>
 														{option.active ? (
-															<Icon name="x" className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+															<Icon name="x" className="size-3 opacity-50 group-hover:opacity-100" />
 														) : null}
 													</button>
 												)
@@ -467,7 +467,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 									[protocolCharts[tchart]]: getQueryValueOnRemove(defaultEnabledCharts[tchart] === true) ?? undefined
 								})
 							}}
-							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+							className="peer absolute size-[1em] opacity-[0.00001]"
 						/>
 						<span
 							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
@@ -480,10 +480,10 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 								<span
 									aria-label={`${tchart} is loading`}
 									role="status"
-									className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+									className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
 								/>
 							) : (
-								<Icon name="x" className="h-3.5 w-3.5" />
+								<Icon name="x" className="size-3.5" />
 							)}
 						</span>
 					</label>
@@ -499,7 +499,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 									events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
 								})
 							}}
-							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+							className="peer absolute size-[1em] opacity-[0.00001]"
 						/>
 						<span
 							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
@@ -508,7 +508,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 							}}
 						>
 							<span>Events</span>
-							<Icon name="x" className="h-3.5 w-3.5" />
+							<Icon name="x" className="size-3.5" />
 						</span>
 					</label>
 				) : null}
@@ -560,7 +560,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				<Suspense
 					fallback={
 						<div className="m-auto flex min-h-[360px] items-center justify-center" role="status" aria-live="polite">
-							<span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+							<span className="size-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
 							<span className="sr-only">Loading chart...</span>
 						</div>
 					}
@@ -581,7 +581,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				{isClient && failedMetrics.length > 0 ? (
 					<Ariakit.PopoverProvider>
 						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
-							<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+							<Icon name="alert-triangle" className="size-3.5" />
 							<span className="sr-only">Show failed metric APIs</span>
 						</Ariakit.PopoverDisclosure>
 						<Ariakit.Popover

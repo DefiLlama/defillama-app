@@ -115,7 +115,7 @@ export function ArticleMetaDialog({
 					aria-label="Close"
 					className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
 				>
-					<Icon name="x" className="h-4 w-4" />
+					<Icon name="x" className="size-4" />
 				</Ariakit.DialogDismiss>
 			</div>
 
@@ -557,9 +557,9 @@ export function ArticleMetaDialog({
 								<div className="flex min-w-0 items-center gap-2">
 									{entry.profile.avatarUrl ? (
 										// eslint-disable-next-line @next/next/no-img-element
-										<img src={entry.profile.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+										<img src={entry.profile.avatarUrl} alt="" className="size-7 shrink-0 rounded-full object-cover" />
 									) : (
-										<span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-(--link-button) text-[11px] font-medium text-(--link-text)">
+										<span className="grid size-7 shrink-0 place-items-center rounded-full bg-(--link-button) text-[11px] font-medium text-(--link-text)">
 											{entry.profile.displayName.slice(0, 2).toUpperCase()}
 										</span>
 									)}

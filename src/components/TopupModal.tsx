@@ -205,7 +205,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 									className="flex flex-col items-center gap-2 rounded-xl border border-(--sub-border-muted) p-4 transition-colors hover:border-(--sub-brand-primary) disabled:opacity-40 dark:border-(--sub-border-strong) dark:hover:border-(--sub-brand-primary)"
 								>
 									{isRedirecting ? (
-										<span className="block h-[22px] w-[22px] animate-spin rounded-full border-2 border-(--sub-brand-primary)/30 border-t-(--sub-brand-primary)" />
+										<span className="block size-[22px] animate-spin rounded-full border-2 border-(--sub-brand-primary)/30 border-t-(--sub-brand-primary)" />
 									) : (
 										<Icon name="wallet" height={22} width={22} className="text-(--sub-brand-primary)" />
 									)}

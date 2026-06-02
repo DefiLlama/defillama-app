@@ -248,7 +248,7 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 				<div className="flex flex-wrap gap-x-4 gap-y-1">
 					{charts.map((series) => (
 						<div key={series.name} className="flex items-center gap-1.5">
-							<span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: series.color }} />
+							<span className="inline-block size-2 rounded-full" style={{ backgroundColor: series.color }} />
 							<span className="text-[10px] text-(--sub-text-muted)">{series.name}</span>
 						</div>
 					))}

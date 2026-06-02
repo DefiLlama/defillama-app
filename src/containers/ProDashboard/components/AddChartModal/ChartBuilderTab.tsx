@@ -720,7 +720,7 @@ export function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
+												className="flex size-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Hide "Others" (show only top {chartBuilder.limit})</span>
 										</label>
@@ -736,7 +736,7 @@ export function ChartBuilderTab({
 														groupByParent: e.target.checked
 													})
 												}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
+												className="flex size-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Group by parent protocol</span>
 										</div>
@@ -851,7 +851,7 @@ export function ChartBuilderTab({
 															hideOthers: e.target.checked
 														})
 													}
-													className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-checked:bg-[#28a2b5]"
+													className="flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-checked:bg-[#28a2b5]"
 												/>
 												<span className="text-[10px] pro-text2">
 													Hide "Others" (show only top {chartBuilder.limit})
@@ -934,14 +934,14 @@ export function ChartBuilderTab({
 					>
 						{previewLoading ? (
 							<div className="text-center">
-								<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-pro-blue-100 dark:border-pro-blue-300/20"></div>
+								<div className="mx-auto mb-2 size-8 animate-spin rounded-full border-b-2 border-pro-blue-100 dark:border-pro-blue-300/20"></div>
 								<p className="text-sm pro-text2">Loading preview...</p>
 							</div>
 						) : previewData && previewData.series.length > 0 ? (
 							<div className="absolute inset-0 p-2">
 								<Suspense
 									fallback={
-										<div className="h-full w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
+										<div className="size-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
 									}
 								>
 									{chartBuilder.chartType === 'treemap' ? (
@@ -1047,7 +1047,7 @@ export function ChartBuilderTab({
 									Reset All
 								</button>
 							</div>
-							<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+							<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 								{visibleSeries.map((series) => {
 									const activeColor = resolveSeriesColor(series.name, series.color)
 									const hasOverride = !!seriesColors?.[series.name]
@@ -1063,7 +1063,7 @@ export function ChartBuilderTab({
 												type="color"
 												value={activeColor}
 												onChange={(event) => handleSeriesColorChange(series.name, event.target.value)}
-												className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
+												className="size-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
 												aria-label={`Select color for ${series.name}`}
 											/>
 											<button

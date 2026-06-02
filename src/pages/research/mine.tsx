@@ -59,7 +59,7 @@ function StatusDot({ status }: { status: ArticleDocument['status'] }) {
 	return (
 		<span
 			aria-hidden
-			className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`}
+			className={`inline-block size-1.5 shrink-0 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`}
 		/>
 	)
 }
@@ -204,7 +204,7 @@ function MyArticlesContent() {
 						>
 							<svg
 								viewBox="0 0 24 24"
-								className="h-4 w-4"
+								className="size-4"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="2"
@@ -248,7 +248,7 @@ function MyArticlesContent() {
 						<label className="relative flex items-center">
 							<svg
 								viewBox="0 0 24 24"
-								className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-(--text-tertiary)"
+								className="pointer-events-none absolute left-2.5 size-3.5 text-(--text-tertiary)"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="1.75"
@@ -329,7 +329,7 @@ function MyArticlesContent() {
 				<ul className="grid divide-y divide-(--cards-border) overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{Array.from({ length: 6 }).map((_, i) => (
 						<li key={i} className="flex items-center gap-3 px-4 py-3.5">
-							<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--cards-border)" />
+							<span className="size-1.5 shrink-0 rounded-full bg-(--cards-border)" />
 							<span className="h-3.5 w-2/3 animate-pulse rounded bg-(--cards-border)" />
 							<span className="ml-auto h-3 w-20 animate-pulse rounded bg-(--cards-border)" />
 						</li>
@@ -456,11 +456,11 @@ function MyArticlesContent() {
 												title="Delete"
 												disabled={isDeleting}
 												onClick={() => handleDelete(article)}
-												className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+												className="flex size-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 											>
 												<svg
 													viewBox="0 0 24 24"
-													className="h-3.5 w-3.5"
+													className="size-3.5"
 													fill="none"
 													stroke="currentColor"
 													strokeWidth="1.75"

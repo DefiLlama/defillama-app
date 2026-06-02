@@ -207,7 +207,7 @@ const CTAButton = ({ className = '', label }: { className?: string; label?: stri
 					className
 				)}
 			>
-				<svg className="h-4 w-4 shrink-0">
+				<svg className="size-4 shrink-0">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 				<span className="whitespace-nowrap">{label ?? 'LlamaAI'}</span>
@@ -227,7 +227,7 @@ const CTAButton = ({ className = '', label }: { className?: string; label?: stri
 				className
 			)}
 		>
-			<svg className="h-4 w-4 shrink-0">
+			<svg className="size-4 shrink-0">
 				<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 			</svg>
 			<span className="whitespace-nowrap">{displayLabel}</span>
@@ -245,7 +245,7 @@ const CTAButton = ({ className = '', label }: { className?: string; label?: stri
 				className
 			)}
 		>
-			<svg className="h-4 w-4 shrink-0">
+			<svg className="size-4 shrink-0">
 				<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 			</svg>
 			<span className="whitespace-nowrap">{displayLabel}</span>
@@ -289,7 +289,7 @@ function ExampleShowcase() {
 	return (
 		<div>
 			<div className="mb-3 flex items-start gap-2.5 px-1">
-				<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E8E8E8] bg-[#FAFAFA] text-sm dark:border-[#2a2a2e] dark:bg-[#1e1f23]">
+				<div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-[#E8E8E8] bg-[#FAFAFA] text-sm dark:border-[#2a2a2e] dark:bg-[#1e1f23]">
 					👤
 				</div>
 				<div>
@@ -322,12 +322,12 @@ function ExampleShowcase() {
 					<img
 						src={`${example.screenshot}.png`}
 						alt={`LlamaAI ${example.category} example`}
-						className="hidden h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 dark:block"
+						className="hidden size-full object-cover object-top transition-transform duration-700 group-hover:scale-105 dark:block"
 					/>
 					<img
 						src={`${example.screenshot}-light.png`}
 						alt={`LlamaAI ${example.category} example`}
-						className="block h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 dark:hidden"
+						className="block size-full object-cover object-top transition-transform duration-700 group-hover:scale-105 dark:hidden"
 					/>
 					<div className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/50 via-black/0 to-black/0 opacity-0 transition-all duration-500 group-hover:opacity-100">
 						<span className="flex translate-y-4 items-center gap-2 rounded-full bg-linear-to-r from-[#FDE0A9] to-[#F5D08C] px-5 py-2.5 text-sm font-semibold text-[#5C4A1F] shadow-[0_8px_32px_rgba(253,224,169,0.5)] transition-all duration-500 group-hover:translate-y-0">
@@ -483,7 +483,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 								<img
 									src="/assets/llamaai/llama-ai.svg"
 									alt=""
-									className="relative h-20 w-20 object-contain drop-shadow-[0_0_20px_rgba(253,224,169,0.4)] md:h-24 md:w-24"
+									className="relative size-20 object-contain drop-shadow-[0_0_20px_rgba(253,224,169,0.4)] md:size-24"
 								/>
 							</div>
 							<h1 className="mb-6 text-[3rem] leading-[1.05] font-extrabold tracking-[-0.03em] text-black md:text-[4rem] lg:text-[4.5rem] dark:text-white">
@@ -626,7 +626,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
 										<div className="flex items-center gap-2">
-											<div className="flex h-5 w-5 items-center justify-center rounded bg-[#C99A4A]/15 dark:bg-[#FDE0A9]/15">
+											<div className="flex size-5 items-center justify-center rounded bg-[#C99A4A]/15 dark:bg-[#FDE0A9]/15">
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
 													width="11"
@@ -656,7 +656,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 											<p className="text-[10px] text-[#999] dark:text-[#666]">Daily at 9 AM UTC</p>
 										</div>
 										<div className="h-3.5 w-6 shrink-0 rounded-full bg-[#3B82F6] p-0.5">
-											<div className="h-2.5 w-2.5 translate-x-2.5 rounded-full bg-white shadow-sm" />
+											<div className="size-2.5 translate-x-2.5 rounded-full bg-white shadow-sm" />
 										</div>
 									</div>
 								</div>
@@ -674,7 +674,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
 										<div className="flex items-center gap-2">
-											<div className="flex h-5 w-5 items-center justify-center rounded bg-[#3B82F6]/15">
+											<div className="flex size-5 items-center justify-center rounded bg-[#3B82F6]/15">
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
 													width="11"
@@ -704,7 +704,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 												<p className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">Remember my preferences</p>
 											</div>
 											<div className="h-3.5 w-6 shrink-0 rounded-full bg-[#3B82F6] p-0.5">
-												<div className="h-2.5 w-2.5 translate-x-2.5 rounded-full bg-white shadow-sm" />
+												<div className="size-2.5 translate-x-2.5 rounded-full bg-white shadow-sm" />
 											</div>
 										</div>
 									</div>
@@ -752,14 +752,14 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
+											<div className="size-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
 												<span className="font-medium text-[#333] dark:text-[#ccc]">market_dynamics</span>{' '}
 												{TOOL_LABELS.generate_chart}
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
+											<div className="size-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
 												<span className="font-medium text-[#333] dark:text-[#ccc]">competitive_positioning</span>{' '}
 												{TOOL_LABELS.web_search}
@@ -795,15 +795,15 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 										<img
 											src="https://img.youtube.com/vi/rEJz1gfC0Oc/maxresdefault.jpg"
 											alt="LlamaAI Demo"
-											className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+											className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
 										/>
 										<div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
-										<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
+										<div className="relative z-10 flex size-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:size-20">
 											<svg
 												xmlns="http://www.w3.org/2000/svg"
 												viewBox="0 0 24 24"
 												fill="currentColor"
-												className="ml-1 h-6 w-6 text-[#1a1a1a] md:h-8 md:w-8"
+												className="ml-1 size-6 text-[#1a1a1a] md:size-8"
 											>
 												<path d="M8 5.14v14l11-7-11-7z" />
 											</svg>
@@ -820,7 +820,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 										referrerPolicy="strict-origin-when-cross-origin"
 										allowFullScreen
-										className="absolute inset-0 h-full w-full"
+										className="absolute inset-0 size-full"
 									/>
 								)}
 							</div>
@@ -931,14 +931,14 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 						<div className="relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-linear-to-br from-white via-[#FEFDFB] to-[#FDF8EF] dark:border-[#2a2a2e] dark:from-[#1e1f23] dark:via-[#1e1f23] dark:to-[#252218]">
 							<div className="pointer-events-none absolute inset-0 overflow-hidden">
 								<div
-									className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full opacity-30"
+									className="absolute -right-16 -bottom-16 size-48 rounded-full opacity-30"
 									style={{
 										background: 'radial-gradient(circle, #FDE0A9 0%, transparent 70%)',
 										filter: 'blur(40px)'
 									}}
 								/>
 								<div
-									className="absolute -top-8 -left-8 h-32 w-32 rounded-full opacity-20"
+									className="absolute -top-8 -left-8 size-32 rounded-full opacity-20"
 									style={{
 										background: 'radial-gradient(circle, #FDE0A9 0%, transparent 70%)',
 										filter: 'blur(30px)'

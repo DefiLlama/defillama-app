@@ -80,10 +80,10 @@ export default function YieldBorrow(data) {
 							<button
 								aria-label="Swap borrow and collateral"
 								onClick={handleSwap}
-								className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-(--form-control-border) bg-(--cards-bg) text-(--text-tertiary) transition-all hover:scale-105 hover:border-(--primary) hover:text-(--primary) focus-visible:border-(--primary) focus-visible:text-(--primary) active:scale-95"
+								className="inline-flex size-8 items-center justify-center rounded-full border border-(--form-control-border) bg-(--cards-bg) text-(--text-tertiary) transition-all hover:scale-105 hover:border-(--primary) hover:text-(--primary) focus-visible:border-(--primary) focus-visible:text-(--primary) active:scale-95"
 								title="Swap borrow and collateral"
 							>
-								<Icon name="repeat" className="h-4 w-4" />
+								<Icon name="repeat" className="size-4" />
 							</button>
 						</div>
 
@@ -109,7 +109,7 @@ export default function YieldBorrow(data) {
 								className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-(--form-control-border) bg-(--btn-bg) transition-colors data-[checked=true]:border-(--primary) data-[checked=true]:bg-(--primary)"
 							>
 								<span
-									className="pointer-events-none block h-3.5 w-3.5 translate-x-0.5 rounded-full bg-(--text-tertiary) shadow-sm transition-transform data-[checked=true]:translate-x-[17px] data-[checked=true]:bg-white"
+									className="pointer-events-none block size-3.5 translate-x-0.5 rounded-full bg-(--text-tertiary) shadow-sm transition-transform data-[checked=true]:translate-x-[17px] data-[checked=true]:bg-white"
 									data-checked={includeIncentives}
 								/>
 							</span>
@@ -231,7 +231,7 @@ const TokensSelect = ({
 						)}
 						<Icon
 							name="chevron-down"
-							className="ml-auto h-4 w-4 shrink-0 opacity-40 transition-transform group-aria-expanded:rotate-180"
+							className="ml-auto size-4 shrink-0 opacity-40 transition-transform group-aria-expanded:rotate-180"
 						/>
 					</Ariakit.Select>
 					<Ariakit.SelectPopover
@@ -245,7 +245,7 @@ const TokensSelect = ({
 						className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-lg border border-(--cards-border) bg-(--bg-main) shadow-lg max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height)"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-							<Icon name="x" className="h-5 w-5" />
+							<Icon name="x" className="size-5" />
 						</Ariakit.PopoverDismiss>
 
 						<div className="p-2">
@@ -268,7 +268,7 @@ const TokensSelect = ({
 											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : option.symbol}
 										</span>
 										{option.symbol === selectedValue ? (
-											<Icon name="check" className="ml-auto h-3.5 w-3.5 shrink-0 text-(--primary)" />
+											<Icon name="check" className="ml-auto size-3.5 shrink-0 text-(--primary)" />
 										) : null}
 									</Ariakit.SelectItem>
 								))}

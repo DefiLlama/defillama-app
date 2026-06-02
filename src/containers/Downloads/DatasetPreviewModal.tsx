@@ -727,7 +727,7 @@ export function DatasetPreviewModal({
 										className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 										title="Copy selected columns as TSV"
 									>
-										<Icon name="clipboard" className="h-3.5 w-3.5" />
+										<Icon name="clipboard" className="size-3.5" />
 										<span className="hidden lg:inline">Copy</span>
 									</button>
 
@@ -739,7 +739,7 @@ export function DatasetPreviewModal({
 											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 											title="Save as preset"
 										>
-											<Icon name="bookmark" className="h-3.5 w-3.5" />
+											<Icon name="bookmark" className="size-3.5" />
 											<span className="hidden lg:inline">Save preset</span>
 										</button>
 									) : null}
@@ -752,7 +752,7 @@ export function DatasetPreviewModal({
 											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 											title="Copy shareable link"
 										>
-											<Icon name="link" className="h-3.5 w-3.5" />
+											<Icon name="link" className="size-3.5" />
 										</button>
 									) : null}
 
@@ -765,7 +765,7 @@ export function DatasetPreviewModal({
 											}}
 											className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
 										>
-											<Icon name="download-cloud" className="h-3.5 w-3.5" />
+											<Icon name="download-cloud" className="size-3.5" />
 											<span className="hidden sm:inline">Download</span>
 										</button>
 									) : (
@@ -779,7 +779,7 @@ export function DatasetPreviewModal({
 								onClick={onClose}
 								className="rounded-md p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 							>
-								<Icon name="x" className="h-4 w-4" />
+								<Icon name="x" className="size-4" />
 							</button>
 						</div>
 
@@ -840,7 +840,7 @@ export function DatasetPreviewModal({
 											className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:hidden"
 											title="Copy selected columns as TSV"
 										>
-											<Icon name="clipboard" className="h-3.5 w-3.5" />
+											<Icon name="clipboard" className="size-3.5" />
 										</button>
 									</>
 								) : (
@@ -860,7 +860,7 @@ export function DatasetPreviewModal({
 					) : error ? (
 						<div className="flex flex-1 items-center justify-center">
 							<div className="flex flex-col items-center gap-2">
-								<Icon name="alert-triangle" className="h-6 w-6 text-red-500" />
+								<Icon name="alert-triangle" className="size-6 text-red-500" />
 								<p className="text-sm text-red-500">
 									{error instanceof Error ? error.message : 'Failed to fetch data'}
 								</p>
@@ -869,14 +869,14 @@ export function DatasetPreviewModal({
 					) : columnMeta.length === 0 ? (
 						<div className="flex flex-1 items-center justify-center">
 							<div className="flex flex-col items-center gap-2 text-center">
-								<Icon name="eye-off" className="h-6 w-6 text-(--text-tertiary)" />
+								<Icon name="eye-off" className="size-6 text-(--text-tertiary)" />
 								<p className="text-sm text-(--text-secondary)">No data</p>
 							</div>
 						</div>
 					) : sortedRows.length === 0 ? (
 						<div className="flex flex-1 items-center justify-center">
 							<div className="flex flex-col items-center gap-2 text-center">
-								<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+								<Icon name="search" className="size-6 text-(--text-tertiary)" />
 								<p className="text-sm text-(--text-secondary)">No matching rows</p>
 							</div>
 						</div>
@@ -914,7 +914,7 @@ export function DatasetPreviewModal({
 															type="checkbox"
 															checked={isSelected}
 															onChange={() => toggleColumn(column.index)}
-															className="mr-1 h-3.5 w-3.5 shrink-0 cursor-pointer accent-(--primary)"
+															className="mr-1 size-3.5 shrink-0 cursor-pointer accent-(--primary)"
 														/>
 														<button
 															type="button"
@@ -1022,7 +1022,7 @@ export function DatasetPreviewModal({
 												href="/subscribe"
 												className="mt-1 inline-flex items-center gap-2 rounded-lg bg-(--primary) px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
 											>
-												<Icon name="arrow-up-right" className="h-4 w-4" />
+												<Icon name="arrow-up-right" className="size-4" />
 												Subscribe
 											</Link>
 										</div>
@@ -1125,7 +1125,7 @@ function ChainPickerPopover({
 	return (
 		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="link" className="h-3.5 w-3.5" />
+				<Icon name="link" className="size-3.5" />
 				{selected ?? 'All Chains'}
 			</Ariakit.PopoverDisclosure>
 			<Ariakit.Popover
@@ -1191,7 +1191,7 @@ function ExcludeToggleButton({
 					: 'border-(--primary)/30 bg-(--primary)/10 text-(--primary) hover:bg-(--primary)/20'
 			}`}
 		>
-			<Icon name={excluded ? 'eye-off' : 'eye'} className="h-3.5 w-3.5" />
+			<Icon name={excluded ? 'eye-off' : 'eye'} className="size-3.5" />
 			{toggle.label}
 		</button>
 	)
@@ -1215,7 +1215,7 @@ function ColumnPickerPopover({
 	return (
 		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="eye" className="h-3.5 w-3.5" />
+				<Icon name="eye" className="size-3.5" />
 				Columns
 				<span className="text-(--text-tertiary)">
 					{selected.size}/{columns.length}
@@ -1244,11 +1244,11 @@ function ColumnPickerPopover({
 								className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg)"
 							>
 								<span
-									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+									className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
 										isSelected ? 'border-(--primary) bg-(--primary) text-white' : 'border-(--divider)'
 									}`}
 								>
-									{isSelected ? <Icon name="check" className="h-2.5 w-2.5" /> : null}
+									{isSelected ? <Icon name="check" className="size-2.5" /> : null}
 								</span>
 								<span className={isSelected ? 'text-(--text-primary)' : 'text-(--text-tertiary)'}>{column.header}</span>
 							</button>

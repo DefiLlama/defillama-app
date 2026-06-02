@@ -14,7 +14,7 @@ export function CardSkeleton({ title }: { title: string }) {
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
 			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
 			<div className="flex h-[400px] items-center justify-center">
-				<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
+				<div className="size-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
 			</div>
 		</div>
 	)

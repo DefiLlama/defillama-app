@@ -513,13 +513,13 @@ export function SimpleTableConfig({
 												alt=""
 												width={16}
 												height={16}
-												className="h-4 w-4 rounded-full"
+												className="size-4 rounded-full"
 												onError={(e) => {
 													e.currentTarget.style.display = 'none'
 												}}
 											/>
 										) : (
-											<div className="h-4 w-4 rounded-full bg-(--bg-tertiary)" />
+											<div className="size-4 rounded-full bg-(--bg-tertiary)" />
 										)}
 										<span className="text-sm pro-text1">{option?.label ?? token}</span>
 										<button
@@ -540,17 +540,17 @@ export function SimpleTableConfig({
 						className="flex w-full items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 text-left pro-text2 transition-colors hover:pro-text1"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
-						<div className="relative h-4 w-4">
+						<div className="relative size-4">
 							<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 							<div
-								className={`h-4 w-4 border-2 transition-all ${
+								className={`size-4 border-2 transition-all ${
 									includeCex
 										? 'border-pro-blue-100 bg-pro-blue-100 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20'
 										: 'pro-border bg-transparent'
 								}`}
 							>
 								{includeCex ? (
-									<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+									<svg className="size-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 										<path
 											fillRule="evenodd"
 											d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

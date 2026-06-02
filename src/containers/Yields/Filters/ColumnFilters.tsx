@@ -21,7 +21,7 @@ const PREMIUM_KEYS = new Set(['showMedianApy', 'showStdDev'])
 
 const PRO_BADGE = (
 	<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
-		<LockIcon className="h-2.5 w-2.5" />
+		<LockIcon className="size-2.5" />
 		Pro
 	</span>
 )

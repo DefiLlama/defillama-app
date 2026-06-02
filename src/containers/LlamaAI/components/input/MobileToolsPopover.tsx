@@ -58,7 +58,7 @@ export function MobileToolsPopover({
 				data-walkthrough="mobile-tools-button"
 				disabled={disabled}
 				aria-label="Open mobile tools"
-				className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e4e4e4] hover:text-[#333] disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] sm:hidden dark:bg-white/8 dark:text-[#a1a1aa] dark:hover:bg-white/12 dark:hover:text-[#e4e4e7] dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]"
+				className="flex size-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e4e4e4] hover:text-[#333] disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] sm:hidden dark:bg-white/8 dark:text-[#a1a1aa] dark:hover:bg-white/12 dark:hover:text-[#e4e4e7] dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]"
 			>
 				<Icon name="plus" height={16} width={16} />
 			</Ariakit.MenuButton>
@@ -80,7 +80,7 @@ export function MobileToolsPopover({
 					</Ariakit.MenuHeading> */}
 					<Ariakit.MenuDismiss
 						aria-label="Close mobile tools"
-						className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e0e0e0] dark:bg-white/10 dark:text-[#aaa] dark:hover:bg-white/15"
+						className="flex size-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e0e0e0] dark:bg-white/10 dark:text-[#aaa] dark:hover:bg-white/15"
 					>
 						<Icon name="x" height={14} width={14} />
 					</Ariakit.MenuDismiss>

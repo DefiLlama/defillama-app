@@ -73,7 +73,7 @@ function renderPressReleaseCards(posts: ParagraphPost[]) {
 					<img
 						src={post.imageUrl}
 						alt={post.title}
-						className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+						className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
 						loading="lazy"
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -111,7 +111,7 @@ function renderPressReleaseCards(posts: ParagraphPost[]) {
 				<div className="flex items-center gap-2 pt-2 text-sm font-medium text-(--link) transition-all group-hover:gap-3">
 					<span>Read more</span>
 					<svg
-						className="h-4 w-4 transition-transform group-hover:translate-x-1"
+						className="size-4 transition-transform group-hover:translate-x-1"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -165,7 +165,7 @@ export default function PressReleases() {
 		return (
 			<div className="flex h-96 items-center justify-center">
 				<div className="flex flex-col items-center gap-3">
-					<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--text-label) border-t-transparent"></div>
+					<div className="size-8 animate-spin rounded-full border-2 border-(--text-label) border-t-transparent"></div>
 					<p className="text-sm text-(--text-secondary)">Loading reports and press releases...</p>
 				</div>
 			</div>
@@ -176,7 +176,7 @@ export default function PressReleases() {
 		return (
 			<div className="flex h-96 items-center justify-center rounded-xl border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-col items-center gap-2">
-					<svg className="h-12 w-12 text-(--text-label)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg className="size-12 text-(--text-label)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -202,8 +202,8 @@ export default function PressReleases() {
 			{financialReports.length > 0 && (
 				<div className="space-y-4">
 					<div className="flex items-center gap-3">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--sl-accent-muted)">
-							<svg className="h-5 w-5 text-(--sl-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-(--sl-accent-muted)">
+							<svg className="size-5 text-(--sl-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									strokeLinecap="round"
 									strokeLinejoin="round"
@@ -229,7 +229,7 @@ export default function PressReleases() {
 										<img
 											src={post.imageUrl}
 											alt={post.title}
-											className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+											className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
 											loading="lazy"
 										/>
 										<div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
@@ -250,7 +250,7 @@ export default function PressReleases() {
 									<div className="flex items-center gap-2 pt-2 text-sm font-medium text-(--link) transition-all group-hover:gap-3">
 										<span>View report</span>
 										<svg
-											className="h-4 w-4 transition-transform group-hover:translate-x-1"
+											className="size-4 transition-transform group-hover:translate-x-1"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -269,8 +269,8 @@ export default function PressReleases() {
 			{pressReleases.length > 0 && (
 				<div className="space-y-4">
 					<div className="flex items-center gap-3">
-						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--cards-border)">
-							<svg className="h-5 w-5 text-(--text-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div className="flex size-8 items-center justify-center rounded-lg bg-(--cards-border)">
+							<svg className="size-5 text-(--text-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									strokeLinecap="round"
 									strokeLinejoin="round"
@@ -297,7 +297,7 @@ export default function PressReleases() {
 				>
 					<span>View all on Paragraph</span>
 					<svg
-						className="h-4 w-4 transition-transform group-hover:translate-x-1"
+						className="size-4 transition-transform group-hover:translate-x-1"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

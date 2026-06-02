@@ -392,7 +392,7 @@ export function OnboardingWalkthrough({
 										<img
 											src="/assets/llamaai/llama-ai.svg"
 											alt=""
-											className="relative h-14 w-14 object-contain"
+											className="relative size-14 object-contain"
 											width={56}
 											height={56}
 										/>
@@ -484,7 +484,7 @@ export function OnboardingWalkthrough({
 					>
 						{tooltipPosition === 'below' ? (
 							<div className="mb-1 flex justify-center">
-								<div className="h-0 w-0 border-x-8 border-b-8 border-x-transparent border-b-[#111214]" />
+								<div className="size-0 border-x-8 border-b-8 border-x-transparent border-b-[#111214]" />
 							</div>
 						) : null}
 
@@ -498,7 +498,7 @@ export function OnboardingWalkthrough({
 							<div className="p-4">
 								<div className="flex items-start gap-3">
 									<div
-										className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+										className="flex size-7 shrink-0 items-center justify-center rounded-lg"
 										style={{ backgroundColor: `${config.iconColor}15` }}
 									>
 										<Icon name={config.icon} height={14} width={14} style={{ color: config.iconColor }} />
@@ -526,7 +526,7 @@ export function OnboardingWalkthrough({
 
 						{tooltipPosition === 'above' ? (
 							<div className="mt-px flex justify-center">
-								<div className="h-0 w-0 border-x-8 border-t-8 border-x-transparent border-t-[#111214]" />
+								<div className="size-0 border-x-8 border-t-8 border-x-transparent border-t-[#111214]" />
 							</div>
 						) : null}
 					</div>
@@ -548,7 +548,7 @@ export function OnboardingWalkthrough({
 
 							<div className="p-6">
 								<div className="mb-4 flex flex-col items-center gap-1 text-center">
-									<div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-green-500/12">
+									<div className="mb-1 flex size-7 items-center justify-center rounded-full bg-green-500/12">
 										<Icon name="check" height={14} width={14} className="text-green-400" />
 									</div>
 									<span className="text-[15px] font-bold text-white">Research mode is on</span>

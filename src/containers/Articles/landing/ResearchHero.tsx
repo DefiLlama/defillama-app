@@ -89,7 +89,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 					</h2>
 
 					<div className="flex flex-col items-center gap-[36px] lg:flex-row">
-						<div className="flex space-x-[12px]">
+						<div className="flex gap-[12px]">
 							<a
 								href="mailto:research@defillama.com"
 								className="flex items-center rounded-full bg-white px-[14px] py-[12px] text-[16px] leading-[50%] text-[#237BFF] md:px-[24px] md:py-[14px]"
@@ -100,7 +100,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								href="https://calendly.com/research-defillama/30min"
 								target="_blank"
 								rel="noopener noreferrer"
-								className="flex items-center space-x-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
+								className="flex items-center gap-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
 							>
 								<span>Book a call</span>
 
@@ -108,7 +108,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 							</Link>
 						</div>
 
-						<div className="flex space-x-[7px]">
+						<div className="flex gap-[7px]">
 							<Link
 								href="https://x.com/defillama_res"
 								aria-label="Follow us on X"

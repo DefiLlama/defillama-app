@@ -190,7 +190,7 @@ export default function Protocols({ emissions }) {
 							className="z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 						>
 							<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-								<Icon name="x" className="h-5 w-5" />
+								<Icon name="x" className="size-5" />
 							</Ariakit.PopoverDismiss>
 
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
@@ -219,7 +219,7 @@ export default function Protocols({ emissions }) {
 									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									<span>{value}</span>
-									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									<Ariakit.SelectItemCheck className="flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 								</Ariakit.SelectItem>
 							))}
 						</Ariakit.SelectPopover>
@@ -309,10 +309,10 @@ const SimpleUpcomingEvent = ({ timestamp, name }) => {
 			<span>{name}</span>
 			<span className="h-10 w-px bg-(--bg-border)" />
 			<span className="flex items-center gap-1">
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{days}D</span>
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{hours}H</span>
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{minutes}M</span>
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{seconds}S</span>
+				<span className="flex size-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{days}D</span>
+				<span className="flex size-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{hours}H</span>
+				<span className="flex size-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{minutes}M</span>
+				<span className="flex size-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{seconds}S</span>
 			</span>
 			<span className="h-10 w-px bg-(--bg-border)" />
 			<span className="flex items-center justify-between gap-2">

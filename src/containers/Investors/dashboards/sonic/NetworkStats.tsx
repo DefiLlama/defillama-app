@@ -183,7 +183,7 @@ export default function NetworkStats() {
 							<span className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">Total S Burned</span>
 							{stream.connected && (
 								<span className="flex items-center gap-1.5 text-[11px] text-green-500">
-									<span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+									<span className="inline-block size-1.5 animate-pulse rounded-full bg-green-500" />
 									Live
 								</span>
 							)}
@@ -333,7 +333,7 @@ export default function NetworkStats() {
 					fill="none"
 					stroke="currentColor"
 					strokeWidth="2"
-					className="h-4 w-4 text-(--text-label) transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+					className="size-4 text-(--text-label) transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
 				>
 					<path d="M7 17L17 7M17 7H7M17 7v10" />
 				</svg>

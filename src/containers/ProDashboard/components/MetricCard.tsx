@@ -197,7 +197,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 		if (isLoading) {
 			return (
 				<div className="flex flex-1 items-center justify-center">
-					<div className="h-6 w-6 animate-spin rounded-full border-b-2 border-(--primary)" />
+					<div className="size-6 animate-spin rounded-full border-b-2 border-(--primary)" />
 				</div>
 			)
 		}
@@ -256,9 +256,9 @@ export function MetricCard({ metric }: MetricCardProps) {
 			<div className="flex items-start justify-between gap-4">
 				<div className="flex items-center gap-1">
 					{iconUrl ? (
-						<img src={iconUrl} alt={displayTitle} width={20} height={20} className="h-5 w-5 shrink-0 rounded-full" />
+						<img src={iconUrl} alt={displayTitle} width={20} height={20} className="size-5 shrink-0 rounded-full" />
 					) : (
-						<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-semibold text-gray-600">
+						<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-semibold text-gray-600">
 							{displayTitle?.charAt(0)?.toUpperCase()}
 						</div>
 					)}

@@ -32,7 +32,7 @@ export function ReturnModal({ isOpen, onClose, returnUrl }: ReturnModalProps) {
 				unmountOnHide
 			>
 				<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white">
-					<Icon name="x" className="h-6 w-6" />
+					<Icon name="x" className="size-6" />
 				</Ariakit.DialogDismiss>
 				<div className="mx-auto max-w-[400px] p-8">
 					<h2 className="mb-4 text-center text-2xl font-bold text-white">Welcome Back!</h2>

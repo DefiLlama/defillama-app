@@ -9,7 +9,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
 			className="inline-flex items-center gap-1 text-sm font-medium text-(--sl-accent) hover:underline"
 		>
 			{children}
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3 w-3">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="size-3">
 				<path d="M7 17L17 7M17 7H7M17 7v10" />
 			</svg>
 		</a>

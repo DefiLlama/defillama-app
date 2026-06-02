@@ -461,9 +461,9 @@ export function MessageBubble({
 											key={`sent-image-${image.url}`}
 											type="button"
 											onClick={() => setPreviewImage(image.url)}
-											className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+											className="size-16 cursor-pointer overflow-hidden rounded-lg"
 										>
-											<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
+											<img src={image.url} alt={displayName} className="size-full object-cover" />
 										</button>
 									)
 								}
@@ -691,7 +691,7 @@ function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
 			onClick={toggleDashboardPanel}
 			className="my-2 flex w-full items-center gap-3 rounded-lg border border-[#2172e5]/30 bg-[#2172e5]/5 px-3.5 py-2.5 text-left transition-all hover:border-[#2172e5]/50 hover:bg-[#2172e5]/10"
 		>
-			<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
+			<Icon name="layout-grid" className="size-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-2">
 					<span className="truncate text-sm font-semibold text-[#2172e5] dark:text-[#4190f7]">
@@ -703,7 +703,7 @@ function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
 			</div>
 			<Icon
 				name={isDashboardPanelOpen ? 'chevron-right' : 'chevron-left'}
-				className="h-4 w-4 shrink-0 text-[#636e72] dark:text-[#8a8f98]"
+				className="size-4 shrink-0 text-[#636e72] dark:text-[#8a8f98]"
 			/>
 		</button>
 	)

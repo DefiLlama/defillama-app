@@ -59,9 +59,9 @@ function RssCornerMotif() {
 	return (
 		<div
 			aria-hidden
-			className="pointer-events-none absolute -top-6 right-0 z-0 hidden h-[clamp(320px,30vw,460px)] w-[clamp(320px,30vw,460px)] lg:block"
+			className="pointer-events-none absolute -top-6 right-0 z-0 hidden size-[clamp(320px,30vw,460px)] lg:block"
 		>
-			<svg viewBox="0 0 200 200" className="h-full w-full">
+			<svg viewBox="0 0 200 200" className="size-full">
 				<g fill="none" stroke="#ee802f" strokeWidth="2.2">
 					<circle cx="188" cy="12" r="54" strokeOpacity="0.4" />
 					<circle cx="188" cy="12" r="100" strokeOpacity="0.26" />
@@ -122,7 +122,7 @@ export function ResearchFeedLanding({ items }: { items: ResearchFeedPreviewItem[
 						>
 							<span className="flex min-w-0 flex-1 items-center gap-3">
 								<span className="relative flex size-2.5 shrink-0 items-center justify-center">
-									<span className="dl-feed-pulse absolute inline-flex h-full w-full rounded-full bg-[#ee802f]" />
+									<span className="dl-feed-pulse absolute inline-flex size-full rounded-full bg-[#ee802f]" />
 									<span className="relative inline-flex size-2.5 rounded-full bg-[#ee802f]" />
 								</span>
 								<code className="truncate font-jetbrains text-sm text-white sm:text-[15px]">{RESEARCH_FEED_URL}</code>

@@ -77,7 +77,7 @@ export function ResultsChart({ result, chartConfig, onChartConfigChange }: Resul
 function EmptyState({ message, hint }: { message: string; hint?: string }) {
 	return (
 		<div className="flex flex-col items-center gap-1 rounded-md border border-dashed border-(--divider) bg-(--bg-primary)/40 px-6 py-10 text-center">
-			<Icon name="bar-chart-2" className="h-5 w-5 text-(--text-tertiary)" />
+			<Icon name="bar-chart-2" className="size-5 text-(--text-tertiary)" />
 			<p className="text-sm text-(--text-secondary)">{message}</p>
 			{hint ? <p className="text-xs text-(--text-tertiary)">{hint}</p> : null}
 		</div>

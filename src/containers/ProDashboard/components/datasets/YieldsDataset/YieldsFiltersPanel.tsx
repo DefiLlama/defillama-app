@@ -157,7 +157,7 @@ export function YieldsFiltersPanel({
 						</div>
 
 						<label className="group flex cursor-pointer items-center gap-2">
-							<div className="relative h-4 w-4">
+							<div className="relative size-4">
 								<input
 									type="checkbox"
 									checked={localFilters.hasRewards || false}
@@ -165,14 +165,14 @@ export function YieldsFiltersPanel({
 									className="sr-only"
 								/>
 								<div
-									className={`h-4 w-4 rounded-sm border-2 transition-all duration-150 ${
+									className={`size-4 rounded-sm border-2 transition-all duration-150 ${
 										localFilters.hasRewards
 											? 'border-(--primary) bg-(--primary)'
 											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 									}`}
 								>
 									{localFilters.hasRewards ? (
-										<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+										<svg className="size-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 											<path
 												fillRule="evenodd"
 												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -219,7 +219,7 @@ export function YieldsFiltersPanel({
 
 					<div className="space-y-2">
 						<label className="group flex cursor-pointer items-center gap-2">
-							<div className="relative h-4 w-4">
+							<div className="relative size-4">
 								<input
 									type="checkbox"
 									checked={localFilters.stablesOnly || false}
@@ -227,14 +227,14 @@ export function YieldsFiltersPanel({
 									className="sr-only"
 								/>
 								<div
-									className={`h-4 w-4 border-2 transition-all duration-150 ${
+									className={`size-4 border-2 transition-all duration-150 ${
 										localFilters.stablesOnly
 											? 'border-(--primary) bg-(--primary)'
 											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 									}`}
 								>
 									{localFilters.stablesOnly ? (
-										<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+										<svg className="size-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 											<path
 												fillRule="evenodd"
 												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -252,7 +252,7 @@ export function YieldsFiltersPanel({
 							<div className="space-y-2">
 								{['DEX', 'Lending', 'Staking', 'CDP', 'Bridge', 'Yield Aggregator'].map((type) => (
 									<label key={type} className="group flex cursor-pointer items-center gap-2">
-										<div className="relative h-4 w-4">
+										<div className="relative size-4">
 											<input
 												type="checkbox"
 												checked={localFilters.poolTypes?.includes(type) || false}
@@ -268,14 +268,14 @@ export function YieldsFiltersPanel({
 												className="sr-only"
 											/>
 											<div
-												className={`h-4 w-4 rounded-sm border-2 transition-all duration-150 ${
+												className={`size-4 rounded-sm border-2 transition-all duration-150 ${
 													localFilters.poolTypes?.includes(type)
 														? 'border-(--primary) bg-(--primary)'
 														: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 												}`}
 											>
 												{localFilters.poolTypes?.includes(type) ? (
-													<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+													<svg className="size-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 														<path
 															fillRule="evenodd"
 															d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

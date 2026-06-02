@@ -28,7 +28,7 @@ function AuthActions({
 	if (isAuthenticated) {
 		return (
 			<BasicLink href="/account" className={`flex items-center gap-1.5 font-medium ${accountClassName}`}>
-				<img src="/assets/account_avatar.png" alt="" className="h-6 w-6 rounded-full" />
+				<img src="/assets/account_avatar.png" alt="" className="size-6 rounded-full" />
 				<span>My Account</span>
 				<Icon name="chevron-right" height={16} width={16} />
 			</BasicLink>
@@ -43,11 +43,7 @@ export function SubscriptionHeader() {
 		<>
 			{/* Mobile */}
 			<header className="relative z-20 flex h-16 items-center justify-between bg-(--sub-overlay-light) px-4 backdrop-blur-[12px] md:hidden dark:bg-(--sub-overlay-dark)">
-				<BasicLink
-					href="/"
-					aria-label="Back to home"
-					className="flex h-10 w-10 items-center justify-center rounded-full"
-				>
+				<BasicLink href="/" aria-label="Back to home" className="flex size-10 items-center justify-center rounded-full">
 					<Icon name="chevron-left" height={28} width={28} />
 				</BasicLink>
 				<div className="flex items-center gap-4">

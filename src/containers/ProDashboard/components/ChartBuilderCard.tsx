@@ -727,7 +727,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					) : null}
 				</div>
 				{effectiveShowColors && chartSeries.length > 0 ? (
-					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
 						{chartSeries.map((series: any) => {
 							const colorValue = seriesColors[series.name] || series.color || DEFAULT_SERIES_COLOR
@@ -745,7 +745,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 										value={colorValue}
 										onChange={(event) => handleSeriesColorChange(series.name, event.target.value)}
 										disabled={isReadOnly}
-										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0 disabled:cursor-not-allowed"
+										className="size-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0 disabled:cursor-not-allowed"
 										aria-label={`Select color for ${series.name}`}
 									/>
 									<button
@@ -824,7 +824,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 			{isLoading ? (
 				<div className="flex flex-1 flex-col items-center justify-center">
-					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
+					<div className="mx-auto mb-2 size-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
 					<p className="text-sm text-(--text-form)">Loading chart...</p>
 				</div>
 			) : chartSeries.length > 0 || treemapData.length > 0 ? (

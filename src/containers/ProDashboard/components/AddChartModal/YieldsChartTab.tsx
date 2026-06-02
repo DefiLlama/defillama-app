@@ -577,7 +577,7 @@ export function YieldsChartTab({
 																	alt={option.label}
 																	width={20}
 																	height={20}
-																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
+																	className="size-5 rounded-full object-cover ring-1 ring-(--cards-border)"
 																/>
 															) : null}
 															<span className="truncate">{option.label}</span>
@@ -685,7 +685,7 @@ export function YieldsChartTab({
 																	alt={option.label}
 																	width={20}
 																	height={20}
-																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
+																	className="size-5 rounded-full object-cover ring-1 ring-(--cards-border)"
 																/>
 															) : null}
 															<span className="truncate">{option.label}</span>
@@ -856,7 +856,7 @@ export function YieldsChartTab({
 											alt={selectedPoolData.project}
 											width={32}
 											height={32}
-											className="h-8 w-8 rounded-full object-cover ring-1 ring-(--cards-border)"
+											className="size-8 rounded-full object-cover ring-1 ring-(--cards-border)"
 										/>
 									) : null}
 									<div className="min-w-0">
@@ -1013,7 +1013,7 @@ export function YieldsChartTab({
 																alt={pool.project}
 																width={24}
 																height={24}
-																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+																className="size-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 															/>
 														) : null}
 														<div className="min-w-0">

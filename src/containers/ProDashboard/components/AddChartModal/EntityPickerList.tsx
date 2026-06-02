@@ -157,7 +157,7 @@ export function EntityPickerList({
 									}}
 								>
 									<div
-										className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+										className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
 											isSelected
 												? 'border-(--primary) bg-(--primary)'
 												: 'border-(--form-control-border) bg-(--bg-input)'
@@ -172,7 +172,7 @@ export function EntityPickerList({
 											alt={entity.label}
 											width={20}
 											height={20}
-											className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+											className="size-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 										/>
 									) : null}
 

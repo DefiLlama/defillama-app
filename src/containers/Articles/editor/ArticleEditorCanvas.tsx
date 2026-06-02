@@ -127,7 +127,7 @@ export function ArticleEditorCanvas({
 												: 'text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
 										}`}
 									>
-										<Icon name="external" className="h-3 w-3" />
+										<Icon name="external" className="size-3" />
 										<span>New tab</span>
 									</button>
 									<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
@@ -136,7 +136,7 @@ export function ArticleEditorCanvas({
 										aria-label="Save link"
 										className="rounded-md p-1 text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 									>
-										<Icon name="check" className="h-4 w-4" />
+										<Icon name="check" className="size-4" />
 									</button>
 									<button
 										type="button"
@@ -144,7 +144,7 @@ export function ArticleEditorCanvas({
 										aria-label="Remove link"
 										className="rounded-md p-1 text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 									>
-										<Icon name="x" className="h-4 w-4" />
+										<Icon name="x" className="size-4" />
 									</button>
 									{flags.link && linkEdit.url ? (
 										<a
@@ -154,7 +154,7 @@ export function ArticleEditorCanvas({
 											aria-label="Open link"
 											className="rounded-md p-1 text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 										>
-											<Icon name="external" className="h-4 w-4" />
+											<Icon name="external" className="size-4" />
 										</a>
 									) : null}
 								</form>
@@ -162,7 +162,7 @@ export function ArticleEditorCanvas({
 								<div className="flex items-center gap-1">
 									<span className="flex items-center gap-2 px-2 py-1">
 										{activeEntity.slug ? (
-											<span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
+											<span className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
 												<img
 													src={
 														activeEntity.entityType === 'chain'
@@ -170,7 +170,7 @@ export function ArticleEditorCanvas({
 															: tokenIconUrl(activeEntity.slug)
 													}
 													alt=""
-													className="h-full w-full object-cover"
+													className="size-full object-cover"
 													onError={(e) => {
 														e.currentTarget.style.visibility = 'hidden'
 													}}
@@ -192,7 +192,7 @@ export function ArticleEditorCanvas({
 										onClick={changeActiveEntityLink}
 										className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-secondary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 									>
-										<Icon name="pencil" className="h-3 w-3" />
+										<Icon name="pencil" className="size-3" />
 										<span>Change</span>
 									</button>
 									<button
@@ -202,7 +202,7 @@ export function ArticleEditorCanvas({
 										onClick={unsetActiveEntityLink}
 										className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 									>
-										<Icon name="x" className="h-3 w-3" />
+										<Icon name="x" className="size-3" />
 										<span>Unlink</span>
 									</button>
 									{activeEntity.route ? (
@@ -213,7 +213,7 @@ export function ArticleEditorCanvas({
 											onClick={openActiveEntityLink}
 											className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 										>
-											<Icon name="external" className="h-3 w-3" />
+											<Icon name="external" className="size-3" />
 											<span>Open</span>
 										</button>
 									) : null}
@@ -227,13 +227,13 @@ export function ArticleEditorCanvas({
 											aria-label={b.label}
 											title={b.label}
 											onClick={b.toggle}
-											className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+											className={`flex size-7 items-center justify-center rounded-md transition-colors ${
 												b.isActive()
 													? 'bg-(--link-button) text-(--link-text)'
 													: 'text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
 											}`}
 										>
-											<Icon name={b.icon} className="h-3.5 w-3.5" />
+											<Icon name={b.icon} className="size-3.5" />
 										</button>
 									))}
 									<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
@@ -242,13 +242,13 @@ export function ArticleEditorCanvas({
 										aria-label="Link"
 										title="Link"
 										onClick={openLinkEditor}
-										className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+										className={`flex size-7 items-center justify-center rounded-md transition-colors ${
 											flags.link
 												? 'bg-(--link-button) text-(--link-text)'
 												: 'text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
 										}`}
 									>
-										<Icon name="link" className="h-3.5 w-3.5" />
+										<Icon name="link" className="size-3.5" />
 									</button>
 								</>
 							)}
@@ -266,10 +266,10 @@ export function ArticleEditorCanvas({
 					>
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton
-								className="flex h-6 w-6 items-center justify-center rounded-full text-(--text-tertiary)/50 transition-all hover:bg-(--link-hover-bg) hover:text-(--text-primary) data-[active]:bg-(--link-button) data-[active]:text-(--link-text)"
+								className="flex size-6 items-center justify-center rounded-full text-(--text-tertiary)/50 transition-all hover:bg-(--link-hover-bg) hover:text-(--text-primary) data-[active]:bg-(--link-button) data-[active]:text-(--link-text)"
 								aria-label="Insert block"
 							>
-								<Icon name="plus" className="h-3.5 w-3.5" />
+								<Icon name="plus" className="size-3.5" />
 							</Ariakit.MenuButton>
 							<Ariakit.Menu
 								gutter={6}
@@ -367,10 +367,10 @@ export function ArticleEditorCanvas({
 					<div className="article-editor-rail pointer-events-auto inline-flex items-stretch gap-1 rounded-2xl border border-(--cards-border) bg-(--cards-bg)/95 p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] backdrop-blur supports-[backdrop-filter]:bg-(--cards-bg)/80">
 						<div className="hidden items-center gap-1 pl-1 sm:flex">
 							<RailButton label="Undo" disabled={!flags.canUndo} onClick={() => editor.chain().focus().undo().run()}>
-								<Icon name="undo" className="h-4 w-4" />
+								<Icon name="undo" className="size-4" />
 							</RailButton>
 							<RailButton label="Redo" disabled={!flags.canRedo} onClick={() => editor.chain().focus().redo().run()}>
-								<Icon name="redo" className="h-4 w-4" />
+								<Icon name="redo" className="size-4" />
 							</RailButton>
 							<RailDivider />
 						</div>
@@ -381,45 +381,45 @@ export function ArticleEditorCanvas({
 								active={flags.h2}
 								onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
 							>
-								<Icon name="h2" className="h-4 w-4" />
+								<Icon name="h2" className="size-4" />
 							</RailButton>
 							<RailButton
 								label="Heading 3"
 								active={flags.h3}
 								onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
 							>
-								<Icon name="h3" className="h-4 w-4" />
+								<Icon name="h3" className="size-4" />
 							</RailButton>
 							<RailButton
 								label="Bullet list"
 								active={flags.bulletList}
 								onClick={() => editor.chain().focus().toggleBulletList().run()}
 							>
-								<Icon name="list-ul" className="h-4 w-4" />
+								<Icon name="list-ul" className="size-4" />
 							</RailButton>
 							<RailButton
 								label="Numbered list"
 								active={flags.orderedList}
 								onClick={() => editor.chain().focus().toggleOrderedList().run()}
 							>
-								<Icon name="list-ol" className="h-4 w-4" />
+								<Icon name="list-ol" className="size-4" />
 							</RailButton>
 							<RailButton
 								label="Quote"
 								active={flags.blockquote}
 								onClick={() => editor.chain().focus().toggleBlockquote().run()}
 							>
-								<Icon name="quote" className="h-4 w-4" />
+								<Icon name="quote" className="size-4" />
 							</RailButton>
 							<RailButton
 								label="Code block"
 								active={flags.codeBlock}
 								onClick={() => editor.chain().focus().toggleCodeBlock().run()}
 							>
-								<Icon name="code-block" className="h-4 w-4" />
+								<Icon name="code-block" className="size-4" />
 							</RailButton>
 							<RailButton label="Link" active={flags.link} onClick={handleLinkRail}>
-								<Icon name="link" className="h-4 w-4" />
+								<Icon name="link" className="size-4" />
 							</RailButton>
 						</div>
 
@@ -431,7 +431,7 @@ export function ArticleEditorCanvas({
 								onClick={onOpenChartPicker}
 								className="flex h-9 items-center gap-1.5 rounded-md bg-(--link-button) px-3 text-xs font-medium text-(--link-text) transition-colors hover:opacity-90"
 							>
-								<Icon name="chart" className="h-4 w-4" />
+								<Icon name="chart" className="size-4" />
 								Chart
 							</button>
 							<Ariakit.MenuProvider>
@@ -440,7 +440,7 @@ export function ArticleEditorCanvas({
 									title="Insert"
 									className="flex h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 								>
-									<Icon name="more" className="h-4 w-4" />
+									<Icon name="more" className="size-4" />
 									<span className="hidden sm:inline">Insert</span>
 								</Ariakit.MenuButton>
 								<Ariakit.Menu
@@ -452,7 +452,7 @@ export function ArticleEditorCanvas({
 										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 									>
 										<span className="flex items-center gap-2">
-											<Icon name="table" className="h-3.5 w-3.5" />
+											<Icon name="table" className="size-3.5" />
 											Table
 										</span>
 										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">3×3</span>
@@ -462,7 +462,7 @@ export function ArticleEditorCanvas({
 										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 									>
 										<span className="flex items-center gap-2">
-											<Icon name="embed" className="h-3.5 w-3.5" />
+											<Icon name="embed" className="size-3.5" />
 											Embed
 										</span>
 										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">URL</span>
@@ -472,7 +472,7 @@ export function ArticleEditorCanvas({
 										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 									>
 										<span className="flex items-center gap-2">
-											<Icon name="image" className="h-3.5 w-3.5" />
+											<Icon name="image" className="size-3.5" />
 											Image
 										</span>
 										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">Upload</span>
@@ -482,7 +482,7 @@ export function ArticleEditorCanvas({
 										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 									>
 										<span className="flex items-center gap-2">
-											<Icon name="people" className="h-3.5 w-3.5" />
+											<Icon name="people" className="size-3.5" />
 											People panel
 										</span>
 										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">Bios</span>
@@ -493,7 +493,7 @@ export function ArticleEditorCanvas({
 											render={
 												<Ariakit.MenuButton className="flex w-full items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)">
 													<span className="flex items-center gap-2">
-														<Icon name="callout" className="h-3.5 w-3.5" />
+														<Icon name="callout" className="size-3.5" />
 														Callout
 													</span>
 													<span aria-hidden className="text-(--text-tertiary)">
@@ -522,7 +522,7 @@ export function ArticleEditorCanvas({
 										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 									>
 										<span className="flex items-center gap-2">
-											<Icon name="cite" className="h-3.5 w-3.5" />
+											<Icon name="cite" className="size-3.5" />
 											Citation
 										</span>
 										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">[n]</span>

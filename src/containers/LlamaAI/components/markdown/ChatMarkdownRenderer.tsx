@@ -181,7 +181,7 @@ function TableWrapper({
 					<div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#e6e6e6] dark:border-[#222324]">
 						{/* <Ariakit.DialogHeading className="text-sm font-medium text-(--text-form)">Table</Ariakit.DialogHeading> */}
 						<Ariakit.DialogDismiss
-							className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							aria-label="Close fullscreen table"
 						>
 							<Icon name="x" height={16} width={16} />
@@ -220,7 +220,7 @@ function TableWrapper({
 						disabled
 						aria-label="View table fullscreen"
 					>
-						<Icon name="expand" className="h-3 w-3 shrink-0" />
+						<Icon name="expand" className="size-3 shrink-0" />
 					</button>
 				) : (
 					<button
@@ -229,7 +229,7 @@ function TableWrapper({
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						aria-label="View table fullscreen"
 					>
-						<Icon name="expand" className="h-3 w-3 shrink-0" />
+						<Icon name="expand" className="size-3 shrink-0" />
 					</button>
 				)}
 				{isStreaming ? (
@@ -237,7 +237,7 @@ function TableWrapper({
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						disabled
 					>
-						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+						<Icon name="download-paper" className="size-3 shrink-0" />
 						<span>.csv</span>
 					</button>
 				) : (
@@ -389,7 +389,7 @@ function CodeBlock({ children, node: _node, className, ...props }: MarkdownPrePr
 				onClick={handleCopy}
 				aria-label={copied ? 'Copied' : 'Copy code'}
 				data-copied={copied || undefined}
-				className="absolute top-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
+				className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
 			>
 				<Icon name={copied ? 'check' : 'copy'} height={14} width={14} />
 			</button>

@@ -73,7 +73,7 @@ export function ShareQueryButton({
 			disabled={disabled || !hasContent}
 			className="inline-flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--cards-bg) px-3 py-1.5 text-xs font-medium text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 		>
-			<Icon name={copied ? 'check' : 'share'} className="h-3.5 w-3.5" />
+			<Icon name={copied ? 'check' : 'share'} className="size-3.5" />
 			{copied ? 'Copied' : 'Share'}
 		</button>
 	)

@@ -80,9 +80,9 @@ export function SeriesChip({
 				type="button"
 				onClick={onRemove}
 				aria-label={`Remove ${name}`}
-				className="flex h-4 w-4 items-center justify-center rounded-sm text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 focus:opacity-100"
+				className="flex size-4 items-center justify-center rounded-sm text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 focus:opacity-100"
 			>
-				<Icon name="x" className="h-2.5 w-2.5" />
+				<Icon name="x" className="size-2.5" />
 			</button>
 		</div>
 	)

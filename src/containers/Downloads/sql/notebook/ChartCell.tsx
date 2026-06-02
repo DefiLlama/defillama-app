@@ -53,7 +53,7 @@ export function ChartCell({ cell, availableSources, onSourceChange, onChartConfi
 				)}
 				{selected && !selected.hasRun ? (
 					<span className="inline-flex items-center gap-1 text-pro-gold-300">
-						<Icon name="alert-triangle" className="h-3 w-3" />
+						<Icon name="alert-triangle" className="size-3" />
 						source not yet run
 					</span>
 				) : selected?.result ? (
@@ -79,7 +79,7 @@ export function ChartCell({ cell, availableSources, onSourceChange, onChartConfi
 				<ResultsChart result={result} chartConfig={cell.chartConfig} onChartConfigChange={onChartConfigChange} />
 			) : (
 				<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-10 text-center">
-					<Icon name="bar-chart-2" className="h-5 w-5 text-(--text-tertiary)" />
+					<Icon name="bar-chart-2" className="size-5 text-(--text-tertiary)" />
 					<p className="text-sm text-(--text-secondary)">
 						{cell.source
 							? `${cell.source} has no results yet — run it first.`

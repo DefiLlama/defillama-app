@@ -743,8 +743,8 @@ function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; l
 					<span
 						className={
 							active
-								? 'h-2 w-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
-								: 'h-2 w-2 rounded-full border border-green-600/40'
+								? 'size-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+								: 'size-2 rounded-full border border-green-600/40'
 						}
 					/>
 					<span>
@@ -763,8 +763,8 @@ function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; l
 						key={labels[index]}
 						className={
 							active
-								? 'h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
-								: 'h-3 w-3 rounded-full border-2 border-green-600/40'
+								? 'size-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+								: 'size-3 rounded-full border-2 border-green-600/40'
 						}
 					/>
 				))}
@@ -861,11 +861,11 @@ function TokenRightsLegend() {
 		<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-(--text-secondary)">
 			<span className="text-xs font-semibold tracking-widest text-(--text-label) uppercase">Legend</span>
 			<span className="inline-flex items-center gap-2">
-				<span className="h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]" />
+				<span className="size-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]" />
 				Active
 			</span>
 			<span className="inline-flex items-center gap-2">
-				<span className="h-3 w-3 rounded-full border-2 border-green-600/40" />
+				<span className="size-3 rounded-full border-2 border-green-600/40" />
 				Inactive
 			</span>
 			<span className="inline-flex items-center gap-2">

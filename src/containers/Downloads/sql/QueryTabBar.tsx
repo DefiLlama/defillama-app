@@ -148,7 +148,7 @@ export function QueryTabBar({
 							}}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 						>
-							<Icon name="pencil" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="pencil" className="size-3 text-(--text-tertiary)" />
 							Rename
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
@@ -158,7 +158,7 @@ export function QueryTabBar({
 							}}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 						>
-							<Icon name="copy" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="copy" className="size-3 text-(--text-tertiary)" />
 							Duplicate
 						</Ariakit.MenuItem>
 						{menuTab.mode === 'query' && onConvertToNotebook ? (
@@ -169,7 +169,7 @@ export function QueryTabBar({
 								}}
 								className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 							>
-								<Icon name="layers" className="h-3 w-3 text-(--text-tertiary)" />
+								<Icon name="layers" className="size-3 text-(--text-tertiary)" />
 								Convert to notebook
 							</Ariakit.MenuItem>
 						) : null}
@@ -182,7 +182,7 @@ export function QueryTabBar({
 							}}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 						>
-							<Icon name="x" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="x" className="size-3 text-(--text-tertiary)" />
 							Close
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
@@ -193,7 +193,7 @@ export function QueryTabBar({
 							}}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 						>
-							<Icon name="x" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="x" className="size-3 text-(--text-tertiary)" />
 							Close others
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
@@ -204,7 +204,7 @@ export function QueryTabBar({
 							}}
 							className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 						>
-							<Icon name="arrow-right" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="arrow-right" className="size-3 text-(--text-tertiary)" />
 							Close tabs to the right
 						</Ariakit.MenuItem>
 					</Ariakit.Menu>
@@ -220,9 +220,9 @@ function NewTabMenu({ onNewTab, onNewNotebook }: { onNewTab: () => void; onNewNo
 			<Ariakit.MenuButton
 				aria-label="New tab"
 				title="New tab (⌘T)"
-				className="sticky right-0 mb-px ml-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--app-bg) text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+				className="sticky right-0 mb-px ml-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-(--app-bg) text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 			>
-				<Icon name="plus" className="h-3.5 w-3.5" />
+				<Icon name="plus" className="size-3.5" />
 			</Ariakit.MenuButton>
 			<Ariakit.Menu
 				gutter={4}
@@ -232,7 +232,7 @@ function NewTabMenu({ onNewTab, onNewNotebook }: { onNewTab: () => void; onNewNo
 					onClick={onNewTab}
 					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 				>
-					<Icon name="file-text" className="h-3 w-3 text-(--text-tertiary)" />
+					<Icon name="file-text" className="size-3 text-(--text-tertiary)" />
 					<span className="flex-1">New query tab</span>
 					<span className="font-mono text-[10px] text-(--text-tertiary)">⌘T</span>
 				</Ariakit.MenuItem>
@@ -240,7 +240,7 @@ function NewTabMenu({ onNewTab, onNewNotebook }: { onNewTab: () => void; onNewNo
 					onClick={onNewNotebook}
 					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 				>
-					<Icon name="layers" className="h-3 w-3 text-(--text-tertiary)" />
+					<Icon name="layers" className="size-3 text-(--text-tertiary)" />
 					<span className="flex-1">New notebook tab</span>
 				</Ariakit.MenuItem>
 			</Ariakit.Menu>
@@ -305,18 +305,18 @@ function TabPill({
 			title={isNotebook ? `Notebook · ${tab.title}` : tab.title}
 			className={`${base} ${active ? activeCls : inactiveCls}`}
 		>
-			<span aria-hidden className="flex h-3 w-3 shrink-0 items-center justify-center">
+			<span aria-hidden className="flex size-3 shrink-0 items-center justify-center">
 				{running ? (
 					<LoadingSpinner size={10} />
 				) : dirty ? (
-					<span className="h-1.5 w-1.5 rounded-full bg-pro-gold-300" />
+					<span className="size-1.5 rounded-full bg-pro-gold-300" />
 				) : null}
 			</span>
 			{isNotebook ? (
 				<Icon
 					name="layers"
 					aria-label="Notebook tab"
-					className={`h-3 w-3 shrink-0 ${active ? 'text-(--text-secondary)' : 'text-(--text-tertiary)'}`}
+					className={`size-3 shrink-0 ${active ? 'text-(--text-secondary)' : 'text-(--text-tertiary)'}`}
 				/>
 			) : null}
 			{isRenaming ? (
@@ -334,13 +334,13 @@ function TabPill({
 						onClose()
 					}}
 					onMouseDown={(e) => e.stopPropagation()}
-					className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--text-tertiary) transition-opacity hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${
+					className={`flex size-5 shrink-0 items-center justify-center rounded-sm text-(--text-tertiary) transition-opacity hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${
 						active
 							? 'opacity-60 hover:opacity-100'
 							: 'opacity-0 group-focus-within:opacity-60 group-hover:opacity-60 hover:!opacity-100'
 					}`}
 				>
-					<Icon name="x" className="h-3 w-3" />
+					<Icon name="x" className="size-3" />
 				</span>
 			) : null}
 			{active ? <span aria-hidden className="absolute inset-x-0 -bottom-px h-px bg-(--app-bg)" /> : null}

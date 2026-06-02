@@ -83,7 +83,7 @@ function CategoryCard({ card, onClick }: CategoryCardProps) {
 			className="flex h-full flex-col items-start justify-between rounded-lg border pro-border p-4 text-left transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)"
 		>
 			<div className="flex flex-col items-start gap-3">
-				<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
+				<div className="flex size-10 items-center justify-center rounded-lg bg-(--primary)/10">
 					<Icon name={card.icon} height={22} width={22} className="text-(--primary)" />
 				</div>
 				<div>

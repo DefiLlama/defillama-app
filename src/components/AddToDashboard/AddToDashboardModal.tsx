@@ -382,7 +382,7 @@ export function AddToDashboardModal({
 				</div>
 
 				<div className="relative mb-4">
-					<Icon name="search" className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 pro-text3" />
+					<Icon name="search" className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 pro-text3" />
 					<input
 						type="text"
 						value={search}
@@ -396,7 +396,7 @@ export function AddToDashboardModal({
 				<div className="-mx-1 mb-4 thin-scrollbar max-h-56 overflow-y-auto overscroll-contain px-1">
 					{isLoadingDashboards ? (
 						<div className="flex items-center justify-center py-8">
-							<div className="h-5 w-5 animate-spin rounded-full border-2 border-pro-blue-300 border-t-transparent" />
+							<div className="size-5 animate-spin rounded-full border-2 border-pro-blue-300 border-t-transparent" />
 						</div>
 					) : filteredDashboards.length === 0 && !search.trim() ? (
 						<p className="py-6 text-center text-sm pro-text3">No dashboards yet</p>
@@ -418,11 +418,11 @@ export function AddToDashboardModal({
 										}`}
 									>
 										<div
-											className={`flex h-4 w-4 shrink-0 items-center justify-center rounded transition-all duration-150 ${
+											className={`flex size-4 shrink-0 items-center justify-center rounded transition-all duration-150 ${
 												isSelected ? 'bg-pro-blue-300 shadow-sm shadow-pro-blue-300/30' : 'border pro-border'
 											}`}
 										>
-											{isSelected ? <Icon name="check" className="h-2.5 w-2.5 text-white" /> : null}
+											{isSelected ? <Icon name="check" className="size-2.5 text-white" /> : null}
 										</div>
 										<span className="truncate">{dashboard.name}</span>
 									</button>
@@ -448,7 +448,7 @@ export function AddToDashboardModal({
 							onClick={handleCreateNew}
 							className="flex w-full items-center gap-2 rounded-md border border-dashed pro-border px-3 py-2 text-sm pro-text3 transition-colors hover:border-pro-blue-300/40 hover:bg-pro-blue-300/5 hover:pro-text1"
 						>
-							<Icon name="plus" className="h-3.5 w-3.5" />
+							<Icon name="plus" className="size-3.5" />
 							<span>Create new dashboard</span>
 						</button>
 					)}
@@ -494,10 +494,10 @@ export function AddToDashboardModal({
 						}`}
 					>
 						{isSubmitting ? (
-							<div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+							<div className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
 						) : (
 							<>
-								<Icon name="plus" className="h-3.5 w-3.5" />
+								<Icon name="plus" className="size-3.5" />
 								Add to Dashboard
 							</>
 						)}

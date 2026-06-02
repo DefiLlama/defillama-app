@@ -62,7 +62,7 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 			<div className="rounded-md border-l-2 border-l-[#C99A4A] bg-[#FDE0A9]/5 py-2 pr-2 pl-3 dark:border-l-[#FDE0A9] dark:bg-[#FDE0A9]/5">
 				<div className="no-scrollbar flex max-w-full touch-pan-x flex-nowrap items-center gap-2 overflow-x-auto [-webkit-overflow-scrolling:touch]">
 					<div className="flex shrink-0 items-center gap-1.5">
-						<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-4 w-4" />
+						<img src="/assets/llamaai/llama-ai.svg" alt="" className="size-4" />
 						<span className="text-xs font-medium whitespace-nowrap text-[#996F1F] dark:text-[#FDE0A9]">
 							Ask about {displayName}
 						</span>
@@ -101,7 +101,7 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 							{/* Branded header */}
 							<div className="shrink-0 border-b border-[#2a2a2e] px-5 pt-5 pb-4">
 								<div className="flex flex-col items-center gap-2.5 text-center">
-									<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-9 w-9" />
+									<img src="/assets/llamaai/llama-ai.svg" alt="" className="size-9" />
 									<div>
 										<p className="text-[15px] font-bold text-white">Try LlamaAI for free</p>
 										<p className="mt-0.5 text-[13px] text-[#919296]">

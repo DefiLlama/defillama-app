@@ -135,12 +135,12 @@ function FinancialRow({
 									event.stopPropagation()
 									setIsExpanded((expanded) => !expanded)
 								}}
-								className="-ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--text-secondary) transition-transform hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+								className="-ml-1 flex size-5 shrink-0 items-center justify-center rounded-sm text-(--text-secondary) transition-transform hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							>
 								<Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} height={14} width={14} />
 							</button>
 						) : showExpandPlaceholder ? (
-							<span aria-hidden="true" className="-ml-1 block h-5 w-5 shrink-0" />
+							<span aria-hidden="true" className="-ml-1 block size-5 shrink-0" />
 						) : null}
 						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{row.label}</span>
 					</div>
@@ -219,7 +219,7 @@ export function EquitiesFinancialsDataset({ ticker }: { ticker: string }) {
 
 	if (!ticker) {
 		return (
-			<div className="flex h-full w-full flex-col p-4">
+			<div className="flex size-full flex-col p-4">
 				<div className="mb-3">
 					<h3 className="text-lg font-semibold pro-text1">Equities Financials</h3>
 				</div>
@@ -232,7 +232,7 @@ export function EquitiesFinancialsDataset({ ticker }: { ticker: string }) {
 
 	if (isLoading) {
 		return (
-			<div className="flex h-full w-full flex-col p-4">
+			<div className="flex size-full flex-col p-4">
 				<div className="mb-3">
 					<h3 className="text-lg font-semibold pro-text1">Financials — {ticker}</h3>
 				</div>
@@ -246,7 +246,7 @@ export function EquitiesFinancialsDataset({ ticker }: { ticker: string }) {
 
 	if (error || !statements) {
 		return (
-			<div className="flex h-full w-full flex-col p-4">
+			<div className="flex size-full flex-col p-4">
 				<div className="mb-3">
 					<h3 className="text-lg font-semibold pro-text1">Financials — {ticker}</h3>
 				</div>
@@ -258,7 +258,7 @@ export function EquitiesFinancialsDataset({ ticker }: { ticker: string }) {
 	}
 
 	return (
-		<div className="flex h-full w-full flex-col p-4">
+		<div className="flex size-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex flex-wrap items-center justify-end gap-4">
 					<h3 className="mr-auto text-lg font-semibold pro-text1">Financials — {ticker}</h3>

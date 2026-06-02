@@ -41,7 +41,7 @@ export function SelectionFooter({
 						type="checkbox"
 						checked={chartCreationMode === 'combined'}
 						onChange={() => onChartCreationModeChange(chartCreationMode === 'combined' ? 'separate' : 'combined')}
-						className="h-3.5 w-3.5 rounded border-gray-600 bg-transparent"
+						className="size-3.5 rounded border-gray-600 bg-transparent"
 					/>
 					<span>Multi-Chart</span>
 				</label>
@@ -57,7 +57,7 @@ export function SelectionFooter({
 							type="color"
 							value={item.color || CHART_TYPES[item.type]?.color || '#3e61cc'}
 							onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
-							className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
+							className="size-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
 							aria-label="Select chart color"
 						/>
 						<button

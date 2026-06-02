@@ -14,7 +14,7 @@ function KpiCard({ label, value, tooltip }: { label: string; value: string; tool
 				<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
 				{tooltip && (
 					<span className="group relative cursor-help">
-						<svg className="h-3.5 w-3.5 text-(--text-label)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg className="size-3.5 text-(--text-label)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<circle cx="12" cy="12" r="10" strokeWidth="2" />
 							<path d="M12 16v-4M12 8h.01" strokeWidth="2" strokeLinecap="round" />
 						</svg>
@@ -296,7 +296,7 @@ export default function Revenue() {
 				<summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 text-base font-semibold text-(--text-primary)">
 					<span>Quick Investment Thesis</span>
 					<svg
-						className="h-5 w-5 shrink-0 text-(--text-label) transition-transform duration-200 group-open:rotate-180"
+						className="size-5 shrink-0 text-(--text-label) transition-transform duration-200 group-open:rotate-180"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -543,13 +543,13 @@ export default function Revenue() {
 							>
 								<summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--sl-hover-bg)">
 									<span className="flex items-start gap-3">
-										<span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-(--text-label) text-xs font-bold text-(--cards-bg)">
+										<span className="flex size-6 shrink-0 items-center justify-center rounded bg-(--text-label) text-xs font-bold text-(--cards-bg)">
 											{idx + 1}
 										</span>
 										<span className="pt-0.5">{item.question}</span>
 									</span>
 									<svg
-										className="mt-1 h-5 w-5 shrink-0 text-(--text-label) transition-transform duration-200 group-open:rotate-180"
+										className="mt-1 size-5 shrink-0 text-(--text-label) transition-transform duration-200 group-open:rotate-180"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"

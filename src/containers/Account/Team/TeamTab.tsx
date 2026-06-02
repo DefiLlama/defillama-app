@@ -39,7 +39,7 @@ export function TeamTab() {
 	if (acceptInviteMutation.isPending) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-16">
-				<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
+				<div className="size-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
 				<p className="text-sm text-(--sub-text-muted)">Accepting invite...</p>
 			</div>
 		)
@@ -48,7 +48,7 @@ export function TeamTab() {
 	if (acceptInviteMutation.isError && token) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-16">
-				<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--error)/10">
+				<div className="flex size-16 items-center justify-center rounded-full bg-(--error)/10">
 					<Icon name="alert-triangle" height={32} width={32} className="text-(--error)" />
 				</div>
 				<div className="flex flex-col gap-2 text-center">
@@ -65,7 +65,7 @@ export function TeamTab() {
 	if (isTeamLoading) {
 		return (
 			<div className="flex h-64 items-center justify-center">
-				<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
+				<div className="size-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
 			</div>
 		)
 	}

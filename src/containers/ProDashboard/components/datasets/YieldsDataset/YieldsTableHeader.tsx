@@ -90,7 +90,7 @@ export function YieldsTableHeader({
 						<Icon name="align-left" height={14} width={14} />
 						Filters
 						{activeFilterCount > 0 ? (
-							<span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--primary) text-xs text-white">
+							<span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-(--primary) text-xs text-white">
 								{activeFilterCount}
 							</span>
 						) : null}

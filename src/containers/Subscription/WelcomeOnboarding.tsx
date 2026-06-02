@@ -197,7 +197,7 @@ export function WelcomeOnboarding() {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4">
-					<div className="h-8 w-8 animate-spin rounded-full border-2 border-[#39393E] border-t-[#5C5CF9]" />
+					<div className="size-8 animate-spin rounded-full border-2 border-[#39393E] border-t-[#5C5CF9]" />
 					<p className="text-[#8a8c90]">Loading your subscription...</p>
 				</div>
 			</div>
@@ -208,7 +208,7 @@ export function WelcomeOnboarding() {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4 text-center">
-					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#5C5CF9]/10">
+					<div className="flex size-16 items-center justify-center rounded-full bg-[#5C5CF9]/10">
 						<Icon name="clock" height={28} width={28} className="text-[#5C5CF9]" />
 					</div>
 					<h2 className="text-xl font-bold text-white">Processing your payment...</h2>
@@ -239,7 +239,7 @@ export function WelcomeOnboarding() {
 
 			{slackAcquisition ? (
 				<div className="mb-6 flex w-full items-start gap-3 rounded-xl border border-[#5C5CF9]/25 bg-[#5C5CF9]/8 px-4 py-3 text-left">
-					<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#5C5CF9]/15">
+					<div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5C5CF9]/15">
 						<Icon name="chat" height={16} width={16} className="text-[#7B7BFF]" />
 					</div>
 					<div className="flex min-w-0 flex-col gap-0.5">
@@ -270,13 +270,13 @@ export function WelcomeOnboarding() {
 							aria-checked={isSelected}
 						>
 							<div
-								className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200"
+								className="flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200"
 								style={{
 									backgroundColor: isSelected ? `${c}26` : `${c}14`
 								}}
 							>
 								{option.iconType === 'svg' ? (
-									<svg className="h-[18px] w-[18px]" style={{ color: isSelected ? '#FDE0A9' : c }}>
+									<svg className="size-[18px]" style={{ color: isSelected ? '#FDE0A9' : c }}>
 										<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 									</svg>
 								) : (
@@ -299,7 +299,7 @@ export function WelcomeOnboarding() {
 							</div>
 							<div className="ml-auto shrink-0">
 								<div
-									className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border transition-all duration-200 ${
+									className={`flex size-[18px] items-center justify-center rounded-full border transition-all duration-200 ${
 										isSelected ? '' : 'border-[#39393E] group-hover:border-[#555]'
 									}`}
 									style={isSelected ? { borderColor: c, backgroundColor: c } : undefined}
