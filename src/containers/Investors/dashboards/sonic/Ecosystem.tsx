@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { lazy, useEffect, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { lastNDaysZoom } from './chartDefaults'
 import { useEcosystemData, type TopProtocolEntry, type AssetCategory } from './ecosystemApi'
 

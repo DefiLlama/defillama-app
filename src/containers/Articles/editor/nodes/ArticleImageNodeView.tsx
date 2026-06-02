@@ -1,6 +1,6 @@
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState } from 'react'
-import { normalizeImageHref, type ArticleImageAttrs } from './ArticleImage'
+import { normalizeImageHref, type ArticleImageAttrs } from './ArticleImage.shared'
 
 function PhotoIcon({ className = 'h-5 w-5' }: { className?: string }) {
 	return (

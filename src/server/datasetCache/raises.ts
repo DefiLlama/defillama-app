@@ -1,6 +1,6 @@
 import type { RawRaise } from '~/containers/Raises/api.types'
+import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { readDatasetDomainJson } from './core'
-import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
 const RAISES_FILES = DATASET_DOMAIN_ARTIFACTS.raises.files
 

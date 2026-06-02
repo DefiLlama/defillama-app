@@ -1,10 +1,10 @@
 import path from 'node:path'
+import { DATASET_DOMAINS, type DatasetDomain } from './artifacts'
 import { getDatasetCacheRootDir } from './config'
 import { readDatasetCacheJson, writeDatasetCacheJson } from './jsonCache'
-import { DATASET_DOMAINS, type DatasetDomain } from './registry'
 export { readJsonFileOnce, writeJsonFileAtomically } from './jsonIo'
 export { getDatasetCacheRootDir } from './config'
-export { DATASET_DOMAINS, type DatasetDomain } from './registry'
+export { DATASET_DOMAINS, type DatasetDomain } from './artifacts'
 export {
 	ensureDirectory,
 	pathExists,

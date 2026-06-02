@@ -1,6 +1,6 @@
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
+import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { readDatasetDomainJson } from './core'
-import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 import { normalizeTokenRightsProtocolName } from './tokenRightsIndex'
 
 const TOKEN_RIGHTS_FILES = DATASET_DOMAIN_ARTIFACTS['token-rights'].files

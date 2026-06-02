@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { useNetworkStatsData } from './networkStatsApi'
 
 interface BurnBlock {

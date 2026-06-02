@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 
 interface ParagraphPost {
 	id: string

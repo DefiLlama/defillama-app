@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { DashboardTabConfig } from '../../registry'
+import type { DashboardTabConfig } from '../../dashboardTypes'
 
 const CreditCard = lazy(() => import('./CreditCard'))
 const CashTransactions = lazy(() => import('./CashTransactions'))

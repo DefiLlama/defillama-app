@@ -1,4 +1,4 @@
-import { createContext, Suspense, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
 import { EmptyState } from '~/containers/ProDashboard/components/EmptyState'
@@ -10,12 +10,13 @@ import {
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { INVESTORS_PROJECTS, SHOW_INVESTORS_COMING_SOON_PROJECT, isInvestorsEnabled } from './config'
+import { ContentReadyContext } from './ContentReadyContext'
 import { CustomServerDataContext } from './CustomServerDataContext'
+import type { DashboardModule, DashboardTabConfig } from './dashboardTypes'
 import { Logo } from './Logo'
-import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
+import { getDashboardModule } from './registry'
 
-const ContentReadyContext = createContext<() => void>(() => {})
-export const useContentReady = () => useContext(ContentReadyContext)
+export { useContentReady } from './ContentReadyContext'
 
 const NOOP = () => {}
 const HIDE_DUPLICATE_BUTTON = isInvestorsEnabled()

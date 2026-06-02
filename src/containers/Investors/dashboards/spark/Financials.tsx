@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { assignColors } from './api'
 import { useFinancialsData, type AllocatedAssetsData, type AllocatedAssetsEntry } from './financialsApi'
 

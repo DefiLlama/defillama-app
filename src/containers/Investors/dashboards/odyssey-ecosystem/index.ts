@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import type { DashboardTabConfig } from '../../registry'
+import type { DashboardTabConfig } from '../../dashboardTypes'
 
 const Tvl = lazy(() => import('./Tvl'))
 const Revenue = lazy(() => import('./Revenue'))

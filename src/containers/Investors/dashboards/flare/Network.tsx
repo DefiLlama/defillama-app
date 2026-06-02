@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, useEffect, useMemo } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { FLARE_BLUE, FLARE_GREEN, FLARE_ORANGE, FLARE_PINK, lastNDaysZoom } from './chartDefaults'
 import { chartToData, type UpstreamChart } from './transform'
 import { ChartCard, KpiCard, SectionHeader } from './ui'

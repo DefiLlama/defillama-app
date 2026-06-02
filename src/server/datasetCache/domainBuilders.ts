@@ -10,8 +10,10 @@ import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.util
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import { fetchTreasuriesFromNetwork } from '~/containers/Treasuries/api'
 import { fetchJson } from '~/utils/async'
-import { ensureDirectory, writeJsonFile } from './core'
-import { DATASET_DOMAIN_ARTIFACTS, type DatasetDomain, type DatasetDomainBuildResult } from './registry'
+import { ensureDirectory } from '~/utils/cacheDirectory'
+import { DATASET_DOMAIN_ARTIFACTS, type DatasetDomain } from './artifacts'
+import type { DatasetDomainBuildResult } from './buildTypes'
+import { writeDatasetCacheJson as writeJsonFile } from './jsonCache'
 import { buildTokenRightsIndexes } from './tokenRightsIndex'
 export { buildYieldsDomain } from './yields.builder'
 

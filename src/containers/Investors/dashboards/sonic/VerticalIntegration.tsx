@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 
 const PRODUCTS = ['Native Swap', 'Native Perps', 'Lending', 'LST', 'Concentrated Liquidity', 'Vault', 'USSD', 'Perps']
 

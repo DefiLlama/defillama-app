@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { lazy, useEffect } from 'react'
 import type { IChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/Investors/index'
+import { useContentReady } from '~/containers/Investors/ContentReadyContext'
 import { useYieldsEmissionsData, type YieldPool } from './yieldsEmissionsApi'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
