@@ -50,12 +50,6 @@ const nextConfig: NextConfig = {
 	},
 	reactStrictMode: true,
 	reactCompiler: true,
-	experimental: {
-		// Keep Vercel prerendering memory bounded for large data-heavy pages.
-		cpus: 1,
-		staticGenerationMaxConcurrency: 1,
-		staticGenerationMinPagesPerWorker: 1000
-	},
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 600, // 10 minutes
 	redirects() {
