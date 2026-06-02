@@ -9,11 +9,7 @@ import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/l
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection, BannerLookupResult } from '~/containers/Articles/types'
-import {
-	ARTICLE_SECTION_FROM_SLUG,
-	ARTICLE_SECTION_LABELS,
-	ARTICLE_SECTION_SLUGS
-} from '~/containers/Articles/types'
+import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import Layout from '~/layout'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
