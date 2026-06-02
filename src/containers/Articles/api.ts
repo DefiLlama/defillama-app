@@ -182,6 +182,47 @@ export async function listArticlesByTag(
 	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
 }
 
+export async function listArticlesByTopic(
+	topic: string,
+	params: Omit<NonNullable<Parameters<typeof listArticles>[0]>, 'tags'> = {},
+	fetchFn: FetchLike = fetch
+): Promise<ArticleListResponse> {
+	return listArticles({ ...params, tags: [topic] }, fetchFn)
+}
+
+export type ResearchLandingBuckets = {
+	heroReports: ArticleDocument[]
+	latest: ArticleDocument[]
+	spotlight: ArticleDocument[]
+	interviews: ArticleDocument[]
+	highlight: ArticleDocument[]
+	insights: ArticleDocument[]
+	moreReportsCandidates: ArticleDocument[]
+	spotlightColumnCandidates: ArticleDocument[]
+	collectionsCandidates: ArticleDocument[]
+}
+
+export async function getResearchLanding(
+	limits: {
+		hero: number
+		latest: number
+		spotlight: number
+		interviews: number
+		highlight: number
+		insights: number
+		reportsCandidates: number
+		spotlightCandidates: number
+		collectionsCandidates: number
+	},
+	fetchFn: FetchLike = fetch
+): Promise<ResearchLandingBuckets> {
+	const search = new URLSearchParams()
+	for (const [key, value] of Object.entries(limits)) {
+		appendSearchParam(search, key, value)
+	}
+	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles/landing?${search}`)))
+}
+
 export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<ArticlePathsResponse> {
 	return parseResponse(await fetchFn(articleUrl('/articles/paths')))
 }

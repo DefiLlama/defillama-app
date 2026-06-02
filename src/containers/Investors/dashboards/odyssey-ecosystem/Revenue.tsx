@@ -1,5 +1,5 @@
-import { lazy, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { lazy, useState } from 'react'
 import type { IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import { useRevenueData, chartToTs } from './api'
@@ -52,9 +52,7 @@ function MetronomeIncomeStatement() {
 
 	const hasData =
 		incomeStatement?.data &&
-		(['monthly', 'quarterly', 'yearly'] as const).some(
-			(k) => Object.keys(incomeStatement.data[k] ?? {}).length > 0
-		)
+		(['monthly', 'quarterly', 'yearly'] as const).some((k) => Object.keys(incomeStatement.data[k] ?? {}).length > 0)
 
 	if (isLoading || !hasData) return null
 
@@ -200,11 +198,7 @@ export default function Revenue() {
 				<KpiCard label="Odyssey" value={ra.odyssey?.formatted} sub="All-time" />
 			</div>
 			<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-				<KpiCard
-					label="Unclaimed Pipeline"
-					value={k.unclaimedPipeline?.formatted}
-					sub="Pending claim / harvest"
-				/>
+				<KpiCard label="Unclaimed Pipeline" value={k.unclaimedPipeline?.formatted} sub="Pending claim / harvest" />
 				<KpiCard label="MET Holder Buybacks" value={ha.metronome?.formatted} sub="All-time" />
 				<KpiCard label="VSP Holder Buybacks" value={ha.vesper?.formatted} sub="All-time" />
 			</div>
