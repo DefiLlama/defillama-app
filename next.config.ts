@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
-	staticPageGenerationTimeout: 600, // 10 minutes
+	staticPageGenerationTimeout: 300, // 5 minutes
 	redirects() {
 		return [
 			{
