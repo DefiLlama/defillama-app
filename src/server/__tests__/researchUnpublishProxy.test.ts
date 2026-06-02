@@ -61,6 +61,7 @@ describe('/api/private/research/articles/[id]/unpublish', () => {
 			body: JSON.stringify({
 				files: [
 					'https://defillama.test/research',
+					'https://defillama.test/research/feed.xml',
 					'https://defillama.test/research/report/old-story',
 					'https://defillama.test/research/report'
 				]
@@ -79,6 +80,7 @@ describe('/api/private/research/articles/[id]/unpublish', () => {
 					status: 'purged',
 					urls: [
 						'https://defillama.test/research',
+						'https://defillama.test/research/feed.xml',
 						'https://defillama.test/research/report/old-story',
 						'https://defillama.test/research/report'
 					]

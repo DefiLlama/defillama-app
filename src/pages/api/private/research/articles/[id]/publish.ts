@@ -74,6 +74,7 @@ function publishInvalidationTargets(
 	const nextPaths = new Set<string>()
 	if (beforePath || afterPath) {
 		purgePaths.add('/research')
+		purgePaths.add('/research/feed.xml')
 		nextPaths.add('/research')
 	}
 	for (const articlePath of [beforePath, afterPath]) {

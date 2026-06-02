@@ -2,9 +2,8 @@ import type { GetServerSideProps } from 'next'
 import { getArticleBySlug, listArticles } from '~/containers/Articles/api'
 import { buildResearchRssFeed, RESEARCH_FEED_ITEM_COUNT } from '~/containers/Articles/researchFeed'
 import type { ArticleDocument } from '~/containers/Articles/types'
-import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 
-const RESEARCH_FEED_CACHE_CONTROL = 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600'
+const RESEARCH_FEED_CACHE_CONTROL = 'public, max-age=300, s-maxage=300'
 const HYDRATION_CONCURRENCY = 6
 
 function ResearchFeed() {}
@@ -46,7 +45,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 	const feed = buildResearchRssFeed(articles)
 
 	res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8')
-	res.setHeader('Cache-Control', jitterCacheControlHeader(RESEARCH_FEED_CACHE_CONTROL, 'research/feed.xml'))
+	res.setHeader('Cache-Control', RESEARCH_FEED_CACHE_CONTROL)
 	res.write(feed)
 	res.end()
 
