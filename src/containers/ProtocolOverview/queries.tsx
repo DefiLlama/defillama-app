@@ -552,7 +552,7 @@ export const getProtocolOverviewPageData = async ({
 	const competitorsSet = new Set<string>()
 	const competitorsMap = new Map(competitors.map((p) => [p.name, p]))
 
-	const protocolsWithCommonChains = [...competitors].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
+	const protocolsWithCommonChains = competitors.toSorted((a, b) => b.commonChains - a.commonChains).slice(0, 5)
 
 	// first 5 are the protocols that are on same chain + same category
 	for (const p of protocolsWithCommonChains) {
@@ -578,7 +578,7 @@ export const getProtocolOverviewPageData = async ({
 			? hacksData
 					?.filter((hack: IHackApiItem) =>
 						isCEX
-							? [hack.name].includes(currentProtocolMetadata.displayName ?? '')
+							? hack.name === (currentProtocolMetadata.displayName ?? '')
 							: [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId))
 					)
 					?.sort((a: IHackApiItem, b: IHackApiItem) => a.date - b.date)
@@ -598,7 +598,14 @@ export const getProtocolOverviewPageData = async ({
 			chains.push([chain, currentChainTvlsObj[chain]])
 		}
 	}
-	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
+	let firstChain: string | null = null
+	let firstChainTvl = -Infinity
+	for (const [chain, tvl] of chains) {
+		if (tvl > firstChainTvl) {
+			firstChain = chain
+			firstChainTvl = tvl
+		}
+	}
 	const tokenGeckoId = currentProtocolMetadata.gecko_id ?? null
 	const llamaswapChains = !isCEX && tokenGeckoId ? (protocolLlamaswapDataset?.[tokenGeckoId] ?? null) : null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []

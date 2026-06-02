@@ -35,5 +35,5 @@ export function applyEditorialTagOrderPayload(
 	for (const { articleId, order } of payload) {
 		orderById.set(articleId, order)
 	}
-	return [...items].sort((a, b) => (orderById.get(b.id) ?? 0) - (orderById.get(a.id) ?? 0))
+	return items.toSorted((a, b) => (orderById.get(b.id) ?? 0) - (orderById.get(a.id) ?? 0))
 }

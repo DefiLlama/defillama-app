@@ -7,10 +7,11 @@ type TokenPageSectionNavItem = {
 
 export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNavItem[] }) {
 	const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id ?? '')
-	const observerEntries = useRef(new Map<string, IntersectionObserverEntry>())
+	const observerEntries = useRef<Map<string, IntersectionObserverEntry> | null>(null)
 	const navRef = useRef<HTMLElement | null>(null)
 	const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
 	const clickLockTargetId = useRef<string | null>(null)
+	if (observerEntries.current === null) observerEntries.current = new Map()
 	const sectionIds = useMemo(() => sections.map((section) => section.id), [sections])
 	const initialHashSectionId = useMemo(() => {
 		if (typeof window === 'undefined') return null
@@ -61,6 +62,7 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 	useEffect(() => {
 		if (sectionIds.length === 0 || typeof window === 'undefined') return
 		const observerEntriesMap = observerEntries.current
+		if (observerEntriesMap === null) return
 
 		const maybeReleaseClickLock = () => {
 			if (!clickLockTargetId.current) return false
@@ -78,7 +80,7 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 			if (clickLockTargetId.current && !maybeReleaseClickLock()) return
 
 			const candidateEntries = sectionIds
-				.map((sectionId) => observerEntries.current.get(sectionId))
+				.map((sectionId) => observerEntriesMap.get(sectionId))
 				.filter((entry): entry is IntersectionObserverEntry => Boolean(entry?.isIntersecting))
 
 			if (candidateEntries.length === 0) return
@@ -91,7 +93,9 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 
 			const nextActiveSectionId =
 				entriesAtThreshold.at(-1) ??
-				candidateEntries.slice().sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0].target.id
+				candidateEntries.reduce((closest, entry) =>
+					entry.boundingClientRect.top < closest.boundingClientRect.top ? entry : closest
+				).target.id
 
 			syncActiveSection(nextActiveSectionId)
 		}

@@ -13,10 +13,11 @@ import Layout from '~/layout'
 type ArchiveFilter = ArticleSection | 'all'
 
 const EMPTY_ARTICLES: ArticleDocument[] = []
+const shortDateFormatter = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' })
 
 function formatShort(value: string | null) {
 	if (!value) return ''
-	return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(value))
+	return shortDateFormatter.format(new Date(value))
 }
 
 function formatYear(value: string | null) {

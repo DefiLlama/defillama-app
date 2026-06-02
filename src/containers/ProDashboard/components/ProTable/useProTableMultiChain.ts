@@ -503,7 +503,7 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-earnings-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
@@ -520,7 +520,7 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-aggregators-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
@@ -537,7 +537,7 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-bridge-aggregators-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
@@ -554,7 +554,7 @@ export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-options-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,

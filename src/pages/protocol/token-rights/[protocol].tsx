@@ -67,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const tokenRightsData = parseTokenRightsEntry(rawEntry)
-		const raises = protocolData?.raises ? [...protocolData.raises].sort((a, b) => b.date - a.date) : null
+		const raises = protocolData?.raises ? protocolData.raises.toSorted((a, b) => b.date - a.date) : null
 		const tokenlistSymbol = protocolData?.gecko_id
 			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
 			: undefined

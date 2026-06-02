@@ -7,7 +7,7 @@ export function buildHallmarksMarkLine({
 	isThemeDark: boolean
 	dateInMs?: boolean
 }) {
-	const sorted = [...hallmarks].sort((a, b) => +a[0] - +b[0])
+	const sorted = hallmarks.toSorted((a, b) => +a[0] - +b[0])
 
 	return {
 		label: {

@@ -66,10 +66,10 @@ function LiveOrderBook({ bids, asks }: { bids: BookLevel[]; asks: BookLevel[] })
 			</div>
 
 			<div className="flex flex-col font-mono text-xs">
-				{reversedAsks.map((level, i) => {
+				{reversedAsks.map((level) => {
 					const pct = (level.sz / maxSize) * 100
 					return (
-						<div key={`a-${i}`} className="relative grid grid-cols-3 py-[3px]">
+						<div key={`a-${level.px}`} className="relative grid grid-cols-3 py-[3px]">
 							<div className="absolute inset-y-0 right-0 bg-red-500/10" style={{ width: `${pct}%` }} />
 							<span className="relative text-red-400">{level.px.toLocaleString()}</span>
 							<span className="relative text-right text-(--text-primary)">{formattedNum(level.sz)}</span>
@@ -85,10 +85,10 @@ function LiveOrderBook({ bids, asks }: { bids: BookLevel[]; asks: BookLevel[] })
 					</div>
 				)}
 
-				{topBids.map((level, i) => {
+				{topBids.map((level) => {
 					const pct = (level.sz / maxSize) * 100
 					return (
-						<div key={`b-${i}`} className="relative grid grid-cols-3 py-[3px]">
+						<div key={`b-${level.px}`} className="relative grid grid-cols-3 py-[3px]">
 							<div className="absolute inset-y-0 right-0 bg-green-500/10" style={{ width: `${pct}%` }} />
 							<span className="relative text-green-400">{level.px.toLocaleString()}</span>
 							<span className="relative text-right text-(--text-primary)">{formattedNum(level.sz)}</span>
@@ -200,7 +200,7 @@ export default function Trades() {
 	const { book: snapshotBook } = useHyperliquidL2Book(coin, nSigFigs)
 
 	const coinOptions = useMemo(
-		() => [...markets].sort((a, b) => b.dayNtlVlm - a.dayNtlVlm).map((market) => market.name),
+		() => markets.toSorted((a, b) => b.dayNtlVlm - a.dayNtlVlm).map((market) => market.name),
 		[markets]
 	)
 

@@ -14,7 +14,7 @@ export function useRevenueData(chains?: string[]) {
 			: ''
 
 	// Use sorted chains array to ensure consistent query key
-	const sortedChains = chains?.length ? [...chains].sort() : []
+	const sortedChains = chains?.length ? chains.toSorted() : []
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'revenue-overview', sortedChains.join(',')],

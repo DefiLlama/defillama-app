@@ -32,6 +32,32 @@ type Tab = (typeof ALL_TABS)[number]
 
 const ALL_CATEGORY = 'All'
 
+type DownloadGroup<T extends { category: string; description: string; name: string }> = {
+	category: string
+	items: T[]
+}
+
+function filterDownloadGroups<T extends { category: string; description: string; name: string }>(
+	groups: Array<DownloadGroup<T>>,
+	search: string
+) {
+	const query = search.toLowerCase()
+	const filteredGroups: Array<DownloadGroup<T>> = []
+	for (const group of groups) {
+		if (group.category.toLowerCase().includes(query)) {
+			filteredGroups.push(group)
+			continue
+		}
+
+		const matched = matchSorter(group.items, search, {
+			keys: ['name', 'description', 'category'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+		if (matched.length > 0) filteredGroups.push({ ...group, items: matched })
+	}
+	return filteredGroups
+}
+
 export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
 	const { savedDownloads, deleteDownload, renameDownload } = useSavedDownloads()
@@ -73,16 +99,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			grouped = grouped.filter((g) => g.category === selectedCategory)
 		}
 		if (!deferredSearch) return grouped
-		return grouped
-			.map((group) => {
-				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
-				const matched = matchSorter(group.items, deferredSearch, {
-					keys: ['name', 'description', 'category'],
-					threshold: matchSorter.rankings.CONTAINS
-				})
-				return { ...group, items: matched }
-			})
-			.filter((group) => group.items.length > 0)
+		return filterDownloadGroups(grouped, deferredSearch)
 	}, [deferredSearch, selectedCategory, allDatasetsByCategory])
 
 	const filteredChartsByCategory = useMemo(() => {
@@ -91,16 +108,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			grouped = grouped.filter((g) => g.category === selectedCategory)
 		}
 		if (!deferredSearch) return grouped
-		return grouped
-			.map((group) => {
-				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
-				const matched = matchSorter(group.items, deferredSearch, {
-					keys: ['name', 'description', 'category'],
-					threshold: matchSorter.rankings.CONTAINS
-				})
-				return { ...group, items: matched }
-			})
-			.filter((group) => group.items.length > 0)
+		return filterDownloadGroups(grouped, deferredSearch)
 	}, [deferredSearch, selectedCategory, allChartsByCategory])
 
 	const totalFilteredCount = useMemo(() => {
@@ -108,13 +116,9 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 		return groups.reduce((sum, g) => sum + g.items.length, 0)
 	}, [activeTab, filteredDatasetsByCategory, filteredChartsByCategory])
 
-	const totalCount = useMemo(() => {
-		return activeTab === 'Datasets' ? datasets.length : chartDatasets.length
-	}, [activeTab])
+	const totalCount = activeTab === 'Datasets' ? datasets.length : chartDatasets.length
 
-	const currentCategories = useMemo(() => {
-		return activeTab === 'Datasets' ? datasetCategories : chartDatasetCategories
-	}, [activeTab])
+	const currentCategories = activeTab === 'Datasets' ? datasetCategories : chartDatasetCategories
 
 	const categoryCounts = useMemo(() => {
 		const groups = activeTab === 'Datasets' ? allDatasetsByCategory : allChartsByCategory
@@ -672,7 +676,11 @@ function SavedDownloadsContent({
 
 	const otherNames = useMemo(() => {
 		if (!renamingPreset) return []
-		return savedDownloads.filter((p) => p.id !== renamingPreset.id).map((p) => p.name)
+		const names: string[] = []
+		for (const preset of savedDownloads) {
+			if (preset.id !== renamingPreset.id) names.push(preset.name)
+		}
+		return names
 	}, [savedDownloads, renamingPreset])
 
 	const bucketCounts = useMemo(() => {

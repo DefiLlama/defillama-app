@@ -8,7 +8,7 @@ export function useBridgeAggregatorsData(chains?: string[]) {
 	const queryParams =
 		chains && chains.length > 0 ? `?${chains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
 
-	const sortedChains = chains?.length ? [...chains].sort() : []
+	const sortedChains = chains?.length ? chains.toSorted() : []
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'bridge-aggregators-overview', sortedChains.join(',')],

@@ -61,7 +61,7 @@ export function ProjectsGrid() {
 					threshold: matchSorter.rankings.CONTAINS
 				})
 			: allProjects
-		const sorted = [...filtered].sort((a, b) => {
+		const sorted = filtered.toSorted((a, b) => {
 			if (sortBy === 'name') return a.name.localeCompare(b.name)
 			const aDate = sortBy === 'created' ? a.created_at : a.updated_at
 			const bDate = sortBy === 'created' ? b.created_at : b.updated_at

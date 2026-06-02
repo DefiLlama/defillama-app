@@ -409,9 +409,14 @@ export function DatasetPreviewModal({
 	const excludeFilteredRows = useMemo(() => {
 		const toggles = dataset.excludeToggles
 		if (!toggles || toggles.length === 0) return rows
-		const activeExcludes = toggles.filter((t) => excludeState[t.field])
-		if (activeExcludes.length === 0) return rows
-		const fieldIndices = activeExcludes.map((t) => headers.indexOf(t.field)).filter((i) => i !== -1)
+		const headerIndices = new Map<string, number>()
+		headers.forEach((header, index) => headerIndices.set(header, index))
+		const fieldIndices: number[] = []
+		for (const toggle of toggles) {
+			if (!excludeState[toggle.field]) continue
+			const index = headerIndices.get(toggle.field)
+			if (index !== undefined) fieldIndices.push(index)
+		}
 		if (fieldIndices.length === 0) return rows
 		return rows.filter((row) => !fieldIndices.some((idx) => row.values[idx]?.toLowerCase() === 'true'))
 	}, [rows, headers, dataset.excludeToggles, excludeState])
@@ -429,7 +434,7 @@ export function DatasetPreviewModal({
 		if (!activeColumn) return filteredRows
 		const dir = sortState.direction === 'asc' ? 1 : -1
 
-		return [...filteredRows].sort((leftRow, rightRow) => {
+		return filteredRows.toSorted((leftRow, rightRow) => {
 			const a = leftRow.values[activeColumn.index] ?? ''
 			const b = rightRow.values[activeColumn.index] ?? ''
 

@@ -430,7 +430,7 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 	}, [fullProtocolsList])
 
 	const availableProtocols = React.useMemo(() => {
-		return [...fullProtocolsList].sort((a, b) => {
+		return fullProtocolsList.toSorted((a, b) => {
 			const aTvl = toNumber(a.tvl) ?? 0
 			const bTvl = toNumber(b.tvl) ?? 0
 			return bTvl - aTvl

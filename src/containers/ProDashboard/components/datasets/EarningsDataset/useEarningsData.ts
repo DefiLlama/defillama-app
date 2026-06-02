@@ -9,7 +9,7 @@ export function useEarningsData(chains?: string[]) {
 		chains && chains.length > 0 ? `?${chains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
 
 	// Use sorted chains array to ensure consistent query key
-	const sortedChains = chains?.length ? [...chains].sort() : []
+	const sortedChains = chains?.length ? chains.toSorted() : []
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'earnings-overview', sortedChains.join(',')],

@@ -79,7 +79,7 @@ export function defaultZoomOptions(start: number): any {
 
 export function assignColors(names: string[]): Record<string, string> {
 	const colors: Record<string, string> = {}
-	const sorted = [...names].sort()
+	const sorted = names.toSorted()
 	for (let i = 0; i < sorted.length; i++) {
 		colors[sorted[i]] = EXTENDED_COLOR_PALETTE[i % EXTENDED_COLOR_PALETTE.length]
 	}

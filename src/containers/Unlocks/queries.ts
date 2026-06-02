@@ -808,7 +808,7 @@ export const getAllProtocolEmissions = async ({
 
 				const formattedHistoricalPrice: Array<[number, number]> = []
 				if (lastEvent.length > 0 && historicalPrice?.prices) {
-					for (const price of [...historicalPrice.prices].sort((a, b) => a.timestamp - b.timestamp)) {
+					for (const price of historicalPrice.prices.toSorted((a, b) => a.timestamp - b.timestamp)) {
 						formattedHistoricalPrice.push([price.timestamp * 1000, price.price])
 					}
 				}

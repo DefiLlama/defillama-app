@@ -119,7 +119,13 @@ export default function Rates() {
 
 	const assetReserves = useMemo(() => reserves.filter((r) => r.symbol === activeAsset), [reserves, activeAsset])
 
-	const primaryReserve = useMemo(() => assetReserves.sort((a, b) => b.sizeUsd - a.sizeUsd)[0] ?? null, [assetReserves])
+	const primaryReserve = useMemo(() => {
+		let largest = assetReserves[0] ?? null
+		for (let i = 1; i < assetReserves.length; i++) {
+			if (assetReserves[i].sizeUsd > largest.sizeUsd) largest = assetReserves[i]
+		}
+		return largest
+	}, [assetReserves])
 
 	const { chartData: supplyChartData, isLoading: supplyLoading } = useAaveAPYHistory(
 		primaryReserve?.chainId,
