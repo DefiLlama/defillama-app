@@ -37,31 +37,31 @@ function useBurnStream() {
 
 	useEffect(() => {
 		let es: EventSource | null = null
+		const handleInit = (e: MessageEvent) => {
+			const data = JSON.parse(e.data)
+			initialized.current = true
+			setState({
+				totalBurnedS: parseFloat(data.total_burned_s),
+				blockNumber: data.block_number,
+				recentBlocks: (data.recent_blocks || []).slice(0, 15),
+				burnWindows: data.burn_windows || null,
+				connected: true
+			})
+		}
+		const handleBlock = (e: MessageEvent) => {
+			const block: BurnBlock = JSON.parse(e.data)
+			setState((prev) => ({
+				...prev,
+				totalBurnedS: parseFloat(block.total_burned_s),
+				blockNumber: block.block_number,
+				recentBlocks: [block, ...prev.recentBlocks.slice(0, 14)]
+			}))
+		}
 
 		try {
 			es = new EventSource('/api/dynamic/sonic/burn-stream')
-
-			es.addEventListener('init', (e) => {
-				const data = JSON.parse(e.data)
-				initialized.current = true
-				setState({
-					totalBurnedS: parseFloat(data.total_burned_s),
-					blockNumber: data.block_number,
-					recentBlocks: (data.recent_blocks || []).slice(0, 15),
-					burnWindows: data.burn_windows || null,
-					connected: true
-				})
-			})
-
-			es.addEventListener('block', (e) => {
-				const block: BurnBlock = JSON.parse(e.data)
-				setState((prev) => ({
-					...prev,
-					totalBurnedS: parseFloat(block.total_burned_s),
-					blockNumber: block.block_number,
-					recentBlocks: [block, ...prev.recentBlocks.slice(0, 14)]
-				}))
-			})
+			es.addEventListener('init', handleInit)
+			es.addEventListener('block', handleBlock)
 
 			es.onerror = () => {
 				setState((prev) => ({ ...prev, connected: false }))
@@ -71,7 +71,10 @@ function useBurnStream() {
 		}
 
 		return () => {
-			es?.close()
+			if (!es) return
+			es.removeEventListener('init', handleInit)
+			es.removeEventListener('block', handleBlock)
+			es.close()
 		}
 	}, [])
 

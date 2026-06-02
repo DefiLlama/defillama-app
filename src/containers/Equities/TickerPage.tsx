@@ -88,7 +88,9 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 	const activePriceHistoryChart = useMemo(() => {
 		const duration = TIMEFRAME_MS[activeTimeframe]
 		if (!duration) return props.priceHistoryChart
-		const cutoff = Date.now() - duration
+		const latestPoint = props.priceHistoryChart.dataset.source.at(-1)
+		if (!latestPoint) return props.priceHistoryChart
+		const cutoff = (latestPoint.timestamp as number) - duration
 		const source = props.priceHistoryChart.dataset.source.filter((point) => (point.timestamp as number) >= cutoff)
 		return { ...props.priceHistoryChart, dataset: { ...props.priceHistoryChart.dataset, source } }
 	}, [activeTimeframe, props.priceHistoryChart])

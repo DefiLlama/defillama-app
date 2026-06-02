@@ -90,7 +90,15 @@ function ExpandedExamplesPanel({
 		return active ?? SUBCATEGORY_META[0]
 	}, [hoveredGroup, filteredGroups])
 
-	let ordinal = 0
+	const groupOrdinalOffsets = useMemo(() => {
+		const offsets: number[] = []
+		let offset = 0
+		for (const group of filteredGroups) {
+			offsets.push(offset)
+			offset += group.items.length
+		}
+		return offsets
+	}, [filteredGroups])
 
 	return (
 		<aside className="flex max-h-[min(38rem,calc(100vh-11rem))] flex-col gap-3 rounded-md border border-(--divider) bg-(--cards-bg) p-3">
@@ -149,7 +157,7 @@ function ExpandedExamplesPanel({
 					</p>
 				) : null}
 
-				{filteredGroups.map(({ meta, items }) => (
+				{filteredGroups.map(({ meta, items }, groupIndex) => (
 					<section key={meta.name} onMouseEnter={() => setHoveredGroup(meta.name)} className="flex flex-col gap-1">
 						<header className="flex items-baseline justify-between">
 							<h4 className="flex items-center gap-1.5 text-[11px] font-semibold text-(--text-secondary)">
@@ -163,8 +171,8 @@ function ExpandedExamplesPanel({
 							<span className="text-[11px] text-(--text-tertiary) tabular-nums">{items.length}</span>
 						</header>
 						<ul className="flex flex-col border-t border-(--divider)/60">
-							{items.map((ex) => {
-								ordinal += 1
+							{items.map((ex, itemIndex) => {
+								const ordinal = groupOrdinalOffsets[groupIndex] + itemIndex + 1
 								const itemId = `example:${ex.title}`
 								const isBusy = busyTaskId === itemId
 								const isDisabled = !!busyTaskId && !isBusy

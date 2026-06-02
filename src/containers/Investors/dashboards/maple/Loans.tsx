@@ -137,7 +137,7 @@ const AGE_BUCKETS = [
 export default function Loans() {
 	const { pools, isLoading } = useMaplePoolsWithLoans()
 
-	const nowSec = useMemo(() => Math.floor(Date.now() / 1000), [])
+	const [nowSec] = useState(() => Math.floor(Date.now() / 1000))
 
 	const loanRows = useMemo<LoanRow[]>(() => {
 		const rows: LoanRow[] = []
