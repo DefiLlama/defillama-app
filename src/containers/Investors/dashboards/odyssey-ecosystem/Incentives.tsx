@@ -144,6 +144,7 @@ export default function Incentives() {
 				/>
 			</ChartCard>
 
+			{/*
 			<SectionHeader>Weekly Spend by Venue</SectionHeader>
 			{isLoading || !weeklySeries ? (
 				<ChartSkeleton title="Weekly spend" />
@@ -152,6 +153,7 @@ export default function Incentives() {
 					<MultiSeriesChart series={weeklySeries as any} valueSymbol="$" height="380px" />
 				</ChartCard>
 			)}
+			*/}
 
 			<SectionHeader>Weekly Spend per Pool</SectionHeader>
 			<ChartCard title="Per-pool weekly spend">
