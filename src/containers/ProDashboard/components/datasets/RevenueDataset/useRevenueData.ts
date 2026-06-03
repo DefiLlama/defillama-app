@@ -8,7 +8,7 @@ export function useRevenueData(chains?: string[]) {
 	// If "All" is selected, treat it as no filter (empty array)
 	const filteredChains = chains?.includes('All') ? [] : chains
 	// Use sorted chains array to ensure consistent query key
-	const sortedChains = filteredChains?.length ? Array.from(filteredChains).sort() : []
+	const sortedChains = filteredChains?.length ? filteredChains.toSorted() : []
 
 	const queryParams =
 		sortedChains.length > 0 ? `?${sortedChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
