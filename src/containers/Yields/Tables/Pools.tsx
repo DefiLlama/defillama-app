@@ -234,11 +234,7 @@ function createPoolsColumns({ hasPremiumAccess, isClient, serverMode, onRequestU
 			cell: (info) => {
 				return (
 					<span className="flex items-center justify-end gap-1">
-						{info.row.original.project === 'Fraxlend' ? (
-							<QuestionHelper
-								text={'Supply APY is for FRAX being lent to the pool, you do not earn interest on your collateral!'}
-							/>
-						) : info.row.original.project === 'Sommelier' ? (
+						{info.row.original.project === 'Sommelier' ? (
 							<QuestionHelper text={'Calculated over a 24h period! Enable 7d Base APY column for a larger period'} />
 						) : null}
 						<PercentChange percent={info.getValue()} noSign />
