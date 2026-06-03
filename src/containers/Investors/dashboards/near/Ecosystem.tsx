@@ -52,7 +52,7 @@ function aggregateBreakdown(chart: BreakdownChart, topN: number): { name: string
 }
 
 function channelsToBars(breakdown: ChannelBreakdown): { categories: string[]; values: number[] } {
-	const sorted = [...breakdown.channels].sort((a, b) => b.fees - a.fees)
+	const sorted = breakdown.channels.toSorted((a, b) => b.fees - a.fees)
 	return {
 		categories: sorted.map((c) => c.referral || 'unknown'),
 		values: sorted.map((c) => c.fees)

@@ -7,7 +7,7 @@ export function useYieldsData(chains?: string[]) {
 	const streamDone = useContext(StreamDoneContext)
 	const queryParams =
 		chains && chains.length > 0 ? `?${chains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}` : ''
-	const sortedChains = chains?.length ? [...chains].sort() : []
+	const sortedChains = chains?.length ? chains.toSorted() : []
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'yields-overview', sortedChains.join(',')],

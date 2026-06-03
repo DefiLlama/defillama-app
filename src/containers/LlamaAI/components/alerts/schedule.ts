@@ -1,5 +1,6 @@
 export const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const BLOCKED_HOURS_UTC = [0, 1, 2]
+const shortOffsetFormatters = new Map<string, Intl.DateTimeFormat>()
 export const GMT_OFFSETS = [
 	{ label: 'UTC-12', value: 'Etc/GMT+12' },
 	{ label: 'UTC-11', value: 'Etc/GMT+11' },
@@ -30,6 +31,15 @@ export const GMT_OFFSETS = [
 	{ label: 'UTC+14', value: 'Etc/GMT-14' }
 ]
 
+const getShortOffsetFormatter = (timezone: string): Intl.DateTimeFormat => {
+	let formatter = shortOffsetFormatters.get(timezone)
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+		shortOffsetFormatters.set(timezone, formatter)
+	}
+	return formatter
+}
+
 const parseOffsetMinutes = (value: string): number | null => {
 	const normalized = value.replace('UTC', 'GMT')
 	if (normalized === 'GMT') return 0
@@ -44,7 +54,7 @@ const parseOffsetMinutes = (value: string): number | null => {
 
 const getOffsetMinutesFromTimezone = (timezone: string): number | null => {
 	try {
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+		const formatter = getShortOffsetFormatter(timezone)
 		const parts = formatter.formatToParts(new Date())
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value
 		return tzPart ? parseOffsetMinutes(tzPart) : null
@@ -191,7 +201,7 @@ export const getTimezoneLabel = (timezone: string): string => {
 	if (found) return found.label
 	try {
 		const now = new Date()
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
+		const formatter = getShortOffsetFormatter(timezone)
 		const parts = formatter.formatToParts(now)
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')
 		if (tzPart?.value) {

@@ -276,7 +276,7 @@ export function ChartDatasetModal({
 		for (const opt of options) {
 			if (opt.category) cats.set(opt.category, (cats.get(opt.category) ?? 0) + 1)
 		}
-		return [...cats.entries()].sort((a, b) => b[1] - a[1])
+		return Array.from(cats.entries()).toSorted((a, b) => b[1] - a[1])
 	}, [options, supportsBreakdown])
 
 	const filteredOptions = useMemo(() => {
@@ -551,7 +551,7 @@ export function ChartDatasetModal({
 		if (!activeColumn) return filteredRows
 		const dir = sortState.direction === 'asc' ? 1 : -1
 
-		return [...filteredRows].sort((a, b) => {
+		return filteredRows.toSorted((a, b) => {
 			const av = a.values[activeColumn.index] ?? ''
 			const bv = b.values[activeColumn.index] ?? ''
 			const aBlank = !av.trim()

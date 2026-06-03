@@ -327,7 +327,7 @@ function TreasurySection({ treasury }: { treasury: IChainOverviewData['treasury'
 
 function RaisesSection({ chainRaises }: { chainRaises: IChainOverviewData['chainRaises'] }) {
 	if (!chainRaises || chainRaises.length === 0) return null
-	const sortedRaises = [...chainRaises].sort((a, b) => a.date - b.date)
+	const sortedRaises = chainRaises.toSorted((a, b) => a.date - b.date)
 	const totalRaised = chainRaises.reduce((sum, r) => sum + Number(r.amount), 0)
 	const totalRaisedFormatted = formatRaiseAmount(totalRaised)
 	if (totalRaisedFormatted == null) return null

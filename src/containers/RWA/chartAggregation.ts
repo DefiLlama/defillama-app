@@ -193,7 +193,7 @@ export function mergeRwaChartDatasets(primary: RWAChartDataset, overlay: RWAChar
 	}
 
 	return {
-		source: [...mergedRows.values()].sort((a, b) => a.timestamp - b.timestamp),
+		source: Array.from(mergedRows.values()).toSorted((a, b) => a.timestamp - b.timestamp),
 		dimensions: [
 			'timestamp',
 			...primary.dimensions.filter((dimension) => dimension !== 'timestamp'),

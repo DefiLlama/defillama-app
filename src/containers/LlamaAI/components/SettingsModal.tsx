@@ -217,7 +217,7 @@ export const SettingsModal = memo(function SettingsModal({
 		void actions.setEnterToSend(!settings.enterToSend)
 	}, [actions, settings.enterToSend])
 
-	const [spendCapDraft, setSpendCapDraft] = useState<string>(settings.spendCapPerMessage.toFixed(2))
+	const [spendCapDraft, setSpendCapDraft] = useState<string>(() => settings.spendCapPerMessage.toFixed(2))
 	const lastCommittedSpendCapRef = useRef<number>(settings.spendCapPerMessage)
 
 	useEffect(() => {

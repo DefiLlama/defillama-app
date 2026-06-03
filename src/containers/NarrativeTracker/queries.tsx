@@ -64,7 +64,7 @@ function calculateCumulativePercentageChange(
 		return entries
 	}
 
-	const sortedData = [...data].sort((a, b) => new Date(a[1]).getTime() - new Date(b[1]).getTime())
+	const sortedData = data.toSorted((a, b) => new Date(a[1]).getTime() - new Date(b[1]).getTime())
 	const filteredData = filterData(sortedData, timeframe)
 
 	// group by id

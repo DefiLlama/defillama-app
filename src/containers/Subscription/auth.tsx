@@ -421,8 +421,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
-			const createSiweMessage = await loadCreateSiweMessage()
-			const { nonce } = await getNonce(address)
+			const [createSiweMessage, { nonce }] = await Promise.all([loadCreateSiweMessage(), getNonce(address)])
 			const issuedAt = new Date()
 			const message = createSiweMessage({
 				domain: window.location.host,
@@ -511,8 +510,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
-			const createSiweMessage = await loadCreateSiweMessage()
-			const { nonce } = await getNonce(address)
+			const [createSiweMessage, { nonce }] = await Promise.all([loadCreateSiweMessage(), getNonce(address)])
 			const issuedAt = new Date()
 			const message = createSiweMessage({
 				domain: window.location.host,
@@ -794,6 +792,17 @@ function subscribeToUserHash(callback: () => void) {
 	}
 }
 
+const syncStoredUserHash = (nextUserHash: string | null) => {
+	const currentUserHash = localStorage.getItem('userHash')
+	if (currentUserHash === nextUserHash) return
+	if (nextUserHash === null) {
+		localStorage.removeItem('userHash')
+	} else {
+		localStorage.setItem('userHash', nextUserHash)
+	}
+	window.dispatchEvent(new Event('userHashChange'))
+}
+
 export const useUserHash = () => {
 	const { user, hasActiveSubscription, authorizedFetch } = useAuthContext()
 
@@ -818,19 +827,11 @@ export const useUserHash = () => {
 				})
 				.then((res) => res.json())
 				.then((data) => {
-					const currentUserHash = localStorage.getItem('userHash')
-					if (currentUserHash !== data.userHash) {
-						localStorage.setItem('userHash', data.userHash)
-						window.dispatchEvent(new Event('userHashChange'))
-					}
+					syncStoredUserHash(data.userHash)
 					return data.userHash
 				})
 				.catch(() => {
-					const currentUserHash = localStorage.getItem('userHash')
-					if (currentUserHash !== null) {
-						localStorage.removeItem('userHash')
-						window.dispatchEvent(new Event('userHashChange'))
-					}
+					syncStoredUserHash(null)
 					return null
 				}),
 		enabled: !!(email && hasActiveSubscription),

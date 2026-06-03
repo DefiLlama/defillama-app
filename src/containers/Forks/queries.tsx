@@ -16,7 +16,7 @@ function sortForksByLatestTvl(forkNames: string[], chartData: unknown): string[]
 		}
 	}
 
-	return [...forkNames].sort((a, b) => (latestTvlByFork[b] ?? 0) - (latestTvlByFork[a] ?? 0))
+	return forkNames.toSorted((a, b) => (latestTvlByFork[b] ?? 0) - (latestTvlByFork[a] ?? 0))
 }
 
 // - /forks

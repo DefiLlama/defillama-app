@@ -53,7 +53,7 @@ type ChartColors = ReturnType<typeof resolveChartColors>
 
 function useChartData(usageStats: any, colors: ChartColors) {
 	const sortedStats = useMemo(
-		() => [...(usageStats?.stats ?? [])].sort((a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)),
+		() => (usageStats?.stats ?? []).toSorted((a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)),
 		[usageStats?.stats]
 	)
 
@@ -82,7 +82,7 @@ function useChartData(usageStats: any, colors: ChartColors) {
 			}
 		}
 
-		const sortedRoutes = [...routeTotals.entries()].sort((a, b) => b[1] - a[1])
+		const sortedRoutes = Array.from(routeTotals.entries()).toSorted((a, b) => b[1] - a[1])
 		const topRoutes = sortedRoutes.slice(0, TOP_ROUTES).map(([route]) => route)
 		const topRoutesSet = new Set(topRoutes)
 		const hasOthers = sortedRoutes.length > TOP_ROUTES

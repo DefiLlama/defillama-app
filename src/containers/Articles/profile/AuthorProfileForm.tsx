@@ -145,11 +145,13 @@ function CharCount({ value, max }: { value: string; max: number }) {
 	)
 }
 
+const joinedDateFormatter = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' })
+
 function formatJoined(iso: string | null | undefined): string {
 	if (!iso) return ''
 	const d = new Date(iso)
 	if (Number.isNaN(d.getTime())) return ''
-	return new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(d)
+	return joinedDateFormatter.format(d)
 }
 
 function LivePreview({ state, createdAt }: { state: FormState; createdAt: string | null | undefined }) {

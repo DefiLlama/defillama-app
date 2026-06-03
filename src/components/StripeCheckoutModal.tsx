@@ -23,13 +23,17 @@ const checkoutDialogClassName =
 const checkoutHeaderClassName = 'flex items-center justify-between border-b border-(--sub-border-slate-100) px-5 py-4'
 const checkoutTitleClassName = 'text-xl leading-7 font-semibold text-(--sub-ink-primary)'
 const checkoutCloseButtonClassName = 'rounded-full p-1 text-(--sub-ink-primary) transition-colors disabled:opacity-50'
+const amountFormatters = new Map<string, Intl.NumberFormat>()
 
 const formatAmount = (cents: number, currency: string) => {
 	const amount = cents / 100
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: currency.toUpperCase()
-	}).format(amount)
+	const currencyCode = currency.toUpperCase()
+	let formatter = amountFormatters.get(currencyCode)
+	if (!formatter) {
+		formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode })
+		amountFormatters.set(currencyCode, formatter)
+	}
+	return formatter.format(amount)
 }
 
 const getFriendlyPaymentStatus = (status: string) => {

@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		const payload: HlpPortfolioData = {
 			window,
 			volume: byVaultVolume.A + byVaultVolume.B,
-			points: [...pointsMap.values()].sort((a, b) => a.time - b.time),
+			points: Array.from(pointsMap.values()).toSorted((a, b) => a.time - b.time),
 			byVaultVolume
 		}
 

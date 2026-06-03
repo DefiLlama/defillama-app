@@ -16,7 +16,7 @@ export function buildRaiseValuations(
 	config: Record<string, any>,
 	protocolsData: any
 ): Map<string, number> {
-	const sorted = [...raises].sort((a, b) => b.date - a.date)
+	const sorted = raises.toSorted((a, b) => b.date - a.date)
 
 	// Index raises by defillamaId and name (most recent wins)
 	const byId = new Map<string, number>()

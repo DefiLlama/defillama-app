@@ -230,7 +230,7 @@ function buildTokenUsageCacheKey(tokenSymbols: string[], includeCex: boolean): s
 }
 
 function buildDatasetCacheKey(prefix: string, chains: string[]): string {
-	const sortedChains = chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort()
+	const sortedChains = chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted()
 	return JSON.stringify(['pro-dashboard', prefix, ...sortedChains])
 }
 

@@ -222,7 +222,7 @@ function FundingChart({ data }: { data: { name: string; value: number }[] }) {
 		let instance = echarts.getInstanceByDom(dom)
 		if (!instance) instance = echarts.init(dom)
 
-		const sorted = [...data].sort((a, b) => a.value - b.value)
+		const sorted = data.toSorted((a, b) => a.value - b.value)
 
 		instance.setOption({
 			grid: { left: 70, right: 16, top: 8, bottom: 8, containLabel: false },
@@ -584,9 +584,15 @@ function VolumeOIScatter({ data }: { data: PerpMarket[] }) {
 			series: [
 				{
 					type: 'scatter',
-					data: data
-						.filter((m) => m.dayNtlVlm > 0 && m.openInterest > 0)
-						.map((m) => [m.dayNtlVlm, m.openInterest, m.fundingAnnualized, m.name]),
+					data: (() => {
+						const points: Array<[number, number, number, string]> = []
+						for (const market of data) {
+							if (market.dayNtlVlm > 0 && market.openInterest > 0) {
+								points.push([market.dayNtlVlm, market.openInterest, market.fundingAnnualized, market.name])
+							}
+						}
+						return points
+					})(),
 					symbolSize: (val: number[]) => Math.max(6, Math.min(24, Math.abs(val[2]) * 2)),
 					itemStyle: {
 						color: (params: any) => (params.data[2] >= 0 ? '#10b981' : '#ef4444'),
@@ -712,8 +718,8 @@ export default function Stats() {
 
 	const fundingChartData = useMemo(
 		() =>
-			[...perps]
-				.sort((a, b) => b.openInterest - a.openInterest)
+			perps
+				.toSorted((a, b) => b.openInterest - a.openInterest)
 				.slice(0, 20)
 				.map((market) => ({ name: market.name, value: market.fundingAnnualized })),
 		[perps]
@@ -721,8 +727,8 @@ export default function Stats() {
 
 	const topCoins = useMemo(
 		() =>
-			[...perps]
-				.sort((a, b) => b.dayNtlVlm - a.dayNtlVlm)
+			perps
+				.toSorted((a, b) => b.dayNtlVlm - a.dayNtlVlm)
 				.slice(0, 20)
 				.map((market) => market.name),
 		[perps]
@@ -730,7 +736,7 @@ export default function Stats() {
 
 	const oiDistributionData = useMemo(() => {
 		if (perps.length === 0) return []
-		const sorted = [...perps].sort((a, b) => b.openInterest - a.openInterest)
+		const sorted = perps.toSorted((a, b) => b.openInterest - a.openInterest)
 		const top = sorted.slice(0, 10)
 		const otherOI = sorted.slice(10).reduce((sum, market) => sum + market.openInterest, 0)
 		const result = top.map((market) => ({ name: market.name, value: market.openInterest }))
