@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 const commandDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(commandDir, '..', '..')
 const [nodeEnv, nextCommand, ...nextArgs] = process.argv.slice(2)
+const isProductionBuild = nodeEnv === 'production' && nextCommand === 'build'
+const buildNodeOptions = '--max-heap-size=6144'
 
 if (!nodeEnv || !nextCommand) {
 	console.error('Usage: node ./scripts/command/runPreparedNext.mjs <NODE_ENV> <next-command> [...args]')
@@ -14,16 +16,29 @@ if (!nodeEnv || !nextCommand) {
 }
 
 const env = { ...process.env, NODE_ENV: nodeEnv }
+const BUILD_OLD_SPACE_OPTION = '--max-old-space-size=4096'
+
+if (
+	nodeEnv === 'production' &&
+	nextCommand === 'build' &&
+	!/(^|\s)--max[-_]old[-_]space[-_]size=/.test(env.NODE_OPTIONS ?? '')
+) {
+	env.NODE_OPTIONS = [env.NODE_OPTIONS, BUILD_OLD_SPACE_OPTION].filter(Boolean).join(' ')
+}
 
 function packageBin(name) {
 	return path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? `${name}.cmd` : name)
 }
 
-function run(command, args) {
+function packageScript(packageName, ...parts) {
+	return path.join(repoRoot, 'node_modules', packageName, ...parts)
+}
+
+function run(command, args, envOverrides = {}) {
 	return new Promise((resolve) => {
 		const child = spawn(command, args, {
 			cwd: repoRoot,
-			env,
+			env: { ...env, ...envOverrides },
 			shell: process.platform === 'win32' || command.endsWith('.cmd'),
 			stdio: 'inherit'
 		})
@@ -48,5 +63,13 @@ const prepareExitCode = await run(process.execPath, [
 if (prepareExitCode !== 0) {
 	process.exitCode = prepareExitCode
 } else {
-	process.exitCode = await run(packageBin('next'), [nextCommand, ...nextArgs])
+	if (isProductionBuild) {
+		console.log(`[build] Starting Next.js production build with scoped NODE_OPTIONS=${buildNodeOptions}`)
+	}
+	const nextExitCode = isProductionBuild
+		? await run(process.execPath, [packageScript('next', 'dist', 'bin', 'next'), nextCommand, ...nextArgs], {
+				NODE_OPTIONS: buildNodeOptions
+			})
+		: await run(packageBin('next'), [nextCommand, ...nextArgs])
+	process.exitCode = nextExitCode
 }

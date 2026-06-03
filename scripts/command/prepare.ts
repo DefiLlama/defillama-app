@@ -102,7 +102,7 @@ export async function runPreparationCommand({
 	}
 
 	if (exitCode === 0) {
-		logger.log(`${prefix} Preparation complete; starting Next.js dev server`)
+		logger.log(`${prefix} Preparation complete; starting Next.js`)
 	} else {
 		logger.log(`${prefix} Preparation finished with errors`)
 	}
