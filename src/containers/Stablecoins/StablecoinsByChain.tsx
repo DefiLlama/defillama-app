@@ -19,6 +19,7 @@ import type {
 import { preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -662,6 +663,8 @@ export function StablecoinsByChain({
 					)}
 				</div>
 			</div>
+
+			<NewsletterSignup layout="strip" />
 
 			<StablecoinsTable data={peggedTotals} />
 		</>

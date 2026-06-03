@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { YIELD_POOLS_DATASET_API } from '~/constants'
 import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { fetchJson } from '~/utils/async'
@@ -201,6 +202,8 @@ const YieldPage = ({
 				prepareCsv={prepareCsv}
 				showPresetFilters
 			/>
+
+			<NewsletterSignup layout="strip" />
 
 			{questions?.length > 0 || isQuestionsLoading ? (
 				<EntityQuestionsStrip

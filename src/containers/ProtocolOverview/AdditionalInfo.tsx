@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink, ButtonLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { MetricRow } from '~/components/MetricPrimitives'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute } from '~/constants'
@@ -55,6 +56,7 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 				<Methodology {...props} />
 				<Hacks {...props} />
 				<Competitors {...props} />
+				<NewsletterSignup layout="strip" className="col-span-full" />
 			</div>
 		)
 	}
@@ -64,6 +66,7 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 			<ProtocolInfo {...props} />
 			{/* <Articles {...props} /> */}
 			<Methodology {...props} />
+			<NewsletterSignup layout="strip" className="col-span-full" />
 			<Yields {...props} />
 			<Users {...props} />
 			<Hacks {...props} />

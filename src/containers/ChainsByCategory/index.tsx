@@ -5,6 +5,7 @@ import type { IPieChartProps } from '~/components/ECharts/types'
 import { ensureChronologicalRows, preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { LocalLoader } from '~/components/Loaders'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
@@ -156,6 +157,8 @@ export function ChainsByCategory({
 					</div>
 				</div>
 			)}
+
+			<NewsletterSignup layout="strip" />
 
 			<React.Suspense
 				fallback={

@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -96,6 +97,7 @@ export function ManageAccount() {
 					<div className="flex flex-col gap-3">
 						<AuthenticationCard />
 						<SettingsCard />
+						<NewsletterSignup layout="card" />
 						<SubscriptionSection />
 					</div>
 				</Ariakit.TabPanel>

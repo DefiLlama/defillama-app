@@ -1,5 +1,6 @@
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import { slug } from '~/utils'
@@ -65,6 +66,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					))}
 				</div>
 			) : null}
+			<NewsletterSignup layout="strip" />
 			{props.protocols.length > 0 ? <ChainProtocolsTable protocols={props.protocols} /> : null}
 		</>
 	)

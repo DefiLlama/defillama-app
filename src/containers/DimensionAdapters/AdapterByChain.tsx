@@ -16,6 +16,7 @@ import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -400,6 +401,7 @@ export function AdapterByChain(props: IProps) {
 					/>
 				</div>
 			) : null}
+			{props.chain === 'All' ? <NewsletterSignup layout="strip" /> : null}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
 					<label className="relative mr-auto w-full sm:max-w-[280px]">
