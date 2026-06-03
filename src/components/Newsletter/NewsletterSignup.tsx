@@ -83,7 +83,7 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 		if (persistedDismissed || dismissed) return null
 		return (
 			<div
-				className={`relative shrink-0 overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg) py-4 pr-10 pl-6 lg:py-5 lg:pr-12${
+				className={`@container relative shrink-0 overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg) py-4 pr-10 pl-6 @5xl:py-5 @5xl:pr-12${
 					className ? ` ${className}` : ''
 				}`}
 			>
@@ -102,9 +102,9 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 				{succeeded ? (
 					<NewsletterSuccess layout="strip" email={email} onReset={() => setSucceeded(false)} />
 				) : (
-					<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+					<div className="flex flex-col gap-4 @5xl:flex-row @5xl:items-center @5xl:justify-between @5xl:gap-8">
 						<div className="flex flex-col gap-1">
-							<span className="flex items-center gap-2 text-lg font-bold tracking-tight text-(--text-primary)">
+							<span className="flex items-center gap-2 text-base font-bold tracking-tight whitespace-nowrap text-(--text-primary) @sm:text-lg">
 								<Icon name="mail-rounded" height={20} width={20} className="shrink-0 text-(--sub-brand-primary)" />
 								Subscribe to DefiLlama
 							</span>
@@ -114,7 +114,7 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 						</div>
 						<form
 							onSubmit={handleSubmit}
-							className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:shrink-0 lg:justify-end"
+							className="flex flex-col gap-3 @sm:flex-row @sm:flex-wrap @sm:items-center @5xl:shrink-0 @5xl:justify-end"
 						>
 							<div className="flex flex-wrap items-center gap-2" role="group" aria-label="Newsletters">
 								{NEWSLETTERS.map(({ key, label }) => {
@@ -139,7 +139,7 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 									)
 								})}
 							</div>
-							<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+							<div className="flex flex-col gap-2 @sm:flex-row @sm:items-center">
 								<input
 									type="email"
 									required
@@ -147,7 +147,7 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 									value={email}
 									onChange={onEmailChange}
 									placeholder="you@example.com"
-									className="h-10 min-w-0 rounded-lg border border-(--cards-border) bg-(--bg-input) px-3 text-sm text-(--text-primary) outline-none focus-visible:border-(--sub-brand-primary) sm:w-56"
+									className="h-10 min-w-0 rounded-lg border border-(--cards-border) bg-(--bg-input) px-3 text-sm text-(--text-primary) outline-none focus-visible:border-(--sub-brand-primary) @sm:w-56"
 								/>
 								<button
 									type="submit"
