@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 import { errorToast } from '~/components/Toast'
 import { AUTH_SERVER } from '~/constants'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { AuthModel } from '~/utils/pocketbase'
+import pb, { type AuthModel } from '~/utils/pocketbase'
 
 export type NewsletterKey = 'newsletter' | 'research'
 
@@ -28,7 +28,7 @@ export interface NewsletterSubscribeResponse {
 }
 
 export function shouldShowNewsletterSignup(user: AuthModel | null | undefined): boolean {
-	return user?.flags?.is_llama === true
+	return user?.promotionalEmails !== 'on'
 }
 
 const getUserFacingErrorMessage = (error: unknown, fallbackMessage: string): string => {
@@ -53,6 +53,11 @@ export function useNewsletterSubscription() {
 			return (await res.json()) as NewsletterSubscribeResponse
 		},
 		onSuccess: (data, { newsletters }) => {
+			if (pb.authStore.isValid) {
+				pb.collection('users')
+					.authRefresh()
+					.catch(() => {})
+			}
 			const failed = newsletters.filter((key) => data.result?.[key] !== 'ok')
 			if (failed.length === 0) {
 				toast.success('Subscribed! Check your inbox to confirm.')

@@ -10,28 +10,41 @@ import {
 	shouldShowNewsletterSignup,
 	useNewsletterSubscription
 } from '~/hooks/useNewsletterSubscription'
-import { createAnnouncementDismissalToken, dismissAnnouncement, isAnnouncementDismissed } from '~/utils/cookies'
-
 interface NewsletterSignupProps {
 	layout: 'card' | 'strip'
 	className?: string
 }
 
-const STRIP_DISMISS_ID = 'newsletter-signup'
-const STRIP_DISMISS_VERSION = '2026-06-03'
-const subscribeToNothing = () => () => {}
+const NEWSLETTER_DISMISSED_KEY = 'newsletter-signup-dismissed'
+
+const readNewsletterDismissed = (): boolean => {
+	if (typeof window === 'undefined') return false
+	try {
+		return window.localStorage.getItem(NEWSLETTER_DISMISSED_KEY) != null
+	} catch {
+		return false
+	}
+}
+
+const persistNewsletterDismissed = (): void => {
+	if (typeof window === 'undefined') return
+	try {
+		window.localStorage.setItem(NEWSLETTER_DISMISSED_KEY, '1')
+	} catch {}
+}
+
+const subscribeToStorage = (onChange: () => void) => {
+	if (typeof window === 'undefined') return () => {}
+	window.addEventListener('storage', onChange)
+	return () => window.removeEventListener('storage', onChange)
+}
 
 export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 	const isClient = useIsClient()
 	const { user } = useAuthContext()
 	const mutation = useNewsletterSubscription()
 	const helperId = useId()
-	const dismissToken = createAnnouncementDismissalToken(STRIP_DISMISS_ID, STRIP_DISMISS_VERSION)
-	const persistedDismissed = useSyncExternalStore(
-		subscribeToNothing,
-		() => isAnnouncementDismissed(dismissToken),
-		() => false
-	)
+	const persistedDismissed = useSyncExternalStore(subscribeToStorage, readNewsletterDismissed, () => false)
 
 	const accountEmail =
 		user?.email && isWalletEmail(user.email) ? ((user.ethereum_email as string | undefined) ?? '') : (user?.email ?? '')
@@ -65,13 +78,16 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 			{ email: email.trim(), newsletters: selectedKeys },
 			{
 				onSuccess: (data) => {
-					if (selectedKeys.every((key) => data.result?.[key] === 'ok')) setSucceeded(true)
+					if (selectedKeys.every((key) => data.result?.[key] === 'ok')) {
+						setSucceeded(true)
+						persistNewsletterDismissed()
+					}
 				}
 			}
 		)
 	}
 	const handleDismiss = () => {
-		dismissAnnouncement(dismissToken)
+		persistNewsletterDismissed()
 		setDismissed(true)
 	}
 
@@ -109,7 +125,7 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 								Subscribe to DefiLlama
 							</span>
 							<span className="max-w-md text-sm text-(--text-primary)/55">
-								Pick the newsletter, the DefiLlama Research reports, or both — straight to your inbox.
+								Get DefiLlama's newsletter, Research updates, or both, delivered to your inbox.
 							</span>
 						</div>
 						<form
