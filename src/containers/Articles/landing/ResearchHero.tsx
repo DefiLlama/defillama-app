@@ -51,15 +51,6 @@ const LinkedInIcon = () => (
 	</svg>
 )
 
-const RssFeedIcon = () => (
-	<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<circle cx="18" cy="18" r="18" fill="white" />
-		<circle cx="13" cy="24" r="2.4" fill="#237BFF" />
-		<path d="M11 15.5a9.5 9.5 0 0 1 9.5 9.5" stroke="#237BFF" strokeWidth="2.6" strokeLinecap="round" />
-		<path d="M11 10.5a14.5 14.5 0 0 1 14.5 14.5" stroke="#237BFF" strokeWidth="2.6" strokeLinecap="round" />
-	</svg>
-)
-
 const BookCallIcon = () => (
 	<svg xmlns="http://www.w3.org/2000/svg" width={28} height={29} fill="none">
 		<g fill="#fff" clipPath="url(#a)">
@@ -134,7 +125,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								<LinkedInIcon />
 							</Link>
 							<Link href="/research/feed" aria-label="Subscribe via RSS">
-								<RssFeedIcon />
+								<img src="/assets/research/rss.svg" alt="" width={36} height={36} />
 							</Link>
 						</div>
 					</div>
