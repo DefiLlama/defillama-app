@@ -45,6 +45,7 @@ function SubscriptionContent() {
 		currentPlan,
 		isTrial,
 		userBillingCycle,
+		isManualSubscription,
 		isLoading: isPageStateLoading
 	} = useSubscriptionPageState()
 	const { user, loaders } = useAuthContext()
@@ -201,6 +202,9 @@ function SubscriptionContent() {
 	const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise: 3 }
 
 	const handleComparisonPlanAction = (plan: PlanKey) => {
+		// Team-provided (manual) subscriptions can't be changed via self-serve checkout.
+		if (isManualSubscription) return
+
 		if (plan === 'enterprise') {
 			window.location.href = 'mailto:sales@defillama.com'
 			return
@@ -238,6 +242,7 @@ function SubscriptionContent() {
 					isTrial={isTrial}
 					isCancelPending={isCancelPending}
 					userBillingCycle={userBillingCycle}
+					isManualSubscription={isManualSubscription}
 					onPrimaryCtaClick={handlePrimaryCtaClick}
 					onSecondaryCtaClick={handleSecondaryCtaClick}
 					onUpgradeToYearly={handleUpgradeToYearly}
