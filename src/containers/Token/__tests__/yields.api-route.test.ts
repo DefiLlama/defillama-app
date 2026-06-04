@@ -14,6 +14,7 @@ import handler from '~/pages/api/public/datasets/yields'
 
 beforeEach(() => {
 	vi.clearAllMocks()
+	vi.stubEnv('DATASET_CACHE_DISABLE', '1')
 	vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '0')
 	getTokenYieldsRowsMock.mockResolvedValue([{ pool: 'ETH-USDC' }])
 })

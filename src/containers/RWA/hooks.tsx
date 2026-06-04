@@ -10,7 +10,6 @@ import {
 	parseExcludeParam,
 	parseNumberInput,
 	parseNumberQueryParam,
-	isTrueQueryParam,
 	pushShallowQuery
 } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWAAssetChartTarget } from './api.types'
@@ -32,13 +31,22 @@ import {
 	type RWAOverviewInclusionContext,
 	type RWAOverviewMode
 } from './constants'
-import { computeWeightedGroups, getPrimaryRwaCategory, toUniqueNonEmptyValues } from './grouping'
+import {
+	filterRwaOverviewDisplayRows,
+	getEmptyRwaFilteredRowsResult,
+	hasActiveInclusionOverride,
+	hasPerpsOverlayBlockingFiltersFromQuery,
+	parseAttributeFilterStatesParam,
+	resolveRWAOverviewInclusionFlag,
+	updateAttributeFilterStatesQueryValue,
+	type RWAAttributeFilterState
+} from './filterState'
+import { computeWeightedGroups, getPrimaryRwaCategory } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
+export { resolveRWAOverviewInclusionFlag } from './filterState'
+
 type PieChartDatum = { name: string; value: number }
-const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
-type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
-const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
 
 const buildStackColors = (order: string[]) => {
 	const stackColors: Record<string, string> = {}
@@ -46,23 +54,6 @@ const buildStackColors = (order: string[]) => {
 		stackColors[key] = CHART_COLORS[idx % CHART_COLORS.length]
 	}
 	return stackColors
-}
-
-const parseAttributeFilterStatesParam = (param: string | string[] | undefined): RWAAttributeFilterState[] => {
-	if (!param) return [...RWA_ATTRIBUTE_FILTER_STATES]
-
-	const values = toNonEmptyArrayParam(param).map((value) => value.toLowerCase())
-	if (values.some((value) => value === 'none')) return []
-
-	const selectedSet = new Set<RWAAttributeFilterState>()
-	for (const value of values) {
-		if (RWA_ATTRIBUTE_FILTER_STATE_SET.has(value as RWAAttributeFilterState)) {
-			selectedSet.add(value as RWAAttributeFilterState)
-		}
-	}
-
-	if (selectedSet.size === 0) return [...RWA_ATTRIBUTE_FILTER_STATES]
-	return RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
 }
 
 const updateNumberRangeQuery = (
@@ -81,35 +72,9 @@ const updateNumberRangeQuery = (
 }
 
 const updateAttributeFilterStatesQuery = (queryKey: string, values: RWAAttributeFilterState[], router: NextRouter) => {
-	const selectedSet = new Set<RWAAttributeFilterState>()
-	for (const value of values) {
-		if (RWA_ATTRIBUTE_FILTER_STATE_SET.has(value)) selectedSet.add(value)
-	}
-
-	const normalizedStates = RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
 	void pushShallowQuery(router, {
-		[queryKey]:
-			normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length
-				? undefined
-				: normalizedStates.length === 0
-					? 'none'
-					: normalizedStates.length === 1
-						? normalizedStates[0]
-						: normalizedStates
+		[queryKey]: updateAttributeFilterStatesQueryValue(values)
 	})
-}
-
-export function resolveRWAOverviewInclusionFlag(
-	queryValue: string | string[] | undefined,
-	defaultValue: boolean
-): boolean {
-	return queryValue != null ? isTrueQueryParam(queryValue) : defaultValue
-}
-
-function hasActiveInclusionOverride(queryValue: string | string[] | undefined, defaultValue: boolean): boolean {
-	if (queryValue == null) return false
-	if (Array.isArray(queryValue)) return true
-	return resolveRWAOverviewInclusionFlag(queryValue, defaultValue) !== defaultValue
 }
 
 export const useRWATableQueryParams = ({
@@ -427,6 +392,18 @@ export const useRWATableQueryParams = ({
 		categorySlug
 	])
 
+	const hasPerpsOverlayBlockingFilters = useMemo(
+		() =>
+			hasPerpsOverlayBlockingFiltersFromQuery(router.query, {
+				mode,
+				chainSlug,
+				categorySlug,
+				platformSlug,
+				assetGroupSlug
+			}),
+		[router.query, mode, chainSlug, categorySlug, platformSlug, assetGroupSlug]
+	)
+
 	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
 		updateNumberRangeQuery(
 			'minDefiActiveTvlToOnChainMcapPct',
@@ -505,6 +482,7 @@ export const useRWATableQueryParams = ({
 		includeStablecoins,
 		includeGovernance,
 		includeRwaPerps,
+		hasPerpsOverlayBlockingFilters,
 		setRedeemableStates,
 		setAttestationsStates,
 		setCexListedStates,
@@ -522,25 +500,6 @@ export const useRWATableQueryParams = ({
 }
 
 type RWAAsset = IRWAAssetsOverview['assets'][number]
-
-const meetsRatioPercent = (
-	numerator: number,
-	denominator: number,
-	minPercent: number | null,
-	maxPercent: number | null
-) => {
-	if (minPercent == null && maxPercent == null) return true
-	if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) return false
-	const percent = (numerator / denominator) * 100
-	if (minPercent != null && percent < minPercent) return false
-	if (maxPercent != null && percent > maxPercent) return false
-	return true
-}
-
-const toAttributeFilterState = (value: boolean | null | undefined): RWAAttributeFilterState => {
-	if (value == null) return 'unknown'
-	return value ? 'yes' : 'no'
-}
 
 export const useFilteredRwaAssets = ({
 	assets,
@@ -564,6 +523,7 @@ export const useFilteredRwaAssets = ({
 	includeStablecoins,
 	includeGovernance,
 	includeRwaPerps,
+	hasPerpsOverlayBlockingFilters,
 	minDefiActiveTvlToOnChainMcapPct,
 	maxDefiActiveTvlToOnChainMcapPct,
 	minActiveMcapToOnChainMcapPct,
@@ -592,6 +552,7 @@ export const useFilteredRwaAssets = ({
 	includeStablecoins: boolean
 	includeGovernance: boolean
 	includeRwaPerps: boolean
+	hasPerpsOverlayBlockingFilters: boolean
 	minDefiActiveTvlToOnChainMcapPct: number | null
 	maxDefiActiveTvlToOnChainMcapPct: number | null
 	minActiveMcapToOnChainMcapPct: number | null
@@ -599,148 +560,41 @@ export const useFilteredRwaAssets = ({
 	minDefiActiveTvlToActiveMcapPct: number | null
 	maxDefiActiveTvlToActiveMcapPct: number | null
 }) => {
-	// Non-RWA Stablecoins
-	// Crypto-collateralized stablecoin (non-RWA)
 	return useMemo(() => {
-		const filteredAssets: RWAAsset[] = []
-
-		let totalOnChainMcap = 0
-		let totalActiveMcap = 0
-		let totalOnChainDeFiActiveTvl = 0
-		let totalOpenInterest = 0
-		const totalIssuersSet = new Set<string>()
-
 		// In platform mode, allow selecting "None" to show no assets.
-		if (isPlatformMode && selectedAssetNames.length === 0)
-			return {
-				filteredAssets,
-				totalOnChainMcap,
-				totalActiveMcap,
-				totalOnChainDeFiActiveTvl,
-				totalOpenInterest,
-				totalIssuersCount: totalIssuersSet.size
-			}
-
-		// Create Sets for O(1) lookups
-		const selectedAssetNamesSet = isPlatformMode ? new Set(selectedAssetNames) : null
-		const selectedTypesSet = new Set(selectedTypes)
-		const selectedCategoriesSet = new Set(selectedCategories)
-		const selectedPlatformsSet = new Set(selectedPlatforms)
-		const selectedAssetGroupsSet = new Set(selectedAssetGroups)
-		const selectedAssetClassesSet = new Set(selectedAssetClasses)
-		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
-		const selectedAccessModelsSet = new Set(selectedAccessModels)
-		const selectedIssuersSet = new Set(selectedIssuers)
-		const selectedRedeemableStatesSet = new Set(selectedRedeemableStates)
-		const selectedAttestationsStatesSet = new Set(selectedAttestationsStates)
-		const selectedCexListedStatesSet = new Set(selectedCexListedStates)
-		const selectedKycForMintRedeemStatesSet = new Set(selectedKycForMintRedeemStates)
-		const selectedKycAllowlistedWhitelistedToTransferHoldStatesSet = new Set(
-			selectedKycAllowlistedWhitelistedToTransferHoldStates
-		)
-		const selectedTransferableStatesSet = new Set(selectedTransferableStates)
-		const selectedSelfCustodyStatesSet = new Set(selectedSelfCustodyStates)
-
-		for (const asset of assets) {
-			// Only filter by asset name in platform mode.
-			if (selectedAssetNamesSet) {
-				// Keep the name mapping consistent with the pie chart logic.
-				const name = asset.assetName || asset.ticker
-				if (!selectedAssetNamesSet.has(name)) continue
-			}
-
-			// By default, stablecoins & governance-token assets are excluded unless explicitly enabled.
-			if (!includeStablecoins && asset.stablecoin) {
-				continue
-			}
-			if (!includeGovernance && asset.governance) {
-				continue
-			}
-			if (!includeRwaPerps && asset.kind === 'perps') {
-				continue
-			}
-			if (
-				!selectedRedeemableStatesSet.has(toAttributeFilterState(asset.redeemable)) ||
-				!selectedAttestationsStatesSet.has(toAttributeFilterState(asset.attestations)) ||
-				!selectedCexListedStatesSet.has(toAttributeFilterState(asset.cexListed)) ||
-				!selectedKycForMintRedeemStatesSet.has(toAttributeFilterState(asset.kycForMintRedeem)) ||
-				!selectedKycAllowlistedWhitelistedToTransferHoldStatesSet.has(
-					toAttributeFilterState(asset.kycAllowlistedWhitelistedToTransferHold)
-				) ||
-				!selectedTransferableStatesSet.has(toAttributeFilterState(asset.transferable)) ||
-				!selectedSelfCustodyStatesSet.has(toAttributeFilterState(asset.selfCustody))
-			) {
-				continue
-			}
-
-			const onChainMcap = asset.onChainMcap?.total ?? 0
-			const activeMcap = asset.activeMcap?.total ?? 0
-			const defiActiveTvl = asset.defiActiveTvl?.total ?? 0
-			if (
-				!meetsRatioPercent(
-					defiActiveTvl,
-					onChainMcap,
-					minDefiActiveTvlToOnChainMcapPct,
-					maxDefiActiveTvlToOnChainMcapPct
-				)
-			) {
-				continue
-			}
-			if (!meetsRatioPercent(activeMcap, onChainMcap, minActiveMcapToOnChainMcapPct, maxActiveMcapToOnChainMcapPct)) {
-				continue
-			}
-			if (
-				!meetsRatioPercent(defiActiveTvl, activeMcap, minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)
-			) {
-				continue
-			}
-
-			const assetType = asset.type || 'Unknown'
-			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
-			const platformRaw = asset.parentPlatform as unknown
-			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
-			const normalizedPlatforms = toUniqueNonEmptyValues(
-				platformCandidates
-					.map((platform) => (typeof platform === 'string' ? platform : ''))
-					.filter((platform) => platform.length > 0)
-			)
-			const toFilter =
-				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
-				(normalizedPlatforms.length > 0
-					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
-					: true) &&
-				// Asset groups are now fully normalized up-front, so an empty selection should mean
-				// "show no asset groups" rather than falling back to "show everything".
-				selectedAssetGroupsSet.has(assetGroup) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
-				selectedIssuersSet.has(asset.issuer || 'Unknown') &&
-				selectedTypesSet.has(assetType)
-
-			if (toFilter) {
-				filteredAssets.push(asset)
-
-				totalOnChainMcap += onChainMcap
-				totalActiveMcap += activeMcap
-				totalOnChainDeFiActiveTvl += defiActiveTvl
-				totalOpenInterest += asset.openInterest ?? 0
-				if (asset.issuer) {
-					totalIssuersSet.add(asset.issuer)
-				}
-			}
+		if (isPlatformMode && selectedAssetNames.length === 0) {
+			return getEmptyRwaFilteredRowsResult()
 		}
 
-		return {
-			filteredAssets,
-			totalOnChainMcap,
-			totalActiveMcap,
-			totalOnChainDeFiActiveTvl,
-			totalOpenInterest,
-			totalIssuersCount: totalIssuersSet.size
-		}
+		return filterRwaOverviewDisplayRows(assets, {
+			isPlatformMode,
+			selectedAssetNames,
+			selectedTypes,
+			selectedCategories,
+			selectedPlatforms,
+			selectedAssetGroups,
+			selectedAssetClasses,
+			selectedRwaClassifications,
+			selectedAccessModels,
+			selectedIssuers,
+			selectedRedeemableStates,
+			selectedAttestationsStates,
+			selectedCexListedStates,
+			selectedKycForMintRedeemStates,
+			selectedKycAllowlistedWhitelistedToTransferHoldStates,
+			selectedTransferableStates,
+			selectedSelfCustodyStates,
+			includeStablecoins,
+			includeGovernance,
+			includeRwaPerps,
+			hasPerpsOverlayBlockingFilters,
+			minDefiActiveTvlToOnChainMcapPct,
+			maxDefiActiveTvlToOnChainMcapPct,
+			minActiveMcapToOnChainMcapPct,
+			maxActiveMcapToOnChainMcapPct,
+			minDefiActiveTvlToActiveMcapPct,
+			maxDefiActiveTvlToActiveMcapPct
+		})
 	}, [
 		assets,
 		isPlatformMode,
@@ -763,6 +617,7 @@ export const useFilteredRwaAssets = ({
 		includeStablecoins,
 		includeGovernance,
 		includeRwaPerps,
+		hasPerpsOverlayBlockingFilters,
 		minDefiActiveTvlToOnChainMcapPct,
 		maxDefiActiveTvlToOnChainMcapPct,
 		minActiveMcapToOnChainMcapPct,

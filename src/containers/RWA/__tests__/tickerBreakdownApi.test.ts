@@ -34,6 +34,82 @@ describe('parseAssetBreakdownRequest', () => {
 			includeGovernance: false
 		})
 	})
+
+	it('accepts all-target requests when no route target is present', () => {
+		expect(
+			parseAssetBreakdownRequest({
+				query: {
+					key: 'onChainMcap',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toEqual({
+			target: { kind: 'all' },
+			key: 'onChainMcap',
+			includeStablecoin: false,
+			includeGovernance: false
+		})
+	})
+
+	it('rejects arrays, blanks, invalid enums, and multiple route targets', () => {
+		expect(
+			parseAssetBreakdownRequest({
+				query: {
+					platform: ['ondo'],
+					key: 'onChainMcap',
+					includeStablecoin: 'true',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseAssetBreakdownRequest({
+				query: {
+					chain: '',
+					key: 'onChainMcap',
+					includeStablecoin: 'true',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseAssetBreakdownRequest({
+				query: {
+					chain: '   ',
+					platform: 'ondo',
+					key: 'onChainMcap',
+					includeStablecoin: 'true',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseAssetBreakdownRequest({
+				query: {
+					platform: 'ondo',
+					key: 'bad-metric',
+					includeStablecoin: 'true',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseAssetBreakdownRequest({
+				query: {
+					platform: 'ondo',
+					category: 'treasuries',
+					key: 'onChainMcap',
+					includeStablecoin: 'true',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+	})
 })
 
 describe('buildAssetBreakdownUrl', () => {

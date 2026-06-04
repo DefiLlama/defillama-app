@@ -71,4 +71,39 @@ describe('parseOverviewBreakdownRequest', () => {
 			includeGovernance: true
 		})
 	})
+
+	it('rejects arrays and invalid enum values', () => {
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: ['platform'],
+					key: 'activeMcap',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: 'contract',
+					key: 'activeMcap',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: 'platform',
+					key: '',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+	})
 })

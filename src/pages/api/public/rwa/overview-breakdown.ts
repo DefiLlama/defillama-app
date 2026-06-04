@@ -7,34 +7,27 @@ import {
 } from '~/containers/RWA/api'
 import type { RWAChartMetricKey, RWAOverviewBreakdownRequest } from '~/containers/RWA/api.types'
 import { toOverviewBreakdownChartDataset } from '~/containers/RWA/breakdownDataset'
+import { parseBooleanQueryFlag, parseEnumQueryValue } from '~/containers/RWA/requestParsers'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function assertNever(value: never): never {
 	throw new Error(`Unknown breakdown: ${value}`)
 }
+const RWA_CHART_METRIC_KEYS = ['onChainMcap', 'activeMcap', 'defiActiveTvl'] as const
+const RWA_OVERVIEW_BREAKDOWNS = ['chain', 'category', 'platform', 'assetGroup'] as const
 
 function parseChartMetricKey(value: string | string[] | undefined): RWAChartMetricKey | null {
-	if (Array.isArray(value) || value == null) return null
-	if (value === 'onChainMcap' || value === 'activeMcap' || value === 'defiActiveTvl') return value
-	return null
-}
-
-function parseBooleanFlag(value: string | string[] | undefined): boolean | null {
-	if (value == null) return false
-	if (Array.isArray(value)) return null
-	if (value === 'true') return true
-	if (value === 'false') return false
-	return null
+	return parseEnumQueryValue(value, RWA_CHART_METRIC_KEYS)
 }
 
 export function parseOverviewBreakdownRequest(req: Pick<NextApiRequest, 'query'>): RWAOverviewBreakdownRequest | null {
-	const breakdown = req.query.breakdown
+	const breakdown = parseEnumQueryValue(req.query.breakdown, RWA_OVERVIEW_BREAKDOWNS)
 	const key = parseChartMetricKey(req.query.key)
-	if (Array.isArray(breakdown) || breakdown == null || key == null) return null
+	if (breakdown == null || key == null) return null
 
-	const includeStablecoin = parseBooleanFlag(req.query.includeStablecoin)
-	const includeGovernance = parseBooleanFlag(req.query.includeGovernance)
+	const includeStablecoin = parseBooleanQueryFlag(req.query.includeStablecoin, false)
+	const includeGovernance = parseBooleanQueryFlag(req.query.includeGovernance, false)
 	if (includeStablecoin == null || includeGovernance == null) return null
 
 	if (breakdown === 'chain') {

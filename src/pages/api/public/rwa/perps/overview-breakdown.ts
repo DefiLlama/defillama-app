@@ -3,6 +3,7 @@ import { fetchRWAPerpsOverviewBreakdownChartData } from '~/containers/RWA/Perps/
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
 import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsOverviewBreakdownRequest } from '~/containers/RWA/Perps/types'
+import { hasExactlyOneTarget, parseEnumQueryValue } from '~/containers/RWA/requestParsers'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -13,38 +14,32 @@ type ParsedOverviewBreakdownRequest = IRWAPerpsOverviewBreakdownRequest & {
 	assetClass?: string
 	excludeAssetClass?: string
 }
+const RWA_PERPS_OVERVIEW_BREAKDOWNS = ['venue', 'assetClass', 'assetGroup', 'baseAsset'] as const
 
 export function parseOverviewBreakdownRequest(
 	req: Pick<NextApiRequest, 'query'>
 ): ParsedOverviewBreakdownRequest | null {
-	const breakdown = req.query.breakdown
+	const breakdown = parseEnumQueryValue(req.query.breakdown, RWA_PERPS_OVERVIEW_BREAKDOWNS)
 	const key = parseChartMetricKey(req.query.key)
-	if (Array.isArray(breakdown) || breakdown == null || key == null || breakdown === 'contract') return null
+	if (breakdown == null || key == null) return null
 
 	const venue = parseOptionalTarget(req.query.venue)
 	const assetGroup = parseOptionalTarget(req.query.assetGroup)
 	const assetClass = parseOptionalTarget(req.query.assetClass)
 	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
 	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
-	const targetCount =
-		Number(Boolean(venue)) +
-		Number(Boolean(assetGroup)) +
-		Number(Boolean(assetClass)) +
-		Number(Boolean(excludeAssetClass))
-	if (targetCount > 1) return null
-
-	if (breakdown === 'venue' || breakdown === 'assetClass' || breakdown === 'assetGroup' || breakdown === 'baseAsset') {
-		return {
-			breakdown,
-			key,
-			...(venue ? { venue } : {}),
-			...(assetGroup ? { assetGroup } : {}),
-			...(assetClass ? { assetClass } : {}),
-			...(excludeAssetClass ? { excludeAssetClass } : {})
-		}
+	if (!hasExactlyOneTarget([venue, assetGroup, assetClass, excludeAssetClass])) {
+		if (venue || assetGroup || assetClass || excludeAssetClass) return null
 	}
 
-	return null
+	return {
+		breakdown,
+		key,
+		...(venue ? { venue } : {}),
+		...(assetGroup ? { assetGroup } : {}),
+		...(assetClass ? { assetClass } : {}),
+		...(excludeAssetClass ? { excludeAssetClass } : {})
+	}
 }
 
 async function hasKnownPerpsTarget(request: ParsedOverviewBreakdownRequest): Promise<boolean> {
