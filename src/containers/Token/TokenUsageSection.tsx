@@ -1,4 +1,3 @@
-import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	type PaginationState,
@@ -10,21 +9,17 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/router'
 import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { useAuthContext } from '~/containers/Subscription/auth'
-import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 import type { RawProtocolTokenUsageEntry } from '~/containers/TokenUsage/api.types'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
+import { TokenPrivateSectionGate, useTokenPrivateSectionAccess } from './TokenPrivateSectionGate'
 
 export type TokenUsageSectionRow = {
 	name: string
@@ -149,9 +144,8 @@ export function TokenUsageSection({
 	initialIncludeCentralizedExchanges = false,
 	initialPageSize = DEFAULT_TABLE_PAGE_SIZE
 }: TokenUsageSectionProps) {
-	const router = useRouter()
-	const signInDialogStore = Ariakit.useDialogStore()
-	const { authorizedFetch, hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
+	const access = useTokenPrivateSectionAccess()
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated, loaders } = access
 	const [includeCentralizedExchanges, setIncludeCentralizedExchanges] = useState(initialIncludeCentralizedExchanges)
 	const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING)
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -196,109 +190,48 @@ export function TokenUsageSection({
 		autoResetPageIndex: false
 	})
 
-	const hasPlaceholderState =
-		loaders.userLoading ||
-		isLoading ||
-		!isAuthenticated ||
-		!hasActiveSubscription ||
-		error != null ||
-		filteredRows.length === 0
-
 	return (
-		<>
-			<section
-				className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)${
-					hasPlaceholderState ? ' min-h-[80dvh] sm:min-h-[572px]' : ''
-				}`}
-			>
-				<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
-					<h2
-						className="group relative flex min-w-0 scroll-mt-24 items-center gap-1 text-xl font-bold"
-						id={TOKEN_USAGE_SECTION_ID}
-					>
-						Token Usage
-						<a
-							aria-hidden="true"
-							tabIndex={-1}
-							href={`#${TOKEN_USAGE_SECTION_ID}`}
-							className="absolute top-0 right-0 z-10 flex size-full items-center"
+		<TokenPrivateSectionGate
+			access={access}
+			title="Token Usage"
+			sectionId={TOKEN_USAGE_SECTION_ID}
+			contentLabel="token usage"
+			isLoading={isLoading}
+			error={error}
+			errorMessage="Failed to load token usage."
+			emptyMessage={filteredRows.length === 0 ? 'No token usage entries found.' : null}
+			headerActions={
+				isAuthenticated && hasActiveSubscription && rows ? (
+					<div className="flex flex-wrap items-center gap-2 max-sm:w-full">
+						<Switch
+							label="Include CEXs"
+							value="includeCentralizedExchanges"
+							checked={includeCentralizedExchanges}
+							onChange={() =>
+								startTransition(() => {
+									setIncludeCentralizedExchanges((prev) => !prev)
+									setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+								})
+							}
 						/>
-						<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
-					</h2>
-
-					{isAuthenticated && hasActiveSubscription && rows ? (
-						<div className="flex flex-wrap items-center gap-2 max-sm:w-full">
-							<Switch
-								label="Include CEXs"
-								value="includeCentralizedExchanges"
-								checked={includeCentralizedExchanges}
-								onChange={() =>
-									startTransition(() => {
-										setIncludeCentralizedExchanges((prev) => !prev)
-										setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-									})
-								}
-							/>
-							<CSVDownloadButton
-								prepareCsv={() =>
-									prepareTableCsv({
-										instance: table,
-										filename: `token-usage-${tokenSymbol}`
-									})
-								}
-								smol
-							/>
-						</div>
-					) : null}
-				</div>
-
-				<div className="flex flex-1 flex-col p-3">
-					{loaders.userLoading || isLoading ? (
-						<div className="flex flex-1 items-center justify-center">
-							<LocalLoader />
-						</div>
-					) : !isAuthenticated || !hasActiveSubscription ? (
-						<div className="flex flex-1 items-center justify-center px-4 text-center">
-							{!isAuthenticated ? (
-								<p className="text-sm text-(--text-label)">
-									An{' '}
-									<button type="button" onClick={signInDialogStore.show} className="underline">
-										active subscription
-									</button>{' '}
-									is required to view token usage.
-								</p>
-							) : (
-								<p className="text-sm text-(--text-label)">
-									An{' '}
-									<BasicLink
-										href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
-										className="underline"
-									>
-										active subscription
-									</BasicLink>{' '}
-									is required to view token usage.
-								</p>
-							)}
-						</div>
-					) : error ? (
-						<div className="flex flex-1 items-center justify-center px-4 text-center">
-							<p className="text-sm text-(--text-label)">{error.message}</p>
-						</div>
-					) : filteredRows.length === 0 ? (
-						<div className="flex flex-1 items-center justify-center px-4 text-center">
-							<p className="text-sm text-(--text-label)">No token usage entries found.</p>
-						</div>
-					) : (
-						<DeferredPaginatedTable
-							table={table}
-							pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS}
-							tableClassName="mx-auto w-auto min-w-[720px] max-w-full"
+						<CSVDownloadButton
+							prepareCsv={() =>
+								prepareTableCsv({
+									instance: table,
+									filename: `token-usage-${tokenSymbol}`
+								})
+							}
+							smol
 						/>
-					)}
-				</div>
-			</section>
-
-			<SignInModal store={signInDialogStore} hideWhenAuthenticated={false} />
-		</>
+					</div>
+				) : null
+			}
+		>
+			<DeferredPaginatedTable
+				table={table}
+				pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS}
+				tableClassName="mx-auto w-auto min-w-[720px] max-w-full"
+			/>
+		</TokenPrivateSectionGate>
 	)
 }
