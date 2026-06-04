@@ -5,6 +5,7 @@ import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/querie
 import { getTokenRiskData } from '~/containers/Token/queries'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
+import type { TokenPageProps, TokenPageSection } from '~/containers/Token/types'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
@@ -227,6 +228,45 @@ function makeYieldRow(overrides: Partial<IYieldTableRow> = {}): IYieldTableRow {
 	}
 }
 
+function makeTokenPageProps(sections: TokenPageSection[]): TokenPageProps {
+	return {
+		seoTitle: 'title',
+		seoDescription: 'description',
+		canonicalUrl: '/token/btc',
+		sections
+	}
+}
+
+function makeOverviewSection(overrides: Partial<Extract<TokenPageSection, { id: 'token-overview' }>> = {}) {
+	return {
+		id: 'token-overview',
+		label: 'Overview',
+		overview: overviewFixture,
+		geckoId: 'bitcoin',
+		logo: null,
+		...overrides
+	} satisfies TokenPageSection
+}
+
+function makeUsageSection(tokenSymbol = 'BTC') {
+	return {
+		id: 'token-usage',
+		label: 'Token Usage',
+		tokenSymbol
+	} satisfies TokenPageSection
+}
+
+function tokenPageSectionIds(sections: TokenPageSection[]): string[] {
+	return sections.map((section) => section.id)
+}
+
+function findTokenPageSection<Id extends TokenPageSection['id']>(
+	sections: TokenPageSection[],
+	id: Id
+): Extract<TokenPageSection, { id: Id }> | undefined {
+	return sections.find((section): section is Extract<TokenPageSection, { id: Id }> => section.id === id)
+}
+
 function normalizeName(value: string): string {
 	return value
 		.toLowerCase()
@@ -422,7 +462,8 @@ vi.mock('~/containers/ProtocolOverview/queries', () => ({
 	getProtocolIncomeStatement: vi.fn(() => Promise.resolve(state.incomeStatementData))
 }))
 
-vi.mock('~/containers/Token/queries', () => ({
+vi.mock('~/containers/Token/queries', async (importOriginal) => ({
+	...(await importOriginal<typeof import('~/containers/Token/queries')>()),
 	getTokenRiskData: vi.fn(() => Promise.resolve(state.tokenRiskData))
 }))
 
@@ -466,57 +507,68 @@ afterEach(() => {
 
 describe('token page', () => {
 	it('renders the sticky section nav and token sections in manifest order', () => {
-		const visibleSections: Parameters<typeof TokenPage>[0]['visibleSections'] = [
-			'token-overview',
-			'token-income-statement',
-			'token-risks',
-			'token-rights-and-value-accrual',
-			'token-usage',
-			'token-liquidations',
-			'token-unlocks',
-			'token-yields',
-			'token-borrow'
-		]
-
-		renderToStaticMarkup(
-			<TokenPage
-				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true, is_yields: true }}
-				displayName="BTC"
-				tokenRightsData={tokenRightsFixture}
-				incomeStatementData={{ data: {} }}
-				incomeStatementProtocolName="Bitcoin Protocol"
-				incomeStatementHasIncentives={false}
-				tokenRiskData={{} as TokenRiskResponse}
-				tokenRiskTimelineData={null}
-				initialYieldsRows={[{ pool: 'pool-1' }] as IYieldTableRow[]}
-				initialYieldsRowCount={1}
-				initialYieldsChainList={[]}
-				initialYieldsTokensList={[]}
-				initialTokenBorrowRoutesData={
-					{
-						borrowAsCollateral: [{ pool: 'borrow-1' }],
-						borrowAsDebt: []
-					} as TokenBorrowRoutesResponse
-				}
-				initialTokenBorrowRoutesCounts={{
+		const sections: TokenPageSection[] = [
+			makeOverviewSection(),
+			{
+				id: 'token-income-statement',
+				label: 'Income Statement',
+				protocolName: 'Bitcoin Protocol',
+				incomeStatement: { data: {} } as never,
+				hasIncentives: false
+			},
+			{
+				id: 'token-risks',
+				label: 'Risks',
+				tokenSymbol: 'BTC',
+				riskData: {} as TokenRiskResponse
+			},
+			{
+				id: 'token-rights-and-value-accrual',
+				label: 'Token Rights',
+				name: 'Bitcoin',
+				symbol: 'BTC',
+				tokenRightsData: tokenRightsFixture
+			},
+			makeUsageSection(),
+			{
+				id: 'token-liquidations',
+				label: 'Liquidations',
+				tokenSymbol: 'BTC'
+			},
+			{
+				id: 'token-unlocks',
+				label: 'Unlocks',
+				resolvedUnlocksSlug: 'chainlink'
+			},
+			{
+				id: 'token-yields',
+				label: 'Yields',
+				tokenSymbol: 'BTC',
+				initialData: [{ pool: 'pool-1' }] as IYieldTableRow[],
+				initialRowCount: 1,
+				initialChainList: [],
+				initialTokensList: []
+			},
+			{
+				id: 'token-borrow',
+				label: 'Borrow',
+				tokenSymbol: 'BTC',
+				initialData: {
+					borrowAsCollateral: [{ pool: 'borrow-1' }],
+					borrowAsDebt: []
+				} as TokenBorrowRoutesResponse,
+				initialCounts: {
 					borrowAsCollateral: 1,
 					borrowAsDebt: 0
-				}}
-				initialTokenBorrowRoutesChainLists={{
+				},
+				initialChains: {
 					borrowAsCollateral: [],
 					borrowAsDebt: []
-				}}
-				geckoId="bitcoin"
-				hasLiquidations
-				hasMarkets={false}
-				resolvedUnlocksSlug="chainlink"
-				overview={overviewFixture}
-				seoTitle="title"
-				seoDescription="description"
-				canonicalUrl="/token/btc"
-				visibleSections={visibleSections}
-			/>
-		)
+				}
+			}
+		]
+
+		renderToStaticMarkup(<TokenPage {...makeTokenPageProps(sections)} />)
 
 		expect(capturedTokenNavSections).toEqual([
 			{ id: 'token-overview', label: 'Overview' },
@@ -529,37 +581,11 @@ describe('token page', () => {
 			{ id: 'token-yields', label: 'Yields' },
 			{ id: 'token-borrow', label: 'Borrow' }
 		])
-		expect(renderedTokenSections).toEqual(visibleSections)
+		expect(renderedTokenSections).toEqual(sections.map((section) => section.id))
 	})
 
 	it('limits the section nav to the sections that actually render', () => {
-		renderToStaticMarkup(
-			<TokenPage
-				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
-				displayName="BTC"
-				tokenRightsData={null}
-				incomeStatementData={null}
-				incomeStatementProtocolName={null}
-				incomeStatementHasIncentives={false}
-				tokenRiskData={null}
-				tokenRiskTimelineData={null}
-				initialYieldsRows={[]}
-				initialYieldsRowCount={0}
-				initialYieldsChainList={[]}
-				initialYieldsTokensList={[]}
-				initialTokenBorrowRoutesData={null}
-				initialTokenBorrowRoutesCounts={null}
-				initialTokenBorrowRoutesChainLists={null}
-				geckoId="bitcoin"
-				hasLiquidations={false}
-				hasMarkets={false}
-				overview={overviewFixture}
-				seoTitle="title"
-				seoDescription="description"
-				canonicalUrl="/token/btc"
-				visibleSections={['token-overview', 'token-usage']}
-			/>
-		)
+		renderToStaticMarkup(<TokenPage {...makeTokenPageProps([makeOverviewSection(), makeUsageSection()])} />)
 
 		expect(capturedTokenNavSections).toEqual([
 			{ id: 'token-overview', label: 'Overview' },
@@ -571,29 +597,15 @@ describe('token page', () => {
 	it('renders the markets section when hasMarkets is true', () => {
 		renderToStaticMarkup(
 			<TokenPage
-				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
-				displayName="BTC"
-				tokenRightsData={null}
-				incomeStatementData={null}
-				incomeStatementProtocolName={null}
-				incomeStatementHasIncentives={false}
-				tokenRiskData={null}
-				tokenRiskTimelineData={null}
-				initialYieldsRows={[]}
-				initialYieldsRowCount={0}
-				initialYieldsChainList={[]}
-				initialYieldsTokensList={[]}
-				initialTokenBorrowRoutesData={null}
-				initialTokenBorrowRoutesCounts={null}
-				initialTokenBorrowRoutesChainLists={null}
-				geckoId="bitcoin"
-				hasLiquidations={false}
-				hasMarkets={true}
-				overview={overviewFixture}
-				seoTitle="title"
-				seoDescription="description"
-				canonicalUrl="/token/btc"
-				visibleSections={['token-overview', 'token-markets', 'token-usage']}
+				{...makeTokenPageProps([
+					makeOverviewSection(),
+					{
+						id: 'token-markets',
+						label: 'Markets',
+						tokenSymbol: 'BTC'
+					},
+					makeUsageSection()
+				])}
 			/>
 		)
 
@@ -604,40 +616,33 @@ describe('token page', () => {
 	it('renders each yield-related section from its own prefetched dataset', () => {
 		renderToStaticMarkup(
 			<TokenPage
-				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', is_yields: true }}
-				displayName="BTC"
-				tokenRightsData={null}
-				incomeStatementData={null}
-				incomeStatementProtocolName={null}
-				incomeStatementHasIncentives={false}
-				tokenRiskData={{} as TokenRiskResponse}
-				tokenRiskTimelineData={null}
-				initialYieldsRows={[]}
-				initialYieldsRowCount={0}
-				initialYieldsChainList={[]}
-				initialYieldsTokensList={[]}
-				initialTokenBorrowRoutesData={
+				{...makeTokenPageProps([
+					makeOverviewSection(),
 					{
-						borrowAsCollateral: [{ pool: 'borrow-1' }],
-						borrowAsDebt: []
-					} as TokenBorrowRoutesResponse
-				}
-				initialTokenBorrowRoutesCounts={{
-					borrowAsCollateral: 1,
-					borrowAsDebt: 0
-				}}
-				initialTokenBorrowRoutesChainLists={{
-					borrowAsCollateral: [],
-					borrowAsDebt: []
-				}}
-				geckoId="bitcoin"
-				hasLiquidations={false}
-				hasMarkets={false}
-				overview={overviewFixture}
-				seoTitle="title"
-				seoDescription="description"
-				canonicalUrl="/token/btc"
-				visibleSections={['token-overview', 'token-risks', 'token-usage', 'token-borrow']}
+						id: 'token-risks',
+						label: 'Risks',
+						tokenSymbol: 'BTC',
+						riskData: {} as TokenRiskResponse
+					},
+					makeUsageSection(),
+					{
+						id: 'token-borrow',
+						label: 'Borrow',
+						tokenSymbol: 'BTC',
+						initialData: {
+							borrowAsCollateral: [{ pool: 'borrow-1' }],
+							borrowAsDebt: []
+						} as TokenBorrowRoutesResponse,
+						initialCounts: {
+							borrowAsCollateral: 1,
+							borrowAsDebt: 0
+						},
+						initialChains: {
+							borrowAsCollateral: [],
+							borrowAsDebt: []
+						}
+					}
+				])}
 			/>
 		)
 
@@ -683,24 +688,24 @@ describe('token page', () => {
 	it('getStaticProps resolves the route param by slugging the token key', async () => {
 		await expect(getStaticProps({ params: { token: 'BTC' } } as never)).resolves.toMatchObject({
 			props: {
-				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC', mcap_rank: 1 },
-				displayName: 'BTC',
-				tokenRightsData: null,
-				incomeStatementData: null,
-				incomeStatementProtocolName: null,
-				incomeStatementHasIncentives: false,
-				geckoId: 'bitcoin',
-				tokenRiskData: null,
-				tokenRiskTimelineData: null,
-				initialYieldsRows: [],
-				initialTokenBorrowRoutesData: null,
-				hasLiquidations: false,
-				hasMarkets: true,
-				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
-				visibleSections: ['token-overview', 'token-markets', 'token-usage']
+				sections: [
+					{
+						id: 'token-overview',
+						overview: overviewFixture,
+						geckoId: 'bitcoin'
+					},
+					{
+						id: 'token-markets',
+						tokenSymbol: 'BTC'
+					},
+					{
+						id: 'token-usage',
+						tokenSymbol: 'BTC'
+					}
+				]
 			},
 			revalidate: 123
 		})
@@ -709,24 +714,24 @@ describe('token page', () => {
 	it('getStaticProps keeps the canonical URL metadata-defined for lowercase token params', async () => {
 		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toMatchObject({
 			props: {
-				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC', mcap_rank: 1 },
-				displayName: 'BTC',
-				tokenRightsData: null,
-				incomeStatementData: null,
-				incomeStatementProtocolName: null,
-				incomeStatementHasIncentives: false,
-				geckoId: 'bitcoin',
-				tokenRiskData: null,
-				tokenRiskTimelineData: null,
-				initialYieldsRows: [],
-				initialTokenBorrowRoutesData: null,
-				hasLiquidations: false,
-				hasMarkets: true,
-				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
-				visibleSections: ['token-overview', 'token-markets', 'token-usage']
+				sections: [
+					{
+						id: 'token-overview',
+						overview: overviewFixture,
+						geckoId: 'bitcoin'
+					},
+					{
+						id: 'token-markets',
+						tokenSymbol: 'BTC'
+					},
+					{
+						id: 'token-usage',
+						tokenSymbol: 'BTC'
+					}
+				]
 			},
 			revalidate: 123
 		})
@@ -742,8 +747,7 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.hasLiquidations).toBe(true)
-		expect(result.props.visibleSections).toContain('token-liquidations')
+		expect(tokenPageSectionIds(result.props.sections)).toContain('token-liquidations')
 	})
 
 	it('getStaticProps skips the liquidations section when metadata has the token but no rows', async () => {
@@ -755,8 +759,7 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.hasLiquidations).toBe(false)
-		expect(result.props.visibleSections).not.toContain('token-liquidations')
+		expect(tokenPageSectionIds(result.props.sections)).not.toContain('token-liquidations')
 	})
 
 	it('getStaticProps does not resolve by token name slug', async () => {
@@ -774,24 +777,24 @@ describe('token page', () => {
 
 		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toMatchObject({
 			props: {
-				record: { name: 'Bitcoin', symbol: 'BTC', route: '/token/BTC' },
-				displayName: 'BTC',
-				tokenRightsData: null,
-				incomeStatementData: null,
-				incomeStatementProtocolName: null,
-				incomeStatementHasIncentives: false,
-				geckoId: null,
-				tokenRiskData: null,
-				tokenRiskTimelineData: null,
-				initialYieldsRows: [],
-				initialTokenBorrowRoutesData: null,
-				hasLiquidations: false,
-				hasMarkets: true,
-				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
-				visibleSections: ['token-overview', 'token-markets', 'token-usage']
+				sections: [
+					{
+						id: 'token-overview',
+						overview: overviewFixture,
+						geckoId: null
+					},
+					{
+						id: 'token-markets',
+						tokenSymbol: 'BTC'
+					},
+					{
+						id: 'token-usage',
+						tokenSymbol: 'BTC'
+					}
+				]
 			},
 			revalidate: 123
 		})
@@ -822,24 +825,20 @@ describe('token page', () => {
 
 		await expect(getStaticProps({ params: { token: 'swing' } } as never)).resolves.toMatchObject({
 			props: {
-				record: { name: 'Swing.xyz', symbol: '$SWING', token_nk: 'coingecko:swing-xyz' },
-				displayName: 'Swing.xyz',
-				tokenRightsData: null,
-				incomeStatementData: null,
-				incomeStatementProtocolName: null,
-				incomeStatementHasIncentives: false,
-				geckoId: 'swing-xyz',
-				tokenRiskData: null,
-				tokenRiskTimelineData: null,
-				initialYieldsRows: [],
-				initialTokenBorrowRoutesData: null,
-				hasLiquidations: false,
-				hasMarkets: false,
-				overview: overviewFixture,
 				seoTitle: 'Swing.xyz Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track Swing.xyz price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/%24SWING',
-				visibleSections: ['token-overview', 'token-usage']
+				sections: [
+					{
+						id: 'token-overview',
+						overview: overviewFixture,
+						geckoId: 'swing-xyz'
+					},
+					{
+						id: 'token-usage',
+						tokenSymbol: '$SWING'
+					}
+				]
 			},
 			revalidate: 123
 		})
@@ -891,81 +890,33 @@ describe('token page', () => {
 				max_supply: 1000
 			}
 		}
-		await expect(getStaticProps({ params: { token: 'link' } } as never)).resolves.toMatchObject({
+		const result = await getStaticProps({ params: { token: 'link' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		const tokenRightsSection = findTokenPageSection(result.props.sections, 'token-rights-and-value-accrual')
+		expect(result).toMatchObject({
 			props: {
-				record: {
-					name: 'Chainlink',
-					symbol: 'LINK',
-					token_nk: 'coingecko:chainlink',
-					protocolId: 'parent#chainlink',
-					tokenRights: true
-				},
-				displayName: 'LINK',
-				tokenRightsData: {
-					overview: {
-						protocolName: 'Chainlink',
-						tokens: ['LINK'],
-						tokenTypes: ['Governance'],
-						description: 'desc',
-						utility: null,
-						lastUpdated: null
-					},
-					governance: {
-						summary: 'gov summary',
-						decisionTokens: ['LINK'],
-						details: null,
-						links: []
-					},
-					decisions: {
-						treasury: { tokens: ['LINK'], details: null },
-						revenue: { tokens: ['N/A'], details: null }
-					},
-					economic: {
-						summary: null,
-						feeSwitchStatus: 'OFF',
-						feeSwitchDetails: null,
-						links: []
-					},
-					valueAccrual: {
-						primary: null,
-						details: null,
-						buybacks: { tokens: ['N/A'], details: null },
-						dividends: { tokens: ['N/A'], details: null },
-						burns: { status: 'N/A', details: null }
-					},
-					alignment: {
-						fundraising: [],
-						raiseDetails: null,
-						associatedEntities: [],
-						equityRevenueCapture: null,
-						equityStatement: null,
-						ipAndBrand: null,
-						domain: null,
-						links: []
-					},
-					resources: {
-						addresses: [],
-						reports: []
-					}
-				},
-				incomeStatementData: null,
-				incomeStatementProtocolName: null,
-				incomeStatementHasIncentives: false,
-				geckoId: 'chainlink',
-				tokenRiskData: null,
-				tokenRiskTimelineData: null,
-				initialYieldsRows: [],
-				initialTokenBorrowRoutesData: null,
-				hasLiquidations: false,
-				hasMarkets: false,
-				overview: overviewFixture,
 				seoTitle: 'LINK Price, Market Cap, Supply, Trading Volume & Token Rights',
 				seoDescription:
 					'Track LINK price, market cap, circulating supply, max supply, trading volume, and token rights.',
-				canonicalUrl: '/token/LINK',
-				visibleSections: ['token-overview', 'token-rights-and-value-accrual', 'token-usage']
+				canonicalUrl: '/token/LINK'
 			},
 			revalidate: 123
+		})
+		expect(tokenPageSectionIds(result.props.sections)).toEqual([
+			'token-overview',
+			'token-rights-and-value-accrual',
+			'token-usage'
+		])
+		expect(tokenRightsSection?.tokenRightsData.overview).toEqual({
+			protocolName: 'Chainlink',
+			tokens: ['LINK'],
+			tokenTypes: ['Governance'],
+			description: 'desc',
+			utility: null,
+			lastUpdated: null
 		})
 	})
 
@@ -1021,7 +972,8 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.tokenRightsData?.overview).toEqual({
+		const tokenRightsSection = findTokenPageSection(result.props.sections, 'token-rights-and-value-accrual')
+		expect(tokenRightsSection?.tokenRightsData.overview).toEqual({
 			protocolName: 'Backpack',
 			tokens: ['BP', 'sBP'],
 			tokenTypes: ['Utility'],
@@ -1029,7 +981,11 @@ describe('token page', () => {
 			utility: null,
 			lastUpdated: null
 		})
-		expect(result.props.visibleSections).toEqual(['token-overview', 'token-rights-and-value-accrual', 'token-usage'])
+		expect(tokenPageSectionIds(result.props.sections)).toEqual([
+			'token-overview',
+			'token-rights-and-value-accrual',
+			'token-usage'
+		])
 		expect(fetchTokenRightsEntryByName).toHaveBeenCalledWith('Backpack')
 		expect(fetchTokenRightsEntries).not.toHaveBeenCalled()
 		expect(fetchTokenRightsEntryByDefillamaId).not.toHaveBeenCalled()
@@ -1080,8 +1036,8 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.tokenRightsData).toBeNull()
-		expect(result.props.visibleSections).toEqual(['token-overview', 'token-usage'])
+		expect(findTokenPageSection(result.props.sections, 'token-rights-and-value-accrual')).toBeUndefined()
+		expect(tokenPageSectionIds(result.props.sections)).toEqual(['token-overview', 'token-usage'])
 	})
 
 	it('getStaticProps resolves embedded unlocks by protocol display name when the slug is cached', async () => {
@@ -1117,7 +1073,7 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.resolvedUnlocksSlug).toBe('chainlink')
+		expect(findTokenPageSection(result.props.sections, 'token-unlocks')?.resolvedUnlocksSlug).toBe('chainlink')
 	})
 
 	it('getStaticProps falls back to chain-name unlock slugs when the chain is cached', async () => {
@@ -1153,7 +1109,7 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.resolvedUnlocksSlug).toBe('solana')
+		expect(findTokenPageSection(result.props.sections, 'token-unlocks')?.resolvedUnlocksSlug).toBe('solana')
 	})
 
 	it('getStaticProps includes income statement data when the token protocol has one', async () => {
@@ -1208,33 +1164,29 @@ describe('token page', () => {
 			}
 		}
 
-		await expect(getStaticProps({ params: { token: 'aave' } } as never)).resolves.toMatchObject({
+		const result = await getStaticProps({ params: { token: 'aave' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		const incomeStatementSection = findTokenPageSection(result.props.sections, 'token-income-statement')
+		expect(result).toMatchObject({
 			props: {
-				record: {
-					name: 'Aave',
-					symbol: 'AAVE',
-					token_nk: 'coingecko:aave',
-					protocolId: 'parent#aave'
-				},
-				displayName: 'AAVE',
-				tokenRightsData: null,
-				incomeStatementData,
-				incomeStatementProtocolName: 'Aave',
-				incomeStatementHasIncentives: true,
-				geckoId: 'aave',
-				tokenRiskData: null,
-				tokenRiskTimelineData: null,
-				initialYieldsRows: [],
-				initialTokenBorrowRoutesData: null,
-				hasLiquidations: false,
-				hasMarkets: false,
-				overview: overviewFixture,
 				seoTitle: 'AAVE Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track AAVE price, market cap, circulating supply, max supply, and trading volume.',
-				canonicalUrl: '/token/AAVE',
-				visibleSections: ['token-overview', 'token-income-statement', 'token-usage']
+				canonicalUrl: '/token/AAVE'
 			},
 			revalidate: 123
+		})
+		expect(tokenPageSectionIds(result.props.sections)).toEqual([
+			'token-overview',
+			'token-income-statement',
+			'token-usage'
+		])
+		expect(incomeStatementSection).toMatchObject({
+			protocolName: 'Aave',
+			incomeStatement: incomeStatementData,
+			hasIncentives: true
 		})
 	})
 
@@ -1273,14 +1225,13 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.tokenRiskData).toBeNull()
-		expect(result.props.initialYieldsRows).toEqual(state.initialYieldsRows)
-		expect(result.props.initialYieldsRowCount).toBe(state.initialYieldsRows.length)
-		expect(result.props.initialTokenBorrowRoutesData).toEqual(state.initialTokenBorrowRoutesData)
-		expect(result.props.initialTokenBorrowRoutesCounts).toEqual({
-			borrowAsCollateral: 0,
-			borrowAsDebt: 0
+		const yieldsSection = findTokenPageSection(result.props.sections, 'token-yields')
+		expect(findTokenPageSection(result.props.sections, 'token-risks')).toBeUndefined()
+		expect(yieldsSection).toMatchObject({
+			initialData: state.initialYieldsRows,
+			initialRowCount: state.initialYieldsRows.length
 		})
+		expect(findTokenPageSection(result.props.sections, 'token-borrow')).toBeUndefined()
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
 
 		consoleErrorSpy.mockRestore()
@@ -1327,11 +1278,13 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.initialYieldsRows).toHaveLength(10)
-		expect(result.props.initialYieldsRowCount).toBe(12)
-		expect(result.props.initialTokenBorrowRoutesData?.borrowAsCollateral).toHaveLength(10)
-		expect(result.props.initialTokenBorrowRoutesData?.borrowAsDebt).toHaveLength(10)
-		expect(result.props.initialTokenBorrowRoutesCounts).toEqual({
+		const yieldsSection = findTokenPageSection(result.props.sections, 'token-yields')
+		const borrowSection = findTokenPageSection(result.props.sections, 'token-borrow')
+		expect(yieldsSection?.initialData).toHaveLength(10)
+		expect(yieldsSection?.initialRowCount).toBe(12)
+		expect(borrowSection?.initialData.borrowAsCollateral).toHaveLength(10)
+		expect(borrowSection?.initialData.borrowAsDebt).toHaveLength(10)
+		expect(borrowSection?.initialCounts).toEqual({
 			borrowAsCollateral: 13,
 			borrowAsDebt: 11
 		})
@@ -1380,15 +1333,11 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.tokenRightsData).toBeNull()
-		expect(result.props.incomeStatementData).toBeNull()
-		expect(result.props.incomeStatementProtocolName).toBeNull()
-		expect(result.props.incomeStatementHasIncentives).toBe(false)
-		expect(result.props.initialYieldsRows).toEqual([])
-		expect(result.props.initialYieldsRowCount).toBe(0)
-		expect(result.props.initialTokenBorrowRoutesData).toBeNull()
-		expect(result.props.initialTokenBorrowRoutesCounts).toBeNull()
-		expect(result.props.tokenRiskData).toBeNull()
+		expect(findTokenPageSection(result.props.sections, 'token-rights-and-value-accrual')).toBeUndefined()
+		expect(findTokenPageSection(result.props.sections, 'token-income-statement')).toBeUndefined()
+		expect(findTokenPageSection(result.props.sections, 'token-yields')).toBeUndefined()
+		expect(findTokenPageSection(result.props.sections, 'token-borrow')).toBeUndefined()
+		expect(findTokenPageSection(result.props.sections, 'token-risks')).toBeUndefined()
 		expect(consoleErrorSpy).toHaveBeenCalledWith(
 			'Failed to load token rights data for parent#chainlink',
 			expect.any(Error)
