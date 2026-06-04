@@ -1,17 +1,10 @@
 import { lazy, useState } from 'react'
 import type { IMultiSeriesChartProps } from '~/components/ECharts/types'
 import { useIncentivesData, chartToTs } from './api'
-import { KpiCard, ChartCard, SectionHeader, ChartSkeleton, SimpleTable, fmtUsd } from './ui'
+import { KpiCard, ChartCard, SectionHeader, SimpleTable, fmtUsd } from './ui'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart')) as React.FC<IMultiSeriesChartProps>
 
-const VENUE_COLORS: Record<string, string> = {
-	Aerodrome: '#0052ff',
-	Velodrome: '#ff0420',
-	VoteMarket: '#627eea',
-	Merkl: '#10b981',
-	Lithos: '#34d399'
-}
 const PALETTE = [
 	'#6366f1',
 	'#3fb950',
@@ -92,20 +85,10 @@ function epochCols(id: string) {
 }
 
 export default function Incentives() {
-	const { data, isLoading } = useIncentivesData()
+	const { data } = useIncentivesData()
 	const k = data?.kpis ?? ({} as Partial<NonNullable<typeof data>['kpis']>)
 	const [poolTab, setPoolTab] = useState('aerodrome')
 	const [epochTab, setEpochTab] = useState('aerodrome')
-
-	const weeklySeries = data?.weeklyHistoryChart
-		? chartToTs(data.weeklyHistoryChart).map((s) => ({
-				name: s.name,
-				type: 'bar' as const,
-				stack: 'venue',
-				color: VENUE_COLORS[s.name] || '#6366f1',
-				data: s.data
-			}))
-		: undefined
 
 	const poolChart = data?.weeklyPoolCharts?.[poolTab]
 	const poolSeries = poolChart
@@ -143,17 +126,6 @@ export default function Incentives() {
 					]}
 				/>
 			</ChartCard>
-
-			{/*
-			<SectionHeader>Weekly Spend by Venue</SectionHeader>
-			{isLoading || !weeklySeries ? (
-				<ChartSkeleton title="Weekly spend" />
-			) : (
-				<ChartCard title="Weekly spend (stacked)">
-					<MultiSeriesChart series={weeklySeries as any} valueSymbol="$" height="380px" />
-				</ChartCard>
-			)}
-			*/}
 
 			<SectionHeader>Weekly Spend per Pool</SectionHeader>
 			<ChartCard title="Per-pool weekly spend">
