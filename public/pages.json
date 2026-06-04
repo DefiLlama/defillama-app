@@ -17,7 +17,11 @@
       "totalTrackedKey": "tvl.chains",
       "tab": "Chains",
       "oldCategory": "Market Overview",
-      "oldName": "Chains"
+      "oldName": "Chains",
+      "searchKeywords": [
+        "chain",
+        "chains"
+      ]
     },
     {
       "name": "Categories",
@@ -52,7 +56,11 @@
       "totalTrackedKey": "oracles.protocols",
       "tab": "Protocols",
       "oldCategory": "Market Overview",
-      "oldName": "Oracles"
+      "oldName": "Oracles",
+      "searchKeywords": [
+        "oracle",
+        "oracles"
+      ]
     },
     {
       "name": "Top Protocols",
@@ -117,7 +125,12 @@
       "description": "Pools by APY, TVL, and other metrics on all chains",
       "totalTrackedKey": "yields.pools",
       "oldCategory": "Yields",
-      "oldName": "Overview"
+      "oldName": "Overview",
+      "searchKeywords": [
+        "yield",
+        "yields",
+        "apy"
+      ]
     },
     {
       "name": "Stablecoin Yields",
@@ -619,7 +632,12 @@
       "totalTrackedKey": "bridges.protocols",
       "tab": "Protocols",
       "oldCategory": "Bridges",
-      "oldName": "Overview"
+      "oldName": "Overview",
+      "searchKeywords": [
+        "bridge",
+        "bridges",
+        "bridge volume"
+      ]
     },
     {
       "name": "Bridge Volume by Chain",
@@ -647,7 +665,12 @@
       "description": "Overview of all NFT collections",
       "totalTrackedKey": "nfts.collections",
       "oldCategory": "NFTs",
-      "oldName": "Collections"
+      "oldName": "Collections",
+      "searchKeywords": [
+        "nft",
+        "nfts",
+        "nft collections"
+      ]
     },
     {
       "name": "NFTs: Collection Earnings",
@@ -712,14 +735,24 @@
       "route": "/etfs",
       "category": "Equities, ETFs & DATs",
       "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
+      "oldName": "ETFs",
+      "searchKeywords": [
+        "etf",
+        "etfs",
+        "exchange traded fund",
+        "exchange traded funds"
+      ]
     },
     {
       "name": "Equities",
       "route": "/equities",
       "category": "Equities, ETFs & DATs",
       "description": "Live company rankings by market cap, price, volume, and price change",
-      "oldName": "Equities"
+      "oldName": "Equities",
+      "searchKeywords": [
+        "equity",
+        "equities"
+      ]
     },
     {
       "name": "Raises: Overview",
@@ -1013,7 +1046,11 @@
     {
       "name": "Chains",
       "route": "/chains",
-      "icon": "earth"
+      "icon": "earth",
+      "searchKeywords": [
+        "chain",
+        "chains"
+      ]
     },
     {
       "name": "Yields",
