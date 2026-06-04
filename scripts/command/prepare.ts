@@ -1,6 +1,7 @@
 import { publishDatasetCache } from '../../src/server/datasetCache/publish'
 import { runPullMetadataCommand } from '../metadata/pullCommand'
 import { runSiteNavigationCommand } from '../metadata/siteNavigationCommand'
+import { generateLlmsArtifacts } from './llms'
 import type { LogLike } from './logger'
 import { generateRobots } from './robots'
 import { CommandExitError, getErrorExitCode, timedStep } from './timedStep'
@@ -44,7 +45,7 @@ function asDatasetLogger(logger: LogLike): Pick<Console, 'error' | 'log' | 'warn
 	}
 }
 
-function createPreparationSteps({
+export function createPreparationSteps({
 	env = process.env,
 	logger = console,
 	prefix = '[dev:prepare]',
@@ -72,6 +73,12 @@ function createPreparationSteps({
 			name: 'Dataset cache',
 			async run() {
 				await publishDatasetCache({ logger: asDatasetLogger(stepLogger) })
+			}
+		},
+		{
+			name: 'llms.txt',
+			async run() {
+				await generateLlmsArtifacts({ env, logger: stepLogger, repoRoot })
 			}
 		},
 		{

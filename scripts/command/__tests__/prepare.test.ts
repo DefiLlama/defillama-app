@@ -1,8 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
-import { runPreparationCommand, type PreparationStep } from '../prepare'
+import { createPreparationSteps, runPreparationCommand, type PreparationStep } from '../prepare'
 import { CommandExitError } from '../timedStep'
 
 describe('preparation command', () => {
+	it('creates default preparation steps in order', () => {
+		const steps = createPreparationSteps({
+			env: { NODE_ENV: 'test' },
+			logger: { log: vi.fn() },
+			repoRoot: '/tmp/defillama-app'
+		})
+
+		expect(steps.map((step) => step.name)).toEqual([
+			'Metadata cache',
+			'Site navigation',
+			'Dataset cache',
+			'llms.txt',
+			'robots.txt'
+		])
+	})
+
 	it('runs preparation steps in order', async () => {
 		const calls: string[] = []
 		const steps: PreparationStep[] = [
