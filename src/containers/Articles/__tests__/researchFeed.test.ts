@@ -95,4 +95,62 @@ describe('buildResearchRssFeed', () => {
 		expect(xml).not.toContain('<item>')
 		expect(xml).not.toContain('<lastBuildDate>')
 	})
+
+	it('declares the custom dl namespace and channel copyright, generator and ttl', () => {
+		const xml = buildResearchRssFeed([makeArticle()])
+		expect(xml).toContain('xmlns:dl="https://defillama.com/ns/research"')
+		expect(xml).toContain('<copyright>© DefiLlama Research</copyright>')
+		expect(xml).toContain('<generator>DefiLlama Research CMS</generator>')
+		expect(xml).toContain('<ttl>30</ttl>')
+	})
+
+	it('emits the section label as dc:type', () => {
+		const xml = buildResearchRssFeed([makeArticle({ section: 'interview' })])
+		expect(xml).toContain('<dc:type>Interview</dc:type>')
+	})
+
+	it('emits the updated date as an ISO-8601 dc:date distinct from pubDate', () => {
+		const xml = buildResearchRssFeed([makeArticle({ lastPublishedAt: '2026-04-02T15:10:00.000Z' })])
+		expect(xml).toContain('<dc:date>2026-04-02T15:10:00.000Z</dc:date>')
+		const dcDate = xml.match(/<dc:date>([^<]+)<\/dc:date>/)?.[1] ?? ''
+		expect(dcDate).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+		const pubDate = xml.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1] ?? ''
+		expect(dcDate).not.toBe(pubDate)
+	})
+
+	it('emits reading time in whole minutes', () => {
+		const xml = buildResearchRssFeed([makeArticle()])
+		const minutes = Number(xml.match(/<dl:readingTime>(\d+)<\/dl:readingTime>/)?.[1])
+		expect(Number.isInteger(minutes)).toBe(true)
+		expect(minutes).toBeGreaterThanOrEqual(1)
+	})
+
+	it('emits an explicit canonical atom:link and the excerpt as atom:summary', () => {
+		const xml = buildResearchRssFeed([makeArticle()])
+		expect(xml).toContain(
+			'<atom:link rel="alternate" href="https://defillama.com/research/report/sample-article" type="text/html" />'
+		)
+		expect(xml).toContain('<atom:summary>A short summary.</atom:summary>')
+	})
+
+	it('emits a featured-image enclosure with an inferred MIME type', () => {
+		const xml = buildResearchRssFeed([makeArticle({ coverImage: { url: 'https://cdn.defillama.com/cover.png' } })])
+		expect(xml).toContain('<enclosure url="https://cdn.defillama.com/cover.png" type="image/png" length="0" />')
+	})
+
+	it('derives person and protocol entities, mapping cex to organization without duplicates', () => {
+		const xml = buildResearchRssFeed([
+			makeArticle({
+				interviewees: [{ name: 'Felix Fan' }, { name: 'Felix Fan' }],
+				entities: [
+					{ entityType: 'protocol', slug: 'hyperliquid', label: 'Hyperliquid', route: '/protocol/hyperliquid' },
+					{ entityType: 'cex', slug: 'trust-wallet', label: 'Trust Wallet', route: '/cex/trust-wallet' }
+				]
+			})
+		])
+		expect(xml).toContain('<dl:entity type="person">Felix Fan</dl:entity>')
+		expect(xml).toContain('<dl:entity type="protocol">Hyperliquid</dl:entity>')
+		expect(xml).toContain('<dl:entity type="organization">Trust Wallet</dl:entity>')
+		expect(xml.match(/<dl:entity type="person">Felix Fan<\/dl:entity>/g)).toHaveLength(1)
+	})
 })
