@@ -176,13 +176,20 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenBorrowSection
 				tokenSymbol="ETH"
-				initialData={{
-					borrowAsCollateral: [makeBorrowRow()],
-					borrowAsDebt: []
-				}}
-				initialCounts={{
-					borrowAsCollateral: 1,
-					borrowAsDebt: 0
+				hydration={{
+					data: {
+						borrowAsCollateral: [makeBorrowRow()],
+						borrowAsDebt: []
+					},
+					counts: {
+						borrowAsCollateral: 1,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: ['Ethereum'],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}}
 			/>
 		)
@@ -199,17 +206,20 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenBorrowSection
 				tokenSymbol="ETH"
-				initialData={{
-					borrowAsCollateral: [makeBorrowRow()],
-					borrowAsDebt: []
-				}}
-				initialCounts={{
-					borrowAsCollateral: 25,
-					borrowAsDebt: 0
-				}}
-				initialChains={{
-					borrowAsCollateral: ['Ethereum'],
-					borrowAsDebt: []
+				hydration={{
+					data: {
+						borrowAsCollateral: [makeBorrowRow()],
+						borrowAsDebt: []
+					},
+					counts: {
+						borrowAsCollateral: 25,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: ['Ethereum'],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}}
 			/>
 		)

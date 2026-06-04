@@ -18,6 +18,21 @@ export type TokenBorrowRoutesChainLists = {
 	borrowAsDebt: string[]
 }
 
+export type TokenYieldsHydration = {
+	rows: IYieldTableRow[]
+	rowCount: number
+	chainList: string[]
+	tokensList: string[]
+	pageSize: number
+}
+
+export type TokenBorrowRoutesHydration = {
+	data: TokenBorrowRoutesResponse
+	counts: TokenBorrowRoutesCounts
+	chainLists: TokenBorrowRoutesChainLists
+	pageSize: number
+}
+
 export type TokenPageSection =
 	| {
 			id: 'token-overview'
@@ -76,18 +91,13 @@ export type TokenPageSection =
 			id: 'token-yields'
 			label: 'Yields'
 			tokenSymbol: string
-			initialData: IYieldTableRow[]
-			initialRowCount: number
-			initialChainList: string[]
-			initialTokensList: string[]
+			hydration: TokenYieldsHydration
 	  }
 	| {
 			id: 'token-borrow'
 			label: 'Borrow'
 			tokenSymbol: string
-			initialData: TokenBorrowRoutesResponse
-			initialCounts: TokenBorrowRoutesCounts
-			initialChains: TokenBorrowRoutesChainLists
+			hydration: TokenBorrowRoutesHydration
 	  }
 
 export type TokenPageSectionId = TokenPageSection['id']

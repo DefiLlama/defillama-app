@@ -336,23 +336,8 @@ const TOKEN_SECTION_RENDERERS = {
 	'token-usage': (section) => <TokenUsageSection tokenSymbol={section.tokenSymbol} />,
 	'token-liquidations': (section) => <TokenLiquidationsSection tokenSymbol={section.tokenSymbol} />,
 	'token-unlocks': (section) => <TokenUnlocksSection resolvedUnlocksSlug={section.resolvedUnlocksSlug} />,
-	'token-yields': (section) => (
-		<TokenYieldsSection
-			tokenSymbol={section.tokenSymbol}
-			initialData={section.initialData}
-			initialRowCount={section.initialRowCount}
-			initialChainList={section.initialChainList}
-			initialTokensList={section.initialTokensList}
-		/>
-	),
-	'token-borrow': (section) => (
-		<TokenBorrowSection
-			tokenSymbol={section.tokenSymbol}
-			initialData={section.initialData}
-			initialCounts={section.initialCounts}
-			initialChains={section.initialChains}
-		/>
-	)
+	'token-yields': (section) => <TokenYieldsSection tokenSymbol={section.tokenSymbol} hydration={section.hydration} />,
+	'token-borrow': (section) => <TokenBorrowSection tokenSymbol={section.tokenSymbol} hydration={section.hydration} />
 } satisfies TokenPageSectionRendererMap
 
 function renderTokenPageSection<Section extends TokenPageSection>(section: Section) {

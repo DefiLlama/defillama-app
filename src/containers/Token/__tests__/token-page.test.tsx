@@ -544,26 +544,32 @@ describe('token page', () => {
 				id: 'token-yields',
 				label: 'Yields',
 				tokenSymbol: 'BTC',
-				initialData: [{ pool: 'pool-1' }] as IYieldTableRow[],
-				initialRowCount: 1,
-				initialChainList: [],
-				initialTokensList: []
+				hydration: {
+					rows: [{ pool: 'pool-1' }] as IYieldTableRow[],
+					rowCount: 1,
+					chainList: [],
+					tokensList: [],
+					pageSize: 10
+				}
 			},
 			{
 				id: 'token-borrow',
 				label: 'Borrow',
 				tokenSymbol: 'BTC',
-				initialData: {
-					borrowAsCollateral: [{ pool: 'borrow-1' }],
-					borrowAsDebt: []
-				} as TokenBorrowRoutesResponse,
-				initialCounts: {
-					borrowAsCollateral: 1,
-					borrowAsDebt: 0
-				},
-				initialChains: {
-					borrowAsCollateral: [],
-					borrowAsDebt: []
+				hydration: {
+					data: {
+						borrowAsCollateral: [{ pool: 'borrow-1' }],
+						borrowAsDebt: []
+					} as TokenBorrowRoutesResponse,
+					counts: {
+						borrowAsCollateral: 1,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: [],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}
 			}
 		]
@@ -629,17 +635,20 @@ describe('token page', () => {
 						id: 'token-borrow',
 						label: 'Borrow',
 						tokenSymbol: 'BTC',
-						initialData: {
-							borrowAsCollateral: [{ pool: 'borrow-1' }],
-							borrowAsDebt: []
-						} as TokenBorrowRoutesResponse,
-						initialCounts: {
-							borrowAsCollateral: 1,
-							borrowAsDebt: 0
-						},
-						initialChains: {
-							borrowAsCollateral: [],
-							borrowAsDebt: []
+						hydration: {
+							data: {
+								borrowAsCollateral: [{ pool: 'borrow-1' }],
+								borrowAsDebt: []
+							} as TokenBorrowRoutesResponse,
+							counts: {
+								borrowAsCollateral: 1,
+								borrowAsDebt: 0
+							},
+							chainLists: {
+								borrowAsCollateral: [],
+								borrowAsDebt: []
+							},
+							pageSize: 10
 						}
 					}
 				])}
@@ -1228,8 +1237,10 @@ describe('token page', () => {
 		const yieldsSection = findTokenPageSection(result.props.sections, 'token-yields')
 		expect(findTokenPageSection(result.props.sections, 'token-risks')).toBeUndefined()
 		expect(yieldsSection).toMatchObject({
-			initialData: state.initialYieldsRows,
-			initialRowCount: state.initialYieldsRows.length
+			hydration: {
+				rows: state.initialYieldsRows,
+				rowCount: state.initialYieldsRows.length
+			}
 		})
 		expect(findTokenPageSection(result.props.sections, 'token-borrow')).toBeUndefined()
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
@@ -1280,11 +1291,13 @@ describe('token page', () => {
 
 		const yieldsSection = findTokenPageSection(result.props.sections, 'token-yields')
 		const borrowSection = findTokenPageSection(result.props.sections, 'token-borrow')
-		expect(yieldsSection?.initialData).toHaveLength(10)
-		expect(yieldsSection?.initialRowCount).toBe(12)
-		expect(borrowSection?.initialData.borrowAsCollateral).toHaveLength(10)
-		expect(borrowSection?.initialData.borrowAsDebt).toHaveLength(10)
-		expect(borrowSection?.initialCounts).toEqual({
+		expect(yieldsSection?.hydration.rows).toHaveLength(10)
+		expect(yieldsSection?.hydration.rowCount).toBe(12)
+		expect(yieldsSection?.hydration.pageSize).toBe(10)
+		expect(borrowSection?.hydration.data.borrowAsCollateral).toHaveLength(10)
+		expect(borrowSection?.hydration.data.borrowAsDebt).toHaveLength(10)
+		expect(borrowSection?.hydration.pageSize).toBe(10)
+		expect(borrowSection?.hydration.counts).toEqual({
 			borrowAsCollateral: 13,
 			borrowAsDebt: 11
 		})

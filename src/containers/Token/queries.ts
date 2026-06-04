@@ -23,7 +23,12 @@ import {
 	TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS
 } from './tokenRisk.utils'
 import type { RiskTimelineResponse } from './tokenRiskTimeline.types'
-import type { TokenIncomeStatementData, TokenPageSection } from './types'
+import type {
+	TokenBorrowRoutesHydration,
+	TokenIncomeStatementData,
+	TokenPageSection,
+	TokenYieldsHydration
+} from './types'
 
 export function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
@@ -52,7 +57,7 @@ function getBorrowRouteChainList(rows: TokenBorrowRoutesResponse['borrowAsCollat
 	return Array.from(chains).toSorted()
 }
 
-export function buildInitialYieldsSnapshot(yieldsRows: IYieldTableRow[]) {
+export function buildInitialYieldsSnapshot(yieldsRows: IYieldTableRow[]): TokenYieldsHydration {
 	const chainList = new Set<string>()
 	const tokensList = new Set<string>()
 	for (const row of yieldsRows) {
@@ -67,11 +72,14 @@ export function buildInitialYieldsSnapshot(yieldsRows: IYieldTableRow[]) {
 		rows: yieldsRows.slice(0, DEFAULT_TABLE_PAGE_SIZE),
 		rowCount: yieldsRows.length,
 		chainList: Array.from(chainList).toSorted(),
-		tokensList: Array.from(tokensList).toSorted()
+		tokensList: Array.from(tokensList).toSorted(),
+		pageSize: DEFAULT_TABLE_PAGE_SIZE
 	}
 }
 
-export function buildInitialBorrowRoutesSnapshot(tokenBorrowRoutesData: TokenBorrowRoutesResponse | null) {
+export function buildInitialBorrowRoutesSnapshot(
+	tokenBorrowRoutesData: TokenBorrowRoutesResponse | null
+): TokenBorrowRoutesHydration | null {
 	if (!tokenBorrowRoutesData) return null
 
 	return {
@@ -86,7 +94,8 @@ export function buildInitialBorrowRoutesSnapshot(tokenBorrowRoutesData: TokenBor
 		chainLists: {
 			borrowAsCollateral: getBorrowRouteChainList(tokenBorrowRoutesData.borrowAsCollateral),
 			borrowAsDebt: getBorrowRouteChainList(tokenBorrowRoutesData.borrowAsDebt)
-		}
+		},
+		pageSize: DEFAULT_TABLE_PAGE_SIZE
 	}
 }
 
@@ -198,10 +207,7 @@ export function getTokenPageSections({
 			id: 'token-yields',
 			label: 'Yields',
 			tokenSymbol: record.symbol,
-			initialData: yieldsSnapshot.rows,
-			initialRowCount: yieldsSnapshot.rowCount,
-			initialChainList: yieldsSnapshot.chainList,
-			initialTokensList: yieldsSnapshot.tokensList
+			hydration: yieldsSnapshot
 		})
 	}
 	if (
@@ -212,9 +218,7 @@ export function getTokenPageSections({
 			id: 'token-borrow',
 			label: 'Borrow',
 			tokenSymbol: record.symbol,
-			initialData: borrowRoutesSnapshot.data,
-			initialCounts: borrowRoutesSnapshot.counts,
-			initialChains: borrowRoutesSnapshot.chainLists
+			hydration: borrowRoutesSnapshot
 		})
 	}
 
