@@ -188,7 +188,16 @@ describe('TokenYieldsSection', () => {
 		}
 
 		const html = renderToStaticMarkup(
-			<TokenYieldsSection tokenSymbol="ETH" initialData={[makeYieldRow()]} initialRowCount={1} />
+			<TokenYieldsSection
+				tokenSymbol="ETH"
+				hydration={{
+					rows: [makeYieldRow()],
+					rowCount: 1,
+					chainList: ['Ethereum'],
+					tokensList: ['ETH', 'STETH'],
+					pageSize: 10
+				}}
+			/>
 		)
 
 		expect(html).toContain('Tracking 1 pool, average APY 5.10%')
@@ -210,10 +219,13 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenYieldsSection
 				tokenSymbol="ETH"
-				initialData={[makeYieldRow()]}
-				initialRowCount={25}
-				initialChainList={['Ethereum']}
-				initialTokensList={['ETH', 'STETH']}
+				hydration={{
+					rows: [makeYieldRow()],
+					rowCount: 25,
+					chainList: ['Ethereum'],
+					tokensList: ['ETH', 'STETH'],
+					pageSize: 10
+				}}
 			/>
 		)
 
@@ -232,10 +244,13 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenYieldsSection
 				tokenSymbol="ETH"
-				initialData={[makeYieldRow()]}
-				initialRowCount={25}
-				initialChainList={['Ethereum']}
-				initialTokensList={['ETH', 'STETH']}
+				hydration={{
+					rows: [makeYieldRow()],
+					rowCount: 25,
+					chainList: ['Ethereum'],
+					tokensList: ['ETH', 'STETH'],
+					pageSize: 10
+				}}
 			/>
 		)
 

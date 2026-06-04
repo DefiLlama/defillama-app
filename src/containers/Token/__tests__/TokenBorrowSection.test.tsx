@@ -74,7 +74,8 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-import { TokenBorrowSection, filterBorrowRows } from '../TokenBorrowSection'
+import { TokenBorrowSection } from '../TokenBorrowSection'
+import { filterBorrowRows } from '../TokenBorrowSection.utils'
 
 function makeBorrowRow(
 	overrides: Partial<IYieldsOptimizerTableRow> = {},
@@ -176,13 +177,20 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenBorrowSection
 				tokenSymbol="ETH"
-				initialData={{
-					borrowAsCollateral: [makeBorrowRow()],
-					borrowAsDebt: []
-				}}
-				initialCounts={{
-					borrowAsCollateral: 1,
-					borrowAsDebt: 0
+				hydration={{
+					data: {
+						borrowAsCollateral: [makeBorrowRow()],
+						borrowAsDebt: []
+					},
+					counts: {
+						borrowAsCollateral: 1,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: ['Ethereum'],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}}
 			/>
 		)
@@ -199,17 +207,20 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenBorrowSection
 				tokenSymbol="ETH"
-				initialData={{
-					borrowAsCollateral: [makeBorrowRow()],
-					borrowAsDebt: []
-				}}
-				initialCounts={{
-					borrowAsCollateral: 25,
-					borrowAsDebt: 0
-				}}
-				initialChains={{
-					borrowAsCollateral: ['Ethereum'],
-					borrowAsDebt: []
+				hydration={{
+					data: {
+						borrowAsCollateral: [makeBorrowRow()],
+						borrowAsDebt: []
+					},
+					counts: {
+						borrowAsCollateral: 25,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: ['Ethereum'],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}}
 			/>
 		)
@@ -252,6 +263,28 @@ describe('TokenBorrowSection', () => {
 
 		expect(filtered).toHaveLength(1)
 		expect(filtered[0].borrow.symbol).toBe('USDC')
+	})
+
+	it('ignores non-numeric available liquidity bounds', () => {
+		const filtered = filterBorrowRows({
+			rows: [
+				{
+					symbol: 'ETH',
+					borrow: { symbol: 'USDC', totalAvailableUsd: null },
+					chains: ['Ethereum']
+				},
+				{
+					symbol: 'ETH',
+					borrow: { symbol: 'DAI', totalAvailableUsd: 5000 },
+					chains: ['Ethereum']
+				}
+			] as any,
+			selectedChains: ['Ethereum'],
+			minAvailable: 'not-a-number',
+			maxAvailable: 'also-not-a-number'
+		})
+
+		expect(filtered).toHaveLength(2)
 	})
 
 	it('returns no rows when no chains are selected explicitly', () => {

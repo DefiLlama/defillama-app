@@ -124,7 +124,8 @@ vi.mock('~/containers/Subscription/auth', () => ({
 	useAuthContext: () => authState
 }))
 
-import { TokenUsageSection, buildTokenUsageRows, filterTokenUsageRows } from '../TokenUsageSection'
+import { TokenUsageSection } from '../TokenUsageSection'
+import { buildTokenUsageRows, filterTokenUsageRows } from '../TokenUsageSection.utils'
 
 afterEach(() => {
 	authState = {

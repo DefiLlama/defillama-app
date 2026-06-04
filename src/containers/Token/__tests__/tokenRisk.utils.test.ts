@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { TokenRiskBorrowCapacityResponse } from '../api.types'
 import {
 	buildExposuresSection,
+	buildTokenRiskProtocolSummaries,
 	filterTokenRiskCandidatesWithData,
 	indexBorrowCapacityByAssetKey,
 	inferTokenRiskCandidatesFromBorrowCapacity,
@@ -244,6 +245,86 @@ describe('tokenRisk utils', () => {
 		expect(section.rows[0]).not.toHaveProperty('collateralBorrowedDebtUsd')
 		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('known')
 		expect(section.rows[1].minBadDebtAtPriceZeroCoverage).toBe('unavailable')
+		expect(section.protocolSummaries).toEqual([
+			{
+				protocol: 'aave-v3',
+				protocolDisplayName: 'aave-v3',
+				totalCurrentMaxBorrowUsd: 1000,
+				totalMinBadDebtAtPriceZeroUsd: 400,
+				minBadDebtAtPriceZeroCoverage: 'known',
+				chainBreakdowns: [
+					{
+						chain: 'ethereum',
+						chainDisplayName: 'ethereum',
+						totalCurrentMaxBorrowUsd: 1000,
+						totalMinBadDebtAtPriceZeroUsd: 400,
+						minBadDebtAtPriceZeroCoverage: 'known'
+					}
+				]
+			},
+			{
+				protocol: 'morpho-blue',
+				protocolDisplayName: 'morpho-blue',
+				totalCurrentMaxBorrowUsd: 500,
+				totalMinBadDebtAtPriceZeroUsd: null,
+				minBadDebtAtPriceZeroCoverage: 'unavailable',
+				chainBreakdowns: [
+					{
+						chain: 'ethereum',
+						chainDisplayName: 'ethereum',
+						totalCurrentMaxBorrowUsd: 500,
+						totalMinBadDebtAtPriceZeroUsd: null,
+						minBadDebtAtPriceZeroCoverage: 'unavailable'
+					}
+				]
+			}
+		])
+	})
+
+	it('builds protocol summaries with sorted chain breakdowns from exposure rows', () => {
+		const summaries = buildTokenRiskProtocolSummaries([
+			{
+				protocol: 'aave-v3',
+				protocolDisplayName: 'Aave V3',
+				chain: 'ethereum',
+				chainDisplayName: 'Ethereum',
+				assetSymbol: 'USDC',
+				assetAddress: '0xa0b8',
+				currentMaxBorrowUsd: 1000,
+				minBadDebtAtPriceZeroUsd: 400,
+				minBadDebtAtPriceZeroCoverage: 'known'
+			},
+			{
+				protocol: 'aave-v3',
+				protocolDisplayName: 'Aave V3',
+				chain: 'base',
+				chainDisplayName: 'Base',
+				assetSymbol: 'USDC',
+				assetAddress: '0x8335',
+				currentMaxBorrowUsd: 300,
+				minBadDebtAtPriceZeroUsd: null,
+				minBadDebtAtPriceZeroCoverage: 'unavailable'
+			},
+			{
+				protocol: 'morpho-blue',
+				protocolDisplayName: 'Morpho Blue',
+				chain: 'ethereum',
+				chainDisplayName: 'Ethereum',
+				assetSymbol: 'USDC',
+				assetAddress: '0xa0b8',
+				currentMaxBorrowUsd: 500,
+				minBadDebtAtPriceZeroUsd: 25,
+				minBadDebtAtPriceZeroCoverage: 'known'
+			}
+		])
+
+		expect(summaries.map((summary) => summary.protocol)).toEqual(['aave-v3', 'morpho-blue'])
+		expect(summaries[0]).toMatchObject({
+			totalCurrentMaxBorrowUsd: 1300,
+			totalMinBadDebtAtPriceZeroUsd: 400,
+			minBadDebtAtPriceZeroCoverage: 'partial'
+		})
+		expect(summaries[0].chainBreakdowns.map((chain) => chain.chainDisplayName)).toEqual(['Ethereum', 'Base'])
 	})
 
 	it('dedupes identical protocol-chain-asset rows and sums liquidity-based max borrow', () => {

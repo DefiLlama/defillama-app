@@ -22,6 +22,7 @@ import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { DEFAULT_TABLE_PAGE_SIZE } from './tableUtils'
 import { TokenDeferredPaginationControls } from './TokenDeferredPaginationControls'
+import type { TokenYieldsHydration } from './types'
 
 const ENABLED_COLUMNS = [...ALL_POOL_COLUMN_QUERY_KEYS]
 
@@ -49,10 +50,7 @@ async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[
 
 interface TokenYieldsSectionProps {
 	tokenSymbol: string
-	initialData?: IYieldTableRow[]
-	initialRowCount?: number
-	initialChainList?: string[]
-	initialTokensList?: string[]
+	hydration?: TokenYieldsHydration
 }
 
 function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants: Set<string>) {
@@ -63,15 +61,9 @@ function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants:
 	return false
 }
 
-export function TokenYieldsSection({
-	tokenSymbol,
-	initialData,
-	initialRowCount,
-	initialChainList,
-	initialTokensList
-}: TokenYieldsSectionProps) {
+export function TokenYieldsSection({ tokenSymbol, hydration }: TokenYieldsSectionProps) {
 	const router = useRouter()
-	const [shouldFetchFullData, setShouldFetchFullData] = React.useState(initialData == null)
+	const [shouldFetchFullData, setShouldFetchFullData] = React.useState(hydration == null)
 	const [requestedPageIndex, setRequestedPageIndex] = React.useState(0)
 	const [tableSorting, setTableSorting] = React.useState<SortingState>([...DEFAULT_TABLE_SORTING])
 	const { data: fetchedRows, error } = useQuery({
@@ -82,14 +74,15 @@ export function TokenYieldsSection({
 		retry: false,
 		enabled: Boolean(tokenSymbol) && shouldFetchFullData
 	})
-	const poolsList = React.useMemo(() => fetchedRows ?? initialData ?? [], [fetchedRows, initialData])
+	const poolsList = React.useMemo(() => fetchedRows ?? hydration?.rows ?? [], [fetchedRows, hydration])
 	const { data: volatility } = useVolatility({ enabled: shouldFetchFullData })
 	const holderStatsConfigIds = React.useMemo(
 		() => poolsList.map((pool) => pool.configID).filter((configID): configID is string => Boolean(configID)),
 		[poolsList]
 	)
 	const { data: holderStats } = useHolderStats(holderStatsConfigIds, { enabled: shouldFetchFullData })
-	const totalRowCount = fetchedRows?.length ?? initialRowCount ?? poolsList.length
+	const hydrationPageSize = hydration?.pageSize ?? DEFAULT_TABLE_PAGE_SIZE
+	const totalRowCount = fetchedRows?.length ?? hydration?.rowCount ?? poolsList.length
 
 	const chainList = React.useMemo(
 		() =>
@@ -97,11 +90,11 @@ export function TokenYieldsSection({
 				? [
 						...new Set(poolsList.map((pool) => pool.chains[0]).filter((chain): chain is string => Boolean(chain)))
 					].sort()
-				: (initialChainList ??
+				: (hydration?.chainList ??
 					[
 						...new Set(poolsList.map((pool) => pool.chains[0]).filter((chain): chain is string => Boolean(chain)))
 					].sort()),
-		[fetchedRows, initialChainList, poolsList]
+		[fetchedRows, hydration, poolsList]
 	)
 
 	const tokensList = React.useMemo(
@@ -110,11 +103,11 @@ export function TokenYieldsSection({
 				? [...new Set(poolsList.flatMap((pool) => extractYieldPoolTokens(pool.pool)))]
 						.sort()
 						.map((token) => token.toUpperCase())
-				: (initialTokensList ??
+				: (hydration?.tokensList ??
 					[...new Set(poolsList.flatMap((pool) => extractYieldPoolTokens(pool.pool)))]
 						.sort()
 						.map((token) => token.toUpperCase())),
-		[fetchedRows, initialTokensList, poolsList]
+		[fetchedRows, hydration, poolsList]
 	)
 
 	const { selectedChains, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy } = useFormatYieldQueryParams({
@@ -363,7 +356,7 @@ export function TokenYieldsSection({
 										key={`${fetchedRows ? 'full' : 'initial'}-${requestedPageIndex}-${tableSortingKey}`}
 										data={filteredPools}
 										enablePagination
-										initialPageSize={DEFAULT_TABLE_PAGE_SIZE}
+										initialPageSize={hydrationPageSize}
 										initialPageIndex={fetchedRows ? requestedPageIndex : 0}
 										sortingState={tableSorting}
 										onSortingChange={handleSortingChange}
@@ -374,6 +367,7 @@ export function TokenYieldsSection({
 									<div className={showBackgroundLoading ? 'opacity-60' : ''}>
 										<TokenDeferredPaginationControls
 											totalCount={totalRowCount}
+											pageSize={hydrationPageSize}
 											isLoading={showBackgroundLoading}
 											onRequestPage={requestFullDataPage}
 										/>
