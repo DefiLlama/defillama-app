@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
+import { Checkbox } from '~/components/Checkbox'
 import type {
 	IHBarChartProps,
 	IMultiSeriesChart2Props,
@@ -18,7 +19,7 @@ import { LoadingDots } from '~/components/Loaders'
 import { PercentChange } from '~/components/PercentChange'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
-import { Switch } from '~/components/Switch'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -27,7 +28,13 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
-import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import { isTrueQueryParam, parseArrayParam, parseExcludeParam, pushShallowQuery } from '~/utils/routerQuery'
+import type { IRWAPerpsMarket } from './api.types'
+import {
+	getRWAPerpsBaseAssetBreakdownLabel,
+	getRWAPerpsOverviewBreakdownLabel,
+	getRWAPerpsVenueBreakdownLabel
+} from './breakdownLabels'
 import {
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsBreakdownLabel,
@@ -64,13 +71,17 @@ import {
 import { buildRWAPerpsTreemapTreeData } from './treemap'
 import type {
 	IRWAPerpsAssetGroupPageData,
+	RWAPerpsAssetGroupBreakdown,
 	IRWAPerpsContractBreakdownRequest,
+	RWAPerpsOverviewBreakdown,
 	IRWAPerpsOverviewBreakdownRequest,
 	IRWAPerpsOverviewPageData,
 	IRWAPerpsVenuePageData,
+	RWAPerpsVenueBreakdown,
 	RWAPerpsAssetGroupSnapshotBreakdown,
 	RWAPerpsAssetGroupTimeSeriesBreakdown,
 	RWAPerpsAssetGroupTreemapBreakdown,
+	RWAPerpsChartMode,
 	RWAPerpsOverviewTimeSeriesBreakdown,
 	RWAPerpsOverviewSnapshotBreakdown,
 	RWAPerpsOverviewTreemapBreakdown,
@@ -90,6 +101,13 @@ const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['time
 const PIE_CHART_RADIUS = ['50%', '70%'] as [string, string]
 const MAX_HORIZONTAL_BARS = 9
 const FOREX_ASSET_CLASS = 'Forex Perps'
+const BASE_ASSET_QUERY_KEY = 'baseAssets'
+const EXCLUDE_BASE_ASSET_QUERY_KEY = 'excludeBaseAssets'
+
+type RWAPerpsTimeSeriesBreakdownForMode =
+	| RWAPerpsOverviewBreakdown
+	| RWAPerpsVenueBreakdown
+	| RWAPerpsAssetGroupBreakdown
 
 type RWAPerpsDashboardProps = (
 	| {
@@ -782,6 +800,131 @@ function getLegendSeriesNames(seriesNames: string[]) {
 	return ['Total', ...seriesNames.filter((name) => name !== 'Total')]
 }
 
+function getFiniteNumber(value: unknown): number {
+	const parsed = typeof value === 'number' ? value : Number(value)
+	return Number.isFinite(parsed) ? parsed : 0
+}
+
+function getRWAPerpsBaseAssetOptions(markets: IRWAPerpsMarket[]) {
+	const openInterestByBaseAsset = new Map<string, number>()
+
+	for (const market of markets) {
+		const label = getRWAPerpsBaseAssetBreakdownLabel(market)
+		openInterestByBaseAsset.set(label, (openInterestByBaseAsset.get(label) ?? 0) + getFiniteNumber(market.openInterest))
+	}
+
+	return [...openInterestByBaseAsset.entries()]
+		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+		.map(([label]) => label)
+}
+
+function getSelectedBaseAssets({
+	allBaseAssets,
+	includeQuery,
+	excludeQuery
+}: {
+	allBaseAssets: string[]
+	includeQuery: string | string[] | undefined
+	excludeQuery: string | string[] | undefined
+}) {
+	const validSet = new Set(allBaseAssets)
+	const excluded = parseExcludeParam(excludeQuery)
+	const baseSelection = parseArrayParam(includeQuery, allBaseAssets, validSet)
+
+	return excluded.size > 0 ? baseSelection.filter((baseAsset) => !excluded.has(baseAsset)) : baseSelection
+}
+
+function isRWAPerpsBaseAssetFilterActive(selectedBaseAssets: string[], allBaseAssets: string[]) {
+	if (selectedBaseAssets.length !== allBaseAssets.length) return true
+
+	const selectedSet = new Set(selectedBaseAssets)
+	return allBaseAssets.some((baseAsset) => !selectedSet.has(baseAsset))
+}
+
+function getTimeSeriesBreakdownLabel({
+	mode,
+	row,
+	breakdown
+}: {
+	mode: RWAPerpsChartMode
+	row: IRWAPerpsMarket
+	breakdown: RWAPerpsTimeSeriesBreakdownForMode
+}) {
+	if (mode === 'venue') {
+		return getRWAPerpsVenueBreakdownLabel(row, breakdown as RWAPerpsVenueBreakdown)
+	}
+
+	return getRWAPerpsOverviewBreakdownLabel(row, breakdown as RWAPerpsOverviewBreakdown)
+}
+
+function getRWAPerpsTimeSeriesDatasetDimensions(source: MultiSeriesChart2Dataset['source']) {
+	const latestValueBySeries = new Map<string, number>()
+
+	for (let rowIndex = source.length - 1; rowIndex >= 0; rowIndex--) {
+		const row = source[rowIndex]
+
+		for (const series in row) {
+			if (series === 'timestamp' || latestValueBySeries.has(series)) continue
+			latestValueBySeries.set(series, getFiniteNumber(row[series]))
+		}
+	}
+
+	return [
+		'timestamp',
+		...[...latestValueBySeries.entries()]
+			.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+			.map(([series]) => series)
+	]
+}
+
+export function buildRWAPerpsTimeSeriesDatasetForRows({
+	dataset,
+	rows,
+	mode,
+	breakdown
+}: {
+	dataset: MultiSeriesChart2Dataset
+	rows: IRWAPerpsMarket[]
+	mode: RWAPerpsChartMode
+	breakdown: RWAPerpsTimeSeriesBreakdownForMode
+}): MultiSeriesChart2Dataset {
+	if (dataset.source.length === 0 || rows.length === 0) return EMPTY_DATASET
+
+	const labelByContract = new Map<string, string>()
+
+	for (const row of rows) {
+		labelByContract.set(
+			row.contract,
+			getTimeSeriesBreakdownLabel({
+				mode,
+				row,
+				breakdown
+			})
+		)
+	}
+
+	if (labelByContract.size === 0) return EMPTY_DATASET
+
+	const source = dataset.source.map((row) => {
+		const nextRow: MultiSeriesChart2Dataset['source'][number] = { timestamp: row.timestamp }
+
+		for (const [contract, label] of labelByContract) {
+			const value = row[contract]
+			if (value == null) continue
+
+			const numericValue = typeof value === 'number' ? value : Number(value)
+			if (!Number.isFinite(numericValue)) continue
+
+			nextRow[label] = getFiniteNumber(nextRow[label]) + numericValue
+		}
+
+		return nextRow
+	})
+	const dimensions = getRWAPerpsTimeSeriesDatasetDimensions(source)
+
+	return dimensions.length > 1 ? { source, dimensions } : EMPTY_DATASET
+}
+
 export function buildRWAPerpsTimeSeriesCharts({
 	metric,
 	dimensions,
@@ -924,7 +1067,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const assetClassFilter = props.assetClassFilter
 	const showForexToggle = isOverviewMode && assetClassFilter == null
 	const includeForex = showForexToggle ? isTrueQueryParam(router.query.includeForex) : true
-	const currentRows = useMemo(() => {
+	const rowsBeforeBaseAssetFilter = useMemo(() => {
 		if (assetClassFilter != null) {
 			return props.data.markets.filter((market) => market.assetClass?.[0] === assetClassFilter)
 		}
@@ -933,7 +1076,33 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		}
 		return props.data.markets
 	}, [assetClassFilter, includeForex, props.data.markets, showForexToggle])
+	const baseAssetQuery = router.query[BASE_ASSET_QUERY_KEY]
+	const excludeBaseAssetQuery = router.query[EXCLUDE_BASE_ASSET_QUERY_KEY]
+	const baseAssetOptions = useMemo(
+		() => getRWAPerpsBaseAssetOptions(rowsBeforeBaseAssetFilter),
+		[rowsBeforeBaseAssetFilter]
+	)
+	const selectedBaseAssets = useMemo(
+		() =>
+			getSelectedBaseAssets({
+				allBaseAssets: baseAssetOptions,
+				includeQuery: baseAssetQuery,
+				excludeQuery: excludeBaseAssetQuery
+			}),
+		[baseAssetOptions, baseAssetQuery, excludeBaseAssetQuery]
+	)
+	const isBaseAssetFilterActive = isRWAPerpsBaseAssetFilterActive(selectedBaseAssets, baseAssetOptions)
+	const currentRows = useMemo(() => {
+		if (!isBaseAssetFilterActive) return rowsBeforeBaseAssetFilter
+
+		const selectedBaseAssetsSet = new Set(selectedBaseAssets)
+		return rowsBeforeBaseAssetFilter.filter((market) =>
+			selectedBaseAssetsSet.has(getRWAPerpsBaseAssetBreakdownLabel(market))
+		)
+	}, [isBaseAssetFilterActive, rowsBeforeBaseAssetFilter, selectedBaseAssets])
 	const isRowsFiltered = currentRows !== props.data.markets
+	const showBaseAssetFilter = baseAssetOptions.length > 1 || isBaseAssetFilterActive
+	const showFilters = showForexToggle || showBaseAssetFilter
 	const computedTotals = useMemo(
 		() =>
 			isRowsFiltered
@@ -951,6 +1120,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const displayTotals = computedTotals ?? props.data.totals
 	const timeSeriesAssetClass = assetClassFilter
 	const timeSeriesExcludeAssetClass = showForexToggle && !includeForex ? FOREX_ASSET_CLASS : undefined
+	const timeSeriesBaseAssets = isBaseAssetFilterActive ? selectedBaseAssets : undefined
 	const onToggleIncludeForex = () => {
 		void pushShallowQuery(router, { includeForex: includeForex ? undefined : 'true' })
 	}
@@ -964,9 +1134,10 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const hasPreloadedTimeSeriesDataset =
 		initialChartDataset.source.length > 0 ||
 		initialChartDataset.dimensions.some((dimension) => dimension !== 'timestamp')
-	const canUseInitialTimeSeriesDataset = !showForexToggle || !includeForex
+	const canUseInitialTimeSeriesDataset = !isBaseAssetFilterActive && (!showForexToggle || !includeForex)
 	const shouldUseInitialTimeSeriesDataset =
 		isDefaultTimeSeriesState && hasPreloadedTimeSeriesDataset && canUseInitialTimeSeriesDataset
+	const shouldUseContractTimeSeriesDataset = isBaseAssetFilterActive || chartState.breakdown === 'contract'
 
 	const timeSeriesQuery = useQuery({
 		queryKey: [
@@ -976,10 +1147,11 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 			chartState.breakdown,
 			targetQueryValue,
 			timeSeriesAssetClass,
-			timeSeriesExcludeAssetClass
+			timeSeriesExcludeAssetClass,
+			timeSeriesBaseAssets
 		],
 		queryFn: () =>
-			chartState.breakdown === 'contract'
+			shouldUseContractTimeSeriesDataset
 				? fetchContractTimeSeriesDataset({
 						key: chartState.metric,
 						...(isVenueMode ? { venue: props.data.venue } : {}),
@@ -998,13 +1170,21 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: chartState.view === 'timeSeries' && !shouldUseInitialTimeSeriesDataset
+		enabled: chartState.view === 'timeSeries' && !shouldUseInitialTimeSeriesDataset && currentRows.length > 0
 	})
 
-	const rawTimeSeriesDataset =
+	const fetchedTimeSeriesDataset =
 		chartState.view === 'timeSeries' && shouldUseInitialTimeSeriesDataset
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
+	const rawTimeSeriesDataset = isBaseAssetFilterActive
+		? buildRWAPerpsTimeSeriesDatasetForRows({
+				dataset: fetchedTimeSeriesDataset,
+				rows: currentRows,
+				mode: props.mode,
+				breakdown: chartState.breakdown as RWAPerpsTimeSeriesBreakdownForMode
+			})
+		: fetchedTimeSeriesDataset
 	const shouldShowTotalOverlay = chartState.timeSeriesMode === 'breakdown' && chartState.metric !== 'volume24h'
 	const selectedTimeSeriesDataset =
 		chartState.timeSeriesMode === 'grouped'
@@ -1254,20 +1434,34 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				<RowLinksWithDropdown links={props.data.assetGroupLinks} activeLink={props.data.assetGroup} />
 			) : null}
 			{showForexToggle ? (
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-sm text-(--text-label) md:flex-row md:items-center md:justify-between">
-					<p>
+				<>
+					<p className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-sm text-(--text-label) md:flex-row md:items-center md:justify-between">
 						The RWA Perpetuals Dashboard only covers real world assets such as stocks, RWA tokens, forex, and other
 						significant financial indices on decentralized exchanges. This excludes digital assets such as BTC or ETH
 						perpetual contracts and all RWA perpetual contracts on centralized exchanges.
 					</p>
-					<Switch
-						className="shrink-0 justify-end"
-						label="Forex Perps"
-						value="includeForex"
-						checked={includeForex}
-						help="Include forex-pair perps in markets, totals, and snapshot charts. Time-series chart still aggregates all markets."
-						onChange={onToggleIncludeForex}
-					/>
+				</>
+			) : null}
+			{showFilters ? (
+				<div className="flex flex-wrap gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-sm text-(--text-label)">
+					{showBaseAssetFilter ? (
+						<SelectWithCombobox
+							allValues={baseAssetOptions}
+							selectedValues={selectedBaseAssets}
+							includeQueryKey={BASE_ASSET_QUERY_KEY}
+							excludeQueryKey={EXCLUDE_BASE_ASSET_QUERY_KEY}
+							defaultSelectedValues={baseAssetOptions}
+							label="Base Asset"
+							labelType="smol"
+							variant="filter"
+							portal
+						/>
+					) : null}
+					{showForexToggle ? (
+						<Checkbox variant="filter" value="includeForex" checked={includeForex} onChange={onToggleIncludeForex}>
+							Forex Perps
+						</Checkbox>
+					) : null}
 				</div>
 			) : null}
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">

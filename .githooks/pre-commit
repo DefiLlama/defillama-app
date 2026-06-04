@@ -2,6 +2,9 @@
 
 status=0
 
+echo "Running bun run format..."
+bun run format || status=$?
+
 echo "Running bun run lint..."
 bun run lint || status=$?
 
