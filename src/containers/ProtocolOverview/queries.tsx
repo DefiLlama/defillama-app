@@ -757,6 +757,7 @@ export const getProtocolOverviewPageData = async ({
 		currentTvlByChain: currentProtocolMetadata.tvl ? (protocolData.currentChainTvls ?? {}) : {},
 		description: protocolData.description ?? '',
 		website: protocolData.referralUrl?.trim() || protocolData.url?.trim() || null,
+		isWebsiteReferral: Boolean(protocolData.referralUrl?.trim()),
 		twitter: protocolData.twitter ?? null,
 		safeHarbor: currentProtocolMetadata.safeHarbor ?? false,
 		github: protocolData.github

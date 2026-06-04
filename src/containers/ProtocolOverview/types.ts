@@ -81,6 +81,7 @@ export interface IProtocolOverviewPageData {
 	currentTvlByChain: Record<string, number> | null
 	description?: string
 	website?: string | null
+	isWebsiteReferral?: boolean
 	twitter?: string | null
 	safeHarbor?: boolean
 	tvlMethodology?: string | null
