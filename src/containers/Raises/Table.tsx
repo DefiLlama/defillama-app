@@ -22,10 +22,6 @@ import { formattedNum, toNiceDayMonthYear } from '~/utils'
 import type { IRaise } from './types'
 import { formatRaiseAmount } from './utils'
 
-const handleDownloadJson = () => {
-	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
-}
-
 const columnHelper = createColumnHelper<IRaise>()
 
 export const raisesColumns = [
@@ -223,9 +219,6 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 					<span className="whitespace-nowrap">Methodology & biases</span>
 					<Icon name="external-link" height={12} width={12} />
 				</a>
-				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
-					Download.json
-				</CSVDownloadButton>
 				<CSVDownloadButton prepareCsv={() => prepareRaisesCsv(instance)} smol />
 			</div>
 

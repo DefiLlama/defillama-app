@@ -26,10 +26,6 @@ const MultiSeriesChart2 = React.lazy(
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-const handleDownloadJson = () => {
-	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
-}
-
 function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -77,9 +73,6 @@ function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 					/>
 				</label>
 				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises' })} smol />
-				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
-					Download.json
-				</CSVDownloadButton>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
