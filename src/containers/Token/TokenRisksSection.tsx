@@ -13,28 +13,17 @@ import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
-import type { TokenRiskCoverageStatus, TokenRiskExposureRow, TokenRiskResponse } from './tokenRisk.types'
+import type {
+	TokenRiskChainExposureSummary,
+	TokenRiskCoverageStatus,
+	TokenRiskExposureRow,
+	TokenRiskProtocolSummary,
+	TokenRiskResponse
+} from './tokenRisk.types'
 
 const TOKEN_RISKS_SECTION_ID = 'token-risks'
 const exposureColumnHelper = createColumnHelper<TokenRiskExposureRow>()
 const DEFAULT_EXPOSURES_SORTING: SortingState = [{ id: 'currentMaxBorrowUsd', desc: true }]
-
-type ExposureProtocolSummary = {
-	protocol: string
-	protocolDisplayName: string
-	totalCurrentMaxBorrowUsd: number
-	totalMinBadDebtAtPriceZeroUsd: number | null
-	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
-	chainBreakdowns: ChainExposureSummary[]
-}
-
-type ChainExposureSummary = {
-	chain: string
-	chainDisplayName: string
-	totalCurrentMaxBorrowUsd: number
-	totalMinBadDebtAtPriceZeroUsd: number | null
-	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
-}
 
 function formatUsd(value: number | null | undefined) {
 	if (value == null) return 'Unavailable'
@@ -60,7 +49,7 @@ function TableEntityCell({
 	)
 }
 
-function formatProtocolChains(chainBreakdowns: ChainExposureSummary[]) {
+function formatProtocolChains(chainBreakdowns: TokenRiskChainExposureSummary[]) {
 	if (chainBreakdowns.length === 0) return ''
 	if (chainBreakdowns.length === 1) return chainBreakdowns[0].chainDisplayName
 	return `${chainBreakdowns.length} chains`
@@ -81,7 +70,7 @@ function ProtocolExposureSummaryText({
 	summary,
 	tokenSymbol
 }: {
-	summary: ExposureProtocolSummary
+	summary: TokenRiskProtocolSummary
 	tokenSymbol: string
 }) {
 	const totalAtRiskUsd = summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
@@ -95,7 +84,7 @@ function ProtocolExposureSummaryText({
 	)
 }
 
-function ChainBreakdownTooltipContent({ chainBreakdowns }: { chainBreakdowns: ChainExposureSummary[] }) {
+function ChainBreakdownTooltipContent({ chainBreakdowns }: { chainBreakdowns: TokenRiskChainExposureSummary[] }) {
 	return (
 		<div className="w-80 max-w-[calc(100vw-2rem)] space-y-2 text-xs">
 			<p className="font-medium text-(--text-primary)">Breakdown by chain</p>
@@ -131,7 +120,7 @@ function ChainBreakdownTooltipContent({ chainBreakdowns }: { chainBreakdowns: Ch
 	)
 }
 
-function ProtocolChainsLabel({ chainBreakdowns }: { chainBreakdowns: ChainExposureSummary[] }) {
+function ProtocolChainsLabel({ chainBreakdowns }: { chainBreakdowns: TokenRiskChainExposureSummary[] }) {
 	const label = formatProtocolChains(chainBreakdowns)
 	if (!label) return null
 
@@ -233,150 +222,6 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 		getPaginationRowModel: getPaginationRowModel()
 	})
 
-	const protocolSummaries = useMemo<ExposureProtocolSummary[]>(() => {
-		const grouped = new Map<
-			string,
-			{
-				protocol: string
-				protocolDisplayName: string
-				totalCurrentMaxBorrowUsd: number
-				totalMinBadDebtAtPriceZeroUsd: number | null
-				hasKnownMinBadDebt: boolean
-				hasUnknownMinBadDebt: boolean
-				chainBreakdowns: Map<
-					string,
-					{
-						chain: string
-						chainDisplayName: string
-						totalCurrentMaxBorrowUsd: number
-						totalMinBadDebtAtPriceZeroUsd: number | null
-						hasKnownMinBadDebt: boolean
-						hasUnknownMinBadDebt: boolean
-					}
-				>
-			}
-		>()
-
-		const addChainBreakdown = (
-			summary: {
-				chainBreakdowns: Map<
-					string,
-					{
-						chain: string
-						chainDisplayName: string
-						totalCurrentMaxBorrowUsd: number
-						totalMinBadDebtAtPriceZeroUsd: number | null
-						hasKnownMinBadDebt: boolean
-						hasUnknownMinBadDebt: boolean
-					}
-				>
-			},
-			row: TokenRiskExposureRow
-		) => {
-			const chainKey = `${row.chain}|${row.chainDisplayName}`
-			const existing = summary.chainBreakdowns.get(chainKey)
-
-			if (existing) {
-				existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
-				if (row.minBadDebtAtPriceZeroUsd != null) {
-					existing.totalMinBadDebtAtPriceZeroUsd =
-						(existing.totalMinBadDebtAtPriceZeroUsd ?? 0) + row.minBadDebtAtPriceZeroUsd
-					existing.hasKnownMinBadDebt = true
-				}
-				if (row.minBadDebtAtPriceZeroCoverage !== 'known') {
-					existing.hasUnknownMinBadDebt = true
-				}
-				return
-			}
-
-			summary.chainBreakdowns.set(chainKey, {
-				chain: row.chain,
-				chainDisplayName: row.chainDisplayName,
-				totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
-				totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
-				hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
-				hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known'
-			})
-		}
-
-		for (const row of exposures.rows) {
-			const existing = grouped.get(row.protocol)
-
-			if (existing) {
-				existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
-				if (row.minBadDebtAtPriceZeroUsd != null) {
-					existing.totalMinBadDebtAtPriceZeroUsd =
-						(existing.totalMinBadDebtAtPriceZeroUsd ?? 0) + row.minBadDebtAtPriceZeroUsd
-					existing.hasKnownMinBadDebt = true
-				}
-				if (row.minBadDebtAtPriceZeroCoverage !== 'known') {
-					existing.hasUnknownMinBadDebt = true
-				}
-				addChainBreakdown(existing, row)
-				continue
-			}
-
-			const protocolSummary = {
-				protocol: row.protocol,
-				protocolDisplayName: row.protocolDisplayName,
-				totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
-				totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
-				hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
-				hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known',
-				chainBreakdowns: new Map()
-			}
-			addChainBreakdown(protocolSummary, row)
-			grouped.set(row.protocol, protocolSummary)
-		}
-
-		return [...grouped.values()]
-			.map((summary) => {
-				const minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus = summary.hasKnownMinBadDebt
-					? summary.hasUnknownMinBadDebt
-						? 'partial'
-						: 'known'
-					: 'unavailable'
-				const chainBreakdowns = [...summary.chainBreakdowns.values()]
-					.map<ChainExposureSummary>((chain) => {
-						const chainMinBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus = chain.hasKnownMinBadDebt
-							? chain.hasUnknownMinBadDebt
-								? 'partial'
-								: 'known'
-							: 'unavailable'
-
-						return {
-							chain: chain.chain,
-							chainDisplayName: chain.chainDisplayName,
-							totalCurrentMaxBorrowUsd: chain.totalCurrentMaxBorrowUsd,
-							totalMinBadDebtAtPriceZeroUsd: chain.totalMinBadDebtAtPriceZeroUsd,
-							minBadDebtAtPriceZeroCoverage: chainMinBadDebtAtPriceZeroCoverage
-						}
-					})
-					.sort((a, b) => {
-						const aTotal = a.totalCurrentMaxBorrowUsd + (a.totalMinBadDebtAtPriceZeroUsd ?? 0)
-						const bTotal = b.totalCurrentMaxBorrowUsd + (b.totalMinBadDebtAtPriceZeroUsd ?? 0)
-						if (aTotal !== bTotal) return bTotal - aTotal
-						return a.chainDisplayName.localeCompare(b.chainDisplayName)
-					})
-
-				return {
-					protocol: summary.protocol,
-					protocolDisplayName: summary.protocolDisplayName,
-					totalCurrentMaxBorrowUsd: summary.totalCurrentMaxBorrowUsd,
-					totalMinBadDebtAtPriceZeroUsd: summary.totalMinBadDebtAtPriceZeroUsd,
-					minBadDebtAtPriceZeroCoverage,
-					chainBreakdowns
-				}
-			})
-			.sort((a, b) => {
-				if (a.totalCurrentMaxBorrowUsd !== b.totalCurrentMaxBorrowUsd) {
-					return b.totalCurrentMaxBorrowUsd - a.totalCurrentMaxBorrowUsd
-				}
-
-				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
-			})
-	}, [exposures.rows])
-
 	const selectedCandidateDisplayName = useMemo(() => {
 		if (scopeCandidates.length === 1) return scopeCandidates[0].displayName
 		return 'onchain'
@@ -430,7 +275,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 
 				<div className="rounded-md border border-(--cards-border) p-3">
 					<div className="space-y-3">
-						{protocolSummaries.map((summary) => (
+						{exposures.protocolSummaries.map((summary) => (
 							<div
 								key={summary.protocol}
 								className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"

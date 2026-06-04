@@ -21,6 +21,7 @@ import { getTokenBorrowRoutes, getTokenYieldsRows } from '~/server/datasetCache/
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import type { TokenRiskResponse } from '../tokenRisk.types'
+import { buildTokenRiskProtocolSummaries } from '../tokenRisk.utils'
 import type { RiskTimelineResponse } from '../tokenRiskTimeline.types'
 
 const { capturedTokenNavSections, renderedTokenSections } = vi.hoisted(() => ({
@@ -1407,6 +1408,20 @@ describe('token page', () => {
 		expect(renderedTokenSections).not.toContain('token-borrow')
 		expect(renderedTokenSections).not.toContain('token-risks')
 
+		const riskRows: TokenRiskResponse['exposures']['rows'] = [
+			{
+				protocol: 'aave-v3',
+				protocolDisplayName: 'Aave V3',
+				chain: 'ethereum',
+				chainDisplayName: 'Ethereum',
+				assetSymbol: 'LINK',
+				assetAddress: '0x5149',
+				currentMaxBorrowUsd: 10,
+				minBadDebtAtPriceZeroUsd: 6,
+				minBadDebtAtPriceZeroCoverage: 'known'
+			}
+		]
+
 		state.tokenRiskData = {
 			candidates: [{ key: 'ethereum:0x5149', chain: 'ethereum', address: '0x5149', displayName: 'Ethereum' }],
 			scopeCandidates: [{ key: 'ethereum:0x5149', chain: 'ethereum', address: '0x5149', displayName: 'Ethereum' }],
@@ -1421,19 +1436,8 @@ describe('token page', () => {
 					minBadDebtKnownCount: 1,
 					minBadDebtUnknownCount: 0
 				},
-				rows: [
-					{
-						protocol: 'aave-v3',
-						protocolDisplayName: 'Aave V3',
-						chain: 'ethereum',
-						chainDisplayName: 'Ethereum',
-						assetSymbol: 'LINK',
-						assetAddress: '0x5149',
-						currentMaxBorrowUsd: 10,
-						minBadDebtAtPriceZeroUsd: 6,
-						minBadDebtAtPriceZeroCoverage: 'known'
-					}
-				],
+				rows: riskRows,
+				protocolSummaries: buildTokenRiskProtocolSummaries(riskRows),
 				methodologies: {
 					asset: 'asset',
 					currentMaxBorrowUsd: 'cap',
