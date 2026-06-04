@@ -725,7 +725,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			has_active_subscription: authStoreState.record.has_active_subscription,
 			flags: authStoreState.record.flags ?? {},
 			ethereum_email: authStoreState.record.ethereum_email,
-			promotionalEmails: authStoreState.record.promotionalEmails as PromotionalEmailsValue | undefined
+			promotionalEmails: authStoreState.record.promotionalEmails as PromotionalEmailsValue | undefined,
+			referral_code: authStoreState.record.referral_code
 		} as AuthModel
 	}, [authStoreState])
 
