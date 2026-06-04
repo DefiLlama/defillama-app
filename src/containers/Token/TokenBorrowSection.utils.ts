@@ -1,5 +1,11 @@
 import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 
+function parseAvailableBound(value: string) {
+	if (value === '') return null
+	const numericValue = Number(value)
+	return Number.isFinite(numericValue) ? numericValue : null
+}
+
 export function filterBorrowRows({
 	rows,
 	selectedChains,
@@ -11,8 +17,8 @@ export function filterBorrowRows({
 	minAvailable: string
 	maxAvailable: string
 }) {
-	const minAvailableValue = minAvailable === '' ? null : Number(minAvailable)
-	const maxAvailableValue = maxAvailable === '' ? null : Number(maxAvailable)
+	const minAvailableValue = parseAvailableBound(minAvailable)
+	const maxAvailableValue = parseAvailableBound(maxAvailable)
 	const chainSet = new Set(selectedChains)
 
 	return rows.filter((row) => {
