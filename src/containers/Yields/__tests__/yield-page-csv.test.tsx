@@ -98,6 +98,10 @@ vi.mock('../Tables/Pools', () => ({
 	PaginatedYieldsPoolTable: () => <div data-testid="paginated-yield-pools-table" />
 }))
 
+vi.mock('~/components/Newsletter/NewsletterSignup', () => ({
+	NewsletterSignup: () => null
+}))
+
 function pool(id: number, overrides: Record<string, unknown> = {}) {
 	return {
 		pool: `pool-${id}`,

@@ -8,6 +8,9 @@ bun run lint || status=$?
 echo "Running bun run ts..."
 bun run ts || status=$?
 
+echo "Running bun run test..."
+bun run test || status=$?
+
 if [ "$status" -ne 0 ]; then
 	echo "Pre-commit checks failed."
 	exit "$status"
