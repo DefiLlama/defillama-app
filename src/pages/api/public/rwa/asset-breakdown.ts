@@ -8,6 +8,12 @@ import type {
 	RWAChartMetricKey,
 	RWAAssetChartTarget
 } from '~/containers/RWA/api.types'
+import {
+	hasExactlyOneTarget,
+	parseBooleanQueryFlag,
+	parseEnumQueryValue,
+	parseOptionalStringTarget
+} from '~/containers/RWA/requestParsers'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchJson } from '~/utils/async'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
@@ -19,6 +25,7 @@ type RWAAssetBreakdownRequest = {
 	includeStablecoin: boolean
 	includeGovernance: boolean
 }
+const RWA_CHART_METRIC_KEYS = ['onChainMcap', 'activeMcap', 'defiActiveTvl'] as const
 
 export function buildAssetBreakdownUrl(request: RWAAssetBreakdownRequest): string {
 	let pathname: string
@@ -60,50 +67,30 @@ function assertNever(value: never): never {
 }
 
 function parseChartMetricKey(value: string | string[] | undefined): RWAChartMetricKey | null {
-	if (Array.isArray(value) || value == null) return null
-	if (value === 'onChainMcap' || value === 'activeMcap' || value === 'defiActiveTvl') return value
-	return null
+	return parseEnumQueryValue(value, RWA_CHART_METRIC_KEYS)
 }
 
 function parseTarget(req: Pick<NextApiRequest, 'query'>): RWAAssetChartTarget | null {
-	const rawChain = req.query.chain
-	const rawCategory = req.query.category
-	const rawPlatform = req.query.platform
-	const rawAssetGroup = req.query.assetGroup
+	const chain = parseOptionalStringTarget(req.query.chain)
+	const category = parseOptionalStringTarget(req.query.category)
+	const platform = parseOptionalStringTarget(req.query.platform)
+	const assetGroup = parseOptionalStringTarget(req.query.assetGroup)
 
-	if (
-		Array.isArray(rawChain) ||
-		Array.isArray(rawCategory) ||
-		Array.isArray(rawPlatform) ||
-		Array.isArray(rawAssetGroup)
-	) {
-		return null
+	if (chain === null || category === null || platform === null || assetGroup === null) return null
+	if (!hasExactlyOneTarget([chain, category, platform, assetGroup])) {
+		return chain || category || platform || assetGroup ? null : { kind: 'all' }
 	}
-
-	const targets = [
-		rawChain ? ({ kind: 'chain', slug: rawChain } as const) : null,
-		rawCategory ? ({ kind: 'category', slug: rawCategory } as const) : null,
-		rawPlatform ? ({ kind: 'platform', slug: rawPlatform } as const) : null,
-		rawAssetGroup ? ({ kind: 'assetGroup', slug: rawAssetGroup } as const) : null
-	].filter((target) => target !== null)
-
-	if (targets.length > 1) return null
-	return targets[0] ?? { kind: 'all' }
-}
-
-function parseBooleanFlag(value: string | string[] | undefined): boolean | null {
-	if (value == null) return null
-	if (Array.isArray(value)) return null
-	if (value === 'true') return true
-	if (value === 'false') return false
-	return null
+	if (chain) return { kind: 'chain', slug: chain }
+	if (category) return { kind: 'category', slug: category }
+	if (platform) return { kind: 'platform', slug: platform }
+	return { kind: 'assetGroup', slug: assetGroup! }
 }
 
 export function parseAssetBreakdownRequest(req: Pick<NextApiRequest, 'query'>): RWAAssetBreakdownRequest | null {
 	const target = parseTarget(req)
 	const key = parseChartMetricKey(req.query.key)
-	const includeStablecoin = parseBooleanFlag(req.query.includeStablecoin)
-	const includeGovernance = parseBooleanFlag(req.query.includeGovernance)
+	const includeStablecoin = parseBooleanQueryFlag(req.query.includeStablecoin)
+	const includeGovernance = parseBooleanQueryFlag(req.query.includeGovernance)
 
 	if (target == null || key == null || includeStablecoin == null || includeGovernance == null) {
 		return null

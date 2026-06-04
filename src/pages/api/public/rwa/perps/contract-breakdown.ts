@@ -3,6 +3,7 @@ import { fetchRWAPerpsContractBreakdownChartData } from '~/containers/RWA/Perps/
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
 import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsContractBreakdownRequest } from '~/containers/RWA/Perps/types'
+import { hasExactlyOneTarget } from '~/containers/RWA/requestParsers'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -18,12 +19,9 @@ export function parseContractBreakdownRequest(
 	const assetClass = parseOptionalTarget(req.query.assetClass)
 	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
 	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
-	const targetCount =
-		Number(Boolean(venue)) +
-		Number(Boolean(assetGroup)) +
-		Number(Boolean(assetClass)) +
-		Number(Boolean(excludeAssetClass))
-	if (targetCount > 1) return null
+	if (!hasExactlyOneTarget([venue, assetGroup, assetClass, excludeAssetClass])) {
+		if (venue || assetGroup || assetClass || excludeAssetClass) return null
+	}
 
 	return {
 		key,

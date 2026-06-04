@@ -192,6 +192,9 @@ describe('rwa queries', () => {
 			source: [{ timestamp: 1_000_000, 'RWA Perps OI': 10 }],
 			dimensions: ['timestamp', 'RWA Perps OI']
 		})
+		expect(result?.totals.onChainMcap).toBe(100)
+		expect(result?.totals.activeMcap).toBe(90)
+		expect(result?.totals.defiActiveTvl).toBe(20)
 		expect(result?.types).toContain('Perp')
 		expect(result?.platforms).toContain('Ondo')
 		expect(result?.assetGroups).toContain('Treasuries')

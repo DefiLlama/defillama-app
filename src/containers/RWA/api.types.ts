@@ -114,7 +114,7 @@ export type RWAOverviewMetric = {
 	breakdown: Array<[string, number]>
 } | null
 
-export type RWAOverviewAssetBase = {
+export type RWAOverviewDisplayRowBase = {
 	id: string
 	kind: 'spot' | 'perps'
 	detailHref: string
@@ -151,20 +151,25 @@ export type RWAOverviewAssetBase = {
 	defiActiveTvlByChain?: RWAOverviewMetric
 }
 
-export type RWASpotOverviewAsset = RWAOverviewAssetBase & {
+export type RWAAssetOverviewRow = RWAOverviewDisplayRowBase & {
 	kind: 'spot'
 	canonicalMarketId: string
 }
 
-export type RWAPerpsOverviewAsset = RWAOverviewAssetBase & {
+export type RWAPerpsContractOverlayRow = RWAOverviewDisplayRowBase & {
 	kind: 'perps'
 	contract: string
 }
 
-export type RWAOverviewAsset = RWASpotOverviewAsset | RWAPerpsOverviewAsset
+export type RWAOverviewDisplayRow = RWAAssetOverviewRow | RWAPerpsContractOverlayRow
+
+export type RWAOverviewAssetBase = RWAOverviewDisplayRowBase
+export type RWASpotOverviewAsset = RWAAssetOverviewRow
+export type RWAPerpsOverviewAsset = RWAPerpsContractOverlayRow
+export type RWAOverviewAsset = RWAOverviewDisplayRow
 
 export interface IRWAAssetsOverview {
-	assets: Array<RWAOverviewAsset>
+	assets: Array<RWAOverviewDisplayRow>
 	types: Array<string>
 	typeOptions: Array<{ key: string; name: string; help?: string }>
 	assetClasses: Array<string>
