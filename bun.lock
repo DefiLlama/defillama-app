@@ -68,7 +68,7 @@
         "@types/lodash": "4.17.24",
         "@types/node": "25.6.2",
         "@types/react": "19.2.14",
-        "@typescript/native-preview": "^7.0.0-dev.20260527.2",
+        "@typescript/native-preview": "7.0.0-dev.20260527.2",
         "babel-plugin-react-compiler": "1.0.0",
         "jiti": "2.6.1",
         "oxfmt": "0.48.0",

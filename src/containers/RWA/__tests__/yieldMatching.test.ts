@@ -67,6 +67,18 @@ describe('matchRwaYieldPools', () => {
 		expect(result.yieldPoolsTotal).toBe(1)
 	})
 
+	it('skips malformed contract address lists before address matching', async () => {
+		const result = await matchRwaYieldPools(
+			{
+				...baseAsset,
+				contracts: { Ethereum: null } as any
+			},
+			yieldPoolData([pool({ pool: 'ticker-pool', symbol: 'USDC-USDY', tvlUsd: 150 })])
+		)
+
+		expect(result.yieldPools?.[0]?.configID).toBe('ticker-pool')
+	})
+
 	it('matches pools by project metadata and ticker', async () => {
 		const result = await matchRwaYieldPools(
 			{

@@ -85,6 +85,7 @@ export async function matchRwaYieldPools(
 	const addressesByChain = new Map<string, Set<string>>()
 	if (hasContracts) {
 		for (const [chain, addresses] of Object.entries(asset.contracts ?? {})) {
+			if (!Array.isArray(addresses)) continue
 			addressesByChain.set(chain.toLowerCase(), new Set(addresses.map((address) => address.toLowerCase())))
 		}
 	}
