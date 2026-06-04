@@ -74,7 +74,8 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-import { TokenBorrowSection, filterBorrowRows } from '../TokenBorrowSection'
+import { TokenBorrowSection } from '../TokenBorrowSection'
+import { filterBorrowRows } from '../TokenBorrowSection.utils'
 
 function makeBorrowRow(
 	overrides: Partial<IYieldsOptimizerTableRow> = {},

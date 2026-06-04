@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { Fragment, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import {
@@ -41,7 +41,7 @@ type TokenRouteParams = {
 const INITIAL_TOKEN_PRERENDER_LIMIT = 30
 
 type TokenPageSectionRendererMap = {
-	[Section in TokenPageSection as Section['id']]: (section: Section) => ReactNode
+	[Section in TokenPageSection as Section['id']]: (props: { section: Section }) => ReactNode
 }
 
 export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteParams>(
@@ -308,22 +308,22 @@ export const getStaticPaths = async () => {
 }
 
 const TOKEN_SECTION_RENDERERS = {
-	'token-overview': (section) => (
+	'token-overview': ({ section }) => (
 		<TokenOverviewSection overview={section.overview} geckoId={section.geckoId} logo={section.logo} />
 	),
-	'token-markets': (section) => <TokenMarketsSection tokenSymbol={section.tokenSymbol} />,
-	'token-income-statement': (section) => (
+	'token-markets': ({ section }) => <TokenMarketsSection tokenSymbol={section.tokenSymbol} />,
+	'token-income-statement': ({ section }) => (
 		<TokenIncomeStatementSection
 			protocolName={section.protocolName}
 			incomeStatement={section.incomeStatement}
 			hasIncentives={section.hasIncentives}
 		/>
 	),
-	'token-risks': (section) => <TokenRisksSection tokenSymbol={section.tokenSymbol} riskData={section.riskData} />,
-	'token-risk-timeline': (section) => (
+	'token-risks': ({ section }) => <TokenRisksSection tokenSymbol={section.tokenSymbol} riskData={section.riskData} />,
+	'token-risk-timeline': ({ section }) => (
 		<TokenRiskTimelineSection tokenSymbol={section.tokenSymbol} timelineData={section.timelineData} />
 	),
-	'token-rights-and-value-accrual': (section) => (
+	'token-rights-and-value-accrual': ({ section }) => (
 		<TokenRightsByProtocol
 			name={section.name}
 			symbol={section.symbol}
@@ -333,16 +333,20 @@ const TOKEN_SECTION_RENDERERS = {
 			headerVariant="embedded"
 		/>
 	),
-	'token-usage': (section) => <TokenUsageSection tokenSymbol={section.tokenSymbol} />,
-	'token-liquidations': (section) => <TokenLiquidationsSection tokenSymbol={section.tokenSymbol} />,
-	'token-unlocks': (section) => <TokenUnlocksSection resolvedUnlocksSlug={section.resolvedUnlocksSlug} />,
-	'token-yields': (section) => <TokenYieldsSection tokenSymbol={section.tokenSymbol} hydration={section.hydration} />,
-	'token-borrow': (section) => <TokenBorrowSection tokenSymbol={section.tokenSymbol} hydration={section.hydration} />
+	'token-usage': ({ section }) => <TokenUsageSection tokenSymbol={section.tokenSymbol} />,
+	'token-liquidations': ({ section }) => <TokenLiquidationsSection tokenSymbol={section.tokenSymbol} />,
+	'token-unlocks': ({ section }) => <TokenUnlocksSection resolvedUnlocksSlug={section.resolvedUnlocksSlug} />,
+	'token-yields': ({ section }) => (
+		<TokenYieldsSection tokenSymbol={section.tokenSymbol} hydration={section.hydration} />
+	),
+	'token-borrow': ({ section }) => (
+		<TokenBorrowSection tokenSymbol={section.tokenSymbol} hydration={section.hydration} />
+	)
 } satisfies TokenPageSectionRendererMap
 
-function renderTokenPageSection<Section extends TokenPageSection>(section: Section) {
-	const renderSection = TOKEN_SECTION_RENDERERS[section.id] as (section: Section) => ReactNode
-	return renderSection(section)
+function TokenPageSectionRenderer<Section extends TokenPageSection>({ section }: { section: Section }) {
+	const SectionRenderer = TOKEN_SECTION_RENDERERS[section.id] as (props: { section: Section }) => ReactNode
+	return <SectionRenderer section={section} />
 }
 
 export default function TokenPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
@@ -356,7 +360,7 @@ export default function TokenPage(props: InferGetStaticPropsType<typeof getStati
 					}))}
 				/>
 				{props.sections.map((section) => (
-					<Fragment key={`token-page-${section.id}`}>{renderTokenPageSection(section)}</Fragment>
+					<TokenPageSectionRenderer key={`token-page-${section.id}`} section={section} />
 				))}
 			</div>
 		</Layout>

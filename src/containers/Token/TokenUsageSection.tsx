@@ -16,19 +16,10 @@ import { Switch } from '~/components/Switch'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
-import type { RawProtocolTokenUsageEntry } from '~/containers/TokenUsage/api.types'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
 import { TokenPrivateSectionGate, useTokenPrivateSectionAccess } from './TokenPrivateSectionGate'
-
-export type TokenUsageSectionRow = {
-	name: string
-	amountUsd: number
-	category?: string
-	logo?: string
-	slug?: string
-	misrepresentedTokens?: boolean
-}
+import { buildTokenUsageRows, filterTokenUsageRows, type TokenUsageSectionRow } from './TokenUsageSection.utils'
 
 const DEFAULT_SORTING: SortingState = [{ desc: true, id: 'amountUsd' }]
 const TOKEN_USAGE_SECTION_ID = 'token-usage'
@@ -90,40 +81,6 @@ const columns = [
 		}
 	})
 ]
-
-export function buildTokenUsageRows(data: RawProtocolTokenUsageEntry[]): TokenUsageSectionRow[] {
-	return data.map((entry) => {
-		let amountUsd = 0
-		const amountUsdByChain = entry.amountUsd ?? {}
-
-		for (const chain in amountUsdByChain) {
-			const amount = amountUsdByChain[chain]
-			if (typeof amount === 'number') {
-				amountUsd += amount
-			}
-		}
-
-		return {
-			name: entry.name,
-			category: entry.category,
-			logo: typeof entry.logo === 'string' ? entry.logo : undefined,
-			slug: typeof entry.slug === 'string' ? entry.slug : undefined,
-			misrepresentedTokens: entry.misrepresentedTokens,
-			amountUsd
-		}
-	})
-}
-
-export function filterTokenUsageRows(
-	rows: TokenUsageSectionRow[],
-	includeCentralizedExchanges: boolean
-): TokenUsageSectionRow[] {
-	return rows.filter((row) => {
-		if (row.misrepresentedTokens) return false
-		if (row.category?.toLowerCase() === 'cex' && !includeCentralizedExchanges) return false
-		return true
-	})
-}
 
 async function fetchTokenUsageRows(
 	tokenSymbol: string,
