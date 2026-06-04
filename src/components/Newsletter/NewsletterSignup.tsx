@@ -122,7 +122,7 @@ export function NewsletterSignup({ layout, className }: NewsletterSignupProps) {
 						<div className="flex flex-col gap-1">
 							<span className="flex items-center gap-2 text-base font-bold tracking-tight whitespace-nowrap text-(--text-primary) @sm:text-lg">
 								<Icon name="mail-rounded" height={20} width={20} className="shrink-0 text-(--sub-brand-primary)" />
-								Subscribe to DefiLlama
+								Subscribe to the DefiLlama Newsletter
 							</span>
 							<span className="max-w-md text-sm text-(--text-primary)/55">
 								Get DefiLlama's newsletter, Research updates, or both, delivered to your inbox.
