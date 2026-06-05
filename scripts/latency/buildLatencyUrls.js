@@ -282,14 +282,14 @@ const SOURCES = {
 		return (Array.isArray(r) ? r : []).map((c) => c.id).filter(Boolean)
 	},
 	rwaAssets: async () => (await fetchJson('https://api.llama.fi/rwa/list')).canonicalMarketIds || [],
-	rwaAssetGroups: async () =>
-		((await fetchJson('https://api.llama.fi/rwa/list')).assetGroups || []).map(sluggify),
+	rwaAssetGroups: async () => ((await fetchJson('https://api.llama.fi/rwa/list')).assetGroups || []).map(sluggify),
 	rwaCategories: async () => ((await fetchJson('https://api.llama.fi/rwa/list')).categories || []).map(sluggify),
 	rwaChains: async () => ((await fetchJson('https://api.llama.fi/rwa/list')).chains || []).map(sluggify),
 	rwaPlatforms: async () => ((await fetchJson('https://api.llama.fi/rwa/list')).platforms || []).map(sluggify),
 	rwaPerpsAssetGroups: async () =>
 		((await fetchJson('https://api.llama.fi/rwa-perps/list')).assetGroups || []).map(sluggify),
-	rwaPerpsContracts: async () => ((await fetchJson('https://api.llama.fi/rwa-perps/list')).contracts || []).map(sluggify),
+	rwaPerpsContracts: async () =>
+		((await fetchJson('https://api.llama.fi/rwa-perps/list')).contracts || []).map(sluggify),
 	rwaPerpsVenues: async () => ((await fetchJson('https://api.llama.fi/rwa-perps/list')).venues || []).map(sluggify),
 	digitalAssetCompanies: async () => {
 		const r = await fetchJson('https://api.llama.fi/dat/institutions')
@@ -307,11 +307,16 @@ const SOURCES = {
 	},
 	equityTickers: async () => {
 		const r = await fetchJson('https://api.llama.fi/equities/v1/companies')
-		return (Array.isArray(r) ? r : []).map((c) => c && c.ticker).filter(Boolean).map((t) => t.toLowerCase())
+		return (Array.isArray(r) ? r : [])
+			.map((c) => c && c.ticker)
+			.filter(Boolean)
+			.map((t) => t.toLowerCase())
 	},
 	liquidationsProtocols: async () => {
 		const r = await fetchJson('https://api.llama.fi/liquidations/all')
-		return Object.keys(r || {}).map(sluggify).filter(Boolean)
+		return Object.keys(r || {})
+			.map(sluggify)
+			.filter(Boolean)
 	},
 	liquidationsProtocolChain: async () => {
 		const r = await fetchJson('https://api.llama.fi/liquidations/all')

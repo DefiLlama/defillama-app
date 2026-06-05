@@ -150,12 +150,14 @@ describe('investors landing links', () => {
 			'spark',
 			'sonic',
 			'near',
+			'flare',
 			'odyssey-ecosystem'
 		])
 		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(['odyssey-ecosystem'])
 		expect(config.getInvestorsLandingProjectHref('spark')).toBe('https://investors.defillama.com/spark')
 		expect(config.getInvestorsLandingProjectHref('sonic')).toBe('https://investors.defillama.com/sonic')
 		expect(config.getInvestorsLandingProjectHref('near')).toBe('https://investors.defillama.com/near')
+		expect(config.getInvestorsLandingProjectHref('flare')).toBe('https://investors.defillama.com/flare')
 		expect(config.getInvestorsLandingProjectHref('odyssey-ecosystem')).toBe('/odyssey-ecosystem')
 		expect(config.isInvestorsLandingProjectExternal('spark')).toBe(true)
 		expect(config.isInvestorsLandingProjectExternal('odyssey-ecosystem')).toBe(false)
@@ -164,7 +166,7 @@ describe('investors landing links', () => {
 	it('keeps investor-domain landing cards local', async () => {
 		const config = await loadInvestorsConfig('investors')
 
-		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(['spark', 'sonic', 'near'])
+		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(['spark', 'sonic', 'near', 'flare'])
 		expect(config.getInvestorsLandingProjectHref('spark')).toBe('/spark')
 		expect(config.isInvestorsLandingProjectExternal('spark')).toBe(false)
 	})

@@ -13,7 +13,12 @@ export const ALL_INVESTORS_PROJECTS = [
 export type InvestorsProject = (typeof ALL_INVESTORS_PROJECTS)[number]
 export type InvestorsProjectId = InvestorsProject['id']
 
-const INVESTORS_DOMAIN_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_DOMAIN_PROJECT_IDS = [
+	'spark',
+	'sonic',
+	'near',
+	'flare'
+] as const satisfies readonly InvestorsProjectId[]
 const ENTERPRISE_DOMAIN_PROJECT_IDS = ['odyssey-ecosystem'] as const satisfies readonly InvestorsProjectId[]
 
 type InvestorsSite = {
