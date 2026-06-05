@@ -78,9 +78,24 @@ const linksToOtherLlamaApps = [
 		description: '',
 		href: '/research',
 		icon: (
-			<svg aria-label="DefiLlama Research" role="img" height={44} width={128} className="z-10 object-contain">
-				<use href="/assets/defillama-research.svg#defillama-research-logo" />
-			</svg>
+			<span aria-label="DefiLlama Research" role="img" className="relative z-10 block h-11 w-32 shrink-0">
+				<img
+					src="/assets/research_logo_dark.webp"
+					alt=""
+					height={44}
+					width={128}
+					loading="lazy"
+					className="invisible absolute inset-0 h-full w-full object-contain dark:visible"
+				/>
+				<img
+					src="/assets/research_logo.webp"
+					alt=""
+					height={44}
+					width={128}
+					loading="lazy"
+					className="visible absolute inset-0 h-full w-full object-contain dark:invisible"
+				/>
+			</span>
 		),
 		background: <span className="llama-app-background" />
 	},
