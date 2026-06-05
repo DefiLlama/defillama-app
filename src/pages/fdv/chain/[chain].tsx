@@ -27,7 +27,7 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		if (!metadataCache.chainMetadata[chain]) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getProtocolsFDVsByChain({

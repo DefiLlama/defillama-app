@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 	`rwa/asset-group/[assetGroup]`,
 	async ({ params }: GetStaticPropsContext<{ assetGroup: string }>) => {
 		if (!params?.assetGroup) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const assetGroupSlug = rwaSlug(params.assetGroup)
@@ -48,12 +48,12 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!assetGroupName) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = await getRWAAssetsOverview({ assetGroup: assetGroupSlug, rwaList })
 		if (!props || props.assets.length === 0) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

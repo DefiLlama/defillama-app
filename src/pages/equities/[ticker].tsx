@@ -10,13 +10,13 @@ export const getStaticProps = withPerformanceLogging(
 	'equities/[ticker]',
 	async ({ params }: GetStaticPropsContext<{ ticker: string }>) => {
 		if (!params?.ticker) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = await getEquitiesTickerPageData(params.ticker)
 
 		if (!props) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

@@ -85,7 +85,8 @@ describe('liquidations SSG routes', () => {
 
 	it('returns notFound for an invalid protocol slug', async () => {
 		await expect(protocolPage.getStaticProps({ params: { protocol: 'bad' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 
@@ -123,7 +124,8 @@ describe('liquidations SSG routes', () => {
 		await expect(
 			chainPage.getStaticProps({ params: { protocol: 'sky', chain: 'bad-chain' } } as never)
 		).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 })

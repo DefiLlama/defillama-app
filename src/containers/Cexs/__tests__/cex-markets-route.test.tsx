@@ -125,7 +125,8 @@ describe('CEX markets routes', () => {
 
 	it('returns notFound for the standalone markets tab when cached markets are missing', async () => {
 		await expect(getCexMarketsStaticProps({ params: { cex: 'no-markets' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 })

@@ -23,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(
 	'bridge/[bridge]',
 	async ({ params }: GetStaticPropsContext<{ bridge: string }>): Promise<GetStaticPropsResult<BridgePageProps>> => {
 		if (!params?.bridge) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const bridge = slug(params.bridge)

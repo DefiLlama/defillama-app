@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocols/[category]',
 	async ({ params }: GetStaticPropsContext<{ category: string }>) => {
 		if (!params?.category) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const category = params.category
@@ -39,7 +39,7 @@ export const getStaticProps = withPerformanceLogging(
 		// - kind=category requires `category`
 		// - kind=tag requires `tag` + `tagCategory`
 		if (tagName && !tagCategory) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = categoryName

@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging(
 	'chains/[category]',
 	async ({ params }: GetStaticPropsContext<{ category: string }>) => {
 		if (!params?.category) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { category } = params
@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!isValidCategory) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category: normalizedCategory })

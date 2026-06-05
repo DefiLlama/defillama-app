@@ -49,7 +49,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 	async ({ params }: GetStaticPropsContext<TokenRouteParams>) => {
 		const token = params?.token
 		if (typeof token !== 'string') {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const metadataModule = await import('~/utils/metadata')

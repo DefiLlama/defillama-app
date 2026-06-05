@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 	`rwa/platform/[platform]`,
 	async ({ params }: GetStaticPropsContext<{ platform: string }>) => {
 		if (!params?.platform) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const platformSlug = rwaSlug(params.platform)
@@ -47,13 +47,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!platformName) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = await getRWAAssetsOverview({ platform: platformSlug, rwaList })
 
 		if (!props) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

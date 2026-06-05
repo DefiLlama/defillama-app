@@ -12,14 +12,14 @@ export const getStaticProps = withPerformanceLogging(
 	'bridged/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		if (!params?.chain) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { chain } = params
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const currentChainMetadata = metadataCache.chainMetadata[slug(chain)]
 		if (!currentChainMetadata || !currentChainMetadata.chainAssets) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getBridgedTVLByChain({ chain, chainMetadata: metadataCache.chainMetadata })

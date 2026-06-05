@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const chain = params.chain
 
 	if (typeof chain !== 'string') {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	const normalizedChain = isAllChain ? 'All' : chainRoute?.canonicalName
 
 	if (!normalizedChain) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const data = await getChainOverviewData({

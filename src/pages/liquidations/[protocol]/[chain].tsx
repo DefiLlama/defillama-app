@@ -30,13 +30,13 @@ export const getStaticProps = withPerformanceLogging(
 		{ props: LiquidationsChainShell; revalidate: number } | { notFound: true }
 	> => {
 		if (!params?.protocol || !params?.chain) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { resolveLiquidationsChainParams } = await import('~/server/routeCache/liquidations')
 		const route = await resolveLiquidationsChainParams(params.protocol, params.chain)
 		if (!route) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { protocolId: protocolParam, chainId, metadataCache } = route

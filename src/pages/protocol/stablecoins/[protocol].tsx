@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/stablecoins/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].stablecoins) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)

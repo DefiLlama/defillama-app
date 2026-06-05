@@ -198,7 +198,8 @@ describe('route metadata guards', () => {
 
 	it('narrative category route returns notFound before performance fetch for indexed invalid ids', async () => {
 		await expect(narrativePage.getStaticProps({ params: { category: 'bad' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 		expect(getCoinPerformanceMock).not.toHaveBeenCalled()
 	})
@@ -213,13 +214,15 @@ describe('route metadata guards', () => {
 
 	it('oracle routes return notFound before page-data fetches for invalid params', async () => {
 		await expect(oraclePage.getStaticProps({ params: { oracle: 'bad' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 		await expect(
 			oracleChainPage.getStaticProps({ params: { oracle: 'chainlink', chain: 'solana' } } as never)
-		).resolves.toEqual({ notFound: true })
+		).resolves.toEqual({ notFound: true, revalidate: expect.any(Number) })
 		await expect(oraclesByChainPage.getStaticProps({ params: { chain: 'solana' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 		expect(getOracleDetailPageDataMock).not.toHaveBeenCalled()
 		expect(getOraclesListPageDataMock).not.toHaveBeenCalled()
@@ -237,10 +240,12 @@ describe('route metadata guards', () => {
 
 	it('DAT routes return notFound before data fetches for indexed invalid slugs', async () => {
 		await expect(datAssetPage.getStaticProps({ params: { asset: 'bad' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 		await expect(datCompanyPage.getStaticProps({ params: { company: 'bad' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 		expect(getDATOverviewDataByAssetMock).not.toHaveBeenCalled()
 		expect(getDATCompanyDataMock).not.toHaveBeenCalled()
@@ -248,7 +253,8 @@ describe('route metadata guards', () => {
 
 	it('stablecoin route returns notFound before data fetch for indexed invalid slugs', async () => {
 		await expect(stablecoinPage.getStaticProps({ params: { peggedasset: 'bad' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 		expect(getStablecoinAssetPageDataMock).not.toHaveBeenCalled()
 	})

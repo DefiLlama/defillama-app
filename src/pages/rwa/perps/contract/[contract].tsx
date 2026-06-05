@@ -45,14 +45,14 @@ export const getStaticProps = withPerformanceLogging(
 	'rwa/perps/contract/[contract]',
 	async ({ params }: GetStaticPropsContext<{ contract: string }>) => {
 		if (!params?.contract) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const contractParam = safeDecodeContractParam(params.contract)
 		const canonicalContract = resolveCanonicalContract(contractParam, metadataCache.rwaPerpsList.contracts)
 		if (!canonicalContract) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const contract = await getRWAPerpsContractData({ contract: canonicalContract })

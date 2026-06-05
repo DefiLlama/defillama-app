@@ -17,13 +17,13 @@ export const getStaticProps = withPerformanceLogging<PeggedAssetPageProps>(
 	async ({ params }: GetStaticPropsContext<StablecoinAssetRouteParams>) => {
 		const peggedasset = params?.peggedasset
 		if (typeof peggedasset !== 'string') {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const peggedAssetSlug = slug(peggedasset)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		if (!metadataCache.stablecoinPeggedAssetSlugsSet.has(peggedAssetSlug)) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getStablecoinAssetPageData(peggedAssetSlug)

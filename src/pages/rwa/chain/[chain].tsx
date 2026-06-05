@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 	`rwa/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		if (!params?.chain) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const chainSlug = rwaSlug(params.chain)
@@ -46,13 +46,13 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 		if (!chainName) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = await getRWAAssetsOverview({ chain: chainSlug, rwaList })
 
 		if (!props) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

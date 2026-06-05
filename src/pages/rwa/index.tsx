@@ -11,7 +11,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/index`, async () => {
 	const rwaList = metadataCache.rwaList
 	const props = await getRWAAssetsOverview({ rwaList })
 
-	if (!props) return { notFound: true }
+	if (!props) return { notFound: true, revalidate: maxAgeForNext([22]) }
 
 	return {
 		props,

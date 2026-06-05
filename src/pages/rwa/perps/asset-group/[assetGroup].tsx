@@ -30,14 +30,14 @@ export const getStaticProps = withPerformanceLogging(
 	`rwa/perps/asset-group/[assetGroup]`,
 	async ({ params }: GetStaticPropsContext<{ assetGroup: string }>) => {
 		if (!params?.assetGroup) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const assetGroup = params.assetGroup
 		const validAssetGroups = new Set(metadataCache.rwaPerpsList.assetGroups.map((group) => rwaSlug(group)))
 		if (!validAssetGroups.has(assetGroup)) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getRWAPerpsAssetGroupPage({

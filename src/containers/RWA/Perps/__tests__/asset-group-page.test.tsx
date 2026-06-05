@@ -56,7 +56,8 @@ describe('rwa perps asset-group page', () => {
 		const page = await setupPageModule({ assetGroups: ['US Equities'] })
 
 		await expect(page.getStaticProps({ params: { assetGroup: 'private-credit' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 
