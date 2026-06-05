@@ -263,6 +263,27 @@ export function AdapterByChain(props: IProps) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
+	const rankInstance = useReactTable({
+		data: protocols,
+		columns: tableColumns,
+		state: { sorting },
+		defaultColumn: { sortUndefined: 'last' },
+		enableSortingRemoval: false,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
+
+	const sortedRankRows = rankInstance.getSortedRowModel().rows
+	const rowRankById = useMemo(() => {
+		const map = new Map<string, number>()
+		let rank = 0
+		for (const row of sortedRankRows) {
+			rank += 1
+			map.set(row.id, rank)
+		}
+		return map
+	}, [sortedRankRows])
+
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnOrders({
 		instance,
@@ -445,7 +466,7 @@ export function AdapterByChain(props: IProps) {
 						smol
 					/>
 				</div>
-				<VirtualTable instance={instance} rowSize={64} compact />
+				<VirtualTable instance={instance} rowSize={64} compact rowRankById={rowRankById} />
 			</div>
 		</>
 	)
