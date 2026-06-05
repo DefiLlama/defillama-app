@@ -1,5 +1,4 @@
 import { lazy, Suspense, useState } from 'react'
-import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
@@ -19,7 +18,7 @@ export const PaymentButton = ({
 	billingInterval?: 'year' | 'month'
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()
-	const { isAuthenticated, user } = useAuthContext()
+	const { isAuthenticated, user, promptVerifyEmail } = useAuthContext()
 	const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
 
 	const isStripe = paymentMethod === 'stripe'
@@ -37,7 +36,7 @@ export const PaymentButton = ({
 
 	const handleClick = () => {
 		if (!user?.verified && !user?.address) {
-			toast.error('Please verify your email first to subscribe')
+			promptVerifyEmail(user?.email)
 			return
 		}
 		// For Stripe, use embedded checkout modal
