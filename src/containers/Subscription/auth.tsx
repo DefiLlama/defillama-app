@@ -157,7 +157,8 @@ interface AuthContextType {
 		passwordConfirm: string,
 		turnstileToken: string,
 		promotionalEmails?: PromotionalEmailsValue,
-		onSuccess?: () => void
+		onSuccess?: () => void,
+		options?: { suppressVerifyEmailPrompt?: boolean }
 	) => Promise<void>
 	logout: () => void
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response | null>
@@ -297,6 +298,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			passwordConfirm: string
 			turnstileToken: string
 			promotionalEmails?: PromotionalEmailsValue
+			suppressVerifyEmailPrompt?: boolean
 		}) => {
 			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
 				method: 'POST',
@@ -331,7 +333,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			clearSignupSource()
 			sessionStorage.setItem('just_signed_up', 'true')
 			toast.success('Account created!', { duration: 3000 })
-			setVerifyEmailPrompt({ isOpen: true, email: variables.email })
+			if (!variables.suppressVerifyEmailPrompt) {
+				setVerifyEmailPrompt({ isOpen: true, email: variables.email })
+			}
 		},
 		onError: (error: any) => {
 			if (error?.error === 'User with this email already exists') {
@@ -353,14 +357,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			passwordConfirm: string,
 			turnstileToken: string,
 			promotionalEmails?: PromotionalEmailsValue,
-			onSuccess?: () => void
+			onSuccess?: () => void,
+			options?: { suppressVerifyEmailPrompt?: boolean }
 		) => {
 			const result = await signupMutation.mutateAsync({
 				email,
 				password,
 				passwordConfirm,
 				turnstileToken,
-				promotionalEmails
+				promotionalEmails,
+				suppressVerifyEmailPrompt: options?.suppressVerifyEmailPrompt
 			})
 			onSuccess?.()
 			return result

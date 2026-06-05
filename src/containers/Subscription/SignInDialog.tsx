@@ -35,11 +35,23 @@ const WalletSignInButton = dynamic<WalletSignInButtonProps>(
 
 /* ── Dialog entry point ─────────────────────────────────────────────── */
 
-export function SignInDialog({ store }: { store: Ariakit.DialogStore }) {
+export function SignInDialog({
+	store,
+	initialStep,
+	suppressVerifyEmailPrompt
+}: {
+	store: Ariakit.DialogStore
+	initialStep?: 'signin' | 'signup'
+	suppressVerifyEmailPrompt?: boolean
+}) {
 	return (
 		<Ariakit.Dialog store={store} className={signInDialogCls} unmountOnHide>
 			<div>
-				<SignInFlow dialogStore={store} />
+				<SignInFlow
+					dialogStore={store}
+					initialStep={initialStep}
+					suppressVerifyEmailPrompt={suppressVerifyEmailPrompt}
+				/>
 			</div>
 		</Ariakit.Dialog>
 	)
@@ -47,8 +59,16 @@ export function SignInDialog({ store }: { store: Ariakit.DialogStore }) {
 
 /* ── Multi-step flow ───────────────────────────────────────────────── */
 
-export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
-	const [step, setStep] = useState<Step>('signin')
+export function SignInFlow({
+	dialogStore,
+	initialStep = 'signin',
+	suppressVerifyEmailPrompt
+}: {
+	dialogStore: Ariakit.DialogStore
+	initialStep?: 'signin' | 'signup'
+	suppressVerifyEmailPrompt?: boolean
+}) {
+	const [step, setStep] = useState<Step>(initialStep)
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
@@ -94,7 +114,9 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 		}
 		if (!turnstileToken) return
 		try {
-			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails)
+			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails, undefined, {
+				suppressVerifyEmailPrompt
+			})
 			setTurnstileToken('')
 			dialogStore.hide()
 		} catch (err: any) {

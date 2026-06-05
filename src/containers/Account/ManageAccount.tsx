@@ -9,6 +9,7 @@ import { AuthenticationCard } from './AuthenticationCard'
 import { ReferralCard } from './ReferralCard'
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
+import { TeamInviteLanding } from './Team/TeamInviteLanding'
 import { TeamTab } from './Team/TeamTab'
 import { UserHeader } from './UserHeader'
 import { isWalletEmail, truncateAddress } from './utils'
@@ -19,6 +20,7 @@ export function ManageAccount() {
 	const { user, logout, isAuthenticated, loaders } = useAuthContext()
 
 	const queryTab = Array.isArray(router.query.tab) ? router.query.tab[0] : router.query.tab
+	const inviteToken = Array.isArray(router.query.token) ? router.query.token[0] : router.query.token
 	const [selectedTabId, setSelectedTabId] = useState<string>('account')
 
 	// Sync tab state from URL (handles initial load + back/forward navigation)
@@ -37,7 +39,7 @@ export function ManageAccount() {
 		}
 	})
 
-	if (!isClient || loaders.userLoading) {
+	if (!isClient || loaders.userLoading || !router.isReady) {
 		return (
 			<div className="flex h-64 items-center justify-center">
 				<div className="size-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
@@ -46,6 +48,11 @@ export function ManageAccount() {
 	}
 
 	if (!isAuthenticated || !user) {
+		// Team invite link opened by a logged-out (possibly unregistered) user
+		if (queryTab === 'team' && inviteToken) {
+			return <TeamInviteLanding />
+		}
+
 		return (
 			<div className="flex flex-col items-center gap-6 py-16">
 				<img src="/assets/account_avatar.png" alt="" className="size-16 rounded-full" />
