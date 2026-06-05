@@ -6,6 +6,7 @@ import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AuthenticationCard } from './AuthenticationCard'
+import { ReferralCard } from './ReferralCard'
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
 import { TeamTab } from './Team/TeamTab'
@@ -96,6 +97,7 @@ export function ManageAccount() {
 				<Ariakit.TabPanel tabId="account">
 					<div className="flex flex-col gap-3">
 						<AuthenticationCard />
+						<ReferralCard />
 						<SettingsCard />
 						<NewsletterSignup layout="card" />
 						<SubscriptionSection />
