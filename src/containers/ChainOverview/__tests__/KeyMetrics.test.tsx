@@ -23,6 +23,7 @@ vi.mock('../KeyMetricsPngExport', () => ({
 const baseProps: React.ComponentProps<typeof KeyMetrics> = {
 	metadata: { name: 'MegaETH' } as IChainOverviewData['metadata'],
 	stablecoins: null,
+	rwaActiveMcap: null,
 	chainStablecoins: null,
 	chainFees: { total24h: null, feesGenerated24h: null, topProtocolsChart: null, totalREV24h: null },
 	chainRevenue: { total24h: null },
@@ -79,5 +80,20 @@ describe('ChainOverview KeyMetrics', () => {
 
 		expect(markup).toContain('$0')
 		expect(markup).not.toContain('N/A')
+	})
+
+	it('renders RWA active market cap when available', () => {
+		const markup = renderToStaticMarkup(<KeyMetrics {...baseProps} rwaActiveMcap={123_000_000} />)
+		const text = textFromMarkup(markup)
+
+		expect(text).toContain('RWA Active Mcap')
+		expect(text).toContain('$123m')
+	})
+
+	it('hides RWA active market cap when unavailable', () => {
+		const markup = renderToStaticMarkup(<KeyMetrics {...baseProps} rwaActiveMcap={0} />)
+		const text = textFromMarkup(markup)
+
+		expect(text).not.toContain('RWA Active Mcap')
 	})
 })

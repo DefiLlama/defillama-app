@@ -41,6 +41,7 @@ export interface IChainOverviewData {
 		dominance: string | null
 		mcapChartData: Array<[number, number]> | null
 	} | null
+	rwaActiveMcap: number | null
 	chainFees: {
 		total24h: number | null
 		feesGenerated24h: number | null

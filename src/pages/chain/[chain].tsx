@@ -33,7 +33,8 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 		chainMetadata: metadataCache.chainMetadata,
 		protocolMetadata: metadataCache.protocolMetadata,
 		categoriesAndTagsMetadata: metadataCache.categoriesAndTags,
-		protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
+		protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
+		rwaChainsForActiveMcap: metadataCache.rwaList.chains
 	})
 
 	if (!data) {

@@ -7,6 +7,7 @@ import {
 	SubMetricRow as ChainSubMetricRow
 } from '~/components/MetricPrimitives'
 import { Tooltip } from '~/components/Tooltip'
+import { definitions as rwaDefinitions } from '~/containers/RWA/definitions'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { formatRaiseAmount } from '../Raises/utils'
@@ -26,6 +27,7 @@ const formatNullableCurrency = (value: number | null | undefined) => {
 interface KeyMetricsProps {
 	metadata: IChainOverviewData['metadata']
 	stablecoins: IChainOverviewData['stablecoins']
+	rwaActiveMcap: IChainOverviewData['rwaActiveMcap']
 	chainStablecoins: IChainOverviewData['chainStablecoins']
 	chainFees: IChainOverviewData['chainFees']
 	chainRevenue: IChainOverviewData['chainRevenue']
@@ -69,6 +71,7 @@ export const KeyMetrics = memo(function KeyMetrics(props: KeyMetricsProps) {
 			</div>
 			<div className="flex flex-col" ref={keyMetricsRef}>
 				<StablecoinsMcap stablecoins={props.stablecoins} isAll={props.metadata.name === 'All'} />
+				<RwaActiveMcap rwaActiveMcap={props.rwaActiveMcap} />
 				<NativeStablecoins chainStablecoins={props.chainStablecoins} />
 				{props.chainFees?.total24h != null ? (
 					<ChainMetricRow
@@ -170,6 +173,18 @@ function StablecoinsMcap({ stablecoins, isAll }: { stablecoins: IChainOverviewDa
 				<ChainSubMetricRow label={`${stablecoins.topToken.symbol} Dominance`} value={`${stablecoins.dominance}%`} />
 			) : null}
 		</ChainMetricSection>
+	)
+}
+
+function RwaActiveMcap({ rwaActiveMcap }: { rwaActiveMcap: IChainOverviewData['rwaActiveMcap'] }) {
+	if (!rwaActiveMcap) return null
+
+	return (
+		<ChainMetricRow
+			label="RWA Active Mcap"
+			tooltip={rwaDefinitions.activeMcap.description}
+			value={formattedNum(rwaActiveMcap, true)}
+		/>
 	)
 }
 

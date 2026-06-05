@@ -23,6 +23,9 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchRaises } from '~/containers/Raises/api'
 import type { RawRaisesResponse } from '~/containers/Raises/api.types'
+import { fetchRWAStats } from '~/containers/RWA/api'
+import type { IRWAStatsResponse } from '~/containers/RWA/api.types'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import type { StablecoinsListResponse } from '~/containers/Stablecoins/api.types'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
@@ -88,12 +91,34 @@ export function shouldFetchChainPerps({
 	return categoriesAndTagsMetadata?.configs?.Derivatives?.chains?.includes(currentChainMetadata.id) ?? false
 }
 
+export function getRwaActiveMcapForChain(rwaStats: IRWAStatsResponse | null, chainName: string): number | null {
+	const exactMatch = rwaStats?.byChain?.[chainName]
+	if (exactMatch) return exactMatch.base.activeMcap || null
+
+	const chainSlug = rwaSlug(chainName)
+	for (const chain in rwaStats?.byChain ?? {}) {
+		if (rwaSlug(chain) !== chainSlug) continue
+		return rwaStats.byChain[chain].base.activeMcap || null
+	}
+
+	return null
+}
+
+export function hasRwaActiveMcapChain(rwaChains: string[] | null | undefined, chainName: string): boolean {
+	const chainSlug = rwaSlug(chainName)
+	for (const chain of rwaChains ?? []) {
+		if (rwaSlug(chain) === chainSlug) return true
+	}
+	return false
+}
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
 	protocolMetadata,
 	categoriesAndTagsMetadata,
 	protocolLlamaswapDataset = null,
+	rwaChainsForActiveMcap = null,
 	phaseTimer
 }: {
 	chain: string
@@ -101,6 +126,7 @@ export async function getChainOverviewData({
 	protocolMetadata: Record<string, IProtocolMetadata>
 	categoriesAndTagsMetadata: ICategoriesAndTags
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
+	rwaChainsForActiveMcap?: string[] | null
 	phaseTimer?: RoutePhaseTimer
 }): Promise<IChainOverviewData | null> {
 	const currentChainMetadata: IChainMetadata =
@@ -112,6 +138,8 @@ export async function getChainOverviewData({
 
 	const shouldFetchDexs = shouldFetchChainDexs({ chain, currentChainMetadata, categoriesAndTagsMetadata })
 	const shouldFetchPerps = shouldFetchChainPerps({ chain, currentChainMetadata, categoriesAndTagsMetadata })
+	const shouldFetchRwaActiveMcap =
+		chain !== 'All' && hasRwaActiveMcapChain(rwaChainsForActiveMcap, currentChainMetadata.name)
 	function timePhase<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>> {
 		return phaseTimer ? phaseTimer.time(label, run) : (Promise.resolve().then(run) as Promise<Awaited<T>>)
 	}
@@ -141,7 +169,8 @@ export async function getChainOverviewData({
 			chainIncentives,
 			datInflows,
 			stablecoinsData,
-			chainStablecoins
+			chainStablecoins,
+			rwaStats
 		]: [
 			ILiteChart,
 			Awaited<ReturnType<typeof getProtocolsByChain>>,
@@ -166,7 +195,8 @@ export async function getChainOverviewData({
 			ChainIncentivesSummary | null,
 			{ chart: Array<[number, number]>; total30d: number } | null,
 			StablecoinsListResponse | null,
-			Array<string> | null
+			Array<string> | null,
+			IRWAStatsResponse | null
 		] = await Promise.all([
 			timePhase('chain_chart', () =>
 				fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {
@@ -317,6 +347,9 @@ export async function getChainOverviewData({
 							.then((data) => data.chainCoingeckoIds?.[currentChainMetadata.name]?.stablecoins ?? null)
 							.catch(() => null)
 					: Promise.resolve(null)
+			),
+			timePhase('rwa_stats', () =>
+				shouldFetchRwaActiveMcap ? fetchRWAStats().catch(() => null) : Promise.resolve(null)
 			)
 		])
 		const stopOverviewTransform = phaseTimer?.start('overview_transform')
@@ -489,7 +522,11 @@ export async function getChainOverviewData({
 			throw new Error('Missing chart data')
 		}
 
-		const isDataAvailable = charts.length > 0 || protocols.length > 0
+		const rwaActiveMcap = shouldFetchRwaActiveMcap
+			? getRwaActiveMcapForChain(rwaStats, currentChainMetadata.name)
+			: null
+		const descriptionMetrics = rwaActiveMcap != null ? [...charts, 'RWA Active Mcap'] : charts
+		const isDataAvailable = charts.length > 0 || protocols.length > 0 || rwaActiveMcap != null
 
 		const result: IChainOverviewData = {
 			chain,
@@ -512,6 +549,7 @@ export async function getChainOverviewData({
 						}
 					: null,
 			stablecoins,
+			rwaActiveMcap,
 			chainFees: {
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
@@ -557,9 +595,13 @@ export async function getChainOverviewData({
 			description:
 				currentChainMetadata.name === 'All'
 					? 'Comprehensive overview of all metrics tracked on all chains, including TVL, Stablecoins Mcap, DEXs Volume, Perps Volume, protocols on all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.'
-					: isDataAvailable
-						? `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}, including ${charts.join(', ')}, and protocols on ${currentChainMetadata.name}.`
-						: `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}`,
+					: descriptionMetrics.length > 0 && protocols.length > 0
+						? `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}, including ${descriptionMetrics.join(', ')}, and protocols on ${currentChainMetadata.name}.`
+						: descriptionMetrics.length > 0
+							? `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}, including ${descriptionMetrics.join(', ')}.`
+							: protocols.length > 0
+								? `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}, including protocols on ${currentChainMetadata.name}.`
+								: `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}`,
 			isDataAvailable,
 			datInflows: datInflows ?? null,
 			chainStablecoins:
