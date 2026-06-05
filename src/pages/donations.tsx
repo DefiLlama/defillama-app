@@ -68,8 +68,7 @@ function DonationsPage({ protocols }) {
 				<h1 className="text-lg font-semibold">Why donate?</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
-					DefiLlama is an open-source project that runs no ads and provides all data for free. We have no revenue and
-					are supported by donations.
+					DefiLlama is an open-source project that runs no ads and provides data for free.
 				</p>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
