@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Icon } from '~/components/Icon'
 import { CreateTeamCard } from './CreateTeamCard'
 import { TeamFaqCard } from './TeamFaqCard'
@@ -10,33 +10,20 @@ import { TeamMemberView } from './TeamMemberView'
 import { TeamSeatsCard } from './TeamSeatsCard'
 import { useTeam } from './useTeam'
 
+const getQueryParam = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)
+
 export function TeamTab() {
 	const router = useRouter()
-	const { team, isTeamLoading, isAdmin, acceptInviteMutation } = useTeam()
-	const acceptedRef = useRef(false)
+	const token = router.isReady ? getQueryParam(router.query.token) : undefined
+	const { team, isTeamLoading, isAdmin, inviteAcceptance } = useTeam({ inviteToken: token })
 
-	const token = Array.isArray(router.query.token) ? router.query.token[0] : router.query.token
-
-	// Auto-accept invite when ?token=XXX is present
 	useEffect(() => {
-		if (!token || acceptedRef.current) return
-		if (acceptInviteMutation.isPending || acceptInviteMutation.isSuccess || acceptInviteMutation.isError) return
+		if (!router.isReady || !token || !inviteAcceptance.isSuccess) return
+		const { token: _ignored, ...nextQuery } = router.query
+		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [inviteAcceptance.isSuccess, router, token])
 
-		acceptedRef.current = true
-		void acceptInviteMutation.mutateAsync({ token }).then(() => {
-			const { token: _ignored, ...nextQuery } = router.query
-			void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-		})
-	}, [token, acceptInviteMutation, router])
-
-	// Reset ref when token is removed from URL
-	useEffect(() => {
-		if (!token) {
-			acceptedRef.current = false
-		}
-	}, [token])
-
-	if (acceptInviteMutation.isPending) {
+	if (inviteAcceptance.isFetching && token) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-16">
 				<div className="size-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
@@ -45,7 +32,7 @@ export function TeamTab() {
 		)
 	}
 
-	if (acceptInviteMutation.isError && token) {
+	if (inviteAcceptance.isError && token) {
 		return (
 			<div className="flex flex-col items-center gap-4 py-16">
 				<div className="flex size-16 items-center justify-center rounded-full bg-(--error)/10">
@@ -54,8 +41,11 @@ export function TeamTab() {
 				<div className="flex flex-col gap-2 text-center">
 					<h2 className="text-lg font-semibold text-(--sub-ink-primary) dark:text-white">Unable to Accept Invite</h2>
 					<p className="text-sm text-(--sub-text-muted)">
-						{acceptInviteMutation.error?.message ||
+						{inviteAcceptance.error?.message ||
 							'Something went wrong. The invite may have expired or already been used.'}
+					</p>
+					<p className="text-sm text-(--sub-text-muted)">
+						Make sure you&apos;re signed in with the email address the invite was sent to.
 					</p>
 				</div>
 			</div>
