@@ -112,7 +112,9 @@ export function getStablecoinChartViewLabel(view: StablecoinChartView): string {
 export function getStablecoinDashboardChartType(
 	type: StablecoinChartType,
 	view: StablecoinChartView
-): StablecoinDashboardChartType {
+): StablecoinDashboardChartType | null {
+	// Stablecoin dashboard configs do not currently support volume charts.
+	if (type === 'volume') return null
 	if (type === 'inflows') return view === 'token' ? 'tokenInflows' : 'usdInflows'
 	if (view === 'breakdown') return 'tokenMcaps'
 	if (view === 'dominance') return 'dominance'

@@ -216,15 +216,16 @@ export function ChainsWithStablecoins({
 		(chartType === 'marketCap' && (chartView === 'breakdown' || chartView === 'dominance')) ||
 		(chartType === 'volume' && chartView !== 'total')
 
-	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
-		() => ({
-			id: `stablecoins-All-${getStablecoinDashboardChartType(chartType, chartView)}`,
+	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig | null>(() => {
+		const dashboardChartType = getStablecoinDashboardChartType(chartType, chartView)
+		if (!dashboardChartType) return null
+		return {
+			id: `stablecoins-All-${dashboardChartType}`,
 			kind: 'stablecoins',
 			chain: 'All',
-			chartType: getStablecoinDashboardChartType(chartType, chartView)
-		}),
-		[chartType, chartView]
-	)
+			chartType: dashboardChartType
+		}
+	}, [chartType, chartView])
 
 	const exportMeta = React.useMemo(() => {
 		const label = `${getStablecoinChartTypeLabel(chartType)} ${getStablecoinChartViewLabel(chartView)}`
@@ -316,7 +317,10 @@ export function ChainsWithStablecoins({
 							labelType="none"
 							variant="filter"
 						/>
-						{chartType === 'volume' || chartView === 'hbar' || chartView === 'treemap' ? null : (
+						{stablecoinsChartConfig == null ||
+						chartType === 'volume' ||
+						chartView === 'hbar' ||
+						chartView === 'treemap' ? null : (
 							<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 						)}
 						{chartType === 'volume' ? (

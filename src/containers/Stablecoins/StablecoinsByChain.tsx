@@ -240,7 +240,7 @@ export function StablecoinsByChain({
 		title = `${selectedChain} Stablecoins Market Cap`
 	}
 
-	const chartTypeConfig = getStablecoinDashboardChartType(chartType, chartView)
+	const dashboardChartType = getStablecoinDashboardChartType(chartType, chartView)
 	const isVolumeChart = volumeChartKind != null
 	const overviewChartType = getStablecoinOverviewSeriesChart(chartType, chartView)
 	const isMarketCapTableChart =
@@ -294,12 +294,14 @@ export function StablecoinsByChain({
 	const dominance = chartSummary?.dominance ?? null
 	const topTokenSymbol = chartSummary?.topToken.symbol ?? 'USDT'
 
-	const stablecoinsChartConfig: StablecoinsChartConfig = {
-		id: `stablecoins-${selectedChain}-${chartTypeConfig}`,
-		kind: 'stablecoins',
-		chain: selectedChain,
-		chartType: chartTypeConfig
-	}
+	const stablecoinsChartConfig: StablecoinsChartConfig | null = dashboardChartType
+		? {
+				id: `stablecoins-${selectedChain}-${dashboardChartType}`,
+				kind: 'stablecoins',
+				chain: selectedChain,
+				chartType: dashboardChartType
+			}
+		: null
 
 	const getImageExportTitle = () => {
 		const chainPrefix = selectedChain !== 'All' ? `${selectedChain} ` : ''
@@ -444,7 +446,10 @@ export function StablecoinsByChain({
 							labelType="none"
 							variant="filter"
 						/>
-						{isVolumeChart || chartView === 'hbar' || chartView === 'treemap' ? null : (
+						{stablecoinsChartConfig == null ||
+						isVolumeChart ||
+						chartView === 'hbar' ||
+						chartView === 'treemap' ? null : (
 							<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 						)}
 						{isVolumeChart ? (

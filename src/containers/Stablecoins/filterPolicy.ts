@@ -359,9 +359,11 @@ export const matchesStablecoinFilters = (asset: StablecoinFilterableItem, state:
 	if (!matchesAnySelectedOption(asset, state.selectedPegTypes, stablecoinPegTypeOptionsByKey)) return false
 	if (!matchesAnySelectedOption(asset, state.selectedBackings, stablecoinBackingOptionsByKey)) return false
 
-	const mcap = asset.mcap ?? 0
-	if (state.minMcap != null && mcap < state.minMcap) return false
-	if (state.maxMcap != null && mcap > state.maxMcap) return false
+	if (state.minMcap != null || state.maxMcap != null) {
+		if (asset.mcap == null) return false
+		if (state.minMcap != null && asset.mcap < state.minMcap) return false
+		if (state.maxMcap != null && asset.mcap > state.maxMcap) return false
+	}
 	return true
 }
 

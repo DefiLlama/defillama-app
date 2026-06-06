@@ -85,6 +85,31 @@ describe('stablecoin filter policy', () => {
 		expect(filterStablecoinAssets(assets, state).map((asset) => asset.symbol)).toEqual(['USDC'])
 	})
 
+	it('excludes assets without mcap only when a mcap range is active', () => {
+		const assets = [
+			stablecoin({ name: 'USD Coin', symbol: 'USDC', mcap: 100, pegDeviation: 0 }),
+			stablecoin({ name: 'No Cap USD', symbol: 'NOCAP', mcap: null, pegDeviation: 0 })
+		]
+
+		expect(
+			filterStablecoinAssets(
+				assets,
+				resolveStablecoinFilterState({
+					attribute: 'stable'
+				})
+			).map((asset) => asset.symbol)
+		).toEqual(['USDC', 'NOCAP'])
+		expect(
+			filterStablecoinAssets(
+				assets,
+				resolveStablecoinFilterState({
+					attribute: 'stable',
+					maxMcap: '150'
+				})
+			).map((asset) => asset.symbol)
+		).toEqual(['USDC'])
+	})
+
 	it('marks invalid mcap query values active without applying a range', () => {
 		const state = resolveStablecoinFilterState({ minMcap: 'not-a-number' })
 

@@ -95,6 +95,7 @@ describe('stablecoin chart state', () => {
 		expect(getStablecoinDashboardChartType('marketCap', 'pie')).toBe('pie')
 		expect(getStablecoinDashboardChartType('inflows', 'usd')).toBe('usdInflows')
 		expect(getStablecoinDashboardChartType('inflows', 'token')).toBe('tokenInflows')
+		expect(getStablecoinDashboardChartType('volume', 'total')).toBeNull()
 	})
 
 	it('maps chart state to overview series chart requests', () => {
