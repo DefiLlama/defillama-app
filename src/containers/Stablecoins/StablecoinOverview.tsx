@@ -17,9 +17,12 @@ import { Select } from '~/components/Select/Select'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import type { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
+import type { StablecoinAssetChartConfig } from '~/containers/ProDashboard/types'
 import type { StablecoinChartSeriesPayload } from '~/containers/Stablecoins/chartSeries'
 import {
+	getStablecoinAssetDashboardChartType,
+	getStablecoinAssetSeriesChart,
+	getStablecoinAssetVolumeChartKind,
 	getStablecoinChartTypeLabel,
 	getStablecoinChartTypeOptions,
 	getStablecoinChartTypeQueryValue,
@@ -37,7 +40,6 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { peggedAssetIconUrl } from '~/utils/icons'
 import { isTruthyQueryParam, pushShallowQuery } from '~/utils/routerQuery'
-import type { StablecoinVolumeTokenChartKind } from './api.types'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
 import { groupStablecoinVolumeChartPayload } from './volumeChart'
@@ -57,22 +59,6 @@ const risksHelperTexts: Record<string, string> = {
 
 const ASSET_CHART_MODE = { page: 'asset' } as const
 const UNRELEASED_QUERY_KEY = 'unreleased'
-
-const getAssetChartConfigType = (chartView: StablecoinChartView): StablecoinAssetChartType => {
-	if (chartView === 'total') return 'totalCirc'
-	if (chartView === 'dominance') return 'chainDominance'
-	if (chartView === 'breakdown') return 'chainMcaps'
-	return 'chainPie'
-}
-
-const getAssetVolumeChartKind = (
-	chartType: StablecoinChartCategory,
-	chartView: StablecoinChartView
-): StablecoinVolumeTokenChartKind | null => {
-	if (chartType !== 'volume') return null
-	if (chartView === 'byChain') return 'chain'
-	return 'total'
-}
 
 export default function PeggedContainer(props: PeggedAssetPageProps) {
 	return (
@@ -206,19 +192,18 @@ export const PeggedAssetInfo = ({
 
 	const dashboardChartConfig: StablecoinAssetChartConfig = React.useMemo(
 		() => ({
-			id: `stablecoin-asset-${slug(name)}-${getAssetChartConfigType(chartView)}`,
+			id: `stablecoin-asset-${slug(name)}-${getStablecoinAssetDashboardChartType(chartView)}`,
 			kind: 'stablecoin-asset',
 			stablecoin: name,
 			stablecoinId: slug(name),
-			chartType: getAssetChartConfigType(chartView),
+			chartType: getStablecoinAssetDashboardChartType(chartView),
 			colSpan: 1
 		}),
 		[name, chartView]
 	)
 
-	const assetChartType = chartType === 'marketCap' ? getAssetChartConfigType(chartView) : null
-	const selectedSeriesChart = assetChartType === 'chainPie' ? null : assetChartType
-	const volumeChartKind = getAssetVolumeChartKind(chartType, chartView)
+	const selectedSeriesChart = getStablecoinAssetSeriesChart(chartType, chartView)
+	const volumeChartKind = getStablecoinAssetVolumeChartKind(chartType, chartView)
 	const volumeToken = symbol && symbol !== '-' ? symbol : null
 	const volumeChartQuery = useStablecoinVolumeChartData({
 		scope: 'token',

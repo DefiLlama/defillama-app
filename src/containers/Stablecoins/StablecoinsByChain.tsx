@@ -25,16 +25,19 @@ import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
-import type { StablecoinChartSeriesPayload, StablecoinOverviewChartType } from '~/containers/Stablecoins/chartSeries'
+import type { StablecoinsChartConfig } from '~/containers/ProDashboard/types'
+import type { StablecoinChartSeriesPayload } from '~/containers/Stablecoins/chartSeries'
 import {
 	createStablecoinOverviewChartMode,
+	getStablecoinDashboardChartType,
 	getStablecoinChartTypeLabel,
 	getStablecoinChartTypeOptions,
 	getStablecoinChartTypeQueryValue,
 	getStablecoinChartViewLabel,
 	getStablecoinChartViewOptions,
 	getStablecoinChartViewQueryValue,
+	getStablecoinOverviewSeriesChart,
+	getStablecoinOverviewVolumeChartKind,
 	parseStablecoinChartState,
 	parseStablecoinVolumeGroupBy,
 	type StablecoinChartType as StablecoinChartCategory,
@@ -78,46 +81,6 @@ interface StablecoinsByChainProps {
 }
 
 const INFLOWS_TOOLTIP_FORMATTER = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
-
-const mapChartStateToConfig = (
-	chartType: StablecoinChartCategory,
-	chartView: StablecoinChartView
-): StablecoinChartType => {
-	if (chartType === 'inflows') return chartView === 'token' ? 'tokenInflows' : 'usdInflows'
-	if (chartView === 'breakdown') return 'tokenMcaps'
-	if (chartView === 'dominance') return 'dominance'
-	if (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap') return 'pie'
-	return 'totalMcap'
-}
-
-const getOverviewChartType = (
-	chartType: StablecoinChartCategory,
-	chartView: StablecoinChartView
-): StablecoinOverviewChartType | null => {
-	if (chartType === 'inflows') return chartView === 'token' ? 'tokenInflows' : 'usdInflows'
-	if (chartType !== 'marketCap') return null
-	if (chartView === 'total') return 'totalMcap'
-	if (chartView === 'breakdown') return 'tokenMcaps'
-	if (chartView === 'dominance') return 'dominance'
-	return null
-}
-
-const getVolumeChartKind = (
-	chartType: StablecoinChartCategory,
-	chartView: StablecoinChartView,
-	selectedChain: string
-): StablecoinVolumeGlobalChartKind | StablecoinVolumeChainChartKind | null => {
-	if (chartType !== 'volume') return null
-	if (selectedChain !== 'All') {
-		if (chartView === 'byToken') return 'token'
-		if (chartView === 'byCurrency') return 'currency'
-		return 'total'
-	}
-	if (chartView === 'byChain') return 'chain'
-	if (chartView === 'byToken') return 'token'
-	if (chartView === 'byCurrency') return 'currency'
-	return 'total'
-}
 
 export function StablecoinsByChain({
 	selectedChain = 'All',
@@ -163,7 +126,7 @@ export function StablecoinsByChain({
 		},
 		[router]
 	)
-	const volumeChartKind = getVolumeChartKind(chartType, chartView, selectedChain)
+	const volumeChartKind = getStablecoinOverviewVolumeChartKind(chartType, chartView, selectedChain)
 	const volumeChartQuery = useStablecoinVolumeChartData(
 		selectedChain === 'All'
 			? {
@@ -277,9 +240,9 @@ export function StablecoinsByChain({
 		title = `${selectedChain} Stablecoins Market Cap`
 	}
 
-	const chartTypeConfig = mapChartStateToConfig(chartType, chartView)
+	const chartTypeConfig = getStablecoinDashboardChartType(chartType, chartView)
 	const isVolumeChart = volumeChartKind != null
-	const overviewChartType = getOverviewChartType(chartType, chartView)
+	const overviewChartType = getStablecoinOverviewSeriesChart(chartType, chartView)
 	const isMarketCapTableChart =
 		chartType === 'marketCap' && (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap')
 	const shouldFetchOverviewChart =

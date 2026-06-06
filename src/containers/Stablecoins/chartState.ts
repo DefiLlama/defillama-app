@@ -1,6 +1,20 @@
 import type { ParsedUrlQuery } from 'querystring'
 import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
+import type {
+	StablecoinAssetChartType as StablecoinDashboardAssetChartType,
+	StablecoinChartType as StablecoinDashboardChartType
+} from '~/containers/ProDashboard/types'
 import { readSingleQueryValue } from '~/utils/routerQuery'
+import type {
+	StablecoinVolumeChainChartKind,
+	StablecoinVolumeGlobalChartKind,
+	StablecoinVolumeTokenChartKind
+} from './api.types'
+import type {
+	StablecoinAssetChartType as StablecoinAssetSeriesChartType,
+	StablecoinChainsChartType,
+	StablecoinOverviewChartType
+} from './chartSeries'
 
 export type StablecoinChartType = 'marketCap' | 'volume' | 'inflows'
 export type StablecoinChartView =
@@ -93,6 +107,103 @@ export function getStablecoinChartTypeLabel(type: StablecoinChartType): string {
 
 export function getStablecoinChartViewLabel(view: StablecoinChartView): string {
 	return VIEW_OPTIONS[view].name
+}
+
+export function getStablecoinDashboardChartType(
+	type: StablecoinChartType,
+	view: StablecoinChartView
+): StablecoinDashboardChartType {
+	if (type === 'inflows') return view === 'token' ? 'tokenInflows' : 'usdInflows'
+	if (view === 'breakdown') return 'tokenMcaps'
+	if (view === 'dominance') return 'dominance'
+	if (view === 'pie' || view === 'hbar' || view === 'treemap') return 'pie'
+	return 'totalMcap'
+}
+
+export function getStablecoinAssetDashboardChartType(view: StablecoinChartView): StablecoinDashboardAssetChartType {
+	if (view === 'total') return 'totalCirc'
+	if (view === 'dominance') return 'chainDominance'
+	if (view === 'breakdown') return 'chainMcaps'
+	return 'chainPie'
+}
+
+export function getStablecoinOverviewSeriesChart(
+	type: StablecoinChartType,
+	view: StablecoinChartView
+): StablecoinOverviewChartType | null {
+	if (type === 'inflows') return view === 'token' ? 'tokenInflows' : 'usdInflows'
+	if (type !== 'marketCap') return null
+	if (view === 'total') return 'totalMcap'
+	if (view === 'breakdown') return 'tokenMcaps'
+	if (view === 'dominance') return 'dominance'
+	return null
+}
+
+export function getStablecoinChainsSeriesChart(
+	type: StablecoinChartType,
+	view: StablecoinChartView
+): StablecoinChainsChartType | null {
+	if (type !== 'marketCap') return null
+	if (view === 'total') return 'totalMcap'
+	if (view === 'breakdown') return 'chainMcaps'
+	if (view === 'dominance') return 'dominance'
+	return null
+}
+
+export function getStablecoinAssetSeriesChart(
+	type: StablecoinChartType,
+	view: StablecoinChartView
+): StablecoinAssetSeriesChartType | null {
+	if (type !== 'marketCap') return null
+	const assetChartType = getStablecoinAssetDashboardChartType(view)
+	return assetChartType === 'chainPie' ? null : assetChartType
+}
+
+export function getStablecoinOverviewVolumeChartKind(
+	type: StablecoinChartType,
+	view: StablecoinChartView,
+	selectedChain: 'All'
+): StablecoinVolumeGlobalChartKind | null
+export function getStablecoinOverviewVolumeChartKind(
+	type: StablecoinChartType,
+	view: StablecoinChartView,
+	selectedChain: string
+): StablecoinVolumeChainChartKind | null
+export function getStablecoinOverviewVolumeChartKind(
+	type: StablecoinChartType,
+	view: StablecoinChartView,
+	selectedChain: string
+): StablecoinVolumeGlobalChartKind | StablecoinVolumeChainChartKind | null {
+	if (type !== 'volume') return null
+	if (selectedChain !== 'All') {
+		if (view === 'byToken') return 'token'
+		if (view === 'byCurrency') return 'currency'
+		return 'total'
+	}
+	if (view === 'byChain') return 'chain'
+	if (view === 'byToken') return 'token'
+	if (view === 'byCurrency') return 'currency'
+	return 'total'
+}
+
+export function getStablecoinChainsVolumeChartKind(
+	type: StablecoinChartType,
+	view: StablecoinChartView
+): StablecoinVolumeGlobalChartKind | null {
+	if (type !== 'volume') return null
+	if (view === 'byChain') return 'chain'
+	if (view === 'byToken') return 'token'
+	if (view === 'byCurrency') return 'currency'
+	return 'total'
+}
+
+export function getStablecoinAssetVolumeChartKind(
+	type: StablecoinChartType,
+	view: StablecoinChartView
+): StablecoinVolumeTokenChartKind | null {
+	if (type !== 'volume') return null
+	if (view === 'byChain') return 'chain'
+	return 'total'
 }
 
 export function getDefaultStablecoinChartType(mode: StablecoinChartMode): StablecoinChartType {
