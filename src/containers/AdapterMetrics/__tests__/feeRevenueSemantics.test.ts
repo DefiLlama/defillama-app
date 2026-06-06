@@ -19,11 +19,11 @@ vi.mock('~/components/Filters/options', () => ({
 	feesOptions: []
 }))
 
-vi.mock('~/containers/DimensionAdapters/ChainsByAdapter', () => ({
+vi.mock('~/containers/AdapterMetrics/ChainsByAdapter', () => ({
 	ChainsByAdapter: () => null
 }))
 
-vi.mock('~/containers/DimensionAdapters/queries', () => ({
+vi.mock('~/containers/AdapterMetrics/queries', () => ({
 	getChainsByAdapterPageData: mocks.getChainsByAdapterPageData,
 	getChainsByFeesAdapterPageData: mocks.getChainsByFeesAdapterPageData
 }))

@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import { slug } from '~/utils'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 

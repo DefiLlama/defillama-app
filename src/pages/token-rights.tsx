@@ -13,7 +13,7 @@ import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import type { ProtocolLite, ParentProtocolLite } from '~/containers/ProtocolLists/api.types'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
@@ -102,7 +102,7 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 	const [entries, metadataModule, holdersRevenue, { protocols: liteProtocols, parentProtocols }] = await Promise.all([
 		import('~/server/datasetCache/runtime/tokenRights').then((mod) => mod.fetchTokenRightsEntries()),
 		import('~/utils/metadata'),
-		import('~/containers/DimensionAdapters/api').then((m) =>
+		import('~/containers/AdapterMetrics/api').then((m) =>
 			m.fetchAdapterChainMetrics({
 				adapterType: ADAPTER_TYPES.FEES,
 				chain: 'All',

@@ -32,7 +32,7 @@ vi.mock('~/containers/Bridges/queries.server', () => ({
 	getBridgeOverviewPageData: getBridgeOverviewPageDataMock
 }))
 
-vi.mock('~/containers/DimensionAdapters/api', () => ({
+vi.mock('~/containers/AdapterMetrics/api', () => ({
 	fetchAdapterChainChartData: fetchAdapterChainChartDataMock,
 	fetchAdapterProtocolChartData: fetchAdapterProtocolChartDataMock
 }))

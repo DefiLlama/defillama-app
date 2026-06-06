@@ -1,5 +1,5 @@
 import type { IChainMetadata } from '~/utils/metadata/types'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../AdapterMetrics/constants'
 
 type ChainOverviewFeeRevenueMetricId = 'chainFees' | 'chainRevenue' | 'appFees' | 'appRevenue'
 type ChainOverviewFeeRevenueChartLabel = 'Chain Fees' | 'Chain Revenue' | 'App Fees' | 'App Revenue'

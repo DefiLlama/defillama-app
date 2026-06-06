@@ -1,5 +1,5 @@
 import type { InferGetStaticPropsType } from 'next'
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
 import { NftsByChain, type INftChainRow } from '~/containers/Nft/NftsByChain'
 import Layout from '~/layout'
 import { chainIconUrl } from '~/utils/icons'

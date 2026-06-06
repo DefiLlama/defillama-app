@@ -1,8 +1,8 @@
+import { fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { mergeMetricPeriods } from '~/containers/AdapterMetrics/metricPeriods'
+import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/AdapterMetrics/queries'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { mergeMetricPeriods } from '~/containers/DimensionAdapters/metricPeriods'
-import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
 

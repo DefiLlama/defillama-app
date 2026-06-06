@@ -12,9 +12,9 @@ implementation ownership boundaries, not public API contracts.
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`, `/chain/[chain]`, `/chart/chain/[chain]`                                                                                                                                           | `ChainOverview/`            | Chain entity overview, chain chart UI, chain overview page data, and chain-level metric summaries. Renders protocol rankings through `ProtocolRankings/`.                                         |
 | `/protocol/[protocol]`, `/chart/protocol/[protocol]`, `/protocol/*/[protocol]`                                                                                                          | `ProtocolOverview/`         | Protocol entity overview, protocol chart UI, protocol page data, metric flags, income statement, and protocol subroute layout.                                                                    |
-| `/fees`, `/revenue`, `/holders-revenue`, `/earnings`, `/pf`, `/ps` and their `/chain/[chain]` routes                                                                                    | `DimensionAdapters/`        | Adapter-backed metric pages where the main entity is a chain selection or an adapter protocol list. Fees/revenue terminology is overloaded; check `docs/metrics.md` before changing these routes. |
-| `/fees/chains`, `/revenue/chains`, `/app-fees/chains`, `/app-revenue/chains`, `/rev/chains`                                                                                             | `DimensionAdapters/`        | Chain ranking pages backed by adapter metrics. Chain-native fees/revenue and app-on-chain aggregation are different concepts.                                                                     |
-| `/dexs`, `/perps`, `/open-interest`, `/normalized-volume`, `/dex-aggregators`, `/perps-aggregators`, `/bridge-aggregators`, `/options/*` and their `/chains` or `/chain/[chain]` routes | `DimensionAdapters/`        | Generic dimension/adapter metric pages. `AdapterByChain` owns chain-detail views; `ChainsByAdapter` owns chain ranking views.                                                                     |
+| `/fees`, `/revenue`, `/holders-revenue`, `/earnings`, `/pf`, `/ps` and their `/chain/[chain]` routes                                                                                    | `AdapterMetrics/`           | Adapter-backed metric pages where the main entity is a chain selection or an adapter protocol list. Fees/revenue terminology is overloaded; check `docs/metrics.md` before changing these routes. |
+| `/fees/chains`, `/revenue/chains`, `/app-fees/chains`, `/app-revenue/chains`, `/rev/chains`                                                                                             | `AdapterMetrics/`           | Chain ranking pages backed by adapter metrics. Chain-native fees/revenue and app-on-chain aggregation are different concepts.                                                                     |
+| `/dexs`, `/perps`, `/open-interest`, `/normalized-volume`, `/dex-aggregators`, `/perps-aggregators`, `/bridge-aggregators`, `/options/*` and their `/chains` or `/chain/[chain]` routes | `AdapterMetrics/`           | Generic dimension/adapter metric pages. `AdapterByChain` owns chain-detail views; `ChainsByAdapter` owns chain ranking views.                                                                     |
 | `/chains`, `/chains/[category]`                                                                                                                                                         | `ChainsByCategory/`         | Chain directory and chain category pages, including chain TVL grouping and some chain-level summary metrics.                                                                                      |
 | `/protocols/[category]`, `/protocols/[category]/[chain]`, `/categories`, `/top-protocols`                                                                                               | `ProtocolsByCategoryOrTag/` | Protocol taxonomy/category pages. These can enrich protocol/category data with adapter metric charts.                                                                                             |
 | `/protocols`                                                                                                                                                                            | `ProtocolRankings/`         | Shared protocol ranking table and `getProtocolsByChain` read model.                                                                                                                               |
@@ -50,7 +50,7 @@ implementation ownership boundaries, not public API contracts.
 - `ProtocolLists/` is not the `/protocol/[protocol]` owner. It is a shared protocol
   list/read-model data area used by recent, airdrops, token metric pages, extra
   TVL pages, category queries, and several server helpers.
-- `DimensionAdapters/` is the adapter metric workhorse. Its name reflects upstream
+- `AdapterMetrics/` is the adapter metric workhorse. Its name reflects upstream
   adapter APIs, not route names. If a page is about fees, revenue, volume, open
   interest, P/F, or P/S by protocol or chain, start here.
 - `ProtocolRankings/` owns the shared protocol ranking table, protocol row types,
@@ -68,7 +68,7 @@ For metric routes, use these files before changing code:
   descriptions, tabs, and total tracked keys.
 - `src/containers/ChainOverview/metricSemantics.ts` for ChainOverview fee/revenue
   chart intent.
-- `src/containers/DimensionAdapters/constants.ts` for adapter and data type keys.
+- `src/containers/AdapterMetrics/constants.ts` for adapter and data type keys.
 
 ## Navigation Rules
 

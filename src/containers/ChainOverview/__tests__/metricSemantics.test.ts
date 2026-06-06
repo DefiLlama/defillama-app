@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import {
 	chainOverviewFeeRevenueMetrics,
 	getChainOverviewFeeRevenueChartApiParams,

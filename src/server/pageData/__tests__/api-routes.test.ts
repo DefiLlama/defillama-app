@@ -1,6 +1,6 @@
 import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 const {
@@ -23,7 +23,7 @@ vi.mock('~/containers/ChainsByCategory/queries', () => ({
 	getChainsByCategoryChartData: getChainsByCategoryChartDataMock
 }))
 
-vi.mock('~/containers/DimensionAdapters/queries', () => ({
+vi.mock('~/containers/AdapterMetrics/queries', () => ({
 	getChainsByAdapterAllChains: getChainsByAdapterAllChainsMock,
 	getChainsByAdapterChartData: getChainsByAdapterChartDataMock
 }))

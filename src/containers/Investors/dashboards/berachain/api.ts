@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterProtocolChartData } from '~/containers/AdapterMetrics/api'
 import ChainCharts from '~/containers/ProDashboard/services/ChainCharts'
 
 const STALE_TIME = 10 * 60 * 1000

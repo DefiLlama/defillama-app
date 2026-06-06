@@ -22,11 +22,11 @@ vi.mock('~/containers/Chains/api', () => ({
 	fetchChainsByCategory: fetchChainsByCategoryMock
 }))
 
-vi.mock('~/containers/DimensionAdapters/api', () => ({
+vi.mock('~/containers/AdapterMetrics/api', () => ({
 	fetchAdapterChainMetrics: fetchAdapterChainMetricsMock
 }))
 
-vi.mock('~/containers/DimensionAdapters/queries', () => ({
+vi.mock('~/containers/AdapterMetrics/queries', () => ({
 	getDimensionAdapterOverviewOfAllChains: getDimensionAdapterOverviewOfAllChainsMock
 }))
 

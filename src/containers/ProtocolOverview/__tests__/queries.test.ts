@@ -17,7 +17,7 @@ vi.mock('~/containers/Bridges/api', () => ({
 	fetchBridgeVolumeBySlug: vi.fn().mockResolvedValue({ dailyVolumes: [] })
 }))
 
-vi.mock('~/containers/DimensionAdapters/api', () => ({
+vi.mock('~/containers/AdapterMetrics/api', () => ({
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolMetrics: vi.fn().mockResolvedValue({})
 }))

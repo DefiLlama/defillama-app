@@ -2,12 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
 import { getCachedCgChartData } from '~/api/coingecko'
 import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
-import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType
-} from '~/containers/DimensionAdapters/api'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+} from '~/containers/AdapterMetrics/api'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import { fetchAndFormatGovernanceData } from '~/containers/Governance/queries.client'
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
 import { fetchOracleProtocolChart } from '~/containers/Oracles/api'

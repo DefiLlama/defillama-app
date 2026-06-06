@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
+import type { IAdapterChainMetrics } from '~/containers/AdapterMetrics/api.types'
 import type { ParentProtocolLite, ProtocolLite } from '~/containers/ProtocolLists/api.types'
 
 const {
@@ -24,7 +24,7 @@ vi.mock('~/containers/ProtocolLists/api', () => ({
 	fetchProtocols: fetchProtocolsMock
 }))
 
-vi.mock('~/containers/DimensionAdapters/api', () => ({
+vi.mock('~/containers/AdapterMetrics/api', () => ({
 	fetchAdapterChainMetrics: fetchAdapterChainMetricsMock,
 	fetchAdapterChainChartData: fetchAdapterChainChartDataMock
 }))

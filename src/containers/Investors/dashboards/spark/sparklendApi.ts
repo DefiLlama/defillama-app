@@ -5,7 +5,7 @@ import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType,
 	fetchAdapterProtocolMetrics
-} from '~/containers/DimensionAdapters/api'
+} from '~/containers/AdapterMetrics/api'
 import { fetchProtocolTvlChart } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
 

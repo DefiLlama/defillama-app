@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/AdapterMetrics/api'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
-import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
