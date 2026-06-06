@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 	},
 	getChainsByAdapterPageData: vi.fn(),
 	getChainsByFeesAdapterPageData: vi.fn(),
+	getChainsByREVPageData: vi.fn(),
 	maxAgeForNext: vi.fn(() => 22)
 }))
 
@@ -26,7 +27,8 @@ vi.mock('~/containers/AdapterMetrics/ChainsByAdapter', () => ({
 
 vi.mock('~/containers/AdapterMetrics/queries', () => ({
 	getChainsByAdapterPageData: mocks.getChainsByAdapterPageData,
-	getChainsByFeesAdapterPageData: mocks.getChainsByFeesAdapterPageData
+	getChainsByFeesAdapterPageData: mocks.getChainsByFeesAdapterPageData,
+	getChainsByREVPageData: mocks.getChainsByREVPageData
 }))
 
 vi.mock('~/layout', () => ({
@@ -47,30 +49,33 @@ vi.mock('~/utils/perf', () => ({
 	withPerformanceLogging: <T extends (...args: Array<unknown>) => unknown>(_name: string, fn: T) => fn
 }))
 
-const semanticsRows = [
-	{ label: feeRevenueMetrics.chainFees.label, ...feeRevenueMetrics.chainFees.ranking },
-	{ label: feeRevenueMetrics.chainRevenue.label, ...feeRevenueMetrics.chainRevenue.ranking },
-	{ label: feeRevenueMetrics.appFees.label, ...feeRevenueMetrics.appFees.ranking },
-	{ label: feeRevenueMetrics.appRevenue.label, ...feeRevenueMetrics.appRevenue.ranking },
-	{ label: feeRevenueMetrics.rev.label, ...feeRevenueMetrics.rev.ranking }
-] as const
+const feeRevenueMetricRegistry = Object.values(feeRevenueMetrics)
 
 const rankingPageRows = [
 	{
+		route: feeRevenueMetrics.chainFees.ranking.route,
 		metric: feeRevenueMetrics.chainFees,
 		loadPage: () => import('~/pages/fees/chains')
 	},
 	{
+		route: feeRevenueMetrics.chainRevenue.ranking.route,
 		metric: feeRevenueMetrics.chainRevenue,
 		loadPage: () => import('~/pages/revenue/chains')
 	},
 	{
+		route: feeRevenueMetrics.appFees.ranking.route,
 		metric: feeRevenueMetrics.appFees,
 		loadPage: () => import('~/pages/app-fees/chains')
 	},
 	{
+		route: feeRevenueMetrics.appRevenue.ranking.route,
 		metric: feeRevenueMetrics.appRevenue,
 		loadPage: () => import('~/pages/app-revenue/chains')
+	},
+	{
+		route: feeRevenueMetrics.rev.ranking.route,
+		metric: feeRevenueMetrics.rev,
+		loadPage: () => import('~/pages/rev/chains')
 	}
 ] as const
 
@@ -81,24 +86,35 @@ describe('fees and revenue page semantics', () => {
 		vi.clearAllMocks()
 		mocks.getChainsByAdapterPageData.mockResolvedValue({ chains: [] })
 		mocks.getChainsByFeesAdapterPageData.mockResolvedValue({ chains: [] })
+		mocks.getChainsByREVPageData.mockResolvedValue({ chains: [] })
 	})
 
-	it.each(semanticsRows)('pins public page glossary semantics for $label', (row) => {
-		const matchingPages = defillamaPages.Metrics.filter((page) => page.route === row.route)
+	it('keeps every fees/revenue chain ranking page represented in the registry', () => {
+		const pagesJsonRoutes = defillamaPages.Metrics.filter(
+			(page) => page.category === 'Fees & Revenue' && page.tab === 'Chains'
+		).map((page) => page.route)
+		const registryRoutes = feeRevenueMetricRegistry.map((metric) => metric.ranking.route)
+
+		expect([...pagesJsonRoutes].sort()).toEqual([...registryRoutes].sort())
+	})
+
+	it.each(feeRevenueMetricRegistry)('pins public page glossary semantics for $label', (metric) => {
+		const matchingPages = defillamaPages.Metrics.filter((page) => page.route === metric.ranking.route)
 
 		expect(matchingPages).toHaveLength(1)
 		expect(matchingPages[0]).toMatchObject({
-			name: row.name,
-			tab: row.tab,
-			totalTrackedKey: row.totalTrackedKey
+			name: metric.ranking.name,
+			category: 'Fees & Revenue',
+			tab: metric.ranking.tab,
+			totalTrackedKey: metric.ranking.totalTrackedKey
 		})
 
-		for (const expectedText of row.descriptionIncludes) {
+		for (const expectedText of metric.ranking.descriptionIncludes) {
 			expect(matchingPages[0].description).toContain(expectedText)
 		}
 	})
 
-	it.each(rankingPageRows)('pins $metric.ranking.route ranking page data builder semantics', async (row) => {
+	it.each(rankingPageRows)('pins $route ranking page data builder semantics', async (row) => {
 		const page = await row.loadPage()
 
 		await page.getStaticProps(staticPropsContext)
@@ -110,13 +126,21 @@ describe('fees and revenue page semantics', () => {
 				chainMetadata: mocks.chainMetadata
 			})
 			expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
-		} else {
+			expect(mocks.getChainsByREVPageData).not.toHaveBeenCalled()
+		} else if (row.metric.ranking.builder === 'app-aggregation') {
 			expect(mocks.getChainsByAdapterPageData).toHaveBeenCalledWith({
 				adapterType: ADAPTER_TYPES.FEES,
 				dataType: row.metric.ranking.dataType,
 				chainMetadata: mocks.chainMetadata,
 				includeChartData: false
 			})
+			expect(mocks.getChainsByFeesAdapterPageData).not.toHaveBeenCalled()
+			expect(mocks.getChainsByREVPageData).not.toHaveBeenCalled()
+		} else {
+			expect(mocks.getChainsByREVPageData).toHaveBeenCalledWith({
+				chainMetadata: mocks.chainMetadata
+			})
+			expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
 			expect(mocks.getChainsByFeesAdapterPageData).not.toHaveBeenCalled()
 		}
 	})
