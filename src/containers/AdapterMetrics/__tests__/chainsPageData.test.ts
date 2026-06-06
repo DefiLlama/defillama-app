@@ -61,6 +61,142 @@ const feeRevenueChainMetadata = {
 	}
 }
 
+const overloadedVolumeChainMetadata = {
+	ethereum: {
+		id: 'ethereum',
+		name: 'Ethereum',
+		dexs: true,
+		dimAgg: {
+			dexs: {
+				dv: {
+					'24h': 100
+				}
+			}
+		}
+	},
+	solana: {
+		id: 'solana',
+		name: 'Solana',
+		perps: true,
+		dimAgg: {
+			derivatives: {
+				dv: {
+					'24h': 200
+				}
+			}
+		}
+	},
+	optimism: {
+		id: 'optimism',
+		name: 'Optimism',
+		dexAggregators: true,
+		dimAgg: {
+			aggregators: {
+				dv: {
+					'24h': 500
+				}
+			}
+		}
+	},
+	arbitrum: {
+		id: 'arbitrum',
+		name: 'Arbitrum',
+		perpsAggregators: true,
+		dimAgg: {
+			'aggregator-derivatives': {
+				dv: {
+					'24h': 600
+				}
+			}
+		}
+	},
+	base: {
+		id: 'base',
+		name: 'Base',
+		dexs: true,
+		perps: true,
+		dexAggregators: true,
+		perpsAggregators: true,
+		dimAgg: {
+			dexs: {
+				dv: {
+					'24h': 300
+				}
+			},
+			derivatives: {
+				dv: {
+					'24h': 400
+				}
+			},
+			aggregators: {
+				dv: {
+					'24h': 700
+				}
+			},
+			'aggregator-derivatives': {
+				dv: {
+					'24h': 800
+				}
+			}
+		}
+	}
+}
+
+const overloadedNotionalVolumeChainMetadata = {
+	ethereum: {
+		id: 'ethereum',
+		name: 'Ethereum',
+		dexsNotionalVolume: true,
+		dimAgg: {
+			dexs: {
+				dnv: {
+					'24h': 1000
+				}
+			},
+			options: {
+				dnv: {
+					'24h': 9000
+				}
+			}
+		}
+	},
+	lyra: {
+		id: 'lyra',
+		name: 'Lyra',
+		optionsNotionalVolume: true,
+		dimAgg: {
+			dexs: {
+				dnv: {
+					'24h': 8000
+				}
+			},
+			options: {
+				dnv: {
+					'24h': 2000
+				}
+			}
+		}
+	},
+	base: {
+		id: 'base',
+		name: 'Base',
+		dexsNotionalVolume: true,
+		optionsNotionalVolume: true,
+		dimAgg: {
+			dexs: {
+				dnv: {
+					'24h': 3000
+				}
+			},
+			options: {
+				dnv: {
+					'24h': 4000
+				}
+			}
+		}
+	}
+}
+
 function mockFeesAdapterMetrics() {
 	fetchJsonMock.mockImplementation((url: string) => {
 		const dataType = new URL(url).searchParams.get('dataType')
@@ -118,6 +254,74 @@ describe('chains by adapter page data', () => {
 				total7d: 700,
 				total30d: 3000
 			})
+		])
+	})
+
+	it('uses adapter type to disambiguate dailyVolume chain metadata', async () => {
+		const dexData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.DEXS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata: overloadedVolumeChainMetadata,
+			includeChartData: false
+		})
+		const perpsData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.PERPS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata: overloadedVolumeChainMetadata,
+			includeChartData: false
+		})
+		const dexAggregatorData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.AGGREGATORS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata: overloadedVolumeChainMetadata,
+			includeChartData: false
+		})
+		const perpsAggregatorData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.PERPS_AGGREGATOR,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata: overloadedVolumeChainMetadata,
+			includeChartData: false
+		})
+
+		expect(dexData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 300 },
+			{ name: 'Ethereum', total24h: 100 }
+		])
+		expect(perpsData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 400 },
+			{ name: 'Solana', total24h: 200 }
+		])
+		expect(dexAggregatorData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 700 },
+			{ name: 'Optimism', total24h: 500 }
+		])
+		expect(perpsAggregatorData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 800 },
+			{ name: 'Arbitrum', total24h: 600 }
+		])
+	})
+
+	it('uses adapter type to disambiguate dailyNotionalVolume chain metadata', async () => {
+		const dexNotionalData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.DEXS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME,
+			chainMetadata: overloadedNotionalVolumeChainMetadata,
+			includeChartData: false
+		})
+		const optionsNotionalData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.OPTIONS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME,
+			chainMetadata: overloadedNotionalVolumeChainMetadata,
+			includeChartData: false
+		})
+
+		expect(dexNotionalData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 3000 },
+			{ name: 'Ethereum', total24h: 1000 }
+		])
+		expect(optionsNotionalData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 4000 },
+			{ name: 'Lyra', total24h: 2000 }
 		])
 	})
 

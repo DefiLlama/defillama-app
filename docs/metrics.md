@@ -4,15 +4,68 @@ This document records implementation semantics for metric terminology in the app
 
 `public/pages.json` is the product-facing glossary for page names, routes, descriptions, and total tracked keys. This document is the engineering companion for places where the same words can mean different upstream entities or adapter paths.
 
+## Scope
+
+This is not a full catalog of every number in the app. It is for cross-route or overloaded metric semantics that can cause wrong wiring, wrong validation, or wrong entity assumptions.
+
+Use this document for:
+
+- Metrics where the same word means different entities, for example chain revenue versus app revenue.
+- Metrics where the route shape and upstream adapter path do not name the same entity.
+- Metrics where metadata flags, adapter type, and data type must be checked together.
+- Metric families that are shared across multiple containers or public API endpoints.
+
+Do not use this document as the only source for domain-local metric definitions. Some route families have their own local definition files or container docs.
+
+Current source layout:
+
+- `public/pages.json`: product-facing names, descriptions, route slugs, tabs, and total tracked keys.
+- `src/metrics`: typed internal descriptors for migrated cross-container invariants. It is intentionally not a global registry for every metric.
+- `src/containers/AdapterMetrics/README.md`: adapter-backed page ownership, data flow, and local gotchas.
+- `src/containers/README.md`: route-family to container ownership map.
+- RWA definition files listed below: local source of truth for RWA breakdowns.
+
 ## Review Checklist
 
 When changing metric code:
 
 - Check the page definition in `public/pages.json`.
+- Start from the route file in `src/pages`, then follow imports to the owning container.
 - Check the relevant metadata flags on chain or protocol metadata.
 - Check whether the metric is chain-level economics, app-on-chain aggregation, protocol-level data, or an RWA-specific breakdown.
+- Check whether adapter-backed pages require `adapterType` and `dataType` together.
 - Check whether a route parameter name is overloaded before adding route-cache validation. For example, a parameter named `protocol` can still contain a chain-level fee adapter ID.
 - Add tests for both the intended entity type and the opposite-edge case that validation might reject.
+
+## Adapter-Backed Metrics
+
+Adapter-backed metric pages live mostly under `src/containers/AdapterMetrics`.
+
+Examples include:
+
+- fees, revenue, holders revenue, earnings, P/F, and P/S
+- DEX volume, perp volume, DEX aggregator volume, and perp aggregator volume
+- options premium volume and options notional volume
+- bridge aggregator volume
+- open interest and normalized volume
+
+For these pages, do not reason from `dataType` alone. Check `adapterType` and `dataType` together.
+
+Important files:
+
+- `src/containers/AdapterMetrics/constants.ts`: adapter types, data types, and chain metadata key disambiguation.
+- `src/containers/AdapterMetrics/queries.tsx`: server/page-data builders.
+- `src/containers/AdapterMetrics/api.ts`: upstream adapter metrics/chart fetchers.
+- `src/containers/AdapterMetrics/README.md`: local route and change guide.
+- `src/metrics/feesRevenue.ts`: cross-container fee/revenue semantic descriptors for the migrated fee/revenue slice.
+
+Examples of ambiguous pairings:
+
+- `dailyVolume` is used by DEXs, perps, DEX aggregators, and perp aggregators. The metadata flag depends on `adapterType`.
+- `dailyNotionalVolume` is used by DEX notional volume and options notional volume. The metadata flag depends on `adapterType`.
+- Fee subtypes such as bribes and token taxes gate on fee metadata but are not the same product concept as Chain Fees or App Fees.
+
+Keep route flow visible from the page file. If repeated adapter metadata rules need centralization, prefer a small AdapterMetrics-local descriptor unless another container or public API endpoint consumes the same invariant.
 
 ## Fees And Revenue
 
@@ -98,6 +151,38 @@ REV is chain-level economics.
 - Total tracked key: `chainFees.chains`
 
 REV is related to Chain Fees, but it is not the same display metric. Check the route implementation and page definition before reusing Chain Fees assumptions.
+
+## TVL
+
+TVL is not currently a single global metric implementation. The app has multiple route-specific TVL inclusion models.
+
+Common terms:
+
+- base TVL
+- extra TVL: staking, borrowed, pool2, vesting, govtokens
+- double counted TVL
+- liquid staking TVL
+- `dcAndLsOverlap`, the overlap between double counted and liquid staking TVL
+
+Important files:
+
+- `src/utils/tvl.ts`: shared TVL transforms used by some adjusted TVL paths.
+- `src/containers/ChainsByCategory/tvl.ts`: chain/category TVL normalization and stale extra-TVL cleanup.
+- `src/containers/ProtocolOverview/useFetchProtocolChartData.ts`: protocol overview TVL chart composition.
+- `src/containers/ProtocolLists/utils.ts`: protocol list/table TVL toggle behavior.
+- `src/containers/ProtocolRankings/`: shared protocol ranking rows and TVL display behavior.
+- `src/containers/Oracles/tvl.ts`: oracle route TVL toggle behavior.
+- `src/containers/Forks/tvl.ts`: fork route TVL toggle behavior.
+- `src/contexts/LocalStorage.tsx`: TVL setting keys.
+
+Do not assume two routes use the same TVL model just because they share the same toggle names. Some pages start from an adjusted base TVL, while others start from raw TVL and add selected extras. Some table paths use double counted or liquid staking toggles for display/strike behavior rather than normal extra addition.
+
+Before refactoring TVL:
+
+- Inventory the route families involved.
+- Pin current behavior with characterization tests.
+- Preserve displayed numbers unless a product/API migration explicitly asks for a change.
+- Prefer local container modules for route-specific behavior. Use `src/metrics` only if a stable cross-container semantic invariant is proven.
 
 ## RWA
 
