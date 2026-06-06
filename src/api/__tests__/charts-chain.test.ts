@@ -234,6 +234,186 @@ describe('/api/public/charts/chain', () => {
 		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
 	})
 
+	const chainNativeProtocolRows = [
+		{ label: 'Chain Fees', metadataFlag: 'chainFees', dataType: undefined },
+		{ label: 'Chain Revenue', metadataFlag: 'chainRevenue', dataType: 'dailyRevenue' }
+	] as const
+
+	it.each(chainNativeProtocolRows)(
+		'accepts $label as adapter-protocol entity=chain only with its metadata flag',
+		async (row) => {
+			resolveProtocolParamMock.mockResolvedValue(null)
+			resolveChainParamMock.mockResolvedValue({
+				canonicalName: 'Base',
+				canonicalSlug: 'base',
+				metadata: { name: 'Base', [row.metadataFlag]: true }
+			})
+			const req = {
+				method: 'GET',
+				query: {
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: 'Base',
+					...(row.dataType ? { dataType: row.dataType } : null)
+				}
+			} as unknown as NextApiRequest
+			const res = createMockNextApiResponse()
+
+			await handler(req, res)
+
+			expect(resolveProtocolParamMock).not.toHaveBeenCalled()
+			expect(fetchAdapterProtocolChartDataMock).toHaveBeenCalledWith({
+				adapterType: 'fees',
+				protocol: 'Base',
+				...(row.dataType ? { dataType: row.dataType } : null)
+			})
+			expect(res.status).toHaveBeenCalledWith(200)
+		}
+	)
+
+	it.each(chainNativeProtocolRows)(
+		'rejects $label as adapter-protocol entity=chain when its metadata flag is missing',
+		async (row) => {
+			resolveProtocolParamMock.mockResolvedValue(null)
+			resolveChainParamMock.mockResolvedValue({
+				canonicalName: 'Base',
+				canonicalSlug: 'base',
+				metadata: { name: 'Base' }
+			})
+			const req = {
+				method: 'GET',
+				query: {
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: 'Base',
+					...(row.dataType ? { dataType: row.dataType } : null)
+				}
+			} as unknown as NextApiRequest
+			const res = createMockNextApiResponse()
+
+			await handler(req, res)
+
+			expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
+			expect(res.status).toHaveBeenCalledWith(404)
+			expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+		}
+	)
+
+	it.each(chainNativeProtocolRows)('does not use chain fallback for explicit protocol $label requests', async (row) => {
+		resolveProtocolParamMock.mockResolvedValue(null)
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Base',
+			canonicalSlug: 'base',
+			metadata: { name: 'Base', [row.metadataFlag]: true }
+		})
+		const req = {
+			method: 'GET',
+			query: {
+				kind: 'adapter-protocol',
+				entity: 'protocol',
+				adapterType: 'fees',
+				protocol: 'Base',
+				...(row.dataType ? { dataType: row.dataType } : null)
+			}
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(resolveChainParamMock).not.toHaveBeenCalled()
+		expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+	})
+
+	it.each(chainNativeProtocolRows)('keeps legacy omitted-entity fallback for $label only', async (row) => {
+		resolveProtocolParamMock.mockResolvedValue(null)
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Base',
+			canonicalSlug: 'base',
+			metadata: { name: 'Base', [row.metadataFlag]: true }
+		})
+		const req = {
+			method: 'GET',
+			query: {
+				kind: 'adapter-protocol',
+				adapterType: 'fees',
+				protocol: 'Base',
+				...(row.dataType ? { dataType: row.dataType } : null)
+			}
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(fetchAdapterProtocolChartDataMock).toHaveBeenCalledWith({
+			adapterType: 'fees',
+			protocol: 'Base',
+			...(row.dataType ? { dataType: row.dataType } : null)
+		})
+		expect(res.status).toHaveBeenCalledWith(200)
+	})
+
+	const appProtocolRows = [
+		{ label: 'App Fees', dataType: 'dailyAppFees' },
+		{ label: 'App Revenue', dataType: 'dailyAppRevenue' }
+	] as const
+
+	it.each(appProtocolRows)('does not accept $label through adapter-protocol entity=chain', async (row) => {
+		resolveProtocolParamMock.mockResolvedValue(null)
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Base',
+			canonicalSlug: 'base',
+			metadata: { name: 'Base', chainFees: true, chainRevenue: true }
+		})
+		const req = {
+			method: 'GET',
+			query: {
+				kind: 'adapter-protocol',
+				entity: 'chain',
+				adapterType: 'fees',
+				protocol: 'Base',
+				dataType: row.dataType
+			}
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(resolveChainParamMock).not.toHaveBeenCalled()
+		expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+	})
+
+	it.each(appProtocolRows)('does not use legacy omitted-entity chain fallback for $label', async (row) => {
+		resolveProtocolParamMock.mockResolvedValue(null)
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Base',
+			canonicalSlug: 'base',
+			metadata: { name: 'Base', chainFees: true, chainRevenue: true }
+		})
+		const req = {
+			method: 'GET',
+			query: {
+				kind: 'adapter-protocol',
+				adapterType: 'fees',
+				protocol: 'Base',
+				dataType: row.dataType
+			}
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(resolveChainParamMock).not.toHaveBeenCalled()
+		expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+	})
+
 	it('accepts lowercase all for adapter chain charts', async () => {
 		const req = {
 			method: 'GET',
