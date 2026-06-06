@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/governance/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { protocol } = params
@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].governance) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)

@@ -12,14 +12,14 @@ const pageName = ['Forks']
 
 export const getStaticProps = withPerformanceLogging('forks/[fork]', async ({ params }) => {
 	if (!params?.fork) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const forkParam = Array.isArray(params.fork) ? params.fork[0] : params.fork
 	const data = await getForksByProtocolPageData({ fork: forkParam })
 
 	if (!data) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	return {

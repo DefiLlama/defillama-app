@@ -12,7 +12,7 @@ const pageName = ['Protocols TVS', 'by', 'Oracle']
 
 export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async ({ params }) => {
 	if (!params?.oracle) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	let oracle = Array.isArray(params.oracle) ? params.oracle[0] : params.oracle
@@ -22,13 +22,13 @@ export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async (
 	if (canonicalOracle) {
 		oracle = canonicalOracle
 	} else {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const data = await getOracleDetailPageData({ oracle })
 
 	if (!data) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	return {

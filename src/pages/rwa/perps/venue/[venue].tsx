@@ -28,14 +28,14 @@ export const getStaticProps = withPerformanceLogging(
 	'rwa/perps/venue/[venue]',
 	async ({ params }: GetStaticPropsContext<{ venue: string }>) => {
 		if (!params?.venue) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const venue = params.venue
 		const validVenues = new Set(metadataCache.rwaPerpsList.venues.map((item) => rwaSlug(item)))
 		if (!validVenues.has(venue)) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getRWAPerpsVenuePage({ venue, activeView: DEFAULT_CHART_VIEW })

@@ -684,7 +684,8 @@ describe('token page', () => {
 
 	it('getStaticProps returns notFound when params.token is missing', async () => {
 		await expect(getStaticProps({ params: {} } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 

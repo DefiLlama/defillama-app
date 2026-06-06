@@ -65,7 +65,8 @@ describe('rwa category page', () => {
 
 	it('returns notFound for the RWA Perps category route', async () => {
 		await expect(page.getStaticProps({ params: { category: 'rwa-perps' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 })

@@ -10,12 +10,12 @@ export const getStaticProps = withPerformanceLogging('category-performance', asy
 	const rawCategory = params?.category
 	const categoryId = Array.isArray(rawCategory) ? rawCategory[0] : rawCategory
 	if (typeof categoryId !== 'string' || categoryId.length === 0) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	if (!metadataCache.narrativeCategoryIdsSet.has(categoryId)) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const data = await getCoinPerformance(categoryId)

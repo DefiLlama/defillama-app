@@ -11,19 +11,19 @@ export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasury/[company]',
 	async ({ params }: GetStaticPropsContext<{ company: string }>) => {
 		if (!params?.company) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const company = slug(params.company)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		if (!metadataCache.digitalAssetTreasuryCompanySlugsSet.has(company)) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = await getDATCompanyData(company)
 
 		if (!props) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

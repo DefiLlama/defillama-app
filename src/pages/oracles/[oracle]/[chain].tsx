@@ -12,7 +12,7 @@ const pageName = ['Protocols TVS', 'by', 'Oracle']
 
 export const getStaticProps = withPerformanceLogging('oracles/[oracle]/[chain]', async ({ params }) => {
 	if (!params?.oracle || !params?.chain) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	let oracle = Array.isArray(params.oracle) ? params.oracle[0] : params.oracle
@@ -25,19 +25,19 @@ export const getStaticProps = withPerformanceLogging('oracles/[oracle]/[chain]',
 		const chainSlug = slug(chain)
 		const validChainSlugs = oracleRoutes.chainSlugsByOracleSlug[oracleSlug] ?? []
 		if (!validChainSlugs.includes(chainSlug)) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		oracle = canonicalOracle
 		chain = oracleRoutes.chainNameBySlug[chainSlug] ?? chain
 	} else {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const data = await getOracleDetailPageData({ oracle, chain })
 
 	if (!data) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	return {

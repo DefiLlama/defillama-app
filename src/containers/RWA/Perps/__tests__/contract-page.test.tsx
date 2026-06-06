@@ -125,7 +125,8 @@ describe('rwa perps contract page', () => {
 		const page = await setupPageModule({ contracts: ['xyz:META'] })
 
 		await expect(page.getStaticProps({ params: { contract: 'xyz:TSLA' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 

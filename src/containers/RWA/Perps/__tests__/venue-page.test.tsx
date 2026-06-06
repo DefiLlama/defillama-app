@@ -56,7 +56,8 @@ describe('rwa perps venue page', () => {
 		const page = await setupPageModule({ venues: ['xyz'] })
 
 		await expect(page.getStaticProps({ params: { venue: 'flx' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 

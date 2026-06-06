@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 	'bridges/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>): Promise<GetStaticPropsResult<BridgesPageProps>> => {
 		if (!params?.chain) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const chainSlug = slug(params.chain)

@@ -34,7 +34,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/token-rights/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { protocol } = params
@@ -52,7 +52,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].tokenRights) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const defillamaId = metadata[0]
@@ -63,7 +63,7 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		if (!rawEntry) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const tokenRightsData = parseTokenRightsEntry(rawEntry)

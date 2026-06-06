@@ -12,7 +12,7 @@ const pageName = ['Oracles', 'ranked by', 'TVS']
 
 export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
 	if (!params?.chain) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	let chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
@@ -22,13 +22,13 @@ export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({
 	if (canonicalChain) {
 		chain = canonicalChain
 	} else {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	const data = await getOraclesListPageData({ chain })
 
 	if (!data) {
-		return { notFound: true }
+		return { notFound: true, revalidate: maxAgeForNext([22]) }
 	}
 
 	return {

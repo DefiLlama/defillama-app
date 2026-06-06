@@ -14,13 +14,13 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
 			addRouteTelemetryAttributes({ not_found_reason: 'missing_protocol_param' })
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
 		if (normalizedName === 'null' || normalizedName === 'undefined') {
 			addRouteTelemetryAttributes({ not_found_reason: 'invalid_protocol_param', protocol_slug: normalizedName })
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 		const [{ default: metadataCache }, { resolveProtocolParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata'),
@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (!protocolRoute) {
 			addRouteTelemetryAttributes({ not_found_reason: 'unknown_protocol_slug', protocol_slug: normalizedName })
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getProtocolOverviewPageData({

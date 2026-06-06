@@ -57,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/markets/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const exchangeName = params.cex
@@ -70,7 +70,7 @@ export const getStaticProps = withPerformanceLogging(
 		)
 
 		if (!exchangeData) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const { fetchExchangeMarketsList } = await import('~/server/datasetCache/runtime/markets')
@@ -105,13 +105,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!cexMarketsExchange || !cexMarketsSlug) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

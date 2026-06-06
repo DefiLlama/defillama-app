@@ -59,7 +59,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!metadata?.perps) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const data = await getAdapterByChainPageData({

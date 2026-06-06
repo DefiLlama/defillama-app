@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 	async ({ params }: GetStaticPropsContext<StablecoinsByChainRouteParams>) => {
 		const chain = params?.chain
 		if (typeof chain !== 'string') {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
@@ -34,7 +34,7 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 		const chainRoute = resolveChainParamFromMetadata(chain, metadataCache)
 
 		if (!chainRoute?.metadata.stablecoins) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 		const metadata = chainRoute.metadata
 

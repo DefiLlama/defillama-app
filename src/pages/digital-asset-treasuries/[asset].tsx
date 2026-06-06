@@ -13,19 +13,19 @@ export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasuries/[asset]',
 	async ({ params }: GetStaticPropsContext<{ asset: string }>) => {
 		if (!params?.asset) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const asset = slug(params.asset)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		if (!metadataCache.digitalAssetTreasuryAssetSlugsSet.has(asset)) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const props = await getDATOverviewDataByAsset(asset)
 
 		if (!props) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

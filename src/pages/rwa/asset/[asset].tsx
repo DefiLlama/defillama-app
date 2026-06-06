@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 	`rwa/asset/[asset]`,
 	async ({ params }: GetStaticPropsContext<{ asset: string }>) => {
 		if (!params?.asset) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const assetParam = safeDecodeAssetParam(params.asset)
@@ -60,18 +60,18 @@ export const getStaticProps = withPerformanceLogging(
 		const rwaList = metadataCache.rwaList
 		const canonicalMarketId = resolveCanonicalMarketId(assetParam, rwaList.idMap)
 		if (!canonicalMarketId) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const assetId = rwaList.idMap[canonicalMarketId] ?? null
 		if (!assetId) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const asset = await getRWAAssetData({ assetId })
 
 		if (!asset) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return {

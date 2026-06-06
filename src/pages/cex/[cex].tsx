@@ -11,7 +11,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		const exchangeName = params.cex
@@ -78,7 +78,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (!data) {
 			console.warn(`[cex/[cex]] ${exchangeName} matched metadata but overview data was unavailable`)
-			return { notFound: true }
+			return { notFound: true, revalidate: maxAgeForNext([22]) }
 		}
 
 		return { props: { ...data, cexMarketsExchange, cexMarketsSlug }, revalidate: maxAgeForNext([22]) }

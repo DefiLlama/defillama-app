@@ -77,7 +77,8 @@ describe('rwa asset page', () => {
 		const page = await setupPageModule()
 
 		await expect(page.getStaticProps({ params: { asset: 'unknown' } } as never)).resolves.toEqual({
-			notFound: true
+			notFound: true,
+			revalidate: expect.any(Number)
 		})
 	})
 
