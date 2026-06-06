@@ -66,6 +66,9 @@ const BLOCKS: MentionBlock[] = [
 ]
 
 const AUTOPLAY_MS = 5000
+const DESKTOP_TWEET_TILE_SIZE = 215
+const DESKTOP_TWEET_RENDER_WIDTH = 320
+const DESKTOP_TWEET_SCALE = DESKTOP_TWEET_TILE_SIZE / DESKTOP_TWEET_RENDER_WIDTH
 
 const OpenQuoteIcon = () => (
 	<svg xmlns="http://www.w3.org/2000/svg" width="27" height="20" fill="none">
@@ -141,13 +144,22 @@ const TweetWidget: React.FC<{ tweetId: string; mobile?: boolean }> = ({ tweetId,
 		sourceUrl
 	}
 
-	const wrapperClass = mobile ? 'w-full min-w-0 h-[356px]' : 'w-[252px] min-w-[252px] h-[215px]'
+	const wrapperClass = mobile
+		? 'h-[356px] w-full min-w-0 overflow-hidden rounded-[4px] bg-white'
+		: 'h-[215px] w-[215px] min-w-[215px] overflow-hidden rounded-[4px] bg-white'
+	const innerClass = mobile
+		? 'h-full w-full overflow-hidden [&_.twitter-tweet]:!m-0 [&_iframe]:!m-0'
+		: 'h-[320px] w-[320px] origin-top-left overflow-hidden [&_.twitter-tweet]:!m-0 [&_.twitter-tweet-rendered]:!m-0 [&_iframe]:!m-0'
 
 	return (
-		<div
-			className={`${wrapperClass} overflow-hidden rounded-[13px] border border-[#cfd9de] bg-white [&_.twitter-tweet]:m-0!`}
-		>
-			<TweetEmbed config={config} action="Open" />
+		<div className={wrapperClass}>
+			<div className={innerClass} style={mobile ? undefined : { transform: `scale(${DESKTOP_TWEET_SCALE})` }}>
+				<TweetEmbed
+					config={config}
+					action="Open"
+					options={mobile ? undefined : { width: DESKTOP_TWEET_RENDER_WIDTH, cards: 'hidden', conversation: 'none' }}
+				/>
+			</div>
 		</div>
 	)
 }
