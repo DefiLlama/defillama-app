@@ -1,5 +1,5 @@
-import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
-import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
+import { getProtocolsByChain } from '~/containers/ProtocolRankings/queries.server'
+import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
