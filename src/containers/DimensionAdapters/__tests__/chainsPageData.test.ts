@@ -10,7 +10,7 @@ vi.mock('~/utils/async', () => ({
 	fetchJson: fetchJsonMock
 }))
 
-vi.mock('~/containers/Protocols/api', () => ({
+vi.mock('~/containers/ProtocolLists/api', () => ({
 	fetchProtocols: fetchProtocolsMock
 }))
 

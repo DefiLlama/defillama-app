@@ -1,7 +1,7 @@
 import { fetchChainChart } from '~/containers/Chains/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchCategoryChart } from '~/containers/ProtocolsByCategoryOrTag/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { alignSeries, filterOutToday, normalizeDailyPairs, sumSeriesByTimestamp, toSlug } from '~/utils/protocolSplit'

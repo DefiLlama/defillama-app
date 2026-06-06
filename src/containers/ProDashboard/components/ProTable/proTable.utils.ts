@@ -3,7 +3,7 @@ import type {
 	ChainMetricSnapshot,
 	IFormattedProtocol,
 	IParentProtocol
-} from '~/containers/Protocols/protocol-table.types'
+} from '~/containers/ProtocolLists/protocol-table.types'
 import { getAnnualizedRatio, getPercentChange } from '~/utils'
 import type { ProTableDimensionProtocol } from './proTable.types'
 

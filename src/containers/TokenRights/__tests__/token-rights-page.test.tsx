@@ -34,7 +34,7 @@ function setupPageModule({
 	vi.doMock('~/containers/DimensionAdapters/api', () => ({
 		fetchAdapterChainMetrics: vi.fn().mockResolvedValue({ protocols: holdersRevenueProtocols })
 	}))
-	vi.doMock('~/containers/Protocols/api', () => ({
+	vi.doMock('~/containers/ProtocolLists/api', () => ({
 		fetchProtocols: vi.fn().mockResolvedValue({ protocols: liteProtocols, parentProtocols })
 	}))
 	vi.doMock('~/layout', () => ({

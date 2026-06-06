@@ -3,8 +3,8 @@ import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import type { ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import type { CompareTokenProtocol, CompareTokensPageData } from './types'
 
 export async function getCompareTokensPageData(): Promise<CompareTokensPageData> {

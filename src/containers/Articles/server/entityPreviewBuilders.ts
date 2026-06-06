@@ -2,7 +2,7 @@ import { fetchBridges } from '~/containers/Bridges/api'
 import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchChainsByCategoryAll, fetchChainsList } from '~/containers/Chains/api'
 import { fetchHacks } from '~/containers/Hacks/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type {

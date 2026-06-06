@@ -35,7 +35,7 @@ vi.mock('~/containers/Oracles/api', () => ({
 	fetchOracleProtocolChart: vi.fn().mockResolvedValue(null)
 }))
 
-vi.mock('~/containers/Protocols/api', () => ({
+vi.mock('~/containers/ProtocolLists/api', () => ({
 	fetchProtocols: vi.fn().mockResolvedValue({ protocols: [], chains: [], parentProtocols: [] })
 }))
 
