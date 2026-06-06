@@ -40,21 +40,15 @@ import {
 	type StablecoinChartType as StablecoinChartCategory,
 	type StablecoinChartView
 } from '~/containers/Stablecoins/chartState'
-import {
-	PeggedFilters,
-	stablecoinAttributeOptions,
-	stablecoinBackingOptions,
-	stablecoinPegTypeOptions,
-	type StablecoinFilterOption
-} from '~/containers/Stablecoins/Filters'
+import { filterStablecoinAssets, resolveStablecoinFilterState } from '~/containers/Stablecoins/filterPolicy'
+import { PeggedFilters } from '~/containers/Stablecoins/Filters'
 import { useCalcCirculating } from '~/containers/Stablecoins/hooks'
 import { useStablecoinChartSeriesData, useStablecoinVolumeChartData } from '~/containers/Stablecoins/queries.client'
 import { type FormattedStablecoinAsset } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
-import { isTruthyQueryParam, parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import { isTruthyQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { StablecoinVolumeChainChartKind, StablecoinVolumeGlobalChartKind } from './api.types'
-import { useFormatStablecoinQueryParams } from './hooks'
 import { StablecoinsTable } from './StablecoinsAssetsTable'
 import { groupStablecoinVolumeChartPayload } from './volumeChart'
 
@@ -66,103 +60,12 @@ const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart'
 
 const EMPTY_CHAINS: string[] = []
 const MAX_HORIZONTAL_BARS = 9
-const STABLECOIN_FILTER_QUERY_KEYS = [
-	'attribute',
-	'excludeAttribute',
-	'pegtype',
-	'excludePegtype',
-	'backing',
-	'excludeBacking',
-	'minMcap',
-	'maxMcap'
-] as const
 const UNRELEASED_QUERY_KEY = 'unreleased'
-
-type StablecoinFilterResolverParams = {
-	filteredPeggedAssets: FormattedStablecoinAsset[]
-	hasActiveStablecoinUrlFilters: boolean
-	selectedAttributes: string[]
-	selectedPegTypes: string[]
-	selectedBackings: string[]
-	minMcap: number | null
-	maxMcap: number | null
-}
 
 type MultiSeriesChartState =
 	| { status: 'loading' }
 	| { status: 'unavailable' }
 	| { status: 'ready'; data: StablecoinChartSeriesPayload }
-
-const stablecoinAttributeOptionsMap: Map<string, StablecoinFilterOption> = new Map(
-	stablecoinAttributeOptions.map((option) => [option.key, option])
-)
-const stablecoinPegTypeOptionsMap: Map<string, StablecoinFilterOption> = new Map(
-	stablecoinPegTypeOptions.map((option) => [option.key, option])
-)
-const stablecoinBackingOptionsMap: Map<string, StablecoinFilterOption> = new Map(
-	stablecoinBackingOptions.map((option) => [option.key, option])
-)
-
-const matchesAnySelectedOption = (
-	asset: FormattedStablecoinAsset,
-	selectedOptions: string[],
-	optionsMap: Map<string, StablecoinFilterOption>
-): boolean => {
-	if (selectedOptions.length === 0) return false
-	for (const optionKey of selectedOptions) {
-		const option = optionsMap.get(optionKey)
-		if (option?.filterFn(asset)) return true
-	}
-	return false
-}
-
-const isWithinMcapRange = (
-	asset: FormattedStablecoinAsset,
-	minMcap: number | null,
-	maxMcap: number | null
-): boolean => {
-	if (minMcap == null && maxMcap == null) return true
-	const mcap = asset.mcap ?? 0
-	if (minMcap != null && mcap < minMcap) return false
-	if (maxMcap != null && mcap > maxMcap) return false
-	return true
-}
-
-const resolveFilteredStablecoinData = ({
-	filteredPeggedAssets,
-	hasActiveStablecoinUrlFilters,
-	selectedAttributes,
-	selectedPegTypes,
-	selectedBackings,
-	minMcap,
-	maxMcap
-}: StablecoinFilterResolverParams): { peggedAssets: FormattedStablecoinAsset[] } => {
-	// Fast path: default page load (no URL filters) should avoid per-asset filtering work.
-	if (!hasActiveStablecoinUrlFilters) {
-		return {
-			peggedAssets: filteredPeggedAssets
-		}
-	}
-
-	const peggedAssets: FormattedStablecoinAsset[] = []
-
-	for (const asset of filteredPeggedAssets) {
-		const matchesAttribute = matchesAnySelectedOption(asset, selectedAttributes, stablecoinAttributeOptionsMap)
-		if (!matchesAttribute) continue
-
-		const matchesPegType = matchesAnySelectedOption(asset, selectedPegTypes, stablecoinPegTypeOptionsMap)
-		if (!matchesPegType) continue
-
-		const matchesBacking = matchesAnySelectedOption(asset, selectedBackings, stablecoinBackingOptionsMap)
-		if (!matchesBacking) continue
-
-		if (!isWithinMcapRange(asset, minMcap, maxMcap)) continue
-
-		peggedAssets.push(asset)
-	}
-
-	return { peggedAssets }
-}
 
 interface StablecoinsByChainProps {
 	selectedChain?: string
@@ -277,45 +180,42 @@ export function StablecoinsByChain({
 	)
 	const unreleasedQueryParam = router.query[UNRELEASED_QUERY_KEY]
 
-	const minMcap = parseNumberQueryParam(router.query.minMcap)
-	const maxMcap = parseNumberQueryParam(router.query.maxMcap)
 	const includeUnreleased = isTruthyQueryParam(unreleasedQueryParam)
-	const hasActiveStablecoinUrlFilters = STABLECOIN_FILTER_QUERY_KEYS.some((key) => {
-		const value = router.query[key]
-		if (value == null) return false
-		if (Array.isArray(value)) return value.length > 0
-		return value !== ''
-	})
+	const stablecoinFilterQuery = React.useMemo(
+		() => ({
+			attribute: router.query.attribute,
+			excludeAttribute: router.query.excludeAttribute,
+			pegtype: router.query.pegtype,
+			excludePegtype: router.query.excludePegtype,
+			backing: router.query.backing,
+			excludeBacking: router.query.excludeBacking,
+			minMcap: router.query.minMcap,
+			maxMcap: router.query.maxMcap
+		}),
+		[
+			router.query.attribute,
+			router.query.excludeAttribute,
+			router.query.pegtype,
+			router.query.excludePegtype,
+			router.query.backing,
+			router.query.excludeBacking,
+			router.query.minMcap,
+			router.query.maxMcap
+		]
+	)
+	const stablecoinFilterState = React.useMemo(
+		() => resolveStablecoinFilterState(stablecoinFilterQuery),
+		[stablecoinFilterQuery]
+	)
+	const hasActiveStablecoinUrlFilters = stablecoinFilterState.hasActiveFilters
 
 	// `handleChartReady` is passed to charts' `onReady` prop to share
 	// a single ECharts instance across CSV + PNG exports.
 
-	// Selected arrays already have excludes filtered out at hook level
-	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
-		stablecoinAttributeOptions,
-		stablecoinPegTypeOptions,
-		stablecoinBackingOptions
-	})
-
-	const { peggedAssets } = React.useMemo(() => {
-		return resolveFilteredStablecoinData({
-			filteredPeggedAssets,
-			hasActiveStablecoinUrlFilters,
-			selectedAttributes,
-			selectedPegTypes,
-			selectedBackings,
-			minMcap,
-			maxMcap
-		})
-	}, [
-		filteredPeggedAssets,
-		hasActiveStablecoinUrlFilters,
-		minMcap,
-		maxMcap,
-		selectedAttributes,
-		selectedPegTypes,
-		selectedBackings
-	])
+	const peggedAssets = React.useMemo(
+		() => filterStablecoinAssets(filteredPeggedAssets, stablecoinFilterState),
+		[filteredPeggedAssets, stablecoinFilterState]
+	)
 
 	const chainOptions = React.useMemo(
 		() => ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) })),
@@ -382,42 +282,20 @@ export function StablecoinsByChain({
 	const overviewChartType = getOverviewChartType(chartType, chartView)
 	const isMarketCapTableChart =
 		chartType === 'marketCap' && (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap')
-	const overviewFilters = React.useMemo(
-		() => ({
-			attribute: router.query.attribute,
-			excludeAttribute: router.query.excludeAttribute,
-			pegtype: router.query.pegtype,
-			excludePegtype: router.query.excludePegtype,
-			backing: router.query.backing,
-			excludeBacking: router.query.excludeBacking,
-			minMcap: router.query.minMcap,
-			maxMcap: router.query.maxMcap
-		}),
-		[
-			router.query.attribute,
-			router.query.excludeAttribute,
-			router.query.pegtype,
-			router.query.excludePegtype,
-			router.query.backing,
-			router.query.excludeBacking,
-			router.query.minMcap,
-			router.query.maxMcap
-		]
-	)
 	const shouldFetchOverviewChart =
 		overviewChartType != null && (chartType !== 'marketCap' || chartView !== 'total' || hasActiveStablecoinUrlFilters)
 	const overviewChartQuery = useStablecoinChartSeriesData({
 		scope: 'overview',
 		chain: selectedChain,
 		chart: overviewChartType,
-		filters: overviewFilters,
+		filters: stablecoinFilterQuery,
 		enabled: shouldFetchOverviewChart
 	})
 	const summaryChartQuery = useStablecoinChartSeriesData({
 		scope: 'overview',
 		chain: selectedChain,
 		chart: 'totalMcap',
-		filters: overviewFilters,
+		filters: stablecoinFilterQuery,
 		enabled: isMarketCapTableChart && hasActiveStablecoinUrlFilters
 	})
 	const selectedChartData =

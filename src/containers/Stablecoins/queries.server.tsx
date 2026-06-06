@@ -13,7 +13,6 @@ import {
 import { formattedNum, getPercentChange, slug } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
-import { parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
 import {
 	fetchStablecoinAssetApi,
 	fetchStablecoinAssetsApi,
@@ -40,12 +39,7 @@ import {
 	type StablecoinChainsChartType,
 	type StablecoinOverviewChartType
 } from './chartSeries'
-import {
-	stablecoinAttributeOptions,
-	stablecoinBackingOptions,
-	stablecoinPegTypeOptions,
-	type StablecoinFilterOption
-} from './Filters'
+import { matchesStablecoinFilters, resolveStablecoinFilterState, type StablecoinFilterQuery } from './filterPolicy'
 import type {
 	PeggedAssetPageProps,
 	PeggedAssetsForChartInput,
@@ -61,7 +55,6 @@ import type {
 const STABLECOINS_CACHE_TTL = 60 * 60 * 24
 const STABLECOINS_CACHE_PREFIX = 'stablecoins'
 const ONE_DAY_SECONDS = 24 * 3600
-type QueryParamInput = string | string[] | undefined | null
 
 async function withStablecoinsCache<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
 	const cacheKey = `${STABLECOINS_CACHE_PREFIX}:${key}`
@@ -269,95 +262,16 @@ type StablecoinOverviewSource = StablecoinOverviewChartInputs & {
 	chain: string
 }
 
-type StablecoinOverviewFilterQuery = {
-	attribute?: QueryParamInput
-	excludeAttribute?: QueryParamInput
-	pegtype?: QueryParamInput
-	excludePegtype?: QueryParamInput
-	backing?: QueryParamInput
-	excludeBacking?: QueryParamInput
-	minMcap?: QueryParamInput
-	maxMcap?: QueryParamInput
-}
-
-const hasQueryValue = (value: QueryParamInput): boolean => {
-	if (value == null) return false
-	if (Array.isArray(value)) return value.length > 0
-	return value !== ''
-}
-
-const resolveSelectedFilterKeys = (
-	includeParam: QueryParamInput,
-	excludeParam: QueryParamInput,
-	options: StablecoinFilterOption[]
-): string[] => {
-	const optionKeyByLower = new Map<string, string>()
-	const allKeys: string[] = []
-	for (const option of options) {
-		optionKeyByLower.set(option.key.toLowerCase(), option.key)
-		allKeys.push(option.key)
-	}
-
-	let selected: string[]
-	if (!includeParam) {
-		selected = allKeys
-	} else if (includeParam === 'None' || (Array.isArray(includeParam) && includeParam.includes('None'))) {
-		selected = []
-	} else {
-		const rawValues = Array.isArray(includeParam) ? includeParam : [includeParam]
-		selected = []
-		for (const raw of rawValues) {
-			const key = optionKeyByLower.get(raw.toLowerCase())
-			if (key) selected.push(key)
-		}
-	}
-
-	const excludeSetRaw = parseExcludeParam(excludeParam)
-	if (excludeSetRaw.size === 0) return selected
-	const excludeSet = new Set<string>()
-	for (const raw of excludeSetRaw) {
-		const key = optionKeyByLower.get(raw.toLowerCase())
-		if (key) excludeSet.add(key)
-	}
-	if (excludeSet.size === 0) return selected
-	return selected.filter((key) => !excludeSet.has(key))
-}
-
-const matchesAnySelectedOption = (
-	asset: ReturnType<typeof formatPeggedAssetsData>[number],
-	selectedKeys: string[],
-	optionsByKey: Map<string, StablecoinFilterOption>
-): boolean => {
-	if (selectedKeys.length === 0) return false
-	for (const key of selectedKeys) {
-		const option = optionsByKey.get(key)
-		if (option?.filterFn(asset)) return true
-	}
-	return false
-}
-
-const stablecoinAttributeOptionsByKey = new Map(stablecoinAttributeOptions.map((option) => [option.key, option]))
-const stablecoinPegTypeOptionsByKey = new Map(stablecoinPegTypeOptions.map((option) => [option.key, option]))
-const stablecoinBackingOptionsByKey = new Map(stablecoinBackingOptions.map((option) => [option.key, option]))
-
 const resolveStablecoinOverviewFilteredIndexes = (
 	source: StablecoinOverviewSource,
-	filters: StablecoinOverviewFilterQuery = {}
+	filters: StablecoinFilterQuery = {}
 ): number[] => {
-	const hasActiveFilters =
-		hasQueryValue(filters.attribute) ||
-		hasQueryValue(filters.excludeAttribute) ||
-		hasQueryValue(filters.pegtype) ||
-		hasQueryValue(filters.excludePegtype) ||
-		hasQueryValue(filters.backing) ||
-		hasQueryValue(filters.excludeBacking) ||
-		hasQueryValue(filters.minMcap) ||
-		hasQueryValue(filters.maxMcap)
+	const filterState = resolveStablecoinFilterState(filters)
 
 	const indexes: number[] = []
 	const seen = new Set<number>()
 
-	if (!hasActiveFilters) {
+	if (!filterState.hasActiveFilters) {
 		for (const asset of source.filteredPeggedAssets) {
 			const maybeIndex = source.peggedNameToChartDataIndex[asset.name]
 			if (typeof maybeIndex !== 'number' || !Number.isFinite(maybeIndex) || seen.has(maybeIndex)) continue
@@ -367,24 +281,8 @@ const resolveStablecoinOverviewFilteredIndexes = (
 		return indexes
 	}
 
-	const selectedAttributes = resolveSelectedFilterKeys(
-		filters.attribute,
-		filters.excludeAttribute,
-		stablecoinAttributeOptions
-	)
-	const selectedPegTypes = resolveSelectedFilterKeys(filters.pegtype, filters.excludePegtype, stablecoinPegTypeOptions)
-	const selectedBackings = resolveSelectedFilterKeys(filters.backing, filters.excludeBacking, stablecoinBackingOptions)
-	const minMcap = parseNumberQueryParam(filters.minMcap)
-	const maxMcap = parseNumberQueryParam(filters.maxMcap)
-
 	for (const asset of source.filteredPeggedAssets) {
-		if (!matchesAnySelectedOption(asset, selectedAttributes, stablecoinAttributeOptionsByKey)) continue
-		if (!matchesAnySelectedOption(asset, selectedPegTypes, stablecoinPegTypeOptionsByKey)) continue
-		if (!matchesAnySelectedOption(asset, selectedBackings, stablecoinBackingOptionsByKey)) continue
-
-		const mcap = asset.mcap ?? 0
-		if (minMcap != null && mcap < minMcap) continue
-		if (maxMcap != null && mcap > maxMcap) continue
+		if (!matchesStablecoinFilters(asset, filterState)) continue
 
 		const maybeIndex = source.peggedNameToChartDataIndex[asset.name]
 		if (typeof maybeIndex !== 'number' || !Number.isFinite(maybeIndex) || seen.has(maybeIndex)) continue
@@ -441,7 +339,7 @@ const buildStablecoinOverviewChartSeries = (
 		filters = {}
 	}: {
 		chart: StablecoinOverviewChartType
-		filters?: StablecoinOverviewFilterQuery
+		filters?: StablecoinFilterQuery
 	}
 ): StablecoinChartSeriesPayload => {
 	const filteredIndexes = resolveStablecoinOverviewFilteredIndexes(source, filters)
@@ -485,7 +383,7 @@ export const getStablecoinOverviewChartSeries = async ({
 }: {
 	chain: string | null
 	chart: StablecoinOverviewChartType
-	filters?: StablecoinOverviewFilterQuery
+	filters?: StablecoinFilterQuery
 }): Promise<StablecoinChartSeriesPayload> => {
 	const source = await getStablecoinsOverviewSource(chain)
 	return buildStablecoinOverviewChartSeries(source, { chart, filters })
