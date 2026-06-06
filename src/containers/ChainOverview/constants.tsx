@@ -1,16 +1,17 @@
 import { CHART_COLORS } from '~/constants/colors'
+import { chainOverviewFeeRevenueMetrics } from './metricSemantics'
 
 // MAKE SURE TO UPDATE ON SERVER TOO https://github.com/DefiLlama/defillama-server/blob/master/defi/src/updateSearch.ts
 export const chainCharts = {
 	TVL: 'tvl',
 	'Stablecoins Mcap': 'stablecoinsMcap',
-	'Chain Fees': 'chainFees',
-	'Chain Revenue': 'chainRevenue',
+	'Chain Fees': chainOverviewFeeRevenueMetrics.chainFees.chartKey,
+	'Chain Revenue': chainOverviewFeeRevenueMetrics.chainRevenue.chartKey,
 	'DEXs Volume': 'dexsVolume',
 	'Perps Volume': 'perpsVolume',
 	'Token Incentives': 'tokenIncentives',
-	'App Revenue': 'appRevenue',
-	'App Fees': 'appFees',
+	'App Revenue': chainOverviewFeeRevenueMetrics.appRevenue.chartKey,
+	'App Fees': chainOverviewFeeRevenueMetrics.appFees.chartKey,
 	'Bridged TVL': 'bridgedTVL',
 	'Active Addresses': 'activeAddresses',
 	'New Addresses': 'newAddresses',
@@ -32,13 +33,13 @@ export const yAxisByChart: {
 } = {
 	TVL: 'TVL',
 	'Stablecoins Mcap': 'Stablecoins Mcap',
-	'Chain Fees': 'Chain Fees',
+	'Chain Fees': chainOverviewFeeRevenueMetrics.chainFees.label,
 	'Chain Revenue': 'Chain Fees',
 	'DEXs Volume': 'DEXs Volume',
 	'Perps Volume': 'Perps Volume',
 	'Token Incentives': 'Token Incentives',
-	'App Revenue': 'Chain Fees',
-	'App Fees': 'Chain Fees',
+	'App Revenue': chainOverviewFeeRevenueMetrics.chainFees.label,
+	'App Fees': chainOverviewFeeRevenueMetrics.chainFees.label,
 	'Bridged TVL': 'Bridged TVL',
 	'Active Addresses': 'Active Addresses',
 	'New Addresses': 'Active Addresses',
@@ -54,13 +55,13 @@ export const yAxisByChart: {
 }
 
 export const BAR_CHARTS: ChainChartLabels[] = [
-	'Chain Fees',
-	'Chain Revenue',
+	chainOverviewFeeRevenueMetrics.chainFees.label,
+	chainOverviewFeeRevenueMetrics.chainRevenue.label,
 	'DEXs Volume',
 	'Perps Volume',
 	'Token Incentives',
-	'App Revenue',
-	'App Fees',
+	chainOverviewFeeRevenueMetrics.appRevenue.label,
+	chainOverviewFeeRevenueMetrics.appFees.label,
 	'Active Addresses',
 	'New Addresses',
 	'Transactions',

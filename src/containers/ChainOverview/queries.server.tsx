@@ -44,6 +44,7 @@ import type {
 import type { RoutePhaseTimer } from '~/utils/perf'
 import type { ChainChartLabels } from './constants'
 import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
+import { chainOverviewFeeRevenueMetrics, shouldFetchChainOverviewFeeRevenueMetric } from './metricSemantics'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
@@ -143,6 +144,11 @@ export async function getChainOverviewData({
 	function timePhase<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>> {
 		return phaseTimer ? phaseTimer.time(label, run) : (Promise.resolve().then(run) as Promise<Awaited<T>>)
 	}
+
+	const chainFeesMetric = chainOverviewFeeRevenueMetrics.chainFees
+	const chainRevenueMetric = chainOverviewFeeRevenueMetrics.chainRevenue
+	const appFeesMetric = chainOverviewFeeRevenueMetrics.appFees
+	const appRevenueMetric = chainOverviewFeeRevenueMetrics.appRevenue
 
 	try {
 		const [
@@ -267,38 +273,54 @@ export async function getChainOverviewData({
 					.then((assets) => (chain !== 'All' ? (assets[currentChainMetadata.name] ?? null) : null))
 					.catch(() => null)
 			),
-			timePhase('app_revenue', () =>
-				currentChainMetadata.revenue && chain !== 'All'
+			timePhase(appRevenueMetric.phase, () =>
+				shouldFetchChainOverviewFeeRevenueMetric({
+					metric: appRevenueMetric,
+					metadata: currentChainMetadata,
+					chain
+				})
 					? fetchAdapterChainMetrics({
-							adapterType: 'fees',
+							adapterType: appRevenueMetric.source.adapterType,
 							chain: currentChainMetadata.name,
-							dataType: 'dailyAppRevenue'
+							dataType: appRevenueMetric.source.dataType
 						})
 					: Promise.resolve(null)
 			),
-			timePhase('app_fees', () =>
-				currentChainMetadata.fees && chain !== 'All'
+			timePhase(appFeesMetric.phase, () =>
+				shouldFetchChainOverviewFeeRevenueMetric({
+					metric: appFeesMetric,
+					metadata: currentChainMetadata,
+					chain
+				})
 					? fetchAdapterChainMetrics({
-							adapterType: 'fees',
+							adapterType: appFeesMetric.source.adapterType,
 							chain: currentChainMetadata.name,
-							dataType: 'dailyAppFees'
+							dataType: appFeesMetric.source.dataType
 						})
 					: Promise.resolve(null)
 			),
-			timePhase('chain_fees', () =>
-				currentChainMetadata.chainFees
+			timePhase(chainFeesMetric.phase, () =>
+				shouldFetchChainOverviewFeeRevenueMetric({
+					metric: chainFeesMetric,
+					metadata: currentChainMetadata,
+					chain
+				})
 					? fetchAdapterProtocolMetrics({
-							adapterType: 'fees',
+							adapterType: chainFeesMetric.source.adapterType,
 							protocol: currentChainMetadata.name
 						})
 					: Promise.resolve(null)
 			),
-			timePhase('chain_revenue', () =>
-				currentChainMetadata.chainRevenue
+			timePhase(chainRevenueMetric.phase, () =>
+				shouldFetchChainOverviewFeeRevenueMetric({
+					metric: chainRevenueMetric,
+					metadata: currentChainMetadata,
+					chain
+				})
 					? fetchAdapterProtocolMetrics({
-							adapterType: 'fees',
+							adapterType: chainRevenueMetric.source.adapterType,
 							protocol: currentChainMetadata.name,
-							dataType: 'dailyRevenue'
+							dataType: chainRevenueMetric.source.dataType
 						})
 					: Promise.resolve(null)
 			),
@@ -465,10 +487,10 @@ export async function getChainOverviewData({
 			charts.push('Stablecoins Mcap')
 		}
 		if (chainFees?.total24h != null) {
-			charts.push('Chain Fees')
+			charts.push(chainFeesMetric.label)
 		}
 		if (chainRevenue?.total24h != null) {
-			charts.push('Chain Revenue')
+			charts.push(chainRevenueMetric.label)
 		}
 		if (shouldFetchDexs && dexs?.total24h != null) {
 			charts.push('DEXs Volume')
@@ -480,10 +502,10 @@ export async function getChainOverviewData({
 			charts.push('Token Incentives')
 		}
 		if (appRevenue?.total24h != null) {
-			charts.push('App Revenue')
+			charts.push(appRevenueMetric.label)
 		}
 		if (appFees?.total24h != null) {
-			charts.push('App Fees')
+			charts.push(appFeesMetric.label)
 		}
 
 		if (chain !== 'All' && chainAssets != null) {

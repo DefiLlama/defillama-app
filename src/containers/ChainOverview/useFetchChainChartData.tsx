@@ -9,6 +9,7 @@ import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
+import { chainOverviewFeeRevenueMetrics, getChainOverviewFeeRevenueChartApiParams } from './metricSemantics'
 
 /**
  * Get TVL values for 24h change calculation.
@@ -39,6 +40,11 @@ const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
 	}
 	return `/api/public/charts/chain?${searchParams.toString()}`
 }
+
+const chainFeesMetric = chainOverviewFeeRevenueMetrics.chainFees
+const chainRevenueMetric = chainOverviewFeeRevenueMetrics.chainRevenue
+const appFeesMetric = chainOverviewFeeRevenueMetrics.appFees
+const appRevenueMetric = chainOverviewFeeRevenueMetrics.appRevenue
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -108,19 +114,17 @@ export const useFetchChainChartData = ({
 		enabled: !!denominationGeckoId
 	})
 
-	// Chain Fees/Revenue are chain-level metrics, even though upstream serves
-	// their series through the adapter protocol chart path.
-	const isChainFeesEnabled = toggledChartsSet.has('Chain Fees')
+	const isChainFeesEnabled = toggledChartsSet.has(chainFeesMetric.label)
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'chain-fees', selectedChain],
+		queryKey: ['chain-overview', chainFeesMetric.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-protocol',
-					entity: 'chain',
-					adapterType: 'fees',
-					protocol: selectedChain
-				})
+				buildChainChartApiUrl(
+					getChainOverviewFeeRevenueChartApiParams({
+						metric: chainFeesMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -128,18 +132,17 @@ export const useFetchChainChartData = ({
 		enabled: isChainFeesEnabled
 	})
 
-	const isChainRevenueEnabled = toggledChartsSet.has('Chain Revenue')
+	const isChainRevenueEnabled = toggledChartsSet.has(chainRevenueMetric.label)
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'chain-revenue', selectedChain],
+		queryKey: ['chain-overview', chainRevenueMetric.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-protocol',
-					entity: 'chain',
-					adapterType: 'fees',
-					protocol: selectedChain,
-					dataType: 'dailyRevenue'
-				})
+				buildChainChartApiUrl(
+					getChainOverviewFeeRevenueChartApiParams({
+						metric: chainRevenueMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -169,17 +172,17 @@ export const useFetchChainChartData = ({
 		enabled: isPerpsVolumeEnabled
 	})
 
-	const isChainAppFeesEnabled = toggledChartsSet.has('App Fees')
+	const isChainAppFeesEnabled = toggledChartsSet.has(appFeesMetric.label)
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'app-fees', selectedChain],
+		queryKey: ['chain-overview', appFeesMetric.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-chain',
-					adapterType: 'fees',
-					chain: selectedChain,
-					dataType: 'dailyAppFees'
-				})
+				buildChainChartApiUrl(
+					getChainOverviewFeeRevenueChartApiParams({
+						metric: appFeesMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -187,19 +190,19 @@ export const useFetchChainChartData = ({
 		enabled: isChainAppFeesEnabled
 	})
 
-	const isChainAppRevenueEnabled = toggledChartsSet.has('App Revenue')
+	const isChainAppRevenueEnabled = toggledChartsSet.has(appRevenueMetric.label)
 	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['chain-overview', 'app-revenue', selectedChain],
+		queryKey: ['chain-overview', appRevenueMetric.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-chain',
-					adapterType: 'fees',
-					chain: selectedChain,
-					dataType: 'dailyAppRevenue'
-				})
+				buildChainChartApiUrl(
+					getChainOverviewFeeRevenueChartApiParams({
+						metric: appRevenueMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -378,11 +381,11 @@ export const useFetchChainChartData = ({
 		}
 
 		if (fetchingChainFees) {
-			loadingCharts.push('Chain Fees')
+			loadingCharts.push(chainFeesMetric.label)
 		}
 
 		if (fetchingChainRevenue) {
-			loadingCharts.push('Chain Revenue')
+			loadingCharts.push(chainRevenueMetric.label)
 		}
 
 		if (fetchingDexVolume) {
@@ -393,11 +396,11 @@ export const useFetchChainChartData = ({
 		}
 
 		if (fetchingChainAppFees) {
-			loadingCharts.push('App Fees')
+			loadingCharts.push(appFeesMetric.label)
 		}
 
 		if (fetchingChainAppRevenue) {
-			loadingCharts.push('App Revenue')
+			loadingCharts.push(appRevenueMetric.label)
 		}
 
 		if (fetchingInflowsChartData) {
@@ -456,7 +459,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainFeesEnabled && chainFeesDataChart) {
-			const chartName: ChainChartLabels = 'Chain Fees' as const
+			const chartName: ChainChartLabels = chainFeesMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainFeesDataChart,
 				groupBy,
@@ -465,7 +468,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainRevenueEnabled && chainRevenueDataChart) {
-			const chartName: ChainChartLabels = 'Chain Revenue' as const
+			const chartName: ChainChartLabels = chainRevenueMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainRevenueDataChart,
 				groupBy,
@@ -492,7 +495,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainAppFeesEnabled && chainAppFeesDataChart) {
-			const chartName: ChainChartLabels = 'App Fees' as const
+			const chartName: ChainChartLabels = appFeesMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainAppFeesDataChart,
 				groupBy,
@@ -501,7 +504,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainAppRevenueEnabled && chainAppRevenueDataChart) {
-			const chartName: ChainChartLabels = 'App Revenue' as const
+			const chartName: ChainChartLabels = appRevenueMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainAppRevenueDataChart,
 				groupBy,
