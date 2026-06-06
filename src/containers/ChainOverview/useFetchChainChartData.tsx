@@ -108,11 +108,20 @@ export const useFetchChainChartData = ({
 		enabled: !!denominationGeckoId
 	})
 
+	// Chain Fees/Revenue are chain-level metrics, even though upstream serves
+	// their series through the adapter protocol chart path.
 	const isChainFeesEnabled = toggledChartsSet.has('Chain Fees')
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'chain-fees', selectedChain],
 		queryFn: () =>
-			fetchJson(buildChainChartApiUrl({ kind: 'adapter-protocol', adapterType: 'fees', protocol: selectedChain })),
+			fetchJson(
+				buildChainChartApiUrl({
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: selectedChain
+				})
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -126,6 +135,7 @@ export const useFetchChainChartData = ({
 			fetchJson(
 				buildChainChartApiUrl({
 					kind: 'adapter-protocol',
+					entity: 'chain',
 					adapterType: 'fees',
 					protocol: selectedChain,
 					dataType: 'dailyRevenue'

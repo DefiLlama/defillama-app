@@ -75,6 +75,8 @@ function buildWideCsv(headers: string[], rows: Array<Record<string, string>>): s
 async function buildTvlBreakdownCsv(
 	category: string
 ): Promise<{ headers: string[]; rows: Array<Record<string, string>> } | null> {
+	// TVL category breakdowns come from simpleChainDataset CSV, which is already
+	// shaped as dates by protocol names.
 	const url = `${SERVER_URL}/simpleChainDataset/All?category=${encodeURIComponent(category)}`
 	const upstream = await fetchWithPoolingOnServer(url)
 	if (!upstream.ok) return null
@@ -125,6 +127,8 @@ async function buildDimensionBreakdownCsv(
 	dataType: string | undefined,
 	category: string
 ): Promise<{ headers: string[]; rows: Array<Record<string, string>> } | null> {
+	// Dimension category breakdowns need a join: protocol-breakdown supplies the
+	// values, while overview metadata supplies protocol categories.
 	const dtQs = dataType ? `dataType=${encodeURIComponent(dataType)}` : ''
 	const breakdownUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol-breakdown${dtQs ? `?${dtQs}` : ''}`
 	const overviewUrl = `${SERVER_URL}/overview/${adapterType}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true${dtQs ? `&${dtQs}` : ''}`

@@ -37,7 +37,8 @@ Chain Fees are chain-level economics.
 Implementation notes:
 
 - Chain-only fee IDs such as `Base`, `Polygon`, `Sui`, and `Hyperliquid L1` may be valid for upstream fees adapter protocol endpoints even when they are not protocol metadata entries.
-- Public API validation for this path must not require protocol metadata only. If protocol resolution misses, validate a chain fallback before rejecting the request.
+- Client chart requests should pass `entity=chain` for Chain Fees so the API validates the value against chain metadata and requires the `chainFees` flag.
+- Public API validation for this path must not require protocol metadata only. If supporting legacy requests without `entity=chain`, validate a chain fallback and require the `chainFees` flag before fetching.
 
 ### Chain Revenue
 
@@ -54,6 +55,7 @@ Implementation notes:
 
 - This may represent chain-retained revenue such as gas fees, bribes, token taxes, or other chain-native economics depending on the adapter methodology.
 - Do not redirect Chain Revenue to app revenue aggregation.
+- Client chart requests should pass `entity=chain` for Chain Revenue so the API validates the value against chain metadata and requires the `chainRevenue` flag.
 
 ### App Fees
 
@@ -117,4 +119,4 @@ Examples:
 
 - `adapter-chain` routes should validate chain parameters through chain metadata.
 - Normal protocol routes should validate protocol parameters through protocol metadata.
-- Chain Fees and Chain Revenue use protocol-style upstream paths with chain-level IDs, so protocol metadata can miss for valid chains. Validate the chain fallback before returning 404.
+- Chain Fees and Chain Revenue use protocol-style upstream paths with chain-level IDs, so protocol metadata can miss for valid chains. Prefer explicit `entity=chain` from the client, then validate against chain metadata and the relevant `chainFees` or `chainRevenue` flag before fetching.

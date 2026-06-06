@@ -37,6 +37,43 @@ async function resolveCanonicalProtocolParam(protocol: string): Promise<string |
 	return protocolRoute?.canonicalSlug ?? null
 }
 
+// Chain Fees/Revenue are chain-level economics, but upstream exposes their series
+// through the adapter protocol chart path. `entity=chain` makes that overload
+// explicit and gates it on chainFees/chainRevenue metadata.
+const isChainLevelFeesProtocolRequest = (adapterType: string, dataType: string | undefined): boolean =>
+	adapterType === 'fees' && (!dataType || dataType === 'dailyFees' || dataType === 'dailyRevenue')
+
+async function resolveCanonicalChainFeesProtocolParam(
+	chain: string,
+	dataType: string | undefined
+): Promise<string | null> {
+	if (chain.toLowerCase() === 'all') return null
+	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const chainRoute = await resolveChainParam(chain)
+	const metadataFlag = dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees'
+	return chainRoute?.metadata[metadataFlag] ? chainRoute.canonicalName : null
+}
+
+async function resolveCanonicalAdapterProtocolParam(
+	protocol: string,
+	adapterType: string,
+	dataType: string | undefined,
+	entity: string | undefined
+): Promise<string | null> {
+	if (entity === 'chain') {
+		if (!isChainLevelFeesProtocolRequest(adapterType, dataType)) return null
+		return resolveCanonicalChainFeesProtocolParam(protocol, dataType)
+	}
+
+	const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+	if (canonicalProtocol) return canonicalProtocol
+	if (entity === 'protocol') return null
+	// Stale clients may omit entity; keep the fallback narrow so app metrics and
+	// unknown values still fail route-cache validation before reaching upstream.
+	if (!isChainLevelFeesProtocolRequest(adapterType, dataType)) return null
+	return resolveCanonicalChainFeesProtocolParam(protocol, dataType)
+}
+
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {
 	try {
 		const data = await getStablecoinOverviewChartSeries({ chain: chain === 'All' ? null : chain, chart: 'totalMcap' })
@@ -98,12 +135,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			const adapterType = getQueryParam(req.query.adapterType)
 			const protocol = getQueryParam(req.query.protocol)
 			const dataType = getQueryParam(req.query.dataType)
+			const entity = getQueryParam(req.query.entity)
 
 			if (!adapterType || !protocol) {
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'adapterType and protocol parameters are required' })
 			}
-			const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+			if (entity && entity !== 'chain' && entity !== 'protocol') {
+				setNoStoreHeaders(res)
+				return res.status(400).json({ error: 'entity parameter must be chain or protocol' })
+			}
+			const canonicalProtocol = await resolveCanonicalAdapterProtocolParam(protocol, adapterType, dataType, entity)
 			if (!canonicalProtocol) {
 				setNoStoreHeaders(res)
 				return res.status(404).json({ error: 'protocol not found' })
@@ -216,6 +258,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'token-incentives') {
+			// Chain overview renders this chart, but the data is still keyed by a
+			// protocol emissions slug rather than a chain slug.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)

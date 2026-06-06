@@ -27,6 +27,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
+		// The legacy stablecoin chart API uses this special label for the global
+		// aggregate instead of accepting "all" directly.
 		const chainLabel = chain.toLowerCase() === 'all' ? 'all-llama-app' : chain
 		const data = await fetchStablecoinChartApi(chainLabel)
 

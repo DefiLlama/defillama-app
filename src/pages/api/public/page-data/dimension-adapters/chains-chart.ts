@@ -34,6 +34,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
+		// Build the chain universe from adapter metadata so this endpoint only
+		// asks upstream for chains that expose the requested metric.
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = getChainsByAdapterAllChains({
 			adapterType: adapterType as `${ADAPTER_TYPES}`,
