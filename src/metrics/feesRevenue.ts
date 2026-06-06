@@ -1,6 +1,12 @@
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import type { IChainMetadata } from '~/utils/metadata/types'
-import type { ChainOverviewFeeRevenueMetric, FeeRevenueMetric, FeeRevenueMetricId } from './definitions'
+import type {
+	ChainNativeFeeRevenueMetric,
+	ChainNativeFeeRevenueRankingDataType,
+	ChainOverviewFeeRevenueMetric,
+	FeeRevenueMetric,
+	FeeRevenueMetricId
+} from './definitions'
 
 // Fees/revenue terminology has two chain concepts: chain-native economics and
 // app-on-chain aggregation. These descriptors keep that intent separate from
@@ -138,4 +144,10 @@ export function shouldFetchChainOverviewFeeRevenueMetric({
 }): boolean {
 	if (metric.chainOverview.excludeAllChains && chain === 'All') return false
 	return !!metadata[metric.metadataFlag]
+}
+
+export function getChainNativeFeeRevenueRankingMetric(
+	dataType: ChainNativeFeeRevenueRankingDataType
+): ChainNativeFeeRevenueMetric {
+	return dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE ? feeRevenueMetrics.chainRevenue : feeRevenueMetrics.chainFees
 }
