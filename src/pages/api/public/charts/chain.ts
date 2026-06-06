@@ -5,6 +5,8 @@ import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
+import type { ChainNativeFeeRevenueMetric } from '~/metrics/definitions'
+import { getChainNativeFeeRevenueMetricForAdapterProtocol } from '~/metrics/routeSemantics'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -37,21 +39,14 @@ async function resolveCanonicalProtocolParam(protocol: string): Promise<string |
 	return protocolRoute?.canonicalSlug ?? null
 }
 
-// Chain Fees/Revenue are chain-level economics, but upstream exposes their series
-// through the adapter protocol chart path. `entity=chain` makes that overload
-// explicit and gates it on chainFees/chainRevenue metadata.
-const isChainLevelFeesProtocolRequest = (adapterType: string, dataType: string | undefined): boolean =>
-	adapterType === 'fees' && (!dataType || dataType === 'dailyFees' || dataType === 'dailyRevenue')
-
-async function resolveCanonicalChainFeesProtocolParam(
+async function resolveCanonicalChainNativeFeeRevenueProtocolParam(
 	chain: string,
-	dataType: string | undefined
+	metric: ChainNativeFeeRevenueMetric
 ): Promise<string | null> {
 	if (chain.toLowerCase() === 'all') return null
 	const { resolveChainParam } = await import('~/server/routeCache/chains')
 	const chainRoute = await resolveChainParam(chain)
-	const metadataFlag = dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees'
-	return chainRoute?.metadata[metadataFlag] ? chainRoute.canonicalName : null
+	return chainRoute?.metadata[metric.metadataFlag] ? chainRoute.canonicalName : null
 }
 
 async function resolveCanonicalAdapterProtocolParam(
@@ -60,9 +55,11 @@ async function resolveCanonicalAdapterProtocolParam(
 	dataType: string | undefined,
 	entity: string | undefined
 ): Promise<string | null> {
+	const chainNativeFeeRevenueMetric = getChainNativeFeeRevenueMetricForAdapterProtocol({ adapterType, dataType })
+
 	if (entity === 'chain') {
-		if (!isChainLevelFeesProtocolRequest(adapterType, dataType)) return null
-		return resolveCanonicalChainFeesProtocolParam(protocol, dataType)
+		if (!chainNativeFeeRevenueMetric) return null
+		return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
 	}
 
 	const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
@@ -70,8 +67,8 @@ async function resolveCanonicalAdapterProtocolParam(
 	if (entity === 'protocol') return null
 	// Stale clients may omit entity; keep the fallback narrow so app metrics and
 	// unknown values still fail route-cache validation before reaching upstream.
-	if (!isChainLevelFeesProtocolRequest(adapterType, dataType)) return null
-	return resolveCanonicalChainFeesProtocolParam(protocol, dataType)
+	if (!chainNativeFeeRevenueMetric) return null
+	return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
 }
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {

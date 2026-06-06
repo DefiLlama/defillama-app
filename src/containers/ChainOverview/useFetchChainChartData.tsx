@@ -6,10 +6,11 @@ import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { feeRevenueMetrics } from '~/metrics/feesRevenue'
+import { getFeeRevenueChainChartApiParams } from '~/metrics/routeSemantics'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
-import { chainOverviewFeeRevenueMetrics, getChainOverviewFeeRevenueChartApiParams } from './metricSemantics'
 
 /**
  * Get TVL values for 24h change calculation.
@@ -41,10 +42,10 @@ const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
 	return `/api/public/charts/chain?${searchParams.toString()}`
 }
 
-const chainFeesMetric = chainOverviewFeeRevenueMetrics.chainFees
-const chainRevenueMetric = chainOverviewFeeRevenueMetrics.chainRevenue
-const appFeesMetric = chainOverviewFeeRevenueMetrics.appFees
-const appRevenueMetric = chainOverviewFeeRevenueMetrics.appRevenue
+const chainFeesMetric = feeRevenueMetrics.chainFees
+const chainRevenueMetric = feeRevenueMetrics.chainRevenue
+const appFeesMetric = feeRevenueMetrics.appFees
+const appRevenueMetric = feeRevenueMetrics.appRevenue
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -116,11 +117,11 @@ export const useFetchChainChartData = ({
 
 	const isChainFeesEnabled = toggledChartsSet.has(chainFeesMetric.label)
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', chainFeesMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', chainFeesMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: chainFeesMetric,
 						chain: selectedChain
 					})
@@ -134,11 +135,11 @@ export const useFetchChainChartData = ({
 
 	const isChainRevenueEnabled = toggledChartsSet.has(chainRevenueMetric.label)
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', chainRevenueMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', chainRevenueMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: chainRevenueMetric,
 						chain: selectedChain
 					})
@@ -174,11 +175,11 @@ export const useFetchChainChartData = ({
 
 	const isChainAppFeesEnabled = toggledChartsSet.has(appFeesMetric.label)
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', appFeesMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', appFeesMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: appFeesMetric,
 						chain: selectedChain
 					})
@@ -194,11 +195,11 @@ export const useFetchChainChartData = ({
 	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['chain-overview', appRevenueMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', appRevenueMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: appRevenueMetric,
 						chain: selectedChain
 					})
