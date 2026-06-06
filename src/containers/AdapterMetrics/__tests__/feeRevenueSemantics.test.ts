@@ -1,7 +1,8 @@
 import type { GetStaticPropsContext } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { feeRevenueMetrics } from '~/metrics/feesRevenue'
 import defillamaPages from '~/public/pages.json'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../constants'
+import { ADAPTER_TYPES } from '../constants'
 
 const mocks = vi.hoisted(() => ({
 	chainMetadata: {
@@ -47,72 +48,29 @@ vi.mock('~/utils/perf', () => ({
 }))
 
 const semanticsRows = [
-	{
-		label: 'Chain Fees',
-		route: '/fees/chains',
-		name: 'Fees by Chain',
-		tab: 'Chains',
-		totalTrackedKey: 'chainFees.chains',
-		descriptionIncludes: ['using the chain']
-	},
-	{
-		label: 'Chain Revenue',
-		route: '/revenue/chains',
-		name: 'Revenue by Chain',
-		tab: 'Chains',
-		totalTrackedKey: 'chainRevenue.chains',
-		descriptionIncludes: ['chain collects for itself']
-	},
-	{
-		label: 'App Fees',
-		route: '/app-fees/chains',
-		name: 'App Fees by Chain',
-		tab: 'Chains',
-		totalTrackedKey: 'fees.chains',
-		descriptionIncludes: ['apps on the chain', 'Excludes', 'gas fees']
-	},
-	{
-		label: 'App Revenue',
-		route: '/app-revenue/chains',
-		name: 'App Revenue by Chain',
-		tab: 'Chains',
-		totalTrackedKey: 'revenue.chains',
-		descriptionIncludes: ['apps on the chain', 'Excludes', 'gas fees']
-	},
-	{
-		label: 'REV',
-		route: '/rev/chains',
-		name: 'REV by Chain',
-		tab: 'Chains',
-		totalTrackedKey: 'chainFees.chains',
-		descriptionIncludes: ['chain fees and MEV tips']
-	}
+	{ label: feeRevenueMetrics.chainFees.label, ...feeRevenueMetrics.chainFees.ranking },
+	{ label: feeRevenueMetrics.chainRevenue.label, ...feeRevenueMetrics.chainRevenue.ranking },
+	{ label: feeRevenueMetrics.appFees.label, ...feeRevenueMetrics.appFees.ranking },
+	{ label: feeRevenueMetrics.appRevenue.label, ...feeRevenueMetrics.appRevenue.ranking },
+	{ label: feeRevenueMetrics.rev.label, ...feeRevenueMetrics.rev.ranking }
 ] as const
 
 const rankingPageRows = [
 	{
-		route: '/fees/chains',
-		loadPage: () => import('~/pages/fees/chains'),
-		builder: 'chain-native',
-		dataType: ADAPTER_DATA_TYPES.DAILY_FEES
+		metric: feeRevenueMetrics.chainFees,
+		loadPage: () => import('~/pages/fees/chains')
 	},
 	{
-		route: '/revenue/chains',
-		loadPage: () => import('~/pages/revenue/chains'),
-		builder: 'chain-native',
-		dataType: ADAPTER_DATA_TYPES.DAILY_REVENUE
+		metric: feeRevenueMetrics.chainRevenue,
+		loadPage: () => import('~/pages/revenue/chains')
 	},
 	{
-		route: '/app-fees/chains',
-		loadPage: () => import('~/pages/app-fees/chains'),
-		builder: 'app-aggregation',
-		dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES
+		metric: feeRevenueMetrics.appFees,
+		loadPage: () => import('~/pages/app-fees/chains')
 	},
 	{
-		route: '/app-revenue/chains',
-		loadPage: () => import('~/pages/app-revenue/chains'),
-		builder: 'app-aggregation',
-		dataType: ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
+		metric: feeRevenueMetrics.appRevenue,
+		loadPage: () => import('~/pages/app-revenue/chains')
 	}
 ] as const
 
@@ -140,22 +98,22 @@ describe('fees and revenue page semantics', () => {
 		}
 	})
 
-	it.each(rankingPageRows)('pins $route ranking page data builder semantics', async (row) => {
+	it.each(rankingPageRows)('pins $metric.ranking.route ranking page data builder semantics', async (row) => {
 		const page = await row.loadPage()
 
 		await page.getStaticProps(staticPropsContext)
 
-		if (row.builder === 'chain-native') {
+		if (row.metric.ranking.builder === 'chain-native') {
 			expect(mocks.getChainsByFeesAdapterPageData).toHaveBeenCalledWith({
 				adapterType: ADAPTER_TYPES.FEES,
-				dataType: row.dataType,
+				dataType: row.metric.ranking.dataType,
 				chainMetadata: mocks.chainMetadata
 			})
 			expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
 		} else {
 			expect(mocks.getChainsByAdapterPageData).toHaveBeenCalledWith({
 				adapterType: ADAPTER_TYPES.FEES,
-				dataType: row.dataType,
+				dataType: row.metric.ranking.dataType,
 				chainMetadata: mocks.chainMetadata,
 				includeChartData: false
 			})

@@ -1,29 +1,31 @@
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
-import type { ChainNativeFeeRevenueMetric, FeeRevenueMetric } from './definitions'
+import type { ChainNativeFeeRevenueMetric, ChainOverviewFeeRevenueMetric } from './definitions'
 import { feeRevenueMetrics } from './feesRevenue'
 
 export function getFeeRevenueChainChartApiParams({
 	metric,
 	chain
 }: {
-	metric: FeeRevenueMetric
+	metric: ChainOverviewFeeRevenueMetric
 	chain: string
 }): Record<string, string | undefined> {
-	if (metric.source.kind === 'adapter-protocol') {
+	const { source } = metric.chainOverview
+
+	if (source.kind === 'adapter-protocol') {
 		return {
-			kind: metric.source.kind,
-			entity: metric.source.entity,
-			adapterType: metric.source.adapterType,
+			kind: source.kind,
+			entity: source.entity,
+			adapterType: source.adapterType,
 			protocol: chain,
-			dataType: metric.source.dataType
+			dataType: source.dataType
 		}
 	}
 
 	return {
-		kind: metric.source.kind,
-		adapterType: metric.source.adapterType,
+		kind: source.kind,
+		adapterType: source.adapterType,
 		chain,
-		dataType: metric.source.dataType
+		dataType: source.dataType
 	}
 }
 

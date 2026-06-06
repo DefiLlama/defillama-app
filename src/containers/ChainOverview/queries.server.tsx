@@ -265,54 +265,54 @@ export async function getChainOverviewData({
 					.then((assets) => (chain !== 'All' ? (assets[currentChainMetadata.name] ?? null) : null))
 					.catch(() => null)
 			),
-			timePhase(appRevenueMetric.phase, () =>
+			timePhase(appRevenueMetric.chainOverview.phase, () =>
 				shouldFetchChainOverviewFeeRevenueMetric({
 					metric: appRevenueMetric,
 					metadata: currentChainMetadata,
 					chain
 				})
 					? fetchAdapterChainMetrics({
-							adapterType: appRevenueMetric.source.adapterType,
+							adapterType: appRevenueMetric.chainOverview.source.adapterType,
 							chain: currentChainMetadata.name,
-							dataType: appRevenueMetric.source.dataType
+							dataType: appRevenueMetric.chainOverview.source.dataType
 						})
 					: Promise.resolve(null)
 			),
-			timePhase(appFeesMetric.phase, () =>
+			timePhase(appFeesMetric.chainOverview.phase, () =>
 				shouldFetchChainOverviewFeeRevenueMetric({
 					metric: appFeesMetric,
 					metadata: currentChainMetadata,
 					chain
 				})
 					? fetchAdapterChainMetrics({
-							adapterType: appFeesMetric.source.adapterType,
+							adapterType: appFeesMetric.chainOverview.source.adapterType,
 							chain: currentChainMetadata.name,
-							dataType: appFeesMetric.source.dataType
+							dataType: appFeesMetric.chainOverview.source.dataType
 						})
 					: Promise.resolve(null)
 			),
-			timePhase(chainFeesMetric.phase, () =>
+			timePhase(chainFeesMetric.chainOverview.phase, () =>
 				shouldFetchChainOverviewFeeRevenueMetric({
 					metric: chainFeesMetric,
 					metadata: currentChainMetadata,
 					chain
 				})
 					? fetchAdapterProtocolMetrics({
-							adapterType: chainFeesMetric.source.adapterType,
+							adapterType: chainFeesMetric.chainOverview.source.adapterType,
 							protocol: currentChainMetadata.name
 						})
 					: Promise.resolve(null)
 			),
-			timePhase(chainRevenueMetric.phase, () =>
+			timePhase(chainRevenueMetric.chainOverview.phase, () =>
 				shouldFetchChainOverviewFeeRevenueMetric({
 					metric: chainRevenueMetric,
 					metadata: currentChainMetadata,
 					chain
 				})
 					? fetchAdapterProtocolMetrics({
-							adapterType: chainRevenueMetric.source.adapterType,
+							adapterType: chainRevenueMetric.chainOverview.source.adapterType,
 							protocol: currentChainMetadata.name,
-							dataType: chainRevenueMetric.source.dataType
+							dataType: chainRevenueMetric.chainOverview.source.dataType
 						})
 					: Promise.resolve(null)
 			),

@@ -117,7 +117,7 @@ export const useFetchChainChartData = ({
 
 	const isChainFeesEnabled = toggledChartsSet.has(chainFeesMetric.label)
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', chainFeesMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', chainFeesMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
@@ -135,7 +135,7 @@ export const useFetchChainChartData = ({
 
 	const isChainRevenueEnabled = toggledChartsSet.has(chainRevenueMetric.label)
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', chainRevenueMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', chainRevenueMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
@@ -175,7 +175,7 @@ export const useFetchChainChartData = ({
 
 	const isChainAppFeesEnabled = toggledChartsSet.has(appFeesMetric.label)
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', appFeesMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', appFeesMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
@@ -195,7 +195,7 @@ export const useFetchChainChartData = ({
 	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['chain-overview', appRevenueMetric.queryKey, selectedChain],
+		queryKey: ['chain-overview', appRevenueMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
