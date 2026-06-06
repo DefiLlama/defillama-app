@@ -1,7 +1,7 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
-import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
+import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/filterPolicy'
 import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import type { PeggedOverviewPageData } from '~/containers/Stablecoins/types'
