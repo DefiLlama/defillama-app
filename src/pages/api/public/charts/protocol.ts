@@ -59,6 +59,8 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 	res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
 }
 
+// Protocol chart pages can also render CEX-like asset pages. Resolve normal
+// protocol metadata first, then fall back to the asset route cache.
 async function resolveCanonicalProtocolParam(protocol: string): Promise<string | null> {
 	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
 	const protocolRoute = await resolveProtocolParam(protocol)
@@ -87,6 +89,8 @@ const parseStringArrayParam = (value: string | undefined): string[] | null => {
 	}
 }
 
+// Upstream adapter breakdown charts only support these named dimensions; reject
+// arbitrary strings here instead of forwarding them as a loose passthrough.
 const parseAdapterBreakdownRequest = (params: {
 	adapterType?: string
 	protocol?: string
@@ -240,6 +244,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'median-apy') {
+			// Yield median APY uses yield project IDs, which are not always the
+			// same namespace as protocol route slugs.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)
@@ -269,6 +275,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'unlocks') {
+			// Unlock charts are keyed by emissions metadata; a valid protocol route
+			// does not necessarily have emissions chart data.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)
@@ -305,6 +313,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'bridge-volume') {
+			// Bridge volume uses bridge protocol slugs, a separate namespace from
+			// normal protocol route slugs.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)
@@ -334,6 +344,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'oracle-chart') {
+			// Oracle charts are keyed by oracle route metadata instead of protocol
+			// route metadata.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)
@@ -369,6 +381,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'nft-volume') {
+			// NFT volume matches marketplace exchange names from the NFT API, not
+			// protocol route metadata.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)
