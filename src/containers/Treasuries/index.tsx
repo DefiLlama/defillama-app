@@ -203,7 +203,7 @@ const Breakdown = ({ data }: { data: [string, number] }) => {
 		<span className="flex flex-nowrap items-center gap-1">
 			<span
 				style={{ '--color': color } as CSSProperties & Record<`--${string}`, string>}
-				className="h-4 w-4 rounded-xs bg-(--color)"
+				className="size-4 rounded-xs bg-(--color)"
 			></span>
 			<span>{name}</span>
 		</span>

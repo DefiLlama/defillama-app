@@ -316,7 +316,7 @@ function sortStacksByVolatility(
 		volatility[stack] = max - min
 	}
 
-	return [...stacks].sort((a, b) => volatility[b] - volatility[a])
+	return stacks.toSorted((a, b) => volatility[b] - volatility[a])
 }
 
 const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
@@ -711,23 +711,22 @@ const ChartContainer = ({
 	const chartData = useMemo(() => {
 		// Keep chart data independent from the price query unless an overlay is enabled.
 		// This prevents the schedule chart from re-rendering when price data finishes loading.
-		const filtered =
-			!isPriceActive && !isMcapActive
-				? rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
-				: rawChartData
-						?.map((chartItem) => {
-							const dateSec = Math.floor(chartItem.timestamp / 1e3)
-							const res = { ...chartItem }
+		const filtered = rawChartData?.reduce<typeof rawChartData>((acc, chartItem) => {
+			let nextItem = chartItem
+			if (isPriceActive || isMcapActive) {
+				const dateSec = Math.floor(chartItem.timestamp / 1e3)
+				nextItem = { ...chartItem }
 
-							const mcap = normilizePriceChart?.mcaps?.[dateSec]
-							const price = normilizePriceChart?.prices?.[dateSec]
+				const mcap = normilizePriceChart?.mcaps?.[dateSec]
+				const price = normilizePriceChart?.prices?.[dateSec]
 
-							if (isMcapActive && mcap) res['Market Cap'] = mcap
-							if (isPriceActive && price) res['Price'] = price
+				if (isMcapActive && mcap) nextItem['Market Cap'] = mcap
+				if (isPriceActive && price) nextItem['Price'] = price
+			}
 
-							return res
-						})
-						?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
+			if (sumValuesExcludingKey(nextItem, 'timestamp') > 0) acc.push(nextItem)
+			return acc
+		}, [])
 
 		// Append a flat extension past the last datapoint so the final datapoints aren't squashed against the chart edge
 		// with a minimum of 10 days

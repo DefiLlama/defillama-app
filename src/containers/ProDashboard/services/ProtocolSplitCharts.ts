@@ -66,7 +66,7 @@ export default class SProtocolSplitCharts {
 			params.append('categoryFilterMode', categoryFilterMode)
 		}
 
-		const response = await fetchWithPoolingOnServer(`/api/protocols/split/${metric}?${params.toString()}`)
+		const response = await fetchWithPoolingOnServer(`/api/dynamic/protocols/split/${metric}?${params.toString()}`)
 
 		if (!response.ok) {
 			throw new Error(`Failed to fetch ${metric} split data: ${response.statusText}`)
@@ -230,7 +230,9 @@ export default class SProtocolSplitCharts {
 		}
 
 		try {
-			const response = await fetchWithPoolingOnServer(`/api/protocols/split/protocol-chain?${params.toString()}`)
+			const response = await fetchWithPoolingOnServer(
+				`/api/dynamic/protocols/split/protocol-chain?${params.toString()}`
+			)
 
 			if (!response.ok) {
 				throw new Error(`Failed to fetch protocol chain data: ${response.statusText}`)

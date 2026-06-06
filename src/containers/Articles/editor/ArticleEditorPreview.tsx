@@ -38,8 +38,8 @@ export function ArticleEditorPreview({
 			<div className="sticky top-0 z-30 border-b border-(--cards-border) bg-(--app-bg)/95 backdrop-blur supports-[backdrop-filter]:bg-(--app-bg)/82">
 				<div className="mx-auto flex w-full max-w-[1300px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
 					<div className="flex min-w-0 items-center gap-3">
-						<div className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<Icon name="eye" className="h-4 w-4 text-(--link-text)" />
+						<div className="grid size-9 shrink-0 place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<Icon name="eye" className="size-4 text-(--link-text)" />
 						</div>
 						<div className="min-w-0">
 							<div className="font-jetbrains text-[10px] font-medium tracking-[0.24em] text-(--text-tertiary) uppercase">
@@ -69,7 +69,7 @@ export function ArticleEditorPreview({
 								rel="noreferrer"
 								className="hidden h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary) sm:flex"
 							>
-								<Icon name="external" className="h-3.5 w-3.5" />
+								<Icon name="external" className="size-3.5" />
 								<span>Live</span>
 							</a>
 						) : null}
@@ -79,7 +79,7 @@ export function ArticleEditorPreview({
 							onClick={onEdit}
 							className="flex h-9 items-center gap-1.5 rounded-md bg-(--link-text) px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
 						>
-							<Icon name="pencil" className="h-3.5 w-3.5" />
+							<Icon name="pencil" className="size-3.5" />
 							<span>Edit</span>
 						</button>
 					</div>

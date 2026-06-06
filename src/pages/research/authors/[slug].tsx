@@ -5,45 +5,24 @@ import { useMemo, useState } from 'react'
 import { ArticleApiError, getAuthorBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { isResearcher } from '~/containers/Articles/ArticlesAccessGate'
-import {
-	ARTICLE_SECTION_LABELS,
-	ARTICLE_SECTION_SLUGS,
-	type ArticleDocument,
-	type ArticleSection
-} from '~/containers/Articles/types'
+import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/landing/utils'
+import { ARTICLE_SECTION_LABELS, type ArticleDocument, type ArticleSection } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 
 type ArchiveFilter = ArticleSection | 'all'
 
 const EMPTY_ARTICLES: ArticleDocument[] = []
-
-function articleHref(article: ArticleDocument) {
-	if (article.section) {
-		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
-	}
-	return '/research'
-}
-
-function formatDate(value: string | null) {
-	if (!value) return ''
-	return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
-}
+const shortDateFormatter = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' })
 
 function formatShort(value: string | null) {
 	if (!value) return ''
-	return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(value))
+	return shortDateFormatter.format(new Date(value))
 }
 
 function formatYear(value: string | null) {
 	if (!value) return ''
 	return new Date(value).getFullYear().toString()
-}
-
-function readingMinutes(article: ArticleDocument) {
-	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
-	const words = text ? text.split(/\s+/).length : 0
-	return Math.max(1, Math.ceil(words / 220))
 }
 
 function SocialLink({ kind, value }: { kind: string; value: string }) {
@@ -240,7 +219,7 @@ function AuthorContent({ slug }: { slug: string }) {
 									<div className="flex items-center gap-2 text-[11px] tracking-wide text-(--text-tertiary) uppercase">
 										<span className="font-jetbrains">Latest</span>
 										<span aria-hidden>·</span>
-										<span>{formatDate(lead.publishedAt)}</span>
+										<span>{formatDate(lead.displayDate ?? lead.publishedAt)}</span>
 										<span aria-hidden>·</span>
 										<span>{readingMinutes(lead)} min read</span>
 									</div>

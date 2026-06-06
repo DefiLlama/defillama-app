@@ -1,14 +1,14 @@
 import type { NextApiRequest } from 'next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ArticleDocument } from '~/containers/Articles/types'
-import { researchPublishHandler } from '~/pages/api/research/articles/[id]/publish'
+import { researchPublishHandler } from '~/pages/api/private/research/articles/[id]/publish'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 function request(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
 	return {
 		body: {},
 		headers: {},
-		method: 'GET',
+		method: 'POST',
 		query: { id: 'article-id' },
 		...overrides
 	} as NextApiRequest
@@ -24,7 +24,7 @@ function article(overrides: Partial<ArticleDocument> = {}): ArticleDocument {
 	} as ArticleDocument
 }
 
-describe('/api/research/articles/[id]/publish', () => {
+describe('/api/private/research/articles/[id]/publish', () => {
 	afterEach(() => {
 		vi.unstubAllEnvs()
 		vi.unstubAllGlobals()
@@ -51,18 +51,24 @@ describe('/api/research/articles/[id]/publish', () => {
 		expect(fetchImpl.mock.calls[0][1]).toEqual({ headers: { Authorization: 'Bearer user-token' } })
 		expect(new URL(fetchImpl.mock.calls[1][0]).pathname).toBe('/articles/article-id/publish')
 		expect(fetchImpl.mock.calls[1][1]).toEqual({
-			headers: { Authorization: 'Bearer user-token' },
+			body: '{}',
+			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
 			method: 'POST'
 		})
 		expect(res.revalidate).toHaveBeenCalledWith('/research')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/report/old-story')
-		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight/new-story')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/report')
+		expect(res.revalidate).toHaveBeenCalledWith('/research/spotlight')
+		expect(res.revalidate).not.toHaveBeenCalledWith('/research/report/old-story')
+		expect(res.revalidate).not.toHaveBeenCalledWith('/research/spotlight/new-story')
 		expect(fetchImpl).toHaveBeenLastCalledWith('https://api.cloudflare.com/client/v4/zones/zone/purge_cache', {
 			body: JSON.stringify({
 				files: [
 					'https://defillama.test/research',
+					'https://defillama.test/research/feed.xml',
 					'https://defillama.test/research/report/old-story',
-					'https://defillama.test/research/spotlight/new-story'
+					'https://defillama.test/research/report',
+					'https://defillama.test/research/spotlight/new-story',
+					'https://defillama.test/research/spotlight'
 				]
 			}),
 			headers: {
@@ -79,14 +85,85 @@ describe('/api/research/articles/[id]/publish', () => {
 					status: 'purged',
 					urls: [
 						'https://defillama.test/research',
+						'https://defillama.test/research/feed.xml',
 						'https://defillama.test/research/report/old-story',
-						'https://defillama.test/research/spotlight/new-story'
+						'https://defillama.test/research/report',
+						'https://defillama.test/research/spotlight/new-story',
+						'https://defillama.test/research/spotlight'
 					]
 				},
+				instances: [],
 				revalidateErrors: [],
-				revalidated: ['/research', '/research/report/old-story', '/research/spotlight/new-story']
+				revalidated: ['/research', '/research/report', '/research/spotlight']
 			}
 		})
+	})
+
+	it('forwards goLiveAt from query into the backend publish POST body', async () => {
+		const before = article()
+		const after = article({ status: 'draft', goLiveAt: '2026-06-01T09:00:00.000Z' })
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: after }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(
+			request({
+				body: { goLiveAt: '2026-06-01T09:00:00.000Z' },
+				headers: { authorization: 'Bearer user-token' }
+			}),
+			res
+		)
+
+		expect(fetchImpl.mock.calls[1][1]).toEqual({
+			body: JSON.stringify({ goLiveAt: '2026-06-01T09:00:00.000Z' }),
+			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
+			method: 'POST'
+		})
+	})
+
+	it('forwards goLiveAt=null from query when publishing immediately', async () => {
+		const before = article({ status: 'draft', goLiveAt: '2026-06-01T09:00:00.000Z' })
+		const after = article({ status: 'published', goLiveAt: null })
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+			.mockResolvedValueOnce(new Response(JSON.stringify({ article: after }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(
+			request({
+				body: { goLiveAt: null },
+				headers: { authorization: 'Bearer user-token' }
+			}),
+			res
+		)
+
+		expect(fetchImpl.mock.calls[1][1]).toEqual({
+			body: JSON.stringify({ goLiveAt: null }),
+			headers: { Authorization: 'Bearer user-token', 'Content-Type': 'application/json' },
+			method: 'POST'
+		})
+	})
+
+	it('fails closed in production when cross-instance revalidation is not configured', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		vi.stubEnv('CF_ZONE', 'zone')
+		vi.stubEnv('CF_PURGE_CACHE_AUTH', 'token')
+		const before = article()
+		const fetchImpl = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ article: before }), { status: 200 }))
+		vi.stubGlobal('fetch', fetchImpl)
+		const res = createMockNextApiResponse()
+
+		await researchPublishHandler(request({ headers: { authorization: 'Bearer user-token' } }), res)
+
+		expect(res.revalidate).not.toHaveBeenCalled()
+		expect(fetchImpl).toHaveBeenCalledTimes(1)
+		expect(res.status).toHaveBeenCalledWith(502)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Cross-instance revalidation is not configured' })
 	})
 
 	it('passes backend publish failures through without touching caches', async () => {

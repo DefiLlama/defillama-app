@@ -37,7 +37,7 @@ export async function fetchCexInflowsProxy(
 	tokensToExclude: string,
 	authorizedFetch: (url: string) => Promise<Response | null>
 ): Promise<RawCexInflowsResponse> {
-	const url = `/api/cex/inflows?slug=${encodeURIComponent(cexSlug)}&start=${startTime}&end=${endTime}&tokensToExclude=${encodeURIComponent(tokensToExclude)}`
+	const url = `/api/private/cex/inflows?slug=${encodeURIComponent(cexSlug)}&start=${startTime}&end=${endTime}&tokensToExclude=${encodeURIComponent(tokensToExclude)}`
 	const res = await authorizedFetch(url)
 	if (!res || !res.ok) {
 		throw new Error(`Inflows API returned ${res?.status ?? 'no response'}`)
@@ -51,7 +51,7 @@ export async function fetchCexInflowsBatchProxy(
 	endTime: number,
 	authorizedFetch: (url: string, options?: RequestInit) => Promise<Response | null>
 ): Promise<Record<string, RawCexInflowsResponse>> {
-	const res = await authorizedFetch('/api/cex/inflows/batch', {
+	const res = await authorizedFetch('/api/private/cex/inflows/batch', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ cexs, start: startTime, end: endTime })
@@ -86,5 +86,7 @@ export async function fetchExchangeMarketsFromNetwork(exchange: string): Promise
 }
 
 export async function fetchExchangeMarkets(exchange: string): Promise<ExchangeMarketsResponse> {
-	return fetchJson<ExchangeMarketsResponse>(`/api/markets/exchanges/${encodeURIComponent(exchange.toLowerCase())}`)
+	return fetchJson<ExchangeMarketsResponse>(
+		`/api/public/markets/exchanges/${encodeURIComponent(exchange.toLowerCase())}`
+	)
 }

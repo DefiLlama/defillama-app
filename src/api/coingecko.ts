@@ -25,7 +25,6 @@ import type {
 	GeckoIdResponse,
 	IResponseCGMarketsAPI
 } from './coingecko.types'
-import { fetchCoinPrices } from './index'
 
 const COINGECKO_API_BASE_URL = COINGECKO_KEY
 	? 'https://pro-api.coingecko.com/api/v3'
@@ -36,7 +35,7 @@ const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const COINGECKO_EXCHANGES_MAX_PAGE_SIZE = 250
 const COINGECKO_TICKERS_PAGE_SIZE = 100
 const CG_CHART_CACHE_TTL_SECONDS = 60 * 60
-const CG_CHART_LOCAL_API_PATH = '/api/charts/protocol'
+const CG_CHART_LOCAL_API_PATH = '/api/public/charts/protocol'
 
 function createCoinGeckoUrl(pathname: string): URL {
 	return new URL(pathname.replace(/^\//, ''), `${COINGECKO_API_BASE_URL}/`)
@@ -390,16 +389,6 @@ export async function fetchCoinGeckoChartByIdWithCacheFallback(
 	if (fullChart) url.searchParams.set('fullChart', 'true')
 	const data = await fetchJson<CgChartResponse['data'] | null>(url.toString()).catch(() => null)
 	return data?.prices ? { data } : null
-}
-
-/**
- * Fetch the current token price for a CoinGecko id through the DefiLlama prices API.
- * This is keyed by CoinGecko id but is not a direct CoinGecko HTTP request.
- */
-export async function fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId: string) {
-	if (!geckoId) return null
-	const prices = await fetchCoinPrices([`coingecko:${geckoId}`])
-	return prices[`coingecko:${geckoId}`] ?? null
 }
 
 /**

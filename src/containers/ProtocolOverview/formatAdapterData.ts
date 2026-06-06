@@ -1,4 +1,4 @@
-import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import type { IAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api.types'
 import { definitions } from '~/public/definitions'
 import type { IProtocolOverviewPageData } from './types'
 

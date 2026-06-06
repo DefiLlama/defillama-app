@@ -1,7 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
-import { getProtocolsAdjustedFDVsByChain } from '~/containers/Protocols/queries'
+import { ProtocolsWithTokens } from '~/containers/ProtocolLists/ProtocolsWithTokens'
+import { getProtocolsAdjustedFDVsByChain } from '~/containers/ProtocolLists/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -32,7 +32,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const data = await getProtocolsAdjustedFDVsByChain({
 			chain: metadataCache.chainMetadata[chain].name,
-			protocolMetadata: metadataCache.protocolMetadata
+			protocolMetadata: metadataCache.protocolMetadata,
+			emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
 		})
 
 		if (!data) throw new Error(`Missing page data for route=/outstanding-fdv/chain/[chain] chain=${chain}`)

@@ -31,7 +31,7 @@ export function CoverDetailsDialog({ article, publishErrors, store, updateCoverF
 					aria-label="Close"
 					className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
 				>
-					<Icon name="x" className="h-4 w-4" />
+					<Icon name="x" className="size-4" />
 				</Ariakit.DialogDismiss>
 			</div>
 
@@ -120,9 +120,9 @@ export function DeleteArticleDialog({
 			<div className="flex items-start gap-3">
 				<div
 					aria-hidden
-					className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
+					className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
 				>
-					<Icon name="trash" className="h-4 w-4" />
+					<Icon name="trash" className="size-4" />
 				</div>
 				<div className="grid gap-1">
 					<Ariakit.DialogHeading className="text-base font-semibold tracking-tight text-(--text-primary)">
@@ -153,7 +153,7 @@ export function DeleteArticleDialog({
 					disabled={isPending}
 					className="flex h-9 items-center gap-1.5 rounded-md bg-red-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(220,38,38,0.45)] transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
 				>
-					<Icon name="trash" className="h-3.5 w-3.5" />
+					<Icon name="trash" className="size-3.5" />
 					<span>{isPending ? 'Deleting…' : 'Delete'}</span>
 				</button>
 			</div>

@@ -1,23 +1,146 @@
+import { fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
+import type { IAdapterChainMetrics } from '~/containers/AdapterMetrics/api.types'
+import { getDimensionAdapterOverviewOfAllChains } from '~/containers/AdapterMetrics/queries'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainsAssetsResponse } from '~/containers/BridgedTVL/api.types'
 import { fetchChainsByCategory } from '~/containers/Chains/api'
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
-import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
+import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { normalizeChainsBaseTvlValue, removeStaleChainExtraTvlEntries } from './tvl'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
 
+type IChainsByCategoryChartData = Pick<IChainsByCategoryData, 'tvlChartsByChain' | 'totalTvlByDate'>
+
+function buildChainsByCategoryChartData({
+	stackedDataset,
+	tvlTypes,
+	sampledChart,
+	extraTvlTypes = []
+}: {
+	stackedDataset: IChainsByCategory['stackedDataset']
+	tvlTypes: IChainsByCategory['tvlTypes']
+	sampledChart?: boolean
+	extraTvlTypes?: readonly string[]
+}): IChainsByCategoryChartData {
+	let chartDataset = stackedDataset
+	if (sampledChart) {
+		const sampledData = []
+		const dataLength = stackedDataset.length
+		for (let i = 0; i < dataLength; i++) {
+			if (i % 2 === 0 || i === dataLength - 1) {
+				sampledData.push(stackedDataset[i])
+			}
+		}
+		chartDataset = sampledData
+	}
+
+	const tvlChartsByChain: Record<string, Record<string, Record<number, number>>> = {}
+	const totalTvlByDate: Record<string, Record<number, number>> = {}
+	const keysToNames: Record<string, string> = {}
+	for (const key in tvlTypes) {
+		keysToNames[tvlTypes[key]] = key
+	}
+	const includedTvlTypes = new Set(['tvl'])
+	for (const key of extraTvlTypes) {
+		if (key in tvlTypes) {
+			includedTvlTypes.add(key)
+		}
+	}
+	if (includedTvlTypes.has('doublecounted') && includedTvlTypes.has('liquidstaking') && 'dcAndLsOverlap' in tvlTypes) {
+		includedTvlTypes.add('dcAndLsOverlap')
+	}
+
+	for (const [date, tvls] of chartDataset) {
+		for (const chain in tvls) {
+			for (const key in tvls[chain]) {
+				const keyName = keysToNames[key]
+				if (!keyName || !includedTvlTypes.has(keyName)) continue
+				totalTvlByDate[keyName] = totalTvlByDate[keyName] || {}
+
+				// Match /chain/:chain base TVL: subtract current doublecounted and liquid staking, then add overlap back.
+				const value =
+					keyName === 'tvl'
+						? normalizeChainsBaseTvlValue(tvls[chain][key], {
+								doublecounted: tvls[chain]['d'],
+								liquidstaking: tvls[chain]['l'],
+								dcAndLsOverlap: tvls[chain]['dl']
+							})
+						: tvls[chain][key]
+				tvlChartsByChain[keyName] = tvlChartsByChain[keyName] || {}
+				tvlChartsByChain[keyName][chain] = tvlChartsByChain[keyName][chain] || {}
+				tvlChartsByChain[keyName][chain][+date * 1e3] = value
+				totalTvlByDate[keyName][+date * 1e3] = (totalTvlByDate[keyName][+date * 1e3] ?? 0) + value
+			}
+		}
+	}
+
+	return { tvlChartsByChain, totalTvlByDate }
+}
+
+function buildChainsLatestTvlTimestamps({
+	stackedDataset,
+	tvlTypes
+}: {
+	stackedDataset: IChainsByCategory['stackedDataset']
+	tvlTypes: IChainsByCategory['tvlTypes']
+}): IChainsByCategoryChartData['tvlChartsByChain'] {
+	const keysToNames: Record<string, string> = {}
+	for (const key in tvlTypes) {
+		keysToNames[tvlTypes[key]] = key
+	}
+
+	const latestTimestamps: Record<string, Record<string, number>> = {}
+	for (const [date, tvls] of stackedDataset) {
+		const timestamp = +date * 1e3
+		for (const chain in tvls) {
+			for (const key in tvls[chain]) {
+				const keyName = keysToNames[key]
+				if (!keyName) continue
+
+				latestTimestamps[keyName] = latestTimestamps[keyName] || {}
+				if (latestTimestamps[keyName][chain] == null || timestamp > latestTimestamps[keyName][chain]) {
+					latestTimestamps[keyName][chain] = timestamp
+				}
+			}
+		}
+	}
+
+	const tvlChartsByChain: IChainsByCategoryChartData['tvlChartsByChain'] = {}
+	for (const key in latestTimestamps) {
+		tvlChartsByChain[key] = {}
+		for (const chain in latestTimestamps[key]) {
+			tvlChartsByChain[key][chain] = { [latestTimestamps[key][chain]]: 1 }
+		}
+	}
+
+	return tvlChartsByChain
+}
+
+export async function getChainsByCategoryChartData({
+	category,
+	sampledChart,
+	extraTvlTypes
+}: {
+	category: string
+	sampledChart?: boolean
+	extraTvlTypes?: readonly string[]
+}): Promise<IChainsByCategoryChartData> {
+	const { stackedDataset, tvlTypes } = await fetchChainsByCategory<IChainsByCategory>(category)
+	return buildChainsByCategoryChartData({ stackedDataset, tvlTypes, sampledChart, extraTvlTypes })
+}
+
 export const getChainsByCategory = async ({
 	chainMetadata,
 	category,
-	sampledChart
+	sampledChart,
+	includeChartData = true
 }: {
 	chainMetadata: Record<string, IChainMetadata>
 	category: string
 	sampledChart?: boolean
+	includeChartData?: boolean
 }): Promise<IChainsByCategoryData> => {
 	const [
 		{ categories, chainTvls, ...rest },
@@ -129,46 +252,20 @@ export const getChainsByCategory = async ({
 		activeUsersByDisplayName[protocol.displayName] ??= protocol
 	}
 
-	let stackedDataset = rest.stackedDataset
-	if (sampledChart) {
-		const sampledData = []
-		const dataLength = rest.stackedDataset.length
-		for (let i = 0; i < dataLength; i++) {
-			if (i % 2 === 0 || i === dataLength - 1) {
-				sampledData.push(rest.stackedDataset[i])
-			}
-		}
-		stackedDataset = sampledData
-	}
-
-	const tvlChartsByChain: Record<string, Record<string, Record<number, number>>> = {}
-	const totalTvlByDate: Record<string, Record<number, number>> = {}
-	const keysToNames = {}
-	for (const key in rest.tvlTypes) {
-		keysToNames[rest.tvlTypes[key]] = key
-	}
-	for (const [date, tvls] of stackedDataset) {
-		for (const chain in tvls) {
-			for (const key in tvls[chain]) {
-				const keyName = keysToNames[key]
-				totalTvlByDate[keyName] = totalTvlByDate[keyName] || {}
-
-				// Match /chain/:chain base TVL: subtract current doublecounted and liquid staking, then add overlap back.
-				const value =
-					keyName === 'tvl'
-						? normalizeChainsBaseTvlValue(tvls[chain][key], {
-								doublecounted: tvls[chain]['d'],
-								liquidstaking: tvls[chain]['l'],
-								dcAndLsOverlap: tvls[chain]['dl']
-							})
-						: tvls[chain][key]
-				tvlChartsByChain[keyName] = tvlChartsByChain[keyName] || {}
-				tvlChartsByChain[keyName][chain] = tvlChartsByChain[keyName][chain] || {}
-				tvlChartsByChain[keyName][chain][+date * 1e3] = value
-				totalTvlByDate[keyName][+date * 1e3] = (totalTvlByDate[keyName][+date * 1e3] ?? 0) + value
-			}
-		}
-	}
+	const { tvlChartsByChain, totalTvlByDate } = includeChartData
+		? buildChainsByCategoryChartData({
+				stackedDataset: rest.stackedDataset,
+				tvlTypes: rest.tvlTypes,
+				sampledChart,
+				extraTvlTypes: TVL_SETTINGS_KEYS
+			})
+		: ({ tvlChartsByChain: {}, totalTvlByDate: {} } satisfies IChainsByCategoryChartData)
+	const staleExtraTvlCleanupCharts = includeChartData
+		? tvlChartsByChain
+		: buildChainsLatestTvlTimestamps({
+				stackedDataset: rest.stackedDataset,
+				tvlTypes: rest.tvlTypes
+			})
 
 	return {
 		tvlChartsByChain,
@@ -183,7 +280,7 @@ export const getChainsByCategory = async ({
 				const extraTvl = removeStaleChainExtraTvlEntries({
 					chainName: chain.name,
 					extraTvl: chain.extraTvl,
-					tvlChartsByChain
+					tvlChartsByChain: staleExtraTvlCleanupCharts
 				})
 
 				const fees24h = feesByDisplayName[chain.name]?.total24h ?? null

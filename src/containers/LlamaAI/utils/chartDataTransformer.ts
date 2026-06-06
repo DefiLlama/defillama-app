@@ -148,6 +148,37 @@ function createRowsFromFormattedSeries(
 	return Array.from(rowsByTimestamp.values()).sort((a, b) => Number(a.timestamp ?? 0) - Number(b.timestamp ?? 0))
 }
 
+// Mark the eligible y-axes as logarithmic. Only axes in `eligibleAxes` are switched, so a
+// dual-axis chart can keep a zero/negative-bearing axis linear while the other goes log.
+function applyLogScaleToYAxis(
+	chartOptions: Record<string, any> | undefined,
+	eligibleAxes: number[]
+): Record<string, any> | undefined {
+	if (eligibleAxes.length === 0) return chartOptions
+	const options = chartOptions ?? {}
+	const eligible = new Set(eligibleAxes)
+	const yAxis = options.yAxis
+	const toLogAxis = (axis: Record<string, any> | undefined) => {
+		const min = axis?.min
+		return {
+			...(axis ?? {}),
+			type: 'log',
+			min: min === 'dataMin' || (typeof min === 'number' && min > 0) ? min : undefined
+		}
+	}
+
+	if (Array.isArray(yAxis)) {
+		return {
+			...options,
+			yAxis: yAxis.map((axis, index) => (eligible.has(index) ? toLogAxis(axis) : axis))
+		}
+	}
+
+	// Single-object form represents axis 0.
+	if (!eligible.has(0)) return chartOptions
+	return { ...options, yAxis: toLogAxis(yAxis) }
+}
+
 export class ChartDataTransformer {
 	static applyViewState(
 		adaptedChart: AdaptedChartData,
@@ -218,15 +249,23 @@ export class ChartDataTransformer {
 				}
 			: undefined
 
+		const mergedChartOptions = percentageChartOptions
+			? { ...transformedChart.props.chartOptions, ...percentageChartOptions }
+			: transformedChart.props.chartOptions
+
+		// Log scale is an axis-only concern; skip it in percentage mode (share is already bounded).
+		const finalChartOptions =
+			state.logScale && !isPercentage
+				? applyLogScaleToYAxis(mergedChartOptions, capabilities.logEligibleYAxes)
+				: mergedChartOptions
+
 		return {
 			...transformedChart,
 			props: {
 				...transformedChart.props,
 				valueSymbol: state.percentage && capabilities.allowPercentage ? '%' : adaptedChart.props.valueSymbol,
 				hallmarks: state.showHallmarks ? transformedChart.props.hallmarks : undefined,
-				chartOptions: percentageChartOptions
-					? { ...transformedChart.props.chartOptions, ...percentageChartOptions }
-					: transformedChart.props.chartOptions
+				chartOptions: finalChartOptions
 			}
 		}
 	}
@@ -245,12 +284,15 @@ export class ChartDataTransformer {
 		if (interval === 'week' || interval === 'month') {
 			const groupBy = interval === 'week' ? 'weekly' : 'monthly'
 			const formattedSeries = nextChart.seriesMeta.map((meta) => {
-				const data = nextChart.props.dataset.source.flatMap((row) => {
+				const data: Array<[number, number]> = []
+				for (const row of nextChart.props.dataset.source) {
+					// Pre-March-2026 restored sessions (PR #2666 era) can carry string
+					// timestamps; malformed rows must not produce NaN buckets.
 					const timestamp = Number(row.timestamp)
 					const value = row[meta.name]
-					if (!Number.isFinite(timestamp) || typeof value !== 'number' || Number.isNaN(value)) return []
-					return [[timestamp, value] as [number, number]]
-				})
+					if (!Number.isFinite(timestamp) || typeof value !== 'number' || Number.isNaN(value)) continue
+					data.push([timestamp, value])
+				}
 
 				return {
 					name: meta.name,
@@ -302,13 +344,14 @@ export class ChartDataTransformer {
 		const seriesCount = nextChart.seriesMeta.length
 
 		const formattedSeries = nextChart.seriesMeta.map((meta) => {
-			const data = nextChart.props.dataset.source.flatMap((row) => {
+			const data: Array<[number, number]> = []
+			for (const row of nextChart.props.dataset.source) {
 				const timestamp = Number(row.timestamp)
-				if (!Number.isFinite(timestamp)) return []
+				if (!Number.isFinite(timestamp)) continue
 				const rawValue = row[meta.name]
 				const numericValue = typeof rawValue === 'number' && !Number.isNaN(rawValue) ? rawValue : 0
-				return [[timestamp, numericValue] as [number, number]]
-			})
+				data.push([timestamp, numericValue])
+			}
 
 			return {
 				name: meta.name,

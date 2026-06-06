@@ -2,11 +2,32 @@
 
 status=0
 
-echo "Running bun run lint..."
-bun run lint || status=$?
+echo "Running bun run format..."
+bun run format || status=$?
 
-echo "Running bun run ts..."
-bun run ts || status=$?
+if [ "$status" -ne 0 ]; then
+	echo "Pre-commit checks failed."
+	exit "$status"
+fi
+
+echo "Running bun run lint, bun run typecheck, bun run test:typecheck, and bun run test in parallel..."
+
+bun run lint &
+lint_pid=$!
+
+bun run typecheck &
+typecheck_pid=$!
+
+bun run test:typecheck &
+test_typecheck_pid=$!
+
+bun run test &
+test_pid=$!
+
+wait "$lint_pid" || status=$?
+wait "$typecheck_pid" || status=$?
+wait "$test_typecheck_pid" || status=$?
+wait "$test_pid" || status=$?
 
 if [ "$status" -ne 0 ]; then
 	echo "Pre-commit checks failed."

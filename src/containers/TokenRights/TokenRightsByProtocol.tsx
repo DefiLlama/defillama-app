@@ -88,9 +88,9 @@ export function TokenRightsByProtocol({
 								aria-hidden="true"
 								tabIndex={-1}
 								href={`#${EMBEDDED_TOKEN_RIGHTS_SECTION_ID}`}
-								className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+								className="absolute top-0 right-0 z-10 flex size-full items-center"
 							/>
-							<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+							<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 						</h2>
 						{overview.lastUpdated ? (
 							<span className="ml-auto text-xs text-(--text-secondary)">
@@ -224,7 +224,7 @@ export function TokenRightsByProtocol({
 														className="inline-flex shrink-0 items-center gap-1 text-blue-500 hover:underline"
 													>
 														{tryHostname(r.url)}
-														<Icon name="external-link" className="h-3.5 w-3.5" />
+														<Icon name="external-link" className="size-3.5" />
 													</a>
 												</div>
 											))}
@@ -435,7 +435,7 @@ function InlineLinks({ links }: { links: ITokenRightsParsedLink[] }) {
 					rel="noopener noreferrer"
 					className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
 				>
-					<Icon name="external-link" className="h-3 w-3 shrink-0" />
+					<Icon name="external-link" className="size-3 shrink-0" />
 					{l.label}
 				</a>
 			))}
@@ -603,7 +603,7 @@ function RaiseHistorySection({ tooltip, raises }: { tooltip?: string; raises: IP
 												rel="noopener noreferrer"
 												className="text-(--text-secondary) hover:text-(--text-primary)"
 											>
-												<Icon name="external-link" className="h-3.5 w-3.5" />
+												<Icon name="external-link" className="size-3.5" />
 											</a>
 										) : null}
 									</td>

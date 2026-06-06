@@ -81,7 +81,7 @@ export function ProtocolInformationCard({
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Icon name="earth" className="h-3 w-3" />
+						<Icon name="earth" className="size-3" />
 						<span>Website</span>
 					</a>
 				) : null}
@@ -94,7 +94,7 @@ export function ProtocolInformationCard({
 								rel="noopener noreferrer"
 								key={`${config.name}-github-${github}`}
 							>
-								<Icon name="github" className="h-3 w-3" />
+								<Icon name="github" className="size-3" />
 								<span>{config.github.length === 1 ? 'GitHub' : github}</span>
 							</a>
 						))
@@ -106,7 +106,7 @@ export function ProtocolInformationCard({
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Icon name="twitter" className="h-3 w-3" />
+						<Icon name="twitter" className="size-3" />
 						<span>Twitter</span>
 					</a>
 				) : null}

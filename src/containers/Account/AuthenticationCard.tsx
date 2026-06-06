@@ -9,7 +9,7 @@ import { SwitchToEmailModal } from './SwitchToEmailModal'
 import { isWalletEmail, truncateAddress } from './utils'
 
 export function AuthenticationCard() {
-	const { user, resetPasswordMutation, loaders } = useAuthContext()
+	const { user, resetPasswordMutation, sendOtp, verifyOtp, loaders } = useAuthContext()
 
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
@@ -198,6 +198,9 @@ export function AuthenticationCard() {
 			<VerifyEmailDialog
 				isOpen={isVerifyEmailModalOpen}
 				email={user?.email ?? undefined}
+				sendOtp={sendOtp}
+				verifyOtp={verifyOtp}
+				loaders={loaders}
 				onClose={() => setIsVerifyEmailModalOpen(false)}
 			/>
 		</>

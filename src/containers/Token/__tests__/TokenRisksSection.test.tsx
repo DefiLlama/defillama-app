@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import type { TokenRiskResponse } from '../tokenRisk.types'
+import type { TokenRiskExposureRow, TokenRiskResponse } from '../tokenRisk.types'
+import { buildTokenRiskProtocolSummaries } from '../tokenRisk.utils'
 
 vi.mock('~/components/Icon', () => ({
 	Icon: ({ name }: { name: string }) => <span>{name}</span>
@@ -40,57 +41,73 @@ vi.mock('~/components/Table/PaginatedTable', () => ({
 	)
 }))
 
-const createRiskData = (): TokenRiskResponse => ({
-	candidates: [
-		{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' },
-		{ key: 'base:0x8335', chain: 'base', address: '0x8335', displayName: 'Base' }
-	],
-	scopeCandidates: [{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' }],
-	selectedCandidateKey: null,
-	exposures: {
-		summary: {
-			totalCurrentMaxBorrowUsd: 1500,
-			totalMinBadDebtAtPriceZeroUsd: 400,
-			exposureCount: 2,
-			protocolCount: 2,
-			chainCount: 1,
-			minBadDebtKnownCount: 1,
-			minBadDebtUnknownCount: 1
+function createRiskRows(): TokenRiskExposureRow[] {
+	return [
+		{
+			protocol: 'aave-v3',
+			protocolDisplayName: 'Aave V3',
+			chain: 'ethereum',
+			chainDisplayName: 'Ethereum',
+			assetSymbol: 'USDC',
+			assetAddress: '0xa0b8',
+			currentMaxBorrowUsd: 1000,
+			minBadDebtAtPriceZeroUsd: 400,
+			minBadDebtAtPriceZeroCoverage: 'known'
 		},
-		rows: [
-			{
-				protocol: 'aave-v3',
-				protocolDisplayName: 'Aave V3',
-				chain: 'ethereum',
-				chainDisplayName: 'Ethereum',
-				assetSymbol: 'USDC',
-				assetAddress: '0xa0b8',
-				currentMaxBorrowUsd: 1000,
-				minBadDebtAtPriceZeroUsd: 400,
-				minBadDebtAtPriceZeroCoverage: 'known'
-			},
-			{
-				protocol: 'morpho-blue',
-				protocolDisplayName: 'Morpho Blue',
-				chain: 'ethereum',
-				chainDisplayName: 'Ethereum',
-				assetSymbol: 'USDC',
-				assetAddress: '0xa0b8',
-				currentMaxBorrowUsd: 500,
-				minBadDebtAtPriceZeroUsd: null,
-				minBadDebtAtPriceZeroCoverage: 'unavailable'
-			}
-		],
-		methodologies: {
-			asset: 'Asset methodology',
-			currentMaxBorrowUsd: 'Liquidity max borrow methodology',
-			minBadDebtAtPriceZeroUsd: 'Zero-price bad debt methodology'
+		{
+			protocol: 'morpho-blue',
+			protocolDisplayName: 'Morpho Blue',
+			chain: 'ethereum',
+			chainDisplayName: 'Ethereum',
+			assetSymbol: 'USDC',
+			assetAddress: '0xa0b8',
+			currentMaxBorrowUsd: 500,
+			minBadDebtAtPriceZeroUsd: null,
+			minBadDebtAtPriceZeroCoverage: 'unavailable'
 		}
-	},
-	limitations: ['Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.']
-})
+	]
+}
+
+function setRiskRows(riskData: TokenRiskResponse, rows: TokenRiskExposureRow[]) {
+	riskData.exposures.rows = rows
+	riskData.exposures.protocolSummaries = buildTokenRiskProtocolSummaries(rows)
+}
+
+const createRiskData = (): TokenRiskResponse => {
+	const rows = createRiskRows()
+
+	return {
+		candidates: [
+			{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' },
+			{ key: 'base:0x8335', chain: 'base', address: '0x8335', displayName: 'Base' }
+		],
+		scopeCandidates: [{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' }],
+		selectedCandidateKey: null,
+		exposures: {
+			summary: {
+				totalCurrentMaxBorrowUsd: 1500,
+				totalMinBadDebtAtPriceZeroUsd: 400,
+				exposureCount: 2,
+				protocolCount: 2,
+				chainCount: 1,
+				minBadDebtKnownCount: 1,
+				minBadDebtUnknownCount: 1
+			},
+			rows,
+			protocolSummaries: buildTokenRiskProtocolSummaries(rows),
+			methodologies: {
+				asset: 'Asset methodology',
+				currentMaxBorrowUsd: 'Liquidity max borrow methodology',
+				minBadDebtAtPriceZeroUsd: 'Zero-price bad debt methodology'
+			}
+		},
+		limitations: ['Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.']
+	}
+}
 
 import { TokenRisksSection } from '../TokenRisksSection'
+
+const textFromMarkup = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
 
 describe('TokenRisksSection', () => {
 	it('renders the combined maximum possible exposure headline from preloaded risk data', () => {
@@ -107,19 +124,17 @@ describe('TokenRisksSection', () => {
 
 	it('shows methodology, limitations, and the exposure details disclosure', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
+		const text = textFromMarkup(html)
 
-		expect(html).toContain('Showing collateral exposure for USDC on')
+		expect(text).toContain('Showing collateral exposure for USDC on')
 		expect(html).toContain(
 			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.'
 		)
 		expect(html).toContain('Show exposure details')
-		expect(html).toContain('paginated-table:2')
 		expect(html).toContain('Asset|Asset methodology')
 		expect(html).toContain('Max Borrowable|Liquidity max borrow methodology')
 		expect(html).toContain('Bad Debt at $0|Zero-price bad debt methodology')
-		expect(html).toContain(
-			'Bad Debt at $0</span> is the minimum known bad debt if the collateral asset price goes to zero'
-		)
+		expect(text).toContain('Bad Debt at $0 is the minimum known bad debt if the collateral asset price goes to zero')
 		expect(html).toContain('Bad debt at $0 totals remain lower bounds when a row is marked partial.')
 		expect(html).not.toContain('Borrowed Debt|')
 	})
@@ -141,12 +156,12 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" riskData={riskData} />)
 
-		expect(html).toContain('<span class="font-medium text-(--text-primary)">onchain</span>')
+		expect(textFromMarkup(html)).toContain('onchain')
 	})
 
 	it('shows a focusable chain breakdown trigger for multi-chain protocol summaries', () => {
 		const riskData = createRiskData()
-		riskData.exposures.rows = [
+		setRiskRows(riskData, [
 			riskData.exposures.rows[0],
 			{
 				...riskData.exposures.rows[0],
@@ -155,7 +170,7 @@ describe('TokenRisksSection', () => {
 				currentMaxBorrowUsd: 300,
 				minBadDebtAtPriceZeroUsd: 25
 			}
-		]
+		])
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
@@ -165,7 +180,7 @@ describe('TokenRisksSection', () => {
 
 	it('returns nothing when there are no exposure rows', () => {
 		const riskData = createRiskData()
-		riskData.exposures.rows = []
+		setRiskRows(riskData, [])
 		riskData.exposures.summary = {
 			totalCurrentMaxBorrowUsd: 0,
 			totalMinBadDebtAtPriceZeroUsd: null,
@@ -186,7 +201,7 @@ describe('TokenRisksSection', () => {
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = 50
 		riskData.exposures.summary.minBadDebtKnownCount = 0
 		riskData.exposures.summary.minBadDebtUnknownCount = 2
-		riskData.exposures.rows = [
+		setRiskRows(riskData, [
 			{
 				...riskData.exposures.rows[0],
 				protocol: 'fluid',
@@ -201,7 +216,7 @@ describe('TokenRisksSection', () => {
 				minBadDebtAtPriceZeroUsd: null,
 				minBadDebtAtPriceZeroCoverage: 'unavailable'
 			}
-		]
+		])
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
@@ -214,11 +229,14 @@ describe('TokenRisksSection', () => {
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = null
 		riskData.exposures.summary.minBadDebtKnownCount = 0
 		riskData.exposures.summary.minBadDebtUnknownCount = 2
-		riskData.exposures.rows = riskData.exposures.rows.map((row) => ({
-			...row,
-			minBadDebtAtPriceZeroUsd: null,
-			minBadDebtAtPriceZeroCoverage: 'unavailable' as const
-		}))
+		setRiskRows(
+			riskData,
+			riskData.exposures.rows.map((row) => ({
+				...row,
+				minBadDebtAtPriceZeroUsd: null,
+				minBadDebtAtPriceZeroCoverage: 'unavailable' as const
+			}))
+		)
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 

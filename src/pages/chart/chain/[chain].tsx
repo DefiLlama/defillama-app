@@ -7,6 +7,7 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import type { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -65,7 +66,7 @@ export const getStaticPaths = () => {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ChainChartPage(props) {
+export default function ChainChartPage(props: IChainOverviewData) {
 	const router = useRouter()
 	const selectedChain = props.metadata.name
 	const queryParamsString = useMemo(() => {
@@ -139,7 +140,7 @@ export default function ChainChartPage(props) {
 		selectedChain,
 		tvlChart: props.tvlChart,
 		tvlChartSummary: props.tvlChartSummary,
-		extraTvlCharts: props.extraTvlChart,
+		extraTvlCharts: props.extraTvlCharts,
 		tvlSettings,
 		chainGeckoId,
 		toggledCharts,

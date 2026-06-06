@@ -10,14 +10,14 @@ import { Menu } from '~/components/Menu'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import type { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { useGroupAndFormatChains } from '~/containers/ChainsByCategory'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
-import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
+import { applyProtocolTvlSettings } from '~/containers/ProtocolLists/utils'
+import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
-import { WatchListTabs } from '~/containers/Yields/Watchlist'
+import { WatchListTabs } from '~/containers/Yields/views/WatchlistView'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
@@ -522,7 +522,7 @@ function PortfolioNotifications({
 											<Ariakit.FormCheckbox
 												name="protocolMetrics"
 												value={metric.key}
-												className="h-4 w-4 rounded border-(--form-control-border)"
+												className="size-4 rounded border-(--form-control-border)"
 											/>
 											<span className="text-sm text-(--text-primary)">{metric.name}</span>
 										</label>
@@ -559,7 +559,7 @@ function PortfolioNotifications({
 											<Ariakit.FormCheckbox
 												name="chainMetrics"
 												value={metric.key}
-												className="h-4 w-4 rounded border-(--form-control-border)"
+												className="size-4 rounded border-(--form-control-border)"
 											/>
 											<span className="text-sm text-(--text-primary)">{metric.name}</span>
 										</label>
@@ -769,7 +769,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 						type="checkbox"
 						checked={showPositive}
 						onChange={(e) => startTransition(() => setShowPositive(e.target.checked))}
-						className="h-3.5 w-3.5 rounded border-(--form-control-border) accent-[#22c55e]"
+						className="size-3.5 rounded border-(--form-control-border) accent-[#22c55e]"
 					/>
 					<span className="text-xs font-medium text-(--success)">Positive</span>
 				</label>
@@ -778,7 +778,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 						type="checkbox"
 						checked={showNegative}
 						onChange={(e) => startTransition(() => setShowNegative(e.target.checked))}
-						className="h-3.5 w-3.5 rounded border-(--form-control-border) accent-[#ef4444]"
+						className="size-3.5 rounded border-(--form-control-border) accent-[#ef4444]"
 					/>
 					<span className="text-xs font-medium text-(--error)">Negative</span>
 				</label>

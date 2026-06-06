@@ -136,7 +136,7 @@ function aggregate(values: number[], aggregator: MetricAggregator, window: Metri
 		case 'sum':
 			return arr.reduce((a, b) => a + b, 0)
 		case 'median': {
-			const sorted = [...arr].sort((a, b) => a - b)
+			const sorted = arr.toSorted((a, b) => a - b)
 			const mid = Math.floor(sorted.length / 2)
 			return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
 		}

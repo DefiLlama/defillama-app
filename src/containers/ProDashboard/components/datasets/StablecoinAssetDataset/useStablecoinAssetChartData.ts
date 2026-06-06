@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useContext, useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/utils'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
+import { buildStablecoinAssetCacheValue } from '~/containers/ProDashboard/server/stablecoinFetchers'
 import {
 	fetchStablecoinAssetViaProxy,
 	fetchStablecoinsListViaProxy
@@ -29,6 +30,7 @@ interface UseStablecoinAssetChartDataResult {
 
 export function useStablecoinAssetChartData(stablecoinSlug: string): UseStablecoinAssetChartDataResult {
 	const authToken = useContext(ProxyAuthTokenContext)
+	const streamDone = useContext(StreamDoneContext)
 	const {
 		data: rawData,
 		isLoading,
@@ -48,27 +50,11 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 				res = await fetchStablecoinAssetApi(peggedID)
 			}
 
-			if (!res) return null
-
-			const chainsUnique: string[] = Object.keys(res.chainBalances || {})
-
-			const chainsData: any[] = chainsUnique.map((chain: string) => {
-				return res.chainBalances[chain]?.tokens || []
-			})
-			const stablecoinName = typeof res.name === 'string' ? res.name : ''
-			const stablecoinSymbol = typeof res.symbol === 'string' ? res.symbol : ''
-
-			return {
-				peggedAssetData: res,
-				chainsUnique,
-				chainsData,
-				stablecoinName,
-				stablecoinSymbol
-			}
+			return buildStablecoinAssetCacheValue(res)
 		},
 		staleTime: 5 * 60 * 1000,
 		refetchInterval: 5 * 60 * 1000,
-		enabled: !!stablecoinSlug
+		enabled: !!stablecoinSlug && streamDone
 	})
 
 	const chartData = useMemo(() => {

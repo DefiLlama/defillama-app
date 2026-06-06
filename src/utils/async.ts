@@ -273,6 +273,7 @@ async function fetchJsonWithRetries<T = any>(
 				await sleep(getJitteredDelay(100, attempt, 2000))
 				continue
 			}
+			break
 		}
 	}
 

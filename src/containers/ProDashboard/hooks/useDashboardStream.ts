@@ -50,7 +50,11 @@ function seedTableDataIntoCache(
 	}
 }
 
-export function useDashboardStream(dashboardId: string | undefined): DashboardStreamState {
+export function useDashboardStream(
+	dashboardId: string | undefined,
+	authToken?: string | null,
+	enabled = true
+): DashboardStreamState {
 	const queryClient = useQueryClient()
 	const [state, setState] = useState<DashboardStreamState>({
 		isStreaming: false,
@@ -61,6 +65,8 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 		error: null
 	})
 	const abortRef = useRef<AbortController | null>(null)
+	const authTokenRef = useRef(authToken)
+	authTokenRef.current = authToken
 
 	const handleLine = useCallback(
 		(line: string) => {
@@ -227,6 +233,21 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 						}
 						break
 
+					case 'dimensionDatasetData':
+					case 'incomeStatementData':
+					case 'chartBuilderData':
+					case 'cexAnalyticsData':
+					case 'chainsDatasetData':
+					case 'yieldsDatasetData':
+					case 'stablecoinsTableData':
+					case 'stablecoinAssetData':
+						if (chunk.key && chunk.data) {
+							try {
+								queryClient.setQueryData(JSON.parse(chunk.key), chunk.data, { updatedAt: now })
+							} catch {}
+						}
+						break
+
 					case 'done':
 						setState((s) => ({ ...s, isStreaming: false, isDone: true }))
 						break
@@ -239,7 +260,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 	)
 
 	useEffect(() => {
-		if (!dashboardId || dashboardId === 'new') return
+		if (!dashboardId || dashboardId === 'new' || !enabled) return
 
 		// Abort any previous stream before starting a new one
 		abortRef.current?.abort()
@@ -258,8 +279,10 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 
 		const startStream = async () => {
 			try {
-				const response = await fetch(`/api/dashboard/${dashboardId}/stream?_=${Math.random().toString(36).slice(2)}`, {
+				const tokenAtFetch = authTokenRef.current
+				const response = await fetch(`/api/dynamic/dashboard/${dashboardId}/stream`, {
 					credentials: 'include',
+					headers: tokenAtFetch ? { Authorization: `Bearer ${tokenAtFetch}` } : undefined,
 					signal: abortController.signal
 				})
 
@@ -329,7 +352,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 		return () => {
 			abortController.abort()
 		}
-	}, [dashboardId, handleLine])
+	}, [dashboardId, enabled, handleLine])
 
 	return state
 }

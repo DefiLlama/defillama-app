@@ -77,7 +77,7 @@ function AuthContent() {
 				{isAuthenticated ? (
 					<div className="w-full max-w-md rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
 						<div className="mb-6">
-							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+							<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-green-500/10">
 								<Icon name="check" height={24} width={24} className="text-green-500" />
 							</div>
 							<h2 className="mb-2 text-2xl font-bold text-white">Successfully logged in.</h2>

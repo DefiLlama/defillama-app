@@ -27,7 +27,7 @@ export function Account({ asPath: _asPath }: { asPath: string }) {
 	if (isAuthenticated && user) {
 		return (
 			<BasicLink href="/account" className="flex w-full items-center gap-3 rounded-lg p-1 hover:bg-white/5">
-				<img src="/assets/account_avatar.png" alt="Account avatar" className="h-6 w-6 shrink-0 rounded-full" />
+				<img src="/assets/account_avatar.png" alt="Account avatar" className="size-6 shrink-0 rounded-full" />
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<span className="text-xs leading-4 font-medium text-(--text1)">My Account</span>
 					<span
@@ -36,7 +36,7 @@ export function Account({ asPath: _asPath }: { asPath: string }) {
 						{hasActiveSubscription ? 'Active Subscription' : 'No Subscription'}
 					</span>
 				</div>
-				<Icon name="chevron-right" className="h-5 w-5 shrink-0 text-(--text3)" />
+				<Icon name="chevron-right" className="size-5 shrink-0 text-(--text3)" />
 			</BasicLink>
 		)
 	}

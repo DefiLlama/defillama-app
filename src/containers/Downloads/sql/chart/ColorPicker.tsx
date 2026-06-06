@@ -18,7 +18,7 @@ export function ColorPicker({ value, fallback, onChange }: ColorPickerProps) {
 		<Ariakit.PopoverProvider placement="bottom-start">
 			<Ariakit.PopoverDisclosure
 				aria-label="Series color"
-				className="h-3 w-3 shrink-0 rounded-sm border border-(--divider) shadow-sm transition-transform hover:scale-110"
+				className="size-3 shrink-0 rounded-sm border border-(--divider) shadow-sm transition-transform hover:scale-110"
 				style={{ background: active }}
 			/>
 			<Ariakit.Popover
@@ -32,7 +32,7 @@ export function ColorPicker({ value, fallback, onChange }: ColorPickerProps) {
 							type="button"
 							aria-label={c}
 							onClick={() => onChange(c)}
-							className={`h-4 w-4 rounded-sm border transition-transform hover:scale-110 ${
+							className={`size-4 rounded-sm border transition-transform hover:scale-110 ${
 								active === c ? 'border-(--text-primary) ring-1 ring-(--primary)' : 'border-(--divider)'
 							}`}
 							style={{ background: c }}

@@ -1,6 +1,6 @@
 import { DIMENSIONS_OVERVIEW_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { METRIC_CONFIG_BASE, toSlug } from '~/utils/protocolSplit'

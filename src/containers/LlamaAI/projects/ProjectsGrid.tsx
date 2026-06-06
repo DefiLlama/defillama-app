@@ -43,10 +43,12 @@ export function ProjectsGrid() {
 	const isLocked = tier === 'free'
 	const usage = useProjectUsage(!isLocked)
 	const createStore = Ariakit.useDialogStore()
+	const renameStore = Ariakit.useDialogStore()
 	const deleteStore = Ariakit.useDialogStore()
 	const { data, isLoading, error, refetch } = useProjectList(!isLocked)
 	const [query, setQuery] = useState('')
 	const [sortBy, setSortBy] = useState<SortBy>('updated')
+	const [projectToRename, setProjectToRename] = useState<ProjectWithStats | null>(null)
 	const [projectToDelete, setProjectToDelete] = useState<ProjectWithStats | null>(null)
 	const deferredQuery = useDeferredValue(query)
 	const allProjects = useMemo<ProjectWithStats[]>(() => data ?? [], [data])
@@ -59,7 +61,7 @@ export function ProjectsGrid() {
 					threshold: matchSorter.rankings.CONTAINS
 				})
 			: allProjects
-		const sorted = [...filtered].sort((a, b) => {
+		const sorted = filtered.toSorted((a, b) => {
 			if (sortBy === 'name') return a.name.localeCompare(b.name)
 			const aDate = sortBy === 'created' ? a.created_at : a.updated_at
 			const bDate = sortBy === 'created' ? b.created_at : b.updated_at
@@ -86,7 +88,7 @@ export function ProjectsGrid() {
 	if (isLocked) {
 		return (
 			<div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-5 px-4 py-12 text-center">
-				<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--old-blue)/12">
+				<div className="flex size-16 items-center justify-center rounded-full bg-(--old-blue)/12">
 					<Icon name="folder-plus" height={28} width={28} className="text-(--old-blue)" />
 				</div>
 				<div className="flex flex-col gap-2">
@@ -174,13 +176,13 @@ export function ProjectsGrid() {
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder="Search projects"
-						className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
+						className="min-w-0 flex-1 bg-transparent p-2 text-xs text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
 					/>
 					{query ? (
 						<button
 							type="button"
 							onClick={() => setQuery('')}
-							className="mr-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#ccc] text-white hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
+							className="mr-2 flex size-4 items-center justify-center rounded-full bg-[#ccc] text-white hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
 						>
 							<Icon name="x" height={8} width={8} />
 						</button>
@@ -237,10 +239,10 @@ export function ProjectsGrid() {
 								tabIndex={0}
 								onClick={() => goToProject(p.id)}
 								onKeyDown={(event) => onProjectCardKeyDown(event, p.id)}
-								className="group flex h-full w-full cursor-pointer flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-3 text-left transition-colors hover:border-(--old-blue) focus-visible:border-(--old-blue) focus-visible:outline-hidden dark:border-[#222324]"
+								className="group flex size-full cursor-pointer flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-3 text-left transition-colors hover:border-(--old-blue) focus-visible:border-(--old-blue) focus-visible:outline-hidden dark:border-[#222324]"
 							>
 								<header className="flex items-center gap-2">
-									<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-(--old-blue)/12 text-(--old-blue) transition-colors group-hover:bg-(--old-blue) group-hover:text-white">
+									<div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-(--old-blue)/12 text-(--old-blue) transition-colors group-hover:bg-(--old-blue) group-hover:text-white">
 										<Icon name="folder-plus" height={13} width={13} />
 									</div>
 									<div className="min-w-0 flex-1">
@@ -249,24 +251,44 @@ export function ProjectsGrid() {
 											Updated {relativeTime(p.updated_at)}
 										</p>
 									</div>
-									<Tooltip
-										content="Delete project"
-										render={
-											<button
-												type="button"
-												aria-label={`Delete ${p.name}`}
-												onClick={(e) => {
-													e.preventDefault()
-													e.stopPropagation()
-													setProjectToDelete(p)
-													deleteStore.show()
-												}}
-											/>
-										}
-										className="pointer-events-none -mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#999] opacity-0 transition-[opacity,color,background-color] group-hover:pointer-events-auto group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-600 focus-visible:pointer-events-auto focus-visible:opacity-100 dark:text-[#666] dark:hover:text-red-400"
-									>
-										<Icon name="trash-2" height={13} width={13} />
-									</Tooltip>
+									<div className="-mr-1 flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+										<Tooltip
+											content="Rename project"
+											render={
+												<button
+													type="button"
+													aria-label={`Rename ${p.name}`}
+													onClick={(e) => {
+														e.preventDefault()
+														e.stopPropagation()
+														setProjectToRename(p)
+														renameStore.show()
+													}}
+												/>
+											}
+											className="flex size-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:text-[#666]"
+										>
+											<Icon name="pencil" height={13} width={13} />
+										</Tooltip>
+										<Tooltip
+											content="Delete project"
+											render={
+												<button
+													type="button"
+													aria-label={`Delete ${p.name}`}
+													onClick={(e) => {
+														e.preventDefault()
+														e.stopPropagation()
+														setProjectToDelete(p)
+														deleteStore.show()
+													}}
+												/>
+											}
+											className="flex size-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:bg-red-500/10 focus-visible:text-red-600 dark:text-[#666] dark:hover:text-red-400 dark:focus-visible:text-red-400"
+										>
+											<Icon name="trash-2" height={13} width={13} />
+										</Tooltip>
+									</div>
 								</header>
 								{p.description ? (
 									<p className="line-clamp-2 text-[13px] text-[#666] dark:text-[#919296]">{p.description}</p>
@@ -284,6 +306,7 @@ export function ProjectsGrid() {
 			)}
 
 			<CreateProjectModal dialogStore={createStore} onCreated={onCreated} />
+			<CreateProjectModal dialogStore={renameStore} mode="rename" project={projectToRename} />
 			<DeleteProjectModal
 				dialogStore={deleteStore}
 				project={projectToDelete}

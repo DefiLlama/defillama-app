@@ -19,8 +19,22 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const { category } = params
+		const normalizedCategory = slug(category)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category: slug(category) })
+
+		let isValidCategory = normalizedCategory === 'all' || normalizedCategory === 'non-evm'
+		for (const validCategory of metadataCache.chainCategories) {
+			if (slug(validCategory) === normalizedCategory) {
+				isValidCategory = true
+				break
+			}
+		}
+
+		if (!isValidCategory) {
+			return { notFound: true }
+		}
+
+		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category: normalizedCategory })
 		const { questions: entityQuestions } = await fetchEntityQuestions('chains', 'page', {
 			category,
 			totalChains: data.chains.length,

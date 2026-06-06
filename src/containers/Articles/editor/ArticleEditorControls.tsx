@@ -22,7 +22,7 @@ export function RailButton({
 			title={label}
 			onClick={onClick}
 			disabled={disabled}
-			className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+			className={`flex size-9 shrink-0 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
 				active
 					? 'bg-(--link-button) text-(--link-text)'
 					: 'text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
@@ -171,7 +171,7 @@ export function TableControlsOverlay({ editor }: { editor: Editor }) {
 				</TableRailButton>
 				<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
 				<TableRailButton label="Delete table" onClick={() => editor.chain().focus().deleteTable().run()}>
-					<Icon name="x" className="h-3.5 w-3.5" />
+					<Icon name="x" className="size-3.5" />
 				</TableRailButton>
 			</div>
 		</div>

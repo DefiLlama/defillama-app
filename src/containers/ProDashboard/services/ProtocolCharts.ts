@@ -2,8 +2,8 @@ import dayjs from 'dayjs'
 import { fetchLiquidityTokensDataset, fetchProtocolTokenLiquidityChart } from '~/api'
 import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
-import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { fetchAdapterProtocolChartData } from '~/containers/AdapterMetrics/api'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import {
 	fetchProtocolBySlug,
 	fetchProtocolMiniBySlug,
@@ -292,7 +292,7 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		try {
 			const res = await fetchWithPoolingOnServer(
-				`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`
+				`/api/public/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`
 			)
 			if (!res.ok) return []
 			const data = await res.json()
@@ -307,7 +307,7 @@ export default class ProtocolCharts {
 		if (!protocol) return []
 		try {
 			const res = await fetchWithPoolingOnServer(
-				`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`
+				`/api/public/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`
 			)
 			if (!res.ok) return []
 			const data = await res.json()

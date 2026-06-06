@@ -335,7 +335,7 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 
 				{step === 'success' && (
 					<div className="flex flex-col items-center gap-6 px-5 py-8">
-						<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--sub-brand-primary)/10">
+						<div className="flex size-16 items-center justify-center rounded-full bg-(--sub-brand-primary)/10">
 							<Icon name="check" height={32} width={32} className="text-(--sub-brand-primary)" />
 						</div>
 						<div className="flex flex-col gap-2 text-center">

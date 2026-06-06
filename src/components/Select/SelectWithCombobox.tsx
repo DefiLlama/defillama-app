@@ -24,6 +24,8 @@ interface ISelectWithComboboxBase {
 	portal?: boolean
 	onValuesChange?: (values: string[], label: string) => void
 	defaultSelectedValues?: string[]
+	resetPageOnQueryChange?: boolean
+	pushQueryUpdates?: (updates: Record<string, string | string[] | undefined>) => void
 	unmountOnHide?: boolean
 }
 
@@ -58,6 +60,8 @@ export function SelectWithCombobox({
 	portal,
 	includeQueryKey,
 	excludeQueryKey,
+	resetPageOnQueryChange,
+	pushQueryUpdates,
 	onValuesChange,
 	defaultSelectedValues,
 	unmountOnHide = true
@@ -91,18 +95,39 @@ export function SelectWithCombobox({
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues: (values: string[]) => void = includeQueryKey
 		? (values: string[]) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues, {
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
+				})
 		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues, {
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
+				})
 		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
-		? () => updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues)
+		? () =>
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues, {
+					resetPage: resetPageOnQueryChange,
+					pushQueryUpdates
+				})
 		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), [value], defaultSelectedValues)
+				updateQueryFromSelected(
+					router,
+					includeQueryKey,
+					excludeQueryKey,
+					getAllKeys(),
+					[value],
+					defaultSelectedValues,
+					{
+						resetPage: resetPageOnQueryChange,
+						pushQueryUpdates
+					}
+				)
 		: (value: string) => setSelectedValuesFromState([value])
 	const providerValue = singleSelect ? (selectedValues[0] ?? '') : selectedValues
 	const normalizeNextValues = React.useCallback(
@@ -219,7 +244,7 @@ export function SelectWithCombobox({
 										</span>
 									)}
 									{showCheckboxes ? (
-										<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+										<Ariakit.SelectItemCheck className="ml-auto flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 									) : (
 										<Ariakit.SelectItemCheck className="ml-auto" />
 									)}
@@ -303,7 +328,7 @@ export function SelectWithCombobox({
 					portal={portal || false}
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.PopoverDismiss>
 
 					<span className="relative mb-2 p-3">
@@ -388,7 +413,7 @@ export function SelectWithCombobox({
 												</button>
 											) : null}
 											{showCheckboxes ? (
-												<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+												<Ariakit.SelectItemCheck className="ml-auto flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 											) : (
 												<Ariakit.SelectItemCheck className="ml-auto" />
 											)}

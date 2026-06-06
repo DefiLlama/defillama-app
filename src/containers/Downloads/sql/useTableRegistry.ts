@@ -163,8 +163,8 @@ async function fetchCsvFor(
 ): Promise<{ csvText: string; columns: string[] }> {
 	const url =
 		source.kind === 'dataset'
-			? `/api/downloads/${encodeURIComponent(source.slug)}`
-			: `/api/downloads/chart/${encodeURIComponent(source.slug)}?param=${encodeURIComponent(source.param)}`
+			? `/api/private/downloads/${encodeURIComponent(source.slug)}`
+			: `/api/private/downloads/chart/${encodeURIComponent(source.slug)}?param=${encodeURIComponent(source.param)}`
 
 	throwIfAborted(signal)
 	const resp = await authorizedFetch(url, signal ? { signal } : undefined)

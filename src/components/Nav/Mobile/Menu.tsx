@@ -67,7 +67,7 @@ export function Menu({
 					<details className="group mb-3">
 						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
 							<span>Old Menu</span>
-							<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
+							<Icon name="chevron-down" className="size-4 shrink-0 group-open:rotate-180" />
 						</summary>
 						<div className="border-l border-black/20 pl-2 group-open:border-l dark:border-white/20">
 							{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
@@ -76,7 +76,7 @@ export function Menu({
 										<details className="group/second">
 											<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
 												<span>{name}</span>
-												<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
+												<Icon name="chevron-down" className="size-4 shrink-0 group-open/second:rotate-180" />
 											</summary>
 											<div className="border-l border-black/20 pl-2 dark:border-white/20">
 												{pages.map(({ name: pageName, route: pageRoute }) => (

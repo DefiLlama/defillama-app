@@ -1,8 +1,8 @@
-export type DatasetDomainBuildResult = {
-	builtAt: number
-}
-
-export type DatasetDomainBuildAdapter = (rootDir: string) => Promise<DatasetDomainBuildResult>
+import { DATASET_DOMAIN_ARTIFACTS, type DatasetDomain, type DatasetDomainArtifactContract } from './artifacts'
+import type { DatasetDomainBuildAdapter } from './buildTypes'
+export { DATASET_DOMAIN_ARTIFACTS, DATASET_DOMAINS } from './artifacts'
+export type { DatasetDomain, DatasetDomainArtifactContract } from './artifacts'
+export type { DatasetDomainBuildAdapter, DatasetDomainBuildResult } from './buildTypes'
 
 const DATASET_CACHE_TRACE_ROOT_INCLUDE = './.cache/datasets'
 let domainBuildersImport: Promise<typeof import('./domainBuilders')> | null = null
@@ -13,64 +13,6 @@ function importDomainBuilders(): Promise<typeof import('./domainBuilders')> {
 	domainBuildersImport ??= import('./domainBuilders')
 	return domainBuildersImport
 }
-
-export type DatasetDomainArtifactContract = {
-	files: Readonly<Record<string, string>>
-	optionalShardDirs?: Readonly<Record<string, string>>
-}
-
-export const DATASET_DOMAIN_ARTIFACTS = {
-	yields: {
-		files: {
-			rows: 'rows.json',
-			config: 'config.json',
-			lendBorrow: 'lend-borrow.json'
-		},
-		optionalShardDirs: {
-			byToken: 'by-token'
-		}
-	},
-	'token-rights': {
-		files: {
-			full: 'full.json',
-			byDefillamaId: 'by-defillama-id.json',
-			byProtocolName: 'by-protocol-name.json'
-		}
-	},
-	risk: {
-		files: {
-			indexed: 'indexed.json'
-		}
-	},
-	raises: {
-		files: {
-			full: 'full.json'
-		}
-	},
-	treasuries: {
-		files: {
-			full: 'full.json'
-		}
-	},
-	liquidity: {
-		files: {
-			full: 'full.json'
-		}
-	},
-	liquidations: {
-		files: {
-			rawProtocols: 'raw/protocols.json',
-			rawAll: 'raw/all.json',
-			rawBlockExplorers: 'raw/block-explorers.json'
-		}
-	},
-	markets: {
-		files: {
-			tokensList: 'tokens-list.json',
-			exchangesList: 'exchanges-list.json'
-		}
-	}
-} as const satisfies Record<string, DatasetDomainArtifactContract>
 
 export const DATASET_CACHE_REGISTRY = {
 	yields: {
@@ -114,17 +56,13 @@ export const DATASET_CACHE_REGISTRY = {
 		traceFolders: ['markets']
 	}
 } as const satisfies Record<
-	string,
+	DatasetDomain,
 	{
 		buildAdapter: DatasetDomainBuildAdapter
 		artifacts: DatasetDomainArtifactContract
 		traceFolders: readonly string[]
 	}
 >
-
-export type DatasetDomain = keyof typeof DATASET_CACHE_REGISTRY
-
-export const DATASET_DOMAINS = Object.keys(DATASET_CACHE_REGISTRY) as DatasetDomain[]
 
 export function getDatasetDomainBuildAdapter(domain: DatasetDomain): DatasetDomainBuildAdapter {
 	return DATASET_CACHE_REGISTRY[domain].buildAdapter

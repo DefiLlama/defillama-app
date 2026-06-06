@@ -67,7 +67,7 @@ export function NotificationPermissionBanner() {
 				type="button"
 				onClick={handleDismiss}
 				aria-label="Dismiss notification prompt"
-				className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-white"
+				className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-white"
 			>
 				<Icon name="x" height={14} width={14} />
 			</button>

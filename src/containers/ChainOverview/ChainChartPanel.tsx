@@ -138,13 +138,13 @@ export function ChainChartPanel({
 						<Ariakit.DialogProvider store={metricsDialogStore}>
 							<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 								<span>Add Metrics</span>
-								<Icon name="plus" className="h-3.5 w-3.5" />
+								<Icon name="plus" className="size-3.5" />
 							</Ariakit.DialogDisclosure>
 							<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 								<span className="flex items-center justify-between gap-1">
 									<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 									<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
-										<Icon name="x" className="h-5 w-5" />
+										<Icon name="x" className="size-5" />
 									</Ariakit.DialogDismiss>
 								</span>
 								<label className="relative">
@@ -181,9 +181,9 @@ export function ChainChartPanel({
 										>
 											<span>{option.label}</span>
 											{option.active ? (
-												<Icon name="x" className="h-3.5 w-3.5" />
+												<Icon name="x" className="size-3.5" />
 											) : (
-												<Icon name="plus" className="h-3.5 w-3.5" />
+												<Icon name="plus" className="size-3.5" />
 											)}
 										</button>
 									))}
@@ -208,7 +208,7 @@ export function ChainChartPanel({
 										[chainCharts[tchart]]: toggledCharts.includes(tchart) ? 'false' : 'true'
 									})
 								}}
-								className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+								className="peer absolute size-[1em] opacity-[0.00001]"
 							/>
 							<span
 								className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs hover:bg-(--bg-input) focus-visible:bg-(--bg-input)"
@@ -224,7 +224,7 @@ export function ChainChartPanel({
 											)
 										: tchart}
 								</span>
-								<Icon name="x" className="h-3.5 w-3.5" />
+								<Icon name="x" className="size-3.5" />
 							</span>
 						</label>
 					))}
@@ -290,7 +290,7 @@ export function ChainChartPanel({
 				{isClient && !isFetchingChartData && failedMetrics.length > 0 ? (
 					<Ariakit.PopoverProvider>
 						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
-							<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+							<Icon name="alert-triangle" className="size-3.5" />
 							<span className="sr-only">Show failed metric APIs</span>
 						</Ariakit.PopoverDisclosure>
 						<Ariakit.Popover

@@ -1,13 +1,13 @@
 import { useRouter } from 'next/router'
 import { useEffect, useRef } from 'react'
-import { pushShallowQuery } from '~/utils/routerQuery'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 export function LTV({ placeholder }: { placeholder: string }) {
 	const router = useRouter()
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const setLTV = (value) => {
-		void pushShallowQuery(router, { customLTV: value || undefined })
+		void pushYieldsQuery(router, { customLTV: value || undefined })
 	}
 
 	const onChange = (e) => {

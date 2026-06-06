@@ -14,7 +14,7 @@ export async function fetchProtocolsByTokenClient(
 	fetchFn: ((url: string) => Promise<Response | null>) | typeof fetch = fetch
 ): Promise<RawProtocolTokenUsageEntry[]> {
 	if (!symbol) return []
-	const res = await fetchFn(`/api/token-usage/${encodeURIComponent(symbol.toUpperCase())}`)
+	const res = await fetchFn(`/api/private/token-usage/${encodeURIComponent(symbol.toUpperCase())}`)
 	if (!res) {
 		throw new Error('Authentication required')
 	}

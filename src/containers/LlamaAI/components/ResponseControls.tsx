@@ -6,6 +6,7 @@ import { FeedbackForm } from '~/containers/LlamaAI/components/FeedbackForm'
 import { PDFExportButton } from '~/containers/LlamaAI/components/PDFExportButton'
 import type { MessageMetadata } from '~/containers/LlamaAI/types'
 import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
+import { removeReportStartMarkers } from '~/containers/LlamaAI/utils/reportMarkers'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface ResponseControlsProps {
@@ -167,8 +168,8 @@ export function ResponseControls({
 				.replace(/\[ACTION:[^\]]+\]\n?/g, '')
 				.replace(/\[ALERT:[^\]]+\]\n?/g, '')
 				.replace(/\[DASHBOARD:[^\]]+\]\n?/g, '')
-				.replace(/\[REPORT_START\]\n?/g, '')
 				.trim()
+			convertedContent = removeReportStartMarkers(convertedContent).trim()
 			await navigator.clipboard.writeText(convertedContent)
 			dispatch({ type: 'setCopied', value: true })
 			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)

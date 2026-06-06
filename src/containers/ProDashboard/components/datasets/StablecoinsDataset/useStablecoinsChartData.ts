@@ -150,7 +150,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 
 	const chainsCirculatingValues = useMemo(() => {
 		const assets = rawData?.filteredPeggedAssets || []
-		const sorted = [...assets].sort((a: any, b: any) => (b.mcap || 0) - (a.mcap || 0))
+		const sorted = assets.toSorted((a: any, b: any) => (b.mcap || 0) - (a.mcap || 0))
 		return preparePieChartData({ data: sorted, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })
 	}, [rawData?.filteredPeggedAssets])
 

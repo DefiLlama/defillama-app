@@ -125,6 +125,15 @@ describe('fetchJson singleflight', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(2)
 	})
 
+	it('does not retry non-retryable 4xx responses', async () => {
+		const fetchMock = vi.fn(async () => new Response('missing', { status: 404 }))
+		vi.stubGlobal('fetch', fetchMock)
+		const { fetchJson } = await import('../async')
+
+		await expect(fetchJson('https://api.llama.fi/missing')).rejects.toThrow('/missing: [404] missing')
+		expect(fetchMock).toHaveBeenCalledTimes(1)
+	})
+
 	it('keeps the 60s default timeout for browser fetchJson calls', async () => {
 		vi.useFakeTimers()
 		vi.stubGlobal('window', {})

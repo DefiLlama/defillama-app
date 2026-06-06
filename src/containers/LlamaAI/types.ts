@@ -51,6 +51,7 @@ export interface ChartConfiguration {
 	}
 
 	hallmarks?: Array<[number] | [number, string]>
+	hallmarkStyle?: 'event-rail' | 'mark-line'
 
 	displayOptions?: {
 		canStack: boolean
@@ -59,6 +60,7 @@ export interface ChartConfiguration {
 		supportsGrouping: boolean
 		defaultStacked?: boolean
 		defaultPercentage?: boolean
+		defaultLogScale?: boolean
 		showLabels?: boolean
 	}
 }
@@ -84,6 +86,7 @@ export interface ChatSession {
 	forkedFromShareToken?: string | null
 	isOptimistic?: boolean
 	projectId?: string | null
+	hasUnseenCompletion?: boolean
 }
 
 export interface ResearchUsage {
@@ -101,13 +104,23 @@ export interface AlertProposedData {
 		hour: number
 		timezone: string
 		dayOfWeek?: number
-		deliveryChannel?: 'email' | 'telegram'
+		deliveryChannel?: 'email' | 'telegram' | 'slack'
+		slackTeamId?: string | null
+		slackTeamName?: string | null
+		slackChannelId?: string | null
+		slackChannelName?: string | null
 	}
 	schedule_expression: string
 	next_run_at: string
 }
 
 export type DashboardItem = DashboardItemConfig
+export type ChartDataSeries = unknown[]
+export type ChartDataByKey = Record<string, ChartDataSeries>
+export type DashboardChartData = Record<
+	string,
+	{ config: ChartConfiguration; data: ChartDataSeries; toolChain: unknown[] }
+>
 
 export interface DashboardArtifact {
 	id: string
@@ -115,7 +128,7 @@ export interface DashboardArtifact {
 	items: DashboardItem[]
 	timePeriod?: string
 	sourceDashboardId?: string
-	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	chartData?: DashboardChartData
 }
 
 export type JsonPrimitive = string | number | boolean | null
@@ -145,7 +158,11 @@ export interface AlertIntent {
 	hour: number
 	timezone: string
 	dayOfWeek?: number
-	deliveryChannel?: 'email' | 'telegram'
+	deliveryChannel?: 'email' | 'telegram' | 'slack'
+	slackTeamId?: string | null
+	slackTeamName?: string | null
+	slackChannelId?: string | null
+	slackChannelName?: string | null
 	toolExecutions: Array<{
 		toolName: string
 		arguments: JsonObject
@@ -197,7 +214,7 @@ export interface ChartItem {
 	type: 'chart'
 	id: string
 	chart: ChartConfiguration
-	chartData: any[] | Record<string, any[]>
+	chartData: ChartDataSeries | ChartDataByKey
 }
 
 export interface CsvItem {
@@ -214,15 +231,22 @@ export interface MessageMetadata {
 	outputTokens?: number
 	executionTimeMs?: number
 	x402CostUsd?: string
+	completionReason?: string
+}
+
+export interface UpgradeOffer {
+	code: 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	resetTime?: string | null
 }
 
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
-	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
+	charts?: Array<{ charts: ChartConfiguration[]; chartData: ChartDataByKey }>
 	csvExports?: CsvExport[]
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	citations?: string[]
+	factCheckReferences?: FactCheckReference[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
@@ -247,11 +271,12 @@ export interface Message {
 	thinking?: string
 	quotedText?: string
 	messageMetadata?: MessageMetadata
+	upgradeOffer?: UpgradeOffer
 }
 
 export interface ChartSet {
 	charts: ChartConfiguration[]
-	chartData: Record<string, any[]>
+	chartData: ChartDataByKey
 }
 
 export interface GeneratedImage {
@@ -278,6 +303,12 @@ export interface SpawnAgentStatus {
 	findingsPreview?: string
 }
 
+export interface TodoItem {
+	id: string
+	content: string
+	status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+}
+
 export interface SearchMatch {
 	message_id: string | null
 	source_type: 'session_title' | 'user_message' | 'assistant_chunk'
@@ -290,4 +321,28 @@ export interface SearchResult {
 	session_title: string | null
 	last_activity: string | null
 	matches: SearchMatch[]
+}
+
+export type AgenticAnswerMode = 'quick' | 'fact_checked' | 'research'
+
+export interface FactCheckReference {
+	id?: number
+	label: string
+	url?: string
+	detail?: string
+	checked?: string
+	asOf?: string
+	evidence?: string[]
+	sourceType?: string
+}
+
+export interface FactCheckedUsage {
+	allowed: boolean
+	currentUsage: number
+	limit: number
+	period: 'daily' | 'lifetime' | 'unlimited' | 'blocked' | 'biweekly'
+	remaining: number
+	remainingUsage: number
+	resetTime?: string
+	message?: string
 }

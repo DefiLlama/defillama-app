@@ -18,7 +18,7 @@ export function ToggleSwitch({ checked, onClick, disabled, 'aria-label': ariaLab
 				checked ? 'justify-end bg-(--sub-brand-primary)' : 'bg-(--sub-border-muted) dark:bg-(--sub-surface-elevated-2)'
 			} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
 		>
-			<span className="block h-5 w-5 rounded-full bg-white" />
+			<span className="block size-5 rounded-full bg-white" />
 		</button>
 	)
 }

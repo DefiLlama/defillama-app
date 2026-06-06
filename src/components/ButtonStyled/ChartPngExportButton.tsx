@@ -496,7 +496,7 @@ function readStashedChartLogos(chart: echarts.ECharts): ChartLogosData | undefin
 async function loadProxiedImage(url: string): Promise<HTMLImageElement | null> {
 	if (!url) return null
 	try {
-		const response = await fetch(`/api/icon-proxy?url=${encodeURIComponent(url)}`)
+		const response = await fetch(`/api/public/icon-proxy?url=${encodeURIComponent(url)}`)
 		if (!response.ok) return null
 		const blob = await response.blob()
 		const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -708,7 +708,7 @@ async function loadCircularIcon(url: string): Promise<string | null> {
 	if (!slug) return null
 
 	try {
-		const response = await fetch(`/api/protocol-icon?slug=${encodeURIComponent(slug)}`)
+		const response = await fetch(`/api/public/protocol-icon?slug=${encodeURIComponent(slug)}`)
 		if (!response.ok) return null
 
 		const blob = await response.blob()

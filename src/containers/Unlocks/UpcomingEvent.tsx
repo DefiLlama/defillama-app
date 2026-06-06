@@ -27,7 +27,7 @@ const ProtocolPageButton = () => {
 const RegularButton = () => {
 	return (
 		<Ariakit.MenuButton
-			className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--bg-tertiary) text-(--text-primary) hover:bg-(--bg-border)"
+			className="flex size-10 items-center justify-center rounded-lg bg-(--bg-tertiary) text-(--text-primary) hover:bg-(--bg-border)"
 			aria-label="Add to calendar"
 		>
 			<Icon name="calendar-plus" width={20} height={20} />
@@ -48,7 +48,7 @@ const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: Calend
 				portal
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</Ariakit.PopoverDismiss>
 
 				<Ariakit.MenuItem
@@ -72,7 +72,7 @@ const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: Calend
 				<Ariakit.MenuItem
 					render={
 						<a
-							href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue ?? ''}&name=${tokenName}`}
+							href={`/api/dynamic/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue ?? ''}&name=${tokenName}`}
 						/>
 					}
 					className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
@@ -88,7 +88,7 @@ const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: Calend
 const CountdownTile = ({ value, label }: { value: string; label: string }) => {
 	return (
 		<div className="flex flex-col items-center">
-			<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--bg-tertiary)">
+			<div className="flex size-10 items-center justify-center rounded-lg bg-(--bg-tertiary)">
 				<span className="text-base font-semibold tracking-tight text-(--text-primary) tabular-nums">{value}</span>
 			</div>
 			<span className="mt-1 text-xs leading-none font-medium text-(--text-meta)">{label}</span>

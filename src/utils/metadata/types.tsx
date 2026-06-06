@@ -35,6 +35,8 @@ export interface IChainMetadata {
 
 export interface IProtocolMetadata {
 	name?: string
+	category?: string
+	parentProtocol?: string
 	tvl?: boolean
 	yields?: boolean
 	forks?: boolean
@@ -148,6 +150,13 @@ export interface ITokenListEntry {
 	circulating_supply: number | null
 	max_supply: number | null
 }
+
+export interface IEmissionsHistoricalPricePoint {
+	timestamp: number
+	price: number
+}
+
+export type IEmissionsHistoricalPrices = Record<string, { prices: Array<IEmissionsHistoricalPricePoint> }>
 
 export interface IProtocolLlamaswapChain {
 	chain: string

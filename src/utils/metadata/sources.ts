@@ -3,8 +3,10 @@ import type { RawBridgesResponse } from '~/containers/Bridges/api.types'
 import type { RawCexsResponse } from '~/containers/Cexs/api.types'
 import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api.types'
 import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { getErrorMessage } from '~/utils/error'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
+import type { UnlockHistoricalPriceProtocol } from '~/utils/unlocks/historicalPriceRequests'
 import { fetchMetadataJson, getMetadataFetchTimeoutMs } from './http'
 import type {
 	ICategoriesAndTags,
@@ -22,6 +24,7 @@ export type CoreMetadataSources = {
 	protocols: Record<string, IProtocolMetadata>
 	chains: Record<string, IChainMetadata>
 	categoriesAndTags: ICategoriesAndTags
+	chainCategories: string[]
 	cexsResponse: RawCexsResponse
 	rwaList: IRWAList
 	rwaPerpsList: IRWAPerpsList
@@ -30,6 +33,8 @@ export type CoreMetadataSources = {
 	liquidationsResponse: RawAllLiquidationsResponse
 	bridgesResponse: RawBridgesResponse
 	emissionsProtocolsList: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
+	emissions: UnlockHistoricalPriceProtocol[]
 }
 
 async function fetchNamedMetadataSource<T>(name: string, promise: Promise<T>): Promise<T> {
@@ -50,6 +55,7 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		protocols,
 		chains,
 		categoriesAndTags,
+		chainCategoriesResponse,
 		cexsResponse,
 		rwaList,
 		rwaPerpsList,
@@ -57,7 +63,9 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		tokenDirectory,
 		liquidationsResponse,
 		bridgesResponse,
-		emissionsProtocolsList
+		emissionsProtocolsList,
+		emissionsSupplyMetrics,
+		emissions
 	] = await Promise.all([
 		fetchNamedMetadataSource(
 			'protocols API',
@@ -72,6 +80,10 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		fetchNamedMetadataSource(
 			'categories and tags API',
 			fetchMetadataJson<ICategoriesAndTags>(`${coreApiBase}/config/smol/appMetadata-categoriesAndTags.json?zz=16`)
+		),
+		fetchNamedMetadataSource(
+			'chain categories API',
+			fetchMetadataJson<{ categories: string[] }>(`${coreApiBase}/chains2`)
 		),
 		fetchNamedMetadataSource('CEX metadata API', fetchMetadataJson<RawCexsResponse>(`${coreApiBase}/cexs?zz=16`)),
 		fetchNamedMetadataSource(
@@ -98,6 +110,14 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		fetchNamedMetadataSource(
 			'emissions protocols API',
 			fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() })
+		),
+		fetchNamedMetadataSource(
+			'emissions supply metrics API',
+			fetchMetadataJson<ProtocolEmissionSupplyMetricsMap>(`${datasetsBase}/emissionsSupplyMetrics`)
+		),
+		fetchNamedMetadataSource(
+			'emissions API',
+			fetchMetadataJson<UnlockHistoricalPriceProtocol[]>(`${coreApiBase}/emissions`)
 		)
 	])
 
@@ -105,6 +125,7 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		protocols,
 		chains,
 		categoriesAndTags,
+		chainCategories: chainCategoriesResponse.categories,
 		cexsResponse,
 		rwaList,
 		rwaPerpsList,
@@ -112,6 +133,8 @@ export async function fetchCoreMetadataSources(): Promise<CoreMetadataSources> {
 		tokenDirectory,
 		liquidationsResponse,
 		bridgesResponse,
-		emissionsProtocolsList
+		emissionsProtocolsList,
+		emissionsSupplyMetrics,
+		emissions
 	}
 }

@@ -20,6 +20,7 @@ interface ITableProps<T extends RowData = RowData> {
 	compact?: boolean
 	useStickyHeader?: boolean
 	scrollMargin?: number
+	rowRankById?: Map<string, number>
 }
 
 const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
@@ -63,6 +64,7 @@ interface TableRowProps<T extends RowData = RowData> {
 	virtualRow?: VirtualItem | null
 	rowHeight?: number
 	subRowOrdinalById: Map<string, number>
+	rowRankById?: Map<string, number>
 	firstColumnId: string | undefined
 	stripedBg: boolean
 	isChainPage: boolean
@@ -75,20 +77,25 @@ function TableRow<T extends RowData>({
 	virtualRow,
 	rowHeight,
 	subRowOrdinalById,
+	rowRankById,
 	firstColumnId,
 	stripedBg,
 	isChainPage,
 	compact
 }: TableRowProps<T>) {
+	const explicitIndex =
+		rowToRender.depth > 0
+			? (subRowOrdinalById.get(rowToRender.id) ?? rowToRender.index + 1)
+			: rowRankById?.get(rowToRender.id)
 	return (
 		<tr
 			data-index={virtualRow?.index}
 			style={{
 				height: rowHeight,
 				opacity: (rowToRender.original as Record<string, unknown>)?.disabled ? 0.3 : 1,
-				...(rowToRender.depth > 0
+				...(explicitIndex != null
 					? {
-							['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowToRender.id) ?? rowToRender.index + 1}"`
+							['--vf-subrow-index' as string]: `"${explicitIndex}"`
 						}
 					: null)
 			}}
@@ -136,6 +143,7 @@ export function VirtualTable<T extends RowData>({
 	compact = false,
 	useStickyHeader = true,
 	scrollMargin,
+	rowRankById,
 	className,
 	style,
 	...props
@@ -554,6 +562,7 @@ export function VirtualTable<T extends RowData>({
 									index={i}
 									rowHeight={rowSize}
 									subRowOrdinalById={subRowOrdinalById}
+									rowRankById={rowRankById}
 									firstColumnId={firstColumnId}
 									stripedBg={stripedBg}
 									isChainPage={isChainPage}
@@ -579,6 +588,7 @@ export function VirtualTable<T extends RowData>({
 										virtualRow={virtualRow}
 										rowHeight={virtualRow.size}
 										subRowOrdinalById={subRowOrdinalById}
+										rowRankById={rowRankById}
 										firstColumnId={firstColumnId}
 										stripedBg={stripedBg}
 										isChainPage={isChainPage}

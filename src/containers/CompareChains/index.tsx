@@ -7,9 +7,9 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { Select } from '~/components/Select/Select'
+import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/AdapterMetrics/types'
 import { Stats } from '~/containers/ChainOverview/Stats'
 import type { IChainOverviewData } from '~/containers/ChainOverview/types'
-import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/DimensionAdapters/types'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -47,7 +47,7 @@ type ChainDataResult = {
 }
 
 const getChainData = async (chain: string): Promise<ChainDataResult> => {
-	const { chain: chainData } = (await fetchJson(`/api/cache/chain/${chain}`)) as {
+	const { chain: chainData } = (await fetchJson(`/api/dynamic/cache/chain/${chain}`)) as {
 		chain: {
 			chainOverviewData: IChainOverviewData
 			dexVolumeChart: IAdapterChainOverview['totalDataChart']

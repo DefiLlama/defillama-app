@@ -1,6 +1,6 @@
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
+import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { readDatasetDomainJson } from './core'
-import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
 const LIQUIDITY_FILES = DATASET_DOMAIN_ARTIFACTS.liquidity.files
 

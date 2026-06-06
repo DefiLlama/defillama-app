@@ -1,5 +1,4 @@
-import Router from 'next/router'
-import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefCallback } from 'react'
+import { useMemo, useState, type RefCallback } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
@@ -10,14 +9,18 @@ import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewM
 import { TextChip } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/MarkdownExportArtifact'
+import { BranchArrows } from '~/containers/LlamaAI/components/messages/BranchControls'
+import { ActionButtonGroup } from '~/containers/LlamaAI/components/messages/MessageActionGroup'
+import { ToolExecutionPanel } from '~/containers/LlamaAI/components/messages/ToolExecutionPanel'
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
+import { ThinkingPanel } from '~/containers/LlamaAI/components/status/ThinkingPanel'
 import {
-	getToolLabel,
-	ThinkingPanel,
-	TOOL_ICONS,
-	useHackerMode
-} from '~/containers/LlamaAI/components/status/StreamingStatus'
+	deriveTodosFromToolExecutions,
+	TodoChecklistPanel
+} from '~/containers/LlamaAI/components/status/TodoChecklistPanel'
+import { useHackerMode } from '~/containers/LlamaAI/components/status/useHackerMode'
+import { TrialUpgradeCard } from '~/containers/LlamaAI/components/TrialUpgradeCard'
 import {
 	parseMessageToRenderModel,
 	type ArtifactRecord,
@@ -25,255 +28,6 @@ import {
 } from '~/containers/LlamaAI/renderModel'
 import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
-import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
-import { trackUmamiEvent } from '~/utils/analytics/umami'
-
-function createOccurrenceKeyFactory() {
-	const counts = new Map<string, number>()
-	return (baseKey: string) => {
-		const nextCount = counts.get(baseKey) || 0
-		counts.set(baseKey, nextCount + 1)
-		return nextCount === 0 ? baseKey : `${baseKey}-${nextCount}`
-	}
-}
-
-function getActionKey(action: { label: string; message: string }) {
-	return `${action.label}:${action.message}`
-}
-
-function getIndexedActionKey(action: { label: string; message: string }, index: number) {
-	return `${getActionKey(action)}-${index}`
-}
-
-function getToolExecutionKey(execution: ToolExecution) {
-	return (
-		execution.resultId ||
-		`${execution.name}:${execution.executionTimeMs}:${execution.sqlQuery || ''}:${execution.error || ''}`
-	)
-}
-
-function sanitizeExternalActionHref(href: string) {
-	const safeHref = sanitizeUrl(href)
-	if (!safeHref) return null
-
-	try {
-		const parsed = new URL(safeHref)
-		return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null
-	} catch {
-		return null
-	}
-}
-
-function getActionHrefProps(href: string, label: string) {
-	if (href.startsWith('http')) {
-		const safeHref = sanitizeExternalActionHref(href)
-		return {
-			href: safeHref ?? '#',
-			...(safeHref
-				? {
-						target: '_blank' as const,
-						rel: 'noopener noreferrer'
-					}
-				: {}),
-			onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => {
-				if (!safeHref) {
-					event.preventDefault()
-				}
-				trackUmamiEvent('llamaai-action-link-click', { label })
-			}
-		}
-	}
-
-	return {
-		href: `https://defillama.com${href}`,
-		onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => {
-			trackUmamiEvent('llamaai-action-link-click', { label })
-			event.preventDefault()
-			void Router.push(href)
-		}
-	}
-}
-
-function extractActionUrl(message: string) {
-	if (!message.startsWith('url:')) return null
-	const href = message.slice(4).trim()
-	return href.length > 0 ? href : null
-}
-
-function ActionLink({
-	action,
-	variant
-}: {
-	action: { label: string; message: string; compositeId: string }
-	variant: 'decision' | 'suggestion'
-}) {
-	const href = extractActionUrl(action.message)
-
-	if (!href) {
-		return <span className="inline-flex items-center gap-1.5 text-inherit">{action.label}</span>
-	}
-
-	return (
-		<a
-			{...getActionHrefProps(href, action.label)}
-			className={
-				variant === 'decision'
-					? 'inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/3 px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/8 active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/3 dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/8'
-					: 'inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/10 bg-[#2172e5]/4 px-3 py-1.5 text-xs font-medium text-[#2172e5]/55 transition-all duration-150 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
-			}
-		>
-			{action.label}
-			<svg
-				width={variant === 'decision' ? '12' : '10'}
-				height={variant === 'decision' ? '12' : '10'}
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className={variant === 'decision' ? undefined : 'opacity-60'}
-			>
-				<path d="M7 17L17 7" />
-				<path d="M7 7h10v10" />
-			</svg>
-		</a>
-	)
-}
-
-function ActionButtonGroup({
-	actions,
-	onActionClick,
-	nextUserMessage
-}: {
-	actions: Array<{ label: string; message: string }>
-	onActionClick?: (message: string) => void
-	nextUserMessage?: string
-}) {
-	const isDecisionGroup = actions.some((action) => action.message.startsWith('confirm:'))
-	const resolvedActions = actions.map((action, index) => {
-		const resolvedAction = {
-			label: action.label,
-			message: action.message.startsWith('confirm:') ? action.message.slice(8) : action.message
-		}
-		return {
-			...resolvedAction,
-			compositeId: getIndexedActionKey(resolvedAction, index)
-		}
-	})
-	const actionSignature = resolvedActions.map((action) => action.compositeId).join('|')
-	const primaryActionKey = (resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0])
-		?.compositeId
-	const optimisticScope = `${actionSignature}:${nextUserMessage ?? ''}`
-	const alreadyClicked = nextUserMessage
-		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
-				?.compositeId ?? null)
-		: null
-	const [optimisticClickedIds, setOptimisticClickedIds] = useState<{ ids: Set<string>; scope: string } | null>(null)
-	const clickedIds = new Set<string>()
-	if (alreadyClicked) clickedIds.add(alreadyClicked)
-	if (optimisticClickedIds?.scope === optimisticScope) {
-		for (const id of optimisticClickedIds.ids) {
-			clickedIds.add(id)
-		}
-	}
-
-	const handleActionClick = (action: { label: string; message: string; compositeId: string }) => {
-		if (!onActionClick) return
-		trackUmamiEvent('llamaai-action-click', { label: action.label })
-		setOptimisticClickedIds((current) => {
-			const ids = current?.scope === optimisticScope ? new Set(current.ids) : new Set<string>()
-			ids.add(action.compositeId)
-			return { ids, scope: optimisticScope }
-		})
-		onActionClick(action.message)
-	}
-
-	if (isDecisionGroup) {
-		return (
-			<div className="flex flex-wrap items-center gap-2.5">
-				{resolvedActions.map((action) => {
-					const isUrl = action.message.startsWith('url:')
-					const actionKey = action.compositeId
-					const isPrimary = !isUrl && actionKey === primaryActionKey
-
-					if (isUrl) {
-						return <ActionLink key={actionKey} action={action} variant="decision" />
-					}
-
-					if (isPrimary) {
-						return (
-							<button
-								key={actionKey}
-								type="button"
-								disabled={!onActionClick}
-								onClick={() => handleActionClick(action)}
-								className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${
-									!clickedIds.has(action.compositeId)
-										? onActionClick
-											? 'bg-[#2172e5] text-white hover:bg-[#1b5fbd] active:scale-[0.97] dark:bg-[#4190f7] dark:hover:bg-[#3279de]'
-											: 'bg-[#e6e6e6] text-[#999] dark:bg-[#333] dark:text-[#666]'
-										: 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
-								}`}
-							>
-								{action.label}
-							</button>
-						)
-					}
-
-					return (
-						<button
-							key={actionKey}
-							type="button"
-							disabled={!onActionClick}
-							onClick={() => handleActionClick(action)}
-							className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 ${
-								!clickedIds.has(action.compositeId)
-									? onActionClick
-										? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/6 active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/6'
-										: 'border-[#e6e6e6] text-[#999] dark:border-[#333] dark:text-[#666]'
-									: 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
-							}`}
-						>
-							{action.label}
-						</button>
-					)
-				})}
-			</div>
-		)
-	}
-
-	return (
-		<div className="flex flex-wrap items-center gap-2">
-			{resolvedActions.map((action) => {
-				const isUrl = action.message.startsWith('url:')
-				const actionKey = action.compositeId
-
-				if (isUrl) {
-					return <ActionLink key={actionKey} action={action} variant="suggestion" />
-				}
-
-				return (
-					<button
-						key={actionKey}
-						type="button"
-						disabled={!onActionClick}
-						onClick={() => handleActionClick(action)}
-						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
-							!clickedIds.has(action.compositeId)
-								? onActionClick
-									? 'border-[#2172e5]/10 bg-[#2172e5]/4 text-[#2172e5]/55 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
-									: 'border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/30 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/25'
-								: 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
-						}`}
-					>
-						{action.label}
-					</button>
-				)
-			})}
-		</div>
-	)
-}
 
 function StreamingChartPlaceholder() {
 	return (
@@ -505,6 +259,7 @@ function MessageContentBlock({
 			<ChatMarkdownRenderer
 				content={block.content}
 				citations={block.citations}
+				factCheckReferences={block.factCheckReferences}
 				isStreaming={isStreaming}
 				hackerMode={hackerMode}
 				onTableFullscreenOpen={onTableFullscreenOpen}
@@ -582,295 +337,31 @@ function InlineContent({
 			) : null}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
-				<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
+				<>
+					<FrozenTodoChecklist
+						toolExecutions={toolExecutions}
+						completionReason={message.messageMetadata?.completionReason}
+					/>
+					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
+				</>
 			) : null}
+
+			{message.upgradeOffer ? <TrialUpgradeCard offer={message.upgradeOffer} /> : null}
 		</div>
 	)
 }
 
-const formatStepDuration = (ms: number): string => {
-	if (ms < 1000) return `${ms}ms`
-	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-	const m = Math.floor(ms / 60000)
-	const s = Math.floor((ms % 60000) / 1000)
-	return `${m}m ${s}s`
-}
-
-const formatStepCost = (usd: number): string => (usd < 0.01 ? `$${usd.toFixed(3)}` : `$${usd.toFixed(2)}`)
-
-function ToolExecutionPanel({
+function FrozenTodoChecklist({
 	toolExecutions,
-	showDetails = false
+	completionReason
 }: {
 	toolExecutions: ToolExecution[]
-	showDetails?: boolean
+	completionReason?: string
 }) {
-	const totalTime = toolExecutions.reduce((sum, execution) => sum + execution.executionTimeMs, 0)
-	const successCount = toolExecutions.filter((execution) => execution.success).length
-	const failedCount = toolExecutions.length - successCount
-	const totalCost = toolExecutions.reduce((sum, execution) => {
-		const cost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
-		return Number.isFinite(cost) ? sum + cost : sum
-	}, 0)
-	const detailsRef = useRef<HTMLDetailsElement>(null)
-	const contentRef = useRef<HTMLDivElement>(null)
-	const getRowKey = createOccurrenceKeyFactory()
-
-	return (
-		<details
-			ref={detailsRef}
-			className="group rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
-			onToggle={() => {
-				if (!detailsRef.current?.open) return
-				requestAnimationFrame(() => {
-					contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-				})
-			}}
-		>
-			<summary className="flex w-full items-center gap-2 px-3 py-2 text-left">
-				<svg
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					className="shrink-0 text-[#999] transition-transform group-open:rotate-90 dark:text-[#666]"
-				>
-					<path d="M9 18l6-6-6-6" />
-				</svg>
-				<span className="flex-1 text-xs text-[#666] dark:text-[#919296]">
-					{toolExecutions.length} step{toolExecutions.length !== 1 ? 's' : ''}
-				</span>
-				{failedCount > 0 ? (
-					<span className="text-[10px] text-amber-600 dark:text-amber-400">{failedCount} failed</span>
-				) : null}
-				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
-					{formatStepDuration(totalTime)}
-				</span>
-				{totalCost > 0 ? (
-					<span className="font-mono text-[10px] text-amber-600 tabular-nums dark:text-amber-400">
-						{formatStepCost(totalCost)}
-					</span>
-				) : null}
-			</summary>
-			<div
-				ref={contentRef}
-				className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 select-text dark:border-[#222324]"
-			>
-				{toolExecutions.map((execution) => (
-					<ToolExecutionRow
-						key={getRowKey(getToolExecutionKey(execution))}
-						execution={execution}
-						showDetails={showDetails}
-					/>
-				))}
-			</div>
-		</details>
-	)
-}
-
-function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolExecution; showDetails?: boolean }) {
-	const [showPreview, setShowPreview] = useState(false)
-	const meta = TOOL_ICONS[execution.name] || { icon: 'sparkles', color: '#919296' }
-	const label = getToolLabel(execution.name)
-	const hasDetails = showDetails && (execution.resultPreview?.length || execution.sqlQuery || execution.toolData)
-	const parsedCost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
-	const premiumCostLabel = Number.isFinite(parsedCost) ? ` ${formatStepCost(parsedCost)}` : ''
-
-	return (
-		<div className="flex flex-col">
-			<button
-				type="button"
-				onClick={() => hasDetails && setShowPreview(!showPreview)}
-				className="flex items-center gap-2 py-0.5 text-left"
-			>
-				<Icon name={meta.icon as never} height={12} width={12} className="shrink-0" style={{ color: meta.color }} />
-				<span className="flex-1 text-xs text-[#555] dark:text-[#ccc]">{label}</span>
-				{execution.isPremium || execution.costUsd ? (
-					<span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-						Premium{premiumCostLabel}
-					</span>
-				) : null}
-				<span
-					aria-label={execution.success ? 'succeeded' : 'failed'}
-					className={`h-1.5 w-1.5 shrink-0 rounded-full ${execution.success ? 'bg-green-500 dark:bg-green-400' : 'bg-red-500'}`}
-				/>
-				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
-					{formatStepDuration(execution.executionTimeMs)}
-				</span>
-				{showDetails && execution.resultCount != null ? (
-					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} results</span>
-				) : null}
-			</button>
-			{showPreview && execution.sqlQuery ? (
-				<pre className="mt-1 mb-1 overflow-x-auto rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 font-mono text-[10px] text-[#444] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#bbb]">
-					{execution.sqlQuery}
-				</pre>
-			) : null}
-			{showPreview && execution.resultPreview && execution.resultPreview.length > 0 ? (
-				<div className="mt-1 mb-1 overflow-x-auto rounded border border-[#e6e6e6] bg-[#fafafa] p-1 dark:border-[#333] dark:bg-[#1a1a1a]">
-					<table className="text-[10px]">
-						<thead>
-							<tr>
-								{Object.keys(execution.resultPreview[0]).map((column) => (
-									<th key={column} className="px-1.5 py-0.5 text-left font-medium text-[#666] dark:text-[#999]">
-										{column}
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody>
-							{execution.resultPreview.map((row, rowIndex) => (
-								<tr key={rowIndex}>
-									{Object.values(row).map((value, columnIndex) => (
-										<td key={columnIndex} className="px-1.5 py-0.5 text-[#444] dark:text-[#bbb]">
-											{String(value ?? '')}
-										</td>
-									))}
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			) : null}
-			{showPreview && execution.toolData ? <ToolDataView name={execution.name} data={execution.toolData} /> : null}
-			{!execution.success && execution.error ? (
-				<p className="mt-0.5 ml-5 text-[10px] text-red-500/80 dark:text-red-400/80">{execution.error}</p>
-			) : null}
-		</div>
-	)
-}
-
-type ToolDataRenderer = (data: Record<string, any>) => ReactNode | null
-
-const TOOL_DATA_RENDERERS: Record<string, ToolDataRenderer> = {
-	resolve_entity: (data) => {
-		const results = data.results || (data.topMatch ? { _single: data } : null)
-		if (!results) return null
-		return (
-			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
-				{Object.entries(results).map(([term, value]: [string, any]) => (
-					<div key={term} className="flex items-center gap-2 text-[10px]">
-						{term !== '_single' ? <span className="font-medium text-[#666] dark:text-[#999]">{term}:</span> : null}
-						{value.topMatch ? (
-							<span className="text-[#444] dark:text-[#bbb]">
-								{value.topMatch.slug}{' '}
-								<span className="text-[#999]">
-									({value.topMatch.type}, {Math.round(value.topMatch.confidence * 100)}%)
-								</span>
-								{value.matchCount > 1 ? <span className="text-[#999]"> +{value.matchCount - 1} more</span> : null}
-							</span>
-						) : (
-							<span className="text-[#999]">no match</span>
-						)}
-					</div>
-				))}
-			</div>
-		)
-	},
-	generate_chart: (data) => {
-		if (!data.charts) return null
-		return (
-			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
-				{data.charts.map((chart: any) => (
-					<div key={chart.id} className="text-[10px] text-[#444] dark:text-[#bbb]">
-						<span className="font-medium">{chart.title}</span>{' '}
-						<span className="text-[#999]">
-							({chart.type}, {chart.seriesCount} series)
-						</span>
-					</div>
-				))}
-			</div>
-		)
-	},
-	execute_code: (data) =>
-		data.logs?.length ? (
-			<pre className="mt-1 mb-1 overflow-x-auto rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 font-mono text-[10px] text-[#444] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#bbb]">
-				{data.logs.join('\n')}
-			</pre>
-		) : null,
-	load_skill: (data) => (
-		<div className="mt-1 mb-1 text-[10px] text-[#444] dark:text-[#bbb]">
-			<span className="font-medium">{data.skill}</span>
-			{data.unlockedTools?.length > 0 ? (
-				<span className="text-[#999]"> - unlocked: {data.unlockedTools.join(', ')}</span>
-			) : null}
-		</div>
-	),
-	spawn_agent: (data) => {
-		if (!data.agents) return null
-		return (
-			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
-				{data.agents.map((agent: any) => (
-					<div key={agent.id} className="text-[10px] text-[#444] dark:text-[#bbb]">
-						Agent {agent.id.slice(0, 6)}{' '}
-						<span className="text-[#999]">
-							({agent.toolCalls} tool calls{agent.chartCount > 0 ? `, ${agent.chartCount} charts` : ''})
-						</span>
-					</div>
-				))}
-			</div>
-		)
-	},
-	web_search: (data) => <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</span>,
-	x_search: (data) => <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</span>
-}
-
-function ToolDataView({ name, data }: { name: string; data: Record<string, any> }) {
-	return TOOL_DATA_RENDERERS[name]?.(data) ?? null
-}
-
-function BranchArrows({
-	info,
-	onSwitch,
-	disabled = false
-}: {
-	info: NonNullable<Message['siblingInfo']>
-	onSwitch: (leafMessageId: string) => void
-	disabled?: boolean
-}) {
-	const { currentVersion, totalVersions, siblings } = info
-	const goPrev = currentVersion > 1 ? siblings[currentVersion - 2]?.leafMessageId : null
-	const goNext = currentVersion < totalVersions ? siblings[currentVersion]?.leafMessageId : null
-	const arrowClass =
-		'rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#999] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc] dark:disabled:hover:text-[#666]'
-	return (
-		<div className="flex items-center gap-0.5">
-			<Tooltip
-				content="Previous version"
-				render={
-					<button
-						type="button"
-						disabled={disabled || !goPrev}
-						onClick={() => !disabled && goPrev && onSwitch(goPrev)}
-						aria-label="Previous version"
-					/>
-				}
-				className={arrowClass}
-			>
-				<Icon name="chevron-left" height={14} width={14} />
-			</Tooltip>
-			<span className="px-0.5 text-[11px] text-[#999] tabular-nums dark:text-[#666]">
-				{currentVersion}
-				<span className="opacity-50">/{totalVersions}</span>
-			</span>
-			<Tooltip
-				content="Next version"
-				render={
-					<button
-						type="button"
-						disabled={disabled || !goNext}
-						onClick={() => !disabled && goNext && onSwitch(goNext)}
-						aria-label="Next version"
-					/>
-				}
-				className={arrowClass}
-			>
-				<Icon name="chevron-right" height={14} width={14} />
-			</Tooltip>
-		</div>
-	)
+	const todos = useMemo(() => deriveTodosFromToolExecutions(toolExecutions), [toolExecutions])
+	if (todos.length === 0) return null
+	const interrupted = !!completionReason && completionReason !== 'natural'
+	return <TodoChecklistPanel todos={todos} interrupted={interrupted} />
 }
 
 export function MessageBubble({
@@ -889,7 +380,8 @@ export function MessageBubble({
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef,
-	anchorClassName
+	anchorClassName,
+	enterToSend = true
 }: {
 	message: Message
 	sessionId: string | null
@@ -907,6 +399,7 @@ export function MessageBubble({
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
 	anchorClassName?: string
+	enterToSend?: boolean
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string; isPasted?: boolean } | null>(
@@ -968,9 +461,9 @@ export function MessageBubble({
 											key={`sent-image-${image.url}`}
 											type="button"
 											onClick={() => setPreviewImage(image.url)}
-											className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+											className="size-16 cursor-pointer overflow-hidden rounded-lg"
 										>
-											<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
+											<img src={image.url} alt={displayName} className="size-full object-cover" />
 										</button>
 									)
 								}
@@ -1022,7 +515,7 @@ export function MessageBubble({
 							value={draftText}
 							onChange={(event) => setDraftText(event.target.value)}
 							onKeyDown={(event) => {
-								if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+								if (event.key === 'Enter' && event.shiftKey !== enterToSend && !event.nativeEvent.isComposing) {
 									event.preventDefault()
 									event.stopPropagation()
 									void handleSaveEdit()
@@ -1049,9 +542,21 @@ export function MessageBubble({
 							{isPersistedId ? 'Saving creates a new branch' : 'This will replace your message'}
 							<span className="hidden sm:inline">
 								{' · '}
-								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
-									⌘↵
-								</kbd>
+								{enterToSend ? (
+									<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+										Enter
+									</kbd>
+								) : (
+									<>
+										<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+											Shift
+										</kbd>
+										<span className="mx-0.5">+</span>
+										<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+											Enter
+										</kbd>
+									</>
+								)}
 								<span className="mx-1">save</span>
 								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
 									esc
@@ -1186,7 +691,7 @@ function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
 			onClick={toggleDashboardPanel}
 			className="my-2 flex w-full items-center gap-3 rounded-lg border border-[#2172e5]/30 bg-[#2172e5]/5 px-3.5 py-2.5 text-left transition-all hover:border-[#2172e5]/50 hover:bg-[#2172e5]/10"
 		>
-			<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
+			<Icon name="layout-grid" className="size-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-2">
 					<span className="truncate text-sm font-semibold text-[#2172e5] dark:text-[#4190f7]">
@@ -1198,7 +703,7 @@ function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
 			</div>
 			<Icon
 				name={isDashboardPanelOpen ? 'chevron-right' : 'chevron-left'}
-				className="h-4 w-4 shrink-0 text-[#636e72] dark:text-[#8a8f98]"
+				className="size-4 shrink-0 text-[#636e72] dark:text-[#8a8f98]"
 			/>
 		</button>
 	)

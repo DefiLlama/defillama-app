@@ -1,19 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { AI_SERVER } from '~/constants'
+import { llamaAIRequest } from '~/containers/LlamaAI/api/transport'
 import {
 	prependSessionToInfiniteData,
 	removeSessionFromInfiniteData,
 	removeSessionsFromInfiniteData,
+	replaceSessionIdInInfiniteData,
 	SESSIONS_QUERY_KEY,
 	type SessionListInfiniteData,
 	updateSessionInInfiniteData
 } from '~/containers/LlamaAI/hooks/sessionListCache'
 import { isProjectSessionsQueryKey, projectSessionsKey } from '~/containers/LlamaAI/projects/queryKeys'
+import type { ProjectChatSession } from '~/containers/LlamaAI/projects/types'
 import type { ChatSession } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 
 type SwitchActiveLeafResponse = {
@@ -25,6 +25,30 @@ type SwitchActiveLeafResponse = {
 		hasNewer?: boolean
 		newerCursor?: number | null
 	}
+}
+
+type SessionRestoreResponse = {
+	messages?: unknown[]
+	conversationHistory?: unknown[]
+	hasMore?: boolean
+	nextCursor?: number | null
+	totalMessages?: number
+	hasNewer?: boolean
+	newerCursor?: number | null
+	activeLeafMessageId?: string | null
+	streaming?: unknown
+	todos?: unknown
+	projectId?: string | null
+}
+
+function getSessionRestoreMessages(result: SessionRestoreResponse | null | undefined): unknown[] {
+	// PR #2299 renamed conversationHistory to messages; old restore payloads
+	// and malformed 2xx envelopes must normalize before callers map them.
+	return Array.isArray(result?.messages)
+		? result.messages
+		: Array.isArray(result?.conversationHistory)
+			? result.conversationHistory
+			: []
 }
 
 function assertSwitchActiveLeafResponse(response: unknown): asserts response is SwitchActiveLeafResponse {
@@ -77,6 +101,10 @@ function assertSwitchActiveLeafResponse(response: unknown): asserts response is 
 	}
 }
 
+function mutationActionError(action: string, error: unknown) {
+	return new Error(`${action}: ${getErrorMessage(error)}`)
+}
+
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
@@ -88,6 +116,46 @@ export function useSessionMutations() {
 		}
 		void queryClient.invalidateQueries({ predicate: (query) => isProjectSessionsQueryKey(query.queryKey) })
 	}
+
+	const prependProjectSession = useCallback(
+		(projectId: string, session: ProjectChatSession) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) => {
+				const sessions = old?.filter((item) => item.sessionId !== session.sessionId) ?? []
+				return [session, ...sessions]
+			})
+		},
+		[queryClient]
+	)
+
+	const removeProjectSession = useCallback(
+		(projectId: string, sessionId: string) => {
+			queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+				old?.filter((item) => item.sessionId !== sessionId)
+			)
+		},
+		[queryClient]
+	)
+
+	const replaceOptimisticSessionId = useCallback(
+		(previousSessionId: string, nextSessionId: string, projectId?: string | null) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					replaceSessionIdInInfiniteData(old, previousSessionId, nextSessionId)
+				)
+			}
+
+			if (projectId) {
+				queryClient.setQueryData<ProjectChatSession[]>(projectSessionsKey(projectId), (old) =>
+					old?.map((session) =>
+						session.sessionId === previousSessionId
+							? { ...session, sessionId: nextSessionId, isOptimistic: false }
+							: session
+					)
+				)
+			}
+		},
+		[user, queryClient]
+	)
 
 	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
@@ -101,14 +169,10 @@ export function useSessionMutations() {
 			projectId?: string | null
 		}) => {
 			try {
-				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
+				const response = await llamaAIRequest(authorizedFetch, '/user/sessions', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, title, projectId })
+					json: { sessionId, title, projectId }
 				})
-					.then((res) => assertResponse(res, 'Failed to create session'))
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
 
 				return response
 			} catch (error) {
@@ -117,8 +181,26 @@ export function useSessionMutations() {
 			}
 		},
 		onSuccess: (_data, variables) => {
-			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
-			if (variables.projectId) invalidateProjectSessions(variables.projectId)
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					updateSessionInInfiniteData(old, variables.sessionId, (session) => ({
+						...session,
+						isOptimistic: false,
+						projectId: variables.projectId ?? null
+					}))
+				)
+			}
+			if (!variables.projectId) {
+				void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			}
+		},
+		onError: (_error, variables) => {
+			if (user) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					removeSessionFromInfiniteData(old, variables.sessionId)
+				)
+			}
+			if (variables.projectId) removeProjectSession(variables.projectId, variables.sessionId)
 		}
 	})
 
@@ -144,11 +226,11 @@ export function useSessionMutations() {
 				if (around) params.append('around', around)
 				if (afterSequence !== undefined) params.append('afterSequence', afterSequence.toString())
 
-				const url = `${AI_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
-				const response = await authorizedFetch(url)
-					.then((res) => assertResponse(res, 'Failed to restore session'))
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
+				const query = params.toString()
+				const response = await llamaAIRequest<SessionRestoreResponse | null>(
+					authorizedFetch,
+					`/user/sessions/${sessionId}/restore${query ? `?${query}` : ''}`
+				)
 
 				return response
 			} catch (error) {
@@ -162,14 +244,10 @@ export function useSessionMutations() {
 		mutationKey: ['llamaai', 'switch-active-leaf'],
 		mutationFn: async ({ sessionId, leafMessageId }: { sessionId: string; leafMessageId: string }) => {
 			try {
-				const response: unknown = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
+				const response: unknown = await llamaAIRequest(authorizedFetch, `/agentic/${sessionId}/active-leaf`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ leafMessageId })
+					json: { leafMessageId }
 				})
-					.then((res) => assertResponse(res, 'Failed to switch branch'))
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
 
 				assertSwitchActiveLeafResponse(response)
 				return response
@@ -184,11 +262,9 @@ export function useSessionMutations() {
 	const deleteSessionMutation = useMutation({
 		mutationFn: async ({ sessionId }: { sessionId: string; projectId?: string | null }) => {
 			try {
-				await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}`, {
+				await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
-					.then((res) => assertResponse(res, 'Failed to delete session'))
-					.then(handleSimpleFetchResponse)
 			} catch (error) {
 				console.log('Failed to delete session:', error)
 				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
@@ -223,13 +299,14 @@ export function useSessionMutations() {
 
 	const bulkDeleteSessionsMutation = useMutation({
 		mutationFn: async (sessionIds: string[]) => {
-			await authorizedFetch(`${AI_SERVER}/user/sessions/bulk`, {
-				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ sessionIds })
-			})
-				.then((res) => assertResponse(res, 'Failed to bulk delete sessions'))
-				.then(handleSimpleFetchResponse)
+			try {
+				await llamaAIRequest(authorizedFetch, '/user/sessions/bulk', {
+					method: 'DELETE',
+					json: { sessionIds }
+				})
+			} catch (error) {
+				throw mutationActionError('Failed to bulk delete sessions', error)
+			}
 		},
 		onMutate: async (sessionIds) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
@@ -254,16 +331,16 @@ export function useSessionMutations() {
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string; projectId?: string | null }) => {
-			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/title`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title })
-			})
-				.then((res) => assertResponse(res, 'Failed to update session title'))
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
+			try {
+				const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/title`, {
+					method: 'PUT',
+					json: { title }
+				})
 
-			return response
+				return response
+			} catch (error) {
+				throw mutationActionError('Failed to update session title', error)
+			}
 		},
 		onMutate: async ({ sessionId, title }) => {
 			// Cancel any outgoing refetches
@@ -286,21 +363,25 @@ export function useSessionMutations() {
 			}
 		},
 		onSettled: (_data, _error, variables) => {
+			if (variables.projectId) {
+				invalidateProjectSessions(variables.projectId)
+				return
+			}
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
-			if (variables.projectId) invalidateProjectSessions(variables.projectId)
 		}
 	})
 
 	const pinSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/pin`, {
-				method: 'PUT'
-			})
-				.then((res) => assertResponse(res, 'Failed to toggle pin'))
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
+			try {
+				const response = await llamaAIRequest(authorizedFetch, `/user/sessions/${sessionId}/pin`, {
+					method: 'PUT'
+				})
 
-			return response
+				return response
+			} catch (error) {
+				throw mutationActionError('Failed to toggle pin', error)
+			}
 		},
 		onMutate: async (sessionId) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
@@ -321,6 +402,7 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			invalidateProjectSessions()
 		}
 	})
 
@@ -329,13 +411,14 @@ export function useSessionMutations() {
 		(projectId?: string | null) => {
 			const sessionId = crypto.randomUUID()
 			const title = 'New Chat'
+			const now = new Date().toISOString()
 
 			if (user) {
 				const fakeSession: ChatSession = {
 					sessionId,
 					title,
-					createdAt: new Date().toISOString(),
-					lastActivity: new Date().toISOString(),
+					createdAt: now,
+					lastActivity: now,
 					isActive: true,
 					isOptimistic: true,
 					projectId: projectId ?? null
@@ -344,11 +427,24 @@ export function useSessionMutations() {
 				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
 					prependSessionToInfiniteData(old, fakeSession)
 				)
+
+				if (projectId) {
+					prependProjectSession(projectId, {
+						sessionId,
+						title,
+						createdAt: now,
+						lastActivity: now,
+						isPinned: false,
+						pinnedAt: null,
+						isPublic: false,
+						shareToken: null
+					})
+				}
 			}
 
 			return sessionId
 		},
-		[user, queryClient]
+		[user, queryClient, prependProjectSession]
 	)
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
@@ -360,18 +456,21 @@ export function useSessionMutations() {
 					limit: around ? 20 : limit,
 					around
 				})
+				const messages = getSessionRestoreMessages(result)
 				return {
-					messages: result.messages || result.conversationHistory || [],
+					messages,
 					pagination: {
-						hasMore: result.hasMore ?? false,
+						hasMore: result?.hasMore ?? false,
 						isLoadingMore: false,
-						cursor: result.nextCursor,
-						totalMessages: result.totalMessages,
-						hasNewer: result.hasNewer ?? false,
-						newerCursor: result.newerCursor
+						cursor: result?.nextCursor,
+						totalMessages: result?.totalMessages,
+						hasNewer: result?.hasNewer ?? false,
+						newerCursor: result?.newerCursor
 					},
-					streaming: result.streaming,
-					projectId: result.projectId ?? null
+					activeLeafMessageId: result?.activeLeafMessageId ?? null,
+					streaming: result?.streaming,
+					todos: result?.todos,
+					projectId: result?.projectId ?? null
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
@@ -387,12 +486,12 @@ export function useSessionMutations() {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
 				return {
-					messages: result.messages || result.conversationHistory || [],
+					messages: getSessionRestoreMessages(result),
 					pagination: {
-						hasMore: result.hasMore ?? false,
+						hasMore: result?.hasMore ?? false,
 						isLoadingMore: false,
-						cursor: result.nextCursor,
-						totalMessages: result.totalMessages
+						cursor: result?.nextCursor,
+						totalMessages: result?.totalMessages
 					}
 				}
 			} catch (error) {
@@ -408,10 +507,10 @@ export function useSessionMutations() {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, afterSequence })
 				return {
-					messages: result.messages || result.conversationHistory || [],
+					messages: getSessionRestoreMessages(result),
 					pagination: {
-						hasNewer: result.hasNewer ?? false,
-						newerCursor: result.newerCursor
+						hasNewer: result?.hasNewer ?? false,
+						newerCursor: result?.newerCursor
 					}
 				}
 			} catch (error) {
@@ -427,15 +526,23 @@ export function useSessionMutations() {
 		[deleteSessionMutation]
 	)
 
+	const updateSessionTitle = useCallback(
+		(args: { sessionId: string; title: string; projectId?: string | null }) => updateTitleMutation.mutateAsync(args),
+		[updateTitleMutation]
+	)
+
+	const pinSession = useCallback((sessionId: string) => pinSessionMutation.mutateAsync(sessionId), [pinSessionMutation])
+
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
+		replaceOptimisticSessionId,
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
 		switchActiveLeaf: switchActiveLeafMutation.mutateAsync,
 		deleteSession,
-		updateSessionTitle: updateTitleMutation.mutateAsync,
+		updateSessionTitle,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
 		isSwitchingActiveLeaf: switchActiveLeafMutation.isPending,
@@ -443,7 +550,7 @@ export function useSessionMutations() {
 		isUpdatingTitle: updateTitleMutation.isPending,
 		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,
 		isBulkDeleting: bulkDeleteSessionsMutation.isPending,
-		pinSession: pinSessionMutation.mutateAsync,
+		pinSession,
 		isPinningSession: pinSessionMutation.isPending
 	}
 }

@@ -1,12 +1,10 @@
 import type { GetStaticPropsContext } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import {
-	getAdapterByChainPageData,
-	getDimensionAdapterOverviewOfAllChains
-} from '~/containers/DimensionAdapters/queries'
-import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import { AdapterByChain } from '~/containers/AdapterMetrics/AdapterByChain'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { getAdapterByChainPageData, getDimensionAdapterOverviewOfAllChains } from '~/containers/AdapterMetrics/queries'
+import { addDimensionChainRouteTelemetry } from '~/containers/AdapterMetrics/telemetry'
+import type { IAdapterByChainPageData } from '~/containers/AdapterMetrics/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -49,14 +47,23 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadata = metadataCache.chainMetadata[chain]
 
-		if (!metadataCache.chainMetadata[chain]?.normalizedVolume) {
+		addDimensionChainRouteTelemetry({
+			adapterType,
+			chain: metadata?.name ?? chain,
+			canonicalRoute: '/normalized-volume/chain/[chain]',
+			dataType,
+			metadataFlag: 'normalizedVolume'
+		})
+
+		if (!metadata?.normalizedVolume) {
 			return { notFound: true }
 		}
 
 		const data = await getAdapterByChainPageData({
 			adapterType,
-			chain: metadataCache.chainMetadata[chain].name,
+			chain: metadata.name,
 			route: 'normalized-volume',
 			metricName: type
 		})

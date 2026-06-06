@@ -45,10 +45,10 @@ jobs:
           MARKETS_SERVER_URL: ${{ secrets.MARKETS_SERVER_URL }}
 
       - name: Typecheck
-        run: bun run ts
+        run: bun run typecheck
 
       - name: Typecheck test files
-        run: bun run test:types
+        run: bun run test:typecheck
 
       - name: Run tests
         run: bun run test

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseOverviewBreakdownRequest } from '~/pages/api/rwa/overview-breakdown'
+import { parseOverviewBreakdownRequest } from '~/pages/api/public/rwa/overview-breakdown'
 
 describe('parseOverviewBreakdownRequest', () => {
 	it('accepts platform requests when both flags are false', () => {
@@ -70,5 +70,40 @@ describe('parseOverviewBreakdownRequest', () => {
 			includeStablecoin: false,
 			includeGovernance: true
 		})
+	})
+
+	it('rejects arrays and invalid enum values', () => {
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: ['platform'],
+					key: 'activeMcap',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: 'contract',
+					key: 'activeMcap',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: 'platform',
+					key: '',
+					includeStablecoin: 'false',
+					includeGovernance: 'false'
+				}
+			})
+		).toBeNull()
 	})
 })

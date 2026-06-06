@@ -1,8 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
-import { runPreparationCommand, type PreparationStep } from '../prepare'
+import { createPreparationSteps, runPreparationCommand, type PreparationStep } from '../prepare'
 import { CommandExitError } from '../timedStep'
 
 describe('preparation command', () => {
+	it('creates default preparation steps in order', () => {
+		const steps = createPreparationSteps({
+			env: { NODE_ENV: 'test' },
+			logger: { log: vi.fn() },
+			repoRoot: '/tmp/defillama-app'
+		})
+
+		expect(steps.map((step) => step.name)).toEqual([
+			'Metadata cache',
+			'Site navigation',
+			'Dataset cache',
+			'llms.txt',
+			'robots.txt'
+		])
+	})
+
 	it('runs preparation steps in order', async () => {
 		const calls: string[] = []
 		const steps: PreparationStep[] = [
@@ -32,7 +48,7 @@ describe('preparation command', () => {
 		expect(calls).toEqual(['metadata', 'dataset', 'robots'])
 	})
 
-	it('stops later preparation steps after a failure', async () => {
+	it('keeps running later preparation steps after a failure', async () => {
 		const dataset = vi.fn()
 		const steps: PreparationStep[] = [
 			{
@@ -47,7 +63,7 @@ describe('preparation command', () => {
 		const result = await runPreparationCommand({ logger: { log: vi.fn() }, steps })
 
 		expect(result.exitCode).toBe(9)
-		expect(dataset).not.toHaveBeenCalled()
+		expect(dataset).toHaveBeenCalledTimes(1)
 	})
 
 	it('uses the requested log prefix for build preparation', async () => {

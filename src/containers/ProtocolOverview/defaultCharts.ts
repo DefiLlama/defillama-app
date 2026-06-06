@@ -1,4 +1,4 @@
-import { protocolCategoryConfig } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { protocolCategoryConfig } from '~/containers/ProtocolTaxonomy/constants'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts

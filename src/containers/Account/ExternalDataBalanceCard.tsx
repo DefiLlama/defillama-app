@@ -23,7 +23,7 @@ export function ExternalDataBalanceCard({
 		return (
 			<div className="flex flex-col gap-4 rounded-2xl border border-(--sub-border-slate-100) bg-white p-4 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
 				<div className="flex items-center gap-2">
-					<div className="h-7 w-7 animate-pulse rounded bg-(--sub-border-light) dark:bg-(--sub-border-strong)" />
+					<div className="size-7 animate-pulse rounded bg-(--sub-border-light) dark:bg-(--sub-border-strong)" />
 					<div className="h-5 w-44 animate-pulse rounded bg-(--sub-border-light) dark:bg-(--sub-border-strong)" />
 				</div>
 				<div className="h-3 w-full animate-pulse rounded bg-(--sub-border-light) dark:bg-(--sub-border-strong)" />

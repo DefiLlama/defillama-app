@@ -105,7 +105,7 @@ const TokenButton = forwardRef<HTMLButtonElement, TokenButtonProps>(function Tok
 			}`}
 		>
 			<span className="max-w-[100px] truncate sm:max-w-[180px]">{label}</span>
-			<Icon name="chevron-down" width={10} height={10} className="shrink-0 opacity-70 sm:h-3 sm:w-3" />
+			<Icon name="chevron-down" width={10} height={10} className="shrink-0 opacity-70 sm:size-3" />
 			{secondary ? <span className="sr-only">{secondary}</span> : null}
 		</button>
 	)
@@ -173,11 +173,11 @@ export function MetricSentenceBuilder({
 	useEffect(() => {
 		if (activeToken === 'subject') {
 			subjectCombobox.setOpen(true)
-			setTimeout(() => {
+			const timeout = setTimeout(() => {
 				const portal = document.querySelector('[data-metric-token] input') as HTMLInputElement | null
 				portal?.focus()
 			}, 10)
-			return
+			return () => clearTimeout(timeout)
 		}
 
 		subjectCombobox.setValue('')
@@ -456,6 +456,7 @@ export function MetricSentenceBuilder({
 							<input
 								value={searchTerm}
 								onChange={(event) => setSearchTerm(event.target.value)}
+								aria-label="Search metrics"
 								placeholder="Search metrics..."
 								className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							/>
@@ -593,7 +594,7 @@ export function MetricSentenceBuilder({
 																			alt={option.label}
 																			width={20}
 																			height={20}
-																			className="h-5 w-5 rounded-full object-cover"
+																			className="size-5 rounded-full object-cover"
 																		/>
 																	) : null}
 																	<span className="truncate">{option.label}</span>
@@ -647,7 +648,7 @@ export function MetricSentenceBuilder({
 																		alt={option.label}
 																		width={20}
 																		height={20}
-																		className={`h-5 w-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
+																		className={`size-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
 																	/>
 																) : null}
 																<div className="flex min-w-0 flex-col">
@@ -688,8 +689,8 @@ export function MetricSentenceBuilder({
 		<div className="flex flex-col gap-2.5 sm:gap-3">
 			<div className="rounded-lg border border-(--cards-border) bg-linear-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
 				<div className="mb-4 flex items-center gap-2 sm:gap-2.5">
-					<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
-						<Icon name="sparkles" width={14} height={14} className="sm:h-4 sm:w-4" />
+					<div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:size-8">
+						<Icon name="sparkles" width={14} height={14} className="sm:size-4" />
 					</div>
 					<div className="min-w-0">
 						<div className="text-xs font-semibold text-(--text-primary)">Metric sentence builder</div>

@@ -7,17 +7,18 @@ import {
 	getArticleBanner,
 	getArticleBySlug,
 	getLandingBanner,
+	getResearchLanding,
 	getSectionBanner,
 	listArticles,
-	listArticlesByTag
+	listArticlesByTag,
+	listArticlesByTopic
 } from '~/containers/Articles/api'
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
-import ArticlesPage, { getStaticProps as getResearchStaticProps } from '~/pages/research'
-import SectionArticlePage, {
-	articlePathsToStaticPaths,
-	getStaticProps as getArticleStaticProps
-} from '~/pages/research/[section]/[slug]'
+import ArticlesPage, { getServerSideProps as getResearchServerSideProps } from '~/pages/research'
+import SectionLandingPage, { getServerSideProps as getSectionLandingServerSideProps } from '~/pages/research/[section]'
+import SectionArticlePage, { getServerSideProps as getArticleServerSideProps } from '~/pages/research/[section]/[slug]'
+import TopicLandingPage, { getStaticProps as getTopicLandingStaticProps } from '~/pages/research/topics/[topic]'
 
 const routerMock = vi.hoisted(() => vi.fn())
 
@@ -37,10 +38,12 @@ vi.mock('~/containers/Articles/api', () => ({
 	getArticleBanner: vi.fn(),
 	getArticleBySlug: vi.fn(),
 	getLandingBanner: vi.fn(),
+	getResearchLanding: vi.fn(),
 	getSectionBanner: vi.fn(),
 	listArticlePaths: vi.fn(),
 	listArticles: vi.fn(),
-	listArticlesByTag: vi.fn()
+	listArticlesByTag: vi.fn(),
+	listArticlesByTopic: vi.fn()
 }))
 
 vi.mock('~/containers/Articles/ArticleProxyAuthProvider', () => ({
@@ -150,6 +153,14 @@ function articleList(items: ArticleDocument[]) {
 	}
 }
 
+function topicArticleList(count: number) {
+	return articleList(
+		Array.from({ length: count }, (_, index) =>
+			article({ tags: ['lending'], id: `topic-article-${index}`, slug: `topic-article-${index}` })
+		)
+	)
+}
+
 const emptyBanner: BannerLookupResult = {
 	text: null,
 	image: null,
@@ -167,21 +178,39 @@ describe('research ISR data loading', () => {
 		})
 		vi.mocked(listArticles).mockResolvedValue(articleList([article()]))
 		vi.mocked(listArticlesByTag).mockResolvedValue({ items: [article()] })
+		vi.mocked(listArticlesByTopic).mockResolvedValue(topicArticleList(4))
+		vi.mocked(getResearchLanding).mockResolvedValue({
+			heroReports: [article()],
+			latest: [article()],
+			spotlight: [article()],
+			interviews: [article()],
+			highlight: [article()],
+			insights: [article()],
+			moreReportsCandidates: [article()],
+			spotlightColumnCandidates: [article()],
+			collectionsCandidates: [article()]
+		})
 		vi.mocked(getLandingBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getArticleBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getSectionBanner).mockResolvedValue(emptyBanner)
 		vi.mocked(getAllArticlesBanner).mockResolvedValue(emptyBanner)
 	})
 
-	it('loads landing page props for ISR and renders article content immediately', async () => {
-		const result = await getResearchStaticProps({} as never)
+	it('loads landing page props for SSR and renders article content immediately', async () => {
+		const setHeader = vi.fn()
+		const result = await getResearchServerSideProps({
+			req: { method: 'GET' },
+			res: { setHeader },
+			resolvedUrl: '/research'
+		} as never)
 
-		expect(result).toMatchObject({ revalidate: expect.any(Number) })
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
 		if (!('props' in result)) throw new Error('expected props')
-		expect(result.props.landingData.heroReports[0]?.title).toBe('Canonical Research')
+		const props = await Promise.resolve(result.props)
+		expect(props.landingData.heroReports[0]?.title).toBe('Canonical Research')
 		expect(getLandingBanner).toHaveBeenCalledTimes(1)
 
-		const html = renderWithQueryClient(<ArticlesPage {...result.props} />)
+		const html = renderWithQueryClient(<ArticlesPage {...props} />)
 		expect(html).toContain('Canonical Research')
 	})
 
@@ -204,36 +233,119 @@ describe('research ISR data loading', () => {
 		expect(html).not.toContain('translate(calc(0px + -147px))')
 	})
 
-	it('maps public article path metadata into static paths', () => {
-		expect(
-			articlePathsToStaticPaths([
-				{
-					slug: 'canonical-research',
-					section: 'report',
-					updatedAt: '2026-05-15T00:00:00.000Z'
-				}
-			])
-		).toEqual([
-			{
-				params: {
-					section: 'report',
-					slug: 'canonical-research'
-				}
-			}
-		])
+	it('loads section landing props for SSR and renders articles immediately', async () => {
+		const setHeader = vi.fn()
+		const result = await getSectionLandingServerSideProps({
+			params: { section: 'report' },
+			req: { method: 'GET' },
+			res: { setHeader },
+			resolvedUrl: '/research/report'
+		} as never)
+
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
+		if (!('props' in result)) throw new Error('expected props')
+		const props = await Promise.resolve(result.props)
+		expect(props.section).toBe('report')
+		expect(props.initialArticles.items[0]?.title).toBe('Canonical Research')
+		expect(getSectionBanner).toHaveBeenCalledWith('report')
+
+		const html = renderWithQueryClient(<SectionLandingPage {...props} />)
+		expect(html).toContain('Canonical Research')
+		expect(html).toContain('Report')
 	})
 
-	it('loads article props for ISR and renders article body immediately', async () => {
-		const publicArticle = article()
-		vi.mocked(getArticleBySlug).mockResolvedValue(publicArticle)
+	it('returns notFound for invalid section slugs', async () => {
+		await expect(
+			getSectionLandingServerSideProps({
+				params: { section: 'not-a-section' },
+				req: { method: 'GET' },
+				res: { setHeader: vi.fn() },
+				resolvedUrl: '/research/not-a-section'
+			} as never)
+		).resolves.toMatchObject({ notFound: true })
+	})
 
-		const result = await getArticleStaticProps({
-			params: { section: 'report', slug: 'canonical-research' }
+	it('loads topic landing props for ISR and renders articles immediately', async () => {
+		const result = await getTopicLandingStaticProps({
+			params: { topic: 'lending' }
 		} as never)
 
 		expect(result).toMatchObject({ revalidate: expect.any(Number) })
 		if (!('props' in result)) throw new Error('expected props')
-		expect(result.props.initialArticle.title).toBe('Canonical Research')
+		expect(result.props.topic).toBe('lending')
+		expect(result.props.initialArticles.items[0]?.title).toBe('Canonical Research')
+		expect(listArticlesByTopic).toHaveBeenCalledWith('lending', { sort: 'newest', limit: 60 })
+
+		const html = renderWithQueryClient(<TopicLandingPage {...result.props} />)
+		expect(html).toContain('Canonical Research')
+		expect(html).toContain('lending')
+	})
+
+	it('returns notFound for invalid topic slugs', async () => {
+		await expect(
+			getTopicLandingStaticProps({
+				params: { topic: '!!!' }
+			} as never)
+		).resolves.toMatchObject({ notFound: true })
+	})
+
+	it('returns notFound when a topic has fewer than four articles', async () => {
+		vi.mocked(listArticlesByTopic).mockResolvedValueOnce(topicArticleList(3))
+
+		await expect(
+			getTopicLandingStaticProps({
+				params: { topic: 'lending' }
+			} as never)
+		).resolves.toMatchObject({ notFound: true })
+	})
+
+	it('redirects non-canonical topic slugs to the normalized path', async () => {
+		await expect(
+			getTopicLandingStaticProps({
+				params: { topic: 'Lending' }
+			} as never)
+		).resolves.toMatchObject({
+			redirect: {
+				destination: '/research/topics/lending',
+				permanent: true
+			}
+		})
+	})
+
+	it('loads sanitized article props for SSR and renders article body immediately', async () => {
+		const publicArticle = article({
+			author: 'Internal Admin',
+			coAuthors: [
+				{
+					id: 'coauthor-profile-id',
+					pbUserId: 'coauthor-pb-id',
+					slug: 'internal-admin',
+					displayName: 'Internal Admin',
+					bio: null,
+					avatarUrl: null,
+					socials: {},
+					createdAt: '2026-05-15T00:00:00.000Z',
+					updatedAt: '2026-05-15T00:00:00.000Z'
+				}
+			]
+		})
+		vi.mocked(getArticleBySlug).mockResolvedValue(publicArticle)
+
+		const setHeader = vi.fn()
+		const result = await getArticleServerSideProps({
+			params: { section: 'report', slug: 'canonical-research' },
+			req: { method: 'GET' },
+			resolvedUrl: '/research/report/canonical-research',
+			res: { setHeader }
+		} as never)
+
+		expect(setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage'))
+		if (!('props' in result)) throw new Error('expected props')
+		const props = await result.props
+		expect(props.initialArticle.title).toBe('Canonical Research')
+		expect(props.initialArticle.author).toBe('DefiLlama Research')
+		expect(props.initialArticle).not.toHaveProperty('authorProfile')
+		expect(props.initialArticle).not.toHaveProperty('coAuthors')
 		expect(getArticleBanner).toHaveBeenCalledWith('article-id')
 
 		routerMock.mockReturnValue({
@@ -242,9 +354,10 @@ describe('research ISR data loading', () => {
 			query: { section: 'report', slug: 'canonical-research' },
 			replace: vi.fn()
 		})
-		const html = renderWithQueryClient(<SectionArticlePage {...result.props} />)
+		const html = renderWithQueryClient(<SectionArticlePage {...props} />)
 		expect(html).toContain('Canonical Research')
 		expect(html).toContain('Server rendered body')
+		expect(html).not.toContain('Internal Admin')
 	})
 
 	it('does not render legacy draft preview controls on the public article page', () => {
@@ -263,16 +376,25 @@ describe('research ISR data loading', () => {
 
 	it('returns notFound for missing articles and redirects non-canonical article urls', async () => {
 		vi.mocked(getArticleBySlug).mockResolvedValueOnce(null)
+		const notFoundSetHeader = vi.fn()
 		await expect(
-			getArticleStaticProps({
-				params: { section: 'report', slug: 'missing' }
+			getArticleServerSideProps({
+				params: { section: 'report', slug: 'missing' },
+				req: { method: 'GET' },
+				resolvedUrl: '/research/report/missing',
+				res: { setHeader: notFoundSetHeader }
 			} as never)
 		).resolves.toMatchObject({ notFound: true })
+		expect(notFoundSetHeader).toHaveBeenCalledWith('Cache-Control', 'no-store')
 
 		vi.mocked(getArticleBySlug).mockResolvedValueOnce(article())
+		const redirectSetHeader = vi.fn()
 		await expect(
-			getArticleStaticProps({
-				params: { section: 'report', slug: 'old-research' }
+			getArticleServerSideProps({
+				params: { section: 'report', slug: 'old-research' },
+				req: { method: 'GET' },
+				resolvedUrl: '/research/report/old-research',
+				res: { setHeader: redirectSetHeader }
 			} as never)
 		).resolves.toMatchObject({
 			redirect: {
@@ -280,5 +402,6 @@ describe('research ISR data loading', () => {
 				permanent: false
 			}
 		})
+		expect(redirectSetHeader).toHaveBeenCalledWith('Cache-Control', 'no-store')
 	})
 })

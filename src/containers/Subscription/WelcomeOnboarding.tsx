@@ -2,7 +2,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import {
+	persistSlackAcquisitionIfFirst,
+	readSlackAcquisition,
+	type SlackAcquisition
+} from '~/containers/Subscription/utils/slackAcquisition'
 import { readAppStorage, setLlamaAIWalkthroughState, writeAppStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -67,8 +73,10 @@ const PRIORITY_ORDER = ['llamaai', 'dashboards', 'csv', 'llamafeed', 'sheets'] a
 export function WelcomeOnboarding() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription, loaders, authorizedFetch } = useAuthContext()
 	const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set())
+	const [slackAcquisition, setSlackAcquisition] = useState<SlackAcquisition | null>(null)
+	const slackAcquisitionHandledRef = useRef(false)
 
 	// Invalidate subscription cache once on mount when arriving from Stripe redirect.
 	// StripeCheckoutModal redirects directly to /welcome, bypassing /account?success=true
@@ -80,6 +88,40 @@ export function WelcomeOnboarding() {
 			void queryClient.invalidateQueries({ queryKey: ['subscription'] })
 		}
 	}, [isAuthenticated, hasActiveSubscription, loaders.userLoading, queryClient])
+
+	const trialActivationFiredRef = useRef(false)
+	useEffect(() => {
+		if (trialActivationFiredRef.current || !hasActiveSubscription) return
+		try {
+			const raw = sessionStorage.getItem('llamaai_checkout')
+			if (!raw) return
+			sessionStorage.removeItem('llamaai_checkout')
+			const marker = JSON.parse(raw) as { variant?: string; ts?: number }
+			if (marker.ts && Date.now() - marker.ts < 60 * 60 * 1000) {
+				trialActivationFiredRef.current = true
+				trackUmamiEvent('llamaai-trial-activated', { variant: marker.variant ?? 'trial' })
+			}
+		} catch {}
+	}, [hasActiveSubscription])
+
+	useEffect(() => {
+		if (slackAcquisitionHandledRef.current) return
+		if (!hasActiveSubscription || !isAuthenticated || loaders.userLoading) return
+		if (typeof window === 'undefined') return
+		const acquisition = readSlackAcquisition(window.sessionStorage)
+		if (!acquisition) {
+			slackAcquisitionHandledRef.current = true
+			return
+		}
+		slackAcquisitionHandledRef.current = true
+		setSlackAcquisition(acquisition)
+		void persistSlackAcquisitionIfFirst(acquisition, {
+			fetch: authorizedFetch,
+			aiServer: AI_SERVER
+		}).catch((error) => {
+			console.warn('[welcome] persistSlackAcquisitionIfFirst failed', error)
+		})
+	}, [hasActiveSubscription, isAuthenticated, loaders.userLoading, authorizedFetch])
 
 	const toggleFeature = useCallback((id: string) => {
 		setSelectedFeatures((prev) => {
@@ -155,7 +197,7 @@ export function WelcomeOnboarding() {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4">
-					<div className="h-8 w-8 animate-spin rounded-full border-2 border-[#39393E] border-t-[#5C5CF9]" />
+					<div className="size-8 animate-spin rounded-full border-2 border-[#39393E] border-t-[#5C5CF9]" />
 					<p className="text-[#8a8c90]">Loading your subscription...</p>
 				</div>
 			</div>
@@ -166,7 +208,7 @@ export function WelcomeOnboarding() {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4 text-center">
-					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#5C5CF9]/10">
+					<div className="flex size-16 items-center justify-center rounded-full bg-[#5C5CF9]/10">
 						<Icon name="clock" height={28} width={28} className="text-[#5C5CF9]" />
 					</div>
 					<h2 className="text-xl font-bold text-white">Processing your payment...</h2>
@@ -195,6 +237,20 @@ export function WelcomeOnboarding() {
 				<p className="text-sm text-[#8a8c90]">What brought you here? Pick all that apply.</p>
 			</div>
 
+			{slackAcquisition ? (
+				<div className="mb-6 flex w-full items-start gap-3 rounded-xl border border-[#5C5CF9]/25 bg-[#5C5CF9]/8 px-4 py-3 text-left">
+					<div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#5C5CF9]/15">
+						<Icon name="chat" height={16} width={16} className="text-[#7B7BFF]" />
+					</div>
+					<div className="flex min-w-0 flex-col gap-0.5">
+						<span className="text-sm font-medium text-white">LlamaAI is ready in Slack</span>
+						<span className="text-xs leading-snug text-[#8a8c90]">
+							Mention <span className="font-mono text-[#b4b7bc]">@LlamaAI</span> in any channel, or DM the bot directly.
+						</span>
+					</div>
+				</div>
+			) : null}
+
 			<div className="flex w-full flex-col gap-2">
 				{ONBOARDING_OPTIONS.map((option, i) => {
 					const isSelected = selectedFeatures.has(option.id)
@@ -214,13 +270,13 @@ export function WelcomeOnboarding() {
 							aria-checked={isSelected}
 						>
 							<div
-								className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200"
+								className="flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200"
 								style={{
 									backgroundColor: isSelected ? `${c}26` : `${c}14`
 								}}
 							>
 								{option.iconType === 'svg' ? (
-									<svg className="h-[18px] w-[18px]" style={{ color: isSelected ? '#FDE0A9' : c }}>
+									<svg className="size-[18px]" style={{ color: isSelected ? '#FDE0A9' : c }}>
 										<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 									</svg>
 								) : (
@@ -243,7 +299,7 @@ export function WelcomeOnboarding() {
 							</div>
 							<div className="ml-auto shrink-0">
 								<div
-									className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border transition-all duration-200 ${
+									className={`flex size-[18px] items-center justify-center rounded-full border transition-all duration-200 ${
 										isSelected ? '' : 'border-[#39393E] group-hover:border-[#555]'
 									}`}
 									style={isSelected ? { borderColor: c, backgroundColor: c } : undefined}

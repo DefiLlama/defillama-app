@@ -29,6 +29,7 @@ export function useUmamiIdentityTracker() {
 
 			umami.identify(distinctId)
 			lastIdentifiedIdRef.current = distinctId
+			umami.track()
 			return true
 		}
 

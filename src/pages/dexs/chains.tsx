@@ -1,7 +1,7 @@
-import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
-import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
+import { ChainsByAdapter } from '~/containers/AdapterMetrics/ChainsByAdapter'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { getChainsByAdapterPageData } from '~/containers/AdapterMetrics/queries'
+import type { IChainsByAdapterPageData } from '~/containers/AdapterMetrics/types'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -12,7 +12,12 @@ const type = 'DEX Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, chainMetadata: metadataCache.chainMetadata })
+	const data = await getChainsByAdapterPageData({
+		adapterType,
+		dataType,
+		chainMetadata: metadataCache.chainMetadata,
+		includeChartData: false
+	})
 
 	return {
 		props: data,

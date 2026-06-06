@@ -126,7 +126,7 @@ export function ImagePreviewModal({ imageUrl, onClose, source, sessionId, messag
 				) : null}
 
 				<Ariakit.DialogDismiss
-					className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20"
+					className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-white/20"
 					title="Close"
 				>
 					<Icon name="x" height={18} width={18} />

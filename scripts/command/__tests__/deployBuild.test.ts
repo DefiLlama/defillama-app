@@ -7,6 +7,16 @@ import { runDeployBuild } from '../deployBuild'
 import { createMemoryLogger, createTeeLogger } from '../logger'
 import { testEnv } from './testEnv'
 
+const telemetryMock = vi.hoisted(() => ({
+	flushTelemetry: vi.fn(async () => undefined),
+	recordDomainEvent: vi.fn()
+}))
+
+vi.mock('~/utils/telemetry', () => ({
+	flushTelemetry: telemetryMock.flushTelemetry,
+	recordDomainEvent: telemetryMock.recordDomainEvent
+}))
+
 const tempDirs: string[] = []
 
 function createNow() {
@@ -18,6 +28,8 @@ function createNow() {
 
 afterEach(async () => {
 	vi.unstubAllGlobals()
+	telemetryMock.flushTelemetry.mockClear()
+	telemetryMock.recordDomainEvent.mockClear()
 	await Promise.all(tempDirs.splice(0).map((tempDir) => fs.rm(tempDir, { force: true, recursive: true })))
 })
 
@@ -194,5 +206,65 @@ describe('deploy build pipeline', () => {
 		})
 		expect(syncArtifacts).toHaveBeenCalledWith(result)
 		expect(notify).toHaveBeenCalledWith(result)
+	})
+
+	it('records a build complete telemetry marker after artifact sync', async () => {
+		const syncArtifacts = vi.fn()
+
+		const result = await runDeployBuild({
+			env: testEnv({ COOLIFY_BRANCH: 'main', GITHUB_SHA: 'abcdef123456', SOURCE_COMMIT: '' }),
+			findBuildId: vi.fn().mockResolvedValue('build-id'),
+			logger: createMemoryLogger(),
+			now: createNow(),
+			notify: vi.fn(),
+			runNextBuild: vi.fn().mockResolvedValue({ exitCode: 0, signal: null, stdoutTail: '' }),
+			runPrepare: vi.fn().mockResolvedValue(0),
+			syncArtifacts
+		})
+
+		expect(syncArtifacts).toHaveBeenCalledWith(result)
+		expect(telemetryMock.recordDomainEvent).toHaveBeenCalledWith(
+			'build.complete',
+			'info',
+			'main',
+			'Build completed on main',
+			{
+				branch: 'main',
+				build_id: 'build-id',
+				commit_sha: 'abcdef123456',
+				duration_ms: 5000,
+				exit_code: 0,
+				finished_at: '2026-01-01T00:00:05.000Z',
+				started_at: '2026-01-01T00:00:00.000Z',
+				status: 'success'
+			}
+		)
+		expect(telemetryMock.flushTelemetry).toHaveBeenCalledWith({ runtime: 'build', timeoutMs: 2000 })
+	})
+
+	it('records failed build telemetry markers', async () => {
+		const result = await runDeployBuild({
+			env: testEnv({ COOLIFY_BRANCH: 'main', SOURCE_COMMIT: 'abcdef123456' }),
+			findBuildId: vi.fn().mockResolvedValue(''),
+			logger: createMemoryLogger(),
+			now: createNow(),
+			notify: vi.fn(),
+			runNextBuild: vi.fn().mockResolvedValue({ exitCode: 1, signal: null, stdoutTail: '' }),
+			runPrepare: vi.fn().mockResolvedValue(0),
+			syncArtifacts: vi.fn()
+		})
+
+		expect(result.status).toBe('failure')
+		expect(telemetryMock.recordDomainEvent).toHaveBeenCalledWith(
+			'build.complete',
+			'warn',
+			'main',
+			'Build failed on main',
+			expect.objectContaining({
+				commit_sha: 'abcdef123456',
+				exit_code: 1,
+				status: 'failure'
+			})
+		)
 	})
 })

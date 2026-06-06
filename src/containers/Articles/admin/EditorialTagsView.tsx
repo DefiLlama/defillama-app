@@ -3,19 +3,27 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
+import { EditorialTagRow } from '~/containers/Articles/admin/EditorialTagRow'
+import { ReorderableEditorialTagList } from '~/containers/Articles/admin/ReorderableEditorialTagList'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import {
 	ArticleApiError,
 	listArticlesByTag,
-	revalidateResearchLanding,
+	reorderEditorialTag,
 	setEditorialTag,
 	unsetEditorialTag,
 	updateEditorialTagMetadata,
 	updateReportHighlightSponsorLogo,
 	type ArticleByTagResponse
 } from '~/containers/Articles/api'
-import { EDITORIAL_TAG_LIST, type EditorialTagDefinition } from '~/containers/Articles/editorialTags'
+import type { EditorialTagOrderItem } from '~/containers/Articles/editorialTagOrder'
+import { applyEditorialTagOrderPayload } from '~/containers/Articles/editorialTagOrder'
+import {
+	EDITORIAL_TAG_LIST,
+	isEditorialTagReorderable,
+	type EditorialTagDefinition
+} from '~/containers/Articles/editorialTags'
 import type { ArticleDocument, ArticleImage } from '~/containers/Articles/types'
-import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
 import { ImageUploadButton } from '~/containers/Articles/upload/ImageUploadButton'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
@@ -47,6 +55,7 @@ export function EditorialTagsView() {
 function EditorialTagSection({ definition }: { definition: EditorialTagDefinition }) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const limit = definition.cardinality === 'singleton' ? 1 : 30
 
 	const { data, isLoading, error } = useQuery<ArticleByTagResponse>({
@@ -58,10 +67,7 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 	const invalidate = () => {
 		queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'editorial-tag', definition.slug] })
 		queryClient.invalidateQueries({ queryKey: ['research', 'by-tag', definition.slug] })
-		queryClient.invalidateQueries({ queryKey: ['research-landing'] })
-		void revalidateResearchLanding(authorizedFetch).catch((err) => {
-			console.error('Failed to revalidate research landing', err)
-		})
+		revalidateLanding()
 	}
 
 	const setMutation = useMutation({
@@ -86,8 +92,36 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 		}
 	})
 
+	const editorialTagQueryKey = ['research', 'admin', 'editorial-tag', definition.slug] as const
+
+	const reorderMutation = useMutation({
+		mutationFn: (payload: EditorialTagOrderItem[]) => reorderEditorialTag(definition.slug, payload, authorizedFetch),
+		onMutate: async (payload) => {
+			await queryClient.cancelQueries({ queryKey: editorialTagQueryKey })
+			const previous = queryClient.getQueryData<ArticleByTagResponse>(editorialTagQueryKey)
+			if (previous) {
+				queryClient.setQueryData<ArticleByTagResponse>(editorialTagQueryKey, {
+					...previous,
+					items: applyEditorialTagOrderPayload(previous.items, payload)
+				})
+			}
+			return { previous }
+		},
+		onSuccess: () => {
+			invalidate()
+			toast.success(`${definition.label} order saved`)
+		},
+		onError: (err, _payload, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(editorialTagQueryKey, context.previous)
+			}
+			toast.error(err instanceof ArticleApiError ? err.message : `Failed to reorder ${definition.label}`)
+		}
+	})
+
 	const items = data?.items ?? []
-	const pending = setMutation.isPending || unsetMutation.isPending
+	const pending = setMutation.isPending || unsetMutation.isPending || reorderMutation.isPending
+	const canReorder = isEditorialTagReorderable(definition.slug) && items.length > 1
 
 	return (
 		<section className="grid gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
@@ -136,9 +170,20 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 			) : isLoading ? (
 				<p className="text-sm text-(--text-tertiary)">Loading…</p>
 			) : items.length === 0 ? (
-				<p className="rounded-md border border-dashed border-(--cards-border) bg-(--app-bg)/40 px-3 py-3 text-center text-xs text-(--text-tertiary)">
+				<p className="rounded-md border border-dashed border-(--cards-border) bg-(--app-bg)/40 p-3 text-center text-xs text-(--text-tertiary)">
 					No articles tagged as {definition.label.toLowerCase()} yet.
 				</p>
+			) : canReorder ? (
+				<ReorderableEditorialTagList
+					items={items}
+					onReorder={(payload) => reorderMutation.mutate(payload)}
+					onRemove={(articleId) => {
+						if (pending) return
+						unsetMutation.mutate(articleId)
+					}}
+					pending={pending}
+					reorderPending={reorderMutation.isPending}
+				/>
 			) : (
 				<ul className="grid divide-y divide-(--cards-border) overflow-hidden rounded-md border border-(--cards-border) bg-(--app-bg)/40">
 					{items.map((article) => (
@@ -308,34 +353,5 @@ function ReportHighlightControls({
 				</div>
 			</div>
 		</div>
-	)
-}
-
-function EditorialTagRow({
-	article,
-	onRemove,
-	pending
-}: {
-	article: ArticleDocument
-	onRemove: () => void
-	pending: boolean
-}) {
-	return (
-		<li className="grid gap-3 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
-			<div className="grid min-w-0 gap-1">
-				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-					{article.section ? ARTICLE_SECTION_LABELS[article.section] : 'No section'} · /{article.slug}
-				</span>
-				<span className="truncate text-sm text-(--text-primary)">{article.title}</span>
-			</div>
-			<button
-				type="button"
-				onClick={onRemove}
-				disabled={pending}
-				className="justify-self-end rounded-md px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50"
-			>
-				Remove
-			</button>
-		</li>
 	)
 }

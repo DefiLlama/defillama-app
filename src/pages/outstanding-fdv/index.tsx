@@ -1,13 +1,17 @@
 import type { InferGetStaticPropsType } from 'next'
-import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
-import { getProtocolsAdjustedFDVsByChain } from '~/containers/Protocols/queries'
+import { ProtocolsWithTokens } from '~/containers/ProtocolLists/ProtocolsWithTokens'
+import { getProtocolsAdjustedFDVsByChain } from '~/containers/ProtocolLists/queries'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getProtocolsAdjustedFDVsByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
+	const data = await getProtocolsAdjustedFDVsByChain({
+		chain: 'All',
+		protocolMetadata: metadataCache.protocolMetadata,
+		emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
+	})
 
 	if (!data) throw new Error('Missing page data for route=/outstanding-fdv')
 

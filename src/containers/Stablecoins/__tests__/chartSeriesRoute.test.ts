@@ -14,7 +14,7 @@ vi.mock('~/containers/Stablecoins/queries.server', () => ({
 	getStablecoinOverviewChartSeries: getOverviewMock
 }))
 
-import handler from '~/pages/api/stablecoins/chart-series'
+import handler from '~/pages/api/public/stablecoins/chart-series'
 
 const payload = {
 	dataset: { source: [{ timestamp: 1, Mcap: 2 }], dimensions: ['timestamp', 'Mcap'] },
@@ -29,7 +29,7 @@ beforeEach(() => {
 	getOverviewMock.mockResolvedValue(payload)
 })
 
-describe('/api/stablecoins/chart-series', () => {
+describe('/api/public/stablecoins/chart-series', () => {
 	it('rejects non-GET requests', async () => {
 		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
@@ -73,6 +73,32 @@ describe('/api/stablecoins/chart-series', () => {
 		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'public, max-age=300')
 		expect(res.status).toHaveBeenCalledWith(200)
 		expect(res.json).toHaveBeenCalledWith(payload)
+	})
+
+	it('accepts lowercase all as the overview aggregate chain', async () => {
+		const req = {
+			method: 'GET',
+			query: { scope: 'overview', chain: 'all', chart: 'totalMcap' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(getOverviewMock).toHaveBeenCalledWith({
+			chain: null,
+			chart: 'totalMcap',
+			filters: {
+				attribute: undefined,
+				excludeAttribute: undefined,
+				pegtype: undefined,
+				excludePegtype: undefined,
+				backing: undefined,
+				excludeBacking: undefined,
+				minMcap: undefined,
+				maxMcap: undefined
+			}
+		})
+		expect(res.status).toHaveBeenCalledWith(200)
 	})
 
 	it('returns 404 when an asset chart is missing', async () => {

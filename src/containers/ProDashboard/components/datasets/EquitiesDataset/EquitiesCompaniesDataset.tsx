@@ -18,7 +18,7 @@ import { useContext } from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { fetchEquitiesCompanies } from '~/containers/Equities/api'
 import type { IEquitiesCompanyApiItem } from '~/containers/Equities/api.types'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { fetchEquitiesCompaniesViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
@@ -161,6 +161,7 @@ const STALE_TIME = 5 * 60 * 1000
 
 function useEquitiesCompaniesTableData() {
 	const authToken = useContext(ProxyAuthTokenContext)
+	const streamDone = useContext(StreamDoneContext)
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'equities-companies-table'],
@@ -170,6 +171,7 @@ function useEquitiesCompaniesTableData() {
 			}
 			return fetchEquitiesCompanies()
 		},
+		enabled: streamDone,
 		staleTime: STALE_TIME,
 		refetchOnWindowFocus: false,
 		retry: 1,

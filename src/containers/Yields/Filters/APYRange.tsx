@@ -2,7 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import { readSingleQueryValue } from '~/utils/routerQuery'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 interface IAPYRange {
 	nestedMenu?: boolean
@@ -30,14 +31,14 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 			trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, eventData)
 		}
 
-		void pushShallowQuery(router, {
+		void pushYieldsQuery(router, {
 			minApy: minApy || undefined,
 			maxApy: maxApy || undefined
 		})
 	}
 
 	const handleClear = () => {
-		void pushShallowQuery(router, { minApy: undefined, maxApy: undefined })
+		void pushYieldsQuery(router, { minApy: undefined, maxApy: undefined })
 	}
 
 	const minApy = readSingleQueryValue(router.query.minApy)

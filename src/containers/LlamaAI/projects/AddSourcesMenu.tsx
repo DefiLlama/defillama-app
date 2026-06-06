@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { AddTextContentModal } from './AddTextContentModal'
 import { GitHubConnectModal } from './GitHubConnectModal'
-import { useProjectFileUpload } from './useProjectFileUpload'
+import { PROJECT_FILE_ACCEPT, useProjectFileUpload } from './useProjectFileUpload'
 
 interface AddSourcesMenuProps {
 	projectId: string
@@ -64,6 +64,7 @@ export function AddSourcesMenu({ projectId, trigger, menuClassName, gutter = 6 }
 				ref={fileInputRef}
 				type="file"
 				multiple
+				accept={PROJECT_FILE_ACCEPT}
 				hidden
 				onChange={(e) => {
 					const list = e.target.files ? Array.from(e.target.files) : []
@@ -75,6 +76,7 @@ export function AddSourcesMenu({ projectId, trigger, menuClassName, gutter = 6 }
 				ref={folderInputRef}
 				type="file"
 				multiple
+				accept={PROJECT_FILE_ACCEPT}
 				hidden
 				// @ts-expect-error — non-standard attribute supported by Chromium/WebKit/Firefox.
 				webkitdirectory=""

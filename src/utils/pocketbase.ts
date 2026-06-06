@@ -14,6 +14,7 @@ export interface AuthModel extends RecordModel {
 	has_active_subscription: boolean
 	flags: Record<string, boolean | number>
 	promotionalEmails?: 'initial' | 'on' | 'off'
+	referral_code?: string
 }
 
 export default pb

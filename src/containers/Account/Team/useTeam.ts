@@ -17,10 +17,15 @@ const normalizeHttpErrorMessage = (message: string | undefined, fallbackMessage:
 const getErrorMessage = (error: unknown, fallbackMessage: string): string =>
 	error instanceof Error ? normalizeHttpErrorMessage(error.message, fallbackMessage) : fallbackMessage
 
-export const useTeam = () => {
+type UseTeamOptions = {
+	inviteToken?: string
+}
+
+export const useTeam = ({ inviteToken }: UseTeamOptions = {}) => {
 	const { user, isAuthenticated, authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
-	const teamQueryKey = ['team', user?.id]
+	const currentUserId = user?.id
+	const teamQueryKey = ['team', currentUserId]
 
 	/** Snapshot current team cache, apply an optimistic transform, return the snapshot for rollback. */
 	const optimistic = (updater: (old: Team) => Team) => {
@@ -40,6 +45,35 @@ export const useTeam = () => {
 	const refetch = () => {
 		void queryClient.invalidateQueries({ queryKey: teamQueryKey })
 	}
+
+	const inviteAcceptance = useQuery({
+		queryKey: ['team-invite-accept', currentUserId, inviteToken],
+		queryFn: async () => {
+			if (!inviteToken || !currentUserId) throw new Error('Not authenticated')
+
+			const response = await authorizedFetch(`${AUTH_SERVER}/team/invite/accept`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token: inviteToken })
+			})
+			if (!response) throw new Error('Not authenticated')
+			const normalized = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to accept invite'))
+			})
+			const data = await normalized.json()
+
+			toast.success('You have joined the team!')
+			await queryClient.invalidateQueries({ queryKey: teamQueryKey })
+			void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+
+			return data
+		},
+		enabled: isAuthenticated && !!currentUserId && !!inviteToken,
+		retry: false,
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
+		staleTime: Infinity
+	})
 
 	// ── Query: GET /team ──
 	const teamQuery = useQuery({
@@ -486,30 +520,6 @@ export const useTeam = () => {
 		onSettled: () => refetch()
 	})
 
-	// ── Mutation: POST /team/invite/accept ──
-	const acceptInviteMutation = useMutation({
-		mutationFn: async (data: { token: string }) => {
-			const response = await authorizedFetch(`${AUTH_SERVER}/team/invite/accept`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(data)
-			})
-			if (!response) throw new Error('Not authenticated')
-			const normalized = await handleSimpleFetchResponse(response).catch((error) => {
-				throw new Error(getErrorMessage(error, 'Failed to accept invite'))
-			})
-			return normalized.json()
-		},
-		onSuccess: () => {
-			toast.success('You have joined the team!')
-			refetch()
-			void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
-		},
-		onError: (error) => {
-			toast.error(getErrorMessage(error, 'Failed to accept invite'))
-		}
-	})
-
 	return {
 		// Query state
 		team,
@@ -520,6 +530,7 @@ export const useTeam = () => {
 		pendingInvites,
 		teamSubscriptions,
 		refetchTeam: teamQuery.refetch,
+		inviteAcceptance,
 
 		// Mutations
 		createTeamMutation,
@@ -533,7 +544,6 @@ export const useTeam = () => {
 		resendInviteMutation,
 		revokeInviteMutation,
 		removeMemberMutation,
-		leaveTeamMutation,
-		acceptInviteMutation
+		leaveTeamMutation
 	}
 }

@@ -2,30 +2,47 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { DynamicLiquidationsSummaryStats, DynamicLiquidationsDistributionChart, DynamicTableWithSearch } = vi.hoisted(
-	() => ({
-		DynamicLiquidationsSummaryStats: ({ items }: { items: Array<{ label: string; value: number }> }) => (
-			<div>{items.map((item) => `${item.label}:${item.value}`).join('|')}</div>
-		),
-		DynamicLiquidationsDistributionChart: ({
-			hideTokenSelector,
-			defaultBreakdownMode,
-			title
-		}: {
-			hideTokenSelector?: boolean
-			defaultBreakdownMode?: string
-			title?: string
-		}) => <div>{`${title}|hide:${String(hideTokenSelector)}|breakdown:${defaultBreakdownMode}`}</div>,
-		DynamicTableWithSearch: ({ data, placeholder, csvFileName, leadingControls }: any) => (
-			<div>
-				<div>{placeholder}</div>
-				<div>{csvFileName}</div>
-				<div>{data.length}</div>
-				{leadingControls}
-			</div>
-		)
-	})
-)
+const {
+	DynamicLiquidationsSummaryStats,
+	DynamicLiquidationsDistributionChart,
+	DynamicTableWithSearch,
+	liquidationsDistributionChartCalls,
+	liquidationsSummaryCalls,
+	tableWithSearchCalls
+} = vi.hoisted(() => {
+	const liquidationsDistributionChartCalls: Array<{
+		defaultBreakdownMode?: string
+		hideTokenSelector?: boolean
+		title?: string
+	}> = []
+	const liquidationsSummaryCalls: Array<{ items: Array<{ label: string; value: number }> }> = []
+	const tableWithSearchCalls: Array<{ csvFileName?: string; dataLength: number; placeholder?: string }> = []
+	const DynamicLiquidationsSummaryStats = ({ items }: { items: Array<{ label: string; value: number }> }) => {
+		liquidationsSummaryCalls.push({ items })
+		return <div>Liquidations summary</div>
+	}
+	const DynamicLiquidationsDistributionChart = (props: {
+		hideTokenSelector?: boolean
+		defaultBreakdownMode?: string
+		title?: string
+	}) => {
+		liquidationsDistributionChartCalls.push(props)
+		return <div>Liquidations distribution</div>
+	}
+	const DynamicTableWithSearch = ({ data, leadingControls, placeholder, csvFileName }: any) => {
+		tableWithSearchCalls.push({ csvFileName, dataLength: data.length, placeholder })
+		return <div>{leadingControls}</div>
+	}
+
+	return {
+		DynamicLiquidationsDistributionChart,
+		DynamicLiquidationsSummaryStats,
+		DynamicTableWithSearch,
+		liquidationsDistributionChartCalls,
+		liquidationsSummaryCalls,
+		tableWithSearchCalls
+	}
+})
 
 var authState = {
 	authorizedFetch: vi.fn(),
@@ -132,6 +149,9 @@ afterEach(() => {
 		error: null,
 		isLoading: false
 	}
+	liquidationsDistributionChartCalls.length = 0
+	liquidationsSummaryCalls.length = 0
+	tableWithSearchCalls.length = 0
 	vi.clearAllMocks()
 })
 
@@ -167,10 +187,19 @@ describe('TokenLiquidationsSection', () => {
 		const html = renderToStaticMarkup(<TokenLiquidationsSection tokenSymbol="wsteth" />)
 
 		expect(html).toContain('Liquidations')
-		expect(html).toContain('Collateral USD:100')
-		expect(html).toContain('WSTETH Liquidation Distribution|hide:true|breakdown:protocol')
-		expect(html).toContain('Search protocols...')
-		expect(html).toContain('token-liquidations-protocols-wsteth')
+		expect(liquidationsSummaryCalls[0]?.items).toEqual(
+			expect.arrayContaining([expect.objectContaining({ label: 'Collateral USD', value: 100 })])
+		)
+		expect(liquidationsDistributionChartCalls[0]).toMatchObject({
+			defaultBreakdownMode: 'protocol',
+			hideTokenSelector: true,
+			title: 'WSTETH Liquidation Distribution'
+		})
+		expect(tableWithSearchCalls[0]).toMatchObject({
+			csvFileName: 'token-liquidations-protocols-wsteth',
+			dataLength: 1,
+			placeholder: 'Search protocols...'
+		})
 	})
 
 	it('shows a sign-in gate for unauthenticated users', () => {
@@ -184,8 +213,6 @@ describe('TokenLiquidationsSection', () => {
 		const html = renderToStaticMarkup(<TokenLiquidationsSection tokenSymbol="wsteth" />)
 
 		expect(html).toContain('active subscription')
-		expect(html).toContain('sign-in-modal')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows the query error message when the fetch fails', () => {

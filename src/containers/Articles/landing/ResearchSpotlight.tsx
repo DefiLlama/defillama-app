@@ -40,7 +40,15 @@ function getSpotlightGridCols(itemsCount: number) {
 function SnapshotImage({ article }: Readonly<{ article: ArticleDocument }>) {
 	const url = article.coverImage?.url
 	if (!url) return null
-	return <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+	return (
+		<img
+			src={url}
+			alt={article.coverImage.alt}
+			className="h-full w-full object-cover"
+			loading="lazy"
+			decoding="async"
+		/>
+	)
 }
 
 interface ResearchSpotlightProps {
@@ -91,7 +99,7 @@ export const ResearchSpotlight: React.FC<ResearchSpotlightProps> = ({ title, art
 								{article.title}
 							</div>
 							<time className="mt-[10px] hidden text-[14px] font-medium text-[#787878] lg:block dark:text-white">
-								{formatDate(article.publishedAt)}
+								{formatDate(article.displayDate ?? article.publishedAt)}
 							</time>
 						</div>
 					</Link>

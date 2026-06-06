@@ -36,7 +36,7 @@ const LAST_1Y_IN_MS = 365 * DAY_IN_MS
 function calculateMedian(amounts: number[]) {
 	if (amounts.length === 0) return 0
 
-	const sorted = [...amounts].sort((a, b) => a - b)
+	const sorted = amounts.toSorted((a, b) => a - b)
 	const middle = Math.floor(sorted.length / 2)
 
 	return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle]

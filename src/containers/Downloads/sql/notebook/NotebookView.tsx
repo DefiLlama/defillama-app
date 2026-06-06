@@ -294,7 +294,7 @@ export function NotebookView({
 							<LoadingSpinner size={promoteRunAll ? 13 : 12} />
 						) : (
 							<svg
-								className={promoteRunAll ? 'h-3.5 w-3.5' : 'h-3.5 w-3.5'}
+								className={promoteRunAll ? 'size-3.5' : 'size-3.5'}
 								viewBox="0 0 24 24"
 								fill="currentColor"
 								aria-hidden
@@ -310,7 +310,7 @@ export function NotebookView({
 			{tab.cellsDirty || firstStaleName ? (
 				<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-pro-gold-300/40 bg-pro-gold-300/5 px-3 py-1.5 text-[11.5px] text-pro-gold-300">
 					<span className="inline-flex items-center gap-1.5">
-						<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+						<Icon name="alert-triangle" className="size-3.5" />
 						{tab.cellsDirty
 							? 'Cell order changed — downstream results may be stale.'
 							: firstStaleName
@@ -334,7 +334,7 @@ export function NotebookView({
 							aria-label="Dismiss"
 							className="rounded-md px-1.5 py-0.5 hover:bg-pro-gold-300/20"
 						>
-							<Icon name="x" className="h-3 w-3" />
+							<Icon name="x" className="size-3" />
 						</button>
 					</div>
 				</div>
@@ -433,12 +433,12 @@ function AddCellBar({
 function AddMenu({ onAdd, variant }: { onAdd: (type: NotebookCellType) => void; variant: 'between' | 'end' }) {
 	const triggerCls =
 		variant === 'between'
-			? 'relative z-10 inline-flex h-5 w-5 items-center justify-center rounded-full border border-(--divider) bg-(--app-bg) text-(--text-tertiary) opacity-0 transition-all group-hover:opacity-100 group-focus-within:opacity-100 hover:border-(--primary)/50 hover:text-(--primary) aria-expanded:opacity-100 aria-expanded:border-(--primary)/50 aria-expanded:text-(--primary)'
+			? 'relative z-10 inline-flex size-5 items-center justify-center rounded-full border border-(--divider) bg-(--app-bg) text-(--text-tertiary) opacity-0 transition-all group-hover:opacity-100 group-focus-within:opacity-100 hover:border-(--primary)/50 hover:text-(--primary) aria-expanded:opacity-100 aria-expanded:border-(--primary)/50 aria-expanded:text-(--primary)'
 			: 'inline-flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--cards-bg) px-2.5 py-1 text-[11.5px] font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--primary)'
 	return (
 		<Ariakit.MenuProvider>
 			<Ariakit.MenuButton className={triggerCls} aria-label="Add cell">
-				<Icon name="plus" className="h-3 w-3" />
+				<Icon name="plus" className="size-3" />
 				{variant === 'end' ? 'Add cell' : null}
 			</Ariakit.MenuButton>
 			<Ariakit.Menu
@@ -471,7 +471,7 @@ function AddMenuItem({
 			onClick={onClick}
 			className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
 		>
-			<span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
+			<span aria-hidden className={`size-1.5 shrink-0 rounded-full ${dot}`} />
 			<span className="flex-1 font-medium">{label}</span>
 			<span className="text-[10.5px] text-(--text-tertiary)">{hint}</span>
 		</Ariakit.MenuItem>

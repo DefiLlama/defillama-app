@@ -4,6 +4,7 @@ import { useEditor } from '@tiptap/react'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { canManageResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
@@ -17,6 +18,7 @@ import {
 	unpublishArticle,
 	updateArticle as updateRemoteArticle
 } from '../api'
+import { isScheduled } from '../articleSchedule'
 import { validateArticleChartConfig } from '../chartAdapters'
 import {
 	applyPendingToLocalArticle,
@@ -37,6 +39,7 @@ import { CoverDetailsDialog, DeleteArticleDialog } from './ArticleEditorDialogs'
 import { ArticleEditorHeader, type ArticleEditorViewMode } from './ArticleEditorHeader'
 import { ArticleEditorPreview } from './ArticleEditorPreview'
 import { articleQueryKey, formatRelative, sanitizeLinkHref, slugFromTitle, useTicker } from './ArticleEditorUtils'
+import { formatArticleDate } from './ArticleEditorUtils'
 import { ArticleMetaDialog } from './ArticleMetaDialog'
 import { ArticleTitleFields } from './ArticleTitleFields'
 import { EmbedPicker } from './EmbedPicker'
@@ -51,6 +54,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
 	const routeView = Array.isArray(router.query.view) ? router.query.view[0] : router.query.view
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const queryClient = useQueryClient()
 	const [article, setArticle] = useState<LocalArticleDocument>(() => createEmptyLocalArticle())
 	const [isDirty, setIsDirty] = useState(false)
@@ -548,7 +552,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const [historyOpen, setHistoryOpen] = useState(false)
 	const publishMutation = useMutation({
-		mutationFn: (targetArticleId: string) => publishArticle(targetArticleId, authorizedFetch),
+		mutationFn: ({ articleId: targetArticleId, goLiveAt }: { articleId: string; goLiveAt?: string | null }) =>
+			publishArticle(targetArticleId, authorizedFetch, goLiveAt !== undefined ? { goLiveAt } : {}),
 		onSuccess: (saved) => setOwnedArticleCache(saved)
 	})
 	const unpublishMutation = useMutation({
@@ -562,6 +567,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const deleteArticleMutation = useMutation({
 		mutationFn: (targetArticleId: string) => deleteArticle(targetArticleId, authorizedFetch),
 		onSuccess: () => {
+			revalidateLanding()
 			void router.replace('/research')
 		},
 		onError: (error) => {
@@ -569,6 +575,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	})
 	const isPublishing = publishMutation.isPending || unpublishMutation.isPending
+	const articleIsScheduled = isScheduled(article)
 	const isDiscarding = discardPendingMutation.isPending
 	const {
 		collaboratorAdding,
@@ -601,7 +608,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	}, [isDirty])
 
-	const handlePublish = async (): Promise<boolean> => {
+	const handlePublish = async (opts?: { goLiveAt?: string | null }): Promise<boolean> => {
 		if (!article.id) {
 			toast.error('Save the draft before publishing')
 			return false
@@ -615,11 +622,22 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		setPublishErrors({})
 		try {
 			await flushPendingSave()
-			const saved = await publishMutation.mutateAsync(article.id)
+			const goLiveAt = opts && 'goLiveAt' in opts ? opts.goLiveAt : article.goLiveAt != null ? null : undefined
+			const saved = await publishMutation.mutateAsync({
+				articleId: article.id,
+				...(goLiveAt !== undefined ? { goLiveAt } : {})
+			})
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
 			setSavedAt(merged.updatedAt)
-			toast.success(article.status === 'published' ? 'Update published' : 'Published')
+			revalidateLanding()
+			if (isScheduled(merged)) {
+				toast.success(`Scheduled for ${formatArticleDate(merged.goLiveAt)}`)
+			} else if (merged.status === 'published') {
+				toast.success(article.status === 'published' ? 'Update published' : 'Published')
+			} else {
+				toast.success('Saved')
+			}
 			return true
 		} catch (error) {
 			if (error instanceof ArticleApiError && error.validationErrors?.length) {
@@ -640,6 +658,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setArticle(merged)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
+			revalidateLanding()
 			toast.success('Moved to drafts')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to unpublish')
@@ -902,6 +921,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] animate-fadein px-4 pb-32 sm:px-6">
 			<ArticleEditorHeader
 				article={article}
+				articleIsScheduled={articleIsScheduled}
 				articleViewHref={articleViewHref}
 				beginSlugEdit={beginSlugEdit}
 				cancelSlugEdit={cancelSlugEdit}
@@ -986,6 +1006,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 			<ArticleMetaDialog
 				article={article}
+				articleIsScheduled={articleIsScheduled}
 				collaboratorAdding={collaboratorAdding}
 				collaboratorEmail={collaboratorEmail}
 				collaboratorError={collaboratorError}

@@ -1,4 +1,4 @@
-import type { ProtocolLite } from '~/containers/Protocols/api.types'
+import type { ProtocolLite } from '~/containers/ProtocolLists/api.types'
 import type { IProtocolMetricsV2 } from './api.types'
 
 export function resolveProtocolCategory({

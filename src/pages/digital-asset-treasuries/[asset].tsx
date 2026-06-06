@@ -1,7 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { DATByAsset } from '~/containers/DAT/ByAsset'
-import { getDATOverviewDataByAsset, getDATAssetPaths } from '~/containers/DAT/queries'
+import { getDATOverviewDataByAsset } from '~/containers/DAT/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -17,6 +17,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const asset = slug(params.asset)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		if (!metadataCache.digitalAssetTreasuryAssetSlugsSet.has(asset)) {
+			return { notFound: true }
+		}
 
 		const props = await getDATOverviewDataByAsset(asset)
 
@@ -39,8 +43,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const slugs = await getDATAssetPaths()
-	const paths = slugs.map((asset) => ({ params: { asset } }))
+	const { getDATAssetStaticPaths } = await import('~/server/routeCache/assets')
+	const paths = await getDATAssetStaticPaths()
 
 	return { paths, fallback: false }
 }

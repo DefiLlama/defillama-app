@@ -1,13 +1,4 @@
-import {
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-	type Dispatch,
-	type RefCallback,
-	type RefObject,
-	type SetStateAction
-} from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefCallback, type RefObject } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -16,13 +7,26 @@ import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWar
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
-import { SpawnProgressCard, ToolProgressIndicator } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import {
+	SpawnProgressCard,
+	TodoChecklistPanel,
+	ToolProgressIndicator
+} from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
-import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type {
+	AgenticAnswerMode,
+	ChartSet,
+	FactCheckedUsage,
+	Message,
+	ResearchUsage,
+	SpawnAgentStatus,
+	TodoItem,
+	ToolCall
+} from '~/containers/LlamaAI/types'
 
-interface ConversationViewProps {
+export interface ConversationViewModel {
 	readOnly: boolean
 	isSharedView?: boolean
 	messages: Message[]
@@ -32,6 +36,8 @@ interface ConversationViewProps {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -58,7 +64,7 @@ interface ConversationViewProps {
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
 		isSuggestedQuestion?: boolean
 	) => void
@@ -67,10 +73,12 @@ interface ConversationViewProps {
 	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
 	onBranchSwitch?: (leafMessageId: string) => void
 	isBranchSwitching?: boolean
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
-	animateActiveExchange: boolean
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
+	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
@@ -80,6 +88,11 @@ interface ConversationViewProps {
 	contextWarning?: ContextWarningPayload | null
 	onDismissContextWarning?: () => void
 	onStartNewChat?: () => void
+}
+
+interface ConversationViewProps {
+	viewModel: ConversationViewModel
+	animateActiveExchange: boolean
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -98,6 +111,10 @@ function getMessageAnchorIdFromHash(hash: string) {
 	return /^#msg-[A-Za-z0-9_-]+$/.test(hash) ? hash.slice(1) : null
 }
 
+type ActiveExchangeItem =
+	| { type: 'message'; key: string; message: Message; isDraft?: boolean }
+	| { type: 'live-status'; key: string }
+
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
@@ -112,7 +129,9 @@ function ConversationMessageItem({
 	isBranchSwitching,
 	onTableFullscreenOpen,
 	anchorId,
-	anchorRef
+	anchorRef,
+	enterToSend,
+	isDraft = false
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -128,10 +147,13 @@ function ConversationMessageItem({
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
+	enterToSend: boolean
+	isDraft?: boolean
 }) {
 	return (
 		<MessageBubble
 			message={message}
+			isDraft={isDraft}
 			sessionId={sessionId}
 			readOnly={readOnly}
 			isLlama={isLlama}
@@ -146,6 +168,7 @@ function ConversationMessageItem({
 			anchorId={anchorId}
 			anchorRef={anchorRef}
 			anchorClassName={anchorId ? 'message-anchor' : undefined}
+			enterToSend={enterToSend}
 		/>
 	)
 }
@@ -155,6 +178,8 @@ function ConversationLiveStatus({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	todos,
+	todosStartTime,
 	executionStartedAt,
 	spawnIsResearchMode,
 	streamingThinking,
@@ -169,12 +194,16 @@ function ConversationLiveStatus({
 	sessionId,
 	readOnly,
 	isLlama,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	factCheckPhase,
+	renderStreamingDraft = true
 }: {
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	todos: TodoItem[]
+	todosStartTime: number
 	executionStartedAt: number
 	spawnIsResearchMode: boolean
 	streamingThinking: string
@@ -190,9 +219,24 @@ function ConversationLiveStatus({
 	readOnly: boolean
 	isLlama: boolean
 	onTableFullscreenOpen?: () => void
+	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
+	renderStreamingDraft?: boolean
 }) {
+	const hasTodos = shouldShowLiveTodoChecklist({
+		todoCount: todos.length,
+		isStreaming,
+		recoveryStatus: recovery.status,
+		activeToolCallCount: activeToolCalls.length,
+		spawnProgressCount: spawnProgress.size,
+		isCompacting
+	})
 	return (
 		<>
+			{hasTodos ? (
+				<div style={{ overflowAnchor: 'none' }}>
+					<TodoChecklistPanel todos={todos} startTime={todosStartTime} isLive />
+				</div>
+			) : null}
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -201,6 +245,7 @@ function ConversationLiveStatus({
 						isResearchMode
 						recovery={recovery}
 						onReconnect={onReconnectNow}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
 					/>
 				) : (
 					<ToolProgressIndicator
@@ -218,11 +263,13 @@ function ConversationLiveStatus({
 							!hasStreamingCharts(streamingDraft?.charts)
 						}
 						executionStartedAt={executionStartedAt}
+						indentForActiveTodo={hasTodos && todos.some((t) => t.status === 'in_progress')}
+						factCheckPhase={factCheckPhase}
 					/>
 				)}
 			</div>
 
-			{streamingDraft ? (
+			{renderStreamingDraft && streamingDraft ? (
 				<div style={{ overflowAnchor: 'none' }}>
 					<MessageBubble
 						key={streamingDraft.id || 'streaming-draft'}
@@ -238,7 +285,7 @@ function ConversationLiveStatus({
 
 			{recovery.status === 'reconnecting' && !(spawnProgress.size > 0 && spawnIsResearchMode) ? (
 				<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting&hellip;</p>
 					<p className="text-sm text-amber-800 dark:text-amber-200">
 						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
 					</p>
@@ -273,54 +320,85 @@ function ConversationLiveStatus({
 	)
 }
 
-export function ConversationView({
-	readOnly,
-	isSharedView = false,
-	messages,
-	sessionId,
-	isLlama,
+export function shouldShowLiveTodoChecklist({
+	todoCount,
 	isStreaming,
-	activeToolCalls,
-	spawnProgress,
-	spawnStartTime,
-	executionStartedAt,
-	spawnIsResearchMode,
-	streamingThinking,
-	streamingDraft,
-	isCompacting,
-	paginationState,
-	paginationError,
-	recovery,
-	error,
-	lastFailedPrompt,
-	onRetryLastFailedPrompt,
-	onReconnectNow,
-	scrollContainerRef,
-	messagesEndRef,
-	promptInputRef,
-	isScrollAttached,
-	showScrollToBottom,
-	scrollToBottom,
-	handleSubmit,
-	handleStopRequest,
-	handleActionClick,
-	onEditMessage,
-	onBranchSwitch,
-	isBranchSwitching,
-	isResearchMode,
-	setIsResearchMode,
-	researchUsage,
-	animateActiveExchange,
-	onOpenAlerts,
-	quotedText,
-	onClearQuotedText,
-	enterToSend,
-	onTableFullscreenOpen,
-	onShare,
-	contextWarning,
-	onDismissContextWarning,
-	onStartNewChat
-}: ConversationViewProps) {
+	recoveryStatus,
+	activeToolCallCount,
+	spawnProgressCount,
+	isCompacting
+}: {
+	todoCount: number
+	isStreaming: boolean
+	recoveryStatus: RecoveryState['status']
+	activeToolCallCount: number
+	spawnProgressCount: number
+	isCompacting: boolean
+}) {
+	if (todoCount === 0) return false
+	return (
+		isStreaming ||
+		recoveryStatus === 'reconnecting' ||
+		activeToolCallCount > 0 ||
+		spawnProgressCount > 0 ||
+		isCompacting
+	)
+}
+
+export function ConversationView({ viewModel, animateActiveExchange }: ConversationViewProps) {
+	const {
+		readOnly,
+		isSharedView = false,
+		messages,
+		sessionId,
+		isLlama,
+		isStreaming,
+		activeToolCalls,
+		spawnProgress,
+		spawnStartTime,
+		todos,
+		todosStartTime,
+		executionStartedAt,
+		spawnIsResearchMode,
+		streamingThinking,
+		streamingDraft,
+		isCompacting,
+		paginationState,
+		paginationError,
+		recovery,
+		error,
+		lastFailedPrompt,
+		onRetryLastFailedPrompt,
+		onReconnectNow,
+		scrollContainerRef,
+		messagesEndRef,
+		promptInputRef,
+		isScrollAttached,
+		showScrollToBottom,
+		scrollToBottom,
+		handleSubmit,
+		handleStopRequest,
+		handleActionClick,
+		onEditMessage,
+		onBranchSwitch,
+		isBranchSwitching,
+		mode,
+		setMode,
+		researchUsage,
+		factCheckedUsage,
+		onFactCheckedGated,
+		factCheckPhase,
+		onOpenAlerts,
+		quotedText,
+		onClearQuotedText,
+		enterToSend,
+		onTableFullscreenOpen,
+		onShare,
+		contextWarning,
+		onDismissContextWarning,
+		onStartNewChat
+	} = viewModel
+	const isResearchMode = mode === 'research'
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const handledAnchorIdRef = useRef<string | null>(null)
@@ -328,6 +406,95 @@ export function ConversationView({
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
 	const [activeExchangeMinHeight, setActiveExchangeMinHeight] = useState<number | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+	const userMessageAnchorIds = useMemo(
+		() =>
+			messages
+				.map((message) => (message.role === 'user' ? getMessageAnchorId(message.id) : undefined))
+				.filter((anchorId): anchorId is string => Boolean(anchorId)),
+		[messages]
+	)
+
+	const highlightAnchorNode = (node: HTMLElement) => {
+		node.classList.remove('anchor-highlight')
+		void node.offsetWidth
+		node.classList.add('anchor-highlight')
+		if (highlightTimeoutRef.current !== null) {
+			window.clearTimeout(highlightTimeoutRef.current)
+		}
+		highlightTimeoutRef.current = window.setTimeout(() => {
+			node.classList.remove('anchor-highlight')
+			highlightTimeoutRef.current = null
+		}, 2000)
+	}
+
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent) => {
+			// Shift+Arrow navigation is page-level only; editable controls keep their
+			// native text-selection and caret movement behavior.
+			if (
+				!event.shiftKey ||
+				event.altKey ||
+				event.ctrlKey ||
+				event.metaKey ||
+				(event.key !== 'ArrowUp' && event.key !== 'ArrowDown') ||
+				userMessageAnchorIds.length === 0
+			) {
+				return
+			}
+
+			const target = event.target instanceof HTMLElement ? event.target : null
+			const editableTarget =
+				target instanceof HTMLInputElement ||
+				target instanceof HTMLTextAreaElement ||
+				target instanceof HTMLSelectElement ||
+				target instanceof HTMLButtonElement ||
+				target?.isContentEditable ||
+				!!target?.closest('input, textarea, select, button, [contenteditable]:not([contenteditable="false"])')
+			const isInsideConversation = !!target && !!scrollContainerRef.current?.contains(target)
+			const isPageShortcut = target === document.body || (isInsideConversation && !editableTarget)
+			if (!isPageShortcut) return
+
+			const container = scrollContainerRef.current
+			if (!container) return
+
+			const containerTop = container.getBoundingClientRect().top
+			const upThreshold = containerTop + 40
+			const downThreshold = containerTop + 96
+			const anchoredUserMessages = userMessageAnchorIds
+				.map((anchorId) => {
+					const node = document.getElementById(anchorId)
+					return node ? { anchorId, node, top: node.getBoundingClientRect().top } : null
+				})
+				.filter((item): item is { anchorId: string; node: HTMLElement; top: number } => item != null)
+			if (anchoredUserMessages.length === 0) return
+
+			event.preventDefault()
+			if (event.key === 'ArrowDown') {
+				const nextMessage = anchoredUserMessages.find((item) => item.top > downThreshold)
+				if (!nextMessage) {
+					scrollToBottom()
+					return
+				}
+				nextMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+				highlightAnchorNode(nextMessage.node)
+				return
+			}
+
+			const previousMessage = anchoredUserMessages.filter((item) => item.top < upThreshold).at(-1)
+			const firstMessage = anchoredUserMessages[0]
+			const isAtFirstRenderedMessage =
+				previousMessage?.anchorId === firstMessage.anchorId && firstMessage.top >= containerTop - 8
+			if (!previousMessage || isAtFirstRenderedMessage) {
+				container.scrollTo({ top: 0, behavior: 'smooth' })
+				return
+			}
+			previousMessage.node.scrollIntoView({ behavior: 'smooth', block: 'start' })
+			highlightAnchorNode(previousMessage.node)
+		}
+
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [scrollContainerRef, scrollToBottom, userMessageAnchorIds])
 
 	useEffect(() => {
 		return () => {
@@ -349,6 +516,8 @@ export function ConversationView({
 
 			handledAnchorIdRef.current = anchorId
 			requestAnimationFrame(() => {
+				// Wait until smooth scrolling settles before flashing the target, with
+				// a timeout for browsers that do not fire `scrollend`.
 				const container = scrollContainerRef.current
 				let fallbackTimer: number | null = null
 				const applyHighlight = () => {
@@ -357,16 +526,7 @@ export function ConversationView({
 					}
 					container?.removeEventListener('scrollend', applyHighlight)
 					pendingScrollHighlightRef.current = null
-					node.classList.remove('anchor-highlight')
-					void node.offsetWidth
-					node.classList.add('anchor-highlight')
-					if (highlightTimeoutRef.current !== null) {
-						window.clearTimeout(highlightTimeoutRef.current)
-					}
-					highlightTimeoutRef.current = window.setTimeout(() => {
-						node.classList.remove('anchor-highlight')
-						highlightTimeoutRef.current = null
-					}, 2000)
+					highlightAnchorNode(node)
 				}
 
 				pendingScrollHighlightRef.current?.()
@@ -390,7 +550,8 @@ export function ConversationView({
 	const hasTailChangedSinceMount =
 		currentTailSnapshot[0] !== initialTailSnapshot[0] || currentTailSnapshot[1] !== initialTailSnapshot[1]
 
-	// Find the last user message index for the exchange spacer
+	// The active exchange spacer only wraps the newest user->assistant pair so
+	// submitted prompts stay near the top while the response streams below them.
 	const lastUserIndex = (() => {
 		for (let i = messages.length - 1; i >= 0; i--) {
 			if (messages[i].role === 'user') return i
@@ -407,9 +568,31 @@ export function ConversationView({
 		(isLiveExchange ? messages[messages.length - 1]?.role === 'user' : hasTailChangedSinceMount)
 
 	const lastExchangeMessages = shouldSpaceLastExchange ? messages.slice(lastUserIndex) : []
+	const activeExchangeItems: ActiveExchangeItem[] = (() => {
+		if (!shouldSpaceLastExchange) return []
+		const items: ActiveExchangeItem[] = lastExchangeMessages.map((message, i) => ({
+			type: 'message',
+			key: message.id || `exchange-${i}`,
+			message
+		}))
+		if (isLiveExchange) {
+			items.push({ type: 'live-status', key: 'live-status' })
+			if (streamingDraft) {
+				items.push({
+					type: 'message',
+					key: streamingDraft.id || 'streaming-draft',
+					message: streamingDraft,
+					isDraft: true
+				})
+			}
+		}
+		return items
+	})()
 	const renderedMessages = shouldSpaceLastExchange ? messages.slice(0, lastUserIndex) : messages
+	const canUseMessageControls = !readOnly && !isSharedView
 
-	// Find the last assistant message to keep its controls always visible
+	// Only the newest assistant response keeps persistent controls; older controls
+	// stay available on hover/focus to reduce visual noise.
 	const lastAssistantId = (() => {
 		for (let i = messages.length - 1; i >= 0; i--) {
 			if (messages[i].role === 'assistant' && messages[i].id) return messages[i].id
@@ -458,7 +641,7 @@ export function ConversationView({
 							<div className="flex flex-col gap-2.5">
 								{paginationState.isLoadingMore ? (
 									<div className="flex justify-center py-2">
-										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages&hellip;</p>
 									</div>
 								) : null}
 
@@ -483,19 +666,20 @@ export function ConversationView({
 											isLlama={isLlama}
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
-											onEditMessage={!readOnly ? onEditMessage : undefined}
-											onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+											onEditMessage={canUseMessageControls ? onEditMessage : undefined}
+											onBranchSwitch={canUseMessageControls && !isStreaming ? onBranchSwitch : undefined}
 											isBranchSwitching={isBranchSwitching}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
+											enterToSend={enterToSend}
 										/>
 									)
 								})}
 
 								{paginationState.isLoadingNewer ? (
 									<div className="flex justify-center py-2">
-										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages...</p>
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages&hellip;</p>
 									</div>
 								) : null}
 
@@ -508,48 +692,61 @@ export function ConversationView({
 										}`}
 										style={activeExchangeMinHeight != null ? { minHeight: activeExchangeMinHeight } : undefined}
 									>
-										{lastExchangeMessages.map((message, i) => (
-											<ConversationMessageItem
-												key={message.id || `exchange-${i}`}
-												message={message}
-												onShare={onShare}
-												sessionId={sessionId}
-												readOnly={readOnly}
-												isLlama={isLlama}
-												isLatestAssistant={message.id === lastAssistantId}
-												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
-												onEditMessage={!readOnly ? onEditMessage : undefined}
-												onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
-												isBranchSwitching={isBranchSwitching}
-												onTableFullscreenOpen={onTableFullscreenOpen}
-												anchorId={getMessageAnchorId(message.id)}
-												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
-											/>
-										))}
-
-										{isLiveExchange ? (
-											<ConversationLiveStatus
-												isStreaming={isStreaming}
-												activeToolCalls={activeToolCalls}
-												spawnProgress={spawnProgress}
-												spawnStartTime={spawnStartTime}
-												executionStartedAt={executionStartedAt}
-												spawnIsResearchMode={spawnIsResearchMode}
-												streamingThinking={streamingThinking}
-												streamingDraft={streamingDraft}
-												isCompacting={isCompacting}
-												recovery={recovery}
-												error={error}
-												lastFailedPrompt={lastFailedPrompt}
-												onRetryLastFailedPrompt={onRetryLastFailedPrompt}
-												onReconnectNow={onReconnectNow}
-												isResearchMode={isResearchMode}
-												sessionId={sessionId}
-												readOnly={readOnly}
-												isLlama={isLlama}
-												onTableFullscreenOpen={onTableFullscreenOpen}
-											/>
-										) : null}
+										{activeExchangeItems.map((item) => {
+											if (item.type === 'live-status') {
+												return (
+													<ConversationLiveStatus
+														key={item.key}
+														isStreaming={isStreaming}
+														activeToolCalls={activeToolCalls}
+														spawnProgress={spawnProgress}
+														spawnStartTime={spawnStartTime}
+														todos={todos}
+														todosStartTime={todosStartTime}
+														executionStartedAt={executionStartedAt}
+														spawnIsResearchMode={spawnIsResearchMode}
+														streamingThinking={streamingThinking}
+														streamingDraft={streamingDraft}
+														isCompacting={isCompacting}
+														recovery={recovery}
+														error={error}
+														lastFailedPrompt={lastFailedPrompt}
+														onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+														onReconnectNow={onReconnectNow}
+														isResearchMode={isResearchMode}
+														sessionId={sessionId}
+														readOnly={readOnly}
+														isLlama={isLlama}
+														onTableFullscreenOpen={onTableFullscreenOpen}
+														renderStreamingDraft={false}
+														factCheckPhase={factCheckPhase}
+													/>
+												)
+											}
+											const message = item.message
+											return (
+												<ConversationMessageItem
+													key={item.key}
+													message={message}
+													isDraft={item.isDraft}
+													onShare={onShare}
+													sessionId={sessionId}
+													readOnly={readOnly}
+													isLlama={isLlama}
+													isLatestAssistant={!item.isDraft && message.id === lastAssistantId}
+													onActionClick={!item.isDraft && !readOnly && !isStreaming ? handleActionClick : undefined}
+													onEditMessage={!item.isDraft && canUseMessageControls ? onEditMessage : undefined}
+													onBranchSwitch={
+														!item.isDraft && canUseMessageControls && !isStreaming ? onBranchSwitch : undefined
+													}
+													isBranchSwitching={isBranchSwitching}
+													onTableFullscreenOpen={onTableFullscreenOpen}
+													anchorId={!item.isDraft ? getMessageAnchorId(message.id) : undefined}
+													anchorRef={!item.isDraft ? getAnchorRef(getMessageAnchorId(message.id)) : undefined}
+													enterToSend={enterToSend}
+												/>
+											)
+										})}
 									</div>
 								) : (
 									<ConversationLiveStatus
@@ -557,6 +754,8 @@ export function ConversationView({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										todos={todos}
+										todosStartTime={todosStartTime}
 										executionStartedAt={executionStartedAt}
 										streamingThinking={streamingThinking}
 										spawnIsResearchMode={spawnIsResearchMode}
@@ -572,6 +771,7 @@ export function ConversationView({
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onTableFullscreenOpen={onTableFullscreenOpen}
+										factCheckPhase={factCheckPhase}
 									/>
 								)}
 							</div>
@@ -589,7 +789,7 @@ export function ConversationView({
 				<Tooltip
 					content="Scroll to bottom"
 					render={<button onClick={scrollToBottom} />}
-					className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] ${showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'}`}
+					className={`mx-auto flex size-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] ${showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'}`}
 				>
 					<Icon name="arrow-down" height={16} width={16} />
 					<span className="sr-only">Scroll to bottom</span>
@@ -598,7 +798,7 @@ export function ConversationView({
 
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
-					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+					<div className="pointer-events-none absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 					{!isSharedView && contextWarning && onStartNewChat && onDismissContextWarning ? (
 						<ContextWarningBanner
 							warning={contextWarning}
@@ -618,10 +818,12 @@ export function ConversationView({
 						handleStopRequest={handleStopRequest}
 						isStreaming={isStreaming}
 						restoreRequest={null}
-						placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
+						placeholder="Reply to LlamaAI&hellip; Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+						mode={mode}
+						setMode={setMode}
 						researchUsage={researchUsage}
+						factCheckedUsage={factCheckedUsage}
+						onFactCheckedGated={onFactCheckedGated}
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}

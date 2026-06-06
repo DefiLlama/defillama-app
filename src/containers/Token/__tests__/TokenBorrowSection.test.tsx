@@ -15,6 +15,10 @@ const strategiesState: {
 	isLoading: false
 }
 
+const { optimizerTableCalls } = vi.hoisted(() => ({
+	optimizerTableCalls: [] as Array<{ dataLength: number; initialPageIndex?: number; initialPageSize?: number }>
+}))
+
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
 		<div>{children(false)}</div>
@@ -47,7 +51,10 @@ vi.mock('~/containers/Yields/Tables/Optimizer', () => ({
 		data: Array<{ symbol: string; borrow: { symbol: string } }>
 		initialPageSize?: number
 		initialPageIndex?: number
-	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}:${initialPageIndex ?? 0}`}</div>
+	}) => {
+		optimizerTableCalls.push({ dataLength: data.length, initialPageIndex, initialPageSize })
+		return <div>Optimizer table</div>
+	}
 }))
 
 vi.mock('../useTokenBorrowRoutes', () => ({
@@ -62,11 +69,13 @@ afterEach(() => {
 	}
 	strategiesState.error = null
 	strategiesState.isLoading = false
+	optimizerTableCalls.length = 0
 	vi.clearAllMocks()
 	vi.restoreAllMocks()
 })
 
-import { TokenBorrowSection, filterBorrowRows } from '../TokenBorrowSection'
+import { TokenBorrowSection } from '../TokenBorrowSection'
+import { filterBorrowRows } from '../TokenBorrowSection.utils'
 
 function makeBorrowRow(
 	overrides: Partial<IYieldsOptimizerTableRow> = {},
@@ -157,7 +166,7 @@ describe('TokenBorrowSection', () => {
 
 		expect(html).toContain('Tracking 1 route')
 		expect(html).toContain('Available')
-		expect(html).toContain('optimizer-table:1:10:0')
+		expect(optimizerTableCalls[0]).toMatchObject({ dataLength: 1, initialPageIndex: 0, initialPageSize: 10 })
 	})
 
 	it('renders prefetched strategies without waiting for a client fetch', () => {
@@ -168,20 +177,26 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenBorrowSection
 				tokenSymbol="ETH"
-				initialData={{
-					borrowAsCollateral: [makeBorrowRow()],
-					borrowAsDebt: []
-				}}
-				initialCounts={{
-					borrowAsCollateral: 1,
-					borrowAsDebt: 0
+				hydration={{
+					data: {
+						borrowAsCollateral: [makeBorrowRow()],
+						borrowAsDebt: []
+					},
+					counts: {
+						borrowAsCollateral: 1,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: ['Ethereum'],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}}
 			/>
 		)
 
 		expect(html).toContain('Tracking 1 route')
-		expect(html).toContain('optimizer-table:1:10:0')
-		expect(html).not.toContain('loader')
+		expect(optimizerTableCalls[0]).toMatchObject({ dataLength: 1, initialPageIndex: 0, initialPageSize: 10 })
 	})
 
 	it('shows deferred pagination controls when only the first page is prefetched', () => {
@@ -192,17 +207,20 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenBorrowSection
 				tokenSymbol="ETH"
-				initialData={{
-					borrowAsCollateral: [makeBorrowRow()],
-					borrowAsDebt: []
-				}}
-				initialCounts={{
-					borrowAsCollateral: 25,
-					borrowAsDebt: 0
-				}}
-				initialChains={{
-					borrowAsCollateral: ['Ethereum'],
-					borrowAsDebt: []
+				hydration={{
+					data: {
+						borrowAsCollateral: [makeBorrowRow()],
+						borrowAsDebt: []
+					},
+					counts: {
+						borrowAsCollateral: 25,
+						borrowAsDebt: 0
+					},
+					chainLists: {
+						borrowAsCollateral: ['Ethereum'],
+						borrowAsDebt: []
+					},
+					pageSize: 10
 				}}
 			/>
 		)
@@ -245,6 +263,28 @@ describe('TokenBorrowSection', () => {
 
 		expect(filtered).toHaveLength(1)
 		expect(filtered[0].borrow.symbol).toBe('USDC')
+	})
+
+	it('ignores non-numeric available liquidity bounds', () => {
+		const filtered = filterBorrowRows({
+			rows: [
+				{
+					symbol: 'ETH',
+					borrow: { symbol: 'USDC', totalAvailableUsd: null },
+					chains: ['Ethereum']
+				},
+				{
+					symbol: 'ETH',
+					borrow: { symbol: 'DAI', totalAvailableUsd: 5000 },
+					chains: ['Ethereum']
+				}
+			] as any,
+			selectedChains: ['Ethereum'],
+			minAvailable: 'not-a-number',
+			maxAvailable: 'also-not-a-number'
+		})
+
+		expect(filtered).toHaveLength(2)
 	})
 
 	it('returns no rows when no chains are selected explicitly', () => {

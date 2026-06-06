@@ -17,7 +17,7 @@ import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import { useYieldChartData } from '~/containers/Yields/queries/client'
+import { useYieldChartData } from '~/containers/Yields/queries.client'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
@@ -70,7 +70,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 			{isBoolean ? (
 				<Icon
 					name={positive ? 'check-circle' : 'x'}
-					className={`h-5 w-5 shrink-0 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
+					className={`size-5 shrink-0 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
 				/>
 			) : (
 				<span className="font-medium">{displayValue}</span>
@@ -107,7 +107,7 @@ const KYCItem = ({
 			</p>
 			<Icon
 				name={required ? 'alert-triangle' : 'check-circle'}
-				className={`h-5 w-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
+				className={`size-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 			/>
 		</div>
 	)
@@ -198,12 +198,12 @@ const ContractItem = ({ address, explorerUrl }: { address: string; explorerUrl?:
 					className="flex items-center gap-1 text-xs break-all hover:underline"
 				>
 					{truncatedAddress}
-					<Icon name="external-link" className="h-3 w-3 shrink-0" />
+					<Icon name="external-link" className="size-3 shrink-0" />
 				</a>
 			) : (
 				<p className="flex items-center gap-1 text-xs break-all">
 					<span>{truncatedAddress}</span>
-					<CopyHelper toCopy={address} className="h-3 w-3" />
+					<CopyHelper toCopy={address} className="size-3" />
 				</p>
 			)}
 		</div>
@@ -225,7 +225,7 @@ const ChainBadge = ({
 }) => {
 	return (
 		<div className="flex items-center gap-1.5 rounded-md border border-(--cards-border) p-2">
-			<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
+			<img src={chainIconUrl(chain)} alt={chain} className="size-5 rounded-full" loading="lazy" />
 			<div className="flex flex-col">
 				<div className="flex items-center gap-1.5">
 					<p className="text-sm font-medium">{chain}</p>
@@ -332,7 +332,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								rel="noopener noreferrer"
 								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							>
-								<Icon name="external-link" className="h-3 w-3" />
+								<Icon name="external-link" className="size-3" />
 								Website
 							</a>
 						)
@@ -353,7 +353,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								rel="noopener noreferrer"
 								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							>
-								<Icon name="external-link" className="h-3 w-3" />
+								<Icon name="external-link" className="size-3" />
 								Twitter
 							</a>
 						)
@@ -365,7 +365,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							LinkedIn
 						</a>
 					) : null}
@@ -376,7 +376,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							Docs
 						</a>
 					) : null}
@@ -387,7 +387,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							GitHub
 						</a>
 					) : null}
@@ -398,7 +398,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							Discord
 						</a>
 					) : null}
@@ -409,7 +409,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							Telegram
 						</a>
 					) : null}
@@ -724,7 +724,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 											rel="noopener noreferrer"
 											className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
 										>
-											<Icon name="external-link" className="h-4 w-4 shrink-0" />
+											<Icon name="external-link" className="size-4 shrink-0" />
 											{link}
 										</a>
 									))}
@@ -744,13 +744,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
 								>
 									<span className="flex items-center gap-2">
-										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
+										<Icon name="check-circle" className="size-4 text-(--text-label)" />
 										<span className="flex flex-col">
 											<span className="text-sm font-medium">{asset.oracleProvider ?? 'Oracle Proof'}</span>
 											<span className="text-xs text-(--text-disabled)">View oracle proof details</span>
 										</span>
 									</span>
-									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
+									<Icon name="external-link" className="size-3 text-(--text-disabled)" />
 								</a>
 							) : (
 								<p className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -790,13 +790,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
 								>
 									<span className="flex items-center gap-2">
-										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
+										<Icon name="check-circle" className="size-4 text-(--text-label)" />
 										<span className="flex flex-col">
 											<span className="text-sm font-medium">View Attestations</span>
 											<span className="text-xs text-(--text-disabled)">Third-party verification reports</span>
 										</span>
 									</span>
-									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
+									<Icon name="external-link" className="size-3 text-(--text-disabled)" />
 								</a>
 							))}
 						</SectionCard>

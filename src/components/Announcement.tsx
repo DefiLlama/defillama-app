@@ -62,7 +62,7 @@ export function Announcement(props: AnnouncementProps) {
 			<div className={clsx('flex-1 text-center', contentClassName)}>{children}</div>
 			{!notCancellable ? (
 				<button
-					className="flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-md hover:bg-(--bg-input)"
+					className="flex size-6 shrink-0 items-center justify-center self-center rounded-md hover:bg-(--bg-input)"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />

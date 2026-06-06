@@ -555,7 +555,7 @@ export function lookupChartDatasetLabel(
 // --- Recents dedup: compare configs by their "shape" (ignoring id/name/timestamps) ---
 
 function sortedArray(arr: string[]): string[] {
-	return arr.slice().sort()
+	return arr.toSorted()
 }
 
 export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolean {

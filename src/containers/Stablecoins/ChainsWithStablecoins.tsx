@@ -15,9 +15,12 @@ import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
+import type { StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import type { StablecoinChartSeriesPayload } from '~/containers/Stablecoins/chartSeries'
 import {
+	getStablecoinChainsSeriesChart,
+	getStablecoinChainsVolumeChartKind,
+	getStablecoinDashboardChartType,
 	getStablecoinChartTypeLabel,
 	getStablecoinChartTypeOptions,
 	getStablecoinChartTypeQueryValue,
@@ -25,6 +28,7 @@ import {
 	getStablecoinChartViewOptions,
 	getStablecoinChartViewQueryValue,
 	parseStablecoinChartState,
+	parseStablecoinVolumeGroupBy,
 	type StablecoinChartType as StablecoinChartCategory,
 	type StablecoinChartView
 } from '~/containers/Stablecoins/chartState'
@@ -34,7 +38,6 @@ import { getStablecoinDominance, type IFormattedStablecoinChainRow } from '~/con
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { isTruthyQueryParam, pushShallowQuery } from '~/utils/routerQuery'
-import type { StablecoinVolumeChartKind } from './api.types'
 import { StablecoinsChainsTable } from './StablecoinsChainsTable'
 import { groupStablecoinVolumeChartPayload } from './volumeChart'
 
@@ -62,24 +65,6 @@ interface ChainsWithStablecoinsProps {
 
 const CHAINS_CHART_MODE = { page: 'chains' } as const
 
-const mapChartStateToConfig = (chartView: StablecoinChartView): StablecoinChartType => {
-	if (chartView === 'breakdown') return 'tokenMcaps'
-	if (chartView === 'dominance') return 'dominance'
-	if (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap') return 'pie'
-	return 'totalMcap'
-}
-
-const getVolumeChartKind = (
-	chartType: StablecoinChartCategory,
-	chartView: StablecoinChartView
-): StablecoinVolumeChartKind | null => {
-	if (chartType !== 'volume') return null
-	if (chartView === 'byChain') return 'chain'
-	if (chartView === 'byToken') return 'token'
-	if (chartView === 'byCurrency') return 'currency'
-	return 'total'
-}
-
 export function ChainsWithStablecoins({
 	chainCirculatings,
 	chainList: _chainList,
@@ -96,11 +81,7 @@ export function ChainsWithStablecoins({
 	const chartState = parseStablecoinChartState(router.query, CHAINS_CHART_MODE)
 	const chartType = chartState.type
 	const chartView = chartState.view
-	const volumeGroupBy = React.useMemo<LowercaseDwmcGrouping>(() => {
-		const value = Array.isArray(router.query.groupBy) ? router.query.groupBy[0] : router.query.groupBy
-		const normalized = value?.toLowerCase()
-		return DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === normalized)?.value ?? 'daily'
-	}, [router.query.groupBy])
+	const volumeGroupBy = React.useMemo(() => parseStablecoinVolumeGroupBy(router.query.groupBy), [router.query.groupBy])
 	const chartTypeOptions = React.useMemo(() => getStablecoinChartTypeOptions(CHAINS_CHART_MODE), [])
 	const chartViewOptions = React.useMemo(() => getStablecoinChartViewOptions(chartState), [chartState])
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
@@ -130,7 +111,7 @@ export function ChainsWithStablecoins({
 		},
 		[router]
 	)
-	const volumeChartKind = getVolumeChartKind(chartType, chartView)
+	const volumeChartKind = getStablecoinChainsVolumeChartKind(chartType, chartView)
 	const volumeChartQuery = useStablecoinVolumeChartData({
 		scope: 'global',
 		chart: volumeChartKind,
@@ -210,14 +191,7 @@ export function ChainsWithStablecoins({
 		})
 	}, [rankedMarketCapData])
 
-	const selectedSeriesChart =
-		chartType === 'marketCap' && chartView === 'total'
-			? 'totalMcap'
-			: chartType === 'marketCap' && chartView === 'breakdown'
-				? 'chainMcaps'
-				: chartType === 'marketCap' && chartView === 'dominance'
-					? 'dominance'
-					: null
+	const selectedSeriesChart = getStablecoinChainsSeriesChart(chartType, chartView)
 	const chartSeriesQuery = useStablecoinChartSeriesData({
 		scope: 'chains',
 		chart: selectedSeriesChart,
@@ -242,15 +216,16 @@ export function ChainsWithStablecoins({
 		(chartType === 'marketCap' && (chartView === 'breakdown' || chartView === 'dominance')) ||
 		(chartType === 'volume' && chartView !== 'total')
 
-	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
-		() => ({
-			id: `stablecoins-All-${mapChartStateToConfig(chartView)}`,
+	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig | null>(() => {
+		const dashboardChartType = getStablecoinDashboardChartType(chartType, chartView)
+		if (!dashboardChartType) return null
+		return {
+			id: `stablecoins-All-${dashboardChartType}`,
 			kind: 'stablecoins',
 			chain: 'All',
-			chartType: mapChartStateToConfig(chartView)
-		}),
-		[chartView]
-	)
+			chartType: dashboardChartType
+		}
+	}, [chartType, chartView])
 
 	const exportMeta = React.useMemo(() => {
 		const label = `${getStablecoinChartTypeLabel(chartType)} ${getStablecoinChartViewLabel(chartView)}`
@@ -342,7 +317,10 @@ export function ChainsWithStablecoins({
 							labelType="none"
 							variant="filter"
 						/>
-						{chartType === 'volume' || chartView === 'hbar' || chartView === 'treemap' ? null : (
+						{stablecoinsChartConfig == null ||
+						chartType === 'volume' ||
+						chartView === 'hbar' ||
+						chartView === 'treemap' ? null : (
 							<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 						)}
 						{chartType === 'volume' ? (

@@ -24,6 +24,7 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
 export const LLAMA_AI_WALKTHROUGH_STATE = 'LLAMA_AI_WALKTHROUGH_STATE' as const
 const LLAMA_AI_LANDING_VISITED = 'LLAMA_AI_LANDING_VISITED' as const
+export const EXTERNAL_LINK_ALLOWLIST = 'EXTERNAL_LINK_ALLOWLIST' as const
 //stored outside so useUserConfig does not sync it across devices
 const LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY = 'llamaai-notify-banner-dismissed' as const
 const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
@@ -162,6 +163,7 @@ export type AppStorage = SettingsStore & {
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
 	[LLAMA_AI_WALKTHROUGH_STATE]?: LlamaAIWalkthroughState
 	[LLAMA_AI_LANDING_VISITED]?: boolean
+	[EXTERNAL_LINK_ALLOWLIST]?: string[]
 	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore

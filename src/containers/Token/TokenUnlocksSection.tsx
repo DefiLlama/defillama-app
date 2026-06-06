@@ -1,14 +1,8 @@
-import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/router'
-import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
-import { LocalLoader } from '~/components/Loaders'
-import { useAuthContext } from '~/containers/Subscription/auth'
-import { SignInModal } from '~/containers/Subscription/SignInModal'
 import type { ProtocolEmissionResult } from '~/containers/Unlocks/types'
 import { handleSimpleFetchResponse } from '~/utils/async'
+import { TokenPrivateSectionGate, useTokenPrivateSectionAccess } from './TokenPrivateSectionGate'
 
 const TOKEN_UNLOCKS_SECTION_ID = 'token-unlocks'
 
@@ -23,15 +17,14 @@ async function fetchTokenUnlocksClient(
 	resolvedUnlocksSlug: string,
 	authorizedFetch: (url: string) => Promise<Response | null>
 ): Promise<ProtocolEmissionResult> {
-	const res = await authorizedFetch(`/api/token-unlocks/${encodeURIComponent(resolvedUnlocksSlug)}`)
+	const res = await authorizedFetch(`/api/private/token-unlocks/${encodeURIComponent(resolvedUnlocksSlug)}`)
 	if (!res) throw new Error('Authentication required')
 	return handleSimpleFetchResponse(res).then((response) => response.json() as Promise<ProtocolEmissionResult>)
 }
 
 export function TokenUnlocksSection({ resolvedUnlocksSlug }: { resolvedUnlocksSlug?: string | null }) {
-	const router = useRouter()
-	const signInDialogStore = Ariakit.useDialogStore()
-	const { authorizedFetch, hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
+	const access = useTokenPrivateSectionAccess()
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated, loaders } = access
 	const isEnabled = Boolean(resolvedUnlocksSlug)
 	const { data, error, isLoading } = useQuery<ProtocolEmissionResult>({
 		queryKey: ['token-unlocks', resolvedUnlocksSlug],
@@ -47,82 +40,22 @@ export function TokenUnlocksSection({ resolvedUnlocksSlug }: { resolvedUnlocksSl
 		return null
 	}
 
-	const sectionHeader = (
-		<div className="flex items-center gap-2 border-b border-(--cards-border) p-3">
-			<h2
-				className="group relative flex scroll-mt-24 items-center gap-1 text-xl font-bold"
-				id={TOKEN_UNLOCKS_SECTION_ID}
-			>
-				Unlocks
-				<a
-					aria-hidden="true"
-					tabIndex={-1}
-					href={`#${TOKEN_UNLOCKS_SECTION_ID}`}
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
-				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-			</h2>
-		</div>
-	)
-
-	if (loaders.userLoading || isLoading) {
-		return (
-			<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				{sectionHeader}
-				<div className="flex min-h-[80dvh] items-center justify-center p-3 sm:min-h-[572px]">
-					<LocalLoader />
-				</div>
-			</section>
-		)
-	}
-
-	if (!isAuthenticated || !hasActiveSubscription) {
-		return (
-			<>
-				<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					{sectionHeader}
-					<div className="flex min-h-[80dvh] items-center justify-center px-4 text-center sm:min-h-[572px]">
-						{!isAuthenticated ? (
-							<p className="text-sm text-(--text-label)">
-								An{' '}
-								<button type="button" onClick={signInDialogStore.show} className="underline">
-									active subscription
-								</button>{' '}
-								is required to view token unlocks.
-							</p>
-						) : (
-							<p className="text-sm text-(--text-label)">
-								An{' '}
-								<BasicLink href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`} className="underline">
-									active subscription
-								</BasicLink>{' '}
-								is required to view token unlocks.
-							</p>
-						)}
-					</div>
-				</section>
-				<SignInModal store={signInDialogStore} hideWhenAuthenticated={false} />
-			</>
-		)
-	}
-
-	if (error != null || data == null) {
-		return (
-			<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				{sectionHeader}
-				<div className="flex min-h-[80dvh] items-center justify-center p-6 text-center sm:min-h-[572px]">
-					<p className="max-w-md text-sm text-(--text-label)">
-						{error instanceof Error ? error.message : 'Failed to load token unlocks.'}
-					</p>
-				</div>
-			</section>
-		)
-	}
+	const canReadPrivateSection = isAuthenticated && hasActiveSubscription && !loaders.userLoading
+	const unlocksError =
+		error ?? (canReadPrivateSection && !isLoading && data == null ? new Error('Failed to load token unlocks.') : null)
 
 	return (
-		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			{sectionHeader}
-			<div className="flex flex-col gap-2 p-3">
+		<TokenPrivateSectionGate
+			access={access}
+			title="Unlocks"
+			sectionId={TOKEN_UNLOCKS_SECTION_ID}
+			contentLabel="token unlocks"
+			isLoading={isLoading}
+			error={unlocksError}
+			errorMessage="Failed to load token unlocks."
+			bodyClassName="flex flex-col gap-2 p-3"
+		>
+			{data ? (
 				<DeferredUnlocksCharts
 					protocolName={resolvedUnlocksSlug}
 					initialData={data}
@@ -130,7 +63,7 @@ export function TokenUnlocksSection({ resolvedUnlocksSlug }: { resolvedUnlocksSl
 					hideTokenStats
 					isEmissionsPage={false}
 				/>
-			</div>
-		</section>
+			) : null}
+		</TokenPrivateSectionGate>
 	)
 }

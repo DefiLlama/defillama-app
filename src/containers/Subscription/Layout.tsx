@@ -48,7 +48,7 @@ export function SubscribeLayout({
 								/>
 							) : (
 								<Ariakit.MenuProvider open={isMenuOpen} setOpen={setIsMenuOpen}>
-									<Ariakit.MenuButton className="flex h-8 w-8 items-center justify-center rounded-lg text-[#b4b7bc] transition-colors hover:bg-[#2a2b30] hover:text-white">
+									<Ariakit.MenuButton className="flex size-8 items-center justify-center rounded-lg text-[#b4b7bc] transition-colors hover:bg-[#2a2b30] hover:text-white">
 										<Icon name="menu" height={18} width={18} />
 									</Ariakit.MenuButton>
 									<Ariakit.Menu

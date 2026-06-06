@@ -23,7 +23,7 @@ export const normalizeHourlyToDaily = (
 	if (!data || data.length === 0) return []
 	if (data.length === 1) return data
 
-	const sortedData = [...data].sort((a, b) => a[0] - b[0])
+	const sortedData = data.toSorted((a, b) => a[0] - b[0])
 
 	const avgTimeDiff =
 		sortedData.slice(0, Math.min(10, sortedData.length - 1)).reduce((sum, point, idx, arr) => {
@@ -117,7 +117,7 @@ export const groupData = (
 export const convertToCumulative = <T extends string | number>(data: [T, number][] | undefined): [T, number][] => {
 	if (!data || data.length === 0) return []
 
-	const sorted = [...data].sort((a, b) => {
+	const sorted = data.toSorted((a, b) => {
 		const aVal = typeof a[0] === 'string' ? parseInt(a[0]) : (a[0] as number)
 		const bVal = typeof b[0] === 'string' ? parseInt(b[0]) : (b[0] as number)
 		return aVal - bVal

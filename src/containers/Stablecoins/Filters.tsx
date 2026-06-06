@@ -5,217 +5,14 @@ import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Select } from '~/components/Select/Select'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
-import { parseExcludeParam, parseIncludeParam } from '~/utils/routerQuery'
-import type { FormattedStablecoinAsset } from './utils'
-
-type StablecoinFilterableItem = Pick<
-	FormattedStablecoinAsset,
-	'pegDeviation' | 'yieldBearing' | 'pegMechanism' | 'pegType'
->
+import {
+	resolveSelectedStablecoinFilterKeys,
+	stablecoinAttributeOptions,
+	stablecoinBackingOptions,
+	stablecoinPegTypeOptions
+} from './filterPolicy'
 
 const isStablecoinChartQueryKey = (key: string) => key === 'chartType' || key === 'chartView' || key === 'groupBy'
-
-export type StablecoinFilterOption = {
-	name: string
-	key: string
-	filterFn: (item: StablecoinFilterableItem) => boolean
-	help: string
-}
-
-export const stablecoinAttributeOptions: StablecoinFilterOption[] = [
-	{
-		name: 'Stable',
-		key: 'STABLE',
-		filterFn: (item) => typeof item.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
-		help: 'Show stablecoins within 10% of peg'
-	},
-	{
-		name: 'Yield Bearing',
-		key: 'YIELDBEARING',
-		filterFn: (item) => !!item.yieldBearing,
-		help: 'Show yield-bearing stablecoins'
-	},
-	{
-		name: 'Unknown',
-		key: 'UNKNOWN',
-		filterFn: (item) => typeof item.pegDeviation !== 'number',
-		help: 'Show stablecoins with no deviation data'
-	},
-	{
-		name: 'Depegged',
-		key: 'DEPEGGED',
-		// Yield-bearing assets intentionally render '-' for peg deviation columns,
-		// so exclude them from the "Depegged" filter to avoid showing "no peg data" rows.
-		filterFn: (item) =>
-			!item.yieldBearing &&
-			typeof item.pegDeviation === 'number' &&
-			Number.isFinite(item.pegDeviation) &&
-			Math.abs(item.pegDeviation) > 10,
-		help: 'Show stablecoins depegged by more than 10%'
-	}
-]
-
-export const stablecoinBackingOptions: StablecoinFilterOption[] = [
-	{
-		name: 'Fiat',
-		key: 'FIATSTABLES',
-		filterFn: (item) => item.pegMechanism === 'fiat-backed',
-		help: 'Show stablecoins backed by fiat'
-	},
-	{
-		name: 'Crypto',
-		key: 'CRYPTOSTABLES',
-		filterFn: (item) => item.pegMechanism === 'crypto-backed',
-		help: 'Show stablecoins backed by crypto'
-	},
-	{
-		name: 'Algorithmic',
-		key: 'ALGOSTABLES',
-		filterFn: (item) => item.pegMechanism === 'algorithmic',
-		help: 'Show algorithmic stablecoins'
-	}
-]
-
-export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
-	{
-		name: 'USD',
-		key: 'PEGGEDUSD',
-		filterFn: (item) => item.pegType === 'peggedUSD',
-		help: 'Show stablecoins pegged to USD'
-	},
-	{
-		name: 'EUR',
-		key: 'PEGGEDEUR',
-		filterFn: (item) => item.pegType === 'peggedEUR',
-		help: 'Show stablecoins pegged to EUR'
-	},
-	{
-		name: 'SGD',
-		key: 'PEGGEDSGD',
-		filterFn: (item) => item.pegType === 'peggedSGD',
-		help: 'Show stablecoins pegged to SGD'
-	},
-	{
-		name: 'JPY',
-		key: 'PEGGEDJPY',
-		filterFn: (item) => item.pegType === 'peggedJPY',
-		help: 'Show stablecoins pegged to JPY'
-	},
-	{
-		name: 'CNY',
-		key: 'PEGGEDCNY',
-		filterFn: (item) => item.pegType === 'peggedCNY',
-		help: 'Show stablecoins pegged to CNY'
-	},
-	{
-		name: 'UAH',
-		key: 'PEGGEDUAH',
-		filterFn: (item) => item.pegType === 'peggedUAH',
-		help: 'Show stablecoins pegged to UAH'
-	},
-	{
-		name: 'ARS',
-		key: 'PEGGEDARS',
-		filterFn: (item) => item.pegType === 'peggedARS',
-		help: 'Show stablecoins pegged to ARS'
-	},
-	{
-		name: 'GBP',
-		key: 'PEGGEDGBP',
-		filterFn: (item) => item.pegType === 'peggedGBP',
-		help: 'Show stablecoins pegged to GBP'
-	},
-	{
-		name: 'Variable',
-		key: 'PEGGEDVAR',
-		filterFn: (item) => item.pegType === 'peggedVAR',
-		help: 'Show stablecoins with a variable or floating peg'
-	},
-	{
-		name: 'CAD',
-		key: 'PEGGEDCAD',
-		filterFn: (item) => item.pegType === 'peggedCAD',
-		help: 'Show stablecoins pegged to CAD'
-	},
-	{
-		name: 'AUD',
-		key: 'PEGGEDAUD',
-		filterFn: (item) => item.pegType === 'peggedAUD',
-		help: 'Show stablecoins pegged to AUD'
-	},
-	{
-		name: 'TRY',
-		key: 'PEGGEDTRY',
-		filterFn: (item) => item.pegType === 'peggedTRY',
-		help: 'Show stablecoins pegged to Turkish Lira'
-	},
-	{
-		name: 'CHF',
-		key: 'PEGGEDCHF',
-		filterFn: (item) => item.pegType === 'peggedCHF',
-		help: 'Show stablecoins pegged to Swiss Franc'
-	},
-	{
-		name: 'COP',
-		key: 'PEGGEDCOP',
-		filterFn: (item) => item.pegType === 'peggedCOP',
-		help: 'Show stablecoins pegged to Colombian Peso'
-	},
-	{
-		name: 'REAL',
-		key: 'PEGGEDREAL',
-		filterFn: (item) => item.pegType === 'peggedREAL',
-		help: 'Show stablecoins pegged to Brazilian Real'
-	},
-	{
-		name: 'RUB',
-		key: 'PEGGEDRUB',
-		filterFn: (item) => item.pegType === 'peggedRUB',
-		help: 'Show stablecoins pegged to Russian Ruble'
-	},
-	{
-		name: 'PHP',
-		key: 'PEGGEDPHP',
-		filterFn: (item) => item.pegType === 'peggedPHP',
-		help: 'Show stablecoins pegged to Philippine Peso'
-	},
-	{
-		name: 'MXN',
-		key: 'PEGGEDMXN',
-		filterFn: (item) => item.pegType === 'peggedMXN',
-		help: 'Show stablecoins pegged to Mexican Peso'
-	},
-	{
-		name: 'KES',
-		key: 'PEGGEDKES',
-		filterFn: (item) => item.pegType === 'peggedKES',
-		help: 'Show stablecoins pegged to Kenyan Shilling'
-	},
-	{
-		name: 'ZAR',
-		key: 'PEGGEDZAR',
-		filterFn: (item) => item.pegType === 'peggedZAR',
-		help: 'Show stablecoins pegged to South African Rand'
-	},
-	{
-		name: 'NGN',
-		key: 'PEGGEDNGN',
-		filterFn: (item) => item.pegType === 'peggedNGN',
-		help: 'Show stablecoins pegged to Nigerian Naira'
-	},
-	{
-		name: 'XOF',
-		key: 'PEGGEDXOF',
-		filterFn: (item) => item.pegType === 'peggedXOF',
-		help: 'Show stablecoins pegged to West African CFA Franc'
-	},
-	{
-		name: 'GHS',
-		key: 'PEGGEDGHS',
-		filterFn: (item) => item.pegType === 'peggedGHS',
-		help: 'Show stablecoins pegged to Ghanaian Cedi'
-	}
-]
 
 type StablecoinFilterKey = string
 
@@ -224,32 +21,11 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 	const { attribute, excludeAttribute } = router.query
 
 	const selectedValues = useMemo(() => {
-		const attributeKeyByLower = new Map(stablecoinAttributeOptions.map((o) => [String(o.key).toLowerCase(), o.key]))
-		const normalizeAttributeKey = (raw: string) => {
-			const lower = raw.toLowerCase()
-			if (lower === 'deppeged') return attributeKeyByLower.get('depegged')
-			if (lower === 'unknow') return attributeKeyByLower.get('unknown')
-			return attributeKeyByLower.get(lower)
-		}
-
-		const allKeys = stablecoinAttributeOptions.map((o) => o.key)
-
-		const includeRaw = parseIncludeParam(attribute, allKeys)
-		const includeNormalized = includeRaw.flatMap((a) => {
-			const key = normalizeAttributeKey(a)
-			return key ? [key] : []
+		return resolveSelectedStablecoinFilterKeys({
+			includeParam: attribute,
+			excludeParam: excludeAttribute,
+			options: stablecoinAttributeOptions
 		})
-
-		const excludeSetRaw = parseExcludeParam(excludeAttribute)
-		const excludeSetNormalized = new Set(
-			Array.from(excludeSetRaw).flatMap((a) => {
-				const key = normalizeAttributeKey(a)
-				return key ? [key] : []
-			})
-		)
-
-		const selected = includeNormalized.filter((a) => !excludeSetNormalized.has(a))
-		return Array.from(new Set(selected))
 	}, [attribute, excludeAttribute])
 
 	return (
@@ -284,10 +60,11 @@ function BackingType({
 	}, [availableBackings])
 
 	const selectedValues = useMemo(() => {
-		const allKeys = backingOptions.map((o) => o.key)
-		const include = parseIncludeParam(backing, allKeys)
-		const excludeSet = parseExcludeParam(excludeBacking)
-		return include.filter((k) => !excludeSet.has(k))
+		return resolveSelectedStablecoinFilterKeys({
+			includeParam: backing,
+			excludeParam: excludeBacking,
+			options: backingOptions
+		})
 	}, [backing, excludeBacking, backingOptions])
 
 	return (
@@ -322,10 +99,11 @@ function PegType({
 	}, [availablePegTypes])
 
 	const selectedValues = useMemo(() => {
-		const allKeys = pegTypeOptions.map((o) => o.key)
-		const include = parseIncludeParam(pegtype, allKeys)
-		const excludeSet = parseExcludeParam(excludePegtype)
-		return include.filter((k) => !excludeSet.has(k))
+		return resolveSelectedStablecoinFilterKeys({
+			includeParam: pegtype,
+			excludeParam: excludePegtype,
+			options: pegTypeOptions
+		})
 	}, [pegtype, excludePegtype, pegTypeOptions])
 
 	return (

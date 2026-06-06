@@ -225,9 +225,9 @@ function BrowserHeader({
 						type="button"
 						onClick={() => onSearchChange('')}
 						aria-label="Clear search"
-						className="absolute top-1/2 right-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-sm text-(--text-tertiary) hover:text-(--text-primary)"
+						className="absolute top-1/2 right-1 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-(--text-tertiary) hover:text-(--text-primary)"
 					>
-						<Icon name="x" className="h-3 w-3" />
+						<Icon name="x" className="size-3" />
 					</button>
 				) : null}
 			</label>
@@ -269,7 +269,7 @@ function BrowserHeader({
 function EmptyResults({ search }: { search: string }) {
 	return (
 		<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-12 text-center">
-			<Icon name="search" className="h-5 w-5 text-(--text-tertiary)" />
+			<Icon name="search" className="size-5 text-(--text-tertiary)" />
 			<p className="text-sm text-(--text-secondary)">
 				{search ? (
 					<>
@@ -316,7 +316,7 @@ function CategorySection({
 			>
 				<Icon
 					name="chevron-right"
-					className={`h-3 w-3 shrink-0 text-(--text-tertiary) transition-transform duration-150 group-hover:text-(--text-primary) ${
+					className={`size-3 shrink-0 text-(--text-tertiary) transition-transform duration-150 group-hover:text-(--text-primary) ${
 						collapsed ? '' : 'rotate-90'
 					}`}
 				/>
@@ -553,9 +553,9 @@ function RowActions({
 				disabled={!canCopy}
 				aria-label="Copy table name"
 				title="Copy table name"
-				className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
+				className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
 			>
-				<Icon name="copy" className="h-3.5 w-3.5" />
+				<Icon name="copy" className="size-3.5" />
 			</button>
 			<button
 				type="button"
@@ -564,7 +564,7 @@ function RowActions({
 				title={alreadyLoaded ? 'Already loaded in this session' : 'Load CSV into session'}
 				className="inline-flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--cards-bg) px-2.5 py-1 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--primary)/40 hover:text-(--primary) disabled:cursor-not-allowed disabled:opacity-40"
 			>
-				{isLoading ? <LoadingSpinner size={10} /> : <Icon name="download-cloud" className="h-3 w-3" />}
+				{isLoading ? <LoadingSpinner size={10} /> : <Icon name="download-cloud" className="size-3" />}
 				{alreadyLoaded ? 'Loaded' : 'Load'}
 			</button>
 			<button
@@ -574,7 +574,7 @@ function RowActions({
 				title="Insert SELECT snippet at cursor"
 				className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-medium text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
 			>
-				<Icon name="arrow-right" className="h-3 w-3" />
+				<Icon name="arrow-right" className="size-3" />
 				Insert
 			</button>
 		</div>
@@ -706,7 +706,7 @@ function AutoLoadHint() {
 			title="Referenced tables are auto-loaded when you run a query that references them."
 			className="inline-flex items-center gap-1 text-[10px] text-(--text-tertiary)"
 		>
-			<span aria-hidden className="inline-block h-1 w-1 rounded-full bg-(--text-tertiary)/60" />
+			<span aria-hidden className="inline-block size-1 rounded-full bg-(--text-tertiary)/60" />
 			auto-loads on run
 		</span>
 	)
@@ -715,7 +715,7 @@ function AutoLoadHint() {
 function LoadedPill({ rowCount }: { rowCount: number }) {
 	return (
 		<span className="inline-flex items-center gap-1 rounded-sm bg-emerald-500/15 px-1.5 py-px text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
-			<Icon name="check" className="h-2.5 w-2.5" />
+			<Icon name="check" className="size-2.5" />
 			Loaded · {formatCount(rowCount)}
 		</span>
 	)
