@@ -1,4 +1,4 @@
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchRaisesFromNetwork } from '~/containers/Raises/api'
 import {
 	fetchYieldChainsApi,

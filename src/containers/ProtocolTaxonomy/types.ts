@@ -40,7 +40,7 @@ interface IProtocolByCategoryWithSubRows extends IProtocolByCategory {
 	subRows?: IProtocolByCategory[]
 }
 
-export interface IProtocolByCategoryOrTagPageData {
+export interface IProtocolTaxonomyPageData {
 	protocols: Array<IProtocolByCategoryWithSubRows>
 	category: string | null
 	tag: string | null

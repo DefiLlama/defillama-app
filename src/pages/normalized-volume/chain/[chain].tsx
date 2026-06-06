@@ -1,13 +1,10 @@
 import type { GetStaticPropsContext } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import {
-	getAdapterByChainPageData,
-	getDimensionAdapterOverviewOfAllChains
-} from '~/containers/DimensionAdapters/queries'
-import { addDimensionChainRouteTelemetry } from '~/containers/DimensionAdapters/telemetry'
-import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import { AdapterByChain } from '~/containers/AdapterMetrics/AdapterByChain'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { getAdapterByChainPageData, getDimensionAdapterOverviewOfAllChains } from '~/containers/AdapterMetrics/queries'
+import { addDimensionChainRouteTelemetry } from '~/containers/AdapterMetrics/telemetry'
+import type { IAdapterByChainPageData } from '~/containers/AdapterMetrics/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'

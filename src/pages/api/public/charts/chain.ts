@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/AdapterMetrics/api'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
-import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
+import type { ChainNativeFeeRevenueMetric } from '~/metrics/definitions'
+import { getChainNativeFeeRevenueMetricForAdapterProtocol } from '~/metrics/routeSemantics'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -35,6 +37,38 @@ async function resolveCanonicalProtocolParam(protocol: string): Promise<string |
 	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
 	const protocolRoute = await resolveProtocolParam(protocol)
 	return protocolRoute?.canonicalSlug ?? null
+}
+
+async function resolveCanonicalChainNativeFeeRevenueProtocolParam(
+	chain: string,
+	metric: ChainNativeFeeRevenueMetric
+): Promise<string | null> {
+	if (chain.toLowerCase() === 'all') return null
+	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const chainRoute = await resolveChainParam(chain)
+	return chainRoute?.metadata[metric.metadataFlag] ? chainRoute.canonicalName : null
+}
+
+async function resolveCanonicalAdapterProtocolParam(
+	protocol: string,
+	adapterType: string,
+	dataType: string | undefined,
+	entity: string | undefined
+): Promise<string | null> {
+	const chainNativeFeeRevenueMetric = getChainNativeFeeRevenueMetricForAdapterProtocol({ adapterType, dataType })
+
+	if (entity === 'chain') {
+		if (!chainNativeFeeRevenueMetric) return null
+		return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+	}
+
+	const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+	if (canonicalProtocol) return canonicalProtocol
+	if (entity === 'protocol') return null
+	// Stale clients may omit entity; keep the fallback narrow so app metrics and
+	// unknown values still fail route-cache validation before reaching upstream.
+	if (!chainNativeFeeRevenueMetric) return null
+	return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
 }
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {
@@ -98,12 +132,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			const adapterType = getQueryParam(req.query.adapterType)
 			const protocol = getQueryParam(req.query.protocol)
 			const dataType = getQueryParam(req.query.dataType)
+			const entity = getQueryParam(req.query.entity)
 
 			if (!adapterType || !protocol) {
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'adapterType and protocol parameters are required' })
 			}
-			const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
+			if (entity && entity !== 'chain' && entity !== 'protocol') {
+				setNoStoreHeaders(res)
+				return res.status(400).json({ error: 'entity parameter must be chain or protocol' })
+			}
+			const canonicalProtocol = await resolveCanonicalAdapterProtocolParam(protocol, adapterType, dataType, entity)
 			if (!canonicalProtocol) {
 				setNoStoreHeaders(res)
 				return res.status(404).json({ error: 'protocol not found' })
@@ -216,6 +255,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		}
 
 		if (kind === 'token-incentives') {
+			// Chain overview renders this chart, but the data is still keyed by a
+			// protocol emissions slug rather than a chain slug.
 			const protocol = getQueryParam(req.query.protocol)
 			if (!protocol) {
 				setNoStoreHeaders(res)

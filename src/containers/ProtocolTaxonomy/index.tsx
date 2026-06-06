@@ -24,11 +24,11 @@ import {
 	getProtocolCategoryDefaultSort,
 	getProtocolCategoryPresentation
 } from './constants'
-import type { IProtocolByCategoryOrTagPageData } from './types'
+import type { IProtocolTaxonomyPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
+export function ProtocolTaxonomyPage(props: IProtocolTaxonomyPageData) {
 	const name = props.category ?? props.tag ?? ''
 	const namePrefix = name ? `${name}-` : ''
 	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>('daily')
@@ -46,14 +46,14 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo<{
-		finalProtocols: IProtocolByCategoryOrTagPageData['protocols']
-		charts: IProtocolByCategoryOrTagPageData['charts']
+		finalProtocols: IProtocolTaxonomyPageData['protocols']
+		charts: IProtocolTaxonomyPageData['charts']
 	}>(() => {
 		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
 
-		const applyTvlSettings = (protocol: IProtocolByCategoryOrTagPageData['protocols'][0]) => {
+		const applyTvlSettings = (protocol: IProtocolTaxonomyPageData['protocols'][0]) => {
 			let tvl = protocol.tvl
 			for (const setting of toggledSettings) {
 				if (protocol.extraTvls[setting] == null) continue
@@ -70,8 +70,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 		const shouldMirrorBorrowedChart = props.effectiveCategory === 'Lending' && toggledSettings.includes('borrowed')
 
-		const finalSource: IProtocolByCategoryOrTagPageData['charts']['dataset']['source'] =
-			props.charts.dataset.source.map((row) => {
+		const finalSource: IProtocolTaxonomyPageData['charts']['dataset']['source'] = props.charts.dataset.source.map(
+			(row) => {
 				const timestampKey = row.timestamp
 				const extraSum =
 					timestampKey == null
@@ -87,7 +87,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				}
 
 				return { ...row, timestamp, TVL: nextTvlValue }
-			})
+			}
+		)
 
 		return {
 			finalProtocols,
@@ -343,7 +344,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	)
 }
 
-type ProtocolRow = IProtocolByCategoryOrTagPageData['protocols'][0]
+type ProtocolRow = IProtocolTaxonomyPageData['protocols'][0]
 
 const columnHelper = createColumnHelper<ProtocolRow>()
 

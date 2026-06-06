@@ -1,4 +1,4 @@
-import type { ILiteProtocol } from '~/containers/ChainOverview/types'
+import type { ILiteProtocol } from '~/containers/ProtocolRankings/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, keepNeededProperties } from '~/utils'
 import type { ProtocolsResponse } from './api.types'

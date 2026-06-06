@@ -1,7 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { getAirdropDirectoryData } from '~/containers/Protocols/queries'
+import { getAirdropDirectoryData } from '~/containers/ProtocolLists/queries'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'

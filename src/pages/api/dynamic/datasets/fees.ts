@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { mergeMetricPeriods } from '~/containers/DimensionAdapters/metricPeriods'
-import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
+import { ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { mergeMetricPeriods } from '~/containers/AdapterMetrics/metricPeriods'
+import { getAdapterByChainPageData } from '~/containers/AdapterMetrics/queries'
 import { slug } from '~/utils'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 

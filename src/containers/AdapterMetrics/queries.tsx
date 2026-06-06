@@ -1,7 +1,9 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
+import { feeRevenueMetrics, getChainNativeFeeRevenueRankingMetric } from '~/metrics/feesRevenue'
 import { slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
@@ -730,16 +732,16 @@ export const getChainsByFeesAdapterPageData = async ({
 	chainMetadata
 }: {
 	adapterType: `${ADAPTER_TYPES}`
-	dataType: `${ADAPTER_DATA_TYPES}`
+	dataType: ChainNativeFeeRevenueRankingDataType
 	chainMetadata: Record<string, IChainMetadata>
 }): Promise<IChainsByAdapterPageData> => {
 	try {
 		const allChainsSet = new Set<string>()
+		const metric = getChainNativeFeeRevenueRankingMetric(dataType)
 
-		const chainLevelKey = dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees'
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			if (!currentChainMetadata[chainLevelKey]) continue
+			if (!currentChainMetadata[metric.metadataFlag]) continue
 			allChainsSet.add(currentChainMetadata.name)
 		}
 
@@ -975,7 +977,7 @@ export const getChainsByREVPageData = async ({
 		const allChains: Array<string> = []
 
 		for (const chain in chainMetadata) {
-			if (chainMetadata[chain]['chainFees']) {
+			if (chainMetadata[chain][feeRevenueMetrics.rev.metadataFlag]) {
 				allChains.push(chain)
 			}
 		}

@@ -1,4 +1,4 @@
-import type { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import type { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api'
 import type { ProtocolChartsLabels } from './constants'
 
 type AdapterChartRequest = Omit<Parameters<typeof fetchAdapterProtocolChartData>[0], 'protocol'>

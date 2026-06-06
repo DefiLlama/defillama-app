@@ -30,6 +30,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		parentPlatform: 'trade[XYZ]',
 		issuer: 'XYZ',
 		website: 'https://trade.xyz/',
+		link: 'https://app.hyperliquid.xyz/join/DEFILLAMAS',
 		oracleProvider: 'Pyth',
 		description: null,
 		categories: ['RWA Perps']
@@ -56,6 +57,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		category: ['RWA Perps'],
 		issuer: 'XYZ',
 		website: ['https://trade.xyz/'],
+		link: 'https://app.hyperliquid.xyz/join/DEFILLAMAS',
 		oracleProvider: 'Pyth',
 		description: null,
 		accessModel: 'Permissionless',
@@ -86,6 +88,13 @@ describe('Contract helpers', () => {
 
 		expect(html).toContain('href="/rwa/perps/venue/xyz-exchange"')
 		expect(html).toContain('XYZ Exchange')
+	})
+
+	it('renders the contract link as a right-aligned website icon when present', () => {
+		const html = renderToStaticMarkup(<RWAPerpsContractPage contract={TEST_CONTRACT} />)
+
+		expect(html).toContain('href="https://app.hyperliquid.xyz/join/DEFILLAMAS"')
+		expect(html).toContain('aria-label="Open xyz:META website"')
 	})
 
 	it('normalizes invalid or missing groupBy values back to daily', () => {

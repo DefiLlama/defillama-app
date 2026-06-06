@@ -1,10 +1,10 @@
 import { ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
-import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
+import type { IAdapterChainMetrics } from '~/containers/AdapterMetrics/api.types'
+import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -20,14 +20,14 @@ import {
 	type ProtocolCategoryMetrics
 } from './constants'
 import type {
-	IProtocolByCategoryOrTagPageData,
+	IProtocolTaxonomyPageData,
 	IProtocolsCategoriesChartData,
 	IProtocolsCategoriesExtraTvlPoint,
 	IProtocolsCategoriesPageData,
 	IProtocolsCategoriesTableRow
 } from './types'
 
-type GetProtocolsByCategoryOrTagParams = {
+type GetProtocolTaxonomyPageDataParams = {
 	chain?: string
 	categoriesAndTags: ICategoriesAndTags
 	chainMetadata: Record<string, IChainMetadata>
@@ -201,7 +201,7 @@ export const buildCategoryCharts = ({
 	optionsNotionalVolumeChartData: Array<[number, number]> | null
 	borrowedChartData: Record<string | number, number | null> | undefined
 	stakingChartData: Record<string | number, number | null> | undefined
-}): IProtocolByCategoryOrTagPageData['charts'] => {
+}): IProtocolTaxonomyPageData['charts'] => {
 	const chartMapsByMetric: Record<ProtocolCategoryChartMetric, Map<number, number | null>> = {
 		tvl: createTimeSeriesMap(tvlChartData),
 		dexVolume: createTimeSeriesMap(dexVolumeChartData),
@@ -258,7 +258,7 @@ export const buildCategoryCharts = ({
 	}
 }
 
-type ProtocolTableRow = IProtocolByCategoryOrTagPageData['protocols'][number]
+type ProtocolTableRow = IProtocolTaxonomyPageData['protocols'][number]
 
 type ProtocolMetricTotals = {
 	total24h: number | null
@@ -330,9 +330,9 @@ function hasCategoryMetric({
 	return config.dimAgg[adapterType]?.[dataKey] != null
 }
 
-export async function getProtocolsByCategoryOrTag(
-	params: GetProtocolsByCategoryOrTagParams
-): Promise<IProtocolByCategoryOrTagPageData | null> {
+export async function getProtocolTaxonomyPageData(
+	params: GetProtocolTaxonomyPageDataParams
+): Promise<IProtocolTaxonomyPageData | null> {
 	const { chain, chainMetadata, categoriesAndTags } = params
 	const category = params.kind === 'category' ? params.category : undefined
 	const tag = params.kind === 'tag' ? params.tag : undefined

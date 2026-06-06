@@ -1,5 +1,5 @@
-import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import { getProtocolsByChain } from '~/containers/ProtocolRankings/queries.server'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
 import { getForkToOriginalTvlPercent } from './tvl'

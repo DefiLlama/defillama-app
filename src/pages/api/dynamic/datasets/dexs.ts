@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import { fetchDimensionDataset } from '~/containers/ProDashboard/server/datasetFetchers'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 

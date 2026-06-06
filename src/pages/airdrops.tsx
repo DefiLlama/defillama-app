@@ -1,6 +1,6 @@
 import type { InferGetStaticPropsType } from 'next'
-import { getAirdropsProtocols } from '~/containers/Protocols/queries'
-import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
+import { getAirdropsProtocols } from '~/containers/ProtocolLists/queries'
+import { RecentProtocols } from '~/containers/ProtocolLists/RecentProtocols'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'

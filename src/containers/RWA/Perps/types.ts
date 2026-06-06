@@ -18,6 +18,7 @@ interface IRWAPerpsContractInfo {
 	parentPlatform: string | null
 	issuer: string | null
 	website: string | null
+	link: string | null
 	oracleProvider: string | null
 	description: string | null
 	categories: string[]

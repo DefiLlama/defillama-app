@@ -22,6 +22,7 @@ export interface IRWAPerpsMarket {
 	category: string[] | null
 	issuer: string | null
 	website: string[] | null
+	link?: string | null
 	oracleProvider: string | null
 	description: string | null
 	accessModel: string | null

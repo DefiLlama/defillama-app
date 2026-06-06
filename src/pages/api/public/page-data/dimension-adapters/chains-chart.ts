@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getChainsByAdapterAllChains, getChainsByAdapterChartData } from '~/containers/DimensionAdapters/queries'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { getChainsByAdapterAllChains, getChainsByAdapterChartData } from '~/containers/AdapterMetrics/queries'
 import { setPageDataCacheHeaders } from '~/server/pageData/cache'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -34,6 +34,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
+		// Build the chain universe from adapter metadata so this endpoint only
+		// asks upstream for chains that expose the requested metric.
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = getChainsByAdapterAllChains({
 			adapterType: adapterType as `${ADAPTER_TYPES}`,

@@ -326,6 +326,7 @@ export async function getRWAPerpsContractData({
 				parentPlatform: market.parentPlatform,
 				issuer: market.issuer,
 				website: market.website?.[0] ?? null,
+				link: market.link ?? null,
 				oracleProvider: market.oracleProvider,
 				description: market.description,
 				categories: market.category ?? []

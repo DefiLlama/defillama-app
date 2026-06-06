@@ -1,6 +1,6 @@
-import { toStrikeTvl } from '~/containers/ChainOverview/utils'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ProtocolLite } from '~/containers/Protocols/api.types'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import type { ProtocolLite } from '~/containers/ProtocolLists/api.types'
+import { toStrikeTvl } from '~/containers/ProtocolRankings/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
 import {

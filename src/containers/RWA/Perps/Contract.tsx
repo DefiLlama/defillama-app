@@ -90,9 +90,26 @@ function RWAPerpsContractHeader({
 	contract: IRWAPerpsContractData
 	headingAs?: 'h1' | 'div'
 }) {
+	const link = contract.contract.link
+
 	return (
-		<Tag className="flex items-center gap-2 text-xl">
-			<span className="font-bold">{contract.contract.contract}</span>
+		<Tag className="flex min-w-0 items-center justify-between gap-2 text-xl">
+			<span className="min-w-0 overflow-hidden font-bold text-ellipsis whitespace-nowrap">
+				{contract.contract.contract}
+			</span>
+			{link ? (
+				<Tooltip content="Open market website" placement="top">
+					<a
+						href={link}
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label={`Open ${contract.contract.contract} website`}
+						className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-md text-(--text-label) hover:bg-(--link-hover-bg) hover:text-(--link-text) focus-visible:bg-(--link-hover-bg) focus-visible:text-(--link-text)"
+					>
+						<Icon name="external-link" className="size-4" />
+					</a>
+				</Tooltip>
+			) : null}
 		</Tag>
 	)
 }

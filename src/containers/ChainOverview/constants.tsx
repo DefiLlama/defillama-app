@@ -1,16 +1,17 @@
 import { CHART_COLORS } from '~/constants/colors'
+import { feeRevenueMetrics } from '~/metrics/feesRevenue'
 
 // MAKE SURE TO UPDATE ON SERVER TOO https://github.com/DefiLlama/defillama-server/blob/master/defi/src/updateSearch.ts
 export const chainCharts = {
 	TVL: 'tvl',
 	'Stablecoins Mcap': 'stablecoinsMcap',
-	'Chain Fees': 'chainFees',
-	'Chain Revenue': 'chainRevenue',
+	'Chain Fees': feeRevenueMetrics.chainFees.chainOverview.chartKey,
+	'Chain Revenue': feeRevenueMetrics.chainRevenue.chainOverview.chartKey,
 	'DEXs Volume': 'dexsVolume',
 	'Perps Volume': 'perpsVolume',
 	'Token Incentives': 'tokenIncentives',
-	'App Revenue': 'appRevenue',
-	'App Fees': 'appFees',
+	'App Revenue': feeRevenueMetrics.appRevenue.chainOverview.chartKey,
+	'App Fees': feeRevenueMetrics.appFees.chainOverview.chartKey,
 	'Bridged TVL': 'bridgedTVL',
 	'Active Addresses': 'activeAddresses',
 	'New Addresses': 'newAddresses',
@@ -32,13 +33,13 @@ export const yAxisByChart: {
 } = {
 	TVL: 'TVL',
 	'Stablecoins Mcap': 'Stablecoins Mcap',
-	'Chain Fees': 'Chain Fees',
-	'Chain Revenue': 'Chain Fees',
+	'Chain Fees': feeRevenueMetrics.chainFees.label,
+	'Chain Revenue': feeRevenueMetrics.chainFees.label,
 	'DEXs Volume': 'DEXs Volume',
 	'Perps Volume': 'Perps Volume',
 	'Token Incentives': 'Token Incentives',
-	'App Revenue': 'Chain Fees',
-	'App Fees': 'Chain Fees',
+	'App Revenue': feeRevenueMetrics.chainFees.label,
+	'App Fees': feeRevenueMetrics.chainFees.label,
 	'Bridged TVL': 'Bridged TVL',
 	'Active Addresses': 'Active Addresses',
 	'New Addresses': 'Active Addresses',
@@ -54,13 +55,13 @@ export const yAxisByChart: {
 }
 
 export const BAR_CHARTS: ChainChartLabels[] = [
-	'Chain Fees',
-	'Chain Revenue',
+	feeRevenueMetrics.chainFees.label,
+	feeRevenueMetrics.chainRevenue.label,
 	'DEXs Volume',
 	'Perps Volume',
 	'Token Incentives',
-	'App Revenue',
-	'App Fees',
+	feeRevenueMetrics.appRevenue.label,
+	feeRevenueMetrics.appFees.label,
 	'Active Addresses',
 	'New Addresses',
 	'Transactions',

@@ -1,7 +1,7 @@
 import { CONFIG_API, FEATURES_SERVER, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,

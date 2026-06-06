@@ -60,6 +60,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		parentPlatform: 'trade[XYZ]',
 		issuer: 'XYZ',
 		website: 'https://trade.xyz/',
+		link: null,
 		oracleProvider: 'Pyth',
 		description: null,
 		categories: ['RWA Perps']

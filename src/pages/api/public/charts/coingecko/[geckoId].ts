@@ -41,6 +41,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 
 	try {
 		if (kind === 'supply') {
+			// Supply is not part of the CoinGecko chart payload; it comes from the
+			// cache-server supply snapshot while price charts use the CG cache path.
 			const data = await fetchJson<{ data?: { total_supply?: number } }>(`${CACHE_SERVER}/supply/${geckoId}`).catch(
 				() => null
 			)

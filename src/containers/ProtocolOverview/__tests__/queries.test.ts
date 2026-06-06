@@ -17,7 +17,7 @@ vi.mock('~/containers/Bridges/api', () => ({
 	fetchBridgeVolumeBySlug: vi.fn().mockResolvedValue({ dailyVolumes: [] })
 }))
 
-vi.mock('~/containers/DimensionAdapters/api', () => ({
+vi.mock('~/containers/AdapterMetrics/api', () => ({
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolMetrics: vi.fn().mockResolvedValue({})
 }))
@@ -35,7 +35,7 @@ vi.mock('~/containers/Oracles/api', () => ({
 	fetchOracleProtocolChart: vi.fn().mockResolvedValue(null)
 }))
 
-vi.mock('~/containers/Protocols/api', () => ({
+vi.mock('~/containers/ProtocolLists/api', () => ({
 	fetchProtocols: vi.fn().mockResolvedValue({ protocols: [], chains: [], parentProtocols: [] })
 }))
 

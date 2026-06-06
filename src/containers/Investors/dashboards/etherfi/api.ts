@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api'
 import { fetchProtocolTvlChart } from '~/containers/ProtocolOverview/api'
 
 const PROTOCOL_SLUG = 'etherfi-cash-liquid'

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getProtocolsCategoriesChartData } from '~/containers/ProtocolsByCategoryOrTag/queries'
+import { getProtocolsCategoriesChartData } from '~/containers/ProtocolTaxonomy/queries'
 import { setPageDataCacheHeaders } from '~/server/pageData/cache'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
