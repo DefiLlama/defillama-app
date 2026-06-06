@@ -116,32 +116,41 @@ describe('fees and revenue page semantics', () => {
 
 	it.each(rankingPageRows)('pins $route ranking page data builder semantics', async (row) => {
 		const page = await row.loadPage()
+		const ranking = row.metric.ranking
 
 		await page.getStaticProps(staticPropsContext)
 
-		if (row.metric.ranking.builder === 'chain-native') {
-			expect(mocks.getChainsByFeesAdapterPageData).toHaveBeenCalledWith({
-				adapterType: ADAPTER_TYPES.FEES,
-				dataType: row.metric.ranking.dataType,
-				chainMetadata: mocks.chainMetadata
-			})
-			expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
-			expect(mocks.getChainsByREVPageData).not.toHaveBeenCalled()
-		} else if (row.metric.ranking.builder === 'app-aggregation') {
-			expect(mocks.getChainsByAdapterPageData).toHaveBeenCalledWith({
-				adapterType: ADAPTER_TYPES.FEES,
-				dataType: row.metric.ranking.dataType,
-				chainMetadata: mocks.chainMetadata,
-				includeChartData: false
-			})
-			expect(mocks.getChainsByFeesAdapterPageData).not.toHaveBeenCalled()
-			expect(mocks.getChainsByREVPageData).not.toHaveBeenCalled()
-		} else {
-			expect(mocks.getChainsByREVPageData).toHaveBeenCalledWith({
-				chainMetadata: mocks.chainMetadata
-			})
-			expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
-			expect(mocks.getChainsByFeesAdapterPageData).not.toHaveBeenCalled()
+		switch (ranking.builder) {
+			case 'chain-native':
+				expect(mocks.getChainsByFeesAdapterPageData).toHaveBeenCalledWith({
+					adapterType: ADAPTER_TYPES.FEES,
+					dataType: ranking.dataType,
+					chainMetadata: mocks.chainMetadata
+				})
+				expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
+				expect(mocks.getChainsByREVPageData).not.toHaveBeenCalled()
+				break
+			case 'app-aggregation':
+				expect(mocks.getChainsByAdapterPageData).toHaveBeenCalledWith({
+					adapterType: ADAPTER_TYPES.FEES,
+					dataType: ranking.dataType,
+					chainMetadata: mocks.chainMetadata,
+					includeChartData: false
+				})
+				expect(mocks.getChainsByFeesAdapterPageData).not.toHaveBeenCalled()
+				expect(mocks.getChainsByREVPageData).not.toHaveBeenCalled()
+				break
+			case 'rev':
+				expect(mocks.getChainsByREVPageData).toHaveBeenCalledWith({
+					chainMetadata: mocks.chainMetadata
+				})
+				expect(mocks.getChainsByAdapterPageData).not.toHaveBeenCalled()
+				expect(mocks.getChainsByFeesAdapterPageData).not.toHaveBeenCalled()
+				break
+			default: {
+				const exhaustiveCheck: never = ranking
+				throw new Error(`Unhandled fee/revenue ranking builder: ${exhaustiveCheck}`)
+			}
 		}
 	})
 })

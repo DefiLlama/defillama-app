@@ -34,7 +34,7 @@ export const yAxisByChart: {
 	TVL: 'TVL',
 	'Stablecoins Mcap': 'Stablecoins Mcap',
 	'Chain Fees': feeRevenueMetrics.chainFees.label,
-	'Chain Revenue': 'Chain Fees',
+	'Chain Revenue': feeRevenueMetrics.chainFees.label,
 	'DEXs Volume': 'DEXs Volume',
 	'Perps Volume': 'Perps Volume',
 	'Token Incentives': 'Token Incentives',
