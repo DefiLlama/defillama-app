@@ -24,6 +24,7 @@ import type { StablecoinsListResponse } from '~/containers/Stablecoins/api.types
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
+import { feeRevenueMetrics, shouldFetchChainOverviewFeeRevenueMetric } from '~/metrics/feesRevenue'
 import { getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
@@ -36,7 +37,6 @@ import type {
 import type { RoutePhaseTimer } from '~/utils/perf'
 import type { ChainChartLabels } from './constants'
 import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
-import { chainOverviewFeeRevenueMetrics, shouldFetchChainOverviewFeeRevenueMetric } from './metricSemantics'
 import type { IChainOverviewData, ILiteChart } from './types'
 import { formatChainAssets } from './utils'
 
@@ -137,10 +137,10 @@ export async function getChainOverviewData({
 		return phaseTimer ? phaseTimer.time(label, run) : (Promise.resolve().then(run) as Promise<Awaited<T>>)
 	}
 
-	const chainFeesMetric = chainOverviewFeeRevenueMetrics.chainFees
-	const chainRevenueMetric = chainOverviewFeeRevenueMetrics.chainRevenue
-	const appFeesMetric = chainOverviewFeeRevenueMetrics.appFees
-	const appRevenueMetric = chainOverviewFeeRevenueMetrics.appRevenue
+	const chainFeesMetric = feeRevenueMetrics.chainFees
+	const chainRevenueMetric = feeRevenueMetrics.chainRevenue
+	const appFeesMetric = feeRevenueMetrics.appFees
+	const appRevenueMetric = feeRevenueMetrics.appRevenue
 
 	try {
 		const [

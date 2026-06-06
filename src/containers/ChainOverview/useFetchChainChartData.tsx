@@ -6,10 +6,11 @@ import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { feeRevenueMetrics } from '~/metrics/feesRevenue'
+import { getFeeRevenueChainChartApiParams } from '~/metrics/routeSemantics'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
-import { chainOverviewFeeRevenueMetrics, getChainOverviewFeeRevenueChartApiParams } from './metricSemantics'
 
 /**
  * Get TVL values for 24h change calculation.
@@ -41,10 +42,10 @@ const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
 	return `/api/public/charts/chain?${searchParams.toString()}`
 }
 
-const chainFeesMetric = chainOverviewFeeRevenueMetrics.chainFees
-const chainRevenueMetric = chainOverviewFeeRevenueMetrics.chainRevenue
-const appFeesMetric = chainOverviewFeeRevenueMetrics.appFees
-const appRevenueMetric = chainOverviewFeeRevenueMetrics.appRevenue
+const chainFeesMetric = feeRevenueMetrics.chainFees
+const chainRevenueMetric = feeRevenueMetrics.chainRevenue
+const appFeesMetric = feeRevenueMetrics.appFees
+const appRevenueMetric = feeRevenueMetrics.appRevenue
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -120,7 +121,7 @@ export const useFetchChainChartData = ({
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: chainFeesMetric,
 						chain: selectedChain
 					})
@@ -138,7 +139,7 @@ export const useFetchChainChartData = ({
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: chainRevenueMetric,
 						chain: selectedChain
 					})
@@ -178,7 +179,7 @@ export const useFetchChainChartData = ({
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: appFeesMetric,
 						chain: selectedChain
 					})
@@ -198,7 +199,7 @@ export const useFetchChainChartData = ({
 		queryFn: () =>
 			fetchJson(
 				buildChainChartApiUrl(
-					getChainOverviewFeeRevenueChartApiParams({
+					getFeeRevenueChainChartApiParams({
 						metric: appRevenueMetric,
 						chain: selectedChain
 					})

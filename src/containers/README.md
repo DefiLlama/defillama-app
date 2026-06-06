@@ -66,8 +66,8 @@ For metric routes, use these files before changing code:
 - `docs/metrics.md` for engineering semantics and overloaded terminology.
 - `public/pages.json` for product-facing page names, route definitions,
   descriptions, tabs, and total tracked keys.
-- `src/containers/ChainOverview/metricSemantics.ts` for ChainOverview fee/revenue
-  chart intent.
+- `src/metrics/feesRevenue.ts` and `src/metrics/routeSemantics.ts` for
+  fees/revenue intent shared by ChainOverview and public chart validation.
 - `src/containers/AdapterMetrics/constants.ts` for adapter and data type keys.
 
 ## Navigation Rules

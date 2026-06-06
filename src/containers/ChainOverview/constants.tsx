@@ -1,17 +1,17 @@
 import { CHART_COLORS } from '~/constants/colors'
-import { chainOverviewFeeRevenueMetrics } from './metricSemantics'
+import { feeRevenueMetrics } from '~/metrics/feesRevenue'
 
 // MAKE SURE TO UPDATE ON SERVER TOO https://github.com/DefiLlama/defillama-server/blob/master/defi/src/updateSearch.ts
 export const chainCharts = {
 	TVL: 'tvl',
 	'Stablecoins Mcap': 'stablecoinsMcap',
-	'Chain Fees': chainOverviewFeeRevenueMetrics.chainFees.chartKey,
-	'Chain Revenue': chainOverviewFeeRevenueMetrics.chainRevenue.chartKey,
+	'Chain Fees': feeRevenueMetrics.chainFees.chartKey,
+	'Chain Revenue': feeRevenueMetrics.chainRevenue.chartKey,
 	'DEXs Volume': 'dexsVolume',
 	'Perps Volume': 'perpsVolume',
 	'Token Incentives': 'tokenIncentives',
-	'App Revenue': chainOverviewFeeRevenueMetrics.appRevenue.chartKey,
-	'App Fees': chainOverviewFeeRevenueMetrics.appFees.chartKey,
+	'App Revenue': feeRevenueMetrics.appRevenue.chartKey,
+	'App Fees': feeRevenueMetrics.appFees.chartKey,
 	'Bridged TVL': 'bridgedTVL',
 	'Active Addresses': 'activeAddresses',
 	'New Addresses': 'newAddresses',
@@ -33,13 +33,13 @@ export const yAxisByChart: {
 } = {
 	TVL: 'TVL',
 	'Stablecoins Mcap': 'Stablecoins Mcap',
-	'Chain Fees': chainOverviewFeeRevenueMetrics.chainFees.label,
+	'Chain Fees': feeRevenueMetrics.chainFees.label,
 	'Chain Revenue': 'Chain Fees',
 	'DEXs Volume': 'DEXs Volume',
 	'Perps Volume': 'Perps Volume',
 	'Token Incentives': 'Token Incentives',
-	'App Revenue': chainOverviewFeeRevenueMetrics.chainFees.label,
-	'App Fees': chainOverviewFeeRevenueMetrics.chainFees.label,
+	'App Revenue': feeRevenueMetrics.chainFees.label,
+	'App Fees': feeRevenueMetrics.chainFees.label,
 	'Bridged TVL': 'Bridged TVL',
 	'Active Addresses': 'Active Addresses',
 	'New Addresses': 'Active Addresses',
@@ -55,13 +55,13 @@ export const yAxisByChart: {
 }
 
 export const BAR_CHARTS: ChainChartLabels[] = [
-	chainOverviewFeeRevenueMetrics.chainFees.label,
-	chainOverviewFeeRevenueMetrics.chainRevenue.label,
+	feeRevenueMetrics.chainFees.label,
+	feeRevenueMetrics.chainRevenue.label,
 	'DEXs Volume',
 	'Perps Volume',
 	'Token Incentives',
-	chainOverviewFeeRevenueMetrics.appRevenue.label,
-	chainOverviewFeeRevenueMetrics.appFees.label,
+	feeRevenueMetrics.appRevenue.label,
+	feeRevenueMetrics.appFees.label,
 	'Active Addresses',
 	'New Addresses',
 	'Transactions',
