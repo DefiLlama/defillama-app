@@ -1,5 +1,3 @@
-import type { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
-
 export type FeeRevenueMetricId = 'chainFees' | 'chainRevenue' | 'appFees' | 'appRevenue' | 'rev'
 export type ChainOverviewFeeRevenueMetricId = Exclude<FeeRevenueMetricId, 'rev'>
 export type FeeRevenueChartLabel = 'Chain Fees' | 'Chain Revenue' | 'App Fees' | 'App Revenue'
@@ -13,10 +11,9 @@ export type FeeRevenueRankingRoute =
 	| '/app-revenue/chains'
 	| '/rev/chains'
 export type FeeRevenueRankingBuilder = 'chain-native' | 'app-aggregation' | 'rev'
-export type ChainNativeFeeRevenueRankingDataType = ADAPTER_DATA_TYPES.DAILY_FEES | ADAPTER_DATA_TYPES.DAILY_REVENUE
-export type AppAggregationFeeRevenueRankingDataType =
-	| ADAPTER_DATA_TYPES.DAILY_APP_FEES
-	| ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
+export type FeeRevenueAdapterType = 'fees'
+export type ChainNativeFeeRevenueRankingDataType = 'dailyFees' | 'dailyRevenue'
+export type AppAggregationFeeRevenueRankingDataType = 'dailyAppFees' | 'dailyAppRevenue'
 export type FeeRevenueRankingDataType = ChainNativeFeeRevenueRankingDataType | AppAggregationFeeRevenueRankingDataType
 
 type FeeRevenueRankingBase = {
@@ -44,14 +41,14 @@ export type FeeRevenueRankingSemantics =
 export type AdapterProtocolChainChartSource = {
 	kind: 'adapter-protocol'
 	entity: 'chain'
-	adapterType: ADAPTER_TYPES.FEES
-	dataType?: ADAPTER_DATA_TYPES.DAILY_REVENUE
+	adapterType: FeeRevenueAdapterType
+	dataType?: 'dailyRevenue'
 }
 
 export type AdapterChainChartSource = {
 	kind: 'adapter-chain'
-	adapterType: ADAPTER_TYPES.FEES
-	dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES | ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
+	adapterType: FeeRevenueAdapterType
+	dataType: AppAggregationFeeRevenueRankingDataType
 }
 
 export type FeeRevenueChartSource = AdapterProtocolChainChartSource | AdapterChainChartSource

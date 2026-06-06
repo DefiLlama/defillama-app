@@ -1,4 +1,3 @@
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import type { ChainNativeFeeRevenueMetric, ChainOverviewFeeRevenueMetric } from './definitions'
 import { feeRevenueMetrics } from './feesRevenue'
 
@@ -39,8 +38,8 @@ export function getChainNativeFeeRevenueMetricForAdapterProtocol({
 	// Chain Fees/Revenue are chain-level economics, but upstream exposes their
 	// series through the adapter protocol chart path. Only these two data types
 	// are allowed to use the chain metadata fallback.
-	if (adapterType !== ADAPTER_TYPES.FEES) return null
-	if (!dataType || dataType === ADAPTER_DATA_TYPES.DAILY_FEES) return feeRevenueMetrics.chainFees
-	if (dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE) return feeRevenueMetrics.chainRevenue
+	if (adapterType !== 'fees') return null
+	if (!dataType || dataType === 'dailyFees') return feeRevenueMetrics.chainFees
+	if (dataType === 'dailyRevenue') return feeRevenueMetrics.chainRevenue
 	return null
 }

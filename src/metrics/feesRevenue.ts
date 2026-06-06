@@ -1,4 +1,3 @@
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import type {
 	ChainNativeFeeRevenueMetric,
@@ -24,7 +23,7 @@ export const feeRevenueMetrics = {
 			totalTrackedKey: 'chainFees.chains',
 			descriptionIncludes: ['using the chain'],
 			builder: 'chain-native',
-			dataType: ADAPTER_DATA_TYPES.DAILY_FEES
+			dataType: 'dailyFees'
 		},
 		chainOverview: {
 			chartKey: 'chainFees',
@@ -34,7 +33,7 @@ export const feeRevenueMetrics = {
 			source: {
 				kind: 'adapter-protocol',
 				entity: 'chain',
-				adapterType: ADAPTER_TYPES.FEES
+				adapterType: 'fees'
 			}
 		}
 	},
@@ -50,7 +49,7 @@ export const feeRevenueMetrics = {
 			totalTrackedKey: 'chainRevenue.chains',
 			descriptionIncludes: ['chain collects for itself'],
 			builder: 'chain-native',
-			dataType: ADAPTER_DATA_TYPES.DAILY_REVENUE
+			dataType: 'dailyRevenue'
 		},
 		chainOverview: {
 			chartKey: 'chainRevenue',
@@ -60,8 +59,8 @@ export const feeRevenueMetrics = {
 			source: {
 				kind: 'adapter-protocol',
 				entity: 'chain',
-				adapterType: ADAPTER_TYPES.FEES,
-				dataType: ADAPTER_DATA_TYPES.DAILY_REVENUE
+				adapterType: 'fees',
+				dataType: 'dailyRevenue'
 			}
 		}
 	},
@@ -77,7 +76,7 @@ export const feeRevenueMetrics = {
 			totalTrackedKey: 'fees.chains',
 			descriptionIncludes: ['apps on the chain', 'Excludes', 'gas fees'],
 			builder: 'app-aggregation',
-			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES
+			dataType: 'dailyAppFees'
 		},
 		chainOverview: {
 			chartKey: 'appFees',
@@ -86,8 +85,8 @@ export const feeRevenueMetrics = {
 			excludeAllChains: true,
 			source: {
 				kind: 'adapter-chain',
-				adapterType: ADAPTER_TYPES.FEES,
-				dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES
+				adapterType: 'fees',
+				dataType: 'dailyAppFees'
 			}
 		}
 	},
@@ -103,7 +102,7 @@ export const feeRevenueMetrics = {
 			totalTrackedKey: 'revenue.chains',
 			descriptionIncludes: ['apps on the chain', 'Excludes', 'gas fees'],
 			builder: 'app-aggregation',
-			dataType: ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
+			dataType: 'dailyAppRevenue'
 		},
 		chainOverview: {
 			chartKey: 'appRevenue',
@@ -112,8 +111,8 @@ export const feeRevenueMetrics = {
 			excludeAllChains: true,
 			source: {
 				kind: 'adapter-chain',
-				adapterType: ADAPTER_TYPES.FEES,
-				dataType: ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
+				adapterType: 'fees',
+				dataType: 'dailyAppRevenue'
 			}
 		}
 	},
@@ -149,5 +148,5 @@ export function shouldFetchChainOverviewFeeRevenueMetric({
 export function getChainNativeFeeRevenueRankingMetric(
 	dataType: ChainNativeFeeRevenueRankingDataType
 ): ChainNativeFeeRevenueMetric {
-	return dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE ? feeRevenueMetrics.chainRevenue : feeRevenueMetrics.chainFees
+	return dataType === 'dailyRevenue' ? feeRevenueMetrics.chainRevenue : feeRevenueMetrics.chainFees
 }
