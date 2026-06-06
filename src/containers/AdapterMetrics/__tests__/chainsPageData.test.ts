@@ -86,11 +86,37 @@ const overloadedVolumeChainMetadata = {
 			}
 		}
 	},
+	optimism: {
+		id: 'optimism',
+		name: 'Optimism',
+		dexAggregators: true,
+		dimAgg: {
+			aggregators: {
+				dv: {
+					'24h': 500
+				}
+			}
+		}
+	},
+	arbitrum: {
+		id: 'arbitrum',
+		name: 'Arbitrum',
+		perpsAggregators: true,
+		dimAgg: {
+			'aggregator-derivatives': {
+				dv: {
+					'24h': 600
+				}
+			}
+		}
+	},
 	base: {
 		id: 'base',
 		name: 'Base',
 		dexs: true,
 		perps: true,
+		dexAggregators: true,
+		perpsAggregators: true,
 		dimAgg: {
 			dexs: {
 				dv: {
@@ -100,6 +126,16 @@ const overloadedVolumeChainMetadata = {
 			derivatives: {
 				dv: {
 					'24h': 400
+				}
+			},
+			aggregators: {
+				dv: {
+					'24h': 700
+				}
+			},
+			'aggregator-derivatives': {
+				dv: {
+					'24h': 800
 				}
 			}
 		}
@@ -234,6 +270,18 @@ describe('chains by adapter page data', () => {
 			chainMetadata: overloadedVolumeChainMetadata,
 			includeChartData: false
 		})
+		const dexAggregatorData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.AGGREGATORS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata: overloadedVolumeChainMetadata,
+			includeChartData: false
+		})
+		const perpsAggregatorData = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.PERPS_AGGREGATOR,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata: overloadedVolumeChainMetadata,
+			includeChartData: false
+		})
 
 		expect(dexData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
 			{ name: 'Base', total24h: 300 },
@@ -242,6 +290,14 @@ describe('chains by adapter page data', () => {
 		expect(perpsData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
 			{ name: 'Base', total24h: 400 },
 			{ name: 'Solana', total24h: 200 }
+		])
+		expect(dexAggregatorData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 700 },
+			{ name: 'Optimism', total24h: 500 }
+		])
+		expect(perpsAggregatorData.chains.map(({ name, total24h }) => ({ name, total24h }))).toEqual([
+			{ name: 'Base', total24h: 800 },
+			{ name: 'Arbitrum', total24h: 600 }
 		])
 	})
 
