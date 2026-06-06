@@ -3,10 +3,10 @@ import { Icon } from '~/components/Icon'
 import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
+import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
 import { slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
-import { ChainProtocolsTable } from './Table'
 import type { IChainOverviewData } from './types'
 
 export function ChainOverview(props: IChainOverviewData) {

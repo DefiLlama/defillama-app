@@ -1,4 +1,4 @@
-import type { ILiteProtocol } from '~/containers/ChainOverview/types'
+import type { ILiteProtocol } from '~/containers/ProtocolRankings/types'
 
 export type OracleBreakdownItem = { timestamp: number } & Record<string, number>
 export type OracleChartData = Array<OracleBreakdownItem>

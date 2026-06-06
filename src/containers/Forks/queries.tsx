@@ -1,4 +1,4 @@
-import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
+import { getProtocolsByChain } from '~/containers/ProtocolRankings/queries.server'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'

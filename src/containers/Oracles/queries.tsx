@@ -1,4 +1,4 @@
-import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { toStrikeTvl } from '~/containers/ProtocolRankings/utils'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolLite } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
