@@ -41,7 +41,7 @@ vi.mock('../api', () => ({
 
 import {
 	buildCategoryCharts,
-	getProtocolsByCategoryOrTag,
+	getProtocolTaxonomyPageData,
 	getProtocolsCategoriesChartData,
 	getProtocolsCategoriesPageData
 } from '../queries'
@@ -138,7 +138,7 @@ const makeAdapterProtocol = ({
 		linkedProtocols: []
 	}) as IAdapterChainMetrics['protocols'][number]
 
-describe('ProtocolsByCategoryOrTag queries', () => {
+describe('ProtocolTaxonomy queries', () => {
 	beforeEach(() => {
 		const liteProtocols: ProtocolLite[] = []
 		const parentProtocols: ParentProtocolLite[] = []
@@ -343,7 +343,7 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 	})
 
 	it('merges adapter-only interface protocols and preserves both dex and perp metrics', async () => {
-		const result = await getProtocolsByCategoryOrTag({
+		const result = await getProtocolTaxonomyPageData({
 			kind: 'category',
 			category: 'Interface',
 			categoriesAndTags,
@@ -366,7 +366,7 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 	})
 
 	it('skips adapter category-chain metric fetches when metadata says the chain is unsupported', async () => {
-		const result = await getProtocolsByCategoryOrTag({
+		const result = await getProtocolTaxonomyPageData({
 			kind: 'category',
 			category: 'Interface',
 			chain: 'polygon',
@@ -388,7 +388,7 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 	})
 
 	it('uses dimAgg metric keys to skip unsupported metrics on a supported category chain', async () => {
-		const result = await getProtocolsByCategoryOrTag({
+		const result = await getProtocolTaxonomyPageData({
 			kind: 'category',
 			category: 'Interface',
 			chain: 'polygon',

@@ -8,7 +8,7 @@ import {
 	protocolCategoryConfig
 } from '../constants'
 
-describe('ProtocolsByCategoryOrTag constants', () => {
+describe('ProtocolTaxonomy constants', () => {
 	it('keeps Interface perp-first while enabling dex volume columns and metrics', () => {
 		expect(protocolCategoryConfig.Interface?.defaultChart).toBe('perpVolume')
 		expect(getProtocolCategoryChartMetrics('Interface')).toEqual(['tvl', 'dexVolume', 'perpVolume'])

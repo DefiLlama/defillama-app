@@ -15,7 +15,7 @@ const {
 	getChainsByAdapterChartDataMock: vi.fn()
 }))
 
-vi.mock('~/containers/ProtocolsByCategoryOrTag/queries', () => ({
+vi.mock('~/containers/ProtocolTaxonomy/queries', () => ({
 	getProtocolsCategoriesChartData: getProtocolsCategoriesChartDataMock
 }))
 

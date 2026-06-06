@@ -20,14 +20,14 @@ import {
 	type ProtocolCategoryMetrics
 } from './constants'
 import type {
-	IProtocolByCategoryOrTagPageData,
+	IProtocolTaxonomyPageData,
 	IProtocolsCategoriesChartData,
 	IProtocolsCategoriesExtraTvlPoint,
 	IProtocolsCategoriesPageData,
 	IProtocolsCategoriesTableRow
 } from './types'
 
-type GetProtocolsByCategoryOrTagParams = {
+type GetProtocolTaxonomyPageDataParams = {
 	chain?: string
 	categoriesAndTags: ICategoriesAndTags
 	chainMetadata: Record<string, IChainMetadata>
@@ -201,7 +201,7 @@ export const buildCategoryCharts = ({
 	optionsNotionalVolumeChartData: Array<[number, number]> | null
 	borrowedChartData: Record<string | number, number | null> | undefined
 	stakingChartData: Record<string | number, number | null> | undefined
-}): IProtocolByCategoryOrTagPageData['charts'] => {
+}): IProtocolTaxonomyPageData['charts'] => {
 	const chartMapsByMetric: Record<ProtocolCategoryChartMetric, Map<number, number | null>> = {
 		tvl: createTimeSeriesMap(tvlChartData),
 		dexVolume: createTimeSeriesMap(dexVolumeChartData),
@@ -258,7 +258,7 @@ export const buildCategoryCharts = ({
 	}
 }
 
-type ProtocolTableRow = IProtocolByCategoryOrTagPageData['protocols'][number]
+type ProtocolTableRow = IProtocolTaxonomyPageData['protocols'][number]
 
 type ProtocolMetricTotals = {
 	total24h: number | null
@@ -330,9 +330,9 @@ function hasCategoryMetric({
 	return config.dimAgg[adapterType]?.[dataKey] != null
 }
 
-export async function getProtocolsByCategoryOrTag(
-	params: GetProtocolsByCategoryOrTagParams
-): Promise<IProtocolByCategoryOrTagPageData | null> {
+export async function getProtocolTaxonomyPageData(
+	params: GetProtocolTaxonomyPageDataParams
+): Promise<IProtocolTaxonomyPageData | null> {
 	const { chain, chainMetadata, categoriesAndTags } = params
 	const category = params.kind === 'category' ? params.category : undefined
 	const tag = params.kind === 'tag' ? params.tag : undefined

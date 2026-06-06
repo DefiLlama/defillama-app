@@ -1,9 +1,9 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { tvlOptions } from '~/components/Filters/options'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
-import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategoryOrTag/constants'
-import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
+import { ProtocolTaxonomyPage } from '~/containers/ProtocolTaxonomy'
+import { getProtocolCategoryPresentation } from '~/containers/ProtocolTaxonomy/constants'
+import { getProtocolTaxonomyPageData } from '~/containers/ProtocolTaxonomy/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -35,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		// `getProtocolsByCategoryOrTag` is typed as a discriminated union:
+		// `getProtocolTaxonomyPageData` is typed as a discriminated union:
 		// - kind=category requires `category`
 		// - kind=tag requires `tag` + `tagCategory`
 		if (tagName && !tagCategory) {
@@ -43,14 +43,14 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const props = categoryName
-			? await getProtocolsByCategoryOrTag({
+			? await getProtocolTaxonomyPageData({
 					kind: 'category',
 					category: categoryName,
 					chain,
 					categoriesAndTags,
 					chainMetadata: metadataCache.chainMetadata
 				})
-			: await getProtocolsByCategoryOrTag({
+			: await getProtocolTaxonomyPageData({
 					kind: 'tag',
 					tag: tagName,
 					tagCategory,
@@ -106,7 +106,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}`}
 			metricFilters={toggleOptions}
 		>
-			<ProtocolsByCategoryOrTag {...props} />
+			<ProtocolTaxonomyPage {...props} />
 		</Layout>
 	)
 }
