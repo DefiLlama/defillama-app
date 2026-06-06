@@ -7,6 +7,7 @@ import type {
 	NextApiRequest,
 	NextApiResponse
 } from 'next'
+import { flushAxiom, logOutboundToAxiom } from '~/utils/axiom'
 import { readCacheJitterMeta } from '~/utils/maxAgeForNext'
 
 type TelemetryRuntime = 'node' | 'browser' | 'lambda' | 'build'
@@ -22,7 +23,7 @@ type RuntimeErrorPhase =
 	| 'clientRuntime'
 	| 'unknown'
 
-type TelemetryAttributes = Record<string, unknown>
+export type TelemetryAttributes = Record<string, unknown>
 
 type RouteExecutionEvent = {
 	type: 'route_execution'
@@ -100,7 +101,7 @@ type DomainEvent = {
 	span_id?: string
 	parent_span_id?: string
 	route?: string
-	event_name: 'token_rights.alert'
+	event_name: 'token_rights.alert' | 'build.complete' | 'metadata.refresh'
 	level: 'info' | 'warn' | 'error'
 	occurred_at: string
 	subject?: string
@@ -144,6 +145,7 @@ type RouteTelemetryOptions<T> = {
 }
 
 type OutboundTelemetryOptions = {
+	attributes?: TelemetryAttributes
 	attempt?: number
 	maxAttempts?: number
 	singleflightRole?: 'leader'
@@ -153,8 +155,9 @@ type AsyncLocalStorageLike<T> = {
 	run<R>(store: T, callback: () => R): R
 	getStore(): T | undefined
 }
+type TelemetryStore = RouteTelemetryContext | undefined
 
-let telemetryContext: AsyncLocalStorageLike<RouteTelemetryContext> | null = null
+let telemetryContext: AsyncLocalStorageLike<TelemetryStore> | null = null
 const queue: TelemetryEvent[] = []
 
 let retryBatch: PendingBatch | null = null
@@ -162,6 +165,7 @@ let flushPromise: Promise<void> | null = null
 let consecutiveFailures = 0
 let circuitOpenUntil = 0
 let previousPageBuildFinishedAt: string | undefined
+const defaultTelemetryTargetId = 'defillama'
 
 function getEnvNumber(name: string, fallback: number): number {
 	const raw = process.env[name]
@@ -225,8 +229,35 @@ function nowIso(): string {
 	return new Date().toISOString()
 }
 
+function telemetryTargetId(): string {
+	return process.env.OPS_TELEMETRY_TARGET_ID?.trim() || defaultTelemetryTargetId
+}
+
+function firstProcessEnvValue(keys: readonly string[]): string | undefined {
+	for (const key of keys) {
+		const value = process.env[key]?.trim()
+		if (value) return value
+	}
+	return undefined
+}
+
+function withTelemetryTargetAttribute(event: TelemetryEvent): TelemetryEvent {
+	return {
+		...event,
+		attributes: {
+			...event.attributes,
+			telemetry_target_id: telemetryTargetId()
+		}
+	}
+}
+
 function producer(runtime: TelemetryRuntime) {
-	const serviceVersion = process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+	const serviceVersion = firstProcessEnvValue([
+		'SOURCE_COMMIT',
+		'VERCEL_GIT_COMMIT_SHA',
+		'NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA',
+		'GITHUB_SHA'
+	])
 
 	return {
 		app: 'defillama-app',
@@ -302,16 +333,21 @@ function mergeRuntimeErrorAttributes(
 	return hasAttributes(merged) ? merged : undefined
 }
 
-async function getTelemetryContextStorage(): Promise<AsyncLocalStorageLike<RouteTelemetryContext>> {
+async function getTelemetryContextStorage(): Promise<AsyncLocalStorageLike<TelemetryStore>> {
 	if (telemetryContext) return telemetryContext
 
 	const { AsyncLocalStorage } = await import(/* webpackIgnore: true */ 'async_hooks')
-	telemetryContext = new AsyncLocalStorage<RouteTelemetryContext>()
+	telemetryContext = new AsyncLocalStorage<TelemetryStore>()
 	return telemetryContext
 }
 
 export function currentTelemetryContext(): RouteTelemetryContext | undefined {
 	return telemetryContext?.getStore()
+}
+
+export function runOutsideRouteTelemetry<T>(run: () => T): T {
+	if (!telemetryContext) return run()
+	return telemetryContext.run(undefined, run)
 }
 
 export function addRouteTelemetryAttributes(attributes: TelemetryAttributes): void {
@@ -331,7 +367,7 @@ export function recordTelemetry(event: TelemetryEvent): void {
 			queue.shift()
 		}
 
-		queue.push(event)
+		queue.push(withTelemetryTargetAttribute(event))
 
 		if (queue.length >= batchSize() && !isCircuitOpen()) {
 			void flushTelemetry({ timeoutMs: getEnvNumber('OPS_TELEMETRY_BACKGROUND_FLUSH_MS', 1000) })
@@ -544,7 +580,7 @@ export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, r
 		})
 
 		if (options.operationType === 'getStaticProps') {
-			recordPageBuildFinishTick(options.route, context, status, durationMs)
+			recordPageBuildFinishTick(options.route, context, status, durationMs, extraAttributes)
 		}
 
 		void flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
@@ -595,7 +631,8 @@ function recordPageBuildFinishTick(
 	route: string,
 	context: RouteTelemetryContext,
 	status: RouteStatus,
-	durationMs: number
+	durationMs: number,
+	attributes?: TelemetryAttributes
 ): void {
 	const finishedAt = nowIso()
 	const previousFinishedAt = previousPageBuildFinishedAt
@@ -613,6 +650,7 @@ function recordPageBuildFinishTick(
 		status,
 		attributes: {
 			...context.attributes,
+			...attributes,
 			duration_ms: durationMs,
 			...(gapMs !== undefined && gapMs > largePageBuildFinishGapMs() ? { large_gap: true } : null)
 		}
@@ -924,14 +962,19 @@ function outboundStatus(response: Response, durationMs: number): OutboundStatus 
 	return 'success'
 }
 
+function responseContentLengthBytes(response: Response): number | undefined {
+	const contentLength = response.headers.get('content-length')
+	if (!contentLength) return undefined
+
+	const parsed = Number(contentLength)
+	if (!Number.isInteger(parsed) || parsed < 0) return undefined
+
+	return parsed
+}
+
 function responseByteAttribute(response: Response): TelemetryAttributes | undefined {
-	const responseBytes = response.headers.get('content-length')
-	if (!responseBytes) return undefined
-
-	const parsed = Number(responseBytes)
-	if (!Number.isFinite(parsed)) return undefined
-
-	return { response_bytes: parsed }
+	const bytes = responseContentLengthBytes(response)
+	return bytes === undefined ? undefined : { response_bytes: bytes }
 }
 
 function requestByteAttribute(options?: RequestInit): TelemetryAttributes | undefined {
@@ -1028,9 +1071,16 @@ function requestAttributes(
 ): TelemetryAttributes | undefined {
 	const attributes: TelemetryAttributes = {}
 	let hasOutboundAttributes = false
+	const telemetryAttributes = options?.telemetry?.attributes
 	const requestBytes = requestByteAttribute(options)
 	const requestBody = sanitizedRequestBodyAttribute(method, url, options)
 
+	if (telemetryAttributes) {
+		for (const key in telemetryAttributes) {
+			attributes[key] = telemetryAttributes[key]
+			hasOutboundAttributes = true
+		}
+	}
 	if (requestBytes?.request_bytes !== undefined) {
 		attributes.request_bytes = requestBytes.request_bytes
 		hasOutboundAttributes = true
@@ -1060,10 +1110,10 @@ function outboundAttributes(
 ): TelemetryAttributes | undefined {
 	const attributes = requestAttributes(apiGroupValue, method, url, options) ?? {}
 	let hasOutboundAttributes = hasAttributes(attributes)
-	const responseBytes = responseByteAttribute(response)
+	const responseByteAttributes = responseByteAttribute(response)
 
-	if (responseBytes?.response_bytes !== undefined) {
-		attributes.response_bytes = responseBytes.response_bytes
+	if (responseByteAttributes?.response_bytes !== undefined) {
+		attributes.response_bytes = responseByteAttributes.response_bytes
 		hasOutboundAttributes = true
 	}
 
@@ -1084,9 +1134,7 @@ export async function withOutboundTelemetry(
 	run: () => Promise<Response>
 ): Promise<Response> {
 	const context = currentTelemetryContext()
-	if (!context) return run()
-
-	context.outboundCount++
+	if (context) context.outboundCount++
 
 	const urlString = getUrlString(url)
 	const sanitizedUrl = sanitizeUrlForTelemetry(urlString)
@@ -1099,29 +1147,45 @@ export async function withOutboundTelemetry(
 	try {
 		const response = await run()
 		const durationMs = Date.now() - started
-		const { apiGroup: apiGroupValue, ...parts } = urlParts(sanitizedUrl)
+		const status = outboundStatus(response, durationMs)
+		const responseBytesValue = responseContentLengthBytes(response)
 
-		recordTelemetry({
-			type: 'outbound_http_request',
-			trace_id: context.traceId,
-			span_id: spanId,
-			parent_span_id: context.spanId,
+		if (context) {
+			const { apiGroup: apiGroupValue, ...parts } = urlParts(sanitizedUrl)
+
+			recordTelemetry({
+				type: 'outbound_http_request',
+				trace_id: context.traceId,
+				span_id: spanId,
+				parent_span_id: context.spanId,
+				method,
+				url: sanitizedUrl,
+				...parts,
+				started_at: startedAt,
+				ended_at: nowIso(),
+				duration_ms: durationMs,
+				status,
+				http_status: response.status,
+				timeout_ms: timeoutMs,
+				...(options?.telemetry?.attempt ? { attempt: options.telemetry.attempt } : null),
+				...(options?.telemetry?.maxAttempts ? { max_attempts: options.telemetry.maxAttempts } : null),
+				attributes: outboundAttributes(response, apiGroupValue, method, urlString, options)
+			})
+		}
+
+		logOutboundToAxiom({
+			sanitizedUrl,
 			method,
-			url: sanitizedUrl,
-			...parts,
-			started_at: startedAt,
-			ended_at: nowIso(),
-			duration_ms: durationMs,
-			status: outboundStatus(response, durationMs),
-			http_status: response.status,
-			timeout_ms: timeoutMs,
-			...(options?.telemetry?.attempt ? { attempt: options.telemetry.attempt } : null),
-			...(options?.telemetry?.maxAttempts ? { max_attempts: options.telemetry.maxAttempts } : null),
-			attributes: outboundAttributes(response, apiGroupValue, method, urlString, options)
+			durationMs,
+			...(responseBytesValue !== undefined ? { responseBytes: responseBytesValue } : null),
+			httpStatus: response.status,
+			status
 		})
 
 		return response
 	} catch (error) {
+		if (!context) throw error
+
 		const durationMs = Date.now() - started
 		const fields = errorFields(error)
 		const status = isTimeoutError(error, durationMs, timeoutMs)
@@ -1168,13 +1232,29 @@ export async function withOutboundTelemetry(
 }
 
 function staticPropsStatus<T>(result: GetStaticPropsResult<T>, durationMs: number): RouteStatus {
-	if ('notFound' in result && result.notFound) return 'error'
 	if (durationMs > slowRouteThresholdMs()) return 'slow'
 	return 'success'
 }
 
+function staticPropsHttpStatus<T>(result: GetStaticPropsResult<T>): number | undefined {
+	if ('notFound' in result && result.notFound) return 404
+	if ('redirect' in result) {
+		if ('statusCode' in result.redirect) return result.redirect.statusCode
+		return result.redirect.permanent ? 308 : 307
+	}
+	return undefined
+}
+
 export function getStaticPropsTelemetryAttributes<T>(result: GetStaticPropsResult<T>): TelemetryAttributes {
 	const attributes: TelemetryAttributes = {}
+
+	if ('notFound' in result && result.notFound) {
+		attributes.result = 'not_found'
+	} else if ('redirect' in result) {
+		attributes.result = 'redirect'
+	} else {
+		attributes.result = 'props'
+	}
 
 	if ('props' in result) {
 		const bytes = getPayloadBytes(result.props)
@@ -1212,6 +1292,7 @@ export async function withStaticRouteTelemetry<T>(
 			...(requestPath ? { requestPath } : null),
 			attributes,
 			getResultAttributes: getStaticPropsTelemetryAttributes,
+			getHttpStatus: staticPropsHttpStatus,
 			getStatus: staticPropsStatus
 		},
 		run
@@ -1219,9 +1300,17 @@ export async function withStaticRouteTelemetry<T>(
 }
 
 function serverSidePropsStatus<T>(result: GetServerSidePropsResult<T>, durationMs: number): RouteStatus {
-	if ('notFound' in result && result.notFound) return 'error'
 	if (durationMs > slowRouteThresholdMs()) return 'slow'
 	return 'success'
+}
+
+function serverSidePropsHttpStatus<T>(result: GetServerSidePropsResult<T>, fallbackStatus: number): number {
+	if ('notFound' in result && result.notFound) return 404
+	if ('redirect' in result) {
+		if ('statusCode' in result.redirect) return result.redirect.statusCode
+		return result.redirect.permanent ? 308 : 307
+	}
+	return fallbackStatus
 }
 
 export function getServerSidePropsTelemetryAttributes<T>(result: GetServerSidePropsResult<T>): TelemetryAttributes {
@@ -1253,7 +1342,7 @@ export function withServerSidePropsTelemetry<T extends { [key: string]: any }>(
 				requestPath: sanitizeRequestPathString(context.resolvedUrl),
 				flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_SSR_FLUSH_MS', 200),
 				attributes,
-				getHttpStatus: () => context.res.statusCode,
+				getHttpStatus: (result) => serverSidePropsHttpStatus(result, context.res.statusCode),
 				getResultAttributes: getServerSidePropsTelemetryAttributes,
 				getStatus: serverSidePropsStatus
 			},
@@ -1265,6 +1354,7 @@ export function withServerSidePropsTelemetry<T extends { [key: string]: any }>(
 if (typeof process !== 'undefined') {
 	process.once('beforeExit', () => {
 		void flushTelemetry({ timeoutMs: getEnvNumber('OPS_TELEMETRY_BEFORE_EXIT_FLUSH_MS', 2000), runtime: 'build' })
+		void flushAxiom()
 	})
 }
 

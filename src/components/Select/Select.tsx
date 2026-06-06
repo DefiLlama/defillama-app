@@ -237,7 +237,7 @@ export function Select(props: ISelect) {
 									<span>{isSelectOption(option) ? option.name : option}</span>
 								)}
 								{showCheckboxes ? (
-									<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									<Ariakit.SelectItemCheck className="ml-auto flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 								) : (
 									<Ariakit.SelectItemCheck className="ml-auto" />
 								)}
@@ -308,7 +308,7 @@ export function Select(props: ISelect) {
 				ref={selectRef}
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</Ariakit.PopoverDismiss>
 
 				{allValues.length > 0 ? (
@@ -366,7 +366,7 @@ export function Select(props: ISelect) {
 								{canSelectOnlyOne ? (
 									<Ariakit.SelectItemCheck className="ml-auto" />
 								) : (
-									<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									<Ariakit.SelectItemCheck className="ml-auto flex size-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
 								)}
 							</Ariakit.SelectItem>
 						))}

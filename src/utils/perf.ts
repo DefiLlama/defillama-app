@@ -6,6 +6,7 @@ import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from '.
 import { normalizeError } from './error'
 import { fetchWithPoolingOnServer } from './http-client'
 import {
+	addRouteTelemetryAttributes,
 	buildStaticRouteRequestPath,
 	staticRouteTelemetryAttributes,
 	recordRuntimeError,
@@ -17,22 +18,69 @@ const REDIS_URL = process.env.REDIS_URL as string
 const MAX_PAGE_BUILD_RETRIES = Math.max(1, getEnvNumber('PAGE_BUILD_MAX_RETRIES', 3))
 const PAGE_BUILD_RETRY_BUDGET_MS = Math.max(0, getEnvNumber('PAGE_BUILD_RETRY_BUDGET_MS', 20_000))
 
+type PerformanceLoggingOptions = {
+	jitterRevalidate?: boolean
+}
+
+export type RoutePhaseTimer = {
+	time<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>>
+	start(label: string): () => void
+	record(): void
+	timings(): Record<string, number>
+}
+
+export function createRoutePhaseTimer(): RoutePhaseTimer {
+	const phases: Record<string, number> = {}
+
+	const recordElapsed = (label: string, startedAt: number) => {
+		phases[label] = Math.max(0, Math.round(Date.now() - startedAt))
+	}
+
+	return {
+		async time<T>(label: string, run: () => T | Promise<T>): Promise<Awaited<T>> {
+			const startedAt = Date.now()
+			try {
+				return await run()
+			} finally {
+				recordElapsed(label, startedAt)
+			}
+		},
+		start(label: string): () => void {
+			const startedAt = Date.now()
+			return () => recordElapsed(label, startedAt)
+		},
+		record(): void {
+			addRouteTelemetryAttributes({ route_phases_ms: { ...phases } })
+		},
+		timings(): Record<string, number> {
+			return { ...phases }
+		}
+	}
+}
+
 export const withPerformanceLogging = <T extends { [key: string]: any }, P extends ParsedUrlQuery = ParsedUrlQuery>(
 	filename: string,
-	getStaticPropsFunction: GetStaticProps<T, P>
+	getStaticPropsFunction: GetStaticProps<T, P>,
+	options: PerformanceLoggingOptions = {}
 ): GetStaticProps<T, P> => {
 	return async (context: GetStaticPropsContext<P>) => {
 		const requestPath = buildStaticRouteRequestPath(filename, context.params)
-		const run = async () => runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context, requestPath)
-		const attributes = staticRouteTelemetryAttributes(context.params)
+		const run = async () =>
+			runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context, requestPath, options)
+		const attributes = {
+			...(staticRouteTelemetryAttributes(context.params) ?? {}),
+			...(context.revalidateReason ? { revalidate_reason: context.revalidateReason } : null)
+		}
 		return withStaticRouteTelemetry(filename, run, attributes, requestPath)
 	}
 }
 
 function jitterStaticPropsRevalidate<T extends { [key: string]: any }>(
 	result: GetStaticPropsResult<T>,
-	key: string
+	key: string,
+	options: PerformanceLoggingOptions
 ): GetStaticPropsResult<T> {
+	if (options.jitterRevalidate === false) return result
 	if (typeof result.revalidate !== 'number') return result
 
 	const jittered = jitterCacheSeconds(result.revalidate, key)
@@ -47,7 +95,8 @@ async function runPerformanceLoggedStaticProps<
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T, P>,
 	context: GetStaticPropsContext<P>,
-	requestPath: string | undefined
+	requestPath: string | undefined,
+	options: PerformanceLoggingOptions
 ): Promise<GetStaticPropsResult<T>> {
 	const start = Date.now()
 	const { params } = context
@@ -56,7 +105,7 @@ async function runPerformanceLoggedStaticProps<
 
 	for (let attempt = 0; attempt < MAX_PAGE_BUILD_RETRIES; attempt++) {
 		try {
-			const props = jitterStaticPropsRevalidate(await getStaticPropsFunction(context), jitterKey)
+			const props = jitterStaticPropsRevalidate(await getStaticPropsFunction(context), jitterKey, options)
 			const elapsed = Date.now() - start
 
 			if (elapsed > 10_000) {

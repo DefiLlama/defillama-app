@@ -25,7 +25,7 @@ function resolveLogoUrl(name: string, kind: LogoKind): string {
 }
 
 export const FallbackLogo = () => (
-	<span className="inline-block aspect-square h-6 w-6 shrink-0 rounded-full bg-(--bg-tertiary) object-cover" />
+	<span className="inline-block aspect-square size-6 shrink-0 rounded-full bg-(--bg-tertiary) object-cover" />
 )
 
 export function TokenLogo(props: TokenLogoProps) {

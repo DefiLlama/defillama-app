@@ -2,8 +2,10 @@ import type { ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import type { TokenRiskBorrowCapacityMethodologies, TokenRiskBorrowCapacityTokenEntry } from './api.types'
 import type {
 	TokenRiskCandidate,
+	TokenRiskChainExposureSummary,
 	TokenRiskCoverageStatus,
 	TokenRiskExposuresSection,
+	TokenRiskProtocolSummary,
 	TokenRiskExposureRow
 } from './tokenRisk.types'
 
@@ -224,6 +226,142 @@ export function mergeIndexedBorrowCapacity(
 	return merged
 }
 
+type ProtocolSummaryAccumulator = {
+	protocol: string
+	protocolDisplayName: string
+	totalCurrentMaxBorrowUsd: number
+	totalMinBadDebtAtPriceZeroUsd: number | null
+	hasKnownMinBadDebt: boolean
+	hasUnknownMinBadDebt: boolean
+	chainBreakdowns: Map<string, ChainSummaryAccumulator>
+}
+
+type ChainSummaryAccumulator = {
+	chain: string
+	chainDisplayName: string
+	totalCurrentMaxBorrowUsd: number
+	totalMinBadDebtAtPriceZeroUsd: number | null
+	hasKnownMinBadDebt: boolean
+	hasUnknownMinBadDebt: boolean
+}
+
+function getMinBadDebtCoverage(hasKnownMinBadDebt: boolean, hasUnknownMinBadDebt: boolean): TokenRiskCoverageStatus {
+	if (!hasKnownMinBadDebt) return 'unavailable'
+	return hasUnknownMinBadDebt ? 'partial' : 'known'
+}
+
+function addMinBadDebtMetrics(
+	summary: {
+		totalMinBadDebtAtPriceZeroUsd: number | null
+		hasKnownMinBadDebt: boolean
+		hasUnknownMinBadDebt: boolean
+	},
+	row: TokenRiskExposureRow
+) {
+	if (row.minBadDebtAtPriceZeroUsd != null) {
+		summary.totalMinBadDebtAtPriceZeroUsd = (summary.totalMinBadDebtAtPriceZeroUsd ?? 0) + row.minBadDebtAtPriceZeroUsd
+		summary.hasKnownMinBadDebt = true
+	}
+	if (row.minBadDebtAtPriceZeroCoverage !== 'known') {
+		summary.hasUnknownMinBadDebt = true
+	}
+}
+
+function addChainBreakdown(summary: ProtocolSummaryAccumulator, row: TokenRiskExposureRow) {
+	const chainKey = `${row.chain}|${row.chainDisplayName}`
+	const existing = summary.chainBreakdowns.get(chainKey)
+
+	if (existing) {
+		existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
+		addMinBadDebtMetrics(existing, row)
+		return
+	}
+
+	summary.chainBreakdowns.set(chainKey, {
+		chain: row.chain,
+		chainDisplayName: row.chainDisplayName,
+		totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
+		totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
+		hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
+		hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known'
+	})
+}
+
+function buildChainExposureSummaries(
+	chainBreakdowns: Map<string, ChainSummaryAccumulator>
+): TokenRiskChainExposureSummary[] {
+	const summaries: TokenRiskChainExposureSummary[] = []
+
+	for (const chain of chainBreakdowns.values()) {
+		summaries.push({
+			chain: chain.chain,
+			chainDisplayName: chain.chainDisplayName,
+			totalCurrentMaxBorrowUsd: chain.totalCurrentMaxBorrowUsd,
+			totalMinBadDebtAtPriceZeroUsd: chain.totalMinBadDebtAtPriceZeroUsd,
+			minBadDebtAtPriceZeroCoverage: getMinBadDebtCoverage(chain.hasKnownMinBadDebt, chain.hasUnknownMinBadDebt)
+		})
+	}
+
+	summaries.sort((a, b) => {
+		const aTotal = a.totalCurrentMaxBorrowUsd + (a.totalMinBadDebtAtPriceZeroUsd ?? 0)
+		const bTotal = b.totalCurrentMaxBorrowUsd + (b.totalMinBadDebtAtPriceZeroUsd ?? 0)
+		if (aTotal !== bTotal) return bTotal - aTotal
+		return a.chainDisplayName.localeCompare(b.chainDisplayName)
+	})
+
+	return summaries
+}
+
+export function buildTokenRiskProtocolSummaries(rows: TokenRiskExposureRow[]): TokenRiskProtocolSummary[] {
+	const grouped = new Map<string, ProtocolSummaryAccumulator>()
+
+	for (const row of rows) {
+		const existing = grouped.get(row.protocol)
+
+		if (existing) {
+			existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
+			addMinBadDebtMetrics(existing, row)
+			addChainBreakdown(existing, row)
+			continue
+		}
+
+		const protocolSummary: ProtocolSummaryAccumulator = {
+			protocol: row.protocol,
+			protocolDisplayName: row.protocolDisplayName,
+			totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
+			totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
+			hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
+			hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known',
+			chainBreakdowns: new Map()
+		}
+		addChainBreakdown(protocolSummary, row)
+		grouped.set(row.protocol, protocolSummary)
+	}
+
+	const summaries: TokenRiskProtocolSummary[] = []
+
+	for (const summary of grouped.values()) {
+		summaries.push({
+			protocol: summary.protocol,
+			protocolDisplayName: summary.protocolDisplayName,
+			totalCurrentMaxBorrowUsd: summary.totalCurrentMaxBorrowUsd,
+			totalMinBadDebtAtPriceZeroUsd: summary.totalMinBadDebtAtPriceZeroUsd,
+			minBadDebtAtPriceZeroCoverage: getMinBadDebtCoverage(summary.hasKnownMinBadDebt, summary.hasUnknownMinBadDebt),
+			chainBreakdowns: buildChainExposureSummaries(summary.chainBreakdowns)
+		})
+	}
+
+	summaries.sort((a, b) => {
+		if (a.totalCurrentMaxBorrowUsd !== b.totalCurrentMaxBorrowUsd) {
+			return b.totalCurrentMaxBorrowUsd - a.totalCurrentMaxBorrowUsd
+		}
+
+		return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
+	})
+
+	return summaries
+}
+
 export function buildExposuresSection(
 	tokens: TokenRiskBorrowCapacityTokenEntry[],
 	methodologies: Pick<
@@ -316,6 +454,7 @@ export function buildExposuresSection(
 			minBadDebtUnknownCount
 		},
 		rows,
+		protocolSummaries: buildTokenRiskProtocolSummaries(rows),
 		methodologies: {
 			asset: methodologies.asset,
 			currentMaxBorrowUsd: methodologies.collateralMaxBorrowUsdLiquidity,

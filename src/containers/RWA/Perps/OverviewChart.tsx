@@ -117,7 +117,7 @@ function fetchOverviewBreakdownDataset(request: IRWAPerpsOverviewBreakdownReques
 		key: request.key
 	})
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/perps/overview-breakdown?${searchParams.toString()}`)
+	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`)
 }
 
 export function buildRWAPerpsOverviewChartSeries({

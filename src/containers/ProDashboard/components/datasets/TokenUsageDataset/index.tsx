@@ -48,9 +48,9 @@ interface TokenUsageDatasetProps {
 const TokenOptionComponent = ({ innerProps, label, data }: any) => (
 	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
-			<img src={data.logo?.replace('/0/', '')} alt="" width={20} height={20} className="h-5 w-5 rounded-full" />
+			<img src={data.logo?.replace('/0/', '')} alt="" width={20} height={20} className="size-5 rounded-full" />
 		) : (
-			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
+			<div className="size-5 rounded-full bg-(--bg-tertiary)" />
 		)}
 		<span>{label}</span>
 	</div>
@@ -252,7 +252,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	if (!tokenSymbols || tokenSymbols.length === 0) {
 		return (
-			<div className="flex h-full w-full flex-col p-4">
+			<div className="flex size-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
 						<h3 className="text-base font-semibold pro-text1 md:text-lg">Token Usage Comparison</h3>
@@ -306,7 +306,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	if (isLoading) {
 		return (
-			<div className="flex h-full w-full flex-col p-4">
+			<div className="flex size-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
 						<h3 className="text-base font-semibold pro-text1 md:text-lg">
@@ -324,7 +324,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	if (isError) {
 		return (
-			<div className="flex h-full w-full flex-col p-4">
+			<div className="flex size-full flex-col p-4">
 				<div className="mb-3">
 					<div className="flex items-center justify-between gap-4">
 						<h3 className="text-base font-semibold pro-text1 md:text-lg">Token Usage Comparison</h3>
@@ -346,7 +346,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}
 
 	return (
-		<div className="flex h-full w-full flex-col p-4">
+		<div className="flex size-full flex-col p-4">
 			<div className="mb-3">
 				<div className="flex items-center justify-between gap-4">
 					<h3 className="truncate text-base font-semibold pro-text1 md:text-lg">
@@ -443,7 +443,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							<div className="mb-2 text-xs text-(--text-tertiary)">Protocol Distribution</div>
 							<div className="flex flex-wrap items-center gap-4">
 								<div className="flex items-center gap-2">
-									<div className="h-3 w-3 bg-(--primary)" />
+									<div className="size-3 bg-(--primary)" />
 									<span className="text-sm">
 										<span className="font-semibold">{protocolOverlap.shared}</span>
 										<span className="text-(--text-tertiary)"> shared</span>
@@ -457,7 +457,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								{tokenSymbols.map((symbol, index) => (
 									<div key={symbol} className="flex items-center gap-2">
 										<div
-											className="h-3 w-3 border-2 border-(--divider)"
+											className="size-3 border-2 border-(--divider)"
 											style={{
 												backgroundColor: `hsl(${index * 90}, 50%, 50%)`,
 												opacity: 0.7
@@ -526,16 +526,16 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								className="flex h-[38px] items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
 								onClick={handleIncludeCexChange}
 							>
-								<div className="relative h-4 w-4">
+								<div className="relative size-4">
 									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 									<div
-										className={`h-4 w-4 border-2 transition-all ${
+										className={`size-4 border-2 transition-all ${
 											includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
 										}`}
 									>
 										{includeCex ? (
 											<svg
-												className="h-3 w-3 text-white"
+												className="size-3 text-white"
 												fill="currentColor"
 												viewBox="0 0 20 20"
 												aria-hidden="true"
@@ -590,7 +590,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 																: 'none'
 												}
 											: {})}
-										className="border-r border-b border-(--divider) bg-transparent px-2 py-2 font-medium last:border-r-0"
+										className="border-r border-b border-(--divider) bg-transparent p-2 font-medium last:border-r-0"
 									>
 										{header.isPlaceholder ? null : header.column.getCanSort() ? (
 											<button
@@ -613,7 +613,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						{table.getRowModel().rows.map((row) => (
 							<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
 								{row.getVisibleCells().map((cell) => (
-									<td key={cell.id} className="border-r border-(--divider) px-2 py-2 whitespace-nowrap last:border-r-0">
+									<td key={cell.id} className="border-r border-(--divider) p-2 whitespace-nowrap last:border-r-0">
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</td>
 								))}
@@ -624,7 +624,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			</div>
 
 			{table.getPageCount() > 1 ? (
-				<div className="mt-2 flex w-full items-center justify-between px-2 py-2">
+				<div className="mt-2 flex w-full items-center justify-between p-2">
 					<div className="flex items-center gap-2">
 						<button
 							className="border pro-border pro-bg1 px-3 py-1 text-sm pro-text1 hover:pro-bg2 disabled:cursor-not-allowed disabled:opacity-50"

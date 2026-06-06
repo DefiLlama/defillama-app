@@ -14,6 +14,12 @@ const successfulBuild: BuildResult = {
 	status: 'success'
 }
 
+const artifactSyncEnv = testEnv({
+	RCLONE_CONFIG_ARTIFACTS_ACCESS_KEY_ID: 'access-key',
+	RCLONE_CONFIG_ARTIFACTS_ENDPOINT: 'https://r2.example',
+	RCLONE_CONFIG_ARTIFACTS_SECRET_ACCESS_KEY: 'secret-key'
+})
+
 describe('artifact sync adapter', () => {
 	it('skips when requested by env', async () => {
 		const runCommand = vi.fn()
@@ -29,10 +35,25 @@ describe('artifact sync adapter', () => {
 		expect(runCommand).not.toHaveBeenCalled()
 	})
 
+	it('skips when the artifact remote is not configured', async () => {
+		const runCommand = vi.fn()
+
+		const result = await syncBuildArtifacts({
+			env: testEnv(),
+			logger: createMemoryLogger(),
+			result: successfulBuild,
+			runCommand
+		})
+
+		expect(result).toEqual({ reason: 'missing rclone env', status: 'skipped' })
+		expect(runCommand).not.toHaveBeenCalled()
+	})
+
 	it('runs upload and download commands for successful builds', async () => {
 		const runCommand = vi.fn().mockResolvedValue({ exitCode: 0, signal: null, stdoutTail: '' })
 
 		const result = await syncBuildArtifacts({
+			env: artifactSyncEnv,
 			logger: createMemoryLogger(),
 			result: successfulBuild,
 			runCommand
@@ -47,6 +68,7 @@ describe('artifact sync adapter', () => {
 		const runCommand = vi.fn().mockResolvedValue(failed)
 
 		const result = await syncBuildArtifacts({
+			env: artifactSyncEnv,
 			logger: createMemoryLogger(),
 			result: successfulBuild,
 			runCommand

@@ -60,6 +60,13 @@ export interface GitHubRepo {
 	default_branch: string
 }
 
+export interface GitHubBranch {
+	name: string
+	protected: boolean
+	is_default: boolean
+	commit_sha: string
+}
+
 export interface ImportResult {
 	imported: Array<{ path: string; size: number; fileId: string }>
 	skipped: Array<{ path: string; reason: string }>
@@ -88,6 +95,7 @@ export interface ProjectChatSession {
 	pinnedAt: string | null
 	isPublic: boolean
 	shareToken: string | null
+	hasUnseenCompletion?: boolean
 }
 
 export type ProjectTier = 'free' | 'trial' | 'paid' | 'llama'

@@ -221,7 +221,7 @@ export function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' 
 }
 
 function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
-	return [...markets].sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
+	return markets.toSorted((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
 }
 
 function derivePreviousValueFromPercentChange(
@@ -326,6 +326,7 @@ export async function getRWAPerpsContractData({
 				parentPlatform: market.parentPlatform,
 				issuer: market.issuer,
 				website: market.website?.[0] ?? null,
+				link: market.link ?? null,
 				oracleProvider: market.oracleProvider,
 				description: market.description,
 				categories: market.category ?? []

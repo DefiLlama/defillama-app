@@ -9,8 +9,9 @@ import { PaginatedYieldsOptimizerTable } from '~/containers/Yields/Tables/Optimi
 import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 import type { FormSubmitEvent } from '~/types/forms'
 import { DEFAULT_TABLE_PAGE_SIZE } from './tableUtils'
-import type { TokenBorrowRoutesResponse } from './tokenBorrowRoutes.types'
+import { filterBorrowRows } from './TokenBorrowSection.utils'
 import { TokenDeferredPaginationControls } from './TokenDeferredPaginationControls'
+import type { TokenBorrowRoutesHydration } from './types'
 import { useTokenBorrowRoutes } from './useTokenBorrowRoutes'
 
 const TOKEN_BORROW_SECTION_ID = 'token-borrow'
@@ -95,53 +96,15 @@ function TokenBorrowAvailableRange({
 	)
 }
 
-export function filterBorrowRows({
-	rows,
-	selectedChains,
-	minAvailable,
-	maxAvailable
-}: {
-	rows: IYieldsOptimizerTableRow[]
-	selectedChains: string[]
-	minAvailable: string
-	maxAvailable: string
-}) {
-	const minAvailableValue = minAvailable === '' ? null : Number(minAvailable)
-	const maxAvailableValue = maxAvailable === '' ? null : Number(maxAvailable)
-	const chainSet = new Set(selectedChains)
-
-	return rows.filter((row) => {
-		const rowChain = row.chains[0]
-		const available = row.borrow?.totalAvailableUsd ?? null
-
-		if (selectedChains.length === 0) return false
-		if (rowChain && !chainSet.has(rowChain)) return false
-		if (minAvailableValue != null && (available == null || available < minAvailableValue)) return false
-		if (maxAvailableValue != null && (available == null || available > maxAvailableValue)) return false
-
-		return true
-	})
-}
-
 export function TokenBorrowSection({
 	tokenSymbol,
-	initialData,
-	initialCounts,
-	initialChains
+	hydration
 }: {
 	tokenSymbol: string
-	initialData?: TokenBorrowRoutesResponse
-	initialCounts?: {
-		borrowAsCollateral: number
-		borrowAsDebt: number
-	} | null
-	initialChains?: {
-		borrowAsCollateral: string[]
-		borrowAsDebt: string[]
-	} | null
+	hydration?: TokenBorrowRoutesHydration
 }) {
 	const [activeTab, setActiveTab] = React.useState<BorrowTabKey>('use')
-	const [shouldFetchFullData, setShouldFetchFullData] = React.useState(initialData == null)
+	const [shouldFetchFullData, setShouldFetchFullData] = React.useState(hydration == null)
 	const [requestedPageIndexByTab, setRequestedPageIndexByTab] = React.useState<Record<BorrowTabKey, number>>({
 		use: 0,
 		borrow: 0
@@ -164,18 +127,21 @@ export function TokenBorrowSection({
 	})
 	const { data, error } = useTokenBorrowRoutes(tokenSymbol, { enabled: shouldFetchFullData })
 	const useRows = React.useMemo(
-		() => data?.borrowAsCollateral ?? initialData?.borrowAsCollateral ?? [],
-		[data, initialData]
+		() => data?.borrowAsCollateral ?? hydration?.data.borrowAsCollateral ?? [],
+		[data, hydration]
 	)
-	const borrowRows = React.useMemo(() => data?.borrowAsDebt ?? initialData?.borrowAsDebt ?? [], [data, initialData])
+	const borrowRows = React.useMemo(() => data?.borrowAsDebt ?? hydration?.data.borrowAsDebt ?? [], [data, hydration])
 	const useChainList = React.useMemo(
-		() => (data ? getBorrowChainList(useRows) : (initialChains?.borrowAsCollateral ?? getBorrowChainList(useRows))),
-		[data, initialChains, useRows]
+		() =>
+			data ? getBorrowChainList(useRows) : (hydration?.chainLists.borrowAsCollateral ?? getBorrowChainList(useRows)),
+		[data, hydration, useRows]
 	)
 	const borrowChainList = React.useMemo(
-		() => (data ? getBorrowChainList(borrowRows) : (initialChains?.borrowAsDebt ?? getBorrowChainList(borrowRows))),
-		[data, initialChains, borrowRows]
+		() =>
+			data ? getBorrowChainList(borrowRows) : (hydration?.chainLists.borrowAsDebt ?? getBorrowChainList(borrowRows)),
+		[data, hydration, borrowRows]
 	)
+	const hydrationPageSize = hydration?.pageSize ?? DEFAULT_TABLE_PAGE_SIZE
 
 	const activeFilters = filtersByTab[activeTab]
 	const rows = activeTab === 'use' ? useRows : borrowRows
@@ -186,9 +152,9 @@ export function TokenBorrowSection({
 		}
 
 		return activeTab === 'use'
-			? (initialCounts?.borrowAsCollateral ?? useRows.length)
-			: (initialCounts?.borrowAsDebt ?? borrowRows.length)
-	}, [activeTab, borrowRows.length, data, initialCounts, useRows.length])
+			? (hydration?.counts.borrowAsCollateral ?? useRows.length)
+			: (hydration?.counts.borrowAsDebt ?? borrowRows.length)
+	}, [activeTab, borrowRows.length, data, hydration, useRows.length])
 	const selectedChains = React.useMemo(
 		() => getSelectedChains(activeFilters.selectedChains, chainList),
 		[activeFilters.selectedChains, chainList]
@@ -316,9 +282,9 @@ export function TokenBorrowSection({
 						aria-hidden="true"
 						tabIndex={-1}
 						href={`#${TOKEN_BORROW_SECTION_ID}`}
-						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+						className="absolute top-0 right-0 z-10 flex size-full items-center"
 					/>
-					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
 				{!showInitialLoader && !error && summaryText ? (
 					<p className="text-sm text-(--text-secondary) sm:text-right">{summaryText}</p>
@@ -425,7 +391,7 @@ export function TokenBorrowSection({
 										<PaginatedYieldsOptimizerTable
 											key={`${activeTab}-${data ? 'full' : 'initial'}-${requestedPageIndexByTab[activeTab]}-${sortingKey}`}
 											data={filteredRows}
-											initialPageSize={DEFAULT_TABLE_PAGE_SIZE}
+											initialPageSize={hydrationPageSize}
 											initialPageIndex={data ? requestedPageIndexByTab[activeTab] : 0}
 											sortingState={sortingByTab[activeTab]}
 											onSortingChange={handleSortingChange}
@@ -436,6 +402,7 @@ export function TokenBorrowSection({
 										<div className={showBackgroundLoading ? 'opacity-60' : ''}>
 											<TokenDeferredPaginationControls
 												totalCount={totalCount}
+												pageSize={hydrationPageSize}
 												isLoading={showBackgroundLoading}
 												onRequestPage={requestFullDataPage}
 											/>

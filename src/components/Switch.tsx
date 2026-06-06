@@ -26,7 +26,7 @@ export const Switch = ({
 				value={value}
 				checked={checked}
 				onChange={onChange}
-				className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+				className="peer absolute size-[1em] opacity-[0.00001]"
 			/>
 			<span
 				className={`border ${
@@ -34,9 +34,9 @@ export const Switch = ({
 				} h-4.5 w-[34px] rounded p-0.5`}
 			>
 				{!checked ? (
-					<span className="mr-auto block h-3 w-3 shrink-0 rounded-[3px] bg-[#707A7A]"></span>
+					<span className="mr-auto block size-3 shrink-0 rounded-[3px] bg-[#707A7A]"></span>
 				) : (
-					<span className="ml-auto block h-3 w-3 shrink-0 rounded-[3px] bg-(--old-blue)"></span>
+					<span className="ml-auto block size-3 shrink-0 rounded-[3px] bg-(--old-blue)"></span>
 				)}
 			</span>
 			{help ? (

@@ -17,6 +17,20 @@ type ArtifactSyncResult =
 	| { status: 'skipped'; reason: string }
 	| { status: 'success' }
 
+const ARTIFACT_REMOTE_ENV_KEYS = [
+	'RCLONE_CONFIG_ARTIFACTS_ACCESS_KEY_ID',
+	'RCLONE_CONFIG_ARTIFACTS_SECRET_ACCESS_KEY',
+	'RCLONE_CONFIG_ARTIFACTS_ENDPOINT'
+] as const
+
+function getMissingArtifactRemoteEnv(env: NodeJS.ProcessEnv): string[] {
+	const missing: string[] = []
+	for (const key of ARTIFACT_REMOTE_ENV_KEYS) {
+		if (!env[key]?.trim()) missing.push(key)
+	}
+	return missing
+}
+
 export async function syncBuildArtifacts({
 	activeChildren,
 	env = process.env,
@@ -32,6 +46,13 @@ export async function syncBuildArtifacts({
 	if (result.exitCode !== 0) {
 		logger.log('Build failed, skipping .next artifact sync')
 		return { reason: 'build failed', status: 'skipped' }
+	}
+	const missingArtifactRemoteEnv = getMissingArtifactRemoteEnv(env)
+	if (missingArtifactRemoteEnv.length > 0) {
+		logger.log(
+			`Artifact sync remote is not configured; missing ${missingArtifactRemoteEnv.join(', ')}, skipping rclone sync`
+		)
+		return { reason: 'missing rclone env', status: 'skipped' }
 	}
 
 	const configPath = path.join('scripts', 'rclone.conf')

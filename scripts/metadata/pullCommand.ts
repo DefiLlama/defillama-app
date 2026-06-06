@@ -3,25 +3,17 @@ import {
 	getMetadataCacheDir,
 	getMissingMetadataArtifacts,
 	hasMetadataArtifactFiles,
-	readMetadataArtifactManifest,
+	readValidMetadataArtifactManifest,
 	writeMetadataArtifacts,
 	writeMissingMetadataStubArtifacts
 } from '../../src/utils/metadata/artifactWriter'
 import { fetchCoreMetadata } from '../../src/utils/metadata/fetch'
 import { isMetadataArtifactManifestFresh } from '../../src/utils/metadata/manifest'
 import { isLocalDevWithoutApiKey, shouldWriteMetadataStubsOnFailure } from '../../src/utils/metadata/policy'
-import {
-	buildPagesWithTastyMetrics,
-	buildTrendingPages,
-	loadDefillamaPages,
-	writePagesAndTrendingIfNeeded
-} from './pages'
-import { fetchTastyMetrics, type TastyMetricsEnv, type TastyMetricsResult } from './tastyMetrics'
 
 type PullMetadataCommandOptions = {
 	env?: NodeJS.ProcessEnv
 	fetchMetadata?: () => Promise<CoreMetadataPayload>
-	fetchMetrics?: (options: { endAt: number; env: TastyMetricsEnv; startAt: number }) => Promise<TastyMetricsResult>
 	logger?: Pick<Console, 'log'>
 	now?: number
 	repoRoot?: string
@@ -34,13 +26,12 @@ export type PullMetadataCommandResult = {
 export async function runPullMetadataCommand({
 	env = process.env,
 	fetchMetadata = fetchCoreMetadata,
-	fetchMetrics = fetchTastyMetrics,
 	logger = console,
 	now = Date.now(),
 	repoRoot = process.cwd()
 }: PullMetadataCommandOptions = {}): Promise<PullMetadataCommandResult> {
 	const cacheDir = getMetadataCacheDir(repoRoot)
-	const manifest = await readMetadataArtifactManifest(cacheDir)
+	const manifest = await readValidMetadataArtifactManifest(cacheDir)
 	const hasCompleteArtifacts = manifest ? await hasMetadataArtifactFiles(cacheDir, manifest) : false
 	const missingArtifacts =
 		manifest && !hasCompleteArtifacts ? await getMissingMetadataArtifacts(cacheDir, manifest) : []
@@ -70,24 +61,9 @@ export async function runPullMetadataCommand({
 		)
 	}
 
-	const endAt = now
-	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
-
 	try {
-		const [metadataPayload, metrics] = await Promise.all([
-			fetchMetadata(),
-			fetchMetrics({ endAt, env, startAt }).catch((error): TastyMetricsResult => {
-				logger.log('Error fetching tasty metrics', error)
-				return { tastyMetrics: {}, trendingRoutes: [] }
-			})
-		])
-
+		const metadataPayload = await fetchMetadata()
 		await writeMetadataArtifacts(cacheDir, metadataPayload, 'ready', now)
-
-		const defillamaPages = await loadDefillamaPages(repoRoot, logger)
-		const finalDefillamaPages = buildPagesWithTastyMetrics(defillamaPages, metrics.tastyMetrics)
-		const trendingPages = buildTrendingPages(defillamaPages, metrics.trendingRoutes)
-		await writePagesAndTrendingIfNeeded(repoRoot, finalDefillamaPages, trendingPages)
 
 		logger.log('[dev:prepare] Metadata cache: pulled and cached data')
 		return { exitCode: 0 }

@@ -105,7 +105,7 @@ function fetchOverviewBreakdownDataset(request: RWAOverviewBreakdownRequest): Pr
 	if (request.includeStablecoin) searchParams.set('includeStablecoin', 'true')
 	if (request.includeGovernance) searchParams.set('includeGovernance', 'true')
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/overview-breakdown?${searchParams.toString()}`)
+	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/overview-breakdown?${searchParams.toString()}`)
 }
 
 export function buildOverviewBreakdownChartSeries(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {

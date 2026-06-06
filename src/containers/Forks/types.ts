@@ -1,4 +1,4 @@
-import type { IProtocol } from '~/containers/ChainOverview/types'
+import type { IProtocol } from '~/containers/ProtocolRankings/types'
 
 interface ForkLink {
 	label: string

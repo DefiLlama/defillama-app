@@ -1,9 +1,15 @@
 import * as Ariakit from '@ariakit/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { useConnectGithubSource, useGithubInstallations, useGithubRepos, useStartGithubInstall } from './hooks'
+import {
+	useConnectGithubSource,
+	useGithubBranches,
+	useGithubInstallations,
+	useGithubRepos,
+	useStartGithubInstall
+} from './hooks'
 
 interface GitHubConnectModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -44,7 +50,8 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 	const [selectedInstallId, setSelectedInstallId] = useState<number | null>(null)
 	const [selectedRepo, setSelectedRepo] = useState('')
 	const [repoQuery, setRepoQuery] = useState('')
-	const [branch, setBranch] = useState('')
+	const [selectedBranch, setSelectedBranch] = useState('')
+	const [branchQuery, setBranchQuery] = useState('')
 	const [installing, setInstalling] = useState(false)
 	const defaultInstallId = installs.data?.[0]?.installation_id ?? null
 	const effectiveInstallId = selectedInstallId ?? defaultInstallId
@@ -63,16 +70,45 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 		() => repos.data?.find((r) => r.full_name === selectedRepo) ?? null,
 		[repos.data, selectedRepo]
 	)
+	const repoSelectionIsStale = !!selectedRepo && !repos.isLoading && !repos.isError && !repoMeta
+
+	const repoOwner = repoMeta ? repoMeta.full_name.split('/')[0] : null
+	const repoName = repoMeta ? repoMeta.name : null
+	const branches = useGithubBranches(effectiveInstallId, repoOwner, repoName)
+
+	useEffect(() => {
+		setSelectedBranch('')
+		setBranchQuery('')
+	}, [selectedRepo])
+
+	useEffect(() => {
+		if (selectedBranch || !branches.data || branches.data.length === 0) return
+		const defaultBranch = branches.data.find((b) => b.is_default) ?? branches.data[0]
+		if (defaultBranch) setSelectedBranch(defaultBranch.name)
+	}, [branches.data, selectedBranch])
+
+	const filteredBranches = useMemo(() => {
+		const all = branches.data ?? []
+		const q = branchQuery.trim().toLowerCase()
+		if (!q) return all
+		return all.filter((b) => b.name.toLowerCase().includes(q))
+	}, [branches.data, branchQuery])
 
 	const onConnect = async () => {
-		if (!selectedRepo || !effectiveInstallId) return
-		const repo = repos.data?.find((r) => r.full_name === selectedRepo)
-		if (!repo) return
+		if (!selectedRepo || !selectedBranch || !effectiveInstallId) {
+			toast.error('Choose a repository and branch before connecting.')
+			return
+		}
+		const repo = repoMeta
+		if (!repo) {
+			toast.error('Repository metadata is stale. Pick the repository again.')
+			return
+		}
 		try {
 			await connect.mutateAsync({
 				owner: repo.full_name.split('/')[0],
 				repo: repo.name,
-				branch: branch.trim() || repo.default_branch,
+				branch: selectedBranch,
 				installation_id: effectiveInstallId
 			})
 			toast.success(`Connected ${repo.full_name}`)
@@ -226,19 +262,78 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 									</Ariakit.ComboboxPopover>
 								</Ariakit.ComboboxProvider>
 							)}
+							{repoSelectionIsStale ? (
+								<p className="text-xs text-red-600 dark:text-red-400">
+									Repository metadata is stale. Pick the repository again.
+								</p>
+							) : null}
 						</div>
 
-						<label className="flex flex-col gap-1.5">
-							<span className="text-xs font-medium text-[#444] dark:text-[#c5c5c5]">Branch (optional)</span>
-							<input
-								value={branch}
-								onChange={(e) => setBranch(e.target.value)}
-								placeholder={
-									repoMeta?.default_branch ? `defaults to ${repoMeta.default_branch}` : 'defaults to default branch'
-								}
-								className="rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-2 text-sm text-inherit placeholder:text-[#999] focus:border-(--old-blue) focus:outline-none dark:border-[#2a2b2c] dark:placeholder:text-[#555]"
-							/>
-						</label>
+						<div className="flex flex-col gap-1.5">
+							<span className="text-xs font-medium text-[#444] dark:text-[#c5c5c5]">Branch</span>
+							{!selectedRepo ? (
+								<div className="rounded-md border border-dashed border-[#e6e6e6] px-3 py-2 text-xs text-[#999] dark:border-[#2a2b2c] dark:text-[#555]">
+									Pick a repository first
+								</div>
+							) : branches.isLoading ? (
+								<div className="flex items-center gap-2 text-xs text-[#666] dark:text-[#919296]">
+									<LoadingSpinner size={12} /> Loading branches…
+								</div>
+							) : branches.isError ? (
+								<div className="flex flex-col gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+									<p>{branches.error instanceof Error ? branches.error.message : 'Failed to load branches.'}</p>
+									<button
+										type="button"
+										onClick={() => void branches.refetch()}
+										className="self-start rounded-md border border-red-300 px-2.5 py-1 text-xs font-medium transition-colors hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-900/50"
+									>
+										Retry
+									</button>
+								</div>
+							) : (
+								<Ariakit.ComboboxProvider
+									value={branchQuery}
+									setValue={setBranchQuery}
+									selectedValue={selectedBranch}
+									setSelectedValue={(value) => {
+										if (typeof value === 'string') setSelectedBranch(value)
+									}}
+								>
+									<Ariakit.Combobox
+										placeholder={selectedBranch || 'Search branches…'}
+										className="rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-2 text-sm text-inherit placeholder:text-[#999] focus:border-(--old-blue) focus:outline-none dark:border-[#2a2b2c] dark:placeholder:text-[#555]"
+									/>
+									<Ariakit.ComboboxPopover
+										gutter={4}
+										sameWidth
+										className="z-[60] max-h-64 overflow-y-auto rounded-md border border-[#e6e6e6] bg-(--cards-bg) py-1 shadow-lg dark:border-[#2a2b2c]"
+									>
+										{filteredBranches.length === 0 ? (
+											<div className="px-3 py-2 text-xs text-[#999] dark:text-[#666]">No branches match.</div>
+										) : (
+											filteredBranches.map((b) => (
+												<Ariakit.ComboboxItem
+													key={b.name}
+													value={b.name}
+													className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm text-inherit data-[active-item]:bg-[#f0f0f0] dark:data-[active-item]:bg-[#222324]"
+												>
+													<span className="truncate">{b.name}</span>
+													{b.is_default ? (
+														<span className="ml-auto rounded bg-[#e6e6e6] px-1 py-0.5 text-[10px] text-[#666] dark:bg-[#222324] dark:text-[#919296]">
+															default
+														</span>
+													) : b.protected ? (
+														<span className="ml-auto rounded bg-[#e6e6e6] px-1 py-0.5 text-[10px] text-[#666] dark:bg-[#222324] dark:text-[#919296]">
+															protected
+														</span>
+													) : null}
+												</Ariakit.ComboboxItem>
+											))
+										)}
+									</Ariakit.ComboboxPopover>
+								</Ariakit.ComboboxProvider>
+							)}
+						</div>
 
 						<button
 							type="button"
@@ -262,7 +357,7 @@ function GitHubConnectForm({ dialogStore, projectId }: GitHubConnectModalProps) 
 						<button
 							type="button"
 							onClick={() => void onConnect()}
-							disabled={!selectedRepo || connect.isPending}
+							disabled={!repoMeta || !selectedBranch || !effectiveInstallId || connect.isPending}
 							className="flex items-center gap-1.5 rounded-md border border-(--old-blue) bg-(--old-blue) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-(--old-blue)/90 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{connect.isPending ? <LoadingSpinner size={12} /> : null}

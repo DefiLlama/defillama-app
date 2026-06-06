@@ -12,6 +12,7 @@ import {
 	getProject,
 	getProjectUsage,
 	listGithubInstallations,
+	listInstallationRepoBranches,
 	listInstallationRepos,
 	listProjectFiles,
 	listProjectSessions,
@@ -34,6 +35,8 @@ import type { Project, ProjectWithStats } from './types'
 
 const githubInstallationsKey = ['github', 'installations'] as const
 const githubReposKey = (id: number) => ['github', 'installations', id, 'repos'] as const
+const githubBranchesKey = (id: number, owner: string, repo: string) =>
+	['github', 'installations', id, 'repos', owner, repo, 'branches'] as const
 
 export function useProjectUsage(enabled = true) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
@@ -179,11 +182,17 @@ export function useMoveSessionToProject() {
 	const { authorizedFetch } = useAuthContext()
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: (args: { sessionId: string; projectId: string | null }) =>
+		mutationFn: (args: { sessionId: string; projectId: string | null; previousProjectId?: string | null }) =>
 			moveSessionToProject(authorizedFetch, args.sessionId, args.projectId),
-		onSuccess: () => {
+		onSuccess: (_data, variables) => {
 			void qc.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
+			if (variables.previousProjectId) {
+				void qc.invalidateQueries({ queryKey: projectSessionsKey(variables.previousProjectId) })
+			}
+			if (variables.projectId) {
+				void qc.invalidateQueries({ queryKey: projectSessionsKey(variables.projectId) })
+			}
 		}
 	})
 }
@@ -207,6 +216,17 @@ export function useGithubRepos(installationId: number | null) {
 		enabled: isAuthenticated && !!installationId,
 		staleTime: 60_000,
 		refetchOnMount: 'always'
+	})
+}
+
+export function useGithubBranches(installationId: number | null, owner: string | null, repo: string | null) {
+	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	return useQuery({
+		queryKey: githubBranchesKey(installationId ?? 0, owner ?? '', repo ?? ''),
+		queryFn: () =>
+			listInstallationRepoBranches(authorizedFetch, installationId as number, owner as string, repo as string),
+		enabled: isAuthenticated && !!installationId && !!owner && !!repo,
+		staleTime: 120_000
 	})
 }
 

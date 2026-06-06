@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { flushTelemetry, recordDomainEvent } from '~/utils/telemetry'
 import { syncBuildArtifacts } from './artifactSync'
 import { detectBranchName } from './branch'
 import { sendBuildNotification } from './buildNotification'
@@ -51,6 +52,49 @@ function formatNextBuildFailure(result: RunChildResult): string {
 		return `Next.js build failed after signal ${result.signal}`
 	}
 	return `Next.js build failed with exit code ${result.exitCode ?? 1}`
+}
+
+function firstEnvValue(env: NodeJS.ProcessEnv, keys: readonly string[]): string {
+	for (const key of keys) {
+		const value = env[key]?.trim()
+		if (value) return value
+	}
+	return ''
+}
+
+function detectCommitSha(env: NodeJS.ProcessEnv): string {
+	return firstEnvValue(env, [
+		'SOURCE_COMMIT',
+		'VERCEL_GIT_COMMIT_SHA',
+		'NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA',
+		'GITHUB_SHA'
+	])
+}
+
+function finishedAtFromBuildResult(result: BuildResult): string {
+	return new Date(Date.parse(result.startedAt) + result.durationMs).toISOString()
+}
+
+async function recordBuildCompleteTelemetry(result: BuildResult, env: NodeJS.ProcessEnv): Promise<void> {
+	const branch = result.branchName || 'unknown'
+	const level = result.status === 'success' ? 'info' : 'warn'
+	recordDomainEvent(
+		'build.complete',
+		level,
+		branch,
+		`Build ${result.status === 'success' ? 'completed' : 'failed'} on ${branch}`,
+		{
+			branch,
+			build_id: result.buildId,
+			commit_sha: detectCommitSha(env),
+			duration_ms: result.durationMs,
+			exit_code: result.exitCode,
+			finished_at: finishedAtFromBuildResult(result),
+			started_at: result.startedAt,
+			status: result.status
+		}
+	)
+	await flushTelemetry({ runtime: 'build', timeoutMs: 2000 })
 }
 
 export async function runDeployBuild({
@@ -141,6 +185,7 @@ export async function runDeployBuild({
 	} else {
 		buildLogger.log('Build failed, skipping .next artifact sync')
 	}
+	await recordBuildCompleteTelemetry(result, env)
 
 	buildLogger.flush()
 	buildLogger.close()

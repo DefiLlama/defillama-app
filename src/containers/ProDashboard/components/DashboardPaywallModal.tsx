@@ -76,7 +76,7 @@ export function DashboardPaywallModal({ dialogStore, reason = 'pro-feature' }: D
 				</Ariakit.DialogDismiss>
 
 				<div className="flex flex-col items-center gap-4 text-center">
-					<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#5C5CF9]/15">
+					<div className="flex size-14 items-center justify-center rounded-full bg-[#5C5CF9]/15">
 						<Icon name={config.icon} height={28} width={28} className="text-[#5C5CF9]" />
 					</div>
 

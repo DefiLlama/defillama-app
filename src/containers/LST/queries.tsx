@@ -1,6 +1,6 @@
 import { preparePieChartData } from '~/components/ECharts/utils'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatNum, formattedNum, getNDistinctColors, slug } from '~/utils'
 import { fetchEthPrice, fetchLsdRates, fetchYieldPools } from './api'
 import type { ILsdRateApiItem, IProtocolDetailApiItem, IYieldPoolApiItem } from './api.types'

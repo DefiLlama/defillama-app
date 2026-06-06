@@ -34,6 +34,7 @@ const EVENT_LABELS: Record<ArticleRevisionEventType, string> = {
 	create: 'Created',
 	save: 'Draft saved',
 	publish: 'Published',
+	schedule: 'Scheduled',
 	unpublish: 'Unpublished',
 	delete: 'Deleted',
 	pending_save: 'Pending edit',
@@ -45,6 +46,7 @@ const EVENT_TONES: Record<ArticleRevisionEventType, string> = {
 	create: 'text-(--text-secondary)',
 	save: 'text-(--text-secondary)',
 	publish: 'text-emerald-500',
+	schedule: 'text-sky-500',
 	unpublish: 'text-amber-500',
 	delete: 'text-red-500',
 	pending_save: 'text-amber-500',
@@ -62,7 +64,7 @@ const FILTER_LABELS: Record<FilterKey, string> = {
 
 const FILTER_MATCH: Record<FilterKey, (e: ArticleRevisionEventType) => boolean> = {
 	all: () => true,
-	publishes: (e) => e === 'publish' || e === 'unpublish' || e === 'create',
+	publishes: (e) => e === 'publish' || e === 'schedule' || e === 'unpublish' || e === 'create',
 	pending: (e) => e === 'pending_save' || e === 'discard_pending',
 	edits: (e) => e === 'save',
 	restores: (e) => e === 'restore_pending'
@@ -145,7 +147,7 @@ function EventGlyph({ type, active }: { type: ArticleRevisionEventType; active: 
 				return 'bg-(--text-tertiary)'
 		}
 	})()
-	const ringClass = `h-2 w-2 rounded-full ${ringTone}`
+	const ringClass = `size-2 rounded-full ${ringTone}`
 	const isFilled = type === 'publish' || type === 'create'
 	const isHollow = type === 'save' || type === 'discard_pending'
 	const isSquare = type === 'delete'
@@ -154,23 +156,23 @@ function EventGlyph({ type, active }: { type: ArticleRevisionEventType; active: 
 	return (
 		<span
 			aria-hidden
-			className={`relative grid h-5 w-5 place-items-center rounded-full transition-transform ${
+			className={`relative grid size-5 place-items-center rounded-full transition-transform ${
 				active ? 'scale-110' : ''
 			}`}
 		>
 			{isFilled ? (
 				<span className={ringClass} />
 			) : isHollow ? (
-				<span className={`h-2 w-2 rounded-full ring-1 ring-inset ${tone.replace('text-', 'ring-')}`} />
+				<span className={`size-2 rounded-full ring-1 ring-inset ${tone.replace('text-', 'ring-')}`} />
 			) : isSquare ? (
-				<span className="h-1.5 w-1.5 rotate-45 bg-red-500" />
+				<span className="size-1.5 rotate-45 bg-red-500" />
 			) : isTriangle ? (
 				<span
-					className="h-0 w-0 border-x-[4px] border-b-[6px] border-x-transparent"
+					className="size-0 border-x-[4px] border-b-[6px] border-x-transparent"
 					style={{ borderBottomColor: 'var(--link-text)' }}
 				/>
 			) : (
-				<span className={`h-2 w-2 rounded-full ring-1 ring-inset ${tone.replace('text-', 'ring-')}`} />
+				<span className={`size-2 rounded-full ring-1 ring-inset ${tone.replace('text-', 'ring-')}`} />
 			)}
 		</span>
 	)
@@ -187,7 +189,7 @@ function StatusBadge({ label, tone }: { label: string; tone: 'live' | 'pending' 
 		>
 			<span
 				aria-hidden
-				className={`h-1 w-1 rounded-full ${tone === 'live' ? 'bg-emerald-500' : 'animate-pulse bg-amber-500'}`}
+				className={`size-1 rounded-full ${tone === 'live' ? 'bg-emerald-500' : 'animate-pulse bg-amber-500'}`}
 			/>
 			{label}
 		</span>
@@ -518,7 +520,7 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 				onClick={onClose}
 				className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
 			/>
-			<div className="relative ml-auto flex h-full w-full max-w-[1280px] flex-col border-l border-(--cards-border) bg-(--cards-bg) shadow-2xl">
+			<div className="relative ml-auto flex size-full max-w-[1280px] flex-col border-l border-(--cards-border) bg-(--cards-bg) shadow-2xl">
 				<header className="grid grid-cols-[1fr_auto] items-end gap-6 border-b border-(--cards-border) px-7 pt-6 pb-4">
 					<div className="grid gap-1">
 						<div className="flex items-center gap-2 font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
@@ -545,10 +547,10 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 						type="button"
 						onClick={onClose}
 						aria-label="Close"
-						className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+						className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
 					>
 						<svg
-							className="h-4 w-4"
+							className="size-4"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -632,7 +634,7 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 																{isSelected ? (
 																	<span aria-hidden className="absolute top-0 bottom-0 left-0 w-0.5 bg-(--link-text)" />
 																) : null}
-																<span className="relative z-10 mt-0.5 grid h-5 w-5 place-items-center rounded-full bg-(--cards-bg)">
+																<span className="relative z-10 mt-0.5 grid size-5 place-items-center rounded-full bg-(--cards-bg)">
 																	<EventGlyph type={entry.eventType} active={isSelected} />
 																</span>
 																<div className="min-w-0 flex-1">
@@ -722,9 +724,9 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 							) : !previewArticle ? (
 								<div className="grid h-full place-items-center px-6">
 									<div className="max-w-sm text-center">
-										<div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-dashed border-(--cards-border)">
+										<div className="mx-auto mb-4 grid size-12 place-items-center rounded-full border border-dashed border-(--cards-border)">
 											<svg
-												className="h-5 w-5 text-(--text-tertiary)"
+												className="size-5 text-(--text-tertiary)"
 												viewBox="0 0 24 24"
 												fill="none"
 												stroke="currentColor"
@@ -912,7 +914,7 @@ function PreviewSpecimenHeader({
 								className="group flex h-9 items-center gap-2 rounded-md bg-(--link-text) px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								<svg
-									className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5"
+									className="size-3.5 transition-transform group-hover:-translate-x-0.5"
 									viewBox="0 0 24 24"
 									fill="none"
 									stroke="currentColor"
@@ -933,10 +935,10 @@ function PreviewSpecimenHeader({
 								onClick={onAskDelete}
 								disabled={!revision || !canDelete || isDeleting}
 								title={canDelete ? 'Delete this revision' : 'The current live revision cannot be deleted'}
-								className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-red-500/50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-(--cards-border) disabled:hover:text-(--text-secondary)"
+								className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-red-500/50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-(--cards-border) disabled:hover:text-(--text-secondary)"
 							>
 								<svg
-									className="h-3.5 w-3.5"
+									className="size-3.5"
 									viewBox="0 0 24 24"
 									fill="none"
 									stroke="currentColor"
@@ -1066,9 +1068,9 @@ function DiffPane({
 		return (
 			<div className="grid h-full place-items-center px-6">
 				<div className="max-w-sm text-center">
-					<div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-dashed border-(--cards-border)">
+					<div className="mx-auto mb-4 grid size-12 place-items-center rounded-full border border-dashed border-(--cards-border)">
 						<svg
-							className="h-5 w-5 text-(--text-tertiary)"
+							className="size-5 text-(--text-tertiary)"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -1108,9 +1110,9 @@ function DiffPane({
 		return (
 			<div className="grid h-full place-items-center px-6">
 				<div className="max-w-sm text-center">
-					<div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-(--cards-border) bg-(--cards-bg)">
+					<div className="mx-auto mb-4 grid size-12 place-items-center rounded-full border border-(--cards-border) bg-(--cards-bg)">
 						<svg
-							className="h-5 w-5 text-emerald-500"
+							className="size-5 text-emerald-500"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -1323,7 +1325,7 @@ function TimelineSkeleton() {
 		<div className="grid gap-1 p-5">
 			{[0.9, 0.7, 0.55, 0.85, 0.6, 0.7].map((scale, idx) => (
 				<div key={idx} className="flex items-start gap-3 py-2">
-					<span aria-hidden className="mt-1 h-2 w-2 rounded-full bg-(--cards-border)" />
+					<span aria-hidden className="mt-1 size-2 rounded-full bg-(--cards-border)" />
 					<div className="grid flex-1 gap-1.5">
 						<span aria-hidden className="h-2 rounded bg-(--cards-border)" style={{ width: `${scale * 100}%` }} />
 						<span aria-hidden className="h-2 w-24 rounded bg-(--cards-border)/60" />
@@ -1361,9 +1363,9 @@ function EmptyState({ filter }: { filter: FilterKey }) {
 	return (
 		<div className="grid h-full place-items-center px-6 py-16">
 			<div className="max-w-xs text-center">
-				<div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-dashed border-(--cards-border)">
+				<div className="mx-auto mb-4 grid size-14 place-items-center rounded-full border border-dashed border-(--cards-border)">
 					<svg
-						className="h-6 w-6 text-(--text-tertiary)"
+						className="size-6 text-(--text-tertiary)"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"

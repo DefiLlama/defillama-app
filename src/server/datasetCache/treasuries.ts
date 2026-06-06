@@ -1,6 +1,6 @@
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
+import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { readDatasetDomainJson } from './core'
-import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
 const TREASURIES_FILES = DATASET_DOMAIN_ARTIFACTS.treasuries.files
 

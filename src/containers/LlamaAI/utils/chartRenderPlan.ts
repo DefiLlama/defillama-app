@@ -107,7 +107,8 @@ export function buildRenderPlan(
 				rendererProps: {
 					...(adaptedChart.props as IScatterChartProps),
 					height: '360px',
-					showLabels: state.showLabels
+					showLabels: state.showLabels,
+					logScale: capabilities.allowLogScale && state.logScale
 				},
 				controls,
 				exportModel,

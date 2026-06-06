@@ -1,18 +1,28 @@
-import type { Dispatch, SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
 interface ModeToggleProps {
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
 }
 
-export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }: ModeToggleProps) {
+export function ModeToggle({ mode, setMode, researchUsage, factCheckedUsage, onFactCheckedGated }: ModeToggleProps) {
 	const { user } = useAuthContext()
 	const needsVerification = !!user && !user.verified
+	const factCheckedBlocked = factCheckedUsage?.period === 'blocked'
+
+	const handleFactCheckedClick = () => {
+		if (factCheckedBlocked) {
+			onFactCheckedGated?.()
+			return
+		}
+		setMode('fact_checked')
+	}
 
 	return (
 		<div
@@ -29,15 +39,49 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 				render={
 					<button
 						type="button"
-						onClick={() => setIsResearchMode(false)}
+						onClick={() => setMode('quick')}
 						data-umami-event="llamaai-quick-mode-toggle"
-						data-active={!isResearchMode}
+						data-active={mode === 'quick'}
 					/>
 				}
 				className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
 			>
 				<Icon name="sparkles" height={12} width={12} />
 				<span>Quick</span>
+			</Tooltip>
+			<Tooltip
+				content={
+					<div className="flex max-w-[220px] flex-col gap-1.5">
+						<span className="font-medium text-[#1a1a1a] dark:text-white">Fact-checked</span>
+						<span className="text-[#666] dark:text-[#999]">Two-pass verification with cited evidence</span>
+						<span className="border-t border-[#eee] pt-1.5 text-[11px] text-[#555] dark:border-[#333] dark:text-[#aaa]">
+							{factCheckedUsage?.period === 'unlimited'
+								? 'Unlimited answers'
+								: factCheckedBlocked
+									? 'Subscribe to use fact-checked'
+									: factCheckedUsage
+										? `${factCheckedUsage.remainingUsage}/${factCheckedUsage.limit} remaining${factCheckedUsage.period === 'daily' ? ' today' : ''}`
+										: '10 answers/day on Pro · 10 lifetime on trial'}
+						</span>
+					</div>
+				}
+				render={
+					<button
+						type="button"
+						onClick={handleFactCheckedClick}
+						data-umami-event="llamaai-fact-checked-mode-toggle"
+						data-active={mode === 'fact_checked'}
+					/>
+				}
+				className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
+			>
+				<Icon name="check" height={12} width={12} />
+				<span>Fact-checked</span>
+				{factCheckedUsage && factCheckedUsage.limit > 0 && factCheckedUsage.period !== 'unlimited' ? (
+					<span className="text-[10px] opacity-70">
+						{factCheckedUsage.remainingUsage}/{factCheckedUsage.limit}
+					</span>
+				) : null}
 			</Tooltip>
 			<Tooltip
 				content={
@@ -62,9 +106,9 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 				render={
 					<button
 						type="button"
-						onClick={() => setIsResearchMode(true)}
+						onClick={() => setMode('research')}
 						data-umami-event="llamaai-research-mode-toggle"
-						data-active={isResearchMode}
+						data-active={mode === 'research'}
 					/>
 				}
 				className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"

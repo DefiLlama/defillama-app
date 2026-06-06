@@ -16,7 +16,7 @@ export function CreateTeamCard() {
 
 	return (
 		<div className="flex flex-col items-center gap-6 rounded-2xl border border-(--sub-border-slate-100) bg-white p-8 text-center dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
-			<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--sub-brand-primary)/10">
+			<div className="flex size-16 items-center justify-center rounded-full bg-(--sub-brand-primary)/10">
 				<Icon name="users" height={32} width={32} className="text-(--sub-brand-primary)" />
 			</div>
 			<div className="flex flex-col gap-2">

@@ -284,7 +284,7 @@ export default function Protocols(props: TreasuryPageProps) {
 		queryKey: ['protocol-overview', 'treasury-own-tokens', protocol],
 		queryFn: () =>
 			fetchJson(
-				`/api/charts/protocol?kind=treasury&protocol=${encodeURIComponent(protocol)}&key=${encodeURIComponent('OwnTokens')}&breakdownType=${encodeURIComponent('token-breakdown')}`
+				`/api/public/charts/protocol?kind=treasury&protocol=${encodeURIComponent(protocol)}&key=${encodeURIComponent('OwnTokens')}&breakdownType=${encodeURIComponent('token-breakdown')}`
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

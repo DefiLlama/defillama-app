@@ -50,12 +50,12 @@ export function RowLimitPicker({ value, totalRows, onChange, disabled }: RowLimi
 		<Ariakit.PopoverProvider store={popover}>
 			<div className="inline-flex items-stretch">
 				<Ariakit.PopoverDisclosure disabled={disabled} className={triggerClass}>
-					<Icon name="layers" className="h-3.5 w-3.5" />
+					<Icon name="layers" className="size-3.5" />
 					<span className="truncate">{triggerLabel}</span>
 					{isActive && totalRows > 0 ? (
 						<span className="text-[10px] text-(--primary)/70">of {totalRows.toLocaleString()}</span>
 					) : null}
-					<Icon name="chevron-down" className="h-3 w-3" />
+					<Icon name="chevron-down" className="size-3" />
 				</Ariakit.PopoverDisclosure>
 				{isActive ? (
 					<button
@@ -66,7 +66,7 @@ export function RowLimitPicker({ value, totalRows, onChange, disabled }: RowLimi
 						title="Clear row limit"
 						className="-ml-px flex items-center justify-center rounded-md rounded-l-none border border-(--primary)/40 bg-(--primary)/10 px-1.5 text-(--primary) transition-colors hover:bg-(--primary)/20 disabled:opacity-40"
 					>
-						<Icon name="x" className="h-3 w-3" />
+						<Icon name="x" className="size-3" />
 					</button>
 				) : null}
 			</div>

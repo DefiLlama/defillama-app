@@ -51,7 +51,7 @@ export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEn
 	const chartData = useMemo(() => {
 		if (!data?.length) return []
 
-		const sortedData = [...data].sort((a, b) => Number(a.date) - Number(b.date))
+		const sortedData = data.toSorted((a, b) => Number(a.date) - Number(b.date))
 
 		const rawData = sortedData.map((item) => ({
 			timestamp: Number(item.date),

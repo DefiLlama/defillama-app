@@ -202,6 +202,7 @@ export function Stats(props: IStatsProps) {
 				<KeyMetrics
 					metadata={props.metadata}
 					stablecoins={props.stablecoins}
+					rwaActiveMcap={props.rwaActiveMcap}
 					chainStablecoins={props.chainStablecoins}
 					chainFees={props.chainFees}
 					chainRevenue={props.chainRevenue}

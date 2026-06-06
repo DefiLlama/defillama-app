@@ -108,9 +108,9 @@ function Snippet({ snippet, onApplyAndRun }: { snippet: CookbookSnippet; onApply
 						onClick={() => copy(snippet.sql)}
 						aria-label="Copy SQL"
 						title="Copy SQL"
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 					>
-						<Icon name="copy" className="h-3.5 w-3.5" />
+						<Icon name="copy" className="size-3.5" />
 					</button>
 					<button
 						type="button"
@@ -118,7 +118,7 @@ function Snippet({ snippet, onApplyAndRun }: { snippet: CookbookSnippet; onApply
 						title="Replace editor and run"
 						className="group inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-medium text-white shadow-sm transition-opacity hover:opacity-90"
 					>
-						<svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+						<svg className="size-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 							<path d="M8 5v14l11-7z" />
 						</svg>
 						Try it
@@ -497,9 +497,9 @@ function SearchBar({
 						type="button"
 						onClick={() => onChange('')}
 						aria-label="Clear search"
-						className="absolute top-1/2 right-1 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-sm text-(--text-tertiary) hover:text-(--text-primary)"
+						className="absolute top-1/2 right-1 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-(--text-tertiary) hover:text-(--text-primary)"
 					>
-						<Icon name="x" className="h-3 w-3" />
+						<Icon name="x" className="size-3" />
 					</button>
 				) : null}
 			</label>
@@ -513,7 +513,7 @@ function SearchBar({
 function EmptyResults({ label }: { label: string }) {
 	return (
 		<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-12 text-center">
-			<Icon name="search" className="h-5 w-5 text-(--text-tertiary)" />
+			<Icon name="search" className="size-5 text-(--text-tertiary)" />
 			<p className="text-sm text-(--text-secondary)">{label}</p>
 		</div>
 	)
@@ -528,7 +528,7 @@ function ExternalDocsLink() {
 			className="inline-flex items-center gap-1.5 self-start text-xs text-(--text-tertiary) transition-colors hover:text-(--primary)"
 		>
 			Full LlamaSQL reference
-			<Icon name="external-link" className="h-3 w-3" />
+			<Icon name="external-link" className="size-3" />
 		</a>
 	)
 }

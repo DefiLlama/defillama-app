@@ -49,7 +49,7 @@ export function ChartRouter({ config, result, classified, onReady }: ChartRouter
 		default:
 			return (
 				<div className="flex h-[220px] items-center justify-center gap-2 rounded-md border border-dashed border-(--divider) text-sm text-(--text-secondary)">
-					<Icon name="bar-chart-2" className="h-4 w-4" />
+					<Icon name="bar-chart-2" className="size-4" />
 					Unknown chart type
 				</div>
 			)

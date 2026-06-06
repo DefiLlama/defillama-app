@@ -317,9 +317,9 @@ export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
 					aria-hidden="true"
 					tabIndex={-1}
 					href={`#${CEX_MARKETS_SECTION_ID}`}
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					className="absolute top-0 right-0 z-10 flex size-full items-center"
 				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{lastUpdated ? (
 				<span className="text-xs text-(--text-label)" title={lastUpdated.absolute}>

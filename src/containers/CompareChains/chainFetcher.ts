@@ -1,5 +1,5 @@
+import { getAdapterChainOverview, getAdapterProtocolOverview } from '~/containers/AdapterMetrics/queries'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
-import { getAdapterChainOverview, getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import type { ICategoriesAndTags, IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 
 export const fetchChain = async ({

@@ -219,7 +219,7 @@ function AttributesFilter({
 							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							<span>{ATTRIBUTE_FILTER_STATE_LABELS[state]}</span>
-							<span className="flex h-3.5 w-3.5 items-center justify-center">
+							<span className="flex size-3.5 items-center justify-center">
 								{isSelected ? <Icon name="check" height={12} width={12} className="text-(--link)" /> : null}
 							</span>
 						</NestedMenuItem>

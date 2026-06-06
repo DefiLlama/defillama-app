@@ -1,9 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { Tooltip } from '~/components/Tooltip'
+import { useClearUnseenCompletion } from '~/containers/LlamaAI/hooks/useClearUnseenCompletion'
+import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
+import type { ChatSession } from '~/containers/LlamaAI/types'
 import { AddSourcesMenu } from './AddSourcesMenu'
 import { CreateProjectModal } from './CreateProjectModal'
 import { DeleteProjectModal } from './DeleteProjectModal'
@@ -30,18 +34,22 @@ interface ProjectLandingProps {
 	projectId: string
 	tier: ProjectTier
 	initialTab?: 'chats' | 'sources'
+	sessionList?: ChatSession[]
 	onSubmit: (prompt: string) => void
 	isStreaming: boolean
 	onPickSession: (sessionId: string) => void
+	enterToSend: boolean
 }
 
 export function ProjectLanding({
 	projectId,
 	tier,
 	initialTab = 'chats',
+	sessionList = [],
 	onSubmit,
 	isStreaming,
-	onPickSession
+	onPickSession,
+	enterToSend
 }: ProjectLandingProps) {
 	const router = useRouter()
 	const usage = useProjectUsage()
@@ -49,9 +57,22 @@ export function ProjectLanding({
 	const projectSessions = useProjectSessions(projectId)
 	const renameStore = Ariakit.useDialogStore()
 	const deleteStore = Ariakit.useDialogStore()
+	const clearUnseenCompletion = useClearUnseenCompletion()
+	const { deleteSession, updateSessionTitle, isDeletingSession, isUpdatingTitle } = useSessionMutations()
+	const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null)
+	const [actingSessionId, setActingSessionId] = useState<string | null>(null)
 	const tab = initialTab
 	const [prompt, setPrompt] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const sessionById = useMemo(() => new Map(sessionList.map((session) => [session.sessionId, session])), [sessionList])
+	const sessions = useMemo(
+		() =>
+			(projectSessions.data ?? []).map((session) => ({
+				...session,
+				hasUnseenCompletion: session.hasUnseenCompletion ?? sessionById.get(session.sessionId)?.hasUnseenCompletion
+			})),
+		[projectSessions.data, sessionById]
+	)
 
 	useEffect(() => {
 		const el = textareaRef.current
@@ -97,8 +118,44 @@ export function ProjectLanding({
 		setPrompt('')
 	}
 
+	const handlePickSession = (session: (typeof sessions)[number]) => {
+		if (session.hasUnseenCompletion) clearUnseenCompletion(session.sessionId, projectId)
+		onPickSession(session.sessionId)
+	}
+
+	const handleRenameSubmit = async (e: React.FormEvent<HTMLFormElement>, session: (typeof sessions)[number]) => {
+		e.preventDefault()
+		const input = e.currentTarget.elements.namedItem('newTitle') as HTMLInputElement | null
+		const next = input?.value.trim() ?? ''
+		if (!next || next === session.title) {
+			setRenamingSessionId(null)
+			return
+		}
+		setActingSessionId(session.sessionId)
+		try {
+			await updateSessionTitle({ sessionId: session.sessionId, title: next, projectId })
+			setRenamingSessionId(null)
+		} catch (err) {
+			console.error('Failed to rename session:', err)
+		} finally {
+			setActingSessionId(null)
+		}
+	}
+
+	const handleDeleteSession = async (session: (typeof sessions)[number]) => {
+		if (!window.confirm('Are you sure you want to delete this chat?')) return
+		setActingSessionId(session.sessionId)
+		try {
+			await deleteSession(session.sessionId, projectId)
+		} catch (err) {
+			console.error('Failed to delete session:', err)
+		} finally {
+			setActingSessionId(null)
+		}
+	}
+
 	const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === 'Enter' && e.shiftKey !== enterToSend && !e.nativeEvent.isComposing) {
 			e.preventDefault()
 			handleSubmit()
 		}
@@ -119,12 +176,11 @@ export function ProjectLanding({
 	const projectFileLimit = usage.data?.limits.project_files ?? null
 	const projectBytesUsed = project.data.total_bytes ?? 0
 	const projectFileCount = project.data.file_count ?? 0
-	const sessions = projectSessions.data ?? []
 	const connectGithubQuery = router.query.connectGithub
 	const connectGithubValue = Array.isArray(connectGithubQuery) ? connectGithubQuery[0] : connectGithubQuery
 
 	return (
-		<div className="thin-scrollbar h-full w-full overflow-y-auto overscroll-contain px-6 pt-6 pb-16">
+		<div className="thin-scrollbar size-full overflow-y-auto overscroll-contain px-6 pt-6 pb-16">
 			<div className="mx-auto flex w-full max-w-[760px] flex-col">
 				<header className="flex items-center justify-between gap-3 pb-6">
 					<button
@@ -162,7 +218,7 @@ export function ProjectLanding({
 				</header>
 
 				<div className="flex items-center gap-3 pb-5">
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--old-blue)/20 to-(--old-blue)/5 ring-1 ring-(--old-blue)/30 ring-inset">
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--old-blue)/20 to-(--old-blue)/5 ring-1 ring-(--old-blue)/30 ring-inset">
 						<Icon name="folder-plus" height={15} width={15} className="text-(--old-blue)" />
 					</div>
 					<div className="min-w-0 flex-1">
@@ -188,7 +244,7 @@ export function ProjectLanding({
 							<button
 								type="button"
 								aria-label="Add sources"
-								className="-ml-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-(--old-blue) dark:text-[#919296] dark:hover:bg-[#1c1d1e]"
+								className="-ml-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-(--old-blue) dark:text-[#919296] dark:hover:bg-[#1c1d1e]"
 							>
 								<Icon name="plus" height={15} width={15} />
 							</button>
@@ -208,7 +264,7 @@ export function ProjectLanding({
 						type="submit"
 						disabled={!prompt.trim() || isStreaming}
 						aria-label="Send message"
-						className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-white transition-all hover:scale-105 hover:bg-(--old-blue)/90 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-30"
+						className="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-white transition-all hover:scale-105 hover:bg-(--old-blue)/90 disabled:scale-100 disabled:cursor-not-allowed disabled:opacity-30"
 					>
 						<Icon name="arrow-up" height={13} width={13} />
 					</button>
@@ -251,20 +307,119 @@ export function ProjectLanding({
 								</p>
 							) : (
 								<ul className="flex flex-col">
-									{sessions.map((s) => (
-										<li key={s.sessionId}>
-											<button
-												type="button"
-												onClick={() => onPickSession(s.sessionId)}
-												className="group/row -mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-[#f6f6f7] dark:hover:bg-[#161718]"
-											>
-												<span className="min-w-0 flex-1 truncate text-[13px]">{s.title || 'Untitled chat'}</span>
-												<span className="shrink-0 text-xs text-[#999] tabular-nums dark:text-[#555]">
-													{relativeTime(s.lastActivity ?? s.createdAt)}
-												</span>
-											</button>
-										</li>
-									))}
+									{sessions.map((s) => {
+										const isRenaming = renamingSessionId === s.sessionId
+										const isActing = actingSessionId === s.sessionId
+										const isBusy = isActing && (isDeletingSession || isUpdatingTitle)
+										if (isRenaming) {
+											return (
+												<li key={s.sessionId}>
+													<form
+														onSubmit={(e) => void handleRenameSubmit(e, s)}
+														className="group/row -mx-2 flex w-[calc(100%+1rem)] items-center gap-1 rounded-lg bg-[#f6f6f7] px-2 py-1 dark:bg-[#161718]"
+													>
+														<input
+															type="text"
+															name="newTitle"
+															defaultValue={s.title}
+															autoFocus
+															disabled={isBusy}
+															onFocus={(e) => e.currentTarget.select()}
+															onKeyDown={(e) => {
+																if (e.key === 'Escape') {
+																	e.preventDefault()
+																	setRenamingSessionId(null)
+																}
+															}}
+															className="min-w-0 flex-1 bg-transparent p-1 text-[13px] text-inherit focus:outline-none"
+														/>
+														<button
+															type="submit"
+															disabled={isBusy}
+															className="flex size-7 items-center justify-center rounded-md bg-(--old-blue) text-white disabled:opacity-60"
+															aria-label="Save title"
+														>
+															{isBusy ? <LoadingSpinner size={12} /> : <Icon name="check" height={13} width={13} />}
+														</button>
+														<button
+															type="button"
+															onClick={() => setRenamingSessionId(null)}
+															disabled={isBusy}
+															className="flex size-7 items-center justify-center rounded-md bg-red-500/15 text-red-600 disabled:opacity-60 dark:text-red-400"
+															aria-label="Cancel rename"
+														>
+															<Icon name="x" height={13} width={13} />
+														</button>
+													</form>
+												</li>
+											)
+										}
+										return (
+											<li key={s.sessionId}>
+												<div className="group/row relative -mx-2 flex w-[calc(100%+1rem)] items-center gap-1 rounded-lg pr-1 transition-colors focus-within:bg-[#f6f6f7] hover:bg-[#f6f6f7] dark:focus-within:bg-[#161718] dark:hover:bg-[#161718]">
+													<button
+														type="button"
+														onClick={() => handlePickSession(s)}
+														disabled={isBusy}
+														className="flex min-w-0 flex-1 items-center gap-1.5 p-2 text-left disabled:opacity-60"
+													>
+														{s.hasUnseenCompletion ? (
+															<Tooltip content="New response ready">
+																<span
+																	className="size-1.5 shrink-0 rounded-full bg-(--old-blue)"
+																	aria-label="Unseen completion"
+																/>
+															</Tooltip>
+														) : null}
+														<span className="min-w-0 flex-1 truncate text-[13px]">{s.title || 'Untitled chat'}</span>
+													</button>
+													<span className="shrink-0 text-xs text-[#999] tabular-nums group-focus-within/row:hidden group-hover/row:hidden dark:text-[#555]">
+														{relativeTime(s.lastActivity ?? s.createdAt)}
+													</span>
+													<div className="hidden shrink-0 items-center gap-0.5 group-focus-within/row:flex group-hover/row:flex">
+														<Tooltip
+															content="Rename chat"
+															render={
+																<button
+																	type="button"
+																	aria-label={`Rename ${s.title || 'chat'}`}
+																	disabled={isBusy}
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		setRenamingSessionId(s.sessionId)
+																	}}
+																/>
+															}
+															className="flex size-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50 dark:text-[#666]"
+														>
+															<Icon name="pencil" height={13} width={13} />
+														</Tooltip>
+														<Tooltip
+															content="Delete chat"
+															render={
+																<button
+																	type="button"
+																	aria-label={`Delete ${s.title || 'chat'}`}
+																	disabled={isBusy}
+																	onClick={(e) => {
+																		e.stopPropagation()
+																		void handleDeleteSession(s)
+																	}}
+																/>
+															}
+															className="flex size-7 items-center justify-center rounded-md text-[#999] transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:bg-red-500/10 focus-visible:text-red-600 disabled:opacity-50 dark:text-[#666] dark:hover:text-red-400 dark:focus-visible:text-red-400"
+														>
+															{isBusy && isDeletingSession ? (
+																<LoadingSpinner size={12} />
+															) : (
+																<Icon name="trash-2" height={13} width={13} />
+															)}
+														</Tooltip>
+													</div>
+												</div>
+											</li>
+										)
+									})}
 								</ul>
 							)}
 						</section>

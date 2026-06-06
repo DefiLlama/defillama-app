@@ -2,11 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { deleteArticle as deleteArticleApi, listMyArticles, type ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { isScheduled } from '~/containers/Articles/articleSchedule'
+import { formatArticleDate } from '~/containers/Articles/editor/ArticleEditorUtils'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
-import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 
@@ -56,7 +59,7 @@ function StatusDot({ status }: { status: ArticleDocument['status'] }) {
 	return (
 		<span
 			aria-hidden
-			className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`}
+			className={`inline-block size-1.5 shrink-0 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`}
 		/>
 	)
 }
@@ -64,6 +67,7 @@ function StatusDot({ status }: { status: ArticleDocument['status'] }) {
 function MyArticlesContent() {
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
 	const queryClient = useQueryClient()
+	const revalidateLanding = useResearchLandingRevalidation()
 
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 	const [sectionFilter, setSectionFilter] = useState<SectionFilter>('all')
@@ -86,6 +90,7 @@ function MyArticlesContent() {
 			queryClient.setQueryData<ArticleListResponse | undefined>(myArticlesQueryKey, (current) =>
 				current ? { ...current, items: current.items.filter((a) => a.id !== articleId) } : current
 			)
+			revalidateLanding()
 			toast.success('Deleted')
 		},
 		onError: (err) => {
@@ -94,8 +99,12 @@ function MyArticlesContent() {
 	})
 
 	const allArticles = data?.items ?? EMPTY_ARTICLES
-	const draftCount = useMemo(() => allArticles.filter((a) => a.status === 'draft').length, [allArticles])
-	const publishedCount = allArticles.length - draftCount
+	const scheduledCount = useMemo(() => allArticles.filter((a) => isScheduled(a)).length, [allArticles])
+	const draftCount = useMemo(
+		() => allArticles.filter((a) => a.status === 'draft' && !isScheduled(a)).length,
+		[allArticles]
+	)
+	const publishedCount = allArticles.filter((a) => a.status === 'published').length
 	const totalCount = allArticles.length
 	const capped = data ? data.totalItems > FETCH_LIMIT : false
 
@@ -157,6 +166,12 @@ function MyArticlesContent() {
 							<p className="text-sm text-(--text-secondary)">
 								<span className="text-(--text-primary) tabular-nums">{draftCount}</span> draft
 								{draftCount === 1 ? '' : 's'}
+								{scheduledCount > 0 ? (
+									<>
+										<span className="mx-2 text-(--text-tertiary)">·</span>
+										<span className="text-(--text-primary) tabular-nums">{scheduledCount}</span> scheduled
+									</>
+								) : null}
 								<span className="mx-2 text-(--text-tertiary)">·</span>
 								<span className="text-(--text-primary) tabular-nums">{publishedCount}</span> published
 								{capped ? (
@@ -189,7 +204,7 @@ function MyArticlesContent() {
 						>
 							<svg
 								viewBox="0 0 24 24"
-								className="h-4 w-4"
+								className="size-4"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="2"
@@ -233,7 +248,7 @@ function MyArticlesContent() {
 						<label className="relative flex items-center">
 							<svg
 								viewBox="0 0 24 24"
-								className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-(--text-tertiary)"
+								className="pointer-events-none absolute left-2.5 size-3.5 text-(--text-tertiary)"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="1.75"
@@ -314,7 +329,7 @@ function MyArticlesContent() {
 				<ul className="grid divide-y divide-(--cards-border) overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{Array.from({ length: 6 }).map((_, i) => (
 						<li key={i} className="flex items-center gap-3 px-4 py-3.5">
-							<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--cards-border)" />
+							<span className="size-1.5 shrink-0 rounded-full bg-(--cards-border)" />
 							<span className="h-3.5 w-2/3 animate-pulse rounded bg-(--cards-border)" />
 							<span className="ml-auto h-3 w-20 animate-pulse rounded bg-(--cards-border)" />
 						</li>
@@ -349,6 +364,7 @@ function MyArticlesContent() {
 							const words = wordCount(article.plainText) || wordCount(article.excerpt)
 							const minutes = words > 0 ? Math.max(1, Math.ceil(words / 220)) : 0
 							const isDeleting = deleteArticleMutation.variables === article.id && deleteArticleMutation.isPending
+							const scheduled = isScheduled(article)
 							return (
 								<li
 									key={article.id}
@@ -357,7 +373,7 @@ function MyArticlesContent() {
 									<span
 										aria-hidden
 										className={`absolute top-2 bottom-2 left-0 w-[2px] rounded-r ${
-											article.status === 'draft' ? 'bg-amber-500/70' : 'bg-transparent'
+											scheduled ? 'bg-sky-500/70' : article.status === 'draft' ? 'bg-amber-500/70' : 'bg-transparent'
 										}`}
 									/>
 									<Link href={`/research/edit/${article.id}`} className="grid min-w-0 gap-1">
@@ -366,6 +382,14 @@ function MyArticlesContent() {
 											<h3 className="truncate text-base font-semibold tracking-tight text-(--text-primary) group-hover:text-(--link-text)">
 												{article.title || 'Untitled'}
 											</h3>
+											{scheduled ? (
+												<span
+													className="rounded bg-sky-500/10 px-1.5 py-0.5 font-jetbrains text-[10px] tracking-[0.12em] text-sky-500 uppercase"
+													title={`Goes live ${formatArticleDate(article.goLiveAt)}`}
+												>
+													Scheduled
+												</span>
+											) : null}
 											{article.viewerRole === 'collaborator' ? (
 												<span className="rounded bg-(--link-button) px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-(--link-text) uppercase">
 													Co-author
@@ -379,7 +403,9 @@ function MyArticlesContent() {
 										</div>
 										<div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-(--text-tertiary)">
 											<span>
-												{article.status === 'draft' ? 'Saved' : 'Updated'} {updated}
+												{scheduled
+													? `Scheduled ${formatArticleDate(article.goLiveAt)}`
+													: `${article.status === 'draft' ? 'Saved' : 'Updated'} ${updated}`}
 											</span>
 											<span aria-hidden>·</span>
 											<span className="truncate font-jetbrains text-[11px]">/{article.slug}</span>
@@ -395,29 +421,28 @@ function MyArticlesContent() {
 									</Link>
 
 									<div className="flex shrink-0 items-center gap-1">
-										{article.section ? (
-											<Link
-												href={`/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`}
-												target="_blank"
-												rel="noreferrer"
-												aria-label={article.status === 'published' ? 'View' : 'Preview'}
-												title={article.status === 'published' ? 'View' : 'Preview'}
-												className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
+										<Link
+											href={{
+												pathname: '/research/edit/[id]',
+												query: { id: article.id, view: 'preview' }
+											}}
+											aria-label="Preview in editor"
+											title="Preview in editor"
+											className="flex size-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
+										>
+											<svg
+												viewBox="0 0 24 24"
+												className="size-4"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.75"
+												strokeLinecap="round"
+												strokeLinejoin="round"
 											>
-												<svg
-													viewBox="0 0 24 24"
-													className="h-4 w-4"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="1.75"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												>
-													<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-													<circle cx="12" cy="12" r="3" />
-												</svg>
-											</Link>
-										) : null}
+												<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+												<circle cx="12" cy="12" r="3" />
+											</svg>
+										</Link>
 										<Link
 											href={`/research/edit/${article.id}`}
 											className="hidden h-8 items-center gap-1.5 rounded-md border border-(--cards-border) px-3 text-xs text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary) sm:flex"
@@ -431,11 +456,11 @@ function MyArticlesContent() {
 												title="Delete"
 												disabled={isDeleting}
 												onClick={() => handleDelete(article)}
-												className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+												className="flex size-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 											>
 												<svg
 													viewBox="0 0 24 24"
-													className="h-3.5 w-3.5"
+													className="size-3.5"
 													fill="none"
 													stroke="currentColor"
 													strokeWidth="1.75"

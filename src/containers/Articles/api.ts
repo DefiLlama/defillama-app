@@ -1,4 +1,5 @@
 import { FEATURES_SERVER } from '~/constants'
+import type { EditorialTagOrderItem } from './editorialTagOrder'
 import type {
 	ArticleAuthorProfile,
 	ArticleCollaborator,
@@ -61,6 +62,13 @@ function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
 
+/** Temporary CDN cache bust; remove when Cloudflare purge covers these routes. */
+function articleUrlWithCacheNonce(path: string) {
+	const url = articleUrl(path)
+	const nonce = String(Date.now())
+	return url.includes('?') ? `${url}&_n=${nonce}` : `${url}?_n=${nonce}`
+}
+
 function nullableText(value: string | null | undefined): string | null {
 	if (typeof value !== 'string') return null
 	const trimmed = value.trim()
@@ -85,6 +93,7 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		tags: article.tags ?? [],
 		section: article.section ?? null,
 		displayDate: article.displayDate ?? null,
+		goLiveAt: article.goLiveAt ?? null,
 		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
 		featuredUntil: article.featuredUntil ? article.featuredUntil : null,
@@ -120,6 +129,7 @@ export async function listArticles(
 	params: {
 		page?: number
 		limit?: number
+		skip?: number
 		query?: string
 		tags?: string[]
 		entityType?: string
@@ -132,18 +142,22 @@ export async function listArticles(
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'page', params.page)
 	appendSearchParam(search, 'limit', params.limit)
+	appendSearchParam(search, 'skip', params.skip)
 	appendSearchParam(search, 'query', params.query)
 	appendSearchParam(search, 'tags', params.tags?.join(','))
 	appendSearchParam(search, 'entityType', params.entityType)
 	appendSearchParam(search, 'entitySlug', params.entitySlug)
 	appendSearchParam(search, 'section', params.section)
 	appendSearchParam(search, 'sort', params.sort)
-	return parseResponse(await fetchFn(articleUrl(`/articles?${search}`)))
+	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles?${search}`)))
 }
 
 export type ArticleSectionListResponse = {
 	sections: { section: ArticleSection; items: ArticleDocument[] }[]
 }
+
+export type { EditorialTagOrderItem } from './editorialTagOrder'
+export { applyEditorialTagOrderPayload, buildEditorialTagReorderPayload } from './editorialTagOrder'
 
 export type ArticleByTagResponse = {
 	items: ArticleDocument[]
@@ -165,23 +179,94 @@ export async function listArticlesByTag(
 ): Promise<ArticleByTagResponse> {
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'limit', limit)
-	return parseResponse(await fetchFn(articleUrl(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
+	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
+}
+
+export async function listArticlesByTopic(
+	topic: string,
+	params: Omit<NonNullable<Parameters<typeof listArticles>[0]>, 'tags'> = {},
+	fetchFn: FetchLike = fetch
+): Promise<ArticleListResponse> {
+	return listArticles({ ...params, tags: [topic] }, fetchFn)
+}
+
+export type ResearchLandingBuckets = {
+	heroReports: ArticleDocument[]
+	latest: ArticleDocument[]
+	spotlight: ArticleDocument[]
+	interviews: ArticleDocument[]
+	highlight: ArticleDocument[]
+	insights: ArticleDocument[]
+	moreReportsCandidates: ArticleDocument[]
+	spotlightColumnCandidates: ArticleDocument[]
+	collectionsCandidates: ArticleDocument[]
+}
+
+export async function getResearchLanding(
+	limits: {
+		hero: number
+		latest: number
+		spotlight: number
+		interviews: number
+		highlight: number
+		insights: number
+		reportsCandidates: number
+		spotlightCandidates: number
+		collectionsCandidates: number
+	},
+	fetchFn: FetchLike = fetch
+): Promise<ResearchLandingBuckets> {
+	const search = new URLSearchParams()
+	for (const [key, value] of Object.entries(limits)) {
+		appendSearchParam(search, key, value)
+	}
+	return parseResponse(await fetchFn(articleUrlWithCacheNonce(`/articles/landing?${search}`)))
 }
 
 export async function listArticlePaths(fetchFn: FetchLike = fetch): Promise<ArticlePathsResponse> {
 	return parseResponse(await fetchFn(articleUrl('/articles/paths')))
 }
 
+export async function revalidateResearchLanding(authorizedFetch: AuthorizedFetch): Promise<void> {
+	await parseResponse(
+		await authorizedFetch(`/api/private/research/revalidate-landing?_n=${Date.now()}`, {
+			method: 'GET'
+		})
+	)
+}
+
 export async function setEditorialTag(
 	articleId: string,
 	tag: string,
-	authorizedFetch: AuthorizedFetch
-): Promise<{ articleId: string; tag: string }> {
+	authorizedFetch: AuthorizedFetch,
+	options?: { order?: number }
+): Promise<{ articleId: string; tag: string; order: number }> {
+	const hasOrder = options?.order !== undefined
 	return parseResponse(
 		await authorizedFetch(
 			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
-			{ method: 'POST' }
+			hasOrder
+				? {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ order: options.order })
+					}
+				: { method: 'POST' }
 		)
+	)
+}
+
+export async function reorderEditorialTag(
+	tag: string,
+	items: EditorialTagOrderItem[],
+	authorizedFetch: AuthorizedFetch
+): Promise<{ tag: string; items: EditorialTagOrderItem[] }> {
+	return parseResponse(
+		await authorizedFetch(articleUrl(`/articles/editorial-tags/${encodeURIComponent(tag)}/order`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ items })
+		})
 	)
 }
 
@@ -217,7 +302,7 @@ export async function unsetEditorialTag(
 }
 
 export async function getArticleBySlug(slug: string, fetchFn: FetchLike = fetch): Promise<ArticleDocument | null> {
-	const response = await fetchFn(articleUrl(`/articles/${encodeURIComponent(slug)}`))
+	const response = await fetchFn(articleUrlWithCacheNonce(`/articles/${encodeURIComponent(slug)}`))
 	if (response.status === 404) return null
 	const data = await parseResponse<{ article: ArticleDocument }>(response)
 	return data.article
@@ -302,16 +387,32 @@ export async function updateReportHighlightSponsorLogo(
 	return data.article
 }
 
-export async function publishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
+export type PublishArticleOptions = {
+	goLiveAt?: string | null
+}
+
+export async function publishArticle(
+	id: string,
+	authorizedFetch: AuthorizedFetch,
+	options: PublishArticleOptions = {}
+): Promise<ArticleDocument> {
+	const body: { goLiveAt?: string | null } = {}
+	if ('goLiveAt' in options) {
+		body.goLiveAt = options.goLiveAt
+	}
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/publish`), { method: 'POST' })
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/publish`, {
+			body: JSON.stringify(body),
+			headers: { 'Content-Type': 'application/json' },
+			method: 'POST'
+		})
 	)
 	return data.article
 }
 
 export async function unpublishArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
 	const data = await parseResponse<{ article: ArticleDocument }>(
-		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/unpublish`), { method: 'POST' })
+		await authorizedFetch(`/api/private/research/articles/${encodeURIComponent(id)}/unpublish`, { method: 'POST' })
 	)
 	return data.article
 }
@@ -545,12 +646,16 @@ export async function deleteBanner(id: string, authorizedFetch: AuthorizedFetch)
 const EMPTY_BANNER_LOOKUP: BannerLookupResult = { text: null, image: null, imageHorizontal: null }
 
 export async function getLandingBanner(fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
-	const data = await parseResponse<BannerLookupResult | null>(await fetchFn(articleUrl('/banners/lookup/landing')))
+	const data = await parseResponse<BannerLookupResult | null>(
+		await fetchFn(articleUrlWithCacheNonce('/banners/lookup/landing'))
+	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
 export async function getAllArticlesBanner(fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
-	const data = await parseResponse<BannerLookupResult | null>(await fetchFn(articleUrl('/banners/lookup/all-articles')))
+	const data = await parseResponse<BannerLookupResult | null>(
+		await fetchFn(articleUrlWithCacheNonce('/banners/lookup/all-articles'))
+	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
@@ -559,14 +664,14 @@ export async function getSectionBanner(
 	fetchFn: FetchLike = fetch
 ): Promise<BannerLookupResult> {
 	const data = await parseResponse<BannerLookupResult | null>(
-		await fetchFn(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
+		await fetchFn(articleUrlWithCacheNonce(`/banners/lookup/section/${encodeURIComponent(section)}`))
 	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
 export async function getArticleBanner(articleId: string, fetchFn: FetchLike = fetch): Promise<BannerLookupResult> {
 	const data = await parseResponse<BannerLookupResult | null>(
-		await fetchFn(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
+		await fetchFn(articleUrlWithCacheNonce(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
 	)
 	return data ?? EMPTY_BANNER_LOOKUP
 }

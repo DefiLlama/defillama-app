@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { ICategoriesAndTags, IChainMetadata } from '~/utils/metadata/types'
-import { shouldFetchChainDexs, shouldFetchChainPerps } from '../queries.server'
+import { createRoutePhaseTimer } from '~/utils/perf'
+import {
+	getChainOverviewData,
+	getRwaActiveMcapForChain,
+	hasRwaActiveMcapChain,
+	shouldFetchChainDexs,
+	shouldFetchChainPerps
+} from '../queries.server'
 
 const categoriesAndTagsMetadata = {
 	categories: ['Dexs', 'Derivatives', 'OTC Marketplace'],
@@ -29,6 +36,21 @@ const categoriesAndTagsMetadata = {
 } satisfies ICategoriesAndTags
 
 describe('shouldFetchChainDexs', () => {
+	it('accepts an optional phase timer without changing missing-chain results', async () => {
+		const phaseTimer = createRoutePhaseTimer()
+
+		await expect(
+			getChainOverviewData({
+				chain: 'missing',
+				chainMetadata: {},
+				protocolMetadata: {},
+				categoriesAndTagsMetadata,
+				phaseTimer
+			})
+		).resolves.toBeNull()
+		expect(phaseTimer.timings()).toEqual({})
+	})
+
 	it('skips dexs when the chain has the metadata flag but is not in the default Dexs category', () => {
 		const provenance = {
 			name: 'Provenance',
@@ -125,5 +147,50 @@ describe('shouldFetchChainPerps', () => {
 				categoriesAndTagsMetadata
 			})
 		).toBe(true)
+	})
+})
+
+describe('getRwaActiveMcapForChain', () => {
+	const stats = {
+		totalOnChainMcap: 120,
+		totalActiveMcap: 90,
+		totalDefiActiveTvl: 10,
+		totalAssets: 1,
+		totalIssuers: 1,
+		byChain: {
+			'XDC Network': {
+				base: { onChainMcap: 120, activeMcap: 90, defiActiveTvl: 10, assetCount: 1, assetIssuers: ['Issuer A'] },
+				stablecoinsOnly: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] },
+				governanceOnly: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] },
+				stablecoinsAndGovernance: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] }
+			},
+			EmptyChain: {
+				base: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] },
+				stablecoinsOnly: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] },
+				governanceOnly: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] },
+				stablecoinsAndGovernance: { onChainMcap: 0, activeMcap: 0, defiActiveTvl: 0, assetCount: 0, assetIssuers: [] }
+			}
+		},
+		byCategory: {}
+	}
+
+	it('resolves active market cap by RWA chain slug', () => {
+		expect(getRwaActiveMcapForChain(stats, 'XDC-Network')).toBe(90)
+	})
+
+	it('returns null for zero or missing active market cap', () => {
+		expect(getRwaActiveMcapForChain(stats, 'EmptyChain')).toBeNull()
+		expect(getRwaActiveMcapForChain(stats, 'Missing')).toBeNull()
+	})
+})
+
+describe('hasRwaActiveMcapChain', () => {
+	it('matches covered RWA chains by slug', () => {
+		expect(hasRwaActiveMcapChain(['XDC Network'], 'xdc-network')).toBe(true)
+	})
+
+	it('skips missing RWA chains', () => {
+		expect(hasRwaActiveMcapChain(['Ethereum'], 'Solana')).toBe(false)
+		expect(hasRwaActiveMcapChain(null, 'Ethereum')).toBe(false)
 	})
 })

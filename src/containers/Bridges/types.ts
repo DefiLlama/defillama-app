@@ -31,6 +31,10 @@ export interface BridgeTableData {
 	tokenDeposits: BridgePieChartSlice[]
 	tokenWithdrawals: BridgePieChartSlice[]
 	tokenColor: Record<string, string>
+	totalDepositedUSD?: number
+	totalWithdrawnUSD?: number
+	totalDepositTxs?: number
+	totalWithdrawalTxs?: number
 }
 
 export interface BridgePageData {

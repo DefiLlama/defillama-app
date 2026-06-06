@@ -739,7 +739,7 @@ export const formatPeggedAssetsData = ({
 	})
 
 	if (chain) {
-		return [...mappedAssets].sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		return mappedAssets.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}
 
 	return mappedAssets
@@ -795,7 +795,7 @@ export const formatPeggedChainsData = ({
 		}
 	})
 
-	formattedStablecoinChains = [...formattedStablecoinChains].sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+	formattedStablecoinChains = formattedStablecoinChains.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 
 	return formattedStablecoinChains
 }

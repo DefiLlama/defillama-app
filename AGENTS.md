@@ -45,6 +45,12 @@ Before starting any Next.js work, read the relevant documentation in `node_modul
 
 Treat those local docs as the source of truth.
 
+## Metric Semantics
+
+Before changing metric routes, chart queries, metadata flags, public API validation, or adapter data types, read `docs/metrics.md`.
+
+`public/pages.json` contains product-facing page definitions. `docs/metrics.md` documents implementation semantics and overloaded terminology that can affect code paths.
+
 ## Local User Instructions
 
 If `.codex/local-instructions.md` exists, read and follow it before making code changes. It contains local user preferences and skill routing, and is intentionally gitignored.

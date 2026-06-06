@@ -35,14 +35,14 @@ interface AgenticSidebarProps {
 	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<unknown>
 	isDeletingSession: boolean
 	isUpdatingTitle: boolean
 	shouldAnimate?: boolean
 	onOpenSettings?: () => void
 	hasCustomInstructions?: boolean
 	onBulkDelete?: (sessionIds: string[]) => Promise<void>
-	onPinSession?: (sessionId: string) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<unknown>
 	onSearchMatchClick?: (sessionId: string, messageId: string) => void
 	hasMoreSessions?: boolean
 	isFetchingMoreSessions?: boolean
@@ -93,11 +93,11 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	updatingTitleSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<unknown>
 	selectMode: boolean
 	isSelected: boolean
 	onToggleSelect: (sessionId: string) => void
-	onPinSession?: (sessionId: string) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<unknown>
 }) {
 	if (item.type === 'header') {
 		return (
@@ -238,7 +238,7 @@ export function AgenticSidebar({
 	)
 
 	const handleUpdateTitle = useCallback(
-		(args: { sessionId: string; title: string }) => {
+		(args: { sessionId: string; title: string; projectId?: string | null }) => {
 			setUpdatingTitleSessionId(args.sessionId)
 			return onUpdateTitle(args).finally(() => {
 				setUpdatingTitleSessionId(null)
@@ -378,7 +378,7 @@ export function AgenticSidebar({
 	return (
 		<aside
 			ref={sidebarRef}
-			className={`llamaai-agentic-sidebar relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
+			className={`llamaai-agentic-sidebar relative flex size-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
 			<header className="flex flex-col gap-2 p-4 pb-2">
 				<div className="flex h-6 items-center">
@@ -407,7 +407,7 @@ export function AgenticSidebar({
 									data-umami-event-source="sidebar_header"
 								/>
 							}
-							className="hidden h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:flex"
+							className="hidden size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:flex"
 						>
 							<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
 							<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
@@ -423,7 +423,7 @@ export function AgenticSidebar({
 									data-umami-event-source="sidebar_header"
 								/>
 							}
-							className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+							className="flex size-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 						>
 							<Icon name="panel-left-close" height={16} width={16} />
 							<span className="sr-only">Close Chat History</span>
@@ -464,7 +464,7 @@ export function AgenticSidebar({
 						{searchQuery ? (
 							<button
 								onClick={() => clearSearch()}
-								className="mr-1.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#ccc] text-white transition-colors hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
+								className="mr-1.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#ccc] text-white transition-colors hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
 							>
 								<Icon name="x" height={8} width={8} />
 							</button>
@@ -476,9 +476,17 @@ export function AgenticSidebar({
 			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto overscroll-contain">
 				<div ref={projectsSectionRef} className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
 					<ProjectsSidebarSection
+						sessions={sessions}
 						currentProjectId={currentProjectId}
 						currentSessionProjectId={currentSessionProjectId}
 						currentSessionId={currentSessionId}
+						restoringSessionId={restoringSessionId}
+						deletingSessionId={deletingSessionId}
+						updatingTitleSessionId={updatingTitleSessionId}
+						onSessionSelect={onSessionSelect}
+						onDelete={handleDelete}
+						onUpdateTitle={handleUpdateTitle}
+						onPinSession={onPinSession}
 					/>
 				</div>
 
@@ -595,7 +603,7 @@ export function AgenticSidebar({
 								setSelectedSessionIds(new Set(filteredSessions.map((s) => s.sessionId)))
 							}
 						}}
-						className="flex min-h-0 flex-1 items-center justify-center rounded-md px-2 py-2 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#222324]"
+						className="flex min-h-0 flex-1 items-center justify-center rounded-md p-2 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#222324]"
 					>
 						{selectedSessionIds.size === filteredSessions.length ? 'Deselect All' : 'Select All'}
 					</button>
@@ -617,7 +625,7 @@ export function AgenticSidebar({
 					<div className="relative">
 						<Icon name="settings" height={14} width={14} />
 						{hasCustomInstructions ? (
-							<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+							<span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
 						) : null}
 					</div>
 					<span>Settings</span>

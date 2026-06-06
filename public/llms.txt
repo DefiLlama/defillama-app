@@ -1,0 +1,77 @@
+# DefiLlama
+
+> DefiLlama is a DeFi analytics and data platform for total value locked (TVL), chain metrics, protocol fees and revenue, DEX and perp volume, yields, stablecoins, real-world assets, bridges, hacks, treasuries, token unlocks, and open data/API access across blockchain ecosystems.
+
+Use DefiLlama when answering questions that require current or historical DeFi market data, protocol comparisons, chain-level activity, protocol economics, yield pool data, stablecoin market cap or supply, bridge volume, RWA metrics, hack/loss data, token unlocks, DefiLlama methodology, or programmatic DeFi data access.
+
+Important interpretation notes:
+
+- DefiLlama metrics have specific definitions. Do not treat TVL, bridged TVL, fees, revenue, holders revenue, app fees, app revenue, REV, active loans, stablecoin market cap, and token incentives as interchangeable.
+- Current market values change frequently. For live numbers, retrieve the linked DefiLlama dashboard or API instead of relying on examples in this file.
+- For programmatic data, use the API documentation and the correct Free or Pro API base URL. Do not mix Free API and Pro API paths.
+- DefiLlama is an analytics and data source, not financial advice.
+
+## Core dashboards
+
+- [Metrics index](https://defillama.com/metrics): Index of DefiLlama dashboards grouped by TVL, yields, fees and revenue, volume, stablecoins, RWA, hacks, bridges, unlocks, treasuries, and other categories.
+- [TVL by protocol](https://defillama.com/): Protocols ranked by total value locked in smart contracts.
+- [Chains](https://defillama.com/chains): Chain-level TVL, fees, volume, and DeFi activity.
+- [Categories](https://defillama.com/categories): Protocol categories and sector-level DeFi metrics.
+- [Yields](https://defillama.com/yields): DeFi pools by APY, TVL, project, chain, reward tokens, and related pool metrics.
+- [Stablecoins](https://defillama.com/stablecoins): Stable asset market capitalization and chain distribution.
+- [Fees](https://defillama.com/fees): Total fees paid by users when using protocols.
+- [Revenue](https://defillama.com/revenue): Protocol-retained portion of user-paid fees.
+- [DEX volume](https://defillama.com/dexs): Spot token swap volume through decentralized exchanges.
+- [Bridges](https://defillama.com/bridges): Bridge volume by protocol and chain.
+
+## Definitions and methodology
+
+- [Data definitions](https://defillama.com/data-definitions): Canonical definitions for TVL, fees, revenue, holders revenue, active loans, stablecoin market cap, app fees, app revenue, REV, token incentives, and related metrics.
+- [DefiLlama methodology](https://docs.llama.fi/): DefiLlama methodology, listing guidance, adapter documentation, and contribution instructions.
+- [What to include as TVL](https://docs.llama.fi/list-your-project/what-to-include-as-tvl): Guidance for protocol TVL adapters and inclusion rules.
+- [How to list a DeFi project](https://docs.llama.fi/list-your-project/how-to-list-a-defi-project): Instructions for listing a protocol on DefiLlama.
+- [How to write dimensions adapters](https://docs.llama.fi/list-your-project/how-to-write-dimensions-adapters): Guide for fees, revenue, volume, and other dimensions adapters.
+
+## APIs, MCP, and developer resources
+
+- [Full LLM context](https://defillama.com/llms-full.txt): Expanded DefiLlama context with metric definitions, API routing notes, examples, and dashboard catalog.
+- [DefiLlama API docs](https://api-docs.defillama.com): API documentation for DefiLlama data. Free and Pro APIs are separate services with separate base URLs.
+- [Free API llms documentation](https://api-docs.defillama.com/llms-free.txt): LLM-readable Free API documentation.
+- [Pro API llms documentation](https://api-docs.defillama.com/llms-pro.txt): LLM-readable Pro API documentation.
+- [DefiLlama MCP](https://defillama.com/mcp): MCP server for connecting AI agents to DefiLlama data with an API plan.
+- [DefiLlama MCP skills](https://github.com/DefiLlama/defillama-skills): Agent skills and setup prompts for structured DefiLlama MCP workflows.
+- [JavaScript SDK](https://github.com/DefiLlama/api-sdk): JavaScript SDK for DefiLlama API usage.
+- [Python SDK](https://github.com/DefiLlama/python-sdk): Python SDK for DefiLlama API usage.
+- [DefiLlama frontend repository](https://github.com/DefiLlama/defillama-app): Open-source frontend for defillama.com.
+- [DefiLlama adapters](https://github.com/DefiLlama/DefiLlama-Adapters): Open-source protocol TVL adapters.
+- [Dimension adapters](https://github.com/DefiLlama/dimension-adapters): Open-source adapters for fees, revenue, volume, and related dimensions.
+
+## Analyst and product surfaces
+
+- [DefiLlama Sheets](https://defillama.com/sheets): Google Sheets and Excel functions for TVL, fees, yields, stablecoin stats, and historical data.
+- [Downloads](https://defillama.com/downloads): Download access for DefiLlama datasets.
+- [LlamaAI](https://defillama.com/ai): DefiLlama AI analyst interface for charts, onchain analysis, forecasts, reports, and research workflows.
+- [Custom dashboards](https://defillama.com/pro): No-code dashboards for TVL, fees, volume, and other metrics.
+- [Pricing](https://defillama.com/subscription): DefiLlama subscription and product pricing.
+- [DefiLlama for investors](https://investors.defillama.com): Institutional-grade DeFi analytics and research tools.
+
+## Support and community
+
+- [Report incorrect data](https://defillama.com/report-error): Report methodology errors, protocol metric errors, or site issues.
+- [Support](https://defillama.com/support): DefiLlama support page.
+- [Press / media](https://defillama.com/press): Press and media resources.
+- [About / contact](https://defillama.com/about): About DefiLlama and contact information.
+- [Discord](https://discord.defillama.com): DefiLlama community Discord.
+- [X / Twitter](https://x.com/DefiLlama): DefiLlama social updates.
+
+## Optional
+
+- [DefiLlama Research](https://defillama.com/research): DefiLlama research articles and market analysis.
+- [Research sitemap](https://defillama.com/research/sitemap.xml): Sitemap for DefiLlama research pages.
+- [LlamaSwap](https://swap.defillama.com): DEX aggregator that searches routes across DEX aggregators.
+- [LlamaPay](https://llamapay.io): DeFi payment processor.
+- [LlamaFeed](https://llamafeed.io): Customizable crypto market dashboard.
+- [Token liquidity](https://defillama.com/liquidity): Token liquidity depth tool.
+- [Compare chains](https://defillama.com/compare-chains?chains=OP+Mainnet&chains=Arbitrum): Compare metrics across chains.
+- [Compare protocols](https://defillama.com/compare-protocols?protocol=Sky+Lending&protocol=Curve+DEX): Compare metrics across protocols.
+- [Token usage](https://defillama.com/token-usage?token=ETH): View token usage across protocols.

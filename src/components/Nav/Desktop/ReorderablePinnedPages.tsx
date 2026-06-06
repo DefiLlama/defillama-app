@@ -72,12 +72,12 @@ function PinnedPageRow({ page }: { page: TNavLink }) {
 				<div className="flex min-w-0 flex-1 items-center gap-2">
 					<button
 						type="button"
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 						aria-label={`Drag ${page.name}`}
 						{...attributes}
 						{...listeners}
 					>
-						<Icon name="menu" className="h-4 w-4" />
+						<Icon name="menu" className="size-4" />
 					</button>
 					<NavItemContent name={page.name} icon={page.icon} attention={page.attention} />
 				</div>
@@ -93,9 +93,9 @@ function PinnedPageRow({ page }: { page: TNavLink }) {
 						}}
 					/>
 				}
-				className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) px-1 py-1 text-white group-focus-within:block group-hover:block"
+				className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) p-1 text-white group-focus-within:block group-hover:block"
 			>
-				<Icon name="x" className="h-4 w-4" />
+				<Icon name="x" className="size-4" />
 			</Tooltip>
 		</span>
 	)

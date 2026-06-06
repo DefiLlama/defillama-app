@@ -15,10 +15,16 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 	const [selectedText, setSelectedText] = useState('')
 	const [position, setPosition] = useState<PopupPosition | null>(null)
 	const popupRef = useRef<HTMLButtonElement>(null)
+	const selectionTimeoutRef = useRef<number | null>(null)
 
 	useEffect(() => {
 		const POPUP_OFFSET = 36
 		const VIEWPORT_MARGIN = 8
+		const clearScheduledSelectionCheck = () => {
+			if (selectionTimeoutRef.current === null) return
+			window.clearTimeout(selectionTimeoutRef.current)
+			selectionTimeoutRef.current = null
+		}
 
 		const showPopupForSelection = () => {
 			const selection = window.getSelection()
@@ -62,25 +68,33 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 			setPosition({ top, left: centeredLeft })
 		}
 
-		const handleMouseUp = () => {
-			setTimeout(showPopupForSelection, 10)
+		const schedulePopupForSelection = (delay = 0) => {
+			clearScheduledSelectionCheck()
+			selectionTimeoutRef.current = window.setTimeout(() => {
+				selectionTimeoutRef.current = null
+				showPopupForSelection()
+			}, delay)
 		}
 
 		const handleMouseDown = (e: MouseEvent) => {
 			if (popupRef.current?.contains(e.target as Node)) return
+			clearScheduledSelectionCheck()
 			setSelectedText('')
 			setPosition(null)
 		}
 
-		const handleSelectionChange = () => {
-			showPopupForSelection()
-		}
+		const handlePointerSelectionEnd = () => schedulePopupForSelection(20)
+		const handleDoubleClick = () => schedulePopupForSelection(40)
+		const handleSelectionChange = () => schedulePopupForSelection()
 
-		document.addEventListener('mouseup', handleMouseUp)
+		document.addEventListener('pointerup', handlePointerSelectionEnd)
+		document.addEventListener('dblclick', handleDoubleClick)
 		document.addEventListener('mousedown', handleMouseDown)
 		document.addEventListener('selectionchange', handleSelectionChange)
 		return () => {
-			document.removeEventListener('mouseup', handleMouseUp)
+			clearScheduledSelectionCheck()
+			document.removeEventListener('pointerup', handlePointerSelectionEnd)
+			document.removeEventListener('dblclick', handleDoubleClick)
 			document.removeEventListener('mousedown', handleMouseDown)
 			document.removeEventListener('selectionchange', handleSelectionChange)
 		}
@@ -109,7 +123,7 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 			}}
 			className="flex items-center gap-1.5 rounded-full border border-[#e6e6e6] bg-white/90 px-3 py-1.5 text-xs font-medium text-[#333] shadow-[0_2px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)] active:scale-95 dark:border-[#39393E] dark:bg-[#1a1a1d]/90 dark:text-[#ccc] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)]"
 		>
-			<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-3.5 w-3.5" />
+			<img src="/assets/llamaai/llama-ai.svg" alt="" className="size-3.5" />
 			Ask LlamaAI
 		</button>,
 		document.body

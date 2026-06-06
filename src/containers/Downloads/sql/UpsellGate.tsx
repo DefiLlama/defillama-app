@@ -183,7 +183,7 @@ export function UpsellGate({ isAuthenticated, isTrial }: UpsellGateProps) {
 			<section className="flex flex-col gap-8 lg:gap-10">
 				<header className="flex flex-col gap-5">
 					<div className="flex items-center gap-2">
-						<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-(--sub-brand-primary)" />
+						<span aria-hidden className="inline-block size-1.5 rounded-full bg-(--sub-brand-primary)" />
 						<span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-(--sub-brand-primary) uppercase">
 							API plan
 						</span>
@@ -223,7 +223,7 @@ function PricingCard({ isAuthenticated, subscriptionHref }: { isAuthenticated: b
 	return (
 		<div className="flex flex-col gap-6 rounded-xl border border-(--sub-brand-primary)/30 bg-(--cards-bg) p-6 shadow-sm lg:sticky lg:top-4">
 			<div className="flex items-center gap-2">
-				<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-(--sub-brand-primary)" />
+				<span aria-hidden className="inline-block size-1.5 rounded-full bg-(--sub-brand-primary)" />
 				<span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-(--sub-brand-primary) uppercase">
 					API plan
 				</span>
@@ -248,7 +248,7 @@ function PricingCard({ isAuthenticated, subscriptionHref }: { isAuthenticated: b
 				<ul className="flex flex-col gap-2.5">
 					{PLAN_INCLUDES.map((item) => (
 						<li key={item} className="flex items-start gap-2.5 text-[13px] leading-relaxed">
-							<Icon name="check" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-(--sub-brand-primary)" />
+							<Icon name="check" className="mt-0.5 size-3.5 shrink-0 text-(--sub-brand-primary)" />
 							<span className="text-(--text-primary)">{item}</span>
 						</li>
 					))}
@@ -264,7 +264,7 @@ function PricingCard({ isAuthenticated, subscriptionHref }: { isAuthenticated: b
 					{isAuthenticated ? 'Upgrade to API plan' : 'Sign in & subscribe'}
 					<Icon
 						name="arrow-up-right"
-						className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+						className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
 					/>
 				</Link>
 				<span className="text-[11px] text-(--text-tertiary)">Cancel anytime · pay with card or crypto</span>
@@ -291,7 +291,7 @@ function FeatureTile({
 			</span>
 			<div className="flex flex-col gap-1.5">
 				<div className="flex items-center gap-2">
-					<Icon name={icon} className="h-3.5 w-3.5 text-(--sub-brand-primary)" />
+					<Icon name={icon} className="size-3.5 text-(--sub-brand-primary)" />
 					<span className="text-sm font-semibold text-(--text-primary)">{title}</span>
 				</div>
 				<p className="text-[13px] leading-relaxed text-(--text-secondary)">{body}</p>
@@ -333,12 +333,12 @@ function TabStrip({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: 
 								: 'border-transparent text-(--text-secondary) hover:bg-(--link-hover-bg)/40 hover:text-(--text-primary)'
 						}`}
 					>
-						<span className="flex h-3 w-3 shrink-0 items-center justify-center" aria-hidden>
-							{t.dirty ? <span className="h-1.5 w-1.5 rounded-full bg-pro-gold-300" /> : null}
+						<span className="flex size-3 shrink-0 items-center justify-center" aria-hidden>
+							{t.dirty ? <span className="size-1.5 rounded-full bg-pro-gold-300" /> : null}
 						</span>
 						<Icon
 							name={t.kind === 'notebook' ? 'layers' : 'file-text'}
-							className={`h-3 w-3 shrink-0 ${
+							className={`size-3 shrink-0 ${
 								isActive
 									? t.kind === 'notebook'
 										? 'text-(--sub-brand-primary)'
@@ -349,13 +349,13 @@ function TabStrip({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: 
 						<span className="min-w-0 flex-1 truncate text-left font-mono text-[12px]">{t.label}</span>
 						<span
 							aria-hidden
-							className={`grid h-4 w-4 shrink-0 place-items-center rounded-sm transition-opacity ${
+							className={`grid size-4 shrink-0 place-items-center rounded-sm transition-opacity ${
 								isActive
 									? 'opacity-50 hover:bg-(--link-hover-bg)/60 hover:opacity-100'
 									: 'opacity-0 group-hover:opacity-50'
 							}`}
 						>
-							<Icon name="x" className="h-2.5 w-2.5" />
+							<Icon name="x" className="size-2.5" />
 						</span>
 					</button>
 				)
@@ -364,9 +364,9 @@ function TabStrip({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: 
 				type="button"
 				title="New tab (⌘T)"
 				onClick={(e) => e.preventDefault()}
-				className="-mb-px ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center self-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg)/40 hover:text-(--text-secondary)"
+				className="-mb-px ml-auto inline-flex size-7 shrink-0 items-center justify-center self-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg)/40 hover:text-(--text-secondary)"
 			>
-				<Icon name="plus" className="h-3.5 w-3.5" />
+				<Icon name="plus" className="size-3.5" />
 			</button>
 		</div>
 	)
@@ -376,7 +376,7 @@ function NotebookBody() {
 	return (
 		<div className="flex flex-col">
 			<NotebookHeader />
-			<div className="flex flex-col gap-2 px-3 py-3">
+			<div className="flex flex-col gap-2 p-3">
 				<MarkdownCell />
 				<SqlNotebookCell />
 				<ChartNotebookCell />
@@ -478,7 +478,7 @@ function SqlNotebookCell() {
 							<Keycap muted>⌘</Keycap>
 							<Keycap muted>↵</Keycap>
 						</span>
-						<Icon name="ellipsis" className="h-3.5 w-3.5 text-(--text-tertiary)" />
+						<Icon name="ellipsis" className="size-3.5 text-(--text-tertiary)" />
 					</>
 				}
 			/>
@@ -507,7 +507,7 @@ function SqlNotebookCell() {
 				<div className="mt-2.5 flex items-center justify-between gap-2 text-[10.5px]">
 					<span className="font-mono text-(--text-tertiary) tabular-nums">7 rows · 5 cols · 412ms</span>
 					<span className="flex items-center gap-1.5 font-mono text-pro-green-300">
-						<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-pro-green-300" />
+						<span aria-hidden className="inline-block size-1.5 rounded-full bg-pro-green-300" />
 						<span className="tracking-[0.12em] uppercase">cached</span>
 					</span>
 				</div>
@@ -536,7 +536,7 @@ function ChartNotebookCell() {
 							·
 						</span>
 						<span className="tabular-nums">7 × 5</span>
-						<Icon name="chevron-down" className="h-3 w-3 text-(--text-tertiary)" />
+						<Icon name="chevron-down" className="size-3 text-(--text-tertiary)" />
 					</span>
 				}
 			/>
@@ -572,7 +572,7 @@ function CellShell({ focused, children }: { focused: boolean; children: ReactNod
 function CellHeader({ name, badge, action }: { name: string; badge: 'sql' | 'md' | 'chart'; action?: ReactNode }) {
 	return (
 		<div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
-			<Icon name="menu" className="h-3 w-3 shrink-0 text-(--text-tertiary)/35" />
+			<Icon name="menu" className="size-3 shrink-0 text-(--text-tertiary)/35" />
 			<span className="font-mono text-[11px] text-(--text-tertiary)">{name}</span>
 			<CellTypeBadge kind={badge} />
 			{action ? <div className="ml-auto flex items-center gap-1.5">{action}</div> : null}
@@ -616,7 +616,7 @@ function AddCellChip({ dot, label }: { dot: string; label: string }) {
 			onClick={(e) => e.preventDefault()}
 			className="inline-flex items-center gap-1.5 rounded-sm px-1 py-0.5 transition-colors hover:bg-(--link-hover-bg)/40 hover:text-(--text-primary)"
 		>
-			<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+			<span aria-hidden className={`size-1.5 rounded-full ${dot}`} />
 			<span className="font-mono">{label}</span>
 		</button>
 	)
@@ -627,11 +627,11 @@ function QueryBody() {
 		<div className="flex flex-col">
 			<div className="flex items-center justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/30 px-4 py-2">
 				<div className="flex items-center gap-2 truncate">
-					<Icon name="file-text" className="h-3.5 w-3.5 shrink-0 text-(--sub-brand-primary)" />
+					<Icon name="file-text" className="size-3.5 shrink-0 text-(--sub-brand-primary)" />
 					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">fees-vs-revenue.sql</span>
 				</div>
 				<span className="flex shrink-0 items-center gap-2 text-[11px]">
-					<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-pro-green-300" />
+					<span aria-hidden className="inline-block size-1.5 rounded-full bg-pro-green-300" />
 					<span className="font-mono tracking-[0.12em] text-pro-green-300 uppercase">ready</span>
 					<span aria-hidden className="text-(--text-tertiary)/40">
 						·
@@ -698,9 +698,9 @@ function AltQueryBody() {
 		<div className="flex flex-col">
 			<div className="flex items-center justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/30 px-4 py-2">
 				<div className="flex items-center gap-2 truncate">
-					<Icon name="file-text" className="h-3.5 w-3.5 shrink-0 text-(--text-tertiary)" />
+					<Icon name="file-text" className="size-3.5 shrink-0 text-(--text-tertiary)" />
 					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">chains-tvl.sql</span>
-					<span aria-hidden className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-pro-gold-300" />
+					<span aria-hidden className="ml-1 inline-block size-1.5 rounded-full bg-pro-gold-300" />
 					<span className="font-mono text-[10px] tracking-[0.12em] text-pro-gold-300 uppercase">unsaved</span>
 				</div>
 				<span className="flex shrink-0 items-center gap-2 text-[11px]">

@@ -42,7 +42,7 @@ export function Menu({ options, name, isExternal, onItemClick, className, portal
 				portal={portal || false}
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</Ariakit.PopoverDismiss>
 
 				{_options.map((value, i) => {

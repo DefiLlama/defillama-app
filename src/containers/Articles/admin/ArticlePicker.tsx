@@ -91,7 +91,7 @@ export function ArticlePicker({ value, onChange, hint, error, listArticlesParams
 								onChange(null)
 							}}
 							aria-label="Clear selection"
-							className="absolute right-2 flex h-6 w-6 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+							className="absolute right-2 flex size-6 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 						>
 							<Icon name="x" height={12} width={12} />
 						</button>
@@ -105,10 +105,10 @@ export function ArticlePicker({ value, onChange, hint, error, listArticlesParams
 					className="z-[90] flex max-h-72 flex-col overflow-auto overscroll-contain rounded-md border border-(--cards-border) bg-(--cards-bg) py-1 text-sm shadow-xl outline-none"
 				>
 					{isFetching && !items.length ? (
-						<p className="px-3 py-3 text-center text-xs text-(--text-tertiary)">Searching…</p>
+						<p className="p-3 text-center text-xs text-(--text-tertiary)">Searching…</p>
 					) : null}
 					{!isFetching && !items.length ? (
-						<p className="px-3 py-3 text-center text-xs text-(--text-tertiary)">No results</p>
+						<p className="p-3 text-center text-xs text-(--text-tertiary)">No results</p>
 					) : null}
 					{items.map((article) => (
 						<Ariakit.ComboboxItem

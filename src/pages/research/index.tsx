@@ -1,8 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import type { InferGetStaticPropsType } from 'next'
-import { ArticleApiError, getLandingBanner, listArticles, listArticlesByTag } from '~/containers/Articles/api'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import Head from 'next/head'
+import Link from 'next/link'
+import { Icon } from '~/components/Icon'
+import { ArticleApiError, getLandingBanner, getResearchLanding } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { EDITORIAL_TAGS } from '~/containers/Articles/editorialTags'
+import { RssMark } from '~/containers/Articles/feed/RssMark'
 import { ResearchBanner } from '~/containers/Articles/landing/ResearchBanner'
 import { ResearchCollections } from '~/containers/Articles/landing/ResearchCollections'
 import { ResearchGridWithScrollbar } from '~/containers/Articles/landing/ResearchGridWithScrollbar'
@@ -19,14 +22,20 @@ import { ResearchTrustedByCarousel } from '~/containers/Articles/landing/Researc
 import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/landing/ResearchWidgetWithScrollbar'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { useResearchSearchParams } from '~/containers/Articles/landing/useResearchSearchParams'
-import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
+import {
+	RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT,
+	RESEARCH_LANDING_SECTION_LIMITS,
+	takeUniqueArticles
+} from '~/containers/Articles/landing/utils'
+import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, BannerLookupResult } from '~/containers/Articles/types'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { withPerformanceLogging } from '~/utils/perf'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-export type ResearchLandingData = {
+const RESEARCH_LANDING_CACHE_CONTROL = 'public, s-maxage=60'
+
+export type ResearchLandingArticles = {
 	heroReports: ArticleDocument[]
 	latest: ArticleDocument[]
 	spotlight: ArticleDocument[]
@@ -39,79 +48,94 @@ export type ResearchLandingData = {
 }
 
 type ArticlesPageProps = {
-	landingData: ResearchLandingData
+	landingData: ResearchLandingArticles
 	landingBanner: BannerLookupResult | null
 }
 
-export async function loadResearchLandingData(): Promise<ResearchLandingData> {
-	const settled = await Promise.allSettled([
-		listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportsHero),
-		listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest),
-		listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight),
-		listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }),
-		listArticlesByTag(EDITORIAL_TAGS['report-highlight'].slug, RESEARCH_LANDING_SECTION_LIMITS.reportHighlight),
-		listArticlesByTag(EDITORIAL_TAGS.insights.slug, RESEARCH_LANDING_SECTION_LIMITS.insights),
-		listArticles({
-			section: 'report',
-			sort: 'newest',
-			limit: RESEARCH_LANDING_SECTION_LIMITS.moreReports
-		}),
-		listArticles({
-			section: 'spotlight',
-			sort: 'newest',
-			limit: RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
-		}),
-		listArticles({ sort: 'newest', limit: RESEARCH_LANDING_SECTION_LIMITS.collections })
-	])
+async function getResearchLandingArticles(): Promise<ResearchLandingArticles> {
+	const collectionsLimit = RESEARCH_LANDING_SECTION_LIMITS.collections
+	const moreReportsLimit = RESEARCH_LANDING_SECTION_LIMITS.moreReports
+	const spotlightColumnLimit = RESEARCH_LANDING_SECTION_LIMITS.spotlightColumn
+	const reportHighlightLimit = RESEARCH_LANDING_SECTION_LIMITS.reportHighlight
+	const reportsHeroLimit = RESEARCH_LANDING_SECTION_LIMITS.reportsHero
+	const spotlightLimit = RESEARCH_LANDING_SECTION_LIMITS.spotlight
 
-	const itemsOrEmpty = (index: number) => (settled[index]?.status === 'fulfilled' ? settled[index].value.items : [])
+	const buckets = await getResearchLanding({
+		hero: reportsHeroLimit,
+		latest: RESEARCH_LANDING_SECTION_LIMITS.latest,
+		spotlight: spotlightLimit,
+		interviews: RESEARCH_LANDING_SECTION_LIMITS.interviews,
+		highlight: reportHighlightLimit,
+		insights: RESEARCH_LANDING_SECTION_LIMITS.insights,
+		reportsCandidates: reportsHeroLimit + reportHighlightLimit + moreReportsLimit,
+		spotlightCandidates: spotlightLimit + spotlightColumnLimit,
+		collectionsCandidates: RESEARCH_LANDING_COLLECTIONS_FETCH_LIMIT
+	})
 
-	if (settled.every((r) => r.status === 'rejected')) {
-		const firstRejected = settled.find((r): r is PromiseRejectedResult => r.status === 'rejected')
-		throw firstRejected?.reason ?? new Error('Failed to load research')
-	}
+	const { heroReports, latest, spotlight, interviews, highlight, insights } = buckets
+
+	const usedIds = new Set<string>(
+		[...heroReports, ...latest, ...spotlight, ...interviews, ...highlight, ...insights].map((article) => article.id)
+	)
+
+	const moreReports = takeUniqueArticles(buckets.moreReportsCandidates, usedIds, moreReportsLimit)
+	for (const article of moreReports) usedIds.add(article.id)
+
+	const spotlightColumn = takeUniqueArticles(buckets.spotlightColumnCandidates, usedIds, spotlightColumnLimit)
+	for (const article of spotlightColumn) usedIds.add(article.id)
+
+	const collections = takeUniqueArticles(buckets.collectionsCandidates, usedIds, collectionsLimit)
 
 	return {
-		heroReports: itemsOrEmpty(0),
-		latest: itemsOrEmpty(1),
-		spotlight: itemsOrEmpty(2),
-		interviews: itemsOrEmpty(3),
-		highlight: itemsOrEmpty(4),
-		insights: itemsOrEmpty(5),
-		moreReports: itemsOrEmpty(6),
-		spotlightColumn: itemsOrEmpty(7),
-		collections: itemsOrEmpty(8)
+		heroReports,
+		latest,
+		spotlight,
+		interviews,
+		highlight,
+		insights,
+		moreReports,
+		spotlightColumn,
+		collections
 	}
 }
 
-export const getStaticProps = withPerformanceLogging<ArticlesPageProps>('research', async () => {
-	const [landingData, landingBanner] = await Promise.all([
-		loadResearchLandingData(),
-		getLandingBanner().catch(() => null)
-	])
+export async function loadResearchLandingData(): Promise<ArticlesPageProps> {
+	const [articlesResult, bannerResult] = await Promise.allSettled([getResearchLandingArticles(), getLandingBanner()])
+
+	if (articlesResult.status === 'rejected') {
+		throw articlesResult.reason
+	}
+
+	return {
+		landingData: articlesResult.value,
+		landingBanner: bannerResult.status === 'fulfilled' ? bannerResult.value : null
+	}
+}
+
+const getServerSidePropsHandler: GetServerSideProps<ArticlesPageProps> = async ({ res }) => {
+	const { landingData, landingBanner } = await loadResearchLandingData()
+	res.setHeader('Cache-Control', RESEARCH_LANDING_CACHE_CONTROL)
 	return {
 		props: {
 			landingData,
 			landingBanner
-		},
-		revalidate: maxAgeForNext([22])
+		}
 	}
-})
+}
 
-function ArticlesLandingInner({
-	initialData,
-	initialBanner
-}: {
-	initialData: ResearchLandingData
-	initialBanner: BannerLookupResult | null
-}) {
+export const getServerSideProps = withServerSidePropsTelemetry('/research', getServerSidePropsHandler)
+
+function ArticlesLandingInner({ initialData }: { initialData: ArticlesPageProps }) {
 	const landingQuery = useQuery({
 		queryKey: ['research-landing'],
 		retry: false,
 		queryFn: loadResearchLandingData,
 		initialData,
-		staleTime: 60_000
+		staleTime: 0,
+		refetchOnMount: 'always'
 	})
+
+	const landingData = landingQuery.data?.landingData
 
 	const isLoading = landingQuery.isLoading
 	const error = landingQuery.error
@@ -131,11 +155,11 @@ function ArticlesLandingInner({
 	}
 
 	return (
-		<div className="bg-top-center bg-[url(/assets/research/dotted-bg.webp)] bg-no-repeat pb-5">
+		<div className="bg-top-center bg-[url(/assets/research/dotted-bg.webp)] bg-no-repeat pb-5 lg:bg-contain">
 			<ResearchHero
 				title="Bespoke Digital Asset Research and Market Intelligence"
 				subtitle="Independent and trusted in-depth analysis of digital asset markets for institutional strategy and decision-making."
-				reports={landingQuery.data?.heroReports ?? []}
+				reports={landingData?.heroReports ?? []}
 			/>
 
 			<div className="relative overflow-hidden">
@@ -176,22 +200,22 @@ function ArticlesLandingInner({
 				></div>
 
 				<div className="relative z-1 mx-auto w-full max-w-7xl space-y-[30px] px-4 sm:px-6 lg:space-y-[70px] lg:px-8">
-					<ResearchLatest articles={landingQuery.data?.latest ?? []} />
+					<ResearchLatest articles={landingData?.latest ?? []} />
 
-					<ResearchSpotlight title="In the spotlight" articles={landingQuery.data?.spotlight ?? []} />
+					<ResearchSpotlight title="In the spotlight" articles={landingData?.spotlight ?? []} />
 
-					<ResearchInterviews title="Interviews" articles={landingQuery.data?.interviews ?? []} />
+					<ResearchInterviews title="Interviews" articles={landingData?.interviews ?? []} />
 
 					<div id="reports">
-						{(landingQuery.data?.highlight ?? []).length > 0 ? (
+						{(landingData?.highlight ?? []).length > 0 ? (
 							<ResearchSectionWithSharedHeightProvider>
 								<div className="grid grid-cols-1 gap-[36px] lg:grid-cols-[725fr_403fr]">
-									<ResearchReportHighlightWithHeight highlight={(landingQuery.data?.highlight ?? [])[0]} />
+									<ResearchReportHighlightWithHeight highlight={(landingData?.highlight ?? [])[0]} />
 									<div className="flex flex-col gap-y-[64px]">
 										<ResearchWidgetWithScrollbarWithHeight
 											id="insights"
 											title="Insights"
-											articles={landingQuery.data?.insights ?? []}
+											articles={landingData?.insights ?? []}
 										/>
 									</div>
 								</div>
@@ -199,7 +223,7 @@ function ArticlesLandingInner({
 						) : null}
 					</div>
 
-					<ResearchBanner initialData={initialBanner} />
+					<ResearchBanner initialData={landingQuery.data?.landingBanner} />
 
 					<div id="clients">
 						<TitleLine title="Trusted by" />
@@ -217,27 +241,48 @@ function ArticlesLandingInner({
 								<ResearchGridWithScrollbar
 									id="more-reports"
 									title="More reports"
-									articles={landingQuery.data?.moreReports ?? []}
+									articles={landingData?.moreReports ?? []}
 									pageWidget="DL Research More Reports widget"
 								/>
 							</div>
 							<div className="flex flex-col gap-y-[64px]">
 								<ResearchSpotlightColumnWithHeight
 									title="Explore Spotlights"
-									articles={landingQuery.data?.spotlightColumn ?? []}
+									articles={landingData?.spotlightColumn ?? []}
 								/>
 							</div>
 						</div>
 					</ResearchSectionWithSharedHeightProvider>
 
-					<ResearchCollections title="Collections" articles={landingQuery.data?.collections ?? []} />
+					<ResearchCollections title="Collections" articles={landingData?.collections ?? []} />
+
+					<ResearchLandingFooter />
 				</div>
 			</div>
 		</div>
 	)
 }
 
-export default function ArticlesPage({ landingData, landingBanner }: InferGetStaticPropsType<typeof getStaticProps>) {
+function ResearchLandingFooter() {
+	return (
+		<footer className="flex flex-col items-center justify-between gap-4 border-t border-[#0c2956]/15 pt-6 text-[#0c2956] sm:flex-row dark:border-white/15 dark:text-white">
+			<span className="text-[14px] leading-[150%] opacity-70">DefiLlama Research</span>
+			<Link
+				href="/research/feed"
+				className="group inline-flex items-center gap-2.5 text-[14px] leading-[150%] font-medium transition-opacity hover:opacity-100"
+			>
+				<RssMark size={18} />
+				<span>Subscribe via RSS</span>
+				<Icon name="arrow-right" height={14} width={14} className="transition-transform group-hover:translate-x-0.5" />
+			</Link>
+		</footer>
+	)
+}
+
+export default function ArticlesPage({
+	landingData,
+	landingBanner
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const { showSearch } = useResearchSearchParams()
 
 	return (
@@ -247,13 +292,24 @@ export default function ArticlesPage({ landingData, landingBanner }: InferGetSta
 			canonicalUrl="/research"
 			hideDesktopSearch
 		>
+			<Head>
+				<link
+					rel="alternate"
+					type="application/rss+xml"
+					title="DefiLlama Research"
+					href="https://defillama.com/research/feed.xml"
+				/>
+			</Head>
 			<style>{`main{padding:0}#__next{gap:0;}`}</style>
 			<ArticleProxyAuthProvider>
 				<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">
 					{showSearch ? (
 						<ResearchSearch />
 					) : (
-						<ArticlesLandingInner initialData={landingData} initialBanner={landingBanner} />
+						<>
+							<ArticleBannerStrip scope="landing" initialData={{ landing: landingBanner }} />
+							<ArticlesLandingInner initialData={{ landingData, landingBanner }} />
+						</>
 					)}
 				</div>
 			</ArticleProxyAuthProvider>

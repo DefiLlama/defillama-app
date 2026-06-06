@@ -81,7 +81,7 @@ export function ErrorBanner({
 		>
 			<div className="flex flex-wrap items-center gap-2 text-xs">
 				<span className="inline-flex items-center gap-1.5 font-semibold">
-					<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+					<Icon name="alert-triangle" className="size-3.5" />
 					{familyLabel}
 				</span>
 				{location ? (
@@ -117,7 +117,7 @@ export function ErrorBanner({
 							onClick={() => onApplyFix(analysis.offendingIdentifier!, s)}
 							className="inline-flex items-center gap-1 rounded-sm border border-red-500/30 bg-red-500/5 px-1.5 py-0.5 font-mono text-[11px] text-red-700 transition-colors hover:border-red-500/60 hover:bg-red-500/10 dark:text-red-200"
 						>
-							<Icon name="arrow-right" className="h-2.5 w-2.5" />
+							<Icon name="arrow-right" className="size-2.5" />
 							{s}
 						</button>
 					))}
@@ -139,7 +139,7 @@ export function ErrorBanner({
 					>
 						<Icon
 							name="chevron-right"
-							className={`h-3 w-3 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
+							className={`size-3 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
 						/>
 						Common causes
 					</button>

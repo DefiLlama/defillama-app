@@ -38,7 +38,7 @@ const columnHelper = createColumnHelper<IPctChangeRow>()
 // for linechart
 function calculateDenominatedChange(data: TimeSeriesEntry[] | undefined, denominatedCoin: string): TimeSeriesEntry[] {
 	// Avoid mutating upstream arrays (performanceTimeSeries is reused across views).
-	const sortedData = [...(data ?? [])].sort((a, b) => a.date - b.date)
+	const sortedData = (data ?? []).toSorted((a, b) => a.date - b.date)
 	if (sortedData.length === 0) return sortedData
 
 	const denominatedCoinDay0 = asFiniteNumber(sortedData[0]?.[denominatedCoin])
@@ -209,8 +209,8 @@ export const CategoryPerformanceContainer = ({
 			? pctChangesDenom.filter((i) => !['bitcoin', 'ethereum', 'solana'].includes(i.id))
 			: pctChangesDenom
 
-		const sorted = [...pctChangesDenom]
-			.sort((a, b) => {
+		const sorted = pctChangesDenom
+			.toSorted((a, b) => {
 				const bValue = asFiniteNumber(b[field]) ?? Number.NEGATIVE_INFINITY
 				const aValue = asFiniteNumber(a[field]) ?? Number.NEGATIVE_INFINITY
 				return bValue - aValue
@@ -235,7 +235,7 @@ export const CategoryPerformanceContainer = ({
 		const seriesKeys = areaChartLegend ?? []
 		const dimensions = ['timestamp', ...seriesKeys]
 
-		const sortedRows = [...(timeSeries ?? [])].sort((a, b) => a.date - b.date)
+		const sortedRows = (timeSeries ?? []).toSorted((a, b) => a.date - b.date)
 		const source = sortedRows.map((row) => {
 			const out: Record<string, string | number | null | undefined> = { timestamp: row.date * 1e3 }
 			for (const key of seriesKeys) out[key] = row[key] ?? null

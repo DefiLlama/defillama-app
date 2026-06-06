@@ -478,7 +478,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 							<svg
 								aria-hidden
 								viewBox="0 0 24 24"
-								className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-(--text-tertiary)"
+								className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-(--text-tertiary)"
 								fill="none"
 								stroke="currentColor"
 								strokeWidth="2"
@@ -520,7 +520,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 											}`}
 										>
 											<span
-												className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors ${
+												className={`flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors ${
 													checked
 														? 'border-(--link-text) bg-(--link-text)'
 														: 'border-(--form-control-border) bg-(--cards-bg) group-hover:border-(--text-tertiary)'
@@ -529,7 +529,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 												{checked ? (
 													<svg
 														viewBox="0 0 12 12"
-														className="h-2.5 w-2.5 text-white"
+														className="size-2.5 text-white"
 														fill="none"
 														stroke="currentColor"
 														strokeWidth="2.5"
@@ -538,8 +538,8 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 													</svg>
 												) : null}
 											</span>
-											<span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
-												<img src={entityLogo(entity)} alt="" className="h-full w-full object-cover" />
+											<span className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
+												<img src={entityLogo(entity)} alt="" className="size-full object-cover" />
 											</span>
 											<span className="min-w-0 flex-1 truncate text-sm">{entity.name}</span>
 											{tvl ? (
@@ -577,12 +577,12 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 											>
 												<span
 													aria-hidden
-													className="h-2 w-2 rounded-full"
+													className="size-2 rounded-full"
 													style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
 												/>
 												<span className="flex min-w-0 items-center gap-2">
-													<span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
-														<img src={entityLogo(s)} alt="" className="h-full w-full object-cover" />
+													<span className="relative flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
+														<img src={entityLogo(s)} alt="" className="size-full object-cover" />
 													</span>
 													<span className="truncate text-[12px] font-medium text-(--text-primary)">{s.name}</span>
 													<span className="font-jetbrains text-[9px] tracking-[0.16em] text-(--text-tertiary) uppercase">
@@ -598,7 +598,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 													type="button"
 													onClick={() => removeSeries(id)}
 													aria-label={`Remove ${s.name}`}
-													className="flex h-6 w-6 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+													className="flex size-6 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 												>
 													×
 												</button>
@@ -728,7 +728,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 													type="button"
 													onClick={() => removeAnnotation(i)}
 													aria-label="Remove annotation"
-													className="flex h-6 w-6 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+													className="flex size-6 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 												>
 													×
 												</button>

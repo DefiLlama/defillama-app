@@ -1,61 +1,16 @@
-import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
-import YieldsStrategyPageLongShort from '~/containers/Yields/indexStrategyLongShort'
-import { getPerpData, getYieldPageData } from '~/containers/Yields/queries/index'
-import { disclaimer } from '~/containers/Yields/utils'
+import { disclaimer } from '~/containers/Yields/constants'
+import YieldsStrategyPageLongShort from '~/containers/Yields/views/LongShortStrategyView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/strategy-long-short', async () => {
-	const data = await getYieldPageData()
-
-	// for funding rate strategies keep only single sided no IL pools
-	const filteredPools = data.props.pools
-		.filter(
-			(p) =>
-				p.ilRisk === 'no' &&
-				p.exposure === 'single' &&
-				p.apy > 0 &&
-				p.project !== 'babydogeswap' &&
-				p.project !== 'cbridge' &&
-				!p.symbol.includes('ADAI') &&
-				!p.symbol.includes('DOP') &&
-				!p.symbol.includes('COPI') &&
-				!p.symbol.includes('EUROPOOL') &&
-				!p.symbol.includes('UMAMI')
-		)
-		.map((p) => ({ ...p, symbol: p.symbol?.toUpperCase() }))
-
-	const poolsUniqueSymbols = new Set(filteredPools.map((p) => p.symbol))
-
-	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
-	// filter search token to only include what we have in pool arrays
-	const cgTokens = (await fetchCoinGeckoTokensListFromDataset()).filter((t) =>
-		poolsUniqueSymbols.has(t.symbol?.toUpperCase())
-	)
-	const tokens = []
-	const tokenSymbolsList = []
-
-	for (const token of cgTokens) {
-		if (token.symbol) {
-			tokens.push({
-				name: token.name,
-				symbol: token.symbol?.toUpperCase(),
-				logo: token.image2 || null,
-				fallbackLogo: token.image || null
-			})
-			tokenSymbolsList.push(token.symbol?.toUpperCase())
-		}
-	}
+	const { getYieldLongShortPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const metadata = await getYieldLongShortPageMetadata()
 
 	return {
-		props: {
-			filteredPools,
-			perps,
-			tokens,
-			...data.props
-		},
+		props: metadata,
 		revalidate: maxAgeForNext([23])
 	}
 })

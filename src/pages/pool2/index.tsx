@@ -1,6 +1,6 @@
 import type { InferGetStaticPropsType } from 'next'
-import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
-import { getExtraTvlByChain } from '~/containers/Protocols/queries'
+import { ExtraTvlByChain } from '~/containers/ProtocolLists/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/ProtocolLists/queries'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'

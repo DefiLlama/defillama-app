@@ -45,7 +45,7 @@ export function ContextWarningBanner({ warning, onStartNewChat, onDismiss }: Con
 				type="button"
 				onClick={handleDismiss}
 				aria-label="Dismiss long-thread warning"
-				className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-amber-700/70 transition-colors hover:bg-amber-600/10 hover:text-amber-900 dark:text-amber-300/70 dark:hover:bg-amber-400/10 dark:hover:text-amber-100"
+				className="flex size-6 shrink-0 items-center justify-center rounded-full text-amber-700/70 transition-colors hover:bg-amber-600/10 hover:text-amber-900 dark:text-amber-300/70 dark:hover:bg-amber-400/10 dark:hover:text-amber-100"
 			>
 				<Icon name="x" height={14} width={14} />
 			</button>

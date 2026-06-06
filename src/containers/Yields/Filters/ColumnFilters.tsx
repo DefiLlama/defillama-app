@@ -21,19 +21,27 @@ const PREMIUM_KEYS = new Set(['showMedianApy', 'showStdDev'])
 
 const PRO_BADGE = (
 	<span className="inline-flex items-center gap-1 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500 dark:text-blue-400">
-		<LockIcon className="h-2.5 w-2.5" />
+		<LockIcon className="size-2.5" />
 		Pro
 	</span>
 )
 
-const getOptionalFilters = (hasActiveSubscription: boolean) =>
-	POOL_OPTIONAL_COLUMN_OPTIONS.map((filter) => ({
-		...filter,
-		key: filter.queryKey,
-		icon: 'isPremium' in filter && filter.isPremium && !hasActiveSubscription ? PRO_BADGE : undefined
-	}))
+const getOptionalFilters = (hasActiveSubscription: boolean) => {
+	const filters = []
+	for (const filter of POOL_OPTIONAL_COLUMN_OPTIONS) {
+		filters.push({
+			...filter,
+			key: filter.queryKey,
+			icon: 'isPremium' in filter && filter.isPremium && !hasActiveSubscription ? PRO_BADGE : undefined
+		})
+	}
+	return filters
+}
 
-const ALL_COLUMN_KEYS = POOL_OPTIONAL_COLUMN_OPTIONS.map((option) => option.queryKey)
+const ALL_COLUMN_KEYS: string[] = []
+for (const option of POOL_OPTIONAL_COLUMN_OPTIONS) {
+	ALL_COLUMN_KEYS.push(option.queryKey)
+}
 
 export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProps) {
 	const router = useRouter()
@@ -53,9 +61,13 @@ export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProp
 
 	const { options, selectedOptions } = useMemo(() => {
 		const optionalFilters = getOptionalFilters(hasActiveSubscription)
-		const options = optionalFilters.filter((op) => enabledSet.has(op.key))
-
-		const selectedOptions = options.flatMap((option) => (router.query[option.key] === 'true' ? [option.key] : []))
+		const options = []
+		const selectedOptions: string[] = []
+		for (const option of optionalFilters) {
+			if (!enabledSet.has(option.key)) continue
+			options.push(option)
+			if (router.query[option.key] === 'true') selectedOptions.push(option.key)
+		}
 
 		return { options, selectedOptions }
 	}, [router.query, enabledSet, hasActiveSubscription])
@@ -66,8 +78,13 @@ export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProp
 		// Check if a premium column was just toggled on by a non-subscriber
 		if (!hasActiveSubscription) {
 			const prevSet = prevSelectionRef.current
-			const newlyAdded = newOptions.filter((op) => !prevSet.has(op))
-			const hasPremiumToggle = newlyAdded.some((op) => PREMIUM_KEYS.has(op))
+			let hasPremiumToggle = false
+			for (const option of newOptions) {
+				if (!prevSet.has(option) && PREMIUM_KEYS.has(option)) {
+					hasPremiumToggle = true
+					break
+				}
+			}
 			if (hasPremiumToggle) {
 				setSignupSource('yield-columns')
 				setShouldRenderModal(true)

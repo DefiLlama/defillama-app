@@ -42,13 +42,27 @@ const TelegramIcon = () => (
 	</svg>
 )
 
-const BookCallIcon = () => (
-	<svg xmlns="http://www.w3.org/2000/svg" width={18} height={16} fill="none">
+const LinkedInIcon = () => (
+	<svg xmlns="http://www.w3.org/2000/svg" width={36} height={36} fill="none">
 		<path
 			fill="#fff"
-			d="M4.426 9.326.362 7.899s-.487-.212-.331-.695c.032-.1.098-.185.29-.33C1.225 6.2 16.995.092 16.995.092s.444-.162.707-.054a.37.37 0 0 1 .17.116.4.4 0 0 1 .091.192q.044.19.037.386c-.002.112-.014.216-.024.38-.096 1.67-2.971 14.134-2.971 14.134s-.172.729-.787.754a1.06 1.06 0 0 1-.443-.081 1.1 1.1 0 0 1-.38-.261c-1.209-1.12-5.387-4.148-6.31-4.812a.2.2 0 0 1-.076-.136c-.013-.07.058-.157.058-.157s7.275-6.97 7.469-7.702c.015-.057-.042-.085-.118-.06-.482.192-8.86 5.893-9.784 6.522a.4.4 0 0 1-.207.014"
-			opacity=".8"
+			d="M18 0C8.059 0 0 8.059 0 18s8.059 18 18 18 18-8.059 18-18S27.941 0 18 0m-4.406 25.46H9.949V13.73h3.645zm-1.845-13.17c-1.152 0-1.896-.815-1.896-1.824 0-1.03.767-1.82 1.943-1.82 1.175 0 1.895.79 1.918 1.82 0 1.009-.743 1.825-1.965 1.825m15.157 13.17h-3.645v-6.5c0-1.513-.528-2.54-1.847-2.54-1.007 0-1.605.695-1.869 1.364-.098.239-.122.576-.122.912v6.763h-3.647V17.47a78 78 0 0 0-.095-3.742h3.167l.166 1.63h.073c.48-.766 1.656-1.895 3.623-1.895 2.398 0 4.196 1.607 4.196 5.061z"
 		/>
+	</svg>
+)
+
+const BookCallIcon = () => (
+	<svg xmlns="http://www.w3.org/2000/svg" width={28} height={29} fill="none">
+		<g fill="#fff" clipPath="url(#a)">
+			<path d="M20.407 16.212c-.78.704-1.754 1.58-3.525 1.58h-1.056c-1.28 0-2.443-.472-3.276-1.33-.813-.837-1.261-1.983-1.261-3.227v-1.47c0-1.244.448-2.39 1.261-3.228.833-.857 1.997-1.33 3.276-1.33h1.056c1.77 0 2.744.877 3.525 1.581.81.73 1.51 1.361 3.375 1.361q.428 0 .85-.069-.001-.007-.007-.016a6.6 6.6 0 0 0-.392-.82L22.986 7.05a6.46 6.46 0 0 0-2.344-2.383 6.3 6.3 0 0 0-3.202-.872h-2.495a6.3 6.3 0 0 0-3.202.872A6.46 6.46 0 0 0 9.4 7.05L8.152 9.245a6.6 6.6 0 0 0-.858 3.255c0 1.143.296 2.265.858 3.255L9.4 17.951a6.46 6.46 0 0 0 2.344 2.383 6.3 6.3 0 0 0 3.202.872h2.495c1.124 0 2.228-.301 3.202-.872a6.46 6.46 0 0 0 2.344-2.383l1.247-2.196q.224-.395.392-.819c0-.005.005-.01.006-.016a5 5 0 0 0-.849-.07c-1.865 0-2.565.631-3.375 1.362" />
+			<path d="M16.882 8.54h-1.056c-1.947 0-3.227 1.414-3.227 3.224v1.47c0 1.81 1.28 3.224 3.227 3.224h1.056c2.838 0 2.617-2.94 6.9-2.94q.61 0 1.21.113c.13-.748.13-1.513 0-2.261q-.6.113-1.21.113c-4.284-.001-4.062-2.943-6.9-2.943" />
+			<path d="M27.454 14.706a5.9 5.9 0 0 0-2.461-1.074q-.001.012-.004.022a6.6 6.6 0 0 1-.358 1.268 4.65 4.65 0 0 1 2.035.85q0 .01-.006.02a11.2 11.2 0 0 1-1.528 3.154 11.2 11.2 0 0 1-2.387 2.496 10.86 10.86 0 0 1-7.765 2.18 10.93 10.93 0 0 1-7.141-3.79 11.28 11.28 0 0 1-2.676-7.725A11.26 11.26 0 0 1 8.39 4.604a10.95 10.95 0 0 1 4.827-2.862 10.8 10.8 0 0 1 5.587-.08 10.94 10.94 0 0 1 4.904 2.724 11.2 11.2 0 0 1 2.959 4.843c-.603.444-1.301.735-2.037.85a6.6 6.6 0 0 1 .362 1.29 5.9 5.9 0 0 0 2.461-1.074c.702-.527.566-1.124.46-1.477C26.366 3.711 21.688 0 16.158 0 9.368 0 3.862 5.597 3.862 12.5S9.368 25 16.16 25c5.53 0 10.208-3.71 11.752-8.817.11-.353.245-.95-.457-1.477" />
+		</g>
+		<defs>
+			<clipPath id="a">
+				<path fill="#fff" d="M0 0h28v29H0z" />
+			</clipPath>
+		</defs>
 	</svg>
 )
 
@@ -66,7 +80,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 					</h2>
 
 					<div className="flex flex-col items-center gap-[36px] lg:flex-row">
-						<div className="flex space-x-[12px]">
+						<div className="flex gap-[12px]">
 							<a
 								href="mailto:research@defillama.com"
 								className="flex items-center rounded-full bg-white px-[14px] py-[12px] text-[16px] leading-[50%] text-[#237BFF] md:px-[24px] md:py-[14px]"
@@ -77,7 +91,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								href="https://calendly.com/research-defillama/30min"
 								target="_blank"
 								rel="noopener noreferrer"
-								className="flex items-center space-x-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
+								className="flex items-center gap-2 rounded-full border border-white px-[14px] py-[12px] text-[16px] leading-[50%] text-white md:px-[24px] md:py-[14px]"
 							>
 								<span>Book a call</span>
 
@@ -85,7 +99,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 							</Link>
 						</div>
 
-						<div className="flex space-x-[7px]">
+						<div className="flex gap-[7px]">
 							<Link
 								href="https://x.com/defillama_res"
 								aria-label="Follow us on X"
@@ -95,12 +109,23 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 								<TwitterIcon />
 							</Link>
 							<Link
-								href="https://t.me/defillama_res"
+								href="https://t.me/defillama_research"
 								aria-label="Follow us on Telegram"
 								rel="noopener noreferrer"
 								target="_blank"
 							>
 								<TelegramIcon />
+							</Link>
+							<Link
+								href="https://www.linkedin.com/company/defillama/"
+								aria-label="Follow us on LinkedIn"
+								rel="noopener noreferrer"
+								target="_blank"
+							>
+								<LinkedInIcon />
+							</Link>
+							<Link href="/research/feed" aria-label="Subscribe via RSS">
+								<img src="/assets/research/rss.svg" alt="" width={36} height={36} />
 							</Link>
 						</div>
 					</div>

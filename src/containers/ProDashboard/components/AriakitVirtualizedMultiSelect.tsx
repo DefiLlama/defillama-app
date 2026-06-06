@@ -193,7 +193,7 @@ export function AriakitVirtualizedMultiSelect({
 																alt={option.label}
 																width={20}
 																height={20}
-																className={`h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
+																className={`size-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
 															/>
@@ -219,7 +219,7 @@ export function AriakitVirtualizedMultiSelect({
 							{selectedValues.length > 0 ? (
 								<div className="mt-2 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 									<div className="flex items-center gap-2">
-										<div className="flex h-5 w-5 items-center justify-center rounded-full bg-(--primary)/15">
+										<div className="flex size-5 items-center justify-center rounded-full bg-(--primary)/15">
 											<Icon name="check" width={10} height={10} className="text-(--primary)" />
 										</div>
 										<span className="text-[11px] font-medium text-(--text-secondary)">

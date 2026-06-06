@@ -5,7 +5,7 @@ import { startTransition, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery } from '~/utils/routerQuery'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const POPULAR_PAIRS = ['USDC-ETH', 'USDC-WETH', 'USDC-USDT', 'USDC-WBTC']
 
@@ -16,6 +16,7 @@ export function IncludeExcludeTokens({
 	tokens: Array<{ name: string; symbol: string; logo?: string | null; fallbackLogo?: string | null }>
 }) {
 	const router = useRouter()
+	const pushFilterQuery = (updates: Record<string, string | string[] | undefined>) => pushYieldsQuery(router, updates)
 
 	const { token: includeTokenQuery, excludeToken, exactToken, token_pair, attribute } = router.query
 
@@ -49,9 +50,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			void pushShallowQuery(router, updates)
+			void pushFilterQuery(updates)
 		} else {
-			void pushShallowQuery(router, updates).then(() => {
+			void pushFilterQuery(updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -66,9 +67,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			void pushShallowQuery(router, { excludeToken: tokenQueryParams })
+			void pushFilterQuery({ excludeToken: tokenQueryParams })
 		} else {
-			void pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
+			void pushFilterQuery({ excludeToken: tokenQueryParams }).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -90,9 +91,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			void pushShallowQuery(router, updates)
+			void pushFilterQuery(updates)
 		} else {
-			void pushShallowQuery(router, updates).then(() => {
+			void pushFilterQuery(updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -112,15 +113,27 @@ export function IncludeExcludeTokens({
 		const v = searchValue.trim()
 		const sep = v.includes('/') ? '/' : v.includes('-') ? '-' : null
 		if (!sep) return null
-		const parts = v
-			.split(sep)
-			.map((s) => s.trim().toUpperCase())
-			.filter(Boolean)
+		const parts: string[] = []
+		for (const part of v.split(sep)) {
+			const token = part.trim().toUpperCase()
+			if (token) parts.push(token)
+		}
 		if (parts.length === 0) return null
-		const tokenSymbols = new Set(tokens.map((t) => t.symbol.toUpperCase()))
-		const validParts = parts.filter((p) => tokenSymbols.has(p))
-		if (validParts.length === 0) return null
-		if (parts.length >= 2 && parts.every((p) => tokenSymbols.has(p))) {
+		const tokenSymbols = new Set<string>()
+		for (const token of tokens) {
+			tokenSymbols.add(token.symbol.toUpperCase())
+		}
+		let validPartsCount = 0
+		let allPartsValid = true
+		for (const part of parts) {
+			if (tokenSymbols.has(part)) {
+				validPartsCount++
+			} else {
+				allPartsValid = false
+			}
+		}
+		if (validPartsCount === 0) return null
+		if (parts.length >= 2 && allPartsValid) {
 			return { type: 'ready' as const, pair: parts.join('-') }
 		}
 		return { type: 'partial' as const, pair: null }
@@ -145,7 +158,7 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_PAIR, { pair })
 		}
 
-		void pushShallowQuery(router, { token_pair: pairQueryParams })
+		void pushFilterQuery({ token_pair: pairQueryParams })
 	}
 
 	const tokensComboboxRef = useRef<HTMLDivElement>(null)

@@ -78,7 +78,7 @@ export function AddToDashboardButton({
 	}
 
 	const baseClassName = `
-		${className} flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-2 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60
+		${className} flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) p-2 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60
 	`
 	const button = (
 		<button
@@ -88,7 +88,7 @@ export function AddToDashboardButton({
 			data-umami-event="dashboard-add-chart"
 			title="Add to Custom Dashboard"
 		>
-			<Icon name="plus" className="h-3 w-3" />
+			<Icon name="plus" className="size-3" />
 			{!smol && variant === 'button' ? <span>Add to Dashboard</span> : null}
 		</button>
 	)

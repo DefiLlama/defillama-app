@@ -20,7 +20,7 @@ import { useTableSearch } from '~/components/Table/utils'
 import { fetchEquitiesFilings } from '~/containers/Equities/api'
 import type { IEquitiesFilingApiItem } from '~/containers/Equities/api.types'
 import { formatEquitiesDate } from '~/containers/Equities/utils'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { fetchEquitiesFilingsViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils/download'
@@ -82,6 +82,7 @@ const STALE_TIME = 5 * 60 * 1000
 
 function useEquitiesFilingsData(ticker: string) {
 	const authToken = useContext(ProxyAuthTokenContext)
+	const streamDone = useContext(StreamDoneContext)
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'equities-filings-table', ticker],
@@ -94,7 +95,7 @@ function useEquitiesFilingsData(ticker: string) {
 		staleTime: STALE_TIME,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: Boolean(ticker)
+		enabled: Boolean(ticker) && streamDone
 	})
 }
 

@@ -26,7 +26,7 @@ export interface StablecoinVolumeChartPayload {
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {
 	try {
-		return fetchJson<StablecoinMcapSeriesPoint[]>(`/api/stablecoins/chart?chain=${encodeURIComponent(chain)}`)
+		return fetchJson<StablecoinMcapSeriesPoint[]>(`/api/public/stablecoins/chart?chain=${encodeURIComponent(chain)}`)
 	} catch (err) {
 		console.log(err)
 		return null
@@ -90,7 +90,7 @@ export const buildStablecoinChartSeriesUrl = (query: StablecoinChartSeriesQuery)
 		params.set('stablecoin', query.stablecoin)
 		if (query.includeUnreleased) params.set('unreleased', 'true')
 	}
-	return `/api/stablecoins/chart-series?${params.toString()}`
+	return `/api/public/stablecoins/chart-series?${params.toString()}`
 }
 
 export const useStablecoinChartSeriesData = (query: StablecoinChartSeriesQuery) => {
@@ -144,7 +144,7 @@ export const buildStablecoinVolumeChartUrl = (query: StablecoinVolumeChartQuery)
 		if (!query.token) return null
 		params.set('token', query.token)
 	}
-	return `/api/stablecoins/volume-chart?${params.toString()}`
+	return `/api/public/stablecoins/volume-chart?${params.toString()}`
 }
 
 export const useStablecoinVolumeChartData = (query: StablecoinVolumeChartQuery) => {

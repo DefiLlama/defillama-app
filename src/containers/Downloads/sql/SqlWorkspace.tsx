@@ -1151,7 +1151,7 @@ function EditorRunBar({
 				disabled={!canRun}
 				className="inline-flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--cards-bg) px-3 py-1.5 text-xs font-medium text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
 			>
-				<Icon name="bookmark" className="h-3.5 w-3.5" />
+				<Icon name="bookmark" className="size-3.5" />
 				Save
 			</button>
 			{running ? (
@@ -1162,7 +1162,7 @@ function EditorRunBar({
 					className="inline-flex items-center gap-2 rounded-md border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
 				>
 					<LoadingSpinner size={12} />
-					<svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+					<svg className="size-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 						<rect x="6" y="6" width="12" height="12" rx="1" />
 					</svg>
 					Stop
@@ -1174,7 +1174,7 @@ function EditorRunBar({
 					disabled={!canRun}
 					className="inline-flex items-center gap-2 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
 				>
-					<svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+					<svg className="size-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 						<path d="M8 5v14l11-7z" />
 					</svg>
 					Run query
@@ -1206,7 +1206,7 @@ function SavedQueriesTab({
 	if (savedQueries.length === 0) {
 		return (
 			<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-12 text-center">
-				<Icon name="bookmark" className="h-6 w-6 text-(--text-tertiary)" />
+				<Icon name="bookmark" className="size-6 text-(--text-tertiary)" />
 				<p className="text-sm text-(--text-secondary)">No saved queries yet.</p>
 				<p className="max-w-sm text-xs text-(--text-tertiary)">
 					Click Save in the editor to bookmark a query — saved queries survive across sessions.
@@ -1235,7 +1235,7 @@ function SavedQueriesTab({
 							) : (
 								<Icon
 									name="arrow-right"
-									className="h-3.5 w-3.5 shrink-0 text-(--text-tertiary) transition-colors group-hover:text-(--primary)"
+									className="size-3.5 shrink-0 text-(--text-tertiary) transition-colors group-hover:text-(--primary)"
 								/>
 							)}
 							<span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -1263,18 +1263,18 @@ function SavedQueriesTab({
 								onClick={() => setRenamingId(q.id)}
 								aria-label={`Rename ${q.name}`}
 								disabled={busy}
-								className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
+								className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
 							>
-								<Icon name="pencil" className="h-3.5 w-3.5" />
+								<Icon name="pencil" className="size-3.5" />
 							</button>
 							<button
 								type="button"
 								onClick={() => onDelete(q.id)}
 								aria-label={`Delete ${q.name}`}
 								disabled={busy}
-								className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+								className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
 							>
-								<Icon name="trash-2" className="h-3.5 w-3.5" />
+								<Icon name="trash-2" className="size-3.5" />
 							</button>
 						</div>
 					</li>

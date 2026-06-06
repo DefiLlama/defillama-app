@@ -189,15 +189,15 @@ export function ArticleChartBlock({
 							{uniqueEntities.slice(0, 4).map((e) => (
 								<span
 									key={`${e.entityType}:${e.slug}`}
-									className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)"
+									className="relative flex size-7 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)"
 								>
-									<img src={entityLogo(e)} alt="" className="h-full w-full object-cover" />
+									<img src={entityLogo(e)} alt="" className="size-full object-cover" />
 								</span>
 							))}
 						</span>
 					) : primarySeries ? (
-						<span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
-							<img src={entityLogo(primarySeries)} alt="" className="h-full w-full object-cover" />
+						<span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
+							<img src={entityLogo(primarySeries)} alt="" className="size-full object-cover" />
 						</span>
 					) : null}
 					<div className="flex min-w-0 flex-col leading-tight">
@@ -232,7 +232,7 @@ export function ArticleChartBlock({
 						<span key={`${s.entityType}:${s.slug}:${s.chartType}`} className="inline-flex items-center gap-1.5">
 							<span
 								aria-hidden
-								className="h-2 w-2 rounded-full"
+								className="size-2 rounded-full"
 								style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
 							/>
 							<span className="text-(--text-primary)">{seriesDisplayName(s)}</span>

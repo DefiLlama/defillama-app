@@ -1,8 +1,8 @@
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { getAdapterByChainPageData } from '~/containers/AdapterMetrics/queries'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import type { ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { slug } from '~/utils'
 import {
@@ -230,7 +230,7 @@ function buildTokenUsageCacheKey(tokenSymbols: string[], includeCex: boolean): s
 }
 
 function buildDatasetCacheKey(prefix: string, chains: string[]): string {
-	const sortedChains = chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort()
+	const sortedChains = chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted()
 	return JSON.stringify(['pro-dashboard', prefix, ...sortedChains])
 }
 

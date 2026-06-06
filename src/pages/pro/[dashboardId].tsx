@@ -11,7 +11,6 @@ import { fetchDashboardConfig } from '~/containers/ProDashboard/queries.server'
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
-import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
@@ -25,20 +24,25 @@ const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 	}
 
 	const authToken = getAuthTokenFromRequest(context.req)
-	context.res.setHeader(
-		'Cache-Control',
-		authToken
-			? 'private, no-cache, no-store, must-revalidate'
-			: jitterCacheControlHeader('public, s-maxage=300, stale-while-revalidate=3600', `pro-dashboard:${dashboardId}`)
-	)
+
+	if (authToken) {
+		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+		context.res.setHeader('Vary', 'Cookie, Authorization')
+		return { props: { dashboardId } }
+	}
 
 	try {
-		const dashboard = await fetchDashboardConfig(dashboardId, authToken)
-		if (!dashboard) {
-			return { notFound: true }
-		}
+		const dashboard = await fetchDashboardConfig(dashboardId, null)
+		const canCacheAtEdge = dashboard?.visibility === 'public'
+		context.res.setHeader(
+			'Cache-Control',
+			canCacheAtEdge
+				? 'public, s-maxage=300, stale-while-revalidate=3600'
+				: 'private, no-cache, no-store, must-revalidate'
+		)
+		context.res.setHeader('Vary', 'Cookie, Authorization')
 	} catch {
-		// On fetch error, let client-side handle it via the stream
+		context.res.setHeader('Cache-Control', 'private, no-store')
 	}
 
 	return { props: { dashboardId } }
@@ -53,7 +57,11 @@ export default function DashboardPage({ dashboardId }: InferGetServerSidePropsTy
 			description="Custom DeFi analytics dashboard on DefiLlama Pro. No-code dashboards with TVL, fees, volume, and protocol metrics."
 			canonicalUrl={`/pro/${dashboardId}`}
 		>
-			<ProDashboardAPIProvider initialDashboardId={initialId} key={`dashboard-api-provider-${dashboardId}`}>
+			<ProDashboardAPIProvider
+				initialDashboardId={initialId}
+				mode={initialId ? 'view' : 'edit'}
+				key={`dashboard-api-provider-${dashboardId}`}
+			>
 				<DashboardPageContent dashboardId={dashboardId} />
 			</ProDashboardAPIProvider>
 		</Layout>
@@ -64,7 +72,15 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 	const router = useRouter()
 
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
-	const { isLoadingDashboard, dashboardVisibility, currentDashboard, dashboardName } = useProDashboardDashboard()
+	const {
+		isLoadingDashboard,
+		streamHasResolved,
+		loadError,
+		reloadDashboard,
+		dashboardVisibility,
+		currentDashboard,
+		dashboardName
+	} = useProDashboardDashboard()
 	const [isValidating, setIsValidating] = useState(true)
 	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
 	const hasTrackedView = useRef(false)
@@ -77,12 +93,12 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 			return
 		}
 
-		if (!isLoadingDashboard && (currentDashboard || dashboardVisibility)) {
+		if (!isLoadingDashboard && (currentDashboard || streamHasResolved)) {
 			queueMicrotask(() => {
 				setIsValidating(false)
 			})
 		}
-	}, [dashboardId, isLoadingDashboard, currentDashboard, dashboardVisibility])
+	}, [dashboardId, isLoadingDashboard, currentDashboard, streamHasResolved])
 
 	useEffect(() => {
 		if (
@@ -104,7 +120,40 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 		return <ProDashboardLoader />
 	}
 
-	if (dashboardId !== 'new' && !currentDashboard && !isLoadingDashboard && !isValidating) {
+	if (dashboardId !== 'new' && !currentDashboard && loadError?.status === 401) {
+		return (
+			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+				<h1 className="text-3xl font-bold">Sign In Required</h1>
+				<p className="text-center text-base text-(--text-label)">Please sign in to view this dashboard</p>
+				<BasicLink
+					href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}
+					className="mt-7 rounded-md pro-btn-purple px-6 py-3 font-medium"
+				>
+					Sign In
+				</BasicLink>
+			</div>
+		)
+	}
+
+	if (dashboardId !== 'new' && !currentDashboard && loadError && loadError.status >= 500) {
+		return (
+			<div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+				<h1 className="text-3xl font-bold">Failed to load dashboard</h1>
+				<p className="text-center text-base text-(--text-label)">
+					Something went wrong while loading this dashboard. Please try again.
+				</p>
+				<button
+					type="button"
+					onClick={reloadDashboard}
+					className="mt-2 rounded-md pro-btn-purple px-6 py-3 font-medium"
+				>
+					Retry
+				</button>
+			</div>
+		)
+	}
+
+	if (dashboardId !== 'new' && !currentDashboard && isAuthenticated) {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<h1 className="text-3xl font-bold">Dashboard Not Found</h1>

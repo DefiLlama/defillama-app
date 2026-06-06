@@ -1,7 +1,7 @@
 'use no memo'
 
 import * as React from 'react'
-import type { IParentProtocol } from '~/containers/Protocols/protocol-table.types'
+import type { IParentProtocol } from '~/containers/ProtocolLists/protocol-table.types'
 import { getAnnualizedRatio, getPercentChange } from '~/utils'
 import type { IProtocolRow } from './proTable.types'
 import type { UseProTableDataParams, UseProTableDataResult, ProtocolWithSubRows } from './proTable.types'
@@ -430,7 +430,7 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 	}, [fullProtocolsList])
 
 	const availableProtocols = React.useMemo(() => {
-		return [...fullProtocolsList].sort((a, b) => {
+		return fullProtocolsList.toSorted((a, b) => {
 			const aTvl = toNumber(a.tvl) ?? 0
 			const bTvl = toNumber(b.tvl) ?? 0
 			return bTvl - aTvl

@@ -1,0 +1,252 @@
+import { fetchCoinGeckoExchanges, fetchCoinGeckoSimplePrice } from '~/api/coingecko'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { V2_SERVER_URL } from '~/constants'
+import { slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import type {
+	IAdapterChainMetrics,
+	IAdapterChart,
+	IAdapterProtocolMetrics,
+	IAdapterBreakdownChartData
+} from './api.types'
+import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
+
+/**
+ * Fetch adapter metrics for a chain and data type.
+ */
+export async function fetchAdapterChainMetrics({
+	adapterType,
+	chain,
+	dataType,
+	category
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	category?: string
+}): Promise<IAdapterChainMetrics> {
+	const metricsUrl = new URL(
+		`${V2_SERVER_URL}/metrics/${adapterType}${category ? `/category/${slug(category)}` : ''}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	)
+
+	if (dataType) {
+		metricsUrl.searchParams.set('dataType', dataType)
+	}
+
+	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), {
+		timeout: 30_000,
+		telemetry: {
+			attributes: {
+				adapter_type: adapterType,
+				...(dataType ? { data_type: dataType } : null),
+				chain,
+				...(category ? { category } : null)
+			}
+		}
+	})
+}
+
+/**
+ * Fetch adapter metrics for a protocol and data type.
+ */
+export async function fetchAdapterProtocolMetrics({
+	adapterType,
+	protocol,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
+}): Promise<IAdapterProtocolMetrics> {
+	let metricsUrl = `${V2_SERVER_URL}/metrics/${adapterType}/protocol/${slug(protocol)}`
+
+	if (dataType) {
+		metricsUrl += `?dataType=${dataType}`
+	}
+
+	return fetchJson<IAdapterProtocolMetrics>(metricsUrl, { timeout: 30_000 })
+}
+
+/**
+ * Fetch adapter chart data for a chain and data type.
+ */
+export async function fetchAdapterChainChartData({
+	adapterType,
+	chain,
+	dataType,
+	category
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	category?: string
+}): Promise<IAdapterChart> {
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${category ? `/category/${slug(category)}` : ''}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+
+	if (dataType === 'dailyEarnings') {
+		// earnings do not filter by chain at fetch time
+		totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}`
+	}
+
+	const totalDataChart = new URL(totalDataChartUrl)
+
+	if (dataType) {
+		totalDataChart.searchParams.set('dataType', dataType)
+	}
+
+	return fetchJson<IAdapterChart>(totalDataChart.toString(), {
+		timeout: 30_000,
+		telemetry: {
+			attributes: {
+				adapter_type: adapterType,
+				...(dataType ? { data_type: dataType } : null),
+				chain,
+				...(category ? { category } : null)
+			}
+		}
+	})
+}
+
+/**
+ * Fetch adapter chart data for a single protocol.
+ */
+export async function fetchAdapterProtocolChartData({
+	adapterType,
+	protocol,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+}): Promise<IAdapterChart> {
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol/${slug(protocol)}`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
+}
+
+/**
+ * Fetch adapter protocol chart data by breakdown type.
+ */
+export async function fetchAdapterProtocolChartDataByBreakdownType({
+	adapterType,
+	protocol,
+	dataType,
+	type
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	type: 'chain' | 'version'
+}): Promise<IAdapterBreakdownChartData> {
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol/${slug(protocol)}/${type}-breakdown`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
+}
+
+/**
+ * Fetch adapter chain chart data broken down by protocol.
+ */
+export async function fetchAdapterChainChartDataByProtocolBreakdown({
+	adapterType,
+	chain,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
+}): Promise<IAdapterBreakdownChartData> {
+	let totalDataChartUrl =
+		chain && chain !== 'All'
+			? `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
+			: `${V2_SERVER_URL}/chart/${adapterType}/protocol-breakdown`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
+}
+
+/**
+ * Fetch adapter chart data broken down by chain.
+ */
+export async function fetchAdapterChartDataByChainBreakdown({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType?: `${ADAPTER_DATA_TYPES}`
+}): Promise<IAdapterBreakdownChartData> {
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
+}
+
+export async function fetchChainsByAdapterPageChartData({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+}): Promise<{ chartData: MultiSeriesChart2Dataset }> {
+	const searchParams = new URLSearchParams({ adapterType, dataType })
+	return fetchJson<{ chartData: MultiSeriesChart2Dataset }>(
+		`/api/public/page-data/dimension-adapters/chains-chart?${searchParams.toString()}`
+	)
+}
+
+/**
+ * Fetch estimated global CEX volume from CoinGecko exchange data.
+ */
+export async function fetchCexVolume(): Promise<number | null> {
+	try {
+		const [cexs, btcPriceRes] = await Promise.all([
+			fetchCoinGeckoExchanges({ perPage: 250 }),
+			fetchCoinGeckoSimplePrice({ ids: 'bitcoin', vsCurrencies: 'usd' })
+		])
+
+		// Validate BTC price exists and is a number
+		const btcPrice = btcPriceRes?.bitcoin?.usd
+		if (typeof btcPrice !== 'number' || isNaN(btcPrice)) {
+			return null
+		}
+
+		// Validate cexs is an array
+		if (!Array.isArray(cexs)) {
+			console.warn('CEX data is not an array:', typeof cexs)
+			return null
+		}
+
+		// Validate and calculate with defensive checks
+		const validCexs = cexs.filter((c) => {
+			return (
+				c &&
+				typeof c.trust_score === 'number' &&
+				c.trust_score >= 9 &&
+				typeof c.trade_volume_24h_btc === 'number' &&
+				!isNaN(c.trade_volume_24h_btc)
+			)
+		})
+
+		if (validCexs.length === 0) {
+			return null
+		}
+
+		return validCexs.reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
+	} catch (error) {
+		console.error('Error fetching CEX volume:', error)
+		return null
+	}
+}

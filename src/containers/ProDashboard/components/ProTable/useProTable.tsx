@@ -281,12 +281,15 @@ export function useProTable(
 	const addOption = React.useCallback(
 		(newOptions: string[], _setLocalStorage?: boolean) => {
 			const dedupedOptions = Array.from(new Set(newOptions))
+			const dedupedOptionsSet = new Set(dedupedOptions)
 			const nextVisibility = buildColumnVisibilityMap(allLeafColumnIds, dedupedOptions)
 
-			const nextColumnOrder = state.columnOrder.filter((columnId) => dedupedOptions.includes(columnId))
+			const nextColumnOrder = state.columnOrder.filter((columnId) => dedupedOptionsSet.has(columnId))
+			const nextColumnOrderSet = new Set(nextColumnOrder)
 			for (const columnId of dedupedOptions) {
-				if (!nextColumnOrder.includes(columnId)) {
+				if (!nextColumnOrderSet.has(columnId)) {
 					nextColumnOrder.push(columnId)
+					nextColumnOrderSet.add(columnId)
 				}
 			}
 
@@ -298,9 +301,10 @@ export function useProTable(
 
 	const toggleColumnVisibility = React.useCallback(
 		(columnKey: string, isVisible: boolean) => {
-			const visibleColumns = Object.entries(currentColumns)
-				.filter(([, visible]) => visible)
-				.map(([columnId]) => columnId)
+			const visibleColumns: string[] = []
+			for (const [columnId, visible] of Object.entries(currentColumns)) {
+				if (visible) visibleColumns.push(columnId)
+			}
 
 			const nextVisibleColumnsSet = new Set(visibleColumns)
 			if (isVisible) nextVisibleColumnsSet.add(columnKey)
@@ -372,14 +376,17 @@ export function useProTable(
 		const visibleColumns = table.getAllLeafColumns().filter((column) => column.getIsVisible() && column.id !== 'expand')
 		const orderedColumns =
 			state.columnOrder.length > 0
-				? [...visibleColumns].sort((left, right) => {
-						const leftIndex = state.columnOrder.indexOf(left.id)
-						const rightIndex = state.columnOrder.indexOf(right.id)
-						if (leftIndex === -1 && rightIndex === -1) return 0
-						if (leftIndex === -1) return 1
-						if (rightIndex === -1) return -1
-						return leftIndex - rightIndex
-					})
+				? (() => {
+						const orderIndex = new Map(state.columnOrder.map((id, index) => [id, index]))
+						return visibleColumns.toSorted((left, right) => {
+							const leftIndex = orderIndex.get(left.id) ?? -1
+							const rightIndex = orderIndex.get(right.id) ?? -1
+							if (leftIndex === -1 && rightIndex === -1) return 0
+							if (leftIndex === -1) return 1
+							if (rightIndex === -1) return -1
+							return leftIndex - rightIndex
+						})
+					})()
 				: visibleColumns
 
 		const headers = orderedColumns.map((column) => {

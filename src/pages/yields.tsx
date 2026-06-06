@@ -1,38 +1,29 @@
 import { Announcement } from '~/components/Announcement'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
-import YieldPage from '~/containers/Yields'
-import { getLendBorrowDataFromYieldPageData, getYieldPageData } from '~/containers/Yields/queries/index'
-import { disclaimer, exploitWarning } from '~/containers/Yields/utils'
+import { disclaimer, exploitWarning } from '~/containers/Yields/constants'
+import { getYieldPageData } from '~/containers/Yields/queries.server'
+import YieldPage from '~/containers/Yields/views/PoolsView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {
-	// trigger build
-	const data = await getYieldPageData()
-	const [dataBorrow, { questions: entityQuestions }] = await Promise.all([
-		getLendBorrowDataFromYieldPageData(data),
+	const [data, { questions: entityQuestions }] = await Promise.all([
+		getYieldPageData(),
 		fetchEntityQuestions('yields', 'page').catch(() => ({
 			questions: [] as string[]
 		}))
 	])
-	const borrowPoolsById = new Map(dataBorrow.props.pools.map((pool) => [pool.pool, pool]))
-	data.props.pools = data.props.pools.map((p) => {
-		const x = borrowPoolsById.get(p.pool)
-		return {
-			...p,
-			apyBaseBorrow: x?.apyBaseBorrow ?? null,
-			apyRewardBorrow: x?.apyRewardBorrow ?? null,
-			apyBorrow: x?.apyBorrow ?? null,
-			totalSupplyUsd: x?.totalSupplyUsd ?? null,
-			totalBorrowUsd: x?.totalBorrowUsd ?? null,
-			totalAvailableUsd: x?.totalAvailableUsd ?? null,
-			ltv: x?.ltv ?? null
-		}
-	})
+	const {
+		pools: _pools,
+		stablecoinInfoBySymbol: _stablecoinInfoBySymbol,
+		tokenCategories: _tokenCategories,
+		usdPeggedSymbols: _usdPeggedSymbols,
+		...metadata
+	} = data.props
 
 	return {
-		props: { ...data.props, entityQuestions },
+		props: { ...metadata, entityQuestions, serverPagination: true },
 		revalidate: maxAgeForNext([23])
 	}
 })

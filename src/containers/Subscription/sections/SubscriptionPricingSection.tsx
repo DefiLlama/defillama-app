@@ -10,6 +10,7 @@ export function SubscriptionPricingSection({
 	isTrial = false,
 	isCancelPending = false,
 	userBillingCycle = null,
+	isManualSubscription = false,
 	isPageStateLoading = false,
 	...callbacks
 }: {
@@ -21,6 +22,7 @@ export function SubscriptionPricingSection({
 	isTrial?: boolean
 	isCancelPending?: boolean
 	userBillingCycle?: BillingCycle | null
+	isManualSubscription?: boolean
 	isPageStateLoading?: boolean
 } & PricingCardCallbacks) {
 	const isMonthly = billingCycle === 'monthly'
@@ -104,6 +106,7 @@ export function SubscriptionPricingSection({
 						currentPlan={currentPlan}
 						billingCycle={billingCycle}
 						userBillingCycle={userBillingCycle}
+						isManualSubscription={isManualSubscription}
 						isPageStateLoading={isPageStateLoading}
 						{...callbacks}
 					/>

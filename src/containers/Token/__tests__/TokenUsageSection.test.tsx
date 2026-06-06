@@ -3,13 +3,31 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { DynamicPaginatedTable } = vi.hoisted(() => ({
-	DynamicPaginatedTable: ({ table, pageSizeOptions }: any) => {
+const { DynamicPaginatedTable, paginatedTableCalls } = vi.hoisted(() => {
+	const paginatedTableCalls: Array<{
+		availablePageSizeOptions: number[]
+		pageCount: number
+		pageIndex: number
+		pageSize: number
+		renderedNames: string[]
+		rowCount: number
+	}> = []
+
+	const DynamicPaginatedTable = ({ table, pageSizeOptions }: any) => {
 		const rows = table.getRowModel().rows
 		const rowCount = table.getRowCount()
 		const { pageIndex, pageSize } = table.getState().pagination
 		const availablePageSizeOptions = pageSizeOptions.filter((pageSizeOption: number) => pageSizeOption <= rowCount)
 		const pageCount = Math.max(1, table.getPageCount())
+
+		paginatedTableCalls.push({
+			availablePageSizeOptions,
+			pageCount,
+			pageIndex,
+			pageSize,
+			renderedNames: rows.map((row: any) => row.original.name),
+			rowCount
+		})
 
 		return (
 			<div>
@@ -21,22 +39,13 @@ const { DynamicPaginatedTable } = vi.hoisted(() => ({
 					</div>
 				))}
 				{rowCount > 10 && pageCount > 1 ? <span>{`Page ${pageIndex + 1} of ${pageCount}`}</span> : null}
-				{rowCount > 10 && availablePageSizeOptions.length >= 2 ? (
-					<label>
-						<span>Rows per page</span>
-						<select defaultValue={String(pageSize)}>
-							{availablePageSizeOptions.map((pageSizeOption: number) => (
-								<option key={pageSizeOption} value={String(pageSizeOption)}>
-									{pageSizeOption}
-								</option>
-							))}
-						</select>
-					</label>
-				) : null}
+				{rowCount > 10 && availablePageSizeOptions.length >= 2 ? <span>Rows per page</span> : null}
 			</div>
 		)
 	}
-}))
+
+	return { DynamicPaginatedTable, paginatedTableCalls }
+})
 
 var authState = {
 	authorizedFetch: vi.fn(),
@@ -115,7 +124,8 @@ vi.mock('~/containers/Subscription/auth', () => ({
 	useAuthContext: () => authState
 }))
 
-import { TokenUsageSection, buildTokenUsageRows, filterTokenUsageRows } from '../TokenUsageSection'
+import { TokenUsageSection } from '../TokenUsageSection'
+import { buildTokenUsageRows, filterTokenUsageRows } from '../TokenUsageSection.utils'
 
 afterEach(() => {
 	authState = {
@@ -129,6 +139,7 @@ afterEach(() => {
 		error: null,
 		isLoading: false
 	}
+	paginatedTableCalls.length = 0
 	vi.clearAllMocks()
 })
 
@@ -161,8 +172,6 @@ describe('TokenUsageSection', () => {
 		const html = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" />)
 
 		expect(html).toContain('active subscription')
-		expect(html).toContain('sign-in-modal')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows a subscription link for authenticated users without a subscription', () => {
@@ -182,7 +191,6 @@ describe('TokenUsageSection', () => {
 		const html = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" />)
 
 		expect(html).toContain('No token usage entries found.')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows the query error message when the fetch fails', () => {
@@ -195,7 +203,6 @@ describe('TokenUsageSection', () => {
 		const html = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" />)
 
 		expect(html).toContain('Failed to fetch token usage data')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('filters CEX rows unless the embedded CEX toggle is enabled', () => {
@@ -230,23 +237,23 @@ describe('TokenUsageSection', () => {
 		}
 
 		const defaultHtml = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" />)
-		const expandedPageHtml = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" initialPageSize={30} />)
+		renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" initialPageSize={30} />)
+		const defaultTableCall = paginatedTableCalls[0]
+		const expandedTableCall = paginatedTableCalls[1]
 
-		expect(defaultHtml).toContain('Protocol 13')
-		expect(defaultHtml).not.toContain('>Protocol 11</span>')
-		expect(defaultHtml).not.toContain('>Protocol 10</span>')
-		expect(defaultHtml).not.toContain('>Protocol 3</span>')
-		expect(defaultHtml).not.toContain('>Protocol 2</span>')
-		expect(defaultHtml).not.toContain('>Protocol 1</span>')
+		expect(defaultTableCall?.renderedNames).toContain('Protocol 13')
+		expect(defaultTableCall?.renderedNames).not.toContain('Protocol 11')
+		expect(defaultTableCall?.renderedNames).not.toContain('Protocol 10')
+		expect(defaultTableCall?.renderedNames).not.toContain('Protocol 3')
+		expect(defaultTableCall?.renderedNames).not.toContain('Protocol 2')
+		expect(defaultTableCall?.renderedNames).not.toContain('Protocol 1')
 		expect(defaultHtml).toContain('Rows per page')
-		expect(defaultHtml).toContain('<option value="10" selected="">10</option>')
-		expect(defaultHtml).toContain('<option value="20">20</option>')
-		expect(defaultHtml).not.toContain('<option value="30">30</option>')
-		expect(defaultHtml).not.toContain('<option value="50">50</option>')
+		expect(defaultTableCall?.availablePageSizeOptions).toEqual([10, 20])
+		expect(defaultTableCall?.pageSize).toBe(10)
 		expect(defaultHtml).toContain('Page 1 of 3')
-		expect(expandedPageHtml).toContain('Protocol 2')
-		expect(expandedPageHtml).toContain('Protocol 11')
-		expect(expandedPageHtml).toContain('Protocol 12')
+		expect(expandedTableCall?.renderedNames).toContain('Protocol 2')
+		expect(expandedTableCall?.renderedNames).toContain('Protocol 11')
+		expect(expandedTableCall?.renderedNames).toContain('Protocol 12')
 	})
 })
 

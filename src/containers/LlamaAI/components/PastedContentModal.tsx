@@ -52,11 +52,11 @@ export function PastedContentModal({ preview, onClose }: PastedContentModalProps
 						{stats ? (
 							<div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#888] dark:text-[#919296]">
 								<span>{stats.size}</span>
-								<span aria-hidden className="h-1 w-1 rounded-full bg-current opacity-50" />
+								<span aria-hidden className="size-1 rounded-full bg-current opacity-50" />
 								<span>{stats.lines.toLocaleString()} lines</span>
 								{preview?.isPasted ? (
 									<>
-										<span aria-hidden className="h-1 w-1 rounded-full bg-current opacity-50" />
+										<span aria-hidden className="size-1 rounded-full bg-current opacity-50" />
 										<span>Formatting may be inconsistent from source</span>
 									</>
 								) : null}
@@ -73,7 +73,7 @@ export function PastedContentModal({ preview, onClose }: PastedContentModalProps
 							<span>{copied ? 'Copied' : 'Copy'}</span>
 						</button>
 						<Ariakit.DialogDismiss className="rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f3f3f3] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
-							<Icon name="x" className="h-5 w-5" />
+							<Icon name="x" className="size-5" />
 							<span className="sr-only">Close</span>
 						</Ariakit.DialogDismiss>
 					</div>

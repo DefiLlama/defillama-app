@@ -40,7 +40,7 @@ export function WizardNavigation({
 					return (
 						<div key={step} className="flex items-center gap-2">
 							<div
-								className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-colors ${
+								className={`flex size-8 items-center justify-center rounded-full text-xs font-medium transition-colors ${
 									isActive
 										? 'bg-(--primary) text-white'
 										: isCompleted
@@ -83,7 +83,7 @@ export function WizardNavigation({
 					>
 						{isGenerating ? (
 							<>
-								<div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+								<div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
 								Creating...
 							</>
 						) : (

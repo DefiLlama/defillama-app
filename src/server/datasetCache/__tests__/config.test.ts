@@ -54,7 +54,7 @@ describe('dataset cache config', () => {
 	})
 
 	it('centralizes dataset cache numeric env values', () => {
-		expect(getDatasetCacheMaxAgeMs()).toBe(300_000)
+		expect(getDatasetCacheMaxAgeMs()).toBe(60 * 60 * 1000)
 		expect(getDatasetCacheFetchTimeoutMs()).toBe(180_000)
 
 		vi.stubEnv('DATASET_CACHE_MAX_AGE_MS', '120')

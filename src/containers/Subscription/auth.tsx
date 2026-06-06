@@ -1,10 +1,20 @@
 import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { RecordAuthResponse } from 'pocketbase'
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+	useSyncExternalStore
+} from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { getReferrer } from '~/containers/Subscription/referrer'
 import { clearSignupSource, getSignupSource } from '~/containers/Subscription/signupSource'
+import { VerifyEmailConfirmDialog } from '~/containers/Subscription/VerifyEmailConfirmDialog'
 import { VerifyEmailDialog } from '~/containers/Subscription/VerifyEmailDialog'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
@@ -148,7 +158,8 @@ interface AuthContextType {
 		passwordConfirm: string,
 		turnstileToken: string,
 		promotionalEmails?: PromotionalEmailsValue,
-		onSuccess?: () => void
+		onSuccess?: () => void,
+		options?: { suppressVerifyEmailPrompt?: boolean }
 	) => Promise<void>
 	logout: () => void
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response | null>
@@ -171,7 +182,9 @@ interface AuthContextType {
 	verifyOtp: (otp: string) => Promise<void>
 	addEmail: (email: string) => Promise<void>
 	setPromotionalEmails: (value: string) => void
+	promptVerifyEmail: (email?: string) => void
 	isAuthenticated: boolean
+	authToken: string | null
 	user: AuthModel
 	hasActiveSubscription: boolean
 	isTrial: boolean
@@ -195,11 +208,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	// Use useSyncExternalStore to listen to authStore changes
 	const authStoreState = useSyncExternalStore(subscribeToAuthStore, getAuthStoreSnapshot, getServerSnapshot)
 	const [verifyEmailPrompt, setVerifyEmailPrompt] = useState<{ isOpen: boolean; email?: string }>({ isOpen: false })
+	const [verifyEmailConfirm, setVerifyEmailConfirm] = useState<{ isOpen: boolean; email?: string }>({ isOpen: false })
+
+	const promptVerifyEmail = useCallback((email?: string) => {
+		setVerifyEmailConfirm({ isOpen: true, email })
+	}, [])
 
 	// Derive isAuthenticated from authStoreState
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
 
 	const queryClient = useQueryClient()
+
+	useEffect(() => {
+		syncAuthTokenToCookie(isAuthenticated ? authStoreState.token : null)
+	}, [authStoreState.token, isAuthenticated])
 
 	const { isLoading: userQueryIsLoading } = useQuery({
 		queryKey: ['auth', 'status', authStoreState?.record?.id ?? null],
@@ -283,6 +305,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			passwordConfirm: string
 			turnstileToken: string
 			promotionalEmails?: PromotionalEmailsValue
+			suppressVerifyEmailPrompt?: boolean
 		}) => {
 			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
 				method: 'POST',
@@ -317,7 +340,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			clearSignupSource()
 			sessionStorage.setItem('just_signed_up', 'true')
 			toast.success('Account created!', { duration: 3000 })
-			setVerifyEmailPrompt({ isOpen: true, email: variables.email })
+			if (!variables.suppressVerifyEmailPrompt) {
+				setVerifyEmailPrompt({ isOpen: true, email: variables.email })
+			}
 		},
 		onError: (error: any) => {
 			if (error?.error === 'User with this email already exists') {
@@ -339,14 +364,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			passwordConfirm: string,
 			turnstileToken: string,
 			promotionalEmails?: PromotionalEmailsValue,
-			onSuccess?: () => void
+			onSuccess?: () => void,
+			options?: { suppressVerifyEmailPrompt?: boolean }
 		) => {
 			const result = await signupMutation.mutateAsync({
 				email,
 				password,
 				passwordConfirm,
 				turnstileToken,
-				promotionalEmails
+				promotionalEmails,
+				suppressVerifyEmailPrompt: options?.suppressVerifyEmailPrompt
 			})
 			onSuccess?.()
 			return result
@@ -407,8 +434,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
-			const createSiweMessage = await loadCreateSiweMessage()
-			const { nonce } = await getNonce(address)
+			const [createSiweMessage, { nonce }] = await Promise.all([loadCreateSiweMessage(), getNonce(address)])
 			const issuedAt = new Date()
 			const message = createSiweMessage({
 				domain: window.location.host,
@@ -497,8 +523,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
-			const createSiweMessage = await loadCreateSiweMessage()
-			const { nonce } = await getNonce(address)
+			const [createSiweMessage, { nonce }] = await Promise.all([loadCreateSiweMessage(), getNonce(address)])
 			const issuedAt = new Date()
 			const message = createSiweMessage({
 				domain: window.location.host,
@@ -713,7 +738,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			has_active_subscription: authStoreState.record.has_active_subscription,
 			flags: authStoreState.record.flags ?? {},
 			ethereum_email: authStoreState.record.ethereum_email,
-			promotionalEmails: authStoreState.record.promotionalEmails as PromotionalEmailsValue | undefined
+			promotionalEmails: authStoreState.record.promotionalEmails as PromotionalEmailsValue | undefined,
+			referral_code: authStoreState.record.referral_code
 		} as AuthModel
 	}, [authStoreState])
 
@@ -732,7 +758,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		verifyOtp: verifyOtpMutation.mutateAsync,
 		addEmail: addEmail.mutateAsync,
 		setPromotionalEmails: setPromotionalEmails.mutate,
+		promptVerifyEmail,
 		isAuthenticated,
+		authToken: isAuthenticated ? authStoreState.token : null,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
 		isTrial: Boolean(userData?.flags?.is_trial),
 		loaders: {
@@ -752,9 +780,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	return (
 		<AuthContext.Provider value={contextValue}>
 			{children}
+			<VerifyEmailConfirmDialog
+				isOpen={verifyEmailConfirm.isOpen}
+				onConfirm={() => {
+					const email = verifyEmailConfirm.email
+					setVerifyEmailConfirm({ isOpen: false })
+					setVerifyEmailPrompt({ isOpen: true, email })
+				}}
+				onClose={() => setVerifyEmailConfirm({ isOpen: false })}
+			/>
 			<VerifyEmailDialog
 				isOpen={verifyEmailPrompt.isOpen}
 				email={verifyEmailPrompt.email}
+				sendOtp={contextValue.sendOtp}
+				verifyOtp={contextValue.verifyOtp}
+				loaders={contextValue.loaders}
 				onClose={() => setVerifyEmailPrompt({ isOpen: false })}
 			/>
 		</AuthContext.Provider>
@@ -774,6 +814,17 @@ function subscribeToUserHash(callback: () => void) {
 	return () => {
 		window.removeEventListener('userHashChange', callback)
 	}
+}
+
+const syncStoredUserHash = (nextUserHash: string | null) => {
+	const currentUserHash = localStorage.getItem('userHash')
+	if (currentUserHash === nextUserHash) return
+	if (nextUserHash === null) {
+		localStorage.removeItem('userHash')
+	} else {
+		localStorage.setItem('userHash', nextUserHash)
+	}
+	window.dispatchEvent(new Event('userHashChange'))
 }
 
 export const useUserHash = () => {
@@ -800,19 +851,11 @@ export const useUserHash = () => {
 				})
 				.then((res) => res.json())
 				.then((data) => {
-					const currentUserHash = localStorage.getItem('userHash')
-					if (currentUserHash !== data.userHash) {
-						localStorage.setItem('userHash', data.userHash)
-						window.dispatchEvent(new Event('userHashChange'))
-					}
+					syncStoredUserHash(data.userHash)
 					return data.userHash
 				})
 				.catch(() => {
-					const currentUserHash = localStorage.getItem('userHash')
-					if (currentUserHash !== null) {
-						localStorage.removeItem('userHash')
-						window.dispatchEvent(new Event('userHashChange'))
-					}
+					syncStoredUserHash(null)
 					return null
 				}),
 		enabled: !!(email && hasActiveSubscription),

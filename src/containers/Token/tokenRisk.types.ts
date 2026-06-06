@@ -31,9 +31,27 @@ export interface TokenRiskExposureRow {
 	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
 }
 
+export interface TokenRiskChainExposureSummary {
+	chain: string
+	chainDisplayName: string
+	totalCurrentMaxBorrowUsd: number
+	totalMinBadDebtAtPriceZeroUsd: number | null
+	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
+}
+
+export interface TokenRiskProtocolSummary {
+	protocol: string
+	protocolDisplayName: string
+	totalCurrentMaxBorrowUsd: number
+	totalMinBadDebtAtPriceZeroUsd: number | null
+	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
+	chainBreakdowns: TokenRiskChainExposureSummary[]
+}
+
 export interface TokenRiskExposuresSection {
 	summary: TokenRiskExposureSummary
 	rows: TokenRiskExposureRow[]
+	protocolSummaries: TokenRiskProtocolSummary[]
 	methodologies: Pick<TokenRiskBorrowCapacityMethodologies, 'asset' | 'minBadDebtAtPriceZeroUsd'> & {
 		currentMaxBorrowUsd: string
 	}

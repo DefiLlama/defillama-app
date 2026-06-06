@@ -86,7 +86,7 @@ export const CsvExportDropdown = memo(function CsvExportDropdown({
 							onClick={() => handleOptionClick(level)}
 							className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-(--text-primary) transition-colors hover:bg-(--divider)"
 						>
-							<Icon name="download-paper" className="h-3 w-3 shrink-0 text-(--text-tertiary)" />
+							<Icon name="download-paper" className="size-3 shrink-0 text-(--text-tertiary)" />
 							{EXPORT_LEVEL_LABELS[level]}
 						</button>
 					))}

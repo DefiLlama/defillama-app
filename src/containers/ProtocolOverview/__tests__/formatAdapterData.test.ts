@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import type { IAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api.types'
 import { formatAdapterData } from '../formatAdapterData'
 
 function createAdapterMetrics(overrides: Partial<IAdapterProtocolMetrics> = {}): IAdapterProtocolMetrics {

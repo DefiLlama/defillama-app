@@ -136,6 +136,65 @@ describe('local article documents', () => {
 		expect(pairs).toEqual([{ question: 'What changed?', answer: 'A lot. In particular fees.' }])
 	})
 
+	it('flattens nested Q&A blocks while normalizing article content', () => {
+		const result = normalizeLocalArticleDocument({
+			title: 'Nested interview',
+			contentJson: {
+				type: 'doc',
+				content: [
+					{
+						type: 'qa',
+						content: [
+							{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question one?' }] },
+							{
+								type: 'qaAnswer',
+								content: [
+									{ type: 'paragraph', content: [{ type: 'text', text: 'Answer one.' }] },
+									{
+										type: 'qa',
+										content: [
+											{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question two?' }] },
+											{
+												type: 'qaAnswer',
+												content: [
+													{ type: 'paragraph', content: [{ type: 'text', text: 'Answer two.' }] },
+													{
+														type: 'qa',
+														content: [
+															{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question three?' }] },
+															{
+																type: 'qaAnswer',
+																content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Answer three.' }] }]
+															}
+														]
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		})
+
+		expect(result.ok).toBe(true)
+		if (!result.ok) return
+		const content = result.value.contentJson.content ?? []
+		expect(content.map((node) => node.type)).toEqual(['qa', 'qa', 'qa'])
+		for (const node of content) {
+			const answer = node.content?.find((child) => child.type === 'qaAnswer')
+			expect(answer?.content?.some((child) => child.type === 'qa')).toBe(false)
+		}
+		expect(extractQAPairs(result.value.contentJson)).toEqual([
+			{ question: 'Question one?', answer: 'Answer one.' },
+			{ question: 'Question two?', answer: 'Answer two.' },
+			{ question: 'Question three?', answer: 'Answer three.' }
+		])
+	})
+
 	it('preserves existing createdAt while updating updatedAt', () => {
 		const result = normalizeLocalArticleDocument(
 			{

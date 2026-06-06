@@ -33,6 +33,27 @@ describe('cache lifetime jitter', () => {
 		expect(first).not.toBe(second)
 	})
 
+	it('uses the Coolify source commit when no Next build id is set', () => {
+		vi.stubEnv('SOURCE_COMMIT', 'commit-a')
+		const first = cacheJitterOffsetSeconds('protocol/uniswap', 1200)
+
+		vi.stubEnv('SOURCE_COMMIT', 'commit-b')
+		const second = cacheJitterOffsetSeconds('protocol/uniswap', 1200)
+
+		expect(first).not.toBe(second)
+	})
+
+	it('skips blank build id env vars when selecting the jitter seed', () => {
+		vi.stubEnv('BUILD_ID', 'commit-a')
+		vi.stubEnv('SOURCE_COMMIT', '')
+		const first = cacheJitterOffsetSeconds('protocol/uniswap', 1200)
+
+		vi.stubEnv('BUILD_ID', 'commit-b')
+		const second = cacheJitterOffsetSeconds('protocol/uniswap', 1200)
+
+		expect(first).not.toBe(second)
+	})
+
 	it('can be disabled without changing the base cache lifetime', () => {
 		vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '0')
 

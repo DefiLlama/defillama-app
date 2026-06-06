@@ -70,9 +70,9 @@ export function SchemaDrawer({
 					<Ariakit.DialogDismiss
 						onClick={onClose}
 						aria-label="Close SQL reference"
-						className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+						className="flex size-7 shrink-0 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 					>
-						<Icon name="x" className="h-4 w-4" />
+						<Icon name="x" className="size-4" />
 					</Ariakit.DialogDismiss>
 				</header>
 

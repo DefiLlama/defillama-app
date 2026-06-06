@@ -5,18 +5,18 @@ import type { BlockExplorersResponse, ProtocolLiquidityTokensResponse } from '~/
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api'
 import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
-import { fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
 import { fetchOracleMetrics, fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import type { ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
-import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson, getFastJsonTimeoutMs, getSlowJsonTimeoutMs } from '~/utils/async'
@@ -116,6 +116,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata,
 	tokenlist,
 	cgExchangeIdentifiers,
+	emissionsSupplyMetrics,
 	protocolLlamaswapDataset
 }: {
 	protocolId: string
@@ -124,6 +125,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	tokenlist: Record<string, import('~/utils/metadata/types').ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	emissionsSupplyMetrics: ProtocolEmissionSupplyMetricsMap
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 }): Promise<IProtocolOverviewPageData> => {
 	const displayName = currentProtocolMetadata.displayName ?? ''
@@ -352,9 +354,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
-			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName)).then(
-					(data) => data?.supplyMetrics?.adjustedSupply ?? null
-				)
+			? (emissionsSupplyMetrics[currentProtocolSlug]?.supplyMetrics?.adjustedSupply ?? null)
 			: null,
 		currentProtocolMetadata.activeUsers
 			? fetchAdapterProtocolMetrics({
@@ -552,7 +552,7 @@ export const getProtocolOverviewPageData = async ({
 	const competitorsSet = new Set<string>()
 	const competitorsMap = new Map(competitors.map((p) => [p.name, p]))
 
-	const protocolsWithCommonChains = [...competitors].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
+	const protocolsWithCommonChains = competitors.toSorted((a, b) => b.commonChains - a.commonChains).slice(0, 5)
 
 	// first 5 are the protocols that are on same chain + same category
 	for (const p of protocolsWithCommonChains) {
@@ -578,7 +578,7 @@ export const getProtocolOverviewPageData = async ({
 			? hacksData
 					?.filter((hack: IHackApiItem) =>
 						isCEX
-							? [hack.name].includes(currentProtocolMetadata.displayName ?? '')
+							? hack.name === (currentProtocolMetadata.displayName ?? '')
 							: [String(hack.defillamaId), String(hack.parentProtocolId)].includes(String(protocolId))
 					)
 					?.sort((a: IHackApiItem, b: IHackApiItem) => a.date - b.date)
@@ -598,7 +598,14 @@ export const getProtocolOverviewPageData = async ({
 			chains.push([chain, currentChainTvlsObj[chain]])
 		}
 	}
-	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
+	let firstChain: string | null = null
+	let firstChainTvl = -Infinity
+	for (const [chain, tvl] of chains) {
+		if (tvl > firstChainTvl) {
+			firstChain = chain
+			firstChainTvl = tvl
+		}
+	}
 	const tokenGeckoId = currentProtocolMetadata.gecko_id ?? null
 	const llamaswapChains = !isCEX && tokenGeckoId ? (protocolLlamaswapDataset?.[tokenGeckoId] ?? null) : null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
@@ -757,6 +764,7 @@ export const getProtocolOverviewPageData = async ({
 		currentTvlByChain: currentProtocolMetadata.tvl ? (protocolData.currentChainTvls ?? {}) : {},
 		description: protocolData.description ?? '',
 		website: protocolData.referralUrl?.trim() || protocolData.url?.trim() || null,
+		isWebsiteReferral: Boolean(protocolData.referralUrl?.trim()),
 		twitter: protocolData.twitter ?? null,
 		safeHarbor: currentProtocolMetadata.safeHarbor ?? false,
 		github: protocolData.github
@@ -945,7 +953,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		if (typeof window !== 'undefined') {
 			const protocol = slug(metadata.displayName)
-			return fetchJson(`/api/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
+			return fetchJson(`/api/public/income-statement?protocol=${encodeURIComponent(protocol)}`).catch(() => null)
 		}
 
 		const incomeStatement = await fetchJson(

@@ -12,7 +12,7 @@ type Props = {
 	previewShape?: 'square' | 'wide'
 }
 
-function PhotoIcon({ className = 'h-5 w-5' }: { className?: string }) {
+function PhotoIcon({ className = 'size-5' }: { className?: string }) {
 	return (
 		<svg
 			viewBox="0 0 24 24"
@@ -76,13 +76,13 @@ export function ImageUploadButton({
 							onClick={open}
 							disabled={isUploading}
 							aria-label="Replace avatar"
-							className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-(--cards-border) transition-[border-color] outline-none hover:border-(--link-text)/50 focus-visible:border-(--link-text)/70 disabled:cursor-not-allowed disabled:opacity-60"
+							className="group relative size-24 shrink-0 overflow-hidden rounded-full border border-(--cards-border) transition-[border-color] outline-none hover:border-(--link-text)/50 focus-visible:border-(--link-text)/70 disabled:cursor-not-allowed disabled:opacity-60"
 						>
 							{/* eslint-disable-next-line @next/next/no-img-element */}
 							<img
 								src={currentUrl}
 								alt=""
-								className="h-full w-full object-cover transition-opacity group-hover:opacity-70"
+								className="size-full object-cover transition-opacity group-hover:opacity-70"
 							/>
 							<span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-(--app-bg)/0 text-[11px] font-medium tracking-wide text-white opacity-0 transition-opacity group-hover:bg-black/40 group-hover:opacity-100">
 								{isUploading ? 'Uploading…' : 'Replace'}
@@ -93,9 +93,9 @@ export function ImageUploadButton({
 							type="button"
 							onClick={open}
 							disabled={isUploading}
-							className="group flex h-24 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-full border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
+							className="group flex size-24 shrink-0 flex-col items-center justify-center gap-1 rounded-full border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<PhotoIcon className="h-5 w-5" />
+							<PhotoIcon className="size-5" />
 							<span className="text-[10px] font-medium tracking-wider uppercase">{isUploading ? '…' : 'Upload'}</span>
 						</button>
 					)}
@@ -140,7 +140,7 @@ export function ImageUploadButton({
 								<img
 									src={currentUrl}
 									alt=""
-									className="h-full w-full object-cover transition-opacity group-hover:opacity-70"
+									className="size-full object-cover transition-opacity group-hover:opacity-70"
 								/>
 								<span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 text-xs font-medium text-white opacity-0 transition-opacity group-hover:bg-black/40 group-hover:opacity-100">
 									{isUploading ? 'Uploading…' : 'Replace'}
@@ -174,7 +174,7 @@ export function ImageUploadButton({
 							onClick={open}
 							className="group flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<PhotoIcon className="h-5 w-5" />
+							<PhotoIcon className="size-5" />
 							<span className="text-xs font-medium">
 								{isUploading ? 'Uploading…' : `Upload ${label.toLowerCase()}`}
 							</span>

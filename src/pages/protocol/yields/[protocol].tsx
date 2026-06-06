@@ -20,7 +20,7 @@ import {
 	getPoolRowChains,
 	getPoolRowTokens
 } from '~/containers/Yields/poolsPipeline'
-import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
+import { useHolderStats, useVolatility } from '~/containers/Yields/queries.client'
 import { clearYieldsQueries, hasActiveYieldsQueries } from '~/containers/Yields/queryState'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'

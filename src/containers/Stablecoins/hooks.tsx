@@ -1,10 +1,6 @@
-import { useRouter } from 'next/router'
-import * as React from 'react'
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
-import { parseExcludeParam } from '~/utils/routerQuery'
-import type { StablecoinFilterOption } from './Filters'
 
 interface IPegged {
 	circulating: number
@@ -450,96 +446,4 @@ export const useGroupBridgeData = (
 	}, [chains, bridgeInfoObject])
 
 	return data
-}
-
-export const useFormatStablecoinQueryParams = ({
-	stablecoinAttributeOptions,
-	stablecoinPegTypeOptions,
-	stablecoinBackingOptions
-}: {
-	stablecoinAttributeOptions: ReadonlyArray<StablecoinFilterOption>
-	stablecoinPegTypeOptions: ReadonlyArray<StablecoinFilterOption>
-	stablecoinBackingOptions: ReadonlyArray<StablecoinFilterOption>
-}) => {
-	const router = useRouter()
-	const { attribute, excludeAttribute, pegtype, excludePegtype, backing, excludeBacking } = router.query
-
-	return React.useMemo(() => {
-		// Fast path: when no stablecoin filter params are present in URL, keep defaults as-is.
-		if (
-			attribute == null &&
-			excludeAttribute == null &&
-			pegtype == null &&
-			excludePegtype == null &&
-			backing == null &&
-			excludeBacking == null
-		) {
-			return {
-				selectedAttributes: stablecoinAttributeOptions.map((option) => option.key),
-				selectedPegTypes: stablecoinPegTypeOptions.map((option) => option.key),
-				selectedBackings: stablecoinBackingOptions.map((option) => option.key)
-			}
-		}
-
-		// Parse exclude sets upfront
-		const excludeAttributeSet = parseExcludeParam(excludeAttribute)
-		const excludePegtypeSet = parseExcludeParam(excludePegtype)
-		const excludeBackingSet = parseExcludeParam(excludeBacking)
-
-		// Build selectedAttributes and filter out excludes inline
-		let attributes: string[]
-		if (attribute) {
-			if (typeof attribute === 'string') {
-				attributes = attribute === 'None' ? [] : [attribute]
-			} else {
-				attributes = [...attribute]
-			}
-		} else {
-			attributes = stablecoinAttributeOptions.map((option) => option.key)
-		}
-		const selectedAttributes =
-			excludeAttributeSet.size > 0 ? attributes.filter((a) => !excludeAttributeSet.has(a)) : attributes
-
-		// Build selectedPegTypes and filter out excludes inline
-		let pegTypes: string[]
-		if (pegtype) {
-			if (typeof pegtype === 'string') {
-				pegTypes = pegtype === 'None' ? [] : [pegtype]
-			} else {
-				pegTypes = [...pegtype]
-			}
-		} else {
-			pegTypes = stablecoinPegTypeOptions.map((option) => option.key)
-		}
-		const selectedPegTypes = excludePegtypeSet.size > 0 ? pegTypes.filter((p) => !excludePegtypeSet.has(p)) : pegTypes
-
-		// Build selectedBackings and filter out excludes inline
-		let backings: string[]
-		if (backing) {
-			if (typeof backing === 'string') {
-				backings = backing === 'None' ? [] : [backing]
-			} else {
-				backings = [...backing]
-			}
-		} else {
-			backings = stablecoinBackingOptions.map((option) => option.key)
-		}
-		const selectedBackings = excludeBackingSet.size > 0 ? backings.filter((b) => !excludeBackingSet.has(b)) : backings
-
-		return {
-			selectedAttributes,
-			selectedPegTypes,
-			selectedBackings
-		}
-	}, [
-		attribute,
-		excludeAttribute,
-		pegtype,
-		excludePegtype,
-		backing,
-		excludeBacking,
-		stablecoinAttributeOptions,
-		stablecoinPegTypeOptions,
-		stablecoinBackingOptions
-	])
 }

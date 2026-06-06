@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import {
 	ArticleApiError,
 	listArticles,
@@ -62,6 +63,7 @@ function buildPatch(state: RowState): ReportFieldsPatch {
 function ReportRow({ article }: { article: ArticleDocument }) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const [state, setState] = useState<RowState>(() => rowStateFromArticle(article))
 
 	useEffect(() => {
@@ -76,6 +78,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 		mutationFn: () => updateArticleReportFields(article.id, buildPatch(state), authorizedFetch),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'reports'] })
+			revalidateLanding()
 			toast.success(isPublished ? 'Saved — publish to push live' : 'Saved')
 		},
 		onError: (err) => {
@@ -92,6 +95,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['research', 'admin', 'reports'] })
+			revalidateLanding()
 			toast.success('Published')
 		},
 		onError: (err) => {
@@ -111,7 +115,7 @@ function ReportRow({ article }: { article: ArticleDocument }) {
 								isPublished ? 'bg-emerald-500/10 text-emerald-500' : 'bg-(--text-tertiary)/10 text-(--text-tertiary)'
 							}`}
 						>
-							<span aria-hidden className="h-1 w-1 rounded-full bg-current" />
+							<span aria-hidden className="size-1 rounded-full bg-current" />
 							{isPublished ? 'Live' : 'Draft'}
 						</span>
 						{hasPending ? (

@@ -7,12 +7,15 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { startTransition, useDeferredValue, useState } from 'react'
+import { useBlockExplorers } from '~/api/client'
+import { CopyHelper } from '~/components/Copy'
 import { LocalLoader } from '~/components/Loaders'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 
 const valueToFilter = {
 	'1d': 'day',
@@ -91,6 +94,8 @@ export default function TrendingContracts() {
 		retry: 0
 	})
 
+	const { data: blockExplorers = [] } = useBlockExplorers()
+
 	const results = data?.results ?? []
 
 	const instance = useReactTable({
@@ -102,7 +107,7 @@ export default function TrendingContracts() {
 			sortUndefined: 'last'
 		},
 		enableSortingRemoval: false,
-		columns: columns(activeChain),
+		columns: columns(activeChain, blockExplorers),
 		getCoreRowModel: getCoreRowModel(),
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		getSortedRowModel: getSortedRowModel()
@@ -130,6 +135,10 @@ export default function TrendingContracts() {
 					</div>
 				) : error ? (
 					<p className="my-auto p-3 text-center">Sorry, couldn't fetch trending contracts.</p>
+				) : results.length === 0 ? (
+					<p className="my-auto p-3 text-center text-(--text-secondary)">
+						No trending contracts found for this chain and time range.
+					</p>
 				) : (
 					<VirtualTable instance={instance} />
 				)}
@@ -138,36 +147,35 @@ export default function TrendingContracts() {
 	)
 }
 
-const columns = (chain: string) => [
+const columns = (chain: string, blockExplorers: ReturnType<typeof useBlockExplorers>['data'] = []) => [
 	columnHelper.accessor('contract', {
 		header: 'Contract',
 		cell: (info) => {
 			const value = info.getValue()
 			const name = info.row.original.name
+			const explorer = getBlockExplorerNew({
+				apiResponse: blockExplorers,
+				address: value,
+				chainId: chain,
+				urlType: 'address'
+			})
+			const label = name ?? value.slice(0, 6) + '...' + value.slice(-4)
 			return (
-				<a
-					href={`https://${
-						chain === 'ethereum'
-							? 'etherscan.io'
-							: chain === 'arbitrum'
-								? 'arbiscan.io'
-								: chain === 'optimism'
-									? 'optimistic.etherscan.io'
-									: chain === 'base'
-										? 'basescan.org'
-										: 'polygonscan.com'
-					}/address/${value}`}
-					target="_blank"
-					rel="noopener noreferrer"
-					style={{ textDecoration: 'underline' }}
-				>
-					{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
-				</a>
+				<span className="flex items-center gap-1.5">
+					{explorer ? (
+						<a href={explorer.url} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">
+							{label}
+						</a>
+					) : (
+						<span>{label}</span>
+					)}
+					<CopyHelper toCopy={value} />
+				</span>
 			)
 		},
 		enableSorting: false,
 		meta: {
-			headerClassName: 'w-[min(240px,40vw)]'
+			headerClassName: 'w-[min(280px,40vw)]'
 		}
 	}),
 	columnHelper.accessor('txns', {

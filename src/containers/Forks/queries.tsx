@@ -1,5 +1,5 @@
-import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import { getProtocolsByChain } from '~/containers/ProtocolRankings/queries.server'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
 import { getForkToOriginalTvlPercent } from './tvl'
@@ -16,7 +16,7 @@ function sortForksByLatestTvl(forkNames: string[], chartData: unknown): string[]
 		}
 	}
 
-	return [...forkNames].sort((a, b) => (latestTvlByFork[b] ?? 0) - (latestTvlByFork[a] ?? 0))
+	return forkNames.toSorted((a, b) => (latestTvlByFork[b] ?? 0) - (latestTvlByFork[a] ?? 0))
 }
 
 // - /forks

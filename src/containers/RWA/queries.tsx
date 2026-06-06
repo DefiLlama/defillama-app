@@ -27,7 +27,6 @@ import type {
 	IRWAPlatformsOverviewRow,
 	IRWAAssetGroupsOverview,
 	IRWAAssetGroupsOverviewRow,
-	RWAPerpsOverviewAsset,
 	RWASpotOverviewAsset,
 	RWAAssetChartTarget
 } from './api.types'
@@ -37,7 +36,6 @@ import {
 	aggregateRwaMetricData,
 	appendRwaChartDatasetTotal,
 	applyDefaultAssetFilters,
-	buildRwaOpenInterestDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import {
@@ -48,150 +46,16 @@ import {
 } from './constants'
 import { definitions } from './definitions'
 import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
+import { aggregateRwaMetrics, isEmptyObject } from './overviewAssembly'
 import { fetchRWAPerpsContractBreakdownChartData, fetchRWAPerpsCurrent } from './Perps/api'
 import type { IRWAPerpsBreakdownChartResponse, IRWAPerpsMarket } from './Perps/api.types'
-import { toRWAPerpsBreakdownChartDataset } from './Perps/breakdownDataset'
+import {
+	buildRWAPerpsContractOverlayRows,
+	buildRWAPerpsOpenInterestOverlayDataset,
+	getRealRwaPlatforms
+} from './perpsOverlay'
 import { rwaSlug } from './rwaSlug'
-
-type ChainMetricBreakdown = Record<string, number | string> | null
-type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
-
-const getRealRwaPlatforms = (value: Parameters<typeof getRwaPlatforms>[0]) =>
-	getRwaPlatforms(value).filter((platform) => platform !== UNKNOWN_PLATFORM && rwaSlug(platform) !== 'unknown')
-
-type AggregatedRwaMetrics = {
-	totals: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-	}
-	filteredTotals: {
-		onChainMcap: number
-		activeMcap: number
-		defiActiveTvl: number
-	}
-	hasSelectedChainData: {
-		onChainMcap: boolean
-		activeMcap: boolean
-		defiActiveTvl: boolean
-	}
-	breakdowns: {
-		onChainMcapByChain: Record<string, number>
-		activeMcapByChain: Record<string, number>
-		defiActiveTvlByProtocol: Record<string, number>
-		defiActiveTvlByProtocolFiltered: Record<string, number>
-		defiActiveTvlByChain: Record<string, number>
-		defiActiveTvlByChainFiltered: Record<string, number>
-	}
-}
-
-function aggregateRwaMetrics({
-	onChainMcapBreakdown,
-	activeMcapBreakdown,
-	defiActiveTvlBreakdown,
-	selectedChain
-}: {
-	onChainMcapBreakdown: ChainMetricBreakdown
-	activeMcapBreakdown: ChainMetricBreakdown
-	defiActiveTvlBreakdown: DefiMetricBreakdown
-	selectedChain?: string
-}): AggregatedRwaMetrics {
-	let totalOnChainMcap = 0
-	let totalActiveMcap = 0
-	let totalDeFiActiveTvl = 0
-	let filteredOnChainMcap = 0
-	let filteredActiveMcap = 0
-	let filteredDeFiActiveTvl = 0
-	const onChainMcapByChain: Record<string, number> = {}
-	const activeMcapByChain: Record<string, number> = {}
-	const defiActiveTvlByProtocol: Record<string, number> = {}
-	const defiActiveTvlByProtocolFiltered: Record<string, number> = {}
-	const defiActiveTvlByChain: Record<string, number> = {}
-	const defiActiveTvlByChainFiltered: Record<string, number> = {}
-	let hasSelectedChainInOnChainMcap = false
-	let hasSelectedChainInActiveMcap = false
-	let hasSelectedChainInDeFiActiveTvl = false
-	const isChainFiltered = !!selectedChain
-
-	if (onChainMcapBreakdown) {
-		for (const chain in onChainMcapBreakdown) {
-			const value = safeNumber(onChainMcapBreakdown[chain])
-			onChainMcapByChain[chain] = (onChainMcapByChain[chain] || 0) + value
-			totalOnChainMcap += value
-			if (selectedChain && rwaSlug(chain) === selectedChain) {
-				hasSelectedChainInOnChainMcap = true
-				filteredOnChainMcap += value
-			}
-		}
-	}
-
-	if (activeMcapBreakdown) {
-		for (const chain in activeMcapBreakdown) {
-			const value = safeNumber(activeMcapBreakdown[chain])
-			activeMcapByChain[chain] = (activeMcapByChain[chain] || 0) + value
-			totalActiveMcap += value
-			if (selectedChain && rwaSlug(chain) === selectedChain) {
-				hasSelectedChainInActiveMcap = true
-				filteredActiveMcap += value
-			}
-		}
-	}
-
-	if (defiActiveTvlBreakdown) {
-		for (const chain in defiActiveTvlBreakdown) {
-			const isSelectedChain = !isChainFiltered || rwaSlug(chain) === selectedChain
-			if (selectedChain && isSelectedChain) {
-				hasSelectedChainInDeFiActiveTvl = true
-			}
-
-			let chainTotal = 0
-			for (const protocolName in defiActiveTvlBreakdown[chain]) {
-				const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
-				chainTotal += value
-				defiActiveTvlByProtocol[protocolName] = (defiActiveTvlByProtocol[protocolName] || 0) + value
-				totalDeFiActiveTvl += value
-
-				if (isSelectedChain && selectedChain) {
-					defiActiveTvlByProtocolFiltered[protocolName] = (defiActiveTvlByProtocolFiltered[protocolName] || 0) + value
-					filteredDeFiActiveTvl += value
-				}
-			}
-
-			if (chainTotal > 0) {
-				defiActiveTvlByChain[chain] = (defiActiveTvlByChain[chain] || 0) + chainTotal
-				if (isSelectedChain && selectedChain) {
-					defiActiveTvlByChainFiltered[chain] = (defiActiveTvlByChainFiltered[chain] || 0) + chainTotal
-				}
-			}
-		}
-	}
-
-	return {
-		totals: {
-			onChainMcap: totalOnChainMcap,
-			activeMcap: totalActiveMcap,
-			defiActiveTvl: totalDeFiActiveTvl
-		},
-		filteredTotals: {
-			onChainMcap: filteredOnChainMcap,
-			activeMcap: filteredActiveMcap,
-			defiActiveTvl: filteredDeFiActiveTvl
-		},
-		hasSelectedChainData: {
-			onChainMcap: hasSelectedChainInOnChainMcap,
-			activeMcap: hasSelectedChainInActiveMcap,
-			defiActiveTvl: hasSelectedChainInDeFiActiveTvl
-		},
-		breakdowns: {
-			onChainMcapByChain,
-			activeMcapByChain,
-			defiActiveTvlByProtocol,
-			defiActiveTvlByProtocolFiltered,
-			defiActiveTvlByChain,
-			defiActiveTvlByChainFiltered
-		}
-	}
-}
+import { emptyRwaYieldMatchResult, fetchRwaYieldPoolData, matchRwaYieldPools } from './yieldMatching'
 
 type RWAAssetsOverviewParams = {
 	chain?: string
@@ -429,13 +293,6 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				: aggregatedMetrics.totals.defiActiveTvl
 
 			const isTrueRWA = item.rwaClassification === 'True RWA'
-			const sortedCategories =
-				selectedCategory && Array.isArray(item.category)
-					? [
-							...item.category.filter((c) => c && rwaSlug(c) === selectedCategory),
-							...item.category.filter((c) => c && rwaSlug(c) !== selectedCategory)
-						]
-					: (item.category ?? null)
 			const asset: RWASpotOverviewAsset = {
 				id: item.id,
 				kind: 'spot',
@@ -452,7 +309,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				volume30d: null,
 				assetGroup: item.assetGroup ?? null,
 				parentPlatform: item.parentPlatform ?? null,
-				category: sortedCategories,
+				category: item.category ?? null,
 				assetClass: item.assetClass ?? null,
 				accessModel: item.accessModel ?? null,
 				type: item.type ?? null,
@@ -600,61 +457,17 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			}
 		}
 
-		for (const market of filteredPerpsMarkets) {
-			if (selectedChain) {
-				continue
-			}
+		const perpsOverlayRows = selectedChain
+			? []
+			: buildRWAPerpsContractOverlayRows({
+					markets: filteredPerpsMarkets,
+					selectedCategory,
+					selectedPlatform,
+					selectedAssetGroup,
+					excludedAssetNames: ASSETS_TO_EXCLUDE
+				})
 
-			const asset: RWAPerpsOverviewAsset = {
-				id: market.id,
-				kind: 'perps',
-				detailHref: `/rwa/perps/contract/${encodeURIComponent(market.contract)}`,
-				contract: market.contract,
-				assetName: market.referenceAsset ?? market.contract,
-				ticker: market.contract,
-				primaryChain: null,
-				chain: null,
-				price: market.price,
-				openInterest: market.openInterest,
-				volume24h: market.volume24h,
-				volume30d: market.volume30d,
-				assetGroup: market.referenceAssetGroup,
-				parentPlatform: market.parentPlatform,
-				category: market.category,
-				assetClass: market.assetClass,
-				accessModel: market.accessModel,
-				type: 'Perp',
-				rwaClassification: market.rwaClassification,
-				issuer: market.issuer,
-				redeemable: null,
-				attestations: null,
-				cexListed: null,
-				kycForMintRedeem: null,
-				kycAllowlistedWhitelistedToTransferHold: null,
-				transferable: null,
-				selfCustody: null,
-				stablecoin: null,
-				governance: null,
-				trueRWA: false,
-				onChainMcap: null,
-				activeMcap: null,
-				defiActiveTvl: null,
-				defiActiveTvlByChain: null
-			}
-			const hasCategoryMatch = selectedCategory
-				? (asset.category ?? []).some((category) => rwaSlug(category) === selectedCategory)
-				: true
-			const hasPlatformMatch = selectedPlatform
-				? getRealRwaPlatforms(asset.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
-				: true
-			const hasAssetGroupMatch = selectedAssetGroup
-				? rwaSlug(normalizeRwaAssetGroup(asset.assetGroup)) === selectedAssetGroup
-				: true
-
-			if (!hasCategoryMatch || !hasPlatformMatch || !hasAssetGroupMatch || ASSETS_TO_EXCLUDE.has(asset.assetName)) {
-				continue
-			}
-
+		for (const asset of perpsOverlayRows) {
 			assets.push(asset)
 			if (selectedPlatform) {
 				assetNames.set(asset.assetName, assetNames.get(asset.assetName) ?? 0)
@@ -740,6 +553,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			mode,
 			categorySlug: selectedCategory
 		})
+		const defaultFilteredPerpsRows = defaultFilteredAssets.filter((asset) => asset.kind === 'perps')
 		const initialChartDataset = chartDataMs
 			? {
 					onChainMcap: appendRwaChartDatasetTotal(
@@ -756,7 +570,10 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		const initialOpenInterestChartDataset =
 			selectedChain || openInterestChartRows == null
 				? null
-				: buildRwaOpenInterestDataset(defaultFilteredAssets, toRWAPerpsBreakdownChartDataset(openInterestChartRows))
+				: buildRWAPerpsOpenInterestOverlayDataset({
+						rows: defaultFilteredPerpsRows,
+						breakdownRows: openInterestChartRows
+					})
 
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
@@ -971,30 +788,13 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 	}
 }
 
-async function fetchYieldPoolData() {
-	const { fetchJson } = await import('~/utils/async')
-	const { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API } = await import('~/constants')
-
-	const [poolsRes, configRes, urlsRes] = await Promise.all([
-		fetchJson(YIELD_POOLS_API),
-		fetchJson(YIELD_CONFIG_API),
-		fetchJson(YIELD_URL_API)
-	])
-
-	return {
-		allPools: poolsRes?.data ?? [],
-		configProtocols: configRes?.protocols ?? {},
-		poolUrls: urlsRes ?? {}
-	}
-}
-
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
 		const [data, chartDataset, blockExplorersData, yieldPoolData] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
 			fetchRWAAssetChartData(assetId),
 			fetchBlockExplorers().catch(() => []),
-			fetchYieldPoolData().catch(() => null)
+			fetchRwaYieldPoolData().catch(() => null)
 		])
 
 		if (!data) {
@@ -1054,142 +854,9 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
 
-		// Match yield pools to this asset via: 1) address, 2) symbol+project, 3) exact ticker cross-protocol
-		let yieldPools: IRWAAssetData['yieldPools'] = null
-		let yieldPoolsTotal: IRWAAssetData['yieldPoolsTotal'] = null
-		let nativeYieldPoolId: IRWAAssetData['nativeYieldPoolId'] = null
-		let nativeYieldCurrent: IRWAAssetData['nativeYieldCurrent'] = null
+		let yieldMatch = emptyRwaYieldMatchResult()
 		try {
-			const hasContracts = !!data.contracts && Object.keys(data.contracts).length > 0
-			const ticker = data.ticker?.toUpperCase()
-			const hasTicker = !!ticker && ticker.length >= 3
-			const hasProjectAndTicker = !!data.projectId && hasTicker
-
-			if (hasContracts || hasTicker) {
-				const addressesByChain = new Map<string, Set<string>>()
-				if (hasContracts) {
-					for (const [chain, addresses] of Object.entries(data.contracts!)) {
-						const addrSet = new Set(addresses.map((a) => a.toLowerCase()))
-						addressesByChain.set(chain.toLowerCase(), addrSet)
-					}
-				}
-
-				// Resolve projectId(s) to protocol slugs
-				const projectSlugs = new Set<string>()
-				if (hasProjectAndTicker && data.projectId) {
-					const ids = Array.isArray(data.projectId) ? data.projectId : [data.projectId]
-					const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-					for (const id of ids) {
-						const meta = metadataCache.protocolMetadata[String(id)] as
-							| ((typeof metadataCache.protocolMetadata)[string] & { name?: string })
-							| undefined
-						if (meta?.name) projectSlugs.add(meta.name)
-					}
-				}
-
-				if (!yieldPoolData) throw new Error('Yield pool data unavailable')
-				const allPools: any[] = yieldPoolData.allPools
-				const configProtocols: Record<string, { name?: string; category?: string }> = yieldPoolData.configProtocols
-				const poolUrls: Record<string, string> = yieldPoolData.poolUrls
-
-				const matchedPoolIds = new Set<string>()
-				const matchedPools: typeof allPools = []
-
-				for (const pool of allPools) {
-					if (pool.apy === 0) continue
-					if (matchedPoolIds.has(pool.pool)) continue
-					if (pool.exposure !== 'single' || pool.ilRisk !== 'no') continue
-
-					// 1) Address match
-					if (hasContracts) {
-						const underlyingTokens = pool.underlyingTokens ?? []
-						if (underlyingTokens.length > 0) {
-							const chainAddrs = pool.chain ? addressesByChain.get(pool.chain.toLowerCase()) : undefined
-							if (chainAddrs && underlyingTokens.some((t: string) => chainAddrs.has(t.toLowerCase()))) {
-								matchedPoolIds.add(pool.pool)
-								matchedPools.push({ ...pool, _matchStrategy: 1 })
-								continue
-							}
-						}
-					}
-
-					// 2) Symbol + project match (substring both directions to catch wrapped/staked variants)
-					if (hasProjectAndTicker && projectSlugs.size > 0 && pool.symbol && projectSlugs.has(pool.project)) {
-						const poolTokens = pool.symbol.toUpperCase().split(/[-+/]/)
-						if (
-							poolTokens.some((t: string) => {
-								const trimmed = t.trim()
-								return trimmed === ticker || trimmed.includes(ticker!) || ticker!.includes(trimmed)
-							})
-						) {
-							matchedPoolIds.add(pool.pool)
-							matchedPools.push({ ...pool, _matchStrategy: 2 })
-							continue
-						}
-					}
-
-					// 3) Cross-protocol exact ticker match
-					if (hasTicker && pool.symbol) {
-						const poolTokens = pool.symbol.toUpperCase().split(/[-+/]/)
-						if (poolTokens.some((t: string) => t.trim() === ticker)) {
-							matchedPoolIds.add(pool.pool)
-							matchedPools.push({ ...pool, _matchStrategy: 3 })
-						}
-					}
-				}
-
-				// Separate issuer pools (native yield) from DeFi pools; fallback to issuer name matching
-				const issuerProjectSlugs = new Set(projectSlugs)
-				if (issuerProjectSlugs.size === 0 && data.issuer) {
-					const issuerLower = data.issuer.trim().toLowerCase()
-					const candidates: string[] = []
-					const firstWord = issuerLower.split(/\s+/)[0]
-					if (firstWord.length >= 3) candidates.push(firstWord)
-					const parenMatch = issuerLower.match(/\(([^)]+)\)/)
-					if (parenMatch) {
-						const normalized = parenMatch[1].replace(/[^a-z0-9]/g, '')
-						if (normalized.length >= 3) candidates.push(normalized)
-					}
-
-					for (const pool of matchedPools) {
-						const slugNormalized = pool.project.toLowerCase().replace(/[^a-z0-9]/g, '')
-						for (const candidate of candidates) {
-							if (slugNormalized.startsWith(candidate) || candidate.startsWith(slugNormalized)) {
-								issuerProjectSlugs.add(pool.project)
-								break
-							}
-						}
-					}
-				}
-
-				const issuerPools = matchedPools.filter((p: any) => issuerProjectSlugs.has(p.project))
-				const defiPools = matchedPools.filter((p: any) => !issuerProjectSlugs.has(p.project))
-
-				issuerPools.sort((a: any, b: any) => (b.tvlUsd ?? 0) - (a.tvlUsd ?? 0))
-				const primaryIssuerPool = issuerPools[0] ?? null
-				nativeYieldPoolId = primaryIssuerPool?.pool ?? null
-				nativeYieldCurrent = primaryIssuerPool?.apyBase ?? null
-
-				defiPools.sort((a: any, b: any) => (b.tvlUsd ?? 0) - (a.tvlUsd ?? 0))
-				yieldPoolsTotal = defiPools.length
-				const cappedPools = defiPools.slice(0, 10)
-
-				yieldPools = cappedPools.map((pool) => ({
-					...pool,
-					tvl: pool.tvlUsd,
-					pool: pool.symbol,
-					configID: pool.pool,
-					chains: [pool.chain],
-					project: configProtocols[pool.project]?.name ?? pool.project,
-					projectslug: pool.project,
-					url: poolUrls[pool.pool] || null
-				}))
-
-				if (yieldPools.length === 0) {
-					yieldPools = null
-					yieldPoolsTotal = null
-				}
-			}
+			yieldMatch = await matchRwaYieldPools(data, yieldPoolData)
 		} catch (err) {
 			console.log('[HTTP]:[ERROR]:[RWA_YIELD]:', assetId, err instanceof Error ? err.message : '')
 		}
@@ -1222,23 +889,9 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 					}
 				: null,
 			chartDataset,
-			yieldPools,
-			yieldPoolsTotal,
-			nativeYieldPoolId,
-			nativeYieldCurrent
+			...yieldMatch
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')
 	}
-}
-
-function safeNumber(value: unknown): number {
-	const n = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(n) ? n : 0
-}
-
-function isEmptyObject(value: unknown): boolean {
-	if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-	for (const _key in value) return false
-	return true
 }

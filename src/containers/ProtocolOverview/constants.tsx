@@ -89,6 +89,40 @@ export const yAxisByChart: {
 	'Bridge Volume': 'DEX Volume'
 }
 
+export const protocolChartCategories = {
+	Core: ['TVL', 'Total Assets', 'TVS', 'Treasury', 'Staking', 'Active Loans', 'USD Inflows', 'Median APY'],
+	Token: ['Mcap', 'FDV', 'Token Price', 'Token Volume', 'Token Liquidity', 'Unlocks', 'Incentives'],
+	Revenue: ['Fees', 'Revenue', 'Holders Revenue'],
+	Volume: [
+		'DEX Volume',
+		'DEX Notional Volume',
+		'Perp Volume',
+		'Open Interest',
+		'Options Premium Volume',
+		'Options Notional Volume',
+		'Perp Aggregator Volume',
+		'Bridge Aggregator Volume',
+		'DEX Aggregator Volume',
+		'NFT Volume',
+		'Bridge Volume'
+	],
+	Bridge: ['Bridge Deposits', 'Bridge Withdrawals'],
+	Activity: ['Active Addresses', 'New Addresses', 'Transactions', 'Gas Used', 'Tweets'],
+	Governance: ['Total Proposals', 'Successful Proposals', 'Max Votes']
+} as const satisfies Record<string, readonly ProtocolChartsLabels[]>
+
+export type ProtocolChartCategory = keyof typeof protocolChartCategories
+
+export const protocolChartCategoryOrder: ProtocolChartCategory[] = [
+	'Core',
+	'Token',
+	'Revenue',
+	'Volume',
+	'Bridge',
+	'Activity',
+	'Governance'
+]
+
 export const BAR_CHARTS: ProtocolChartsLabels[] = [
 	'DEX Volume',
 	'Perp Volume',

@@ -1,16 +1,23 @@
 import { Announcement } from '~/components/Announcement'
-import YieldPage from '~/containers/Yields'
-import { getYieldPageData } from '~/containers/Yields/queries/index'
-import { disclaimer, exploitWarning } from '~/containers/Yields/utils'
+import { disclaimer, exploitWarning } from '~/containers/Yields/constants'
+import { getYieldPageData } from '~/containers/Yields/queries.server'
+import YieldPage from '~/containers/Yields/views/PoolsView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/stablecoins', async () => {
 	const data = await getYieldPageData()
+	const {
+		pools: _pools,
+		stablecoinInfoBySymbol: _stablecoinInfoBySymbol,
+		tokenCategories: _tokenCategories,
+		usdPeggedSymbols: _usdPeggedSymbols,
+		...metadata
+	} = data.props
 
 	return {
-		props: { ...data.props },
+		props: { ...metadata, serverPagination: true },
 		revalidate: maxAgeForNext([23])
 	}
 })

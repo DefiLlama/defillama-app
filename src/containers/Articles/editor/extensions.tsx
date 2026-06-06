@@ -175,7 +175,7 @@ function ChartNodeView({ node, selected, deleteNode, getPos, updateAttributes }:
 				}`}
 			>
 				<span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xs border border-(--cards-border) bg-(--cards-bg) px-2 py-1 font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase shadow-xs">
-					<Icon name="bar-chart-2" className="h-3 w-3 text-(--link-text)" />
+					<Icon name="bar-chart-2" className="size-3 text-(--link-text)" />
 					{tagLabel}
 				</span>
 				<span className="pointer-events-auto flex items-stretch divide-x divide-(--cards-border) overflow-hidden rounded-xs border border-(--cards-border) bg-(--cards-bg) shadow-xs">
@@ -193,7 +193,7 @@ function ChartNodeView({ node, selected, deleteNode, getPos, updateAttributes }:
 						}}
 						className="flex items-center gap-1.5 px-2.5 py-1 font-jetbrains text-[10px] tracking-[0.2em] text-(--text-secondary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--link-text)"
 					>
-						<Icon name="pencil" className="h-3 w-3" />
+						<Icon name="pencil" className="size-3" />
 						Edit
 					</button>
 					<button
@@ -210,7 +210,7 @@ function ChartNodeView({ node, selected, deleteNode, getPos, updateAttributes }:
 						}}
 						className="flex items-center gap-1.5 px-2.5 py-1 font-jetbrains text-[10px] tracking-[0.2em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-[#d8492a]"
 					>
-						<Icon name="trash-2" className="h-3 w-3" />
+						<Icon name="trash-2" className="size-3" />
 						Remove
 					</button>
 				</span>
@@ -385,6 +385,8 @@ export const EntityLink = Mark.create({
 			'a',
 			mergeAttributes(rest, {
 				href,
+				target: '_blank',
+				rel: 'noopener noreferrer',
 				'data-article-entity-link': 'true',
 				'data-entity-type': entityType,
 				'data-entity-slug': slug

@@ -93,7 +93,7 @@ export function TextChip({
 				<button
 					type="button"
 					onClick={onRemove}
-					className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80 focus-visible:opacity-100"
+					className="absolute top-1 right-1 flex size-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80 focus-visible:opacity-100"
 				>
 					<Icon name="x" height={12} width={12} />
 					<span className="sr-only">{removeLabel}</span>
@@ -164,8 +164,8 @@ export function ImageUpload({
 								style={{ width: isImage ? '4rem' : 'auto' }}
 							>
 								{isImage ? (
-									<button type="button" onClick={() => setPreviewImage(url)} className="h-full w-full cursor-pointer">
-										<img src={url} alt={file.name} className="h-full w-full object-cover" />
+									<button type="button" onClick={() => setPreviewImage(url)} className="size-full cursor-pointer">
+										<img src={url} alt={file.name} className="size-full object-cover" />
 									</button>
 								) : (
 									<div className="flex h-full items-center gap-2 rounded-lg bg-[#f0f0f0] px-3 dark:bg-[#1a1a2e]">
@@ -176,7 +176,7 @@ export function ImageUpload({
 								<button
 									type="button"
 									onClick={() => removeImage(idx)}
-									className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+									className="absolute top-1 right-1 flex size-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
 								>
 									<Icon name="x" height={12} width={12} />
 									<span className="sr-only">Remove file</span>
@@ -204,7 +204,7 @@ export function ImageUploadButton({ onClick }: ImageUploadButtonProps) {
 					type="button"
 					onClick={onClick}
 					aria-label="Attach file"
-					className="group flex h-7 w-7 items-center justify-center rounded-lg border border-[#DEDEDE] hover:bg-(--old-blue)/10 disabled:opacity-25 dark:border-[#2F3336] dark:hover:bg-(--old-blue)/15"
+					className="group flex size-7 items-center justify-center rounded-lg border border-[#DEDEDE] hover:bg-(--old-blue)/10 disabled:opacity-25 dark:border-[#2F3336] dark:hover:bg-(--old-blue)/15"
 				/>
 			}
 		>

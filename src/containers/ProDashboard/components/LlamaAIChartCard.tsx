@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { AI_SERVER } from '~/constants'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
+import type { ChartConfiguration } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { LlamaAIChartConfig } from '../types'
+import { filterLlamaAIChartPayload } from '../utils/llamaAIChartTimeFilter'
 import { LoadingSpinner } from './LoadingSpinner'
 
 interface LlamaAIChartCardProps {
@@ -12,6 +16,7 @@ interface LlamaAIChartCardProps {
 
 export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const { authorizedFetch, user, loaders } = useAuthContext()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const queryClient = useQueryClient()
 
 	const hasInlineData = !!(config.inlineChartConfig && config.inlineChartData)
@@ -42,11 +47,28 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		}
 	})
 
+	const charts = useMemo((): ChartConfiguration[] => {
+		if (hasInlineData && config.inlineChartConfig) {
+			return [config.inlineChartConfig]
+		}
+		if (data?.chartConfig) {
+			return [data.chartConfig]
+		}
+		return []
+	}, [hasInlineData, config.inlineChartConfig, data?.chartConfig])
+
+	const rawChartData = hasInlineData ? config.inlineChartData : data?.chartData
+
+	const filteredChartData = useMemo(() => {
+		if (!rawChartData || charts.length === 0) return rawChartData
+		return filterLlamaAIChartPayload(charts, rawChartData, timePeriod, customTimePeriod)
+	}, [rawChartData, charts, timePeriod, customTimePeriod])
+
 	if (hasInlineData) {
 		return (
 			<div className="flex flex-col gap-2 p-2">
 				<h3 className="font-medium">{config.title || 'Custom Chart'}</h3>
-				<ChartRenderer charts={[config.inlineChartConfig]} chartData={config.inlineChartData!} />
+				<ChartRenderer charts={charts} chartData={filteredChartData!} />
 			</div>
 		)
 	}
@@ -114,7 +136,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 					</div>
 				) : null}
 			</div>
-			<ChartRenderer charts={[data.chartConfig]} chartData={data.chartData} />
+			<ChartRenderer charts={charts} chartData={filteredChartData!} />
 		</div>
 	)
 }

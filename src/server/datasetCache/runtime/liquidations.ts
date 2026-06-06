@@ -1,9 +1,11 @@
+import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type {
 	LiquidationsChainPageProps,
 	LiquidationsOverviewPageProps,
 	LiquidationsProtocolPageProps,
 	TokenLiquidationsSectionData
 } from '~/containers/LiquidationsV2/api.types'
+import type { RawProtocolsResponse } from '~/containers/LiquidationsV2/api.types'
 import {
 	getLiquidationsChainPageDataFromNetwork,
 	getLiquidationsOverviewPageDataFromNetwork,
@@ -16,10 +18,19 @@ import {
 	getLiquidationsChainFromCache,
 	getLiquidationsOverviewFromCache,
 	getLiquidationsProtocolFromCache,
+	getLiquidationsProtocolsResponseFromCache,
 	getTokenLiquidationsFromCache,
 	hasTokenLiquidationsInCache
 } from '../liquidations'
 import { readThroughDatasetCache } from './source'
+
+export function getLiquidationsProtocolsList(): Promise<RawProtocolsResponse> {
+	return readThroughDatasetCache({
+		domain: 'liquidations',
+		readCache: () => getLiquidationsProtocolsResponseFromCache(),
+		readNetwork: () => fetchProtocolsList()
+	})
+}
 
 export function getLiquidationsOverviewPageData(
 	metadataCache: LiquidationsMetadataCache

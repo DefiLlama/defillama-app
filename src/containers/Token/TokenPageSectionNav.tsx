@@ -78,7 +78,7 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 			if (clickLockTargetId.current && !maybeReleaseClickLock()) return
 
 			const candidateEntries = sectionIds
-				.map((sectionId) => observerEntries.current.get(sectionId))
+				.map((sectionId) => observerEntriesMap.get(sectionId))
 				.filter((entry): entry is IntersectionObserverEntry => Boolean(entry?.isIntersecting))
 
 			if (candidateEntries.length === 0) return
@@ -91,7 +91,9 @@ export function TokenPageSectionNav({ sections }: { sections: TokenPageSectionNa
 
 			const nextActiveSectionId =
 				entriesAtThreshold.at(-1) ??
-				candidateEntries.slice().sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0].target.id
+				candidateEntries.reduce((closest, entry) =>
+					entry.boundingClientRect.top < closest.boundingClientRect.top ? entry : closest
+				).target.id
 
 			syncActiveSection(nextActiveSectionId)
 		}

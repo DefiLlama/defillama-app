@@ -1,7 +1,7 @@
+import { matchesYieldPoolToken } from '~/containers/Yields/domain/tokenFilter'
 import { buildYieldTableRowsWithBorrowData } from '~/containers/Yields/poolsPipeline'
-import { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } from '~/containers/Yields/queries/index'
+import { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
 
 const formatChain = (chain: string) => {
 	if (chain.toLowerCase().includes('hyperliquid')) return 'Hyperliquid'

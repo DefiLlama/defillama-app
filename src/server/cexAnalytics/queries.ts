@@ -237,7 +237,7 @@ export async function getCexAnalyticsMarketShare(
 	}
 
 	const points: CexAnalyticsMarketSharePoint[] = []
-	for (const [date, venueMap] of [...valuesByDate.entries()].sort((a, b) => a[0] - b[0])) {
+	for (const [date, venueMap] of Array.from(valuesByDate.entries()).toSorted((a, b) => a[0] - b[0])) {
 		let total = 0
 		for (const value of venueMap.values()) {
 			total += value

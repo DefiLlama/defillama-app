@@ -39,7 +39,7 @@ export function normalizeProtocolLlamaswapChains(
 ): IProtocolLlamaswapChain[] | null {
 	if (!Array.isArray(entry?.chains) || entry.chains.length === 0) return null
 
-	const sortedChains = entry.chains.slice().sort(sortChainsByLiquidityDesc)
+	const sortedChains = entry.chains.toSorted(sortChainsByLiquidityDesc)
 	const normalizedChains: IProtocolLlamaswapChain[] = []
 
 	for (let index = 0; index < sortedChains.length; index += 1) {

@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { toNiceDayMonthAndYear, toNiceDayMonthAndYearAndTime } from '~/utils'
@@ -33,7 +34,15 @@ const isAtMidnight = (timestamp: number | null) => {
 	return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0
 }
 
-export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
+export const DateFilter = ({
+	startDate,
+	endDate,
+	isLoading = false
+}: {
+	startDate: number | null
+	endDate: number | null
+	isLoading?: boolean
+}) => {
 	const router = useRouter()
 	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
 	const isSubscribed = !loaders.userLoading && isAuthenticated && hasActiveSubscription
@@ -105,8 +114,15 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 							setShouldRenderModal(true)
 						}
 					}}
+					aria-busy={isLoading}
 					className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
+					{isLoading ? (
+						<span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) shadow-xs">
+							<LoadingSpinner size={12} />
+							<span className="sr-only">Loading custom range inflows</span>
+						</span>
+					) : null}
 					<span>Custom Range Inflows</span>
 					{startDate != null || endDate != null ? (
 						<span className="text-(--link-text)">
@@ -124,7 +140,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								: null}
 						</span>
 					) : null}
-					<Ariakit.PopoverDisclosureArrow className="h-3 w-3 shrink-0" />
+					<Ariakit.PopoverDisclosureArrow className="size-3 shrink-0" />
 				</Ariakit.PopoverDisclosure>
 				<Ariakit.Popover
 					unmountOnHide
@@ -137,7 +153,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 					className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.PopoverDismiss>
 
 					<div className="mx-auto w-full sm:w-[260px]">

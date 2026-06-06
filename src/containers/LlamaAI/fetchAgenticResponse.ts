@@ -1,12 +1,23 @@
 import { AI_SERVER } from '~/constants'
+import {
+	normalizeChartConfigs,
+	normalizeChartDataByKey,
+	normalizeDashboardChartData,
+	normalizeDashboardItems
+} from '~/containers/LlamaAI/chartPayloads'
 import type {
+	AgenticAnswerMode,
 	AlertProposedData,
 	ChartConfiguration,
+	ChartDataByKey,
 	DashboardArtifact,
+	FactCheckReference,
 	GeneratedImage,
 	MessageMetadata,
+	TodoItem,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
+import { normalizeAlertProposedData } from '~/containers/LlamaAI/utils/restoredAlerts'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -37,17 +48,20 @@ export interface SpawnProgressData {
 
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
-	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
+	onCharts: (charts: ChartConfiguration[], chartData: ChartDataByKey) => void
 	onGeneratedImages?: (images: GeneratedImage[]) => void
 	onProgress: (toolName: string, isPremium?: boolean) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
+	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
+	onFactCheckCitations?: (sources: FactCheckReference[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onMdExport?: (exports: MdExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
 	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
+	onTodos?: (todos: TodoItem[]) => void
 	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
@@ -75,28 +89,28 @@ interface ToolCallEvent {
 
 interface ResponseChunkEvent {
 	type: 'response_chunk'
-	content: string
+	content?: unknown
 }
 
 interface ChartsEvent {
 	type: 'charts'
-	charts?: ChartConfiguration[]
-	chartData?: Record<string, unknown[]>
+	charts?: unknown
+	chartData?: unknown
 }
 
 interface GeneratedImagesEvent {
 	type: 'generated_images'
-	images?: GeneratedImage[]
+	images?: unknown
 }
 
 interface CsvExportEvent {
 	type: 'csv_export'
-	exports?: CsvExport[]
+	exports?: unknown
 }
 
 interface MdExportEvent {
 	type: 'md_export'
-	exports?: MdExport[]
+	exports?: unknown
 }
 
 interface AlertProposedEvent extends AlertProposedData {
@@ -107,21 +121,21 @@ interface DashboardEvent {
 	type: 'dashboard'
 	dashboard_id?: string
 	dashboardConfig?: {
-		dashboardName?: string
-		items?: any[]
-		timePeriod?: string
-		sourceDashboardId?: string
+		dashboardName?: unknown
+		items?: unknown
+		timePeriod?: unknown
+		sourceDashboardId?: unknown
 	}
-	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	chartData?: unknown
 	content?: {
 		dashboard_id?: string
 		dashboardConfig?: {
-			dashboardName?: string
-			items?: any[]
-			timePeriod?: string
-			sourceDashboardId?: string
+			dashboardName?: unknown
+			items?: unknown
+			timePeriod?: unknown
+			sourceDashboardId?: unknown
 		}
-		chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+		chartData?: unknown
 	}
 }
 
@@ -134,12 +148,24 @@ interface CompactionEvent {
 
 interface ThinkingEvent {
 	type: 'thinking'
-	content: string
+	content?: unknown
 }
 
 interface CitationsEvent {
 	type: 'citations'
-	citations?: string[]
+	citations?: unknown
+}
+
+interface FactCheckStatusEvent {
+	type: 'fact_check_status'
+	status: 'drafting' | 'verifying' | 'finalizing'
+}
+
+interface FactCheckCitationsEvent {
+	type: 'fact_check_citations'
+	citations?: FactCheckReference[]
+	sources?: FactCheckReference[]
+	sessionId: string
 }
 
 interface TitleEvent {
@@ -185,6 +211,12 @@ interface ContextWarningEvent {
 	content: ContextWarningPayload
 }
 
+interface TodoSnapshotEvent {
+	type: 'todo_snapshot'
+	todos?: unknown
+	summary?: Record<string, number>
+}
+
 interface ErrorEvent {
 	type: 'error'
 	content?: string
@@ -201,6 +233,7 @@ interface MessageMetadataEvent {
 		outputTokens?: number
 		executionTimeMs?: number
 		x402CostUsd?: string
+		completionReason?: string
 	}
 }
 
@@ -217,8 +250,11 @@ type AgenticSSEEvent =
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
 	| CompactionEvent
 	| ({ type: 'tool_execution' } & ToolExecution)
+	| TodoSnapshotEvent
 	| ThinkingEvent
 	| CitationsEvent
+	| FactCheckStatusEvent
+	| FactCheckCitationsEvent
 	| TitleEvent
 	| MessageIdEvent
 	| UserMessageIdEvent
@@ -229,6 +265,37 @@ type AgenticSSEEvent =
 	| ErrorEvent
 	| DoneEvent
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function normalizeArray<T>(value: unknown): T[] {
+	return Array.isArray(value) ? (value as T[]) : []
+}
+
+function dashboardItemsHash(items: DashboardArtifact['items']): string {
+	const normalized = items.map((item) => {
+		const record = item as unknown as Record<string, unknown>
+		return [
+			typeof record.kind === 'string' ? record.kind : '',
+			typeof record.chartRef === 'string'
+				? record.chartRef
+				: typeof record.savedChartId === 'string'
+					? record.savedChartId
+					: typeof record.id === 'string'
+						? record.id
+						: ''
+		]
+	})
+	const serialized = JSON.stringify(normalized)
+	let hash = 0xcbf29ce484222325n
+	for (let i = 0; i < serialized.length; i++) {
+		hash ^= BigInt(serialized.charCodeAt(i))
+		hash = BigInt.asUintN(64, hash * 0x100000001b3n)
+	}
+	return hash.toString(16).padStart(16, '0')
+}
+
 interface RateLimitErrorDetails {
 	period?: string
 	limit?: number
@@ -236,7 +303,12 @@ interface RateLimitErrorDetails {
 }
 
 interface RateLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
+	code?:
+		| 'USAGE_LIMIT_EXCEEDED'
+		| 'FREE_QUESTION_LIMIT'
+		| 'FREE_FORM_LIMIT'
+		| 'FREE_DAILY_LIMIT'
+		| 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
 	details?: RateLimitErrorDetails
 	upgradeUrl?: string
 }
@@ -255,10 +327,10 @@ interface FetchAgenticResponseParams {
 	sessionId?: string | null
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
-	researchMode?: boolean
+	mode?: AgenticAnswerMode
 	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
-	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
 	quotedText?: string
@@ -300,10 +372,12 @@ export function parseSSEStream(
 	let sawDone = false
 
 	const handleLine = (line: string) => {
-		if (!line.startsWith('data: ')) return
+		if (!line.startsWith('data:')) return
 
 		try {
-			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
+			const data = JSON.parse(line.slice(5).trimStart()) as AgenticSSEEvent
+			// Backend replay PRs #32/#33 use event offsets, not UI mutations, so count
+			// every parsed server event, including `done`.
 			if (eventCounter) eventCounter.count++
 			if (data.type === 'done') sawDone = true
 
@@ -315,40 +389,52 @@ export function parseSSEStream(
 					callbacks.onProgress(data.name, data.isPremium)
 					break
 				case 'response_chunk': {
-					const chunk = typeof data.content === 'string' ? data.content.replace(/<bill\s*\/>/g, '') : data.content
+					const chunk = typeof data.content === 'string' ? data.content.replace(/<bill\s*\/>/g, '') : ''
 					if (chunk) callbacks.onToken(chunk)
 					break
 				}
-				case 'charts':
-					callbacks.onCharts(data.charts || [], data.chartData || {})
+				case 'charts': {
+					const charts = normalizeChartConfigs(data.charts)
+					callbacks.onCharts(charts, normalizeChartDataByKey(data.chartData, charts))
 					break
+				}
 				case 'generated_images':
-					callbacks.onGeneratedImages?.(data.images || [])
+					callbacks.onGeneratedImages?.(normalizeArray<GeneratedImage>(data.images))
 					break
 				case 'csv_export':
-					callbacks.onCsvExport?.(data.exports || [])
+					callbacks.onCsvExport?.(normalizeArray<CsvExport>(data.exports))
 					break
 				case 'md_export':
-					callbacks.onMdExport?.(data.exports || [])
+					callbacks.onMdExport?.(normalizeArray<MdExport>(data.exports))
 					break
 				case 'alert_proposed':
-					callbacks.onAlertProposed?.(data)
+					callbacks.onAlertProposed?.(normalizeAlertProposedData(data))
 					break
 				case 'dashboard': {
 					const config = data.dashboardConfig || data.content?.dashboardConfig
 					const chartData = data.chartData || data.content?.chartData
-					if (config && callbacks.onDashboard) {
+					if (isRecord(config) && callbacks.onDashboard) {
+						// Dashboard events can arrive in both top-level and nested `content`
+						// forms around PR #2790; normalize both shapes here.
+						const items = normalizeDashboardItems(config.items)
+						const dashboardName =
+							typeof config.dashboardName === 'string' && config.dashboardName.trim()
+								? config.dashboardName
+								: 'Dashboard'
+						const sourceDashboardId =
+							typeof config.sourceDashboardId === 'string' ? config.sourceDashboardId : undefined
+						const dashboardChartData = normalizeDashboardChartData(chartData)
 						const stableId =
 							data.dashboard_id ||
 							data.content?.dashboard_id ||
-							`dashboard_${config.dashboardName || ''}_${config.sourceDashboardId || ''}_${config.items?.length ?? 0}`
+							`dashboard_${dashboardName}_${sourceDashboardId ?? ''}_${dashboardItemsHash(items)}`
 						callbacks.onDashboard({
 							id: stableId,
-							dashboardName: config.dashboardName || 'Dashboard',
-							items: config.items || [],
-							timePeriod: config.timePeriod,
-							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
-							...(chartData && { chartData })
+							dashboardName,
+							items,
+							...(typeof config.timePeriod === 'string' && { timePeriod: config.timePeriod }),
+							...(sourceDashboardId && { sourceDashboardId }),
+							...(dashboardChartData && { chartData: dashboardChartData })
 						})
 					}
 					break
@@ -362,17 +448,26 @@ export function parseSSEStream(
 				case 'tool_execution':
 					callbacks.onToolExecution?.(data)
 					break
+				case 'todo_snapshot':
+					callbacks.onTodos?.(normalizeArray<TodoItem>(data.todos))
+					break
 				case 'message_metadata':
 					callbacks.onMessageMetadata?.(data.content)
 					break
 				case 'thinking':
-					callbacks.onThinking?.(data.content)
+					if (typeof data.content === 'string') callbacks.onThinking?.(data.content)
 					break
 				case 'citations':
-					callbacks.onCitations(data.citations || [])
+					callbacks.onCitations(normalizeArray<string>(data.citations))
+					break
+				case 'fact_check_status':
+					callbacks.onFactCheckStatus?.(data.status)
+					break
+				case 'fact_check_citations':
+					callbacks.onFactCheckCitations?.(data.sources || data.citations || [])
 					break
 				case 'title':
-					callbacks.onTitle?.(data.content)
+					if (typeof data.content === 'string') callbacks.onTitle?.(data.content)
 					break
 				case 'message_id':
 					callbacks.onMessageId?.(data.messageId)
@@ -401,6 +496,7 @@ export function parseSSEStream(
 		}
 	}
 
+	// A stalled reader should enter the same recovery path as a dropped stream.
 	const HEARTBEAT_TIMEOUT_MS = 15_000
 
 	const process = async () => {
@@ -459,7 +555,7 @@ export async function fetchAgenticResponse({
 	sessionId,
 	callbacks,
 	abortSignal,
-	researchMode,
+	mode,
 	enablePremiumTools,
 	entities,
 	images,
@@ -483,11 +579,11 @@ export async function fetchAgenticResponse({
 		message: string
 		stream: true
 		sessionId?: string
-		researchMode?: true
+		mode?: AgenticAnswerMode
 		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
-		images?: Array<{ data: string; mimeType: string; filename?: string }>
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
 		quotedText?: string
@@ -508,9 +604,8 @@ export async function fetchAgenticResponse({
 		requestBody.sessionId = sessionId
 	}
 
-	// Research mode is an opt-in backend feature, so only send the flag when enabled.
-	if (researchMode) {
-		requestBody.researchMode = true
+	if (mode && mode !== 'quick') {
+		requestBody.mode = mode
 	}
 
 	// Timezone helps the backend answer scheduling/date questions in the user's local context.
@@ -586,6 +681,14 @@ export async function fetchAgenticResponse({
 			err.code = errorData.code as RateLimitError['code']
 			err.upgradeUrl = errorData.upgradeUrl
 			err.details = errorData.details
+			throw err
+		}
+		if (response.status === 403 && errorData?.code === 'FACT_CHECKED_REQUIRES_SUBSCRIPTION') {
+			const err = new Error(
+				errorData.content || 'Fact-checked answers require an active subscription.'
+			) as RateLimitError
+			err.code = 'FACT_CHECKED_REQUIRES_SUBSCRIPTION'
+			err.upgradeUrl = errorData.upgradeUrl
 			throw err
 		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {

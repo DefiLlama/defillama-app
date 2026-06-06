@@ -1,19 +1,32 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { createElement, useMemo, useRef, useState } from 'react'
+import { createElement, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
+import type { ArticleEntityType } from '~/containers/Articles/types'
+import { CitationPill } from '~/containers/LlamaAI/components/messages/CitationPill'
+import type { FactCheckReference } from '~/containers/LlamaAI/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
+import {
+	allowLlamaAIExternalHostname,
+	getLlamaAIExternalAllowlistSnapshot,
+	isLlamaAIExternalLink,
+	parseLlamaAIExternalAllowlistSnapshot
+} from '~/containers/LlamaAI/utils/externalLinks'
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
-	processCitationMarkers
+	processCitationMarkers,
+	processFactCheckCitations
 } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
+import { equityIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
@@ -75,7 +88,10 @@ function HeadingWithId({
 const TABLE_WATERMARK_HEIGHT = 40
 const TABLE_WATERMARK_WIDTH = Math.round((389 / 133) * TABLE_WATERMARK_HEIGHT)
 
-type EntityLinkProps = ComponentPropsWithoutRef<'a'>
+type EntityLinkProps = ComponentPropsWithoutRef<'a'> & {
+	onExternalLinkClick?: (href: string) => void
+	allowedExternalHosts?: ReadonlySet<string>
+}
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
 type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
 type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
@@ -83,6 +99,15 @@ type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
 type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
+
+const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
+	protocol: 'protocol',
+	subprotocol: 'protocol',
+	chain: 'chain',
+	category: 'category',
+	stablecoin: 'stablecoin',
+	cex: 'cex'
+}
 
 function normalizeSourceUrl(url: string) {
 	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
@@ -156,7 +181,7 @@ function TableWrapper({
 					<div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#e6e6e6] dark:border-[#222324]">
 						{/* <Ariakit.DialogHeading className="text-sm font-medium text-(--text-form)">Table</Ariakit.DialogHeading> */}
 						<Ariakit.DialogDismiss
-							className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							aria-label="Close fullscreen table"
 						>
 							<Icon name="x" height={16} width={16} />
@@ -195,7 +220,7 @@ function TableWrapper({
 						disabled
 						aria-label="View table fullscreen"
 					>
-						<Icon name="expand" className="h-3 w-3 shrink-0" />
+						<Icon name="expand" className="size-3 shrink-0" />
 					</button>
 				) : (
 					<button
@@ -204,7 +229,7 @@ function TableWrapper({
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						aria-label="View table fullscreen"
 					>
-						<Icon name="expand" className="h-3 w-3 shrink-0" />
+						<Icon name="expand" className="size-3 shrink-0" />
 					</button>
 				)}
 				{isStreaming ? (
@@ -212,7 +237,7 @@ function TableWrapper({
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						disabled
 					>
-						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+						<Icon name="download-paper" className="size-3 shrink-0" />
 						<span>.csv</span>
 					</button>
 				) : (
@@ -244,39 +269,47 @@ function TableWrapper({
 	)
 }
 
-function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
+function EntityLinkRenderer({
+	href,
+	children,
+	onClick,
+	onExternalLinkClick,
+	allowedExternalHosts,
+	...props
+}: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex', 'equity'].includes(type)) {
 			return <span>{children}</span>
 		}
 
 		const entityUrl = getEntityUrl(type, slug)
+		const articleEntityType = LLAMA_PREVIEW_ENTITY_TYPES[type]
 
-		const entityLogoUrl = (entityType: string, entitySlug: string) => {
-			switch (entityType) {
-				case 'chain':
-					return chainIconUrl(entitySlug)
-				case 'stablecoin':
-					return peggedAssetIconUrl(entitySlug)
-				case 'equity':
-					return equityIconUrl(entitySlug)
-				case 'protocol':
-					return tokenIconUrl(entitySlug)
-				default:
-					return null
-			}
+		if (articleEntityType) {
+			return (
+				<EntityPreviewLink
+					entity={{
+						entityType: articleEntityType,
+						slug,
+						label: extractText(children) || slug,
+						route: entityUrl
+					}}
+				>
+					{children}
+				</EntityPreviewLink>
+			)
 		}
 
-		const logoUrl = entityLogoUrl(type, slug)
-
+		const logoUrl = type === 'equity' ? equityIconUrl(slug) : null
 		return (
 			<a
 				href={entityUrl}
 				className="text-(--link-text) no-underline hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
+				onClick={onClick}
 				{...props}
 			>
 				{logoUrl ? (
@@ -292,12 +325,21 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 			</a>
 		)
 	}
+	const external = isLlamaAIExternalLink(href, allowedExternalHosts)
 	return (
 		<a
 			href={href}
 			target="_blank"
-			rel="noreferrer noopener"
+			rel={external ? 'noopener noreferrer nofollow ugc' : 'noreferrer noopener'}
 			className="text-(--link-text) no-underline hover:underline"
+			onClick={(event) => {
+				onClick?.(event)
+				if (event.defaultPrevented) return
+				if (external) {
+					event.preventDefault()
+					onExternalLinkClick?.(href)
+				}
+			}}
 			{...props}
 		>
 			{children}
@@ -347,7 +389,7 @@ function CodeBlock({ children, node: _node, className, ...props }: MarkdownPrePr
 				onClick={handleCopy}
 				aria-label={copied ? 'Copied' : 'Copy code'}
 				data-copied={copied || undefined}
-				className="absolute top-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
+				className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
 			>
 				<Icon name={copied ? 'check' : 'copy'} height={14} width={14} />
 			</button>
@@ -435,6 +477,7 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 export function ChatMarkdownRenderer({
 	content,
 	citations,
+	factCheckReferences,
 	isStreaming = false,
 	hackerMode = false,
 	onTableFullscreenOpen,
@@ -442,16 +485,31 @@ export function ChatMarkdownRenderer({
 }: {
 	content: string
 	citations?: string[]
+	factCheckReferences?: FactCheckReference[]
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
 	messageId?: string
 }) {
+	const [pendingExternalHref, setPendingExternalHref] = useState<string | null>(null)
+	const externalAllowlistSnapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		getLlamaAIExternalAllowlistSnapshot,
+		() => '[]'
+	)
+	const allowedExternalHosts = useMemo(
+		() => parseLlamaAIExternalAllowlistSnapshot(externalAllowlistSnapshot),
+		[externalAllowlistSnapshot]
+	)
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
-		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
+		const factCheckProcessed =
+			factCheckReferences && factCheckReferences.length > 0
+				? processFactCheckCitations(content, factCheckReferences)
+				: content
+		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(factCheckProcessed, citations))
 		return { content: processedContent, linkMap }
-	}, [content, citations])
+	}, [content, citations, factCheckReferences])
 
 	const resolveHeadingId = createHeadingIdFactory(messageId)
 	const markdownComponents: Components = {
@@ -474,9 +532,14 @@ export function ChatMarkdownRenderer({
 			const textChild = getSingleTextChild(props.children)
 			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
 				const llamaUrl = processedData.linkMap.get(textChild)
-				return EntityLinkRenderer({ ...props, href: llamaUrl })
+				return EntityLinkRenderer({
+					...props,
+					href: llamaUrl,
+					onExternalLinkClick: setPendingExternalHref,
+					allowedExternalHosts
+				})
 			}
-			return EntityLinkRenderer(props)
+			return EntityLinkRenderer({ ...props, onExternalLinkClick: setPendingExternalHref, allowedExternalHosts })
 		},
 		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
 			<TableWrapper
@@ -525,6 +588,15 @@ export function ChatMarkdownRenderer({
 		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
 	)
 
+	;(markdownComponents as Record<string, any>)['fact-check-pill'] = (props: Record<string, any>) => {
+		if (!factCheckReferences) return null
+		const raw = props['data-ref'] ?? props.dataRef
+		const numericId = Number(raw)
+		const ref = factCheckReferences.find((r) => r.id === numericId)
+		if (!ref) return <span>[{raw}]</span>
+		return <CitationPill reference={ref} />
+	}
+
 	if (!processedData.content.trim()) {
 		return null
 	}
@@ -540,6 +612,15 @@ export function ChatMarkdownRenderer({
 			>
 				{processedData.content}
 			</ReactMarkdown>
+			<ExternalLinkInterstitial
+				href={pendingExternalHref}
+				onClose={() => setPendingExternalHref(null)}
+				onAllowPermanently={(hostname, href) => {
+					allowLlamaAIExternalHostname(hostname)
+					setPendingExternalHref(null)
+					window.open(href, '_blank', 'noopener,noreferrer')
+				}}
+			/>
 		</div>
 	)
 }

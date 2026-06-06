@@ -3,14 +3,18 @@ import Link from 'next/link'
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { validateArticleChartConfig } from '../chartAdapters'
+import { normalizeArticleContentJson } from '../document'
 import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from '../entityLinks'
 import { getTiptapNodeText } from '../extractors'
+import { pushResearchAnalyticsEvent } from '../landing/Analytics'
+import { DownloadPdfLink } from '../landing/DownloadPdfLink'
 import { getArticleBylineAuthorEntries } from '../landing/utils'
 import type {
 	ArticleCalloutTone,
 	ArticleCitation,
+	ArticleDocument,
 	ArticleEntityType,
 	LocalArticleDocument,
 	TiptapJson,
@@ -30,6 +34,10 @@ const lowlight = createLowlight(common)
 
 type RenderContext = {
 	figureCount: { value: number }
+}
+
+function isPdfLink(href: string) {
+	return /\.pdf($|[?#])/i.test(href)
 }
 
 function tableCellAttrs(node: TiptapJson) {
@@ -125,15 +133,18 @@ function applyMark(children: ReactNode, mark: TiptapMark, key: string) {
 		const href = stringAttr(mark.attrs, 'href')
 		if (!href) return children
 		const sameTab = stringAttr(mark.attrs, 'target') === '_self'
+		const onClick = isPdfLink(href)
+			? () => pushResearchAnalyticsEvent(null, 'export-pdf-research', 'Article body link')
+			: undefined
 		if (sameTab) {
 			return (
-				<a key={key} href={href}>
+				<a key={key} href={href} onClick={onClick}>
 					{children}
 				</a>
 			)
 		}
 		return (
-			<a key={key} href={href} target="_blank" rel="noreferrer noopener">
+			<a key={key} href={href} target="_blank" rel="noreferrer noopener" onClick={onClick}>
 				{children}
 			</a>
 		)
@@ -245,7 +256,7 @@ function renderTaskItem(node: TiptapJson, key: string, ctx: RenderContext) {
 	const checked = !!node.attrs?.checked
 	return (
 		<li key={key} className="article-task-item not-prose flex items-start gap-2 pl-0" data-checked={checked}>
-			<input type="checkbox" checked={checked} readOnly className="mt-1.5 h-3.5 w-3.5 shrink-0 accent-(--link-text)" />
+			<input type="checkbox" checked={checked} readOnly className="mt-1.5 size-3.5 shrink-0 accent-(--link-text)" />
 			<div className={`min-w-0 flex-1 ${checked ? 'text-(--text-tertiary) line-through' : 'text-(--text-primary)'}`}>
 				{renderChildren(node, key, ctx)}
 			</div>
@@ -419,12 +430,18 @@ function formatHeaderDate(iso: string | null | undefined) {
 	return `${day} ${month} ${year} at ${hh}:${mm} ${ampm}`
 }
 
-function MetaChip({ children }: { children: ReactNode }) {
-	return (
-		<span className="inline-flex items-center rounded-[3px] bg-(--link-text) px-2 py-[3px] text-[10px] leading-none font-semibold tracking-tight whitespace-nowrap text-white">
-			{children}
-		</span>
-	)
+const metaChipClassName =
+	'inline-flex items-center rounded-[3px] bg-(--link-text) px-2 py-[3px] text-[10px] leading-none font-semibold tracking-tight whitespace-nowrap text-white transition-opacity hover:opacity-90'
+
+function MetaChip({ children, href }: { children: ReactNode; href?: string }) {
+	if (href) {
+		return (
+			<Link href={href} className={metaChipClassName}>
+				{children}
+			</Link>
+		)
+	}
+	return <span className={metaChipClassName}>{children}</span>
 }
 
 type TocEntry = { id: string; text: string; level: number }
@@ -577,7 +594,7 @@ function CompactTocBar({ toc, groups, active }: { toc: TocEntry[]; groups: TocGr
 				</span>
 				<span className="flex items-center gap-1 text-[10px] leading-none font-medium tracking-[0.12em] text-(--text-tertiary) uppercase transition-colors group-hover:text-(--link-text)">
 					<span>Top</span>
-					<Icon name="arrow-up" className="h-3 w-3" />
+					<Icon name="arrow-up" className="size-3" />
 				</span>
 			</div>
 			<div className="flex items-baseline gap-3">
@@ -653,7 +670,7 @@ function ArticleToc({ toc, compactMode = false }: { toc: TocEntry[]; compactMode
 									</a>
 									<Icon
 										name={isCollapsed ? 'chevron-right' : 'chevron-down'}
-										className="h-3 w-3 shrink-0 text-(--text-secondary)"
+										className="size-3 shrink-0 text-(--text-secondary)"
 									/>
 								</button>
 							) : (
@@ -719,8 +736,8 @@ function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; s
 			setTimeout(() => setCopied(false), 1500)
 		} catch {}
 	}
-	const dim = size === 'sm' ? 'h-9 w-9' : 'h-11 w-11'
-	const iconDim = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
+	const dim = size === 'sm' ? 'size-9' : 'size-11'
+	const iconDim = size === 'sm' ? 'size-4' : 'size-5'
 	const buttonClass = `flex ${dim} items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-(--text-primary) transition-colors hover:border-(--link-text)/50 hover:text-(--link-text)`
 	return (
 		<div className="flex items-center gap-1.5">
@@ -755,7 +772,7 @@ function ShareBlock({ url, title, compactMode = false }: { url: string; title: s
 			<div className="flex items-center justify-between gap-3 border-y border-(--cards-border) py-3.5">
 				<span className="flex items-center gap-1.5 text-[10px] leading-none font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
 					Share
-					<Icon name="share" className="h-3 w-3" />
+					<Icon name="share" className="size-3" />
 				</span>
 				<ShareIcons url={url} title={title} size="sm" />
 			</div>
@@ -767,7 +784,7 @@ function ShareBlock({ url, title, compactMode = false }: { url: string; title: s
 			<div className="flex flex-col items-center gap-5">
 				<div className="flex items-center gap-1.5">
 					<span className="text-[18px] leading-none font-semibold tracking-wide text-(--text-primary)">SHARE</span>
-					<Icon name="share" className="h-4 w-4 text-(--text-primary)" />
+					<Icon name="share" className="size-4 text-(--text-primary)" />
 				</div>
 				<ShareIcons url={url} title={title} />
 			</div>
@@ -776,7 +793,15 @@ function ShareBlock({ url, title, compactMode = false }: { url: string; title: s
 	)
 }
 
-export function ArticleRenderer({ article }: { article: LocalArticleDocument }) {
+export function ArticleRenderer({
+	article,
+	hideSidePanel = false,
+	shareUrlOverride
+}: {
+	article: LocalArticleDocument
+	hideSidePanel?: boolean
+	shareUrlOverride?: string
+}) {
 	const visibleDateIso =
 		article.displayDate ??
 		(article.status === 'published' ? (article.publishedAt ?? article.lastPublishedAt ?? null) : article.updatedAt)
@@ -786,20 +811,26 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 			? null
 			: 'Draft'
 	const ctx: RenderContext = { figureCount: { value: 0 } }
+	const contentJson = useMemo(() => normalizeArticleContentJson(article.contentJson), [article.contentJson])
 
 	const toc: TocEntry[] = []
-	collectToc(article.contentJson, toc)
+	collectToc(contentJson, toc)
 
 	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
+	const sectionHref = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}` : null
 	const tagChips = (article.tags ?? []).filter((tag) => typeof tag === 'string' && tag.trim().length > 0)
 
 	const sectionPath = article.section ? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}` : null
-	const [shareUrl, setShareUrl] = useState<string>(sectionPath ?? `/research/${article.slug}`)
+	const [shareUrl, setShareUrl] = useState<string>(shareUrlOverride ?? sectionPath ?? `/research/${article.slug}`)
 	useEffect(() => {
+		if (shareUrlOverride) {
+			setShareUrl(shareUrlOverride)
+			return
+		}
 		if (typeof window !== 'undefined') {
 			setShareUrl(window.location.href)
 		}
-	}, [article.slug, article.section])
+	}, [article.slug, article.section, shareUrlOverride])
 
 	const sentinelRef = useRef<HTMLDivElement>(null)
 	const [pastHeader, setPastHeader] = useState(false)
@@ -834,6 +865,9 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 		? [coverCredit ? `Credit: ${coverCredit}` : '', coverCopyright ? `© ${coverCopyright}` : ''].filter(Boolean)
 		: []
 	const hasCoverMeta = !!cover && (coverHeadline || coverCaption || coverMetaParts.length > 0)
+	const articlePageClassName = hideSidePanel
+		? 'article-page mx-auto grid w-full max-w-[760px] animate-fadein gap-10 px-4 pb-24 sm:px-6'
+		: 'article-page mx-auto grid w-full max-w-[1300px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,700px)_401px] lg:gap-[125px]'
 
 	const isInterview = article.section === 'interview'
 	const bylineLabel = isInterview ? 'Interviewer' : 'By'
@@ -870,7 +904,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 								<img
 									src={person.avatarUrl}
 									alt=""
-									className="h-5 w-5 shrink-0 rounded-full border border-(--cards-border) object-cover"
+									className="size-5 shrink-0 rounded-full border border-(--cards-border) object-cover"
 								/>
 							) : null}
 							<span className="font-semibold text-(--text-primary)">{person.name}</span>
@@ -907,7 +941,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 		) : null
 
 	return (
-		<div className="article-page mx-auto grid w-full max-w-[1300px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,700px)_401px] lg:gap-[125px]">
+		<div className={articlePageClassName}>
 			<article className="article-published min-w-0">
 				<header className="grid gap-4 pt-6 sm:pt-10 lg:gap-5">
 					<h1 className="text-[26px] leading-[1.2] font-bold tracking-tight text-(--text-primary) sm:text-3xl sm:leading-[1.15] md:text-[36px] md:leading-[1.32]">
@@ -918,15 +952,15 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 					) : null}
 					{article.section === 'report' && article.reportPdf ? (
 						<div>
-							<a
-								href={article.reportPdf.url}
-								target="_blank"
-								rel="noopener noreferrer"
+							<DownloadPdfLink
+								article={article as ArticleDocument}
+								pdfUrl={article.reportPdf.url}
+								widgetLabel="Article page"
 								className="inline-flex items-center gap-2 rounded-md bg-(--link-text) px-3.5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
 							>
 								<svg
 									viewBox="0 0 24 24"
-									className="h-4 w-4"
+									className="size-4"
 									fill="none"
 									stroke="currentColor"
 									strokeWidth="2"
@@ -939,7 +973,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 									<line x1="12" y1="15" x2="12" y2="3" />
 								</svg>
 								Download PDF
-							</a>
+							</DownloadPdfLink>
 						</div>
 					) : null}
 				</header>
@@ -947,7 +981,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				{cover ? (
 					<figure className="mt-5 grid gap-2">
 						<div className="aspect-[700/400] w-full overflow-hidden">
-							<img src={cover.url} alt={cover.alt || ''} className="block h-full w-full object-cover" />
+							<img src={cover.url} alt={cover.alt || ''} className="block size-full object-cover" />
 						</div>
 						{hasCoverMeta ? (
 							<figcaption className="grid gap-1 text-xs text-(--text-tertiary)">
@@ -969,9 +1003,11 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 						</div>
 						{(sectionLabel || tagChips.length > 0) && (
 							<div className="flex flex-wrap items-center gap-1.5">
-								{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
+								{sectionLabel && sectionHref ? <MetaChip href={sectionHref}>{sectionLabel}</MetaChip> : null}
 								{tagChips.map((tag) => (
-									<MetaChip key={tag}>{tag}</MetaChip>
+									<MetaChip key={tag} href={`/research/topics/${encodeURIComponent(tag)}`}>
+										{tag}
+									</MetaChip>
 								))}
 							</div>
 						)}
@@ -993,15 +1029,17 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 					</div>
 					{(sectionLabel || tagChips.length > 0) && (
 						<div className="flex flex-wrap items-center gap-1.5">
-							{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
+							{sectionLabel && sectionHref ? <MetaChip href={sectionHref}>{sectionLabel}</MetaChip> : null}
 							{tagChips.map((tag) => (
-								<MetaChip key={tag}>{tag}</MetaChip>
+								<MetaChip key={tag} href={`/research/topics/${encodeURIComponent(tag)}`}>
+									{tag}
+								</MetaChip>
 							))}
 						</div>
 					)}
 					<div className="flex items-center gap-2">
 						<span className="text-[13px] leading-none font-semibold tracking-wide text-(--text-primary)">SHARE</span>
-						<Icon name="share" className="h-3.5 w-3.5 text-(--text-primary)" />
+						<Icon name="share" className="size-3.5 text-(--text-primary)" />
 						<div className="ml-1">
 							<ShareIcons url={shareUrl} title={article.title} size="sm" />
 						</div>
@@ -1021,7 +1059,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				<div className="article-prose [overflow-wrap:anywhere] break-words">
 					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h1:mt-8 prose-h1:mb-3 prose-h2:mt-6 prose-h2:mb-2 prose-h2:text-2xl prose-h3:mt-5 prose-h3:mb-1.5 prose-h3:text-lg prose-h4:mt-4 prose-h4:mb-1.5 prose-h4:text-base prose-h5:mt-3 prose-h5:mb-1 prose-h5:text-sm prose-h6:mt-3 prose-h6:mb-1 prose-h6:text-sm prose-p:my-3 prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:my-4 prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-figure:my-4 prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:my-4 prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-ol:my-3 prose-ul:my-3 prose-li:my-1 prose-img:my-4 prose-hr:my-6 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_:where(h1,h2,h3,h4,h5,h6):first-child]:mt-0 [&_li>p]:my-0 [&_li>p]:leading-[1.55]">
 						{(() => {
-							const docContent = article.contentJson?.content ?? []
+							const docContent = contentJson.content ?? []
 							const nodes = docContent.map((child, idx) => renderNode(child, `article-root-${idx}`, ctx))
 							if (docContent.length === 0) return nodes
 							const slot = horizontalBannerSlot(article.id ?? '', docContent.length)
@@ -1038,21 +1076,23 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				</div>
 			</article>
 
-			<aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
-				<div className="flex flex-col gap-8 border-l border-(--cards-border) pt-10 pr-1 pb-6 pl-5">
-					{toc.length > 1 ? (
+			{hideSidePanel ? null : (
+				<aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
+					<div className="flex flex-col gap-8 border-l border-(--cards-border) pt-10 pr-1 pb-6 pl-5">
+						{toc.length > 1 ? (
+							<div className="pr-2">
+								<ArticleToc toc={toc} compactMode={pastHeader} />
+							</div>
+						) : null}
 						<div className="pr-2">
-							<ArticleToc toc={toc} compactMode={pastHeader} />
+							<ShareBlock url={shareUrl} title={article.title} compactMode={pastHeader} />
 						</div>
-					) : null}
-					<div className="pr-2">
-						<ShareBlock url={shareUrl} title={article.title} compactMode={pastHeader} />
+						<div className="pr-2">
+							<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
+						</div>
 					</div>
-					<div className="pr-2">
-						<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
-					</div>
-				</div>
-			</aside>
+				</aside>
+			)}
 		</div>
 	)
 }

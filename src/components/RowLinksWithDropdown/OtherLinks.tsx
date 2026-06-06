@@ -64,7 +64,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					className="z-10 flex thin-scrollbar h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.PopoverDismiss>
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox

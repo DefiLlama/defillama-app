@@ -1,11 +1,12 @@
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
+import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
 import { slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
-import { ChainProtocolsTable } from './Table'
 import type { IChainOverviewData } from './types'
 
 export function ChainOverview(props: IChainOverviewData) {
@@ -60,11 +61,12 @@ export function ChainOverview(props: IChainOverviewData) {
 									</span>
 								)}
 							</span>
-							<Icon name="arrow-up-right-2" className="h-6 w-6 shrink-0" />
+							<Icon name="arrow-up-right-2" className="size-6 shrink-0" />
 						</a>
 					))}
 				</div>
 			) : null}
+			<NewsletterSignup layout="strip" />
 			{props.protocols.length > 0 ? <ChainProtocolsTable protocols={props.protocols} /> : null}
 		</>
 	)
@@ -76,9 +78,24 @@ const linksToOtherLlamaApps = [
 		description: '',
 		href: '/research',
 		icon: (
-			<svg aria-label="DefiLlama Research" role="img" height={44} width={128} className="z-10 object-contain">
-				<use href="/assets/defillama-research.svg#defillama-research-logo" />
-			</svg>
+			<span aria-label="DefiLlama Research" role="img" className="relative z-10 block h-11 w-32 shrink-0">
+				<img
+					src="/assets/research_logo_dark.webp"
+					alt=""
+					height={44}
+					width={128}
+					loading="lazy"
+					className="invisible absolute inset-0 h-full w-full object-contain dark:visible"
+				/>
+				<img
+					src="/assets/research_logo.webp"
+					alt=""
+					height={44}
+					width={128}
+					loading="lazy"
+					className="visible absolute inset-0 h-full w-full object-contain dark:invisible"
+				/>
+			</span>
 		),
 		background: <span className="llama-app-background" />
 	},

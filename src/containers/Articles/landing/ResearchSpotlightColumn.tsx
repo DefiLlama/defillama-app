@@ -54,7 +54,7 @@ export function ResearchSpotlightColumn({ title, articles, sharedHeight }: Resea
 											{article.coverImage?.url ? (
 												<img
 													src={article.coverImage.url}
-													alt=""
+													alt={article.coverImage.alt}
 													className="h-full w-full object-cover"
 													loading="lazy"
 													decoding="async"
@@ -74,7 +74,7 @@ export function ResearchSpotlightColumn({ title, articles, sharedHeight }: Resea
 												{article.title}
 											</div>
 											<div className="text-[12px] font-bold text-[#3A8BFF] dark:text-white/80">
-												{formatDate(article.publishedAt)}
+												{formatDate(article.displayDate ?? article.publishedAt)}
 											</div>
 										</div>
 									</Link>

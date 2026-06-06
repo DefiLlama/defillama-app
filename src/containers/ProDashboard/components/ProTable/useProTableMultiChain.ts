@@ -2,8 +2,8 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useContext, useMemo, useRef } from 'react'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/ProtocolLists/utils.old'
 import { fetchJson } from '~/utils/async'
 import { StreamDoneContext } from '../../queries'
 import {
@@ -503,11 +503,11 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-earnings-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
@@ -520,11 +520,11 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-aggregators-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
@@ -537,11 +537,11 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-bridge-aggregators-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
@@ -554,11 +554,11 @@ export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-options-multi-chain',
-		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
+		...(chains.includes('All') || chains.length === 0 ? ['All'] : chains.toSorted())
 	]
 	const query = useQuery({
 		queryKey,
-		queryFn: () => fetchJson(`/api/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
+		queryFn: () => fetchJson(`/api/dynamic/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone

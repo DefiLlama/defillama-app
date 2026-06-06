@@ -530,7 +530,7 @@ export function SubscriptionSection() {
 						isManageLoading={isPortalSessionLoading}
 						isCancelLoading={isCancelSubscriptionLoading}
 					/>
-					{isApiMonthly && !isCancelPending && apiSubscription?.provider !== 'llamapay' && (
+					{isApiMonthly && !isCancelPending && apiSubscription?.provider === 'stripe' && (
 						<YearlyUpgradeBanner onUpgrade={() => handleUpgradeToYearly('api')} planType="api" />
 					)}
 				</div>
@@ -561,7 +561,7 @@ export function SubscriptionSection() {
 					isManageLoading={isPortalSessionLoading}
 					isCancelLoading={isCancelSubscriptionLoading}
 				/>
-				{isProMonthly && !isCancelPending && llamafeedSubscription?.provider !== 'llamapay' && (
+				{isProMonthly && !isCancelPending && llamafeedSubscription?.provider === 'stripe' && (
 					<YearlyUpgradeBanner onUpgrade={() => handleUpgradeToYearly('llamafeed')} planType="pro" />
 				)}
 			</div>

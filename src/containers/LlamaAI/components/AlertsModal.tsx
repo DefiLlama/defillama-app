@@ -1,222 +1,44 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { AI_SERVER } from '~/constants'
+import {
+	deleteAlert,
+	fetchAlertExecutionDetail,
+	fetchAlertExecutions,
+	fetchAlerts,
+	setAlertEnabled,
+	updateAlert
+} from '~/containers/LlamaAI/components/alerts/api'
+import {
+	DAYS_OF_WEEK,
+	formatScheduleExpression,
+	getBlockedLocalHours,
+	getTimezoneLabel,
+	getUserTimezone,
+	getValidHourForTimezone,
+	GMT_OFFSETS,
+	parseScheduleExpression
+} from '~/containers/LlamaAI/components/alerts/schedule'
+import type {
+	Alert,
+	AlertConfig,
+	AlertExecution,
+	AlertExecutionDetail,
+	DeliveryChannel,
+	UpdateAlertInput
+} from '~/containers/LlamaAI/components/alerts/types'
+import { useSlackChannels } from '~/containers/LlamaAI/hooks/useSlackChannels'
+import { useSlackWorkspaces } from '~/containers/LlamaAI/hooks/useSlackIntegrationLink'
 import { sanitizeAlertSummary, sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
-interface Alert {
-	id: string
-	title: string
-	original_query: string
-	schedule_expression: string
-	next_run_at: string
-	last_run_at: string | null
-	last_run_status: 'success' | 'error' | null
-	enabled: boolean
-	run_count: number
-	created_at: string
-	delivery_channel?: 'email' | 'telegram'
-	condition?: string | null
-}
-
-interface AlertExecution {
-	id: string
-	executed_at: string
-	status: string
-	duration_ms: number
-	chart_count: number
-}
-
-interface AlertExecutionDetail extends AlertExecution {
-	alertTitle: string
-	generated_summary: string | null
-	generated_charts: { id: string; type: string; title: string; url: string }[] | null
-	citations: string[] | null
-}
-
 interface AlertsModalProps {
 	dialogStore: Ariakit.DialogStore
 }
-
-const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const BLOCKED_HOURS_UTC = [0, 1, 2]
-const GMT_OFFSETS = [
-	{ label: 'UTC-12', value: 'Etc/GMT+12' },
-	{ label: 'UTC-11', value: 'Etc/GMT+11' },
-	{ label: 'UTC-10', value: 'Etc/GMT+10' },
-	{ label: 'UTC-9', value: 'Etc/GMT+9' },
-	{ label: 'UTC-8', value: 'Etc/GMT+8' },
-	{ label: 'UTC-7', value: 'Etc/GMT+7' },
-	{ label: 'UTC-6', value: 'Etc/GMT+6' },
-	{ label: 'UTC-5', value: 'Etc/GMT+5' },
-	{ label: 'UTC-4', value: 'Etc/GMT+4' },
-	{ label: 'UTC-3', value: 'Etc/GMT+3' },
-	{ label: 'UTC-2', value: 'Etc/GMT+2' },
-	{ label: 'UTC-1', value: 'Etc/GMT+1' },
-	{ label: 'UTC', value: 'UTC' },
-	{ label: 'UTC+1', value: 'Etc/GMT-1' },
-	{ label: 'UTC+2', value: 'Etc/GMT-2' },
-	{ label: 'UTC+3', value: 'Etc/GMT-3' },
-	{ label: 'UTC+4', value: 'Etc/GMT-4' },
-	{ label: 'UTC+5', value: 'Etc/GMT-5' },
-	{ label: 'UTC+6', value: 'Etc/GMT-6' },
-	{ label: 'UTC+7', value: 'Etc/GMT-7' },
-	{ label: 'UTC+8', value: 'Etc/GMT-8' },
-	{ label: 'UTC+9', value: 'Etc/GMT-9' },
-	{ label: 'UTC+10', value: 'Etc/GMT-10' },
-	{ label: 'UTC+11', value: 'Etc/GMT-11' },
-	{ label: 'UTC+12', value: 'Etc/GMT-12' },
-	{ label: 'UTC+13', value: 'Etc/GMT-13' },
-	{ label: 'UTC+14', value: 'Etc/GMT-14' }
-]
 const ALERTS_QUERY_KEY = 'llamaai-alerts'
-
-const parseOffsetHours = (value: string): number | null => {
-	const normalized = value.replace('UTC', 'GMT')
-	if (normalized === 'GMT') return 0
-	const match = normalized.match(/GMT([+-]\d{1,2})/)
-	if (!match) return null
-	const hours = parseInt(match[1], 10)
-	return Number.isNaN(hours) ? null : hours
-}
-
-const getOffsetHoursFromTimezone = (timezone: string): number | null => {
-	try {
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
-		const parts = formatter.formatToParts(new Date())
-		const tzPart = parts.find((p) => p.type === 'timeZoneName')?.value
-		return tzPart ? parseOffsetHours(tzPart) : null
-	} catch {
-		return null
-	}
-}
-
-const offsetHoursToEtc = (offsetHours: number): string | undefined => {
-	if (offsetHours === 0) return 'UTC'
-	const sign = offsetHours > 0 ? '-' : '+'
-	const etcValue = `Etc/GMT${sign}${Math.abs(offsetHours)}`
-	return GMT_OFFSETS.some((g) => g.value === etcValue) ? etcValue : undefined
-}
-
-const parseTimezoneFromExpression = (expression: string): string | undefined => {
-	const etcMatch = expression.match(/\bEtc\/GMT[+-]\d{1,2}\b/)
-	if (etcMatch && GMT_OFFSETS.some((g) => g.value === etcMatch[0])) return etcMatch[0]
-
-	const offsetMatch = expression.match(/\b(?:GMT|UTC)[+-]\d{1,2}\b/)
-	if (offsetMatch) {
-		const offsetHours = parseOffsetHours(offsetMatch[0])
-		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
-	}
-
-	if (/\bUTC\b/.test(expression)) return 'UTC'
-
-	const ianaMatch = expression.match(/\b[A-Za-z]+\/[A-Za-z_]+\b/)
-	if (ianaMatch) {
-		const offsetHours = getOffsetHoursFromTimezone(ianaMatch[0])
-		if (offsetHours !== null) return offsetHoursToEtc(offsetHours)
-	}
-
-	return undefined
-}
-
-const parseScheduleExpression = (
-	expression: string
-): {
-	hour?: number
-	dayOfWeek?: number
-	timezone?: string
-} => {
-	const hourMatch = expression.match(/at (\d+)/)
-	const dayMatch = expression.match(/on (\w+)/)
-	const hour = hourMatch ? parseInt(hourMatch[1], 10) : undefined
-	let dayOfWeek: number | undefined
-	if (dayMatch) {
-		const idx = DAYS_OF_WEEK.findIndex((d) => d.toLowerCase() === dayMatch[1].toLowerCase())
-		if (idx >= 0) dayOfWeek = idx
-	}
-	const timezone = parseTimezoneFromExpression(expression)
-	return { hour, dayOfWeek, timezone }
-}
-
-const getUserTimezone = (): string => {
-	try {
-		const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-		const offset = new Date().getTimezoneOffset()
-		const hours = Math.floor(Math.abs(offset) / 60)
-		const sign = offset <= 0 ? '-' : '+'
-		const etcTz = `Etc/GMT${sign}${hours}`
-		if (GMT_OFFSETS.some((g) => g.value === etcTz)) return etcTz
-		if (GMT_OFFSETS.some((g) => g.value === tz)) return tz
-		return 'UTC'
-	} catch {
-		return 'UTC'
-	}
-}
-
-const convertHourToUTC = (localHour: number, timezone: string): number => {
-	if (timezone === 'UTC') return localHour
-	const match = timezone.match(/Etc\/GMT([+-])(\d+)/)
-	if (match) {
-		const sign = match[1] === '+' ? -1 : 1
-		const offset = parseInt(match[2], 10)
-		let utcHour = localHour - sign * offset
-		if (utcHour < 0) utcHour += 24
-		if (utcHour >= 24) utcHour -= 24
-		return utcHour
-	}
-	return localHour
-}
-
-const getBlockedLocalHours = (timezone: string): number[] => {
-	const blocked: number[] = []
-	for (let h = 0; h < 24; h++) {
-		const utcHour = convertHourToUTC(h, timezone)
-		if (BLOCKED_HOURS_UTC.includes(utcHour)) {
-			blocked.push(h)
-		}
-	}
-	return blocked
-}
-
-const getFirstAvailableHour = (blockedHours: number[]): number | undefined => {
-	for (let h = 0; h < 24; h++) {
-		if (!blockedHours.includes(h)) return h
-	}
-	return undefined
-}
-
-const getValidHourForTimezone = (hour: number, timezone: string): number => {
-	const blockedHours = getBlockedLocalHours(timezone)
-	if (!blockedHours.includes(hour)) return hour
-	const firstAvailable = getFirstAvailableHour(blockedHours)
-	return firstAvailable ?? hour
-}
-
-const getTimezoneLabel = (timezone: string): string => {
-	if (timezone === 'UTC') return 'UTC'
-	const found = GMT_OFFSETS.find((g) => g.value === timezone)
-	if (found) return found.label
-	try {
-		const now = new Date()
-		const formatter = new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'shortOffset' })
-		const parts = formatter.formatToParts(now)
-		const tzPart = parts.find((p) => p.type === 'timeZoneName')
-		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'UTC')
-		}
-	} catch {}
-	return timezone
-}
-
-const formatScheduleExpression = (expression: string): string => {
-	return expression.replace(/([A-Za-z]+\/[A-Za-z_]+)/g, (match) => {
-		return getTimezoneLabel(match)
-	})
-}
 
 export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModalProps) {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
@@ -235,13 +57,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			const res = await authorizedFetch(`${AI_SERVER}/alerts`)
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to fetch alerts')
-			}
-			const data = await res.json()
-			return Array.isArray(data.alerts) ? data.alerts : []
+			return fetchAlerts(authorizedFetch)
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})
@@ -256,13 +72,13 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 			>
 				<div className="flex items-center justify-between border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 					<div className="flex items-center gap-3">
-						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
-							<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
+						<div className="flex size-9 items-center justify-center rounded-lg bg-amber-500/10">
+							<Icon name="calendar-plus" className="size-5 text-amber-500" />
 						</div>
 						<h2 className="text-lg font-semibold text-black dark:text-white">Your Alerts</h2>
 					</div>
 					<Ariakit.DialogDismiss className="rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.DialogDismiss>
 				</div>
 
@@ -279,8 +95,8 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 					) : !alerts || alerts.length === 0 ? (
 						alertsError ? null : (
 							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-								<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
-									<Icon name="calendar" className="h-7 w-7 text-[#999]" />
+								<div className="flex size-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
+									<Icon name="calendar" className="size-7 text-[#999]" />
 								</div>
 								<p className="text-sm text-[#666] dark:text-[#919296]">No alerts yet</p>
 								<p className="max-w-xs text-xs text-[#999] dark:text-[#666]">
@@ -319,9 +135,28 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const [hourDefault, setHourDefault] = useState(() =>
 		getValidHourForTimezone(parsedSchedule.hour ?? 9, initialTimezone)
 	)
+	const [deliveryChannel, setDeliveryChannel] = useState<DeliveryChannel>(alert.delivery_channel ?? 'email')
+	const [slackTeamId, setSlackTeamId] = useState<string>(alert.slack_team_id ?? '')
+	const [slackChannelId, setSlackChannelId] = useState<string>(alert.slack_channel_id ?? '')
 	const [mode, setMode] = useState<'view' | 'editing' | 'deleting'>('view')
 	const [showExecutions, setShowExecutions] = useState(false)
 	const [selectedExecId, setSelectedExecId] = useState<string | null>(null)
+	const slackWorkspacesQuery = useSlackWorkspaces()
+	const slackChannelsQuery = useSlackChannels(deliveryChannel === 'slack' && slackTeamId ? slackTeamId : null)
+	const slackWorkspaces = useMemo(() => {
+		const workspaces = slackWorkspacesQuery.data?.workspaces ?? []
+		return workspaces.filter((w) => !w.revoked)
+	}, [slackWorkspacesQuery.data?.workspaces])
+	const slackChannels = slackChannelsQuery.data?.channels
+	const selectableSlackChannels = useMemo(() => {
+		const channels = (slackChannels ?? []).filter((c) => !c.is_archived)
+		channels.sort((a, b) => Number(a.is_private) - Number(b.is_private) || a.name.localeCompare(b.name))
+		return channels
+	}, [slackChannels])
+	const timezoneOptions = useMemo(() => {
+		if (GMT_OFFSETS.some((option) => option.value === timezone)) return GMT_OFFSETS
+		return [...GMT_OFFSETS, { value: timezone, label: getTimezoneLabel(timezone) }]
+	}, [timezone])
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
@@ -329,10 +164,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const executionsQuery = useQuery<AlertExecution[]>({
 		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions'],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alert.id}/executions`)
-			if (!res?.ok) throw new Error('Failed to fetch executions')
-			const data = await res.json()
-			return data.executions ?? []
+			if (!authorizedFetch) throw new Error('Not authenticated')
+			return fetchAlertExecutions(authorizedFetch, alert.id)
 		},
 		enabled: showExecutions && !!authorizedFetch
 	})
@@ -340,9 +173,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const execDetailQuery = useQuery<AlertExecutionDetail>({
 		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions', selectedExecId],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alert.id}/executions/${selectedExecId}`)
-			if (!res?.ok) throw new Error('Failed to fetch execution detail')
-			return res.json()
+			if (!authorizedFetch) throw new Error('Not authenticated')
+			if (!selectedExecId) throw new Error('Missing execution id')
+			return fetchAlertExecutionDetail(authorizedFetch, alert.id, selectedExecId)
 		},
 		enabled: !!selectedExecId && !!authorizedFetch
 	})
@@ -364,6 +197,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		setFrequency(alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily')
 		setTimezone(nextTimezone)
 		setHourDefault(getValidHourForTimezone(nextParsedSchedule.hour ?? 9, nextTimezone))
+		setDeliveryChannel(alert.delivery_channel ?? 'email')
+		setSlackTeamId(alert.slack_team_id ?? '')
+		setSlackChannelId(alert.slack_channel_id ?? '')
 	}
 
 	const getConditionUpdate = (nextCondition: string) => {
@@ -389,16 +225,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ enabled })
-			})
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to update alert')
-			}
-			return enabled
+			return setAlertEnabled(authorizedFetch, alertId, enabled)
 		},
 		onMutate: async ({ alertId, enabled }) => {
 			await queryClient.cancelQueries({ queryKey: alertsQueryKey })
@@ -424,12 +251,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to delete alert')
-			}
-			return alertId
+			return deleteAlert(authorizedFetch, alertId)
 		},
 		onMutate: async (alertId: string) => {
 			await queryClient.cancelQueries({ queryKey: alertsQueryKey })
@@ -453,57 +275,19 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		}
 	})
 
-	const updateAlertMutation = useMutation<
-		{ frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string },
-		Error,
-		{
-			alertId: string
-			title: string
-			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: 'email' | 'telegram'
-			condition: string
-		}
-	>({
-		mutationFn: async ({
-			alertId,
-			title: nextTitle,
-			alertConfig,
-			delivery_channel,
-			condition: nextCondition
-		}: {
-			alertId: string
-			title: string
-			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
-			delivery_channel: 'email' | 'telegram'
-			condition: string
-		}) => {
+	const updateAlertMutation = useMutation<AlertConfig, Error, UpdateAlertInput>({
+		mutationFn: async (input) => {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const conditionUpdate = getConditionUpdate(nextCondition)
-			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					title: nextTitle,
-					alertConfig,
-					delivery_channel,
-					...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
-				})
-			})
-			if (!res) throw new Error('Not authenticated')
-			if (!res.ok) {
-				throw new Error('Failed to update alert')
-			}
-			return alertConfig
+			return updateAlert(authorizedFetch, input, getConditionUpdate(input.condition))
 		},
 		onSuccess: (_data, { alertId, title: nextTitle, alertConfig, delivery_channel, condition: nextCondition }) => {
 			const conditionUpdate = getConditionUpdate(nextCondition)
-			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
-					? `Weekly on ${DAYS_OF_WEEK[alertConfig.dayOfWeek]} at ${alertConfig.hour}:00 ${tzLabel}`
-					: `Daily at ${alertConfig.hour}:00 ${tzLabel}`
+					? `Weekly on ${DAYS_OF_WEEK[alertConfig.dayOfWeek]} at ${alertConfig.hour}:00 ${alertConfig.timezone}`
+					: `Daily at ${alertConfig.hour}:00 ${alertConfig.timezone}`
 			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
 				if (!old) return []
 				return old.map((item) =>
@@ -583,7 +367,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 
 	const formatDuration = (ms: number) => (ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`)
 
-	const channelLabel = (alert.delivery_channel || 'email') === 'telegram' ? 'Telegram' : 'Email'
+	const channelLabel =
+		alert.delivery_channel === 'telegram'
+			? 'Telegram'
+			: alert.delivery_channel === 'slack'
+				? alert.slack_channel_name
+					? `Slack #${alert.slack_channel_name}`
+					: 'Slack'
+				: 'Email'
 
 	const selectedExec = execDetailQuery.data
 	if (selectedExec) {
@@ -594,7 +385,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					onClick={() => setSelectedExecId(null)}
 					className="mb-3 flex items-center gap-1 text-xs text-[#2172E5] hover:underline"
 				>
-					<Icon name="arrow-left" className="h-3 w-3" />
+					<Icon name="arrow-left" className="size-3" />
 					Back to executions
 				</button>
 				<div className="mb-2 flex items-center justify-between">
@@ -690,25 +481,25 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					{alert.run_count > 0 ? (
 						<button
 							onClick={handleToggleExecutions}
-							className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${showExecutions ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+							className={`flex size-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${showExecutions ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 							title="View history"
 						>
-							<Icon name="clock" className="h-3.5 w-3.5" />
+							<Icon name="clock" className="size-3.5" />
 						</button>
 					) : null}
 					<button
 						onClick={() => switchMode(mode === 'editing' ? 'view' : 'editing')}
-						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+						className={`flex size-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 						title="Edit"
 					>
-						<Icon name="pencil" className="h-3.5 w-3.5" />
+						<Icon name="pencil" className="size-3.5" />
 					</button>
 					<button
 						onClick={() => switchMode('deleting')}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
+						className="flex size-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
 						title="Delete"
 					>
-						<Icon name="trash-2" className="h-3.5 w-3.5" />
+						<Icon name="trash-2" className="size-3.5" />
 					</button>
 					<button
 						onClick={() => {
@@ -719,7 +510,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						title={alert.enabled ? 'Disable' : 'Enable'}
 					>
 						<span
-							className={`h-6 w-6 rounded-full bg-white shadow transition-transform ${alert.enabled ? 'translate-x-5' : 'translate-x-0'}`}
+							className={`size-6 rounded-full bg-white shadow transition-transform ${alert.enabled ? 'translate-x-5' : 'translate-x-0'}`}
 						/>
 					</button>
 				</div>
@@ -783,7 +574,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						const fd = new FormData(e.currentTarget)
 						const titleValue = (fd.get('title') as string).trim()
 						if (!titleValue) return
+						if (deliveryChannel === 'slack' && (!slackTeamId || !slackChannelId)) return
 						trackUmamiEvent('llamaai-alert-edit')
+						const channelName =
+							deliveryChannel === 'slack' ? (slackChannels?.find((c) => c.id === slackChannelId)?.name ?? null) : null
 						updateAlertMutation.mutate({
 							alertId: alert.id,
 							title: titleValue,
@@ -793,8 +587,11 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 								dayOfWeek: Number(fd.get('dayOfWeek')),
 								timezone: fd.get('timezone') as string
 							},
-							delivery_channel: fd.get('delivery_channel') as 'email' | 'telegram',
-							condition: fd.get('condition') as string
+							delivery_channel: deliveryChannel,
+							condition: fd.get('condition') as string,
+							slack_team_id: deliveryChannel === 'slack' ? slackTeamId : null,
+							slack_channel_id: deliveryChannel === 'slack' ? slackChannelId : null,
+							slack_channel_name: channelName
 						})
 					}}
 					className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]"
@@ -851,26 +648,83 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							onChange={(e) => handleTimezoneChange(e.target.value)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
-							{GMT_OFFSETS.map((tz) => (
+							{timezoneOptions.map((tz) => (
 								<option key={tz.value} value={tz.value}>
 									{tz.label}
 								</option>
 							))}
 						</select>
 					</div>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						<label htmlFor={deliveryChannelId} className="text-sm text-(--text3)">
 							Deliver via
 						</label>
 						<select
 							id={deliveryChannelId}
-							name="delivery_channel"
-							defaultValue={alert.delivery_channel || 'email'}
+							value={deliveryChannel}
+							onChange={(e) => setDeliveryChannel(e.target.value as DeliveryChannel)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							<option value="email">Email</option>
 							<option value="telegram">Telegram</option>
+							<option value="slack">Slack</option>
 						</select>
+						{deliveryChannel === 'slack' && (
+							<>
+								{slackWorkspacesQuery.isLoading ? (
+									<span className="text-xs text-(--text3)">Loading workspaces…</span>
+								) : slackWorkspaces.length === 0 ? (
+									<span className="text-xs text-amber-600 dark:text-amber-400">
+										No Slack workspaces connected. Connect one from Settings → Integrations.
+									</span>
+								) : (
+									<select
+										value={slackTeamId}
+										onChange={(e) => {
+											setSlackTeamId(e.target.value)
+											const ws = slackWorkspaces.find((w) => w.team_id === e.target.value)
+											setSlackChannelId(ws?.default_channel_id ?? '')
+										}}
+										className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+									>
+										<option value="" disabled>
+											Pick workspace
+										</option>
+										{slackWorkspaces.map((w) => (
+											<option key={w.team_id} value={w.team_id}>
+												{w.team_name}
+											</option>
+										))}
+									</select>
+								)}
+								{slackTeamId && (
+									<>
+										{slackChannelsQuery.isLoading ? (
+											<span className="text-xs text-(--text3)">Loading channels…</span>
+										) : slackChannelsQuery.isError ? (
+											<span className="text-xs text-red-500">Failed to load channels</span>
+										) : (
+											<select
+												value={slackChannelId}
+												onChange={(e) => setSlackChannelId(e.target.value)}
+												className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+											>
+												<option value="" disabled>
+													Pick channel
+												</option>
+												{selectableSlackChannels.map((c) => (
+													<option key={c.id} value={c.id} disabled={c.is_private && !c.is_member}>
+														{c.is_private ? '🔒 ' : '# '}
+														{c.name}
+														{c.is_private && !c.is_member ? ' (invite bot first)' : ''}
+													</option>
+												))}
+											</select>
+										)}
+									</>
+								)}
+							</>
+						)}
 					</div>
 					<div className="flex flex-col gap-1">
 						<label htmlFor={conditionId} className="text-sm text-(--text3)">
@@ -900,7 +754,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							{updateAlertMutation.isPending ? (
 								<LoadingSpinner size={12} />
 							) : (
-								<Icon name="check" className="h-3.5 w-3.5" />
+								<Icon name="check" className="size-3.5" />
 							)}
 							Save
 						</button>
