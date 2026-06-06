@@ -23,7 +23,10 @@ export const toFilterProtocol = ({
 	)
 }
 
-export const toStrikeTvl = (protocol, toggledSettings) => {
+export const toStrikeTvl = (
+	protocol: Pick<ILiteProtocol, 'category'>,
+	toggledSettings: { liquidstaking?: boolean; doublecounted?: boolean } | Record<string, boolean>
+) => {
 	if (removedCategoriesFromChainTvlSet.has(protocol.category)) return true
 
 	if (toggledSettings['liquidstaking'] || toggledSettings['doublecounted']) return true

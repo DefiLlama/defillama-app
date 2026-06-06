@@ -543,7 +543,7 @@ export const getProtocolsByChain = async ({
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
 				childProtocols: parentStore[parentProtocol.id],
-				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
+				chains: Array.from(new Set(parentStore[parentProtocol.id].flatMap((p) => p.chains ?? []))),
 				tvl: parentTvl,
 				tvlChange: parentTvlChange,
 				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
