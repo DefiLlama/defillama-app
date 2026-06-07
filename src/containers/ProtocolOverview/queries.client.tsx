@@ -8,6 +8,12 @@ import type {
 	IProtocolTokenBreakdownChart,
 	IProtocolValueChart
 } from './api.types'
+import {
+	buildProtocolValueChartApiUrl,
+	buildProtocolValueChartQueryKey,
+	type ProtocolValueChartQueryKey,
+	type ProtocolValueChartSource
+} from './valueChartSources'
 
 interface IProtocolChartParams extends Omit<IProtocolChartV2Params, 'protocol'> {
 	protocol: string | null
@@ -24,16 +30,7 @@ interface IProtocolBreakdownChartParams extends Omit<IProtocolChartParams, 'brea
 
 type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
-type ProtocolChartSource = 'tvl' | 'treasury'
 type IActivityChart = Array<[number, number]> | null
-type IProtocolChartQueryKey = [
-	'protocol-overview',
-	'tvl-chart' | 'treasury-chart',
-	string | null,
-	string | undefined,
-	string | undefined,
-	string | undefined
-]
 
 const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -52,20 +49,19 @@ const getProtocolChartQueryOptions = ({
 	currency,
 	breakdownType,
 	enabled = true
-}: IProtocolChartParams & { source: ProtocolChartSource }): UseQueryOptions<
+}: IProtocolChartParams & { source: ProtocolValueChartSource }): UseQueryOptions<
 	IProtocolChartQueryData,
 	Error,
 	IProtocolChartQueryData,
-	IProtocolChartQueryKey
+	ProtocolValueChartQueryKey
 > => {
 	const isEnabled = !!protocol && enabled
-	const chartKey = source === 'tvl' ? 'tvl-chart' : 'treasury-chart'
 	return {
-		queryKey: ['protocol-overview', chartKey, protocol, key, currency, breakdownType],
+		queryKey: buildProtocolValueChartQueryKey({ source, protocol, key, currency, breakdownType }),
 		queryFn: () =>
 			fetchJson<IProtocolChartQueryData>(
-				buildProtocolChartApiUrl({
-					kind: source,
+				buildProtocolValueChartApiUrl({
+					source,
 					protocol: protocol!,
 					key,
 					currency,
@@ -158,7 +154,7 @@ export function useFetchProtocolTVLChart({
 	breakdownType,
 	enabled = true
 }: IProtocolChartParams): UseQueryResult<IProtocolValueChart | IProtocolAnyBreakdownChart | null> {
-	return useQuery<IProtocolChartQueryData, Error, IProtocolChartQueryData, IProtocolChartQueryKey>(
+	return useQuery<IProtocolChartQueryData, Error, IProtocolChartQueryData, ProtocolValueChartQueryKey>(
 		getProtocolTvlChartQueryOptions({ protocol, key, currency, breakdownType, enabled })
 	)
 }
@@ -167,7 +163,7 @@ interface IFetchProtocolChartsByKeysParams {
 	protocol: string | null
 	keys: string[]
 	includeBase?: boolean
-	source: ProtocolChartSource
+	source: ProtocolValueChartSource
 	inflows?: boolean
 	chainBreakdown?: boolean
 }

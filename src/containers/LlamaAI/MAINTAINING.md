@@ -58,8 +58,8 @@ For source changes, follow the repo root instructions:
 
 1. `bun run format`
 2. `bun run lint`
-3. `bun run ts`
-4. `bun run test:types`
+3. `bun run typecheck`
+4. `bun run test:typecheck`
 
 For docs-only changes, focused inspection is usually enough unless code examples
 or generated snippets are edited.

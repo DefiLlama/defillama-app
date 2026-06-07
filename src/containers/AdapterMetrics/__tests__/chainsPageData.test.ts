@@ -61,6 +61,33 @@ const feeRevenueChainMetadata = {
 	}
 }
 
+const appFeeExtrasChainMetadata = {
+	base: {
+		id: 'base',
+		name: 'Base',
+		fees: true,
+		dimAgg: {
+			fees: {
+				daf: {
+					'24h': 100,
+					'7d': 700,
+					'30d': 3000
+				},
+				dbr: {
+					'24h': 500,
+					'7d': 3500,
+					'30d': 15_000
+				},
+				dtt: {
+					'24h': 50,
+					'7d': 350,
+					'30d': 1500
+				}
+			}
+		}
+	}
+}
+
 const overloadedVolumeChainMetadata = {
 	ethereum: {
 		id: 'ethereum',
@@ -255,6 +282,40 @@ describe('chains by adapter page data', () => {
 				total30d: 3000
 			})
 		])
+	})
+
+	it('attaches app fee extras without changing base chain totals', async () => {
+		const data = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chainMetadata: appFeeExtrasChainMetadata,
+			includeChartData: false
+		})
+
+		expect(fetchJsonMock).not.toHaveBeenCalled()
+		expect(data.chains).toEqual([
+			expect.objectContaining({
+				name: 'Base',
+				total24h: 100,
+				total7d: 700,
+				total30d: 3000,
+				bribes: { total24h: 500, total7d: 3500, total30d: 15_000 },
+				tokenTax: { total24h: 50, total7d: 350, total30d: 1500 }
+			})
+		])
+	})
+
+	it('does not attach fee extras to non-fee adapter chain rankings', async () => {
+		const data = await getChainsByAdapterPageData({
+			adapterType: ADAPTER_TYPES.DEXS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chainMetadata,
+			includeChartData: false
+		})
+
+		expect(fetchJsonMock).not.toHaveBeenCalled()
+		expect(data.chains[0]).not.toHaveProperty('bribes')
+		expect(data.chains[0]).not.toHaveProperty('tokenTax')
 	})
 
 	it('uses adapter type to disambiguate dailyVolume chain metadata', async () => {
