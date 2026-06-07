@@ -4,14 +4,14 @@ import type {
 	AlertProposedData,
 	ChartSet,
 	DashboardArtifact,
-	FactCheckReference,
 	GeneratedImage,
 	Message,
 	MessageMetadata,
 	SpawnAgentStatus,
 	TodoItem,
 	ToolCall,
-	ToolExecution
+	ToolExecution,
+	UnifiedCitationReference
 } from '~/containers/LlamaAI/types'
 import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
@@ -59,7 +59,8 @@ export interface StreamState {
 	alerts: AlertProposedData[]
 	dashboards: DashboardArtifact[]
 	generatedImages: GeneratedImage[]
-	citations: string[]
+	citations: UnifiedCitationReference[]
+	legacyUrlCitations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
 	activeToolCalls: ToolCall[]
@@ -76,7 +77,6 @@ export interface StreamState {
 	rateLimitDetails: RateLimitDetails | null
 	contextWarning: ContextWarningPayload | null
 	factCheckPhase: 'drafting' | 'verifying' | 'finalizing' | null
-	factCheckReferences: FactCheckReference[]
 }
 
 export interface StreamAccumulator {
@@ -87,7 +87,8 @@ export interface StreamAccumulator {
 	alerts: AlertProposedData[]
 	dashboards: DashboardArtifact[]
 	generatedImages: GeneratedImage[]
-	citations: string[]
+	citations: UnifiedCitationReference[]
+	legacyUrlCitations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
 	error: string | null
@@ -95,7 +96,6 @@ export interface StreamAccumulator {
 	spawnStarted: boolean
 	receivedEventCount: number
 	messageMetadata?: MessageMetadata
-	factCheckReferences: FactCheckReference[]
 }
 
 export type StreamBuffer = StreamAccumulator
@@ -131,7 +131,7 @@ export type StreamAction =
 	| { type: 'RESET_RECOVERY' }
 	| { type: 'SET_CONTEXT_WARNING'; value: ContextWarningPayload | null }
 	| { type: 'SET_FACT_CHECK_PHASE'; value: 'drafting' | 'verifying' | 'finalizing' | null }
-	| { type: 'SET_FACT_CHECK_REFERENCES'; references: FactCheckReference[] }
+	| { type: 'SET_CITATIONS'; citations: UnifiedCitationReference[]; text?: string }
 
 // Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
@@ -144,7 +144,8 @@ const createEmptyRuntimeState = () => ({
 	alerts: [] as AlertProposedData[],
 	dashboards: [] as DashboardArtifact[],
 	generatedImages: [] as GeneratedImage[],
-	citations: [] as string[],
+	citations: [] as UnifiedCitationReference[],
+	legacyUrlCitations: [] as string[],
 	toolExecutions: [] as ToolExecution[],
 	thinking: '',
 	activeToolCalls: [] as ToolCall[],
@@ -160,8 +161,7 @@ const createEmptyRuntimeState = () => ({
 		attemptCount: 0,
 		lastErrorMessage: null
 	} as RecoveryState,
-	factCheckPhase: null as 'drafting' | 'verifying' | 'finalizing' | null,
-	factCheckReferences: [] as FactCheckReference[]
+	factCheckPhase: null as 'drafting' | 'verifying' | 'finalizing' | null
 })
 
 // Full stream state starts from the empty runtime snapshot plus error/retry metadata.
@@ -184,13 +184,13 @@ export const createStreamAccumulator = (): StreamAccumulator => ({
 	dashboards: [],
 	generatedImages: [],
 	citations: [],
+	legacyUrlCitations: [],
 	toolExecutions: [],
 	thinking: '',
 	error: null,
 	hasStartedText: false,
 	spawnStarted: false,
-	receivedEventCount: 0,
-	factCheckReferences: []
+	receivedEventCount: 0
 })
 
 export const createStreamBuffer = createStreamAccumulator
@@ -205,7 +205,7 @@ export function hasStreamBufferContent(buffer: StreamBuffer) {
 		buffer.dashboards.length > 0 ||
 		buffer.generatedImages.length > 0 ||
 		buffer.citations.length > 0 ||
-		buffer.factCheckReferences.length > 0 ||
+		buffer.legacyUrlCitations.length > 0 ||
 		buffer.toolExecutions.length > 0 ||
 		buffer.thinking
 	)
@@ -263,7 +263,7 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 		case 'APPEND_GENERATED_IMAGES':
 			return { ...state, generatedImages: [...state.generatedImages, ...action.value] }
 		case 'MERGE_CITATIONS':
-			return { ...state, citations: [...new Set([...state.citations, ...action.value])] }
+			return { ...state, legacyUrlCitations: [...new Set([...state.legacyUrlCitations, ...action.value])] }
 		case 'APPEND_TOOL_EXECUTION':
 			return { ...state, toolExecutions: [...state.toolExecutions, action.value] }
 		case 'SET_MESSAGE_METADATA':
@@ -357,8 +357,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, contextWarning: action.value }
 		case 'SET_FACT_CHECK_PHASE':
 			return { ...state, factCheckPhase: action.value }
-		case 'SET_FACT_CHECK_REFERENCES':
-			return { ...state, factCheckReferences: action.references }
+		case 'SET_CITATIONS':
+			return { ...state, citations: action.citations, ...(action.text ? { text: action.text } : {}) }
 		default:
 			return state
 	}
@@ -378,7 +378,7 @@ export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string):
 		dashboards: nonEmpty(buffer.dashboards),
 		generatedImages: nonEmpty(buffer.generatedImages),
 		citations: nonEmpty(buffer.citations),
-		factCheckReferences: nonEmpty(buffer.factCheckReferences),
+		legacyUrlCitations: nonEmpty(buffer.legacyUrlCitations),
 		toolExecutions: nonEmpty(buffer.toolExecutions),
 		thinking: buffer.thinking || undefined,
 		messageMetadata: buffer.messageMetadata,

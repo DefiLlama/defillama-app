@@ -245,8 +245,8 @@ export interface Message {
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: ChartDataByKey }>
 	csvExports?: CsvExport[]
 	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
-	citations?: string[]
-	factCheckReferences?: FactCheckReference[]
+	citations?: UnifiedCitationReference[]
+	legacyUrlCitations?: string[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
@@ -334,6 +334,44 @@ export interface FactCheckReference {
 	asOf?: string
 	evidence?: string[]
 	sourceType?: string
+}
+
+export interface UnifiedCitationReference {
+	id: number
+	handle?: string
+	sourceType: 'data' | 'computed' | 'web' | 'x' | 'tool' | 'file' | (string & {})
+	label: string
+	value?: string
+	formula?: string
+	asOf?: string
+	resultId?: string
+	sql?: string[]
+	code?: string[]
+	rows?: Array<Record<string, unknown>>
+	rowCount?: number
+	columns?: string[]
+	field?: string
+	rowIndex?: number
+	url?: string
+	toolName?: string
+	toolArgs?: Record<string, unknown>
+	resultText?: string
+	outputs?: Array<{ key: string; value: string }>
+	fileName?: string
+	fileUrl?: string
+	locator?: string
+	excerpt?: string
+	sources?: UnifiedCitationReference[]
+	verification?: {
+		claimType: 'quantitative' | 'qualitative'
+		grounded: boolean
+		valueMatch?: 'match' | 'mismatch' | 'unverified'
+		delta?: number
+	}
+	detail?: string
+	checked?: string
+	evidence?: string[]
+	rows_omitted?: boolean
 }
 
 export interface FactCheckedUsage {

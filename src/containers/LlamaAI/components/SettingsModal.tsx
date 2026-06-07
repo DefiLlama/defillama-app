@@ -217,6 +217,11 @@ export const SettingsModal = memo(function SettingsModal({
 		void actions.setEnterToSend(!settings.enterToSend)
 	}, [actions, settings.enterToSend])
 
+	const handleAdvancedProvenanceToggle = useCallback(() => {
+		trackUmamiEvent('llamaai-advanced-provenance-toggle')
+		void actions.setAdvancedProvenance(!settings.advancedProvenance)
+	}, [actions, settings.advancedProvenance])
+
 	const [spendCapDraft, setSpendCapDraft] = useState<string>(() => settings.spendCapPerMessage.toFixed(2))
 	const lastCommittedSpendCapRef = useRef<number>(settings.spendCapPerMessage)
 
@@ -456,6 +461,13 @@ export const SettingsModal = memo(function SettingsModal({
 											}
 											checked={settings.enterToSend}
 											onClick={handleEnterToSendToggle}
+										/>
+										<RowDivider />
+										<ToggleRow
+											label="Advanced provenance details"
+											description="Show the raw query behind a citation by default when you open its sources."
+											checked={settings.advancedProvenance}
+											onClick={handleAdvancedProvenanceToggle}
 										/>
 										{notifSupported ? (
 											<>

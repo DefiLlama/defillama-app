@@ -11,11 +11,11 @@ import type {
 	ChartConfiguration,
 	ChartDataByKey,
 	DashboardArtifact,
-	FactCheckReference,
 	GeneratedImage,
 	MessageMetadata,
 	TodoItem,
-	ToolExecution
+	ToolExecution,
+	UnifiedCitationReference
 } from '~/containers/LlamaAI/types'
 import { normalizeAlertProposedData } from '~/containers/LlamaAI/utils/restoredAlerts'
 import { getErrorMessage } from '~/utils/error'
@@ -55,7 +55,7 @@ export interface AgenticSSECallbacks {
 	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
 	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
-	onFactCheckCitations?: (sources: FactCheckReference[]) => void
+	onFactCheckCitations?: (refs: UnifiedCitationReference[], finalizedText?: string) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onMdExport?: (exports: MdExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
@@ -163,8 +163,9 @@ interface FactCheckStatusEvent {
 
 interface FactCheckCitationsEvent {
 	type: 'fact_check_citations'
-	citations?: FactCheckReference[]
-	sources?: FactCheckReference[]
+	citations?: UnifiedCitationReference[]
+	sources?: UnifiedCitationReference[]
+	response?: string
 	sessionId: string
 }
 
@@ -464,7 +465,10 @@ export function parseSSEStream(
 					callbacks.onFactCheckStatus?.(data.status)
 					break
 				case 'fact_check_citations':
-					callbacks.onFactCheckCitations?.(data.sources || data.citations || [])
+					callbacks.onFactCheckCitations?.(
+						data.sources || data.citations || [],
+						typeof data.response === 'string' ? data.response : undefined
+					)
 					break
 				case 'title':
 					if (typeof data.content === 'string') callbacks.onTitle?.(data.content)

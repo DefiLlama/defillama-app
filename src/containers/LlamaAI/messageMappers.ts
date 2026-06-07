@@ -7,7 +7,8 @@ import type {
 	FactCheckReference,
 	Message,
 	TodoItem,
-	ToolExecution
+	ToolExecution,
+	UnifiedCitationReference
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts, type RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
 import { normalizeChartConfigs, normalizeChartDataByKey, normalizeDashboardItems } from './chartPayloads'
@@ -32,6 +33,7 @@ export interface PersistedMessageMetadata extends RestoredAlertMetadata {
 	factCheck?: {
 		references?: unknown[]
 	}
+	citations?: { schemaVersion?: number; citations?: unknown[] }
 }
 
 export interface PersistedMessage {
@@ -184,15 +186,45 @@ function buildRestoredDashboard(message: PersistedMessage, index?: number): Dash
 	return artifact
 }
 
+function normalizeLegacyFactCheckRefs(refs: unknown): UnifiedCitationReference[] {
+	if (!Array.isArray(refs)) return []
+	return refs
+		.filter((r): r is FactCheckReference => !!r && typeof r === 'object')
+		.map((r, i) => ({
+			...r,
+			id: typeof r.id === 'number' ? r.id : i + 1,
+			sourceType: r.sourceType ?? (r.url ? 'web' : 'data'),
+			label: r.label ?? 'Source'
+		}))
+		.filter((r) => r.label !== '')
+}
+
+function resolveCitationFields(metadata: PersistedMessageMetadata | undefined, urlCitations: string[] | undefined) {
+	const envelopeCitations =
+		Array.isArray(metadata?.citations?.citations) && metadata.citations.citations.length > 0
+			? (metadata.citations.citations as UnifiedCitationReference[])
+			: undefined
+	const legacyFactCheck =
+		!envelopeCitations && Array.isArray(metadata?.factCheck?.references) && metadata.factCheck.references.length > 0
+			? normalizeLegacyFactCheckRefs(metadata.factCheck.references)
+			: undefined
+	const citations = envelopeCitations ?? (legacyFactCheck && legacyFactCheck.length > 0 ? legacyFactCheck : undefined)
+	const legacyUrlCitations =
+		!citations && Array.isArray(urlCitations) && urlCitations.length > 0 ? urlCitations : undefined
+	return { citations, legacyUrlCitations }
+}
+
 export function mapPersistedMessage(message: PersistedMessage, index?: number): Message {
 	const restoredDashboard = buildRestoredDashboard(message, index)
 	const charts = normalizeChartConfigs(message.charts)
 	const chartData = normalizeChartDataByKey(message.chartData, charts)
+	const { citations, legacyUrlCitations } = resolveCitationFields(message.metadata, message.citations)
 	return {
 		role: message.role,
 		content: message.content,
 		charts: charts.length > 0 && hasChartData(chartData) ? [{ charts, chartData }] : undefined,
-		citations: message.citations,
+		citations,
+		legacyUrlCitations,
 		csvExports: message.csvExports,
 		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		dashboards: restoredDashboard ? [restoredDashboard] : undefined,
@@ -208,9 +240,6 @@ export function mapPersistedMessage(message: PersistedMessage, index?: number): 
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
-		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
-			? (message.metadata.factCheck.references as FactCheckReference[])
-			: undefined,
 		messageMetadata: message.messageMetadata,
 		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
 		parentId: message.parentId,
@@ -235,13 +264,15 @@ export function normalizeSharedChartDataByChartId(
 export function mapSharedSessionMessage(message: SharedSessionMessage, index?: number): Message {
 	const charts = normalizeChartConfigs(message.charts)
 	const chartData = normalizeSharedChartDataByChartId(charts, message.chartData)
+	const { citations, legacyUrlCitations } = resolveCitationFields(message.metadata, message.citations)
 	return {
 		role: message.role,
 		content: message.content || undefined,
 		charts: charts.length > 0 && chartData && hasChartData(chartData) ? [{ charts, chartData }] : undefined,
 		csvExports: message.csvExports,
 		mdExports: message.mdExports ?? message.metadata?.mdExports,
-		citations: message.citations,
+		citations,
+		legacyUrlCitations,
 		alerts: buildRestoredAlerts({
 			content: message.content,
 			messageId: message.messageId,
@@ -254,9 +285,6 @@ export function mapSharedSessionMessage(message: SharedSessionMessage, index?: n
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.quotedText ?? message.metadata?.quotedText,
-		factCheckReferences: Array.isArray(message.metadata?.factCheck?.references)
-			? (message.metadata.factCheck.references as FactCheckReference[])
-			: undefined,
 		id: message.messageId ?? (index != null ? `shared-${index}` : undefined),
 		timestamp: mapPersistedTimestamp(message.timestamp)
 	}

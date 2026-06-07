@@ -9,7 +9,7 @@ import { Icon } from '~/components/Icon'
 import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
 import type { ArticleEntityType } from '~/containers/Articles/types'
 import { CitationPill } from '~/containers/LlamaAI/components/messages/CitationPill'
-import type { FactCheckReference } from '~/containers/LlamaAI/types'
+import type { UnifiedCitationReference } from '~/containers/LlamaAI/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import {
 	allowLlamaAIExternalHostname,
@@ -20,8 +20,8 @@ import {
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
-	processCitationMarkers,
-	processFactCheckCitations
+	processUnifiedCitations,
+	wrapLegacyUrlCitations
 } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
@@ -98,7 +98,6 @@ type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
 type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
-type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
 
 const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
 	protocol: 'protocol',
@@ -400,21 +399,6 @@ function CodeBlock({ children, node: _node, className, ...props }: MarkdownPrePr
 	)
 }
 
-function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
-	const className =
-		'mx-px inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline hover:border-[rgba(31,103,210,0.35)] hover:bg-[rgba(31,103,210,0.15)]'
-
-	if (!href) {
-		return <span className={className}>{children}</span>
-	}
-
-	return (
-		<a href={href} target="_blank" rel="noopener noreferrer" className={className}>
-			{children}
-		</a>
-	)
-}
-
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
 	const sourceEntries = useMemo(() => {
 		const seen = new Map<string, number>()
@@ -477,15 +461,17 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 export function ChatMarkdownRenderer({
 	content,
 	citations,
-	factCheckReferences,
+	legacyUrlCitations,
+	advancedProvenance,
 	isStreaming = false,
 	hackerMode = false,
 	onTableFullscreenOpen,
 	messageId
 }: {
 	content: string
-	citations?: string[]
-	factCheckReferences?: FactCheckReference[]
+	citations?: UnifiedCitationReference[]
+	legacyUrlCitations?: string[]
+	advancedProvenance?: boolean
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
@@ -501,15 +487,18 @@ export function ChatMarkdownRenderer({
 		() => parseLlamaAIExternalAllowlistSnapshot(externalAllowlistSnapshot),
 		[externalAllowlistSnapshot]
 	)
+	const renderCitationRefs: UnifiedCitationReference[] | undefined = useMemo(() => {
+		if (citations && citations.length > 0) return citations
+		if (legacyUrlCitations && legacyUrlCitations.length > 0) return wrapLegacyUrlCitations(legacyUrlCitations)
+		if (legacyUrlCitations && legacyUrlCitations.length === 0) return []
+		return undefined
+	}, [citations, legacyUrlCitations])
+
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
-		const factCheckProcessed =
-			factCheckReferences && factCheckReferences.length > 0
-				? processFactCheckCitations(content, factCheckReferences)
-				: content
-		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(factCheckProcessed, citations))
+		const processedContent = escapeBareOrderedListMarkers(processUnifiedCitations(content, renderCitationRefs))
 		return { content: processedContent, linkMap }
-	}, [content, citations, factCheckReferences])
+	}, [content, renderCitationRefs])
 
 	const resolveHeadingId = createHeadingIdFactory(messageId)
 	const markdownComponents: Components = {
@@ -580,21 +569,13 @@ export function ChatMarkdownRenderer({
 		pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
 	}
 
-	;(markdownComponents as Record<string, any>)['citation-badge'] = ({
-		node: _node,
-		children,
-		...props
-	}: CitationBadgeProps) => (
-		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
-	)
-
 	;(markdownComponents as Record<string, any>)['fact-check-pill'] = (props: Record<string, any>) => {
-		if (!factCheckReferences) return null
-		const raw = props['data-ref'] ?? props.dataRef
+		if (!renderCitationRefs || renderCitationRefs.length === 0) return null
+		const raw = props.dataRef ?? props['data-ref']
 		const numericId = Number(raw)
-		const ref = factCheckReferences.find((r) => r.id === numericId)
+		const ref = renderCitationRefs.find((r) => r.id === numericId)
 		if (!ref) return <span>[{raw}]</span>
-		return <CitationPill reference={ref} />
+		return <CitationPill reference={ref} advancedProvenance={advancedProvenance} />
 	}
 
 	if (!processedData.content.trim()) {

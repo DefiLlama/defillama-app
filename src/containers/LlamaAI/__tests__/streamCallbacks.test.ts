@@ -45,7 +45,8 @@ describe('createAgenticCallbacks', () => {
 		callbacks.onDone()
 
 		expect(buffer.text).toBe('hello')
-		expect(buffer.citations).toEqual(['https://example.com'])
+		expect(buffer.legacyUrlCitations).toEqual(['https://example.com'])
+		expect(buffer.citations).toEqual([])
 		expect(dispatch).toHaveBeenCalledWith({ type: 'CLEAR_ACTIVITY' })
 		expect(dispatch).toHaveBeenCalledWith({ type: 'APPEND_TOKEN', value: '[REPORT_START]hello' })
 		expect(dispatch).toHaveBeenCalledWith({ type: 'COMMIT_STREAM' })
@@ -58,6 +59,39 @@ describe('createAgenticCallbacks', () => {
 		)
 		expect(currentMessageIdRef.current).toBeNull()
 		expect(notify).toHaveBeenCalledOnce()
+	})
+
+	it('writes unified fact-check refs into buffer.citations without altering text', () => {
+		const { buffer, callbacks, dispatch } = setupCallbacks()
+
+		callbacks.onToken('plain prose')
+		callbacks.onFactCheckCitations?.([{ id: 1, sourceType: 'data', label: 'DefiLlama warehouse' }])
+
+		expect(buffer.text).toBe('plain prose')
+		expect(buffer.citations).toEqual([{ id: 1, sourceType: 'data', label: 'DefiLlama warehouse' }])
+		expect(buffer.legacyUrlCitations).toEqual([])
+		expect(dispatch).toHaveBeenCalledWith({
+			type: 'SET_CITATIONS',
+			citations: [{ id: 1, sourceType: 'data', label: 'DefiLlama warehouse' }]
+		})
+	})
+
+	it('swaps buffer text to finalized [n] string when response is present', () => {
+		const { buffer, callbacks, dispatch } = setupCallbacks()
+
+		callbacks.onToken('plain prose')
+		callbacks.onFactCheckCitations?.(
+			[{ id: 1, sourceType: 'data', label: 'DefiLlama warehouse' }],
+			'finalized prose [1]'
+		)
+
+		expect(buffer.text).toBe('finalized prose [1]')
+		expect(buffer.citations).toEqual([{ id: 1, sourceType: 'data', label: 'DefiLlama warehouse' }])
+		expect(dispatch).toHaveBeenCalledWith({
+			type: 'SET_CITATIONS',
+			citations: [{ id: 1, sourceType: 'data', label: 'DefiLlama warehouse' }],
+			text: 'finalized prose [1]'
+		})
 	})
 
 	it('defers empty done events when requested', () => {
