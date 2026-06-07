@@ -22,7 +22,7 @@ function getSafeSlackAuthorizeUrl(value: string): string | null {
 		const url = new URL(value)
 		if (url.protocol !== 'https:') return null
 		if (url.hostname.toLowerCase() !== 'slack.com') return null
-		if (!url.pathname.startsWith('/oauth/v2/authorize')) return null
+		if (url.pathname !== '/oauth/v2/authorize') return null
 		return url.toString()
 	} catch {
 		return null
@@ -96,7 +96,15 @@ export function useSlackIntegrationLink(opts: Options = {}) {
 			})
 			if (typeof window !== 'undefined') {
 				const safeUrl = getSafeSlackAuthorizeUrl(result.authorizeUrl)
-				if (safeUrl) window.location.href = safeUrl
+				if (safeUrl) {
+					window.location.href = safeUrl
+				} else {
+					queryClient.setQueryData<SlackStatus>(statusQueryKey, {
+						links: previous?.links ?? [],
+						pending: null
+					})
+					throw new Error('Invalid Slack authorize URL returned from server')
+				}
 			}
 		}
 	})
