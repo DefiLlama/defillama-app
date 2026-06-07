@@ -127,6 +127,7 @@ interface TotalsByPeriod {
 	total7d?: number | null
 	total30d?: number | null
 	total1y?: number | null
+	annualized1y?: number | null
 	totalAllTime?: number | null
 }
 
@@ -159,11 +160,16 @@ export const getAdjustedTotals = (
 	const t1y = extraTvlsEnabled.tokentax ? tokenTax?.total1y : null
 	const hasTotal1y = base?.total1y != null || b1y != null || t1y != null
 
+	const bAnnualized = extraTvlsEnabled.bribes ? bribeRevenue?.annualized1y : null
+	const tAnnualized = extraTvlsEnabled.tokentax ? tokenTax?.annualized1y : null
+	const hasAnnualized1y = base?.annualized1y != null || bAnnualized != null || tAnnualized != null
+
 	return {
 		total24h: (base?.total24h ?? 0) + (b24h ?? 0) + (t24h ?? 0),
 		total7d: (base?.total7d ?? 0) + (b7d ?? 0) + (t7d ?? 0),
 		total30d: (base?.total30d ?? 0) + (b30d ?? 0) + (t30d ?? 0),
 		total1y: hasTotal1y ? (base?.total1y ?? 0) + (b1y ?? 0) + (t1y ?? 0) : null,
+		annualized1y: hasAnnualized1y ? (base?.annualized1y ?? 0) + (bAnnualized ?? 0) + (tAnnualized ?? 0) : null,
 		totalAllTime: (base?.totalAllTime ?? 0) + (bAll ?? 0) + (tAll ?? 0)
 	}
 }

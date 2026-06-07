@@ -46,6 +46,7 @@ interface IAdapterOverview {
 	total7d: number | null
 	total30d: number | null
 	total1y: number | null
+	annualized1y: number | null
 	totalAllTime: number | null
 	methodology?: string | null
 	methodologyURL?: string | null

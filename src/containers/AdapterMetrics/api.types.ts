@@ -11,6 +11,7 @@ export interface IAdapterProtocolMetrics {
 	total60dto30d: number
 	total30d: number
 	total1y?: number
+	annualized1y?: number | null
 	change_1d: number
 	change_7d: number
 	change_1m: number

@@ -97,6 +97,7 @@ describe('KeyMetrics', () => {
 				total7d: 70,
 				total30d: 300,
 				total1y: 3500,
+				annualized1y: 3500,
 				totalAllTime: 1500,
 				chainBreakdown: {
 					Ethereum: {
@@ -123,7 +124,7 @@ describe('KeyMetrics', () => {
 		expect(markup.indexOf('Base')).toBeLessThan(markup.indexOf('Ethereum'))
 	})
 
-	it('uses trailing 12-month fees for annualized metrics when available', async () => {
+	it('uses the annualized1y fees value for annualized metrics when available', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
 			fees: {
@@ -131,6 +132,7 @@ describe('KeyMetrics', () => {
 				total7d: null,
 				total30d: 100,
 				total1y: 3500,
+				annualized1y: 3500,
 				totalAllTime: null,
 				chainBreakdown: null
 			}
@@ -141,7 +143,7 @@ describe('KeyMetrics', () => {
 		expect(markup).not.toContain('$1220')
 	})
 
-	it('falls back to 30d annualized fees when trailing 12-month fees are missing', async () => {
+	it('falls back to 30d annualized fees when annualized1y fees are missing', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
 			fees: {
@@ -149,6 +151,7 @@ describe('KeyMetrics', () => {
 				total7d: null,
 				total30d: 100,
 				total1y: null,
+				annualized1y: null,
 				totalAllTime: null,
 				chainBreakdown: null
 			}
@@ -158,7 +161,7 @@ describe('KeyMetrics', () => {
 		expect(markup).toContain('$1220')
 	})
 
-	it('uses trailing 12-month revenue and incentives for annualized earnings when both are available', async () => {
+	it('uses annualized1y revenue and trailing 12-month incentives for annualized earnings when both are available', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
 			revenue: {
@@ -166,6 +169,7 @@ describe('KeyMetrics', () => {
 				total7d: null,
 				total30d: 400,
 				total1y: 5000,
+				annualized1y: 5000,
 				totalAllTime: null,
 				chainBreakdown: null
 			},
