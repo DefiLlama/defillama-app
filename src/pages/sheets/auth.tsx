@@ -9,6 +9,7 @@ import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+import { safeInternalPath } from '~/utils/routerQuery'
 
 const SignInFlow = dynamic<{ dialogStore: Ariakit.DialogStore }>(
 	() => import('~/containers/Subscription/SignInDialog').then((mod) => mod.SignInFlow),
@@ -28,7 +29,7 @@ export default function AuthPage() {
 function AuthContent() {
 	const router = useRouter()
 	const { isAuthenticated, logout, user } = useAuthContext()
-	const redirectUrl = router.query.redirect_uri
+	const redirectUrl = safeInternalPath(router.query.redirect_uri)
 
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 
@@ -38,7 +39,7 @@ function AuthContent() {
 			// google sheets auth, requiring redirect url
 			if (redirectUrl) {
 				void router.push({
-					pathname: redirectUrl as string,
+					pathname: redirectUrl,
 					query: {
 						...router.query,
 						subscription_id: subscription?.id || '',
@@ -49,6 +50,11 @@ function AuthContent() {
 				})
 			} else if (window.opener) {
 				// ms excel auth, we open auth page with `window.open` and send back the sub data to parent window
+				// use document.referrer as target origin when available, fall back to same origin
+				const targetOrigin =
+					document.referrer && URL.canParse(document.referrer)
+						? new URL(document.referrer).origin
+						: window.location.origin
 				window.opener.postMessage(
 					{
 						subscription_id: subscription?.id || '',
@@ -56,7 +62,7 @@ function AuthContent() {
 						expires_at: subscription?.expires_at || '',
 						provider: subscription?.provider || ''
 					},
-					'*'
+					targetOrigin
 				)
 
 				window.close()
