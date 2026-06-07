@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
 		bribes: false,
 		tokentax: false
 	},
+	chartProps: [] as Array<Record<string, unknown>>,
 	tableData: [] as Array<Array<Record<string, unknown>>>
 }))
 
@@ -27,7 +28,10 @@ vi.mock('~/components/Table/Table', () => ({
 }))
 
 vi.mock('../ChainChart', () => ({
-	ChainsByAdapterChart: () => null
+	ChainsByAdapterChart: (props: Record<string, unknown>) => {
+		mocks.chartProps.push(props)
+		return null
+	}
 }))
 
 import { ChainsByAdapter } from '../ChainsByAdapter'
@@ -63,6 +67,8 @@ function renderRows({
 	dataType: `${ADAPTER_DATA_TYPES}`
 	chains: IChainsByAdapterPageData['chains']
 }) {
+	const tableRenderIndex = mocks.tableData.length
+
 	renderToStaticMarkup(
 		<ChainsByAdapter
 			type={type}
@@ -74,14 +80,15 @@ function renderRows({
 		/>
 	)
 
-	expect(mocks.tableData).toHaveLength(1)
-	return mocks.tableData[0]
+	expect(mocks.tableData).toHaveLength(tableRenderIndex + 1)
+	return mocks.tableData[tableRenderIndex]
 }
 
 describe('ChainsByAdapter fee extras', () => {
 	beforeEach(() => {
 		mocks.feesSettings.bribes = false
 		mocks.feesSettings.tokentax = false
+		mocks.chartProps = []
 		mocks.tableData = []
 	})
 
@@ -137,5 +144,50 @@ describe('ChainsByAdapter fee extras', () => {
 			total7d: 700,
 			total30d: 3000
 		})
+	})
+
+	it('shows chart panels on app fee and holders revenue chain ranking pages', () => {
+		renderRows({
+			type: 'App Fees',
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chains: [feeExtrasChain]
+		})
+		renderRows({
+			type: 'Holders Revenue',
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE,
+			chains: [feeExtrasChain]
+		})
+
+		expect(mocks.chartProps.map((props) => props.chartName)).toEqual(['App Fees', 'Holders Revenue'])
+	})
+
+	it('hides chart panels on chain-native fee and revenue ranking pages', () => {
+		renderRows({
+			type: 'Fees',
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			chains: [feeExtrasChain]
+		})
+		renderRows({
+			type: 'Revenue',
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_REVENUE,
+			chains: [feeExtrasChain]
+		})
+
+		expect(mocks.chartProps).toEqual([])
+	})
+
+	it('keeps chart panels visible for non-fee chain ranking pages', () => {
+		renderRows({
+			type: 'DEX Volume',
+			adapterType: ADAPTER_TYPES.DEXS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chains: [feeExtrasChain]
+		})
+
+		expect(mocks.chartProps.map((props) => props.chartName)).toEqual(['DEX Volume'])
 	})
 })
