@@ -50,11 +50,6 @@ function AuthContent() {
 				})
 			} else if (window.opener) {
 				// ms excel auth, we open auth page with `window.open` and send back the sub data to parent window
-				// use document.referrer as target origin when available, fall back to same origin
-				const targetOrigin =
-					document.referrer && URL.canParse(document.referrer)
-						? new URL(document.referrer).origin
-						: window.location.origin
 				window.opener.postMessage(
 					{
 						subscription_id: subscription?.id || '',
@@ -62,7 +57,7 @@ function AuthContent() {
 						expires_at: subscription?.expires_at || '',
 						provider: subscription?.provider || ''
 					},
-					targetOrigin
+					window.location.origin
 				)
 
 				window.close()
