@@ -1,0 +1,141 @@
+import { renderToStaticMarkup } from 'react-dom/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../constants'
+import type { IChainsByAdapterPageData } from '../types'
+
+const mocks = vi.hoisted(() => ({
+	feesSettings: {
+		bribes: false,
+		tokentax: false
+	},
+	tableData: [] as Array<Array<Record<string, unknown>>>
+}))
+
+vi.mock('~/contexts/LocalStorage', () => ({
+	useLocalStorageSettingsManager: () => [mocks.feesSettings]
+}))
+
+vi.mock('~/components/ButtonStyled/CsvButton', () => ({
+	CSVDownloadButton: () => null
+}))
+
+vi.mock('~/components/Table/Table', () => ({
+	VirtualTable: ({ instance }: { instance: { options: { data: Array<Record<string, unknown>> } } }) => {
+		mocks.tableData.push(instance.options.data)
+		return null
+	}
+}))
+
+vi.mock('../ChainChart', () => ({
+	ChainsByAdapterChart: () => null
+}))
+
+import { ChainsByAdapter } from '../ChainsByAdapter'
+
+type PageType = Parameters<typeof ChainsByAdapter>[0]['type']
+
+const feeExtrasChain = {
+	name: 'Base',
+	logo: '/icons/base.png',
+	total24h: 100,
+	total7d: 700,
+	total30d: 3000,
+	bribes: {
+		total24h: 20,
+		total7d: 140,
+		total30d: 600
+	},
+	tokenTax: {
+		total24h: 3,
+		total7d: 21,
+		total30d: 30
+	}
+}
+
+function renderRows({
+	type,
+	adapterType,
+	dataType,
+	chains
+}: {
+	type: PageType
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+	chains: IChainsByAdapterPageData['chains']
+}) {
+	renderToStaticMarkup(
+		<ChainsByAdapter
+			type={type}
+			adapterType={adapterType}
+			dataType={dataType}
+			chartData={{ dimensions: ['timestamp'], source: [] }}
+			chains={chains}
+			allChains={chains.map((chain) => chain.name)}
+		/>
+	)
+
+	expect(mocks.tableData).toHaveLength(1)
+	return mocks.tableData[0]
+}
+
+describe('ChainsByAdapter fee extras', () => {
+	beforeEach(() => {
+		mocks.feesSettings.bribes = false
+		mocks.feesSettings.tokentax = false
+		mocks.tableData = []
+	})
+
+	it('keeps app fee chain totals unchanged when fee extras are disabled', () => {
+		const rows = renderRows({
+			type: 'App Fees',
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chains: [feeExtrasChain]
+		})
+
+		expect(rows[0]).toMatchObject({
+			name: 'Base',
+			total24h: 100,
+			total7d: 700,
+			total30d: 3000
+		})
+	})
+
+	it('adds enabled bribes and token tax into app fee chain table totals', () => {
+		mocks.feesSettings.bribes = true
+		mocks.feesSettings.tokentax = true
+
+		const rows = renderRows({
+			type: 'App Fees',
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chains: [feeExtrasChain]
+		})
+
+		expect(rows[0]).toMatchObject({
+			name: 'Base',
+			total24h: 123,
+			total7d: 700,
+			total30d: 3630
+		})
+	})
+
+	it('does not add fee extras into non-fee adapter chain table totals', () => {
+		mocks.feesSettings.bribes = true
+		mocks.feesSettings.tokentax = true
+
+		const rows = renderRows({
+			type: 'DEX Volume',
+			adapterType: ADAPTER_TYPES.DEXS,
+			dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME,
+			chains: [feeExtrasChain]
+		})
+
+		expect(rows[0]).toMatchObject({
+			name: 'Base',
+			total24h: 100,
+			total7d: 700,
+			total30d: 3000
+		})
+	})
+})
