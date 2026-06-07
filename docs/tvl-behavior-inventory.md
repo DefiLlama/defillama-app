@@ -1,0 +1,79 @@
+# TVL Behavior Inventory
+
+This inventory captures current TVL inclusion behavior before extracting shared TVL helpers or adding broader abstractions.
+
+Do not treat shared toggle names as proof that two routes use the same model. Current code has at least four distinct TVL behaviors: adjusted chain base TVL, chain chart add-back, protocol table add-back with `strikeTvl`, and protocol overview chart composition.
+
+## Toggle Terms
+
+Shared TVL setting keys live in `src/contexts/LocalStorage.tsx`:
+
+- `staking`
+- `pool2`
+- `borrowed`
+- `doublecounted`
+- `liquidstaking`
+- `vesting`
+- `govtokens`
+
+Related but separate keys:
+
+- `dcAndLsOverlap` is not a setting key. It is fetched or carried as an overlap adjustment when both `doublecounted` and `liquidstaking` are enabled.
+- `excludeParent` and `excludeparent` are table/read-model fields, not TVL toggles.
+- `offers` appears in some upstream TVL maps and is filtered out in protocol/category paths.
+
+Relevant local storage namespaces:
+
+- `tvl`: main TVL toggle settings used by chains, protocol ranking/list surfaces, taxonomy pages, oracles, forks, compare pages, and watchlist.
+- `tvl_fees`: protocol overview surfaces where TVL extras and fee extras share a filter set.
+- `tvl_chains`: chain grouping controls, not TVL inclusion settings.
+
+## Behavior Models
+
+| Area | Route family | Source files | Base model | Extra model | Overlap handling | Existing tests | Share decision |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Shared adjusted TVL utilities | Server/pro dashboard adjusted TVL consumers | `src/utils/tvl.ts`, `src/server/protocolSplit/*`, `src/containers/ProDashboard/services/*` | Adjusted base is `base - doublecounted - liquidstaking + dcAndLsOverlap`. Protocol helper ignores `staking`, `pool2`, `borrowed`, and `vesting` while accumulating base. | Not a UI toggle model; it derives adjusted chart series. | Always adds overlap back as part of adjusted-base calculation. | No focused tests for `processAdjustedTvl` or `processAdjustedProtocolTvl` found. | Could be tested directly. Do not merge with table or chart toggle models. |
+| Chain directory/category pages | `/chains`, `/chains/[category]` | `src/containers/ChainsByCategory/queries.tsx`, `src/containers/ChainsByCategory/index.tsx`, `src/containers/ChainsByCategory/tvl.ts`, `src/pages/api/public/page-data/chains/charts.ts` | Server normalizes chain row base values with `normalizeChainsBaseTvlValue`, after stale extra-TVL cleanup. | Client applies selected extras with `applyChainsTvlSettings` to row values, dominance charts, and pie data. Chart API receives selected `extraTvlTypes`. | Subtracts `dcAndLsOverlap` when both `doublecounted` and `liquidstaking` are enabled. Stale overlap is removed unless both overlap parents remain. | `src/containers/ChainsByCategory/__tests__/tvl.test.ts` covers base adjustment, add-back, null behavior, and stale extra cleanup. | This is the clearest chain TVL model. Share only with other chain surfaces after chart behavior tests prove parity. |
+| Chain overview and compare-chain charts | `/chain/[chain]`, `/chart/chain/[chain]`, `/compare-chains` | `src/containers/ChainOverview/useFetchChainChartData.tsx`, `src/containers/CompareChains/index.tsx` | Starts from the provided chain `tvlChart`; when no extras are enabled, uses server summary values. | Adds enabled extra chart values into each base chart timestamp. | Subtracts `dcAndLsOverlap` when both `doublecounted` and `liquidstaking` are enabled. No stale-extra cleanup is performed locally in these chart functions. | `src/containers/ChainOverview/__tests__/chain-chart-page.test.tsx` only verifies extra chart props are passed through. | Similar to chain category add-back, but not proven identical because summary fallback, chart-only shape, and stale handling differ. Add focused chart tests before extracting. |
+| Protocol overview main TVL chart | `/protocol/[protocol]`, `/chart/protocol/[protocol]` | `src/containers/ProtocolOverview/useFetchProtocolChartData.ts`, `src/containers/ProtocolOverview/queries.client.tsx` | Starts from prefetched or fetched protocol base TVL chart. | Fetches enabled extra TVL charts only when the protocol exposes that current TVL key and the chart needs composite TVL. Adds enabled extra chart values into base chart data. | No explicit `dcAndLsOverlap` subtraction in `buildTvlChart`; it adds enabled extra charts that exist in `currentTvlByChain`. Latest base and extra timestamps can be aligned within one day. Denominated charts can drop points when price history is missing. | `src/containers/ProtocolOverview/__tests__/queries.client.test.tsx` covers query URLs. No focused composition tests for extra add-back, timestamp alignment, or denomination drop behavior. | Keep local to ProtocolOverview until composition is characterized. Do not share with chain chart helpers yet. |
+| Protocol overview key metrics and TVL-by-chain | `/protocol/[protocol]` summary cards | `src/containers/ProtocolOverview/helpers.ts`, `src/containers/ProtocolOverview/KeyMetrics.tsx` | Aggregates `currentTvlByChain` by chain; keys with known extra suffixes become toggleable extras. | Adds extra-suffixed chain values only when enabled in `tvl_fees`. Also exposes toggle options based on available TVL and fee extras. | No overlap-specific handling found in `useFinalTVL`. | Some `KeyMetrics` tests exist, but not focused on TVL extra aggregation. | Local protocol overview summary behavior. Do not merge with chart composition without tests. |
+| Recent and airdrop protocol lists | `/recent`, `/airdrops`, `/airdrop-directory` | `src/containers/ProtocolLists/RecentProtocols.tsx`, `src/containers/ProtocolLists/utils.ts` | Recalculates base TVL scoped to selected chains from protocol `chainTvls`. | `applyExtraTvl` adds enabled extras except `doublecounted` and `liquidstaking`; clamps negative values to zero; recalculates changes and `mcaptvl`. | Explicitly does not apply chain doublecounted/liquidstaking subtraction. | No local tests found. `ProtocolLists/README.md` lists this as a good first test target. | Table/list-specific. Add tests before refactoring. |
+| Shared protocol ranking table | `/protocols`, chain overview protocol rows, watchlist, compare protocols | `src/containers/ProtocolRankings/Table.tsx`, `src/containers/ProtocolLists/utils.ts`, `src/containers/ProtocolRankings/utils.ts`, `src/containers/DeFiWatchlist/index.tsx`, `src/containers/CompareProtocols/index.tsx` | Protocol rows carry a `tvl.default` entry plus keyed extra TVL entries. | `applyProtocolTvlSettings` adds enabled extras except `doublecounted` and `liquidstaking`, handles child protocols, min/max filters, changes, and `mcaptvl`. | `toStrikeTvl` marks rows struck for removed categories or when row data exposes liquidstaking/doublecounted extra sections; `applyProtocolTvlSettings` clears existing `strikeTvl` when `doublecounted` or `liquidstaking` is enabled. | No direct local tests found for `applyProtocolTvlSettings` or `toStrikeTvl`. | High blast radius shared table behavior. Test before any extraction. |
+| Protocol taxonomy pages | `/protocols/[category]`, `/protocols/[category]/[chain]`, `/categories`, `/top-protocols` | `src/containers/ProtocolTaxonomy/index.tsx`, `src/containers/ProtocolTaxonomy/CategoriesPage.tsx`, `src/containers/ProtocolTaxonomy/queries.tsx` | Server filters out `doublecounted`, `liquidstaking`, `dcAndLsOverlap`, `offers`, and chain-suffixed extras in several category read models. | Client adds enabled extra TVL values into protocol/category rows and chart series. Categories page excludes a configured subset through `categoriesPageExcludedExtraTvls`. | No chain-style overlap subtraction found in client add-back paths. | Existing category tests do not appear focused on TVL extras. | Route-family-specific taxonomy behavior. Do not merge with ProtocolRankings until tests identify shared invariants. |
+| Oracles | `/oracles*` | `src/containers/Oracles/tvl.ts`, `src/containers/Oracles/OracleOverview.tsx`, `src/containers/Oracles/queries.tsx`, `src/containers/Oracles/queries.client.tsx` | Starts from raw oracle TVS/TVL values. | Adds enabled extras to totals, table rows, and fetched extra chart series. | Requests `dcAndLsOverlap` when both `doublecounted` and `liquidstaking` are enabled and subtracts it when calculating totals. | No focused oracle TVL tests found. | Similar to forks, but names use TVS in places. Test locally before sharing. |
+| Forks | `/forks*` | `src/containers/Forks/tvl.ts`, `src/containers/Forks/ForksOverview.tsx`, `src/containers/Forks/queries.client.tsx` | Starts from raw fork TVL values. | Adds enabled extras to table/chart data. | Requests `dcAndLsOverlap` when both overlap parents are enabled and subtracts that series in overview/protocol chart helpers. | No focused fork TVL tests found. | Similar to oracles. A small local shared helper between Forks and Oracles may be reasonable after tests. |
+
+## Current Test Gaps
+
+Highest-value characterization tests before production refactors:
+
+1. `src/utils/tvl.ts`
+   - `processAdjustedTvl` subtracts doublecounted and liquidstaking and adds overlap.
+   - `processAdjustedProtocolTvl` ignores staking/pool2/borrowed/vesting, handles chain-scoped include/exclude, and filters today.
+
+2. `src/containers/ProtocolLists/utils.ts`
+   - `applyExtraTvl` adds selected non-doublecounted/non-liquidstaking extras.
+   - `applyExtraTvl` does not apply chain overlap subtraction.
+   - `applyExtraTvl` clamps negative values and recalculates percent changes and `mcaptvl`.
+   - `applyProtocolTvlSettings` clears `strikeTvl` when `doublecounted` or `liquidstaking` is enabled, handles child rows, and filters after extra application.
+
+3. `src/containers/ChainOverview/useFetchChainChartData.tsx`
+   - chain chart extra add-back matches current `tvlChartSummary` bypass when no extras are enabled.
+   - both overlap parents subtract `dcAndLsOverlap`.
+   - missing overlap series does not subtract anything.
+
+4. `src/containers/ProtocolOverview/useFetchProtocolChartData.ts`
+   - enabled extras fetch only when `currentTvlByChain` exposes the key and composite TVL is needed.
+   - latest timestamp alignment only applies within the one-day tolerance.
+   - denomination history drops points when price data is missing.
+
+5. `src/containers/Oracles/tvl.ts` and `src/containers/Forks/tvl.ts`
+   - enabled extra API keys include `dcAndLsOverlap` only when both `doublecounted` and `liquidstaking` are enabled.
+   - overlap is subtracted, not added, in totals/charts.
+
+## Extraction Guidance
+
+- Do not create `src/metrics/tvl.ts` from the current evidence. The repeated names are not yet stable cross-container invariants.
+- The safest first production target is not extraction; it is focused tests for `src/utils/tvl.ts` and `src/containers/ProtocolLists/utils.ts`.
+- If tests later prove parity, consider a chain-only helper for add-back plus overlap subtraction. Keep protocol overview timestamp alignment local.
+- If tests later prove Oracles and Forks are identical, consider a tiny local shared helper for enabled extra API keys and overlap sign handling. Do not pull chain/protocol table behavior into that helper.
