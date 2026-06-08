@@ -1,6 +1,6 @@
 import { Announcement } from '~/components/Announcement'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
-import { disclaimer, exploitWarning } from '~/containers/Yields/constants'
+import { disclaimer } from '~/containers/Yields/constants'
 import { getYieldPageData } from '~/containers/Yields/queries.server'
 import YieldPage from '~/containers/Yields/views/PoolsView'
 import Layout from '~/layout'
@@ -40,13 +40,6 @@ export default function ApyHomePage(data) {
 		>
 			<Announcement announcementId="yields-disclaimer" version="2026-03">
 				{disclaimer}
-			</Announcement>
-			<Announcement
-				announcementId="kelp-warning"
-				version="2026-04"
-				className="border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
-			>
-				{exploitWarning}
 			</Announcement>
 			<YieldPage {...data} />
 		</Layout>
