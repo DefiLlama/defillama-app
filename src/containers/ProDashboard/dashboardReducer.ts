@@ -53,10 +53,28 @@ const INITIAL_DASHBOARD_STATE: DashboardState = {
 	showIterateDashboardModal: false
 }
 
+function stateFromDashboard(dashboard: Dashboard): DashboardState {
+	return {
+		...INITIAL_DASHBOARD_STATE,
+		dashboardId: dashboard.id,
+		dashboardName: dashboard.data.dashboardName || 'My Dashboard',
+		items: dashboard.data.items,
+		timePeriod: dashboard.data.timePeriod || '365d',
+		customTimePeriod: dashboard.data.customTimePeriod || null,
+		currentDashboard: dashboard,
+		dashboardVisibility: dashboard.visibility || 'private',
+		dashboardTags: dashboard.tags || [],
+		dashboardDescription: dashboard.description || ''
+	}
+}
+
 export function initDashboardState(
-	arg?: string | { dashboardId?: string; items?: DashboardItemConfig[] }
+	arg?: string | { dashboardId?: string; items?: DashboardItemConfig[]; dashboard?: Dashboard | null }
 ): DashboardState {
 	if (typeof arg === 'object' && arg !== null) {
+		if (arg.dashboard?.data?.items && Array.isArray(arg.dashboard.data.items)) {
+			return stateFromDashboard(arg.dashboard)
+		}
 		return {
 			...INITIAL_DASHBOARD_STATE,
 			dashboardId: arg.dashboardId || null,
@@ -125,16 +143,9 @@ export function dashboardReducer(state: DashboardState, action: DashboardAction)
 				return state
 			}
 			return {
-				...state,
-				dashboardId: dashboard.id,
-				dashboardName: dashboard.data.dashboardName || 'My Dashboard',
-				items: dashboard.data.items,
-				timePeriod: dashboard.data.timePeriod || '365d',
-				customTimePeriod: dashboard.data.customTimePeriod || null,
-				currentDashboard: dashboard,
-				dashboardVisibility: dashboard.visibility || 'private',
-				dashboardTags: dashboard.tags || [],
-				dashboardDescription: dashboard.description || ''
+				...stateFromDashboard(dashboard),
+				showGenerateDashboardModal: state.showGenerateDashboardModal,
+				showIterateDashboardModal: state.showIterateDashboardModal
 			}
 		}
 

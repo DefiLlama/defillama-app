@@ -1,7 +1,9 @@
 import * as Ariakit from '@ariakit/react'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { FEATURES_SERVER } from '~/constants'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
@@ -11,13 +13,21 @@ import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashb
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import {
+	DISCOVERY_CATEGORIES,
+	type DiscoveryCategoryResponse,
+	type DiscoveryCategoriesInitialData
+} from '~/containers/ProDashboard/hooks/useDiscoveryCategories'
+import {
 	ProDashboardAPIProvider,
 	useProDashboardDashboard,
 	useProDashboardUI
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
+import type { Dashboard } from '~/containers/ProDashboard/services/DashboardAPI'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
 		default: m.CreateDashboardPicker
@@ -29,7 +39,108 @@ const GenerateDashboardModal = lazy(() =>
 	}))
 )
 
-function ProPageContent() {
+const PUBLIC_PRO_CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
+const PRIVATE_PRO_CACHE_CONTROL = 'private, no-cache, no-store, must-revalidate'
+const DISCOVERY_FETCH_TIMEOUT_MS = 3_000
+
+type ProPageProps = {
+	initialDiscoveryCategories: DiscoveryCategoriesInitialData
+}
+
+function compactDiscoveryDashboard(dashboard: Dashboard): Dashboard {
+	return {
+		id: dashboard.id,
+		visibility: dashboard.visibility,
+		tags: Array.isArray(dashboard.tags) ? dashboard.tags.filter((tag) => typeof tag === 'string' && tag.trim()) : [],
+		description: typeof dashboard.description === 'string' ? dashboard.description : '',
+		viewCount: dashboard.viewCount,
+		likeCount: dashboard.likeCount,
+		liked: dashboard.liked,
+		created: dashboard.created,
+		updated: dashboard.updated,
+		editedAt: dashboard.editedAt,
+		data: {
+			dashboardName: dashboard.data?.dashboardName || 'Untitled Dashboard',
+			items: (dashboard.data?.items ?? []).map((item: any, index) => ({
+				id: typeof item?.id === 'string' ? item.id : `item-${index}`,
+				kind: typeof item?.kind === 'string' ? item.kind : 'text'
+			})) as Dashboard['data']['items']
+		}
+	} as Dashboard
+}
+
+function compactDiscoveryResponse(response: DiscoveryCategoryResponse): DiscoveryCategoryResponse {
+	return {
+		...response,
+		items: response.items.map(compactDiscoveryDashboard)
+	}
+}
+
+function emptyDiscoveryResponse(category: (typeof DISCOVERY_CATEGORIES)[number]): DiscoveryCategoryResponse {
+	return {
+		items: [],
+		page: 1,
+		perPage: category.limit,
+		totalItems: 0,
+		totalPages: 0
+	}
+}
+
+async function fetchDiscoveryCategory(
+	category: (typeof DISCOVERY_CATEGORIES)[number]
+): Promise<DiscoveryCategoryResponse> {
+	const controller = new AbortController()
+	const timeout = setTimeout(() => controller.abort(), DISCOVERY_FETCH_TIMEOUT_MS)
+	const params = new URLSearchParams({
+		visibility: 'public',
+		sortBy: category.sortBy,
+		page: '1',
+		limit: String(category.limit)
+	})
+	if (category.timeFrame) params.set('timeFrame', category.timeFrame)
+
+	try {
+		const response = await fetch(`${FEATURES_SERVER}/dashboards/search?${params.toString()}`, {
+			signal: controller.signal
+		})
+		if (!response.ok) throw new Error(`features-server responded with ${response.status}`)
+		return compactDiscoveryResponse((await response.json()) as DiscoveryCategoryResponse)
+	} finally {
+		clearTimeout(timeout)
+	}
+}
+
+async function fetchInitialDiscoveryCategories(): Promise<DiscoveryCategoriesInitialData> {
+	const results = await Promise.allSettled(
+		DISCOVERY_CATEGORIES.map(async (category) => ({
+			key: category.key,
+			data: await fetchDiscoveryCategory(category).catch(() => emptyDiscoveryResponse(category))
+		}))
+	)
+	const categories: DiscoveryCategoriesInitialData = {}
+
+	for (const result of results) {
+		if (result.status === 'fulfilled') {
+			categories[result.value.key] = result.value.data
+		}
+	}
+
+	return categories
+}
+
+const getServerSidePropsHandler: GetServerSideProps<ProPageProps> = async ({ req, res }) => {
+	const authToken = getAuthTokenFromRequest(req)
+	res.setHeader('Cache-Control', authToken ? PRIVATE_PRO_CACHE_CONTROL : PUBLIC_PRO_CACHE_CONTROL)
+	res.setHeader('Vary', 'Cookie, Authorization')
+
+	return {
+		props: {
+			initialDiscoveryCategories: await fetchInitialDiscoveryCategories()
+		}
+	}
+}
+
+function ProPageContent({ initialDiscoveryCategories }: ProPageProps) {
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 
 	if (loaders.userLoading) {
@@ -50,7 +161,11 @@ function ProPageContent() {
 			description="Build custom no-code DeFi dashboards with DefiLlama Pro. Combine TVL, fees, volume, and protocol metrics into personalized analytics views."
 			canonicalUrl={`/pro`}
 		>
-			<ProContent hasActiveSubscription={hasActiveSubscription} isAuthenticated={isAuthenticated} />
+			<ProContent
+				hasActiveSubscription={hasActiveSubscription}
+				isAuthenticated={isAuthenticated}
+				initialDiscoveryCategories={initialDiscoveryCategories}
+			/>
 		</Layout>
 	)
 }
@@ -76,10 +191,12 @@ function getDashboardPagesToShow(selectedPage: number, totalPages: number): numb
 
 function ProContent({
 	hasActiveSubscription,
-	isAuthenticated
+	isAuthenticated,
+	initialDiscoveryCategories
 }: {
 	hasActiveSubscription: boolean
 	isAuthenticated: boolean
+	initialDiscoveryCategories: DiscoveryCategoriesInitialData
 }) {
 	const router = useRouter()
 	const { tab } = router.query
@@ -250,7 +367,7 @@ function ProContent({
 				aria-hidden={activeTab !== 'discover'}
 				className={activeTab === 'discover' ? 'flex flex-col gap-4' : 'hidden'}
 			>
-				<DashboardDiscovery />
+				<DashboardDiscovery initialCategories={initialDiscoveryCategories} />
 			</div>
 
 			{isAuthenticated ? (
@@ -362,12 +479,16 @@ function ProContent({
 	)
 }
 
-export default function HomePage() {
+export default function HomePage({
+	initialDiscoveryCategories
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	return (
 		<AppMetadataProvider>
 			<ProDashboardAPIProvider>
-				<ProPageContent />
+				<ProPageContent initialDiscoveryCategories={initialDiscoveryCategories} />
 			</ProDashboardAPIProvider>
 		</AppMetadataProvider>
 	)
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/pro', getServerSidePropsHandler)

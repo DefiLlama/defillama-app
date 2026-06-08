@@ -68,6 +68,21 @@ export async function fetchDashboardConfig(dashboardId: string, authToken: strin
 	}
 }
 
+export async function fetchDashboardConfigWithStatus(
+	dashboardId: string,
+	authToken: string | null
+): Promise<{ dashboard: Dashboard | null; status: number }> {
+	try {
+		const url = `${FEATURES_SERVER}/dashboards/${dashboardId}`
+		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
+		const response = await fetchFn(url)
+		if (!response.ok) return { dashboard: null, status: response.status }
+		return { dashboard: await response.json(), status: response.status }
+	} catch {
+		return { dashboard: null, status: 500 }
+	}
+}
+
 export async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: any[] } | null> {
 	try {
 		const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])

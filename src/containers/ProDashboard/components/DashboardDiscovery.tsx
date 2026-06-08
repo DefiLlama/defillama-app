@@ -6,6 +6,7 @@ import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select/Select'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
+import type { DiscoveryCategoriesInitialData } from '../hooks/useDiscoveryCategories'
 import { DashboardBrowse } from './DashboardBrowse'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
@@ -34,7 +35,11 @@ const timeFrameOptions = [
 ] as const
 type TimeFrameOption = (typeof timeFrameOptions)[number]
 
-export function DashboardDiscovery() {
+export function DashboardDiscovery({
+	initialCategories
+}: {
+	initialCategories?: DiscoveryCategoriesInitialData | null
+}) {
 	const router = useRouter()
 	const { view, tag: tagQuery, sortBy, query, page: pageQuery, limit, timeFrame } = router.query
 	const pushProQuery = (updates: Record<string, string | number | string[] | undefined>) => {
@@ -299,7 +304,7 @@ export function DashboardDiscovery() {
 			</div>
 
 			{isBrowseMode ? (
-				<DashboardBrowse onTagClick={handleTagClick} />
+				<DashboardBrowse onTagClick={handleTagClick} initialCategories={initialCategories} />
 			) : isLoading ? (
 				<>
 					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>

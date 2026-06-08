@@ -3,8 +3,14 @@ import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
-const { fetchDashboardConfigMock, fetchProtocolsAndChainsMock, fetchAppMetadataMock } = vi.hoisted(() => ({
+const {
+	fetchDashboardConfigMock,
+	fetchDashboardConfigWithStatusMock,
+	fetchProtocolsAndChainsMock,
+	fetchAppMetadataMock
+} = vi.hoisted(() => ({
 	fetchDashboardConfigMock: vi.fn(),
+	fetchDashboardConfigWithStatusMock: vi.fn(),
 	fetchProtocolsAndChainsMock: vi.fn(),
 	fetchAppMetadataMock: vi.fn()
 }))
@@ -63,6 +69,7 @@ vi.mock('~/containers/ProDashboard/queries.server', () => ({
 	extractYieldsItems: vi.fn(() => []),
 	fetchAppMetadata: fetchAppMetadataMock,
 	fetchDashboardConfig: fetchDashboardConfigMock,
+	fetchDashboardConfigWithStatus: fetchDashboardConfigWithStatusMock,
 	fetchProtocolsAndChains: fetchProtocolsAndChainsMock,
 	fetchSingleChartData: vi.fn(),
 	withTimeout: (promise: Promise<unknown>) => promise
@@ -131,10 +138,48 @@ function createStreamRequest(dashboardId: string, authToken?: string): NextApiRe
 }
 
 describe('pro dashboard cache headers', () => {
+	const publicDashboard = {
+		id: 'dashboard-1',
+		user: 'user-1',
+		visibility: 'public',
+		collectionId: 'dashboards',
+		collectionName: 'dashboards',
+		aiGenerated: {
+			'session-1': {
+				mode: 'create',
+				prompt: 'private prompt',
+				rated: false,
+				timestamp: '2026-01-02T00:00:00.000Z',
+				userId: 'user-1'
+			}
+		},
+		metrics: { internal: true },
+		tags: ['fees', 'ethereum'],
+		description: 'Public dashboard description',
+		created: '2026-01-01T00:00:00.000Z',
+		updated: '2026-01-02T00:00:00.000Z',
+		editedAt: '2026-01-03T00:00:00.000Z',
+		viewCount: 7,
+		likeCount: 2,
+		data: {
+			dashboardName: 'Public Fees Dashboard',
+			items: [
+				{
+					id: 'chart-1',
+					kind: 'chart',
+					chain: 'Ethereum',
+					protocol: 'aave',
+					type: 'fees'
+				}
+			]
+		}
+	}
+
 	beforeEach(() => {
 		vi.clearAllMocks()
 		vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '1200')
-		fetchDashboardConfigMock.mockResolvedValue({ visibility: 'public', data: { items: [] } })
+		fetchDashboardConfigMock.mockResolvedValue(publicDashboard)
+		fetchDashboardConfigWithStatusMock.mockResolvedValue({ dashboard: publicDashboard, status: 200 })
 		fetchProtocolsAndChainsMock.mockResolvedValue({ protocols: [], chains: [] })
 		fetchAppMetadataMock.mockResolvedValue({})
 	})
@@ -149,8 +194,32 @@ describe('pro dashboard cache headers', () => {
 		const result = await getServerSideProps(context)
 
 		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PUBLIC_DASHBOARD_CACHE_CONTROL)
-		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('dashboard-1', null)
-		expect(result).toEqual({ props: { dashboardId: 'dashboard-1' } })
+		expect(fetchDashboardConfigWithStatusMock).toHaveBeenCalledWith('dashboard-1', null)
+		expect(result).toEqual({
+			props: expect.objectContaining({
+				dashboardId: 'dashboard-1',
+				initialDashboard: expect.objectContaining({
+					id: 'dashboard-1',
+					visibility: 'public',
+					tags: ['fees', 'ethereum'],
+					data: { dashboardName: 'Public Fees Dashboard' },
+					viewCount: 7,
+					likeCount: 2
+				}),
+				noIndex: false,
+				status: 200,
+				seo: expect.objectContaining({
+					title: 'Public Fees Dashboard - DefiLlama Pro Dashboard',
+					description: 'Public dashboard description',
+					canonicalPath: '/pro/dashboard-1'
+				})
+			})
+		})
+		expect((result as any).props.initialDashboard).not.toHaveProperty('user')
+		expect((result as any).props.initialDashboard).not.toHaveProperty('collectionId')
+		expect((result as any).props.initialDashboard).not.toHaveProperty('collectionName')
+		expect((result as any).props.initialDashboard).not.toHaveProperty('aiGenerated')
+		expect((result as any).props.initialDashboard).not.toHaveProperty('metrics')
 	})
 
 	it('uses private no-store cache headers for authenticated dashboard pages without fetching', async () => {
@@ -159,17 +228,44 @@ describe('pro dashboard cache headers', () => {
 		await getServerSideProps(context)
 
 		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
-		expect(fetchDashboardConfigMock).not.toHaveBeenCalled()
+		expect(fetchDashboardConfigWithStatusMock).not.toHaveBeenCalled()
 	})
 
 	it('uses private no-store cache headers for unauthenticated private-dashboard pages', async () => {
-		fetchDashboardConfigMock.mockResolvedValue({ visibility: 'private', data: { items: [] } })
+		fetchDashboardConfigWithStatusMock.mockResolvedValue({ dashboard: null, status: 401 })
 		const context = createSsrContext('private-dashboard')
 
-		await getServerSideProps(context)
+		const result = await getServerSideProps(context)
 
 		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
-		expect(fetchDashboardConfigMock).toHaveBeenCalledWith('private-dashboard', null)
+		expect(context.res.statusCode).toBe(401)
+		expect(fetchDashboardConfigWithStatusMock).toHaveBeenCalledWith('private-dashboard', null)
+		expect(result).toEqual({
+			props: expect.objectContaining({
+				dashboardId: 'private-dashboard',
+				initialDashboard: null,
+				noIndex: true,
+				status: 401
+			})
+		})
+	})
+
+	it('uses 404 and noindex props for missing dashboard pages', async () => {
+		fetchDashboardConfigWithStatusMock.mockResolvedValue({ dashboard: null, status: 404 })
+		const context = createSsrContext('missing')
+
+		const result = await getServerSideProps(context)
+
+		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PRIVATE_DASHBOARD_CACHE_CONTROL)
+		expect(context.res.statusCode).toBe(404)
+		expect(result).toEqual({
+			props: expect.objectContaining({
+				dashboardId: 'missing',
+				initialDashboard: null,
+				noIndex: true,
+				status: 404
+			})
+		})
 	})
 
 	it('keeps the public dashboard stream cache header unjittered', async () => {

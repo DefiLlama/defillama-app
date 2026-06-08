@@ -4,7 +4,7 @@ import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 
-interface CategoryConfig {
+export interface DiscoveryCategoryConfig {
 	key: string
 	title: string
 	sortBy: 'trending' | 'popular' | 'recent'
@@ -12,7 +12,18 @@ interface CategoryConfig {
 	limit: number
 }
 
-const CATEGORIES: CategoryConfig[] = [
+export interface DiscoveryCategoryResponse {
+	items: Dashboard[]
+	page: number
+	perPage: number
+	totalItems: number
+	totalPages: number
+	searchParams?: any
+}
+
+export type DiscoveryCategoriesInitialData = Record<string, DiscoveryCategoryResponse>
+
+export const DISCOVERY_CATEGORIES: DiscoveryCategoryConfig[] = [
 	{ key: 'trendingToday', title: 'Trending Today', sortBy: 'trending', timeFrame: '1d', limit: 8 },
 	{ key: 'trendingWeek', title: 'Trending This Week', sortBy: 'trending', timeFrame: '7d', limit: 8 },
 	{ key: 'popular', title: 'Most Popular', sortBy: 'popular', limit: 8 },
@@ -25,11 +36,11 @@ interface CategoryData {
 	error: Error | null
 }
 
-export function useDiscoveryCategories() {
+export function useDiscoveryCategories(initialData?: DiscoveryCategoriesInitialData | null) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
 
 	const queries = useQueries({
-		queries: CATEGORIES.map((category) => ({
+		queries: DISCOVERY_CATEGORIES.map((category) => ({
 			queryKey: ['pro-dashboard', 'discovery-category', category.key, isAuthenticated],
 			queryFn: async () => {
 				return await dashboardAPI.searchDashboards(
@@ -43,13 +54,14 @@ export function useDiscoveryCategories() {
 					isAuthenticated ? authorizedFetch : undefined
 				)
 			},
-			staleTime: 1000 * 60 * 5
+			staleTime: 1000 * 60 * 5,
+			initialData: initialData?.[category.key]
 		}))
 	})
 
 	const categories: Record<string, CategoryData> = {}
-	for (let index = 0; index < CATEGORIES.length; index++) {
-		const category = CATEGORIES[index]
+	for (let index = 0; index < DISCOVERY_CATEGORIES.length; index++) {
+		const category = DISCOVERY_CATEGORIES[index]
 		categories[category.key] = {
 			dashboards: queries[index].data?.items ?? EMPTY_DASHBOARDS,
 			isLoading: queries[index].isLoading,

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MetadataCache } from '~/utils/metadata/artifactContract'
 
 const metadataCache = vi.hoisted(
@@ -90,6 +90,37 @@ vi.mock('~/server/datasetCache/raises', () => ({
 
 import { buildAppSitemapSections, getSitemapSection, getSitemapSectionPath } from '~/server/routeCache/sitemap'
 
+beforeEach(() => {
+	vi.stubGlobal(
+		'fetch',
+		vi.fn(async (input: RequestInfo | URL) => {
+			const url = String(input)
+			if (url.includes('/dashboards/search')) {
+				return new Response(
+					JSON.stringify({
+						items: [
+							{
+								id: 'empty-public-dashboard',
+								visibility: 'public',
+								updated: '2026-01-02T00:00:00.000Z'
+							},
+							{
+								id: 'rich-public-dashboard',
+								visibility: 'public',
+								editedAt: '2026-01-03T00:00:00.000Z'
+							}
+						],
+						totalPages: 1
+					}),
+					{ status: 200 }
+				)
+			}
+
+			return new Response('{}', { status: 404 })
+		})
+	)
+})
+
 afterEach(() => {
 	vi.useRealTimers()
 	vi.clearAllMocks()
@@ -127,6 +158,26 @@ describe('cache-backed sitemap sections', () => {
 		expect(entriesBySection.get('raises')).toEqual(expect.arrayContaining(['raises/paradigm', 'raises/a16z']))
 		expect(sections.map((section) => String(section.id))).not.toContain('tokens')
 		expect(entriesBySection.get('narratives')).toEqual(expect.arrayContaining(['narrative-tracker/ai']))
+		expect(getSitemapSectionPath('pro-dashboards')).toBe('sitemap/pro-dashboards.xml')
+		expect(entriesBySection.get('pro-dashboards')).toEqual(
+			expect.arrayContaining(['pro/empty-public-dashboard', 'pro/rich-public-dashboard'])
+		)
+		expect(sections.find((section) => section.id === 'pro-dashboards')?.entries).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					path: 'pro/empty-public-dashboard',
+					lastmod: '2026-01-02T00:00:00.000Z'
+				}),
+				expect.objectContaining({
+					path: 'pro/rich-public-dashboard',
+					lastmod: '2026-01-03T00:00:00.000Z'
+				})
+			])
+		)
+		expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+			expect.stringContaining('visibility=public&sortBy=popular&page=1&limit=100'),
+			expect.objectContaining({ signal: expect.any(AbortSignal) })
+		)
 	})
 
 	it('resolves section ids from Next page params that include the .xml suffix', async () => {

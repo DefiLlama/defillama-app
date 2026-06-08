@@ -10,7 +10,7 @@ import {
 	useMemo,
 	useReducer,
 	useRef,
-	useState
+	useSyncExternalStore
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -43,6 +43,29 @@ const EMPTY_PROTOCOLS: Protocol[] = []
 const EMPTY_CHAINS: Chain[] = []
 const EMPTY_CHART_DATA: ChartConfig['data'] = []
 const NOOP = () => {}
+
+function subscribeToClientReady(onStoreChange: () => void) {
+	queueMicrotask(onStoreChange)
+	return NOOP
+}
+
+function getClientReadySnapshot() {
+	return true
+}
+
+function getServerReadySnapshot() {
+	return false
+}
+
+function useClientReady() {
+	return useSyncExternalStore(subscribeToClientReady, getClientReadySnapshot, getServerReadySnapshot)
+}
+
+function getDashboardInitialUpdatedAt(dashboard?: Dashboard | null) {
+	if (!dashboard) return undefined
+	const updatedAt = Date.parse(dashboard.editedAt || dashboard.updated || dashboard.created || '')
+	return Number.isFinite(updatedAt) ? updatedAt : undefined
+}
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
@@ -297,28 +320,30 @@ const ProDashboardServerAppMetadataContext = createContext<
 export function ProDashboardAPIProvider({
 	children,
 	initialDashboardId,
+	initialDashboard,
 	initialItems,
 	hideDuplicateButton = false,
 	mode = 'view'
 }: {
 	children: ReactNode
 	initialDashboardId?: string
+	initialDashboard?: Dashboard | null
 	initialItems?: DashboardItemConfig[]
 	hideDuplicateButton?: boolean
 	mode?: DashboardMode
 }) {
 	const { authToken, hasActiveSubscription, loaders } = useAuthContext()
-	const [hasMounted, setHasMounted] = useState(false)
-	useEffect(() => {
-		setHasMounted(true)
-	}, [])
+	const hasMounted = useClientReady()
 	const hasStoredToken = typeof window !== 'undefined' && pb.authStore.isValid && !!pb.authStore.token
 	const authReady = hasMounted && !loaders.userLoading && (!hasStoredToken || !!authToken)
 	const stream = useDashboardStream(initialDashboardId, authToken, authReady)
+	const hasInitialDashboard = !!initialDashboard && initialDashboard.id === initialDashboardId
 	const streamSettled = authReady && stream.isDone
 	const streamFatal = streamSettled && !!stream.error && stream.dashboard == null
+	const dashboardReady =
+		!initialDashboardId || hasInitialDashboard || (streamSettled && !(mode === 'view' && streamFatal))
 	const streamDone = !initialDashboardId || (streamSettled && !(mode === 'view' && streamFatal))
-	const streamHasResolved = !initialDashboardId || streamSettled
+	const streamHasResolved = !initialDashboardId || hasInitialDashboard || streamSettled
 	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
 	const modeContextValue = useMemo(() => ({ mode }), [mode])
 
@@ -328,10 +353,12 @@ export function ProDashboardAPIProvider({
 				<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
 					<ProDashboardAPIProviderInner
 						stream={stream}
+						dashboardReady={dashboardReady}
 						streamDone={streamDone}
 						streamHasResolved={streamHasResolved}
 						mode={mode}
 						initialDashboardId={initialDashboardId}
+						initialDashboard={hasInitialDashboard ? initialDashboard : null}
 						initialItems={initialItems}
 						hideDuplicateButton={hideDuplicateButton}
 					>
@@ -346,19 +373,23 @@ export function ProDashboardAPIProvider({
 function ProDashboardAPIProviderInner({
 	children,
 	stream,
+	dashboardReady,
 	streamDone,
 	streamHasResolved,
 	mode,
 	initialDashboardId,
+	initialDashboard,
 	initialItems,
 	hideDuplicateButton = false
 }: {
 	children: ReactNode
 	stream: ReturnType<typeof useDashboardStream>
+	dashboardReady: boolean
 	streamDone: boolean
 	streamHasResolved: boolean
 	mode: DashboardMode
 	initialDashboardId?: string
+	initialDashboard?: Dashboard | null
 	initialItems?: DashboardItemConfig[]
 	hideDuplicateButton?: boolean
 }) {
@@ -373,23 +404,30 @@ function ProDashboardAPIProviderInner({
 		[initialDashboardId, isAuthenticated, user?.id]
 	)
 	useEffect(() => {
+		if (initialDashboard) {
+			queryClient.setQueryData(dashboardQueryKey, initialDashboard, { updatedAt: Date.now() })
+		}
 		if (stream.dashboard) {
 			queryClient.setQueryData(dashboardQueryKey, stream.dashboard, { updatedAt: Date.now() })
 		}
-	}, [stream.dashboard, queryClient, dashboardQueryKey])
+	}, [initialDashboard, stream.dashboard, queryClient, dashboardQueryKey])
 
 	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
 	const chains = rawChains as Chain[]
 
-	const initArg = initialItems?.length ? { dashboardId: initialDashboardId, items: initialItems } : initialDashboardId
+	const initArg = initialDashboard
+		? { dashboard: initialDashboard }
+		: initialItems?.length
+			? { dashboardId: initialDashboardId, items: initialItems }
+			: initialDashboardId
 	const [state, dispatch] = useReducer(dashboardReducer, initArg, initDashboardState)
 
 	useEffect(() => {
-		if (initialItems && initialItems.length > 0) {
+		if (!initialDashboard && initialItems && initialItems.length > 0) {
 			dispatch({ type: 'SET_ITEMS', payload: initialItems })
 		}
-	}, [initialItems])
+	}, [initialDashboard, initialItems])
 
 	const {
 		items,
@@ -540,13 +578,15 @@ function ProDashboardAPIProviderInner({
 			return await loadDashboardData(initialDashboardId)
 		},
 		staleTime: 1000 * 60 * 5,
-		refetchOnMount: 'always',
+		refetchOnMount: initialDashboard ? false : 'always',
 		retry: (failureCount, err: any) => err?.status >= 500 && failureCount < 3,
-		enabled: streamDone && !!initialDashboardId
+		enabled: dashboardReady && !!initialDashboardId,
+		initialData: initialDashboard?.id === initialDashboardId ? initialDashboard : undefined,
+		initialDataUpdatedAt: getDashboardInitialUpdatedAt(initialDashboard)
 	})
 	// Loading until dashboard config arrives from stream (or query fallback)
 	const isLoadingDashboard =
-		(!!initialDashboardId && stream.dashboard === undefined && !streamDone) || isQueryLoadingDashboard
+		(!!initialDashboardId && stream.dashboard === undefined && !dashboardReady) || isQueryLoadingDashboard
 
 	useEffect(() => {
 		if (

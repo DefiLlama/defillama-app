@@ -137,9 +137,14 @@ export interface ISEOProps {
 	description: string | null | undefined
 	canonicalUrl: string | null | undefined
 	noIndex?: boolean
+	jsonLd?: Record<string, unknown> | Record<string, unknown>[]
 }
 
-export function SEO({ title, description, canonicalUrl, noIndex }: ISEOProps) {
+function stringifyJsonLd(jsonLd: ISEOProps['jsonLd']): string {
+	return JSON.stringify(jsonLd).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')
+}
+
+export function SEO({ title, description, canonicalUrl, noIndex, jsonLd }: ISEOProps) {
 	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
 	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
@@ -162,6 +167,9 @@ export function SEO({ title, description, canonicalUrl, noIndex }: ISEOProps) {
 			<meta name="twitter:creator" content="@DefiLlama" />
 			{description ? <meta name="twitter:description" content={description} /> : null}
 			{/* <meta name="twitter:image" content={cardURL} /> */}
+			{jsonLd ? (
+				<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: stringifyJsonLd(jsonLd) }} />
+			) : null}
 		</Head>
 	)
 }

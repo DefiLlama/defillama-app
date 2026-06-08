@@ -1,5 +1,5 @@
 import { Icon, type IIcon } from '~/components/Icon'
-import { useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
+import { type DiscoveryCategoriesInitialData, useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
 import type { Dashboard } from '../services/DashboardAPI'
 import { DiscoverySection } from './DiscoverySection'
 
@@ -57,10 +57,11 @@ const SECTIONS: SectionConfig[] = [
 
 interface DashboardBrowseProps {
 	onTagClick: (tag: string) => void
+	initialCategories?: DiscoveryCategoriesInitialData | null
 }
 
-export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
-	const { categories } = useDiscoveryCategories()
+export function DashboardBrowse({ onTagClick, initialCategories }: DashboardBrowseProps) {
+	const { categories } = useDiscoveryCategories(initialCategories)
 
 	return (
 		<div className="flex flex-col gap-6">
