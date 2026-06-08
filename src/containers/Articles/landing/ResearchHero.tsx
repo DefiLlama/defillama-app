@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
+import { FEATURES_SERVER } from '~/constants'
 import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
@@ -136,6 +137,19 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, rep
 						<ReportsCarousel reports={reports} showButtons={false} />
 					</div>
 				) : null}
+
+				<div className="mt-[8px] mb-8 flex justify-center">
+					<a
+						href={`${FEATURES_SERVER}/uploads/media-kit.pdf`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex items-center gap-x-2 text-[16px] font-semibold tracking-wide uppercase"
+						style={{ color: '#237BFF' }}
+					>
+						<span>Explore our media kit here</span>
+						<span aria-hidden>→</span>
+					</a>
+				</div>
 			</div>
 		</div>
 	)
