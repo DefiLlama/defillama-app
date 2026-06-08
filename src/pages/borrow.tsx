@@ -6,7 +6,7 @@ import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { buildBorrowRowsQueryString, type BorrowPageRow } from '~/containers/Yields/borrowSimple'
-import { disclaimer, exploitWarning } from '~/containers/Yields/constants'
+import { disclaimer } from '~/containers/Yields/constants'
 import { useBorrowRows } from '~/containers/Yields/queries.client'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -58,13 +58,6 @@ export default function YieldBorrow(data) {
 		>
 			<Announcement announcementId="yields-disclaimer" version="2026-03">
 				{disclaimer}
-			</Announcement>
-			<Announcement
-				announcementId="kelp-warning"
-				version="2026-04"
-				className="border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
-			>
-				{exploitWarning}
 			</Announcement>
 			<div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-start">
 				<div className="w-full shrink-0 rounded-md border border-(--cards-border) bg-(--cards-bg) lg:w-[340px]">
