@@ -6,6 +6,7 @@ type AdapterOverview = NonNullable<IProtocolOverviewPageData['fees']>
 
 const commonMethodology = {
 	dexs: definitions.dexs.common,
+	dexsNotionalVolume: definitions.dexsNotional.common,
 	dexAggregators: definitions.dexAggregators.common,
 	perps: definitions.perps.common,
 	perpsAggregators: definitions.perpsAggregators.common,

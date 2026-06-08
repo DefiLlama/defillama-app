@@ -289,6 +289,7 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 			<MethodologyByAdapter adapter={props.bribeRevenue} title="Bribe Revenue" />
 			<MethodologyByAdapter adapter={props.tokenTax} title="Token Tax" />
 			<MethodologyByAdapter adapter={props.dexVolume} title="DEX Volume" />
+			<MethodologyByAdapter adapter={props.dexNotionalVolume} title="Notional Volume" />
 			<MethodologyByAdapter adapter={props.dexAggregatorVolume} title="DEX Aggregator Volume" />
 			<MethodologyByAdapter adapter={props.perpVolume} title="Perp Volume" />
 			<MethodologyByAdapter adapter={props.perpAggregatorVolume} title="Perp Aggregator Volume" />
