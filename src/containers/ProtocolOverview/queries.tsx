@@ -277,7 +277,12 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'dexs',
 					dataType: 'dailyNotionalVolume',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				}).then((data) => formatAdapterData({ data, methodologyKey: 'dexsNotionalVolume' }))
+				}).then((data) =>
+					formatAdapterData({
+						data,
+						methodologyKey: data.methodology?.NotionalVolume ? 'NotionalVolume' : 'dexsNotionalVolume'
+					})
+				)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators
 			? fetchAdapterProtocolMetrics({
