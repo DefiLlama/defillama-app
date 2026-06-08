@@ -5,27 +5,11 @@ import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
-import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { feeRevenueMetrics } from '~/metrics/feesRevenue'
 import { getFeeRevenueChainChartApiParams } from '~/metrics/routeSemantics'
-import { getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
-
-/**
- * Get TVL values for 24h change calculation.
- * Only returns a previous-day value when the chart has current-day data and
- * a point close to latestTimestamp - 24h.
- */
-const getTvl24hChange = (
-	chart: Array<[number, number]>,
-	now: number
-): { totalValueUSD: number | null; tvlPrevDay: number | null } => {
-	return {
-		totalValueUSD: getPrevTvlFromChart(chart, 0, now),
-		tvlPrevDay: getPrevTvlFromChart(chart, 1, now)
-	}
-}
+import { buildChainTvlChartState } from './tvlChart'
 
 const normalizeActivityChart = (values: Array<[number, number]> | null): Array<[number, number]> | null =>
 	values && values.length > 0
@@ -329,47 +313,7 @@ export const useFetchChainChartData = ({
 	})
 
 	const { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled } = useMemo(() => {
-		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
-
-		if (toggledTvlSettings.length === 0) {
-			// Use pre-computed values from server to avoid client-side iteration
-			return {
-				finalTvlChart: tvlChart,
-				totalValueUSD: tvlChartSummary.totalValueUSD,
-				valueChange24hUSD: tvlChartSummary.valueChange24hUSD,
-				change24h: tvlChartSummary.change24h
-			}
-		}
-
-		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
-
-		const store: Record<string, number> = {}
-		for (const [date, tvl] of tvlChart) {
-			let sum = tvl
-			for (const toggledTvlSetting of toggledTvlSettings) {
-				sum += extraTvlCharts[toggledTvlSetting]?.[date] ?? 0
-			}
-			store[date] = sum
-		}
-
-		// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
-		if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
-			for (const date in store) {
-				store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
-			}
-		}
-
-		const finalTvlChart: Array<[number, number]> = []
-		for (const date in store) {
-			finalTvlChart.push([+date, store[date]])
-		}
-		finalTvlChart.sort((a, b) => a[0] - b[0])
-
-		const { totalValueUSD, tvlPrevDay } = getTvl24hChange(finalTvlChart, nowMs)
-		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
-		const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
-		const isGovTokensEnabled = !!tvlSettings?.govtokens
-		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
+		return buildChainTvlChartState({ tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs })
 	}, [tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs])
 
 	const chartData = useMemo(() => {
