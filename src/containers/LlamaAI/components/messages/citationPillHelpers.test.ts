@@ -62,7 +62,14 @@ describe('parseRefNumber', () => {
 
 	it('returns null for non-numeric input', () => {
 		expect(parseRefNumber('lending')).toBeNull()
+		expect(parseRefNumber('Uniswap V3')).toBeNull()
+		expect(parseRefNumber('1inch')).toBeNull()
+		expect(parseRefNumber('2024-05-01')).toBeNull()
 		expect(parseRefNumber(null)).toBeNull()
+	})
+
+	it('parses negative currency strings', () => {
+		expect(parseRefNumber('-$2.5M')).toBeCloseTo(-2500000, 0)
 	})
 })
 
@@ -93,6 +100,21 @@ describe('findCitedCell', () => {
 			{ a: 100, b: 300 }
 		]
 		expect(findCitedCell(dupRows, ['a', 'b'], { value: '100' })).toEqual({ rowIndex: 0, column: 'a' })
+	})
+
+	it('uses a partial field binding before scanning unrelated columns', () => {
+		const rankedRows = [
+			{ rank: 5, apy: 1 },
+			{ rank: 1, apy: 5 }
+		]
+		expect(findCitedCell(rankedRows, ['rank', 'apy'], { field: 'apy', value: '5' })).toEqual({
+			rowIndex: 1,
+			column: 'apy'
+		})
+	})
+
+	it('does not treat date strings as numeric fallback matches', () => {
+		expect(findCitedCell([{ date: '2024-05-01' }], ['date'], { value: '2024' })).toBeNull()
 	})
 
 	it('returns null when nothing matches', () => {

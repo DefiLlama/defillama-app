@@ -200,10 +200,7 @@ export function processUnifiedCitations(text: string, refsOrUrls?: UnifiedCitati
 		'g'
 	)
 
-	if (refsOrUrls === undefined) {
-		return text
-	}
-	if (refsOrUrls.length === 0) {
+	if (refsOrUrls === undefined || refsOrUrls.length === 0) {
 		return text.replace(markerRegex, '')
 	}
 
@@ -230,7 +227,7 @@ export function processUnifiedCitations(text: string, refsOrUrls?: UnifiedCitati
 			}
 		}
 		const valid = expanded.filter((id) => idsAvailable.has(id))
-		if (valid.length === 0) return full
+		if (valid.length === 0) return ''
 		return valid.map((id) => `<fact-check-pill data-ref="${id}"></fact-check-pill>`).join('')
 	})
 }

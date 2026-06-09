@@ -53,6 +53,22 @@ describe('describeFigure', () => {
 		} as unknown as UnifiedCitationReference
 		expect(describeFigure(ref, { rowIndex: 0, column: 'pf_ratio' })).toBe('Uniswap · P/F ratio (price ÷ annual fees)')
 	})
+
+	it('keeps digit-bearing entity names', () => {
+		const ref = {
+			id: 1,
+			sourceType: 'data',
+			label: 'DefiLlama warehouse',
+			value: '2.5×',
+			field: 'pf_ratio',
+			rows: [{ name: 'Uniswap V3', pf_ratio: 2.5 }],
+			columns: ['name', 'pf_ratio']
+		} as unknown as UnifiedCitationReference
+		expect(describeFigure(ref, { rowIndex: 0, column: 'pf_ratio' })).toBe(
+			'Uniswap V3 · P/F ratio (price ÷ annual fees)'
+		)
+	})
+
 	it('returns null when there is no field', () => {
 		const ref = { id: 1, sourceType: 'computed', label: 'Calculated' } as UnifiedCitationReference
 		expect(describeFigure(ref, null)).toBeNull()

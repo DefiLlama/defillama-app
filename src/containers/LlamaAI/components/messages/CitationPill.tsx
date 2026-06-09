@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import type { UnifiedCitationReference } from '~/containers/LlamaAI/types'
 import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
@@ -395,11 +395,15 @@ export function CitationPill({ reference }: CitationPillProps) {
 	const headline = headlineFor(reference)
 	const mismatch = shouldFlagMismatch(reference.verification)
 	const unverified = !mismatch && shouldFlagUnverified(reference.verification)
-	const citedCell = findCitedCell(reference.rows, reference.columns, {
-		field: reference.field,
-		rowIndex: reference.rowIndex,
-		value: reference.value
-	})
+	const citedCell = useMemo(
+		() =>
+			findCitedCell(reference.rows, reference.columns, {
+				field: reference.field,
+				rowIndex: reference.rowIndex,
+				value: reference.value
+			}),
+		[reference.rows, reference.columns, reference.field, reference.rowIndex, reference.value]
+	)
 	const description = reference.sourceType === 'data' ? describeFigure(reference, citedCell) : null
 	const citedRow = citedCell && reference.rows ? reference.rows[citedCell.rowIndex] : null
 	const citedDate =

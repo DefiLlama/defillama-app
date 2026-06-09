@@ -103,12 +103,15 @@ const UNIT: Record<string, number> = { t: 1e12, b: 1e9, m: 1e6, k: 1e3, bn: 1e9,
 export function parseRefNumber(str: unknown): number | null {
 	if (typeof str === 'number') return Number.isFinite(str) ? str : null
 	if (typeof str !== 'string') return null
-	const m = str.replace(/,/g, '').match(/(-?\d*\.?\d+)(?:e([+-]?\d+))?\s*([a-zA-Z]*)/i)
+	const m = str.replace(/,/g, '').match(/^\s*(-?)\s*\$?\s*(-?\d*\.?\d+)(?:e([+-]?\d+))?\s*([a-zA-Z%]*)\s*$/i)
 	if (!m) return null
-	const exp = m[2] ? parseInt(m[2], 10) : 0
-	const suffix = (m[3] || '').toLowerCase()
-	const mult = UNIT[suffix] ?? 1
-	const num = parseFloat(m[1]) * Math.pow(10, exp) * mult
+	const exp = m[3] ? parseInt(m[3], 10) : 0
+	const suffix = (m[4] || '').toLowerCase()
+	if (suffix && suffix !== '%' && UNIT[suffix] === undefined) return null
+	const mult = suffix === '%' ? 1 : (UNIT[suffix] ?? 1)
+	const parsed = parseFloat(m[2])
+	const signed = m[1] === '-' && parsed > 0 ? -parsed : parsed
+	const num = signed * Math.pow(10, exp) * mult
 	return Number.isFinite(num) ? num : null
 }
 
@@ -164,12 +167,24 @@ export function findCitedCell(
 	const target = parseRefNumber(ref.value)
 	if (target == null) return null
 	const tolerance = Math.max(Math.abs(target) * 1e-3, 1e-9)
-	for (let ri = 0; ri < rows.length; ri++) {
-		for (const col of cols) {
+	const validField = ref.field && cols.includes(ref.field) ? ref.field : null
+	const validRowIndex =
+		typeof ref.rowIndex === 'number' && ref.rowIndex >= 0 && ref.rowIndex < rows.length ? ref.rowIndex : null
+	const colsToScan = validField ? [validField] : cols
+
+	const scanRow = (ri: number): CitedCell | null => {
+		for (const col of colsToScan) {
 			const cell = getCachedParsedCell(rows, rows[ri], col)
 			if (cell == null) continue
 			if (Math.abs(cell - target) <= tolerance) return { rowIndex: ri, column: col }
 		}
+		return null
+	}
+
+	if (validRowIndex !== null) return scanRow(validRowIndex)
+	for (let ri = 0; ri < rows.length; ri++) {
+		const cell = scanRow(ri)
+		if (cell) return cell
 	}
 	return null
 }

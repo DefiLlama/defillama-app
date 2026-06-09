@@ -91,14 +91,16 @@ export function CitationRowsTable({
 }) {
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 	const citedCellRef = useRef<HTMLTableCellElement | null>(null)
+	const citedRowIndex = citedCell?.rowIndex
+	const citedColumn = citedCell?.column
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		const cell = citedCellRef.current
-		if (!citedCell || !container || !cell) return
+		if (citedRowIndex == null || !citedColumn || !container || !cell) return
 		const targetLeft = cell.offsetLeft - (container.clientWidth - cell.offsetWidth) / 2
 		container.scrollLeft = Math.max(0, targetLeft)
-	}, [citedCell])
+	}, [citedRowIndex, citedColumn])
 
 	if (!rows || rows.length === 0) return null
 	const cols = columns && columns.length > 0 ? columns : Object.keys(rows[0])

@@ -166,6 +166,48 @@ describe('messageMappers', () => {
 		expect(mapped.toolExecutions?.[0]).toMatchObject({ name: 'search', toolName: 'search', success: true })
 	})
 
+	it('canonicalizes legacy fact check source type aliases from restored messages', () => {
+		const mapped = mapPersistedMessage({
+			role: 'assistant',
+			content: 'Done',
+			metadata: {
+				factCheck: {
+					references: [
+						{ id: 1, label: 'Warehouse', sourceType: 'sql' },
+						{ id: 2, label: 'Article', sourceType: 'article', url: 'https://example.com/report' },
+						{ id: 3, label: 'Post', sourceType: 'twitter' },
+						{ id: 4, label: 'Calculation', sourceType: 'code' },
+						{ id: 5, label: '', url: 'https://example.com/source' }
+					]
+				}
+			}
+		})
+
+		expect(mapped.citations?.map((citation) => citation.sourceType)).toEqual(['data', 'web', 'x', 'computed', 'web'])
+		expect(mapped.citations?.[4]).toMatchObject({ id: 5, label: 'Source' })
+		expect(mapped.legacyUrlCitations).toBeUndefined()
+	})
+
+	it('prefers the restored citations envelope over legacy fact check references', () => {
+		const mapped = mapPersistedMessage({
+			role: 'assistant',
+			content: 'Done',
+			citations: ['https://legacy.example'],
+			metadata: {
+				citations: {
+					schemaVersion: 1,
+					citations: [{ id: 1, label: 'RPC result', sourceType: 'tool', toolName: 'rpc_call' }]
+				},
+				factCheck: {
+					references: [{ id: 2, label: 'Warehouse', sourceType: 'sql' }]
+				}
+			}
+		})
+
+		expect(mapped.citations).toEqual([{ id: 1, label: 'RPC result', sourceType: 'tool', toolName: 'rpc_call' }])
+		expect(mapped.legacyUrlCitations).toBeUndefined()
+	})
+
 	it('keeps empty persisted lists empty', () => {
 		expect(mapPersistedMessages(undefined)).toEqual([])
 	})

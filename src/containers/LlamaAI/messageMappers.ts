@@ -193,10 +193,24 @@ function normalizeLegacyFactCheckRefs(refs: unknown): UnifiedCitationReference[]
 		.map((r, i) => ({
 			...r,
 			id: typeof r.id === 'number' ? r.id : i + 1,
-			sourceType: r.sourceType ?? (r.url ? 'web' : 'data'),
-			label: r.label ?? 'Source'
+			sourceType: canonicalizeLegacyCitationSourceType(r.sourceType, r.url),
+			label: r.label?.trim() ? r.label : 'Source'
 		}))
 		.filter((r) => r.label !== '')
+}
+
+function canonicalizeLegacyCitationSourceType(
+	sourceType: string | undefined,
+	url: string | undefined
+): UnifiedCitationReference['sourceType'] {
+	if (!sourceType) return url ? 'web' : 'data'
+
+	if (/tweet|twitter|x_/i.test(sourceType) || sourceType.toLowerCase() === 'x') return 'x'
+	if (/web|url|article|news|http/i.test(sourceType)) return 'web'
+	if (/sql|warehouse|defillama|data/i.test(sourceType)) return 'data'
+	if (/code|computed/i.test(sourceType)) return 'computed'
+
+	return sourceType
 }
 
 function resolveCitationFields(metadata: PersistedMessageMetadata | undefined, urlCitations: string[] | undefined) {

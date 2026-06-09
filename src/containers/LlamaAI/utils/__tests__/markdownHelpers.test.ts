@@ -36,16 +36,16 @@ describe('processUnifiedCitations', () => {
 		expect(processUnifiedCitations('X [1,9].', refs([1]))).toBe('X <fact-check-pill data-ref="1"></fact-check-pill>.')
 	})
 
-	it('leaves a marker untouched when no id resolves', () => {
-		expect(processUnifiedCitations('X [9].', refs([1]))).toBe('X [9].')
+	it('strips a marker when no id resolves', () => {
+		expect(processUnifiedCitations('X [9].', refs([1]))).toBe('X .')
 	})
 
-	it('leaves markers untouched (inert prose) when refs is undefined', () => {
-		expect(processUnifiedCitations('X [1] and [2].', undefined)).toBe('X [1] and [2].')
-		expect(processUnifiedCitations('X [1] and [2].')).toBe('X [1] and [2].')
+	it('strips markers when refs are unavailable', () => {
+		expect(processUnifiedCitations('X [1] and [2].', undefined)).toBe('X  and .')
+		expect(processUnifiedCitations('X [1] and [2].')).toBe('X  and .')
 	})
 
-	it('strips all markers ONLY when refs is an explicit empty array', () => {
+	it('strips all markers when refs are an explicit empty array', () => {
 		expect(processUnifiedCitations('X [1].', [])).toBe('X .')
 		expect(processUnifiedCitations(`One [1], two [^2], three ${modelStyleCitation}.`, [])).toBe('One , two , three .')
 	})
