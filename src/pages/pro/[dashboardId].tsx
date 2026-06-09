@@ -105,20 +105,34 @@ export default function DashboardPage({
 			jsonLd={!noIndex ? seo?.jsonLd : undefined}
 		>
 			<div className="flex min-h-0 flex-1 flex-col gap-2">
-				{initialDashboard && seo ? <DashboardSeoSummary dashboard={initialDashboard} seo={seo} /> : null}
 				<ProDashboardAPIProvider
 					initialDashboardId={initialId}
 					mode={initialId ? 'view' : 'edit'}
 					key={`dashboard-api-provider-${dashboardId}`}
 				>
-					<DashboardPageContent dashboardId={dashboardId} initialStatus={status} />
+					<DashboardPageContent
+						dashboardId={dashboardId}
+						initialStatus={status}
+						initialDashboard={initialDashboard}
+						seo={seo}
+					/>
 				</ProDashboardAPIProvider>
 			</div>
 		</Layout>
 	)
 }
 
-function DashboardPageContent({ dashboardId, initialStatus }: { dashboardId: string; initialStatus: number }) {
+function DashboardPageContent({
+	dashboardId,
+	initialStatus,
+	initialDashboard,
+	seo
+}: {
+	dashboardId: string
+	initialStatus: number
+	initialDashboard: DashboardSeoPublicDashboard | null
+	seo: DashboardSeo | null
+}) {
 	const router = useRouter()
 
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
@@ -158,9 +172,18 @@ function DashboardPageContent({ dashboardId, initialStatus }: { dashboardId: str
 
 	const isAccountLoading = loaders.userLoading
 	const isLoading = isAccountLoading || isValidating || isLoadingDashboard
+	const initialSeoSummary =
+		initialDashboard && seo && !currentDashboard ? <DashboardSeoSummary dashboard={initialDashboard} seo={seo} /> : null
 
 	if (isLoading) {
-		return <ProDashboardLoader />
+		return (
+			<>
+				{initialSeoSummary}
+				<ProDashboardLoader
+					heading={initialSeoSummary ? null : dashboardId === 'new' ? 'New dashboard' : 'Loading dashboard'}
+				/>
+			</>
+		)
 	}
 
 	if (dashboardId !== 'new' && !currentDashboard && initialStatus === 404) {

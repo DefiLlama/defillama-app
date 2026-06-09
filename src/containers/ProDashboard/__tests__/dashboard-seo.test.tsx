@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { DashboardSeoSummary } from '../components/DashboardSeoSummary'
+import { ProDashboardLoader } from '../components/ProDashboardLoader'
 import type { Dashboard } from '../services/DashboardAPI'
 import { buildDashboardSeo, markdownToPlainText } from '../utils/seo'
 
@@ -86,6 +87,13 @@ describe('pro dashboard SEO shell', () => {
 		expect(html).toContain('2026-01-03')
 		expect(html).toContain('fees')
 		expect(html).toContain('ethereum')
+	})
+
+	it('keeps the loader heading opt-in for headingless SEO shell fallbacks', () => {
+		expect(renderToStaticMarkup(<ProDashboardLoader />)).not.toContain('<h1')
+		expect(renderToStaticMarkup(<ProDashboardLoader heading="Loading dashboard" />)).toContain(
+			'<h1 class="text-lg font-semibold text-(--text-primary)">Loading dashboard</h1>'
+		)
 	})
 
 	it('falls back honestly for empty public dashboards', () => {

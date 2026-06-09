@@ -1,6 +1,7 @@
+import Image from 'next/image'
 import { LoadingDots } from '~/components/Loaders'
 
-export function ProDashboardLoader() {
+export function ProDashboardLoader({ heading }: { heading?: string | null }) {
 	return (
 		<div className="isolate flex flex-1 flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 			<div className="relative size-24">
@@ -31,7 +32,7 @@ export function ProDashboardLoader() {
 
 				<div className="absolute inset-0 flex items-center justify-center">
 					<div className="relative">
-						<img
+						<Image
 							src="/assets/llama.webp"
 							alt="Loading"
 							width={64}
@@ -48,10 +49,13 @@ export function ProDashboardLoader() {
 				</div>
 			</div>
 
-			<p className="flex items-center gap-1">
-				Loading
-				<LoadingDots />
-			</p>
+			<div className="flex flex-col items-center gap-1 text-center">
+				{heading ? <h1 className="text-lg font-semibold text-(--text-primary)">{heading}</h1> : null}
+				<p className="flex items-center gap-1 text-(--text-label)">
+					Loading
+					<LoadingDots />
+				</p>
+			</div>
 		</div>
 	)
 }

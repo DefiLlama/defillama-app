@@ -85,7 +85,7 @@ function DashboardEditPageContent({ dashboardId }: { dashboardId: string }) {
 	const isLoading = loaders.userLoading || isValidating || isLoadingDashboard
 
 	if (isLoading) {
-		return <ProDashboardLoader />
+		return <ProDashboardLoader heading="Edit dashboard" />
 	}
 
 	if (!currentDashboard && loadError?.status === 401) {

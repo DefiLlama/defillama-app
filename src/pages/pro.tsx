@@ -150,7 +150,7 @@ function ProPageContent({ initialDiscoveryCategories }: ProPageProps) {
 				description="Build custom no-code DeFi dashboards with DefiLlama Pro. Combine TVL, fees, volume, and protocol metrics into personalized analytics views."
 				canonicalUrl={`/pro`}
 			>
-				<ProDashboardLoader />
+				<ProDashboardLoader heading="Custom Dashboards" />
 			</Layout>
 		)
 	}
@@ -261,10 +261,10 @@ function ProContent({
 		const items = router.query.items
 		if (comparison !== 'protocols' || typeof items !== 'string') return
 		if (comparisonPreset) return
-		const parsedItems = items
-			.split(',')
-			.map((item) => item.trim())
-			.filter(Boolean)
+		const parsedItems = items.split(',').flatMap((item) => {
+			const trimmed = item.trim()
+			return trimmed ? [trimmed] : []
+		})
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
 		let cancelled = false
 		if (parsedItems.length > 0) {
@@ -330,6 +330,7 @@ function ProContent({
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
 						<button
+							type="button"
 							onClick={
 								!isAuthenticated
 									? () => router.push('/pro/preview')
@@ -345,6 +346,7 @@ function ProContent({
 						</button>
 					}
 					<button
+						type="button"
 						onClick={
 							!isAuthenticated
 								? () => router.push('/pro/preview')
@@ -394,6 +396,7 @@ function ProContent({
 					{myDashboardsTotalPages > 1 ? (
 						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 							<button
+								type="button"
 								onClick={() => goToPage(1)}
 								disabled={selectedPage < 3}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
@@ -402,6 +405,7 @@ function ProContent({
 							</button>
 
 							<button
+								type="button"
 								onClick={() => goToPage(Math.max(1, selectedPage - 1))}
 								disabled={selectedPage === 1}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
@@ -413,6 +417,7 @@ function ProContent({
 								const isActive = selectedPage === pageNum
 								return (
 									<button
+										type="button"
 										key={`my-dashboard-page-${pageNum}`}
 										onClick={() => goToPage(pageNum)}
 										data-active={isActive}
@@ -424,6 +429,7 @@ function ProContent({
 							})}
 
 							<button
+								type="button"
 								onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
 								disabled={selectedPage === myDashboardsTotalPages}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
@@ -431,6 +437,7 @@ function ProContent({
 								<Icon name="chevron-right" height={16} width={16} />
 							</button>
 							<button
+								type="button"
 								onClick={() => goToPage(myDashboardsTotalPages)}
 								disabled={selectedPage > myDashboardsTotalPages - 2}
 								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
