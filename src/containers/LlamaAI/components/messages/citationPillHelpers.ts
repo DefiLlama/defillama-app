@@ -123,6 +123,28 @@ export interface CitedCell {
 	column: string
 }
 
+const parsedCellCache = new WeakMap<
+	Array<Record<string, unknown>>,
+	WeakMap<Record<string, unknown>, Map<string, number | null>>
+>()
+
+function getCachedParsedCell(rows: Array<Record<string, unknown>>, row: Record<string, unknown>, column: string) {
+	let rowCache = parsedCellCache.get(rows)
+	if (!rowCache) {
+		rowCache = new WeakMap()
+		parsedCellCache.set(rows, rowCache)
+	}
+	let cellCache = rowCache.get(row)
+	if (!cellCache) {
+		cellCache = new Map()
+		rowCache.set(row, cellCache)
+	}
+	if (cellCache.has(column)) return cellCache.get(column) ?? null
+	const parsed = parseRefNumber(row[column])
+	cellCache.set(column, parsed)
+	return parsed
+}
+
 export function findCitedCell(
 	rows: Array<Record<string, unknown>> | undefined,
 	columns: string[] | undefined,
@@ -144,7 +166,7 @@ export function findCitedCell(
 	const tolerance = Math.max(Math.abs(target) * 1e-3, 1e-9)
 	for (let ri = 0; ri < rows.length; ri++) {
 		for (const col of cols) {
-			const cell = parseRefNumber(rows[ri][col] as unknown)
+			const cell = getCachedParsedCell(rows, rows[ri], col)
 			if (cell == null) continue
 			if (Math.abs(cell - target) <= tolerance) return { rowIndex: ri, column: col }
 		}

@@ -15,7 +15,13 @@ import {
 } from './citationPillHelpers'
 import { useCitationSheet } from './CitationSheetContext'
 
-export function CitationDetailPanel({ onBackToDashboard }: { onBackToDashboard?: () => void }) {
+export function CitationDetailPanel({
+	onBackToDashboard,
+	advancedProvenance
+}: {
+	onBackToDashboard?: () => void
+	advancedProvenance: boolean
+}) {
 	const { activeRef, close } = useCitationSheet()
 	const [entered, setEntered] = useState(false)
 
@@ -130,7 +136,7 @@ export function CitationDetailPanel({ onBackToDashboard }: { onBackToDashboard?:
 								<span>{unverifiedLabel()}</span>
 							</div>
 						) : null}
-						<PillBody reference={activeRef} citedCell={citedCell} advancedProvenance={false} />
+						<PillBody reference={activeRef} citedCell={citedCell} advancedProvenance={advancedProvenance} />
 					</div>
 				</div>
 			</div>

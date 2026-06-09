@@ -79,7 +79,7 @@ export const SANITIZE_SCHEMA = {
 	attributes: {
 		...defaultSchema.attributes,
 		a: [...(defaultSchema.attributes?.a ?? []), 'data-footnote-backref'],
-		'fact-check-pill': ['dataRef', 'data-ref'],
+		'fact-check-pill': ['data-ref'],
 		'*': [...(defaultSchema.attributes?.['*'] ?? []), 'style', 'className', ...SVG_ATTRS]
 	}
 }

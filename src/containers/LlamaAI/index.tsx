@@ -2458,6 +2458,7 @@ export function AgenticChat({
 						) : null}
 						{citationSheet.isOpen ? (
 							<CitationDetailPanel
+								advancedProvenance={settings.advancedProvenance}
 								onBackToDashboard={
 									dashboardVersions.length > 0 && dashboardPanelIsOpen ? citationSheet.close : undefined
 								}
