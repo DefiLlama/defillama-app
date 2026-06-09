@@ -14,15 +14,6 @@ const MOBILE_FRAME = {
 	height: 1384
 } as const
 
-/**
- * Figma inner image size inside each `blue` ellipse layer (`47:652`–`47:654`).
- * Glow is this % of the layer frame — not a separate oversized circle.
- */
-const FIGMA_LAYER_GLOW = {
-	widthPct: 67.65,
-	heightPct: 94.76
-} as const
-
 const FIGMA = {
 	desktop: {
 		dark: {
@@ -49,133 +40,80 @@ const FIGMA = {
 } as const
 
 type FigmaGlowLayer = {
-	/** Layer origin + size in artboard px (can extend off-screen). */
+	/** Visible slice origin + size in artboard px. */
 	x: number
 	y: number
 	w: number
 	h: number
-	/** Gradient center inside the layer box. */
-	anchor: { x: string; y: string }
-	/** Blur radius at design artboard width (scales with vw). */
-	blurPx: number
-	/** Override default 67.65×94.76% fill (mobile pill uses smaller visible core). */
-	glowFill?: { widthPct: number; heightPct: number }
-	stops: string
-	opacity?: number
+	src: string
 }
-
-const DARK_BLOB_STOPS =
-	'rgba(35, 123, 255, 0.55) 0%, rgba(28, 95, 210, 0.22) 38%, rgba(12, 45, 120, 0.06) 55%, transparent 62%'
-
-const LIGHT_BLOB_STOPS =
-	'rgba(35, 123, 255, 0.48) 0%, rgba(80, 145, 255, 0.28) 36%, rgba(140, 185, 255, 0.1) 52%, transparent 62%'
 
 /**
  * Desktop `blue` layers — `36:409` / `47:651`.
+ * These dimensions are the visible Figma screenshot slices, not the full off-canvas layer boxes.
  *
- * | Blob        | x     | y   | w    | h   | % frame          |
- * |-------------|-------|-----|------|-----|------------------|
- * | top-right   | 1059  | 137 | 1091 | 712 | 70%→, 9%↓        |
- * | bottom-left | -683  | 849 | 1191 | 774 | off←, 53%↓       |
- * | top-left    | -583  | -318| 1091 | 712 | off←, off↑       |
+ * | Blob        | Source node | Visible crop           |
+ * |-------------|-------------|------------------------|
+ * | top-right   | 44:344/47:652 | right edge crop       |
+ * | bottom-left | 46:637/47:653 | left edge/body crop   |
+ * | top-left    | 36:773/47:654 | upper-left crop       |
  */
 const DESKTOP_GLOWS = {
 	dark: {
 		topRight: {
 			x: 1059,
 			y: 137,
-			w: 1091,
+			w: 451,
 			h: 712,
-			anchor: { x: '14%', y: '52%' },
-			blurPx: 28,
-			stops: DARK_BLOB_STOPS
+			src: `${AUTHOR_BG}/blue-blob-dark.png`
 		},
 		bottomLeft: {
-			x: -683,
+			x: 0,
 			y: 849,
-			w: 1191,
-			h: 774,
-			anchor: { x: '74%', y: '16%' },
-			blurPx: 32,
-			stops: DARK_BLOB_STOPS
+			w: 508,
+			h: 742,
+			src: `${AUTHOR_BG}/blue-blob-bottom-left-dark.png`
 		},
 		topLeft: {
-			x: -583,
-			y: -318,
-			w: 1091,
-			h: 712,
-			anchor: { x: '70%', y: '88%' },
-			blurPx: 28,
-			stops: DARK_BLOB_STOPS
+			x: 0,
+			y: 0,
+			w: 508,
+			h: 394,
+			src: `${AUTHOR_BG}/blue-blob-top-left-dark.png`
 		}
 	},
 	light: {
 		topRight: {
 			x: 1103,
 			y: 172,
-			w: 1091,
+			w: 407,
 			h: 712,
-			anchor: { x: '14%', y: '52%' },
-			blurPx: 28,
-			opacity: 0.75,
-			stops: LIGHT_BLOB_STOPS
+			src: `${AUTHOR_BG}/blue-blob-light.png`
 		},
 		bottomLeft: {
-			x: -683,
+			x: 0,
 			y: 849,
-			w: 1191,
-			h: 774,
-			anchor: { x: '74%', y: '16%' },
-			blurPx: 32,
-			opacity: 0.75,
-			stops: LIGHT_BLOB_STOPS
+			w: 508,
+			h: 742,
+			src: `${AUTHOR_BG}/blue-blob-bottom-left-light.png`
 		},
 		topLeft: {
-			x: -710,
-			y: -281,
-			w: 1091,
-			h: 712,
-			anchor: { x: '70%', y: '88%' },
-			blurPx: 28,
-			opacity: 0.75,
-			stops: LIGHT_BLOB_STOPS
+			x: 0,
+			y: 0,
+			w: 381,
+			h: 431,
+			src: `${AUTHOR_BG}/blue-blob-top-left-light.png`
 		}
 	}
 } as const satisfies Record<string, Record<string, FigmaGlowLayer>>
 
 const INTERMEDIATE_CLIP = 'clamp(580px, 78vh, 760px)'
 
-/**
- * Mobile `Pill bg` — `55:467` / `56:782`.
- * CSS glow matching the Figma ellipse (raster + screen-blend failed on `#1D1D1D`).
- */
+/** Mobile `Pill bg` visible crop — `55:467` / `56:782`. */
 const MOBILE_ARTICLE_GLOW = {
-	dark: {
-		x: -444,
-		y: 0,
-		w: 859,
-		h: 620,
-		anchor: { x: '76%', y: '22%' },
-		blurPx: 44,
-		glowFill: { widthPct: 58, heightPct: 72 },
-		stops: DARK_BLOB_STOPS,
-		opacity: 0.75
-	},
-	light: {
-		x: -444,
-		y: 0,
-		w: 859,
-		h: 620,
-		anchor: { x: '76%', y: '22%' },
-		blurPx: 44,
-		glowFill: { widthPct: 58, heightPct: 72 },
-		stops: LIGHT_BLOB_STOPS,
-		opacity: 0.75
-	}
-} as const satisfies Record<string, FigmaGlowLayer>
-
-/** Figma: pill y=859, article list y=627 → 232px below article header. */
-const MOBILE_ARTICLE_GLOW_TOP = `calc(${INTERMEDIATE_CLIP} + min(${(232 / MOBILE_FRAME.width) * 100}vw, 232px))`
+	dark: `${AUTHOR_BG}/pill-bg-mobile-dark.webp`,
+	light: `${AUTHOR_BG}/pill-bg-mobile-light.webp`
+} as const
 
 type DesktopLayer = {
 	clipPx: number
@@ -187,7 +125,8 @@ type DesktopLayer = {
 
 /** Scale artboard px → vw (caps at design px above artboard width). */
 function artboardScale(px: number, frameWidth: number) {
-	return `min(${(px / frameWidth) * 100}vw, ${px}px)`
+	const scaled = `${(px / frameWidth) * 100}vw`
+	return px < 0 ? `max(${scaled}, ${px}px)` : `min(${scaled}, ${px}px)`
 }
 
 function artboardSceneHeight(frame: { width: number; height: number }) {
@@ -207,44 +146,20 @@ function figmaLayerOffset(offsetPx: number, basePx: number) {
 	return `min(${(offsetPx / basePx) * 100}%, ${offsetPx}px)`
 }
 
-function FigmaGlow({
-	layer,
-	frameWidth,
-	lightStops
-}: {
-	layer: FigmaGlowLayer
-	frameWidth: number
-	lightStops?: boolean
-}) {
-	const fill = layer.glowFill ?? FIGMA_LAYER_GLOW
-	const stops = lightStops ? LIGHT_BLOB_STOPS : layer.stops
-
+function FigmaGlow({ layer, frameWidth }: { layer: FigmaGlowLayer; frameWidth: number }) {
 	return (
-		<div
+		<img
+			src={layer.src}
+			alt=""
 			aria-hidden
-			className="pointer-events-none absolute overflow-visible"
+			className="pointer-events-none absolute max-w-none select-none"
 			style={{
 				left: artboardScale(layer.x, frameWidth),
 				top: artboardScale(layer.y, frameWidth),
 				width: artboardScale(layer.w, frameWidth),
-				height: artboardScale(layer.h, frameWidth),
-				opacity: layer.opacity ?? 1
+				height: artboardScale(layer.h, frameWidth)
 			}}
-		>
-			<div
-				aria-hidden
-				className="pointer-events-none absolute rounded-full"
-				style={{
-					left: layer.anchor.x,
-					top: layer.anchor.y,
-					width: `${fill.widthPct}%`,
-					height: `${fill.heightPct}%`,
-					transform: 'translate(-50%, -50%)',
-					background: `radial-gradient(ellipse 100% 100% at center, ${stops})`,
-					filter: `blur(${artboardScale(layer.blurPx, frameWidth)})`
-				}}
-			/>
-		</div>
+		/>
 	)
 }
 
@@ -294,10 +209,10 @@ function DesktopDarkBackground({ className }: { className: string }) {
 
 	return (
 		<DesktopSceneShell className={className}>
-			<FigmaGlow layer={topRight} frameWidth={DESKTOP_FRAME.width} />
 			<DesktopHeaderImage layer={FIGMA.desktop.dark} clipHeight={clipHeight} />
-			<FigmaGlow layer={bottomLeft} frameWidth={DESKTOP_FRAME.width} />
 			<FigmaGlow layer={topLeft} frameWidth={DESKTOP_FRAME.width} />
+			<FigmaGlow layer={topRight} frameWidth={DESKTOP_FRAME.width} />
+			<FigmaGlow layer={bottomLeft} frameWidth={DESKTOP_FRAME.width} />
 		</DesktopSceneShell>
 	)
 }
@@ -308,10 +223,10 @@ function DesktopLightBackground({ className }: { className: string }) {
 
 	return (
 		<DesktopSceneShell className={className}>
-			<FigmaGlow layer={topRight} frameWidth={DESKTOP_FRAME.width} lightStops />
 			<DesktopHeaderImage layer={FIGMA.desktop.light} clipHeight={clipHeight} />
-			<FigmaGlow layer={bottomLeft} frameWidth={DESKTOP_FRAME.width} lightStops />
-			<FigmaGlow layer={topLeft} frameWidth={DESKTOP_FRAME.width} lightStops />
+			<FigmaGlow layer={topLeft} frameWidth={DESKTOP_FRAME.width} />
+			<FigmaGlow layer={topRight} frameWidth={DESKTOP_FRAME.width} />
+			<FigmaGlow layer={bottomLeft} frameWidth={DESKTOP_FRAME.width} />
 		</DesktopSceneShell>
 	)
 }
@@ -351,18 +266,18 @@ function FullBleedHeaderImage({
 
 /** Bottom-left article glow — sits under list content without extending page scroll. */
 function MobileArticleGlow({ className, light = false }: { className: string; light?: boolean }) {
-	const layer = light ? MOBILE_ARTICLE_GLOW.light : MOBILE_ARTICLE_GLOW.dark
+	const src = light ? MOBILE_ARTICLE_GLOW.light : MOBILE_ARTICLE_GLOW.dark
 
 	return (
 		<div
 			aria-hidden
-			className={`pointer-events-none absolute inset-x-0 z-0 overflow-visible ${className}`}
+			className={`pointer-events-none absolute inset-x-0 z-0 overflow-hidden ${className}`}
 			style={{
-				top: MOBILE_ARTICLE_GLOW_TOP,
-				height: artboardScale(layer.h, MOBILE_FRAME.width)
+				top: artboardScale(859, MOBILE_FRAME.width),
+				height: artboardScale(525, MOBILE_FRAME.width)
 			}}
 		>
-			<FigmaGlow layer={layer} frameWidth={MOBILE_FRAME.width} lightStops={light} />
+			<img src={src} alt="" aria-hidden className="h-full w-full object-fill select-none" style={{ opacity: 0.75 }} />
 		</div>
 	)
 }
