@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
+import { ResearchIcon } from '~/components/ResearchIcon'
 import {
 	ArticleApiError,
 	listArticles,
@@ -199,10 +200,7 @@ function ResultCard({ article }: { article: ArticleDocument }) {
 					/>
 				) : (
 					<div className="grid size-full place-items-center text-[#0c2956]/20 dark:text-white/20">
-						<svg viewBox="0 0 32 32" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-							<path d="M4 10h24v18H4z" />
-							<path d="M9 6h14v4" />
-						</svg>
+						<ResearchIcon name="research-placeholder" className="size-6" aria-hidden />
 					</div>
 				)}
 				{sectionLabel ? (
@@ -305,18 +303,11 @@ function EmptyState({ query, tag, section }: { query: string; tag: string; secti
 	return (
 		<div className="grid place-items-center px-4 py-20 text-center">
 			<div className="grid max-w-md gap-3">
-				<svg
-					viewBox="0 0 64 64"
+				<ResearchIcon
+					name="research-search-empty"
 					className="mx-auto size-12 text-[#0c2956]/25 dark:text-white/25"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
 					aria-hidden
-				>
-					<circle cx="28" cy="28" r="18" />
-					<line x1="42" y1="42" x2="56" y2="56" strokeLinecap="round" />
-					<line x1="18" y1="28" x2="38" y2="28" strokeLinecap="round" />
-				</svg>
+				/>
 				<h2 className="text-[22px] leading-[130%] font-semibold tracking-tight text-[#0c2956] dark:text-white">
 					{hasFilters ? 'Nothing matches that.' : 'No research yet.'}
 				</h2>

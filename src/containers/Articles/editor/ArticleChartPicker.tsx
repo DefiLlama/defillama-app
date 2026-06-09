@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useMemo, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartTypePills } from '~/containers/ProDashboard/components/AddChartModal/ChartTypePills'
 import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
@@ -475,17 +476,11 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 							/>
 						</div>
 						<div className="relative">
-							<svg
+							<Icon
+								name="search"
 								aria-hidden
-								viewBox="0 0 24 24"
 								className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-(--text-tertiary)"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-							>
-								<circle cx="11" cy="11" r="7" />
-								<path d="m20 20-3.5-3.5" strokeLinecap="round" />
-							</svg>
+							/>
 							<input
 								autoFocus
 								value={query}
@@ -526,17 +521,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 														: 'border-(--form-control-border) bg-(--cards-bg) group-hover:border-(--text-tertiary)'
 												}`}
 											>
-												{checked ? (
-													<svg
-														viewBox="0 0 12 12"
-														className="size-2.5 text-white"
-														fill="none"
-														stroke="currentColor"
-														strokeWidth="2.5"
-													>
-														<path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
-													</svg>
-												) : null}
+												{checked ? <Icon name="check" className="size-2.5 text-white" /> : null}
 											</span>
 											<span className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
 												<img src={entityLogo(entity)} alt="" className="size-full object-cover" />

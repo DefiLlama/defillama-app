@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Icon } from '~/components/Icon'
 import { type UploadResult, type UploadScope, useImageUpload } from './useImageUpload'
 
 type Props = {
@@ -10,24 +11,6 @@ type Props = {
 	label: string
 	helperText?: string
 	previewShape?: 'square' | 'wide'
-}
-
-function PhotoIcon({ className = 'size-5' }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 24 24"
-			className={className}
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="1.5"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<rect x="3" y="3" width="18" height="18" rx="2" />
-			<circle cx="9" cy="9" r="2" />
-			<path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21" />
-		</svg>
-	)
 }
 
 export function ImageUploadButton({
@@ -95,7 +78,7 @@ export function ImageUploadButton({
 							disabled={isUploading}
 							className="group flex size-24 shrink-0 flex-col items-center justify-center gap-1 rounded-full border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<PhotoIcon className="size-5" />
+							<Icon name="image-plus" className="size-5" />
 							<span className="text-[10px] font-medium tracking-wider uppercase">{isUploading ? '…' : 'Upload'}</span>
 						</button>
 					)}
@@ -174,7 +157,7 @@ export function ImageUploadButton({
 							onClick={open}
 							className="group flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<PhotoIcon className="size-5" />
+							<Icon name="image-plus" className="size-5" />
 							<span className="text-xs font-medium">
 								{isUploading ? 'Uploading…' : `Upload ${label.toLowerCase()}`}
 							</span>

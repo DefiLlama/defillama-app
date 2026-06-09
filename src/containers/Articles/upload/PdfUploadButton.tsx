@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Icon } from '~/components/Icon'
 import type { ArticlePdf } from '../types'
 import { type PdfUploadResult, usePdfUpload } from './usePdfUpload'
 
@@ -15,24 +16,6 @@ function formatSize(bytes: number): string {
 	if (bytes < 1024) return `${bytes} B`
 	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
 	return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-}
-
-function PdfIcon({ className = 'size-5' }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 24 24"
-			className={className}
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="1.5"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-			<polyline points="14 2 14 8 20 8" />
-			<path d="M9 13h6M9 17h4" />
-		</svg>
-	)
 }
 
 export function PdfUploadButton({ articleId, currentPdf, onUploaded, onCleared, helperText }: Props) {
@@ -66,7 +49,7 @@ export function PdfUploadButton({ articleId, currentPdf, onUploaded, onCleared, 
 			{currentPdf ? (
 				<div className="grid gap-2">
 					<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<PdfIcon className="size-6 shrink-0 text-(--link-text)" />
+						<Icon name="file-text" className="size-6 shrink-0 text-(--link-text)" />
 						<div className="flex min-w-0 flex-col">
 							<a
 								href={currentPdf.url}
@@ -110,7 +93,7 @@ export function PdfUploadButton({ articleId, currentPdf, onUploaded, onCleared, 
 					onClick={open}
 					className="group flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 				>
-					<PdfIcon className="size-5" />
+					<Icon name="file-text" className="size-5" />
 					<span className="text-xs font-medium">{isUploading ? 'Uploading…' : 'Upload PDF'}</span>
 				</button>
 			)}

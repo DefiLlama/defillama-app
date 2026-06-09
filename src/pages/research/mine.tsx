@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
+import { Icon } from '~/components/Icon'
 import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { deleteArticle as deleteArticleApi, listMyArticles, type ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
@@ -202,19 +203,7 @@ function MyArticlesContent() {
 							href="/research/new"
 							className="inline-flex items-center gap-1.5 rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white hover:opacity-90"
 						>
-							<svg
-								viewBox="0 0 24 24"
-								className="size-4"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								aria-hidden
-							>
-								<line x1="12" y1="5" x2="12" y2="19" />
-								<line x1="5" y1="12" x2="19" y2="12" />
-							</svg>
+							<Icon name="plus" className="size-4" aria-hidden />
 							New
 						</Link>
 					</div>
@@ -246,19 +235,11 @@ function MyArticlesContent() {
 
 					<div className="ml-auto flex flex-wrap items-center gap-2">
 						<label className="relative flex items-center">
-							<svg
-								viewBox="0 0 24 24"
+							<Icon
+								name="search"
 								className="pointer-events-none absolute left-2.5 size-3.5 text-(--text-tertiary)"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="1.75"
-								strokeLinecap="round"
-								strokeLinejoin="round"
 								aria-hidden
-							>
-								<circle cx="11" cy="11" r="7" />
-								<line x1="20" y1="20" x2="16.5" y2="16.5" />
-							</svg>
+							/>
 							<input
 								type="search"
 								value={searchInput}
@@ -430,18 +411,7 @@ function MyArticlesContent() {
 											title="Preview in editor"
 											className="flex size-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
 										>
-											<svg
-												viewBox="0 0 24 24"
-												className="size-4"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="1.75"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-												<circle cx="12" cy="12" r="3" />
-											</svg>
+											<Icon name="eye" className="size-4" />
 										</Link>
 										<Link
 											href={`/research/edit/${article.id}`}
@@ -458,18 +428,7 @@ function MyArticlesContent() {
 												onClick={() => handleDelete(article)}
 												className="flex size-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 											>
-												<svg
-													viewBox="0 0 24 24"
-													className="size-3.5"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="1.75"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												>
-													<line x1="6" y1="6" x2="18" y2="18" />
-													<line x1="6" y1="18" x2="18" y2="6" />
-												</svg>
+												<Icon name="x" className="size-3.5" />
 											</button>
 										) : null}
 									</div>

@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import Link from 'next/link'
 import type { Dispatch, SetStateAction } from 'react'
+import { Icon as SharedIcon } from '~/components/Icon'
 import type { LocalArticleDocument } from '../types'
 import { Icon } from './ArticleEditorIcon'
 import type { SavePillState } from './ArticleEditorTypes'
@@ -209,18 +210,7 @@ export function ArticleEditorHeader({
 						title="Revision history"
 						className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
 					>
-						<svg
-							className="size-4"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.75"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<circle cx="12" cy="12" r="9" />
-							<polyline points="12 7 12 12 15.5 14" />
-						</svg>
+						<SharedIcon name="clock" className="size-4" />
 					</button>
 				) : null}
 

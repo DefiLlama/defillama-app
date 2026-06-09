@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { Icon } from '~/components/Icon'
 import {
 	deleteArticleRevision,
 	getArticleRevision,
@@ -549,18 +550,7 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 						aria-label="Close"
 						className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
 					>
-						<svg
-							className="size-4"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.75"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<line x1="6" y1="6" x2="18" y2="18" />
-							<line x1="6" y1="18" x2="18" y2="6" />
-						</svg>
+						<Icon name="x" className="size-4" />
 					</button>
 				</header>
 
@@ -725,18 +715,7 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 								<div className="grid h-full place-items-center px-6">
 									<div className="max-w-sm text-center">
 										<div className="mx-auto mb-4 grid size-12 place-items-center rounded-full border border-dashed border-(--cards-border)">
-											<svg
-												className="size-5 text-(--text-tertiary)"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="1.5"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<circle cx="12" cy="12" r="9" />
-												<polyline points="12 7 12 12 15.5 14" />
-											</svg>
+											<Icon name="clock" className="size-5 text-(--text-tertiary)" />
 										</div>
 										<p className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
 											No revision selected
@@ -913,18 +892,7 @@ function PreviewSpecimenHeader({
 								disabled={!revision || isRestoring}
 								className="group flex h-9 items-center gap-2 rounded-md bg-(--link-text) px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
 							>
-								<svg
-									className="size-3.5 transition-transform group-hover:-translate-x-0.5"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								>
-									<path d="M3 12a9 9 0 1 0 3-6.7" />
-									<polyline points="3 4 3 9 8 9" />
-								</svg>
+								<Icon name="repeat" className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
 								<span>Restore as pending</span>
 								<kbd className="hidden rounded border border-white/30 px-1 py-px font-jetbrains text-[9px] tracking-tight md:inline">
 									R
@@ -937,19 +905,7 @@ function PreviewSpecimenHeader({
 								title={canDelete ? 'Delete this revision' : 'The current live revision cannot be deleted'}
 								className="flex size-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-red-500/50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-(--cards-border) disabled:hover:text-(--text-secondary)"
 							>
-								<svg
-									className="size-3.5"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="1.75"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								>
-									<polyline points="3 6 5 6 21 6" />
-									<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-									<path d="M10 11v6M14 11v6" />
-								</svg>
+								<Icon name="trash-2" className="size-3.5" />
 							</button>
 						</>
 					)}
@@ -1069,17 +1025,7 @@ function DiffPane({
 			<div className="grid h-full place-items-center px-6">
 				<div className="max-w-sm text-center">
 					<div className="mx-auto mb-4 grid size-12 place-items-center rounded-full border border-dashed border-(--cards-border)">
-						<svg
-							className="size-5 text-(--text-tertiary)"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<path d="M8 5l-5 7 5 7M16 5l5 7-5 7" />
-						</svg>
+						<Icon name="code" className="size-5 text-(--text-tertiary)" />
 					</div>
 					<p className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
 						Nothing to compare
@@ -1111,17 +1057,7 @@ function DiffPane({
 			<div className="grid h-full place-items-center px-6">
 				<div className="max-w-sm text-center">
 					<div className="mx-auto mb-4 grid size-12 place-items-center rounded-full border border-(--cards-border) bg-(--cards-bg)">
-						<svg
-							className="size-5 text-emerald-500"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<polyline points="5 12 10 17 19 8" />
-						</svg>
+						<Icon name="check" className="size-5 text-emerald-500" />
 					</div>
 					<p className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">Identical</p>
 					<p className="mt-2 text-sm text-(--text-secondary)">
@@ -1364,17 +1300,7 @@ function EmptyState({ filter }: { filter: FilterKey }) {
 		<div className="grid h-full place-items-center px-6 py-16">
 			<div className="max-w-xs text-center">
 				<div className="mx-auto mb-4 grid size-14 place-items-center rounded-full border border-dashed border-(--cards-border)">
-					<svg
-						className="size-6 text-(--text-tertiary)"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="1.5"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<path d="M3 4h18v4H3zM3 12h18v4H3zM3 20h18" />
-					</svg>
+					<Icon name="file-text" className="size-6 text-(--text-tertiary)" />
 				</div>
 				<p className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
 					{filter === 'all' ? 'No revisions yet' : 'No matches'}
