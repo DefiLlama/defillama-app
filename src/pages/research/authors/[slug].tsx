@@ -213,7 +213,7 @@ function BrandHero() {
 					<h1 className="text-[28px] leading-tight font-bold tracking-widest text-white sm:text-3xl dark:text-[#3A8BFF]">
 						<BasicLink
 							href="/research"
-							className="text-inherit transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+							className="text-inherit transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
 						>
 							DefiLlama Research
 						</BasicLink>

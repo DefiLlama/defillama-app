@@ -65,21 +65,21 @@ const DESKTOP_GLOWS = {
 			y: 137,
 			w: 451,
 			h: 712,
-			src: `${AUTHOR_BG}/blue-blob-dark.png`
+			src: `${AUTHOR_BG}/blue-blob-dark.webp`
 		},
 		bottomLeft: {
 			x: 0,
 			y: 849,
 			w: 508,
 			h: 742,
-			src: `${AUTHOR_BG}/blue-blob-bottom-left-dark.png`
+			src: `${AUTHOR_BG}/blue-blob-bottom-left-dark.webp`
 		},
 		topLeft: {
 			x: 0,
 			y: 0,
 			w: 508,
 			h: 394,
-			src: `${AUTHOR_BG}/blue-blob-top-left-dark.png`
+			src: `${AUTHOR_BG}/blue-blob-top-left-dark.webp`
 		}
 	},
 	light: {
@@ -88,21 +88,21 @@ const DESKTOP_GLOWS = {
 			y: 172,
 			w: 407,
 			h: 712,
-			src: `${AUTHOR_BG}/blue-blob-light.png`
+			src: `${AUTHOR_BG}/blue-blob-light.webp`
 		},
 		bottomLeft: {
 			x: 0,
 			y: 849,
 			w: 508,
 			h: 742,
-			src: `${AUTHOR_BG}/blue-blob-bottom-left-light.png`
+			src: `${AUTHOR_BG}/blue-blob-bottom-left-light.webp`
 		},
 		topLeft: {
 			x: 0,
 			y: 0,
 			w: 381,
 			h: 431,
-			src: `${AUTHOR_BG}/blue-blob-top-left-light.png`
+			src: `${AUTHOR_BG}/blue-blob-top-left-light.webp`
 		}
 	}
 } as const satisfies Record<string, Record<string, FigmaGlowLayer>>
