@@ -109,6 +109,7 @@ function renderCodeBlock(node: TiptapJson): string {
 function renderCallout(node: TiptapJson): string {
 	const tone = (stringAttr(node.attrs, 'tone') as ArticleCalloutTone | undefined) || 'note'
 	if (tone === 'pullquote') return `<blockquote>${renderChildren(node)}</blockquote>`
+	if (tone === 'bio') return `<aside>${renderChildren(node)}</aside>`
 	const label = tone.charAt(0).toUpperCase() + tone.slice(1)
 	return `<aside><strong>${escapeHtml(label)}</strong>${renderChildren(node)}</aside>`
 }

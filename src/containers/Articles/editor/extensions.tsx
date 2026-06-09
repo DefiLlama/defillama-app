@@ -67,7 +67,27 @@ const calloutToneStyles: Record<ArticleCalloutTone, { wrap: string; tone: string
 	pullquote: {
 		wrap: 'border-y border-x-0 border-(--link-text)/30 bg-transparent rounded-none px-2',
 		tone: 'text-(--link-text)'
+	},
+	bio: {
+		wrap: 'border-y-0 border-r-0 border-l-4 rounded-l-none border-(--link-text) bg-(--link-button)',
+		tone: 'text-(--link-text)'
 	}
+}
+
+const calloutToneLabels: Record<ArticleCalloutTone, string> = {
+	note: 'Note',
+	data: 'Data',
+	warning: 'Warning',
+	pullquote: 'Pullquote',
+	bio: 'Interview Bio'
+}
+
+const calloutToneDefaults: Record<ArticleCalloutTone, string> = {
+	note: 'Add context or caveats here.',
+	data: 'Add context or caveats here.',
+	warning: 'Add context or caveats here.',
+	pullquote: 'Add context or caveats here.',
+	bio: 'Write a short bio for the interviewee here.'
 }
 
 function ChartCaptionEditor({
@@ -249,22 +269,22 @@ function CalloutNodeView({ node, updateAttributes }: NodeViewProps) {
 	return (
 		<NodeViewWrapper className={`my-4 rounded-md border p-4 ${styles.wrap}`}>
 			<div className="mb-2 flex items-center justify-between gap-2">
-				<span className={`text-xs font-medium capitalize ${styles.tone}`}>{tone}</span>
+				<span className={`text-xs font-medium ${styles.tone}`}>{calloutToneLabels[tone]}</span>
 				<div className="flex rounded border border-(--cards-border) p-0.5">
-					{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((value) => {
+					{(['note', 'data', 'warning', 'pullquote', 'bio'] as ArticleCalloutTone[]).map((value) => {
 						const active = value === tone
 						return (
 							<button
 								key={value}
 								type="button"
 								onClick={() => updateAttributes({ tone: value })}
-								className={`rounded px-2 py-0.5 text-xs capitalize transition-colors ${
+								className={`rounded px-2 py-0.5 text-xs transition-colors ${
 									active
 										? 'bg-(--link-button) text-(--link-text)'
 										: 'text-(--text-tertiary) hover:text-(--text-primary)'
 								}`}
 							>
-								{value}
+								{calloutToneLabels[value]}
 							</button>
 						)
 					})}
@@ -484,7 +504,7 @@ export const Callout = Node.create({
 					commands.insertContent({
 						type: this.name,
 						attrs: { tone },
-						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Add context or caveats here.' }] }]
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: calloutToneDefaults[tone] }] }]
 					})
 		}
 	}

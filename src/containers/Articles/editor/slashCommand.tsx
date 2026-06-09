@@ -228,6 +228,15 @@ const ALL_ITEMS: SlashCommandItem[] = [
 		action: (editor, range) => editor.chain().focus().deleteRange(range).insertCallout('pullquote').run()
 	},
 	{
+		id: 'callout-bio',
+		title: 'Interview Bio',
+		description: 'Highlighted bio with blue stroke (no quote marks)',
+		icon: '◑',
+		group: 'Custom',
+		keywords: ['bio', 'interview', 'interviewee', 'about', 'profile', 'callout', 'highlight'],
+		action: (editor, range) => editor.chain().focus().deleteRange(range).insertCallout('bio').run()
+	},
+	{
 		id: 'citation',
 		title: 'Citation',
 		description: 'Numbered source reference',

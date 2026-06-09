@@ -17,6 +17,15 @@ import { Icon } from './ArticleEditorIcon'
 
 type LinkEditState = { url: string; newTab: boolean } | null
 
+const CALLOUT_TONES: ArticleCalloutTone[] = ['note', 'data', 'warning', 'pullquote', 'bio']
+const CALLOUT_TONE_LABELS: Record<ArticleCalloutTone, string> = {
+	note: 'Note',
+	data: 'Data',
+	warning: 'Warning',
+	pullquote: 'Pullquote',
+	bio: 'Interview Bio'
+}
+
 type ArticleEditorCanvasProps = {
 	activeEntity: ActiveEntityLink | null
 	blockItems: BlockItem[]
@@ -338,13 +347,13 @@ export function ArticleEditorCanvas({
 										gutter={4}
 										className="z-50 grid min-w-[140px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 									>
-										{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((tone) => (
+										{CALLOUT_TONES.map((tone) => (
 											<Ariakit.MenuItem
 												key={tone}
 												onClick={() => insertCallout(tone)}
-												className="rounded px-2 py-1.5 text-xs text-(--text-secondary) capitalize data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+												className="rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 											>
-												{tone}
+												{CALLOUT_TONE_LABELS[tone]}
 											</Ariakit.MenuItem>
 										))}
 									</Ariakit.Menu>
@@ -506,13 +515,13 @@ export function ArticleEditorCanvas({
 											gutter={4}
 											className="z-50 grid min-w-[140px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 										>
-											{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((tone) => (
+											{CALLOUT_TONES.map((tone) => (
 												<Ariakit.MenuItem
 													key={tone}
 													onClick={() => insertCallout(tone)}
-													className="rounded px-2 py-1.5 text-xs text-(--text-secondary) capitalize data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+													className="rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 												>
-													{tone}
+													{CALLOUT_TONE_LABELS[tone]}
 												</Ariakit.MenuItem>
 											))}
 										</Ariakit.Menu>

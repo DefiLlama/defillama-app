@@ -233,6 +233,16 @@ function renderCallout(node: TiptapJson, key: string, ctx: RenderContext) {
 			</aside>
 		)
 	}
+	if (tone === 'bio') {
+		return (
+			<aside
+				key={key}
+				className="article-bio my-6 rounded-md rounded-l-none border-l-4 border-(--link-text) bg-(--link-button) px-5 py-4 leading-[1.65] text-(--text-secondary) [&_p]:my-0 [&_p+p]:mt-2"
+			>
+				{renderChildren(node, key, ctx)}
+			</aside>
+		)
+	}
 	const wrap =
 		tone === 'warning'
 			? 'border-[#d89b2a]/60 bg-[#fff8e6] text-[#4d3606] dark:bg-[#30230b] dark:text-[#f4d28e]'
