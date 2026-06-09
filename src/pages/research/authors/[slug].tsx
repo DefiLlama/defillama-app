@@ -5,22 +5,12 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { ResearchIcon } from '~/components/ResearchIcon'
 import { FEATURES_SERVER } from '~/constants'
-import {
-	ArticleApiError,
-	getAuthorBySlug,
-	getResearchLanding,
-	type ArticleAuthorResponse
-} from '~/containers/Articles/api'
+import { ArticleApiError, getAuthorBySlug, type ArticleAuthorResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { isResearcher } from '~/containers/Articles/ArticlesAccessGate'
 import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/landing/utils'
 import { ResearchAuthorBackground } from '~/containers/Articles/profile/ResearchAuthorBackground'
-import {
-	ARTICLE_SECTION_LABELS,
-	type ArticleDocument,
-	type ArticlePublicAuthorProfile,
-	type ArticleSection
-} from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS, type ArticleDocument, type ArticleSection } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
@@ -54,71 +44,9 @@ function formatYear(value: string | null) {
 	return new Date(value).getFullYear().toString()
 }
 
-const DEFILLAMA_RESEARCH_AUTHOR: ArticlePublicAuthorProfile = {
-	slug: DEFILLAMA_RESEARCH_SLUG,
-	displayName: 'DefiLlama Research',
-	bio: 'Data-driven digital asset research, market intelligence, and interviews from the DefiLlama Research team.',
-	avatarUrl: '/assets/research/research-icon.svg',
-	socials: {
-		x: 'https://x.com/defillama_res',
-		telegram: 'https://t.me/defillama_research',
-		linkedin: 'https://www.linkedin.com/company/defillama/'
-	},
-	createdAt: '2026-01-01T00:00:00.000Z',
-	updatedAt: '2026-01-01T00:00:00.000Z'
-}
-
-const DEFILLAMA_RESEARCH_LANDING_LIMITS = {
-	hero: 6,
-	latest: 12,
-	spotlight: 12,
-	interviews: 12,
-	highlight: 6,
-	insights: 12,
-	reportsCandidates: 18,
-	spotlightCandidates: 18,
-	collectionsCandidates: 18
-}
-
-function getArticleDateValue(article: ArticleDocument) {
-	return new Date(article.displayDate ?? article.publishedAt ?? article.createdAt).getTime()
-}
-
-function getDefillamaResearchArticlesFromLandingBuckets(
-	buckets: Awaited<ReturnType<typeof getResearchLanding>>
-): ArticleDocument[] {
-	const articlesById = new Map<string, ArticleDocument>()
-	for (const articles of Object.values(buckets)) {
-		for (const article of articles) {
-			if (!article.brandByline) continue
-			articlesById.set(article.id, {
-				...article,
-				authorProfile: article.authorProfile ?? DEFILLAMA_RESEARCH_AUTHOR
-			})
-		}
-	}
-	return [...articlesById.values()]
-		.sort((a, b) => getArticleDateValue(b) - getArticleDateValue(a))
-		.slice(0, DEFILLAMA_RESEARCH_ARTICLE_LIMIT)
-}
-
-async function loadDefillamaResearchPageData(): Promise<ArticleAuthorResponse> {
-	const landingBuckets = await getResearchLanding(DEFILLAMA_RESEARCH_LANDING_LIMITS)
-	return {
-		author: DEFILLAMA_RESEARCH_AUTHOR,
-		articles: getDefillamaResearchArticlesFromLandingBuckets(landingBuckets)
-	}
-}
-
-async function loadAuthorPageData(slug: string): Promise<ArticleAuthorResponse | null> {
-	try {
-		const response = await getAuthorBySlug(slug)
-		if (response && (slug !== DEFILLAMA_RESEARCH_SLUG || response.articles.length > 0)) return response
-		return slug === DEFILLAMA_RESEARCH_SLUG ? loadDefillamaResearchPageData() : null
-	} catch (error) {
-		if (slug === DEFILLAMA_RESEARCH_SLUG) return loadDefillamaResearchPageData()
-		throw error
-	}
+function getAuthorPageArticles(slug: string, articles: ArticleDocument[]) {
+	if (slug === DEFILLAMA_RESEARCH_SLUG) return articles.slice(0, DEFILLAMA_RESEARCH_ARTICLE_LIMIT)
+	return articles.filter((article) => article.brandByline !== true)
 }
 
 const getServerSidePropsHandler: GetServerSideProps<AuthorPageProps> = async ({ params, res }) => {
@@ -128,7 +56,7 @@ const getServerSidePropsHandler: GetServerSideProps<AuthorPageProps> = async ({ 
 		return { notFound: true }
 	}
 
-	const initialData = await loadAuthorPageData(slug)
+	const initialData = await getAuthorBySlug(slug)
 	if (!initialData) {
 		res.setHeader('Cache-Control', AUTHOR_NO_STORE)
 		return { notFound: true }
@@ -387,7 +315,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 		error
 	} = useQuery({
 		queryKey: ['research', 'author', slug],
-		queryFn: () => loadAuthorPageData(slug),
+		queryFn: () => getAuthorBySlug(slug),
 		initialData: initialData ?? undefined,
 		enabled: !!slug,
 		staleTime: initialData ? AUTHOR_QUERY_STALE_TIME : 0,
@@ -396,10 +324,8 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 	})
 
 	const articles = useMemo(() => {
-		const items = data?.articles ?? EMPTY_ARTICLES
-		if (isDefillamaResearch) return items
-		return items.filter((article) => article.brandByline !== true)
-	}, [data?.articles, isDefillamaResearch])
+		return getAuthorPageArticles(slug, data?.articles ?? EMPTY_ARTICLES)
+	}, [data?.articles, slug])
 
 	const rest = useMemo(() => articles.slice(1), [articles])
 	const sectionCounts = useMemo(() => {
@@ -724,7 +650,7 @@ export default function ArticleAuthorPage({
 	initialData
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const isDefillamaResearch = slug === DEFILLAMA_RESEARCH_SLUG
-	const articles = initialData?.articles ?? EMPTY_ARTICLES
+	const articles = getAuthorPageArticles(slug, initialData?.articles ?? EMPTY_ARTICLES)
 	const title = isDefillamaResearch
 		? 'DefiLlama Research Articles | DefiLlama Research'
 		: initialData?.author
