@@ -159,6 +159,7 @@ export const config = {
 		'/sonic',
 		'/near',
 		'/flare',
-		'/odyssey-ecosystem'
+		'/odyssey-ecosystem',
+		'/thorchain'
 	]
 }
