@@ -14,6 +14,7 @@ import {
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { isResearcher } from '~/containers/Articles/ArticlesAccessGate'
 import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/landing/utils'
+import { ResearchAuthorBackground } from '~/containers/Articles/profile/ResearchAuthorBackground'
 import {
 	ARTICLE_SECTION_LABELS,
 	type ArticleAuthorProfile,
@@ -155,6 +156,26 @@ function SocialLink({ kind, value }: { kind: string; value: string }) {
 	)
 }
 
+function AuthorPageState({
+	title,
+	description,
+	children
+}: {
+	title: string
+	description?: string
+	children?: React.ReactNode
+}) {
+	return (
+		<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) px-6 py-16">
+			<div className="grid max-w-md gap-3 text-center">
+				<h1 className="text-3xl font-bold text-(--text-primary)">{title}</h1>
+				{description ? <p className="text-base text-(--text-label)">{description}</p> : null}
+				{children}
+			</div>
+		</div>
+	)
+}
+
 function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 	const { user, isAuthenticated } = useAuthContext()
 	const isMine = isAuthenticated && isResearcher(user) && !!user?.id && user.id === authorPbUserId
@@ -184,59 +205,9 @@ function getResearchArticleLabel(article: ArticleDocument) {
 	return 'Research'
 }
 
-const RESEARCH_GLOW = 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)'
-
-function ResearchBackgroundGradients() {
-	return (
-		<div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-			{/* dark: one continuous blue → navy wash spanning the hero and article area */}
-			<div
-				className="absolute inset-x-0 top-0 hidden h-[1150px] dark:block"
-				style={{
-					background:
-						'linear-gradient(180deg, #1f50d2 0%, #1a44ad 10%, #112c6e 24%, #0b1c44 40%, #07112a 56%, rgba(5,7,14,0) 78%)'
-				}}
-			/>
-			{/* dark: top-right hotspot */}
-			<div
-				className="absolute -top-[120px] -right-[8%] hidden aspect-square w-[760px] max-w-[60vw] rounded-full opacity-70 blur-[120px] dark:block"
-				style={{ background: RESEARCH_GLOW }}
-			/>
-			{/* dark: bottom-left glow */}
-			<div
-				className="absolute bottom-[60px] -left-[14%] hidden aspect-square w-[820px] max-w-[65vw] rounded-full opacity-40 blur-[150px] dark:block"
-				style={{ background: RESEARCH_GLOW }}
-			/>
-
-			{/* light: soft blue glows on the light page */}
-			<div
-				className="absolute top-[260px] -right-[12%] aspect-square w-[820px] max-w-[60vw] rounded-full opacity-50 blur-[140px] dark:hidden"
-				style={{ background: RESEARCH_GLOW }}
-			/>
-			<div
-				className="absolute bottom-[80px] -left-[15%] aspect-square w-[860px] max-w-[65vw] rounded-full opacity-45 blur-[140px] dark:hidden"
-				style={{ background: RESEARCH_GLOW }}
-			/>
-		</div>
-	)
-}
-
 function BrandHero() {
 	return (
-		<header className="relative overflow-hidden bg-[#002237] text-white dark:bg-transparent">
-			{/* light mode: blue glow over the teal hero (dark mode uses the page-wide wash) */}
-			<div
-				aria-hidden
-				className="pointer-events-none absolute inset-0 dark:hidden"
-				style={{
-					background: 'radial-gradient(110% 95% at 72% 8%, rgba(58, 139, 255, 0.45) 0%, transparent 60%)'
-				}}
-			/>
-			{/* light mode: fade the teal hero into the light page */}
-			<div
-				aria-hidden
-				className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-b from-transparent to-[#F5F5F5] dark:hidden"
-			/>
+		<header className="relative text-white">
 			<div className="relative z-10 mx-auto grid w-full max-w-[1368px] gap-6 px-4 pt-8 pb-12 sm:px-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,249px)] lg:items-start lg:gap-10 lg:px-8 lg:pt-12 lg:pb-16">
 				<div className="grid gap-2">
 					<h1 className="text-[28px] leading-tight font-bold tracking-widest text-white sm:text-3xl dark:text-[#3A8BFF]">
@@ -360,7 +331,7 @@ function ResearchArticleLists({ articles }: { articles: ArticleDocument[] }) {
 	const rightColumn = articles.filter((_, index) => index % 2 === 1)
 
 	return (
-		<section className="relative mx-auto grid w-full max-w-[1368px] gap-5 px-4 pt-2 pb-16 sm:px-6 lg:gap-10 lg:px-8 lg:pb-24">
+		<section className="relative mx-auto grid w-full max-w-[1368px] gap-5 px-4 pt-2 pb-8 sm:px-6 lg:gap-10 lg:px-8 lg:pb-12">
 			<div className="flex items-center gap-2">
 				<h2
 					id="latest-research"
@@ -397,8 +368,8 @@ function ResearchArticleLists({ articles }: { articles: ArticleDocument[] }) {
 
 function DefillamaResearchContent({ articles }: { articles: ArticleDocument[] }) {
 	return (
-		<div className="relative isolate col-span-full min-h-dvh overflow-hidden bg-[#F5F5F5] text-[#000E41] dark:bg-[#05070E] dark:text-white">
-			<ResearchBackgroundGradients />
+		<div className="relative isolate col-span-full overflow-x-clip overflow-y-clip bg-[#F5F5F5] text-[#000E41] dark:bg-[#1D1D1D] dark:text-white lg:dark:bg-black">
+			<ResearchAuthorBackground />
 			<BrandHero />
 			<ResearchArticleLists articles={articles} />
 		</div>
@@ -446,31 +417,27 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 	}, [sectionCounts])
 
 	if (isLoading) {
-		return (
-			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
-				Loading...
-			</div>
-		)
+		return <AuthorPageState title="Loading..." />
 	}
 
 	if (!data && !error) {
 		return (
-			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Author not found</h1>
+			<AuthorPageState title="Author not found">
 				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
 					Browse all research
 				</Link>
-			</div>
+			</AuthorPageState>
 		)
 	}
 
 	if (error || !data) {
 		const message = error instanceof ArticleApiError ? error.message : 'Failed to load author'
 		return (
-			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn&apos;t load author</h1>
-				<p className="text-sm text-(--text-secondary)">{message}</p>
-			</div>
+			<AuthorPageState title="Couldn't load author" description={message}>
+				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
+					Browse all research
+				</Link>
+			</AuthorPageState>
 		)
 	}
 
@@ -569,7 +536,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)]"
 							>
 								<div className="order-2 grid content-start gap-3 p-6 md:order-1 md:p-8">
-									<div className="flex items-center gap-2 text-[11px] tracking-wide text-(--text-tertiary) uppercase">
+									<div className="flex items-center gap-2 text-xs tracking-wide text-(--text-tertiary) uppercase">
 										<span className="font-jetbrains">Latest</span>
 										<span aria-hidden>/</span>
 										<span>{formatDate(lead.displayDate ?? lead.publishedAt)}</span>
@@ -636,7 +603,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 										key={article.id}
 										className="grid grid-cols-[64px_72px_minmax(0,1fr)] items-start gap-4 border-b border-(--cards-border) py-5 last:border-b-0 sm:grid-cols-[88px_96px_minmax(0,1fr)] sm:gap-6"
 									>
-										<div className="pt-1 font-jetbrains text-[11px] tracking-tight text-(--text-tertiary) tabular-nums">
+										<div className="pt-1 font-jetbrains text-xs tracking-tight text-(--text-tertiary) tabular-nums">
 											{formatShort(article.publishedAt)}
 										</div>
 										{article.coverImage?.url ? (
@@ -646,12 +613,12 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 													alt=""
 													loading="lazy"
 													decoding="async"
-													className="aspect-[4/3] w-full rounded-sm border border-(--cards-border) object-cover"
+													className="aspect-4/3 w-full rounded-sm border border-(--cards-border) object-cover"
 												/>
 											</Link>
 										) : (
 											<div
-												className="aspect-[4/3] w-full rounded-sm border border-(--cards-border) bg-(--app-bg)"
+												className="aspect-4/3 w-full rounded-sm border border-(--cards-border) bg-(--app-bg)"
 												aria-hidden
 											/>
 										)}
@@ -664,7 +631,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 													{article.excerpt}
 												</p>
 											) : null}
-											<div className="flex items-center gap-2 text-[11px] text-(--text-tertiary)">
+											<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
 												<span>{readingMinutes(article)} min read</span>
 												{article.tags && article.tags.length > 0 ? (
 													<>
