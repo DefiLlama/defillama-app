@@ -37,15 +37,17 @@ export function ArticleEditorPreview({
 		<section className="article-editor-preview relative left-1/2 mt-5 -translate-x-1/2 border-t border-(--cards-border)">
 			<div className="sticky top-0 z-30 border-b border-(--cards-border) bg-(--app-bg)/95 backdrop-blur supports-[backdrop-filter]:bg-(--app-bg)/82">
 				<div className="mx-auto flex w-full max-w-[1300px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-					<div className="flex min-w-0 items-center gap-3">
+					<div className="flex min-w-[min(100%,18rem)] flex-1 items-start gap-3">
 						<div className="grid size-9 shrink-0 place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<Icon name="eye" className="size-4 text-(--link-text)" />
 						</div>
-						<div className="min-w-0">
+						<div className="min-w-0 flex-1">
 							<div className="font-jetbrains text-[10px] font-medium tracking-[0.24em] text-(--text-tertiary) uppercase">
 								Rendered proof
 							</div>
-							<div className="truncate text-sm font-medium text-(--text-primary)">{article.title}</div>
+							<div className="text-sm leading-snug font-medium break-words text-(--text-primary)" title={article.title}>
+								{article.title || 'Untitled research'}
+							</div>
 						</div>
 					</div>
 

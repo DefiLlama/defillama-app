@@ -827,8 +827,9 @@ function PreviewSpecimenHeader({
 						) : null}
 					</div>
 					<h3
-						className="truncate text-xl leading-tight font-semibold tracking-tight text-(--text-primary)"
+						className="text-xl leading-tight font-semibold tracking-tight break-words text-(--text-primary)"
 						style={{ fontFamily: "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif" }}
+						title={title}
 					>
 						{title}
 					</h3>

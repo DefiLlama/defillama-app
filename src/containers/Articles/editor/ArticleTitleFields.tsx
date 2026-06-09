@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import type { LocalArticleDocument } from '../types'
 import type { ArticleFieldUpdater } from './ArticleEditorTypes'
 
@@ -9,14 +10,30 @@ type ArticleTitleFieldsProps = {
 const titleSerif = "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
 
 export function ArticleTitleFields({ article, updateArticle }: ArticleTitleFieldsProps) {
+	const titleRef = useRef<HTMLTextAreaElement>(null)
+
+	useLayoutEffect(() => {
+		const title = titleRef.current
+		if (!title) return
+
+		title.style.height = 'auto'
+		title.style.height = `${title.scrollHeight}px`
+	}, [article.title])
+
 	return (
 		<div className="mb-2">
-			<input
+			<textarea
+				ref={titleRef}
 				value={article.title}
-				onChange={(e) => updateArticle('title', e.target.value)}
+				onChange={(e) => updateArticle('title', e.target.value.replace(/\s*\n+\s*/g, ' '))}
+				onKeyDown={(e) => {
+					if (e.key === 'Enter') e.preventDefault()
+				}}
 				placeholder="Untitled research"
+				aria-label="Article title"
+				rows={1}
 				style={{ fontFamily: titleSerif }}
-				className="article-title-input w-full bg-transparent text-4xl leading-[1.05] font-semibold tracking-[-0.025em] text-(--text-primary) placeholder:text-(--text-tertiary)/60 focus:outline-none md:text-[3.25rem]"
+				className="article-title-input block w-full resize-none overflow-hidden bg-transparent text-4xl leading-[1.05] font-semibold tracking-[-0.025em] text-(--text-primary) placeholder:text-(--text-tertiary)/60 focus:outline-none md:text-[3.25rem]"
 			/>
 			<input
 				value={article.subtitle ?? ''}
