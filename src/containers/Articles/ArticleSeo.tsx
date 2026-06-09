@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import type { LocalArticleDocument } from './types'
+import type { ArticleAuthor, LocalArticleDocument } from './types'
 import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from './types'
 
 const SITE_ORIGIN = 'https://defillama.com'
@@ -36,6 +36,14 @@ const PUBLISHER = {
 	'@id': `${SITE_ORIGIN}/research`
 }
 
+export type ArticleSeoAuthor = {
+	type: 'Organization' | 'Person'
+	name: string
+	url?: string
+	id?: string
+	sameAs?: string[]
+}
+
 function articleCanonicalPath(article: LocalArticleDocument): string {
 	if (article.section) {
 		const sectionSlug = ARTICLE_SECTION_SLUGS[article.section]
@@ -52,34 +60,105 @@ export function articleSectionCanonicalUrl(article: LocalArticleDocument): strin
 	return `${SITE_ORIGIN}${`/research/${ARTICLE_SECTION_SLUGS[article.section] || ''}`}`
 }
 
-function buildArticleJsonLd(article: LocalArticleDocument): Record<string, unknown> {
-	const url = articleCanonicalUrl(article)
-	const brandByline = article.brandByline === true
-	const author = brandByline
+function authorProfileUrl(profile: ArticleAuthor): string {
+	return `${SITE_ORIGIN}/research/authors/${profile.slug}`
+}
+
+function socialUrls(profile: ArticleAuthor): string[] {
+	return Object.values(profile.socials ?? {}).filter(Boolean)
+}
+
+function defillamaResearchSeoAuthor(): ArticleSeoAuthor {
+	return {
+		type: 'Organization',
+		id: `${SITE_ORIGIN}/research`,
+		name: 'DefiLlama Research',
+		url: `${SITE_ORIGIN}/research`,
+		sameAs: ['https://x.com/DefiLlama', 'https://www.linkedin.com/company/defillama/']
+	}
+}
+
+function personSeoAuthor(profile: ArticleAuthor): ArticleSeoAuthor {
+	const url = authorProfileUrl(profile)
+	return {
+		type: 'Person',
+		id: url,
+		name: profile.displayName,
+		url,
+		sameAs: socialUrls(profile)
+	}
+}
+
+function fallbackSeoAuthor(article: LocalArticleDocument): ArticleSeoAuthor {
+	return article.author
 		? {
-				'@type': 'Organization',
-				'@id': `${SITE_ORIGIN}/research`,
-				name: 'DefiLlama Research',
-				url: `${SITE_ORIGIN}/research`,
-				sameAs: ['https://x.com/DefiLlama', 'https://www.linkedin.com/company/defillama/']
+				type: 'Person',
+				name: article.author
 			}
-		: article.authorProfile
-			? {
-					'@type': 'Person',
-					'@id': `${SITE_ORIGIN}/research/authors/${article.authorProfile.slug}`,
-					name: article.authorProfile.displayName,
-					url: `${SITE_ORIGIN}/research/authors/${article.authorProfile.slug}`,
-					sameAs: Object.values(article.authorProfile.socials ?? {}).filter(Boolean),
-					worksFor: {
-						'@type': 'Organization',
-						name: 'DefiLlama Research'
-					}
-				}
-			: {
-					'@type': 'Organization',
-					name: 'DefiLlama Research',
-					url: `${SITE_ORIGIN}/research`
-				}
+		: defillamaResearchSeoAuthor()
+}
+
+function seoAuthorKey(author: ArticleSeoAuthor): string {
+	return author.url ?? `${author.type}:${author.name}`
+}
+
+export function getArticleSeoAuthors(article: LocalArticleDocument): ArticleSeoAuthor[] {
+	const authors: ArticleSeoAuthor[] = []
+	const seen = new Set<string>()
+	const push = (author: ArticleSeoAuthor) => {
+		const key = seoAuthorKey(author)
+		if (seen.has(key)) return
+		seen.add(key)
+		authors.push(author)
+	}
+
+	if (article.brandByline === true) {
+		push(defillamaResearchSeoAuthor())
+	} else if (article.authorProfile) {
+		push(personSeoAuthor(article.authorProfile))
+	} else {
+		push(fallbackSeoAuthor(article))
+	}
+
+	for (const profile of article.coAuthors ?? []) {
+		push(personSeoAuthor(profile))
+	}
+
+	return authors
+}
+
+function seoAuthorToJsonLd(author: ArticleSeoAuthor): Record<string, unknown> {
+	if (author.type === 'Organization') {
+		return {
+			'@type': 'Organization',
+			...(author.id ? { '@id': author.id } : {}),
+			name: author.name,
+			...(author.url ? { url: author.url } : {}),
+			...(author.sameAs && author.sameAs.length > 0 ? { sameAs: author.sameAs } : {})
+		}
+	}
+
+	return {
+		'@type': 'Person',
+		...(author.id ? { '@id': author.id } : {}),
+		name: author.name,
+		...(author.url ? { url: author.url } : {}),
+		...(author.sameAs && author.sameAs.length > 0 ? { sameAs: author.sameAs } : {}),
+		worksFor: {
+			'@type': 'Organization',
+			name: 'DefiLlama Research'
+		}
+	}
+}
+
+export function getArticleOpenGraphAuthorUrls(article: LocalArticleDocument): string[] {
+	return getArticleSeoAuthors(article)
+		.map((author) => author.url)
+		.filter((url): url is string => Boolean(url))
+}
+
+export function buildArticleJsonLd(article: LocalArticleDocument): Record<string, unknown> {
+	const url = articleCanonicalUrl(article)
 
 	const ld: Record<string, unknown> = {
 		'@context': 'https://schema.org',
@@ -88,7 +167,7 @@ function buildArticleJsonLd(article: LocalArticleDocument): Record<string, unkno
 		name: article.title,
 		mainEntityOfPage: { '@type': 'WebPage', '@id': url, name: article.title },
 		url,
-		author,
+		author: getArticleSeoAuthors(article).map(seoAuthorToJsonLd),
 		publisher: PUBLISHER,
 		articleSection: article.section ? ARTICLE_SECTION_LABELS[article.section] : undefined,
 		genre: 'cryptocurrency',
@@ -149,6 +228,7 @@ export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
 	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
 	const firstPublished = article.firstPublishedAt ?? article.publishedAt
 	const lastPublished = article.lastPublishedAt ?? article.publishedAt
+	const openGraphAuthorUrls = getArticleOpenGraphAuthorUrls(article)
 
 	return (
 		<Head>
@@ -168,6 +248,9 @@ export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
 			<meta key="og:type" property="og:type" content="article" />
 			<meta key="og:url" property="og:url" content={canonical} />
 			{sectionLabel ? <meta key="article:section" property="article:section" content={sectionLabel} /> : null}
+			{openGraphAuthorUrls.map((url) => (
+				<meta key={`article:author:${url}`} property="article:author" content={url} />
+			))}
 			{(article.tags ?? []).map((tag) => (
 				<meta key={`article:tag:${tag}`} property="article:tag" content={tag} />
 			))}

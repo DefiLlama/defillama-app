@@ -17,8 +17,8 @@ import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/l
 import { ResearchAuthorBackground } from '~/containers/Articles/profile/ResearchAuthorBackground'
 import {
 	ARTICLE_SECTION_LABELS,
-	type ArticleAuthorProfile,
 	type ArticleDocument,
+	type ArticlePublicAuthorProfile,
 	type ArticleSection
 } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -54,9 +54,7 @@ function formatYear(value: string | null) {
 	return new Date(value).getFullYear().toString()
 }
 
-const DEFILLAMA_RESEARCH_AUTHOR: ArticleAuthorProfile = {
-	id: 'defillama-research',
-	pbUserId: 'defillama-research',
+const DEFILLAMA_RESEARCH_AUTHOR: ArticlePublicAuthorProfile = {
 	slug: DEFILLAMA_RESEARCH_SLUG,
 	displayName: 'DefiLlama Research',
 	bio: 'Data-driven digital asset research, market intelligence, and interviews from the DefiLlama Research team.',
@@ -176,7 +174,7 @@ function AuthorPageState({
 	)
 }
 
-function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
+function OwnerChips({ authorPbUserId }: { authorPbUserId?: string }) {
 	const { user, isAuthenticated } = useAuthContext()
 	const isMine = isAuthenticated && isResearcher(user) && !!user?.id && user.id === authorPbUserId
 	if (!isMine) return null
@@ -462,6 +460,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 	const lead = articles[0]
 
 	const socialEntries = author.socials ? Object.entries(author.socials).filter(([, value]) => Boolean(value)) : []
+	const authorPbUserId = 'pbUserId' in author && typeof author.pbUserId === 'string' ? author.pbUserId : undefined
 
 	return (
 		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">
@@ -474,7 +473,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 					<span>All research</span>
 				</BasicLink>
 				<div className="flex flex-wrap items-center gap-1.5">
-					<OwnerChips authorPbUserId={author.pbUserId} />
+					<OwnerChips authorPbUserId={authorPbUserId} />
 				</div>
 			</div>
 

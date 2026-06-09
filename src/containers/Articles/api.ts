@@ -2,6 +2,7 @@ import { FEATURES_SERVER } from '~/constants'
 import type { EditorialTagOrderItem } from './editorialTagOrder'
 import type {
 	ArticleAuthorProfile,
+	ArticlePublicAuthorProfile,
 	ArticleCollaborator,
 	ArticleDocument,
 	ArticleEditorialTagMetadata,
@@ -44,7 +45,7 @@ export type ArticleListResponse = {
 }
 
 export type ArticleAuthorResponse = {
-	author: ArticleAuthorProfile
+	author: ArticlePublicAuthorProfile
 	articles: ArticleDocument[]
 }
 

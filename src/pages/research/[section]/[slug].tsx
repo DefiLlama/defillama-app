@@ -21,7 +21,7 @@ import {
 } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { ArticleAuthor, ArticleDocument, ArticlePublicAuthorProfile } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -46,28 +46,47 @@ type PublicArticleDocument = Omit<
 	'authorProfile' | 'coAuthors' | 'viewerRole' | 'pending' | 'pendingUpdatedAt' | 'pendingActorPbUserId'
 > & {
 	authorProfile?: ArticleDocument['authorProfile']
+	coAuthors?: ArticleDocument['coAuthors']
 	viewerRole?: ArticleDocument['viewerRole']
+}
+
+function toPublicAuthorProfile(profile: ArticleAuthor): ArticlePublicAuthorProfile {
+	const {
+		id: _id,
+		pbUserId: _pbUserId,
+		...publicProfile
+	} = profile as ArticleAuthor & {
+		id?: string
+		pbUserId?: string
+	}
+	return publicProfile
 }
 
 function sanitizePublicArticle(article: ArticleDocument): PublicArticleDocument {
 	const {
-		coAuthors: _coAuthors,
+		authorProfile,
+		coAuthors,
 		viewerRole: _viewerRole,
 		pending: _pending,
 		pendingUpdatedAt: _pendingUpdatedAt,
 		pendingActorPbUserId: _pendingActorPbUserId,
 		...publicArticle
 	} = article
+	const publicCoAuthors = (coAuthors ?? []).map(toPublicAuthorProfile)
 
 	if (article.brandByline === true) {
-		const { author: _author, authorProfile: _authorProfile, ...brandArticle } = publicArticle
 		return {
-			...brandArticle,
-			author: 'DefiLlama Research'
+			...publicArticle,
+			author: 'DefiLlama Research',
+			...(publicCoAuthors.length > 0 ? { coAuthors: publicCoAuthors } : {})
 		}
 	}
 
-	return publicArticle
+	return {
+		...publicArticle,
+		...(authorProfile ? { authorProfile: toPublicAuthorProfile(authorProfile) } : {}),
+		...(publicCoAuthors.length > 0 ? { coAuthors: publicCoAuthors } : {})
+	}
 }
 
 async function loadArticleBannerData(article: ArticleDocument): Promise<ArticleBannerStripInitialData> {

@@ -12,6 +12,14 @@ const author: ArticleAuthorProfile = {
 	updatedAt: '2026-01-01T00:00:00.000Z'
 }
 
+const coAuthor: ArticleAuthorProfile = {
+	...author,
+	id: 'u2',
+	pbUserId: 'pb2',
+	slug: 'john-doe',
+	displayName: 'John Doe'
+}
+
 function makeArticle(overrides: Partial<ArticleDocument> = {}): ArticleDocument {
 	return {
 		id: 'a1',
@@ -67,9 +75,19 @@ describe('buildResearchRssFeed', () => {
 		expect(xml).toContain('<dc:creator>Jane Doe</dc:creator>')
 	})
 
+	it('lists co-authors in the dc:creator byline', () => {
+		const xml = buildResearchRssFeed([makeArticle({ coAuthors: [coAuthor] })])
+		expect(xml).toContain('<dc:creator>Jane Doe, John Doe</dc:creator>')
+	})
+
 	it('uses the brand byline when set', () => {
 		const xml = buildResearchRssFeed([makeArticle({ brandByline: true })])
 		expect(xml).toContain('<dc:creator>DefiLlama Research</dc:creator>')
+	})
+
+	it('lists visible co-authors with the brand byline', () => {
+		const xml = buildResearchRssFeed([makeArticle({ brandByline: true, coAuthors: [coAuthor] })])
+		expect(xml).toContain('<dc:creator>DefiLlama Research, John Doe</dc:creator>')
 	})
 
 	it('embeds full article HTML inside a CDATA content:encoded block', () => {

@@ -6,18 +6,18 @@ export type ArticleBylineAuthorEntry = {
 }
 
 export function getArticleBylineAuthorEntries(article: LocalArticleDocument): ArticleBylineAuthorEntry[] | null {
-	if (article.brandByline === true) {
-		return [{ name: 'DefiLlama Research', href: '/research' }]
-	}
-	if (!article.author) return null
-	const owner: ArticleBylineAuthorEntry = {
-		name: article.author,
-		href: article.authorProfile ? `/research/authors/${article.authorProfile.slug}` : null
-	}
 	const coAuthors = (article.coAuthors ?? []).map((profile) => ({
 		name: profile.displayName,
 		href: `/research/authors/${profile.slug}`
 	}))
+	if (article.brandByline === true) {
+		return [{ name: 'DefiLlama Research', href: '/research' }, ...coAuthors]
+	}
+	if (!article.author) return coAuthors.length > 0 ? coAuthors : null
+	const owner: ArticleBylineAuthorEntry = {
+		name: article.author,
+		href: article.authorProfile ? `/research/authors/${article.authorProfile.slug}` : null
+	}
 	return [owner, ...coAuthors]
 }
 

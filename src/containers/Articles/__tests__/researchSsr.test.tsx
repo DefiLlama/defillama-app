@@ -345,7 +345,19 @@ describe('research ISR data loading', () => {
 		expect(props.initialArticle.title).toBe('Canonical Research')
 		expect(props.initialArticle.author).toBe('DefiLlama Research')
 		expect(props.initialArticle).not.toHaveProperty('authorProfile')
-		expect(props.initialArticle).not.toHaveProperty('coAuthors')
+		expect(props.initialArticle.coAuthors).toEqual([
+			{
+				slug: 'internal-admin',
+				displayName: 'Internal Admin',
+				bio: null,
+				avatarUrl: null,
+				socials: {},
+				createdAt: '2026-05-15T00:00:00.000Z',
+				updatedAt: '2026-05-15T00:00:00.000Z'
+			}
+		])
+		expect(props.initialArticle.coAuthors?.[0]).not.toHaveProperty('id')
+		expect(props.initialArticle.coAuthors?.[0]).not.toHaveProperty('pbUserId')
 		expect(getArticleBanner).toHaveBeenCalledWith('article-id')
 
 		routerMock.mockReturnValue({
@@ -357,7 +369,7 @@ describe('research ISR data loading', () => {
 		const html = renderWithQueryClient(<SectionArticlePage {...props} />)
 		expect(html).toContain('Canonical Research')
 		expect(html).toContain('Server rendered body')
-		expect(html).not.toContain('Internal Admin')
+		expect(html).toContain('Internal Admin')
 	})
 
 	it('does not render legacy draft preview controls on the public article page', () => {

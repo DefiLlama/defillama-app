@@ -157,6 +157,10 @@ export type ArticleAuthorProfile = {
 	updatedAt: string
 }
 
+export type ArticlePublicAuthorProfile = Omit<ArticleAuthorProfile, 'id' | 'pbUserId'>
+
+export type ArticleAuthor = ArticleAuthorProfile | ArticlePublicAuthorProfile
+
 export type ArticleInterviewee = {
 	name: string
 	avatarUrl?: string | null
@@ -188,8 +192,8 @@ export type LocalArticleDocument = {
 	slug: string
 	status: ArticleStatus
 	author?: string
-	authorProfile?: ArticleAuthorProfile
-	coAuthors?: ArticleAuthorProfile[]
+	authorProfile?: ArticleAuthor
+	coAuthors?: ArticleAuthor[]
 	viewerRole?: ArticleViewerRole
 
 	seoTitle?: string
@@ -231,7 +235,7 @@ export type LocalArticleDocument = {
 
 export type ArticleDocument = LocalArticleDocument & {
 	id: string
-	authorProfile: ArticleAuthorProfile
+	authorProfile: ArticleAuthor
 }
 
 export type ArticleSnapshotPayload = Omit<

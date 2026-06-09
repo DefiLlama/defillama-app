@@ -5,6 +5,55 @@ import { normalizeLocalArticleDocument } from '../document'
 import { ArticleRenderer } from '../renderer/ArticleRenderer'
 
 describe('ArticleRenderer', () => {
+	it('renders visible co-authors in the article byline', () => {
+		const normalized = normalizeLocalArticleDocument({
+			title: 'Aave fees after the exploit',
+			status: 'published',
+			author: 'Jane Doe',
+			authorProfile: {
+				id: 'profile-1',
+				pbUserId: 'pb-user-1',
+				slug: 'jane-doe',
+				displayName: 'Jane Doe',
+				socials: {},
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAt: '2026-01-01T00:00:00.000Z'
+			},
+			section: 'report',
+			contentJson: {
+				type: 'doc',
+				content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Body text.' }] }]
+			}
+		})
+
+		expect(normalized.ok).toBe(true)
+		if (!normalized.ok) return
+		const client = new QueryClient()
+		const html = renderToStaticMarkup(
+			<QueryClientProvider client={client}>
+				<ArticleRenderer
+					article={{
+						...normalized.value,
+						coAuthors: [
+							{
+								slug: 'john-doe',
+								displayName: 'John Doe',
+								socials: {},
+								createdAt: '2026-01-01T00:00:00.000Z',
+								updatedAt: '2026-01-01T00:00:00.000Z'
+							}
+						]
+					}}
+				/>
+			</QueryClientProvider>
+		)
+
+		expect(html).toContain('Jane Doe')
+		expect(html).toContain('John Doe')
+		expect(html).toContain('/research/authors/jane-doe')
+		expect(html).toContain('/research/authors/john-doe')
+	})
+
 	it('renders custom article primitives without the editor', () => {
 		const normalized = normalizeLocalArticleDocument({
 			title: 'Aave fees after the exploit',
