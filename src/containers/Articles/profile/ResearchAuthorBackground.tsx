@@ -142,11 +142,15 @@ const DESKTOP_SCENE_HEIGHT = artboardSceneHeight(DESKTOP_FRAME)
 const HEADER_BOTTOM_FADE =
 	'[mask-image:linear-gradient(to_bottom,#000_0%,#000_88%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,#000_0%,#000_88%,transparent_100%)]'
 
+function desktopXPct(px: number) {
+	return `${(px / DESKTOP_FRAME.width) * 100}%`
+}
+
 function figmaLayerOffset(offsetPx: number, basePx: number) {
 	return `min(${(offsetPx / basePx) * 100}%, ${offsetPx}px)`
 }
 
-function FigmaGlow({ layer, frameWidth }: { layer: FigmaGlowLayer; frameWidth: number }) {
+function FigmaGlow({ layer }: { layer: FigmaGlowLayer }) {
 	return (
 		<img
 			src={layer.src}
@@ -154,10 +158,10 @@ function FigmaGlow({ layer, frameWidth }: { layer: FigmaGlowLayer; frameWidth: n
 			aria-hidden
 			className="pointer-events-none absolute max-w-none select-none"
 			style={{
-				left: artboardScale(layer.x, frameWidth),
-				top: artboardScale(layer.y, frameWidth),
-				width: artboardScale(layer.w, frameWidth),
-				height: artboardScale(layer.h, frameWidth)
+				left: desktopXPct(layer.x),
+				top: artboardScale(layer.y, DESKTOP_FRAME.width),
+				width: desktopXPct(layer.w),
+				height: artboardScale(layer.h, DESKTOP_FRAME.width)
 			}}
 		/>
 	)
@@ -176,13 +180,13 @@ function DesktopHeaderImage({ layer, clipHeight }: { layer: DesktopLayer; clipHe
 				src={src}
 				alt=""
 				aria-hidden
-				className="absolute max-w-none object-cover object-left-top select-none"
+				className="absolute max-w-none object-cover object-top-left select-none"
 				style={
 					{
-						left: figmaLayerOffset(layerOffsetX, DESKTOP_FRAME.width),
+						left: desktopXPct(layerOffsetX),
 						top: figmaLayerOffset(layerOffsetY, clipPx),
-						width: artboardScale(layerWidth, DESKTOP_FRAME.width),
-						height: clipHeight,
+						width: desktopXPct(layerWidth),
+						height: '100%',
 						objectPosition: 'left top'
 					} as CSSProperties
 				}
@@ -210,9 +214,9 @@ function DesktopDarkBackground({ className }: { className: string }) {
 	return (
 		<DesktopSceneShell className={className}>
 			<DesktopHeaderImage layer={FIGMA.desktop.dark} clipHeight={clipHeight} />
-			<FigmaGlow layer={topLeft} frameWidth={DESKTOP_FRAME.width} />
-			<FigmaGlow layer={topRight} frameWidth={DESKTOP_FRAME.width} />
-			<FigmaGlow layer={bottomLeft} frameWidth={DESKTOP_FRAME.width} />
+			<FigmaGlow layer={topLeft} />
+			<FigmaGlow layer={topRight} />
+			<FigmaGlow layer={bottomLeft} />
 		</DesktopSceneShell>
 	)
 }
@@ -224,9 +228,9 @@ function DesktopLightBackground({ className }: { className: string }) {
 	return (
 		<DesktopSceneShell className={className}>
 			<DesktopHeaderImage layer={FIGMA.desktop.light} clipHeight={clipHeight} />
-			<FigmaGlow layer={topLeft} frameWidth={DESKTOP_FRAME.width} />
-			<FigmaGlow layer={topRight} frameWidth={DESKTOP_FRAME.width} />
-			<FigmaGlow layer={bottomLeft} frameWidth={DESKTOP_FRAME.width} />
+			<FigmaGlow layer={topLeft} />
+			<FigmaGlow layer={topRight} />
+			<FigmaGlow layer={bottomLeft} />
 		</DesktopSceneShell>
 	)
 }
