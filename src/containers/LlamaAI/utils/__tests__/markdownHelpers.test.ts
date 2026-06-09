@@ -37,17 +37,17 @@ describe('processUnifiedCitations', () => {
 	})
 
 	it('strips a marker when no id resolves', () => {
-		expect(processUnifiedCitations('X [9].', refs([1]))).toBe('X .')
+		expect(processUnifiedCitations('X [9].', refs([1]))).toBe('X.')
 	})
 
 	it('strips markers when refs are unavailable', () => {
-		expect(processUnifiedCitations('X [1] and [2].', undefined)).toBe('X  and .')
-		expect(processUnifiedCitations('X [1] and [2].')).toBe('X  and .')
+		expect(processUnifiedCitations('X [1] and [2].', undefined)).toBe('X and.')
+		expect(processUnifiedCitations('X [1] and [2].')).toBe('X and.')
 	})
 
 	it('strips all markers when refs are an explicit empty array', () => {
-		expect(processUnifiedCitations('X [1].', [])).toBe('X .')
-		expect(processUnifiedCitations(`One [1], two [^2], three ${modelStyleCitation}.`, [])).toBe('One , two , three .')
+		expect(processUnifiedCitations('X [1].', [])).toBe('X.')
+		expect(processUnifiedCitations(`One [1], two [^2], three ${modelStyleCitation}.`, [])).toBe('One, two, three.')
 	})
 
 	it('auto-wraps legacy URL-string citations into web refs by index', () => {

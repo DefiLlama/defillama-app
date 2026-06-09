@@ -193,6 +193,10 @@ export function wrapLegacyUrlCitations(citations: string[]): UnifiedCitationRefe
 	})
 }
 
+function normalizeCitationMarkerWhitespace(text: string): string {
+	return text.replace(/[ \t]+([.,;:!?])/g, '$1').replace(/[ \t]{2,}/g, ' ')
+}
+
 export function processUnifiedCitations(text: string, refsOrUrls?: UnifiedCitationReference[] | string[]): string {
 	const citationSequencePattern = String.raw`\d+(?:(?:\s*-\s*\d+)|(?:\s*,\s*\d+))*`
 	const markerRegex = new RegExp(
@@ -201,7 +205,7 @@ export function processUnifiedCitations(text: string, refsOrUrls?: UnifiedCitati
 	)
 
 	if (refsOrUrls === undefined || refsOrUrls.length === 0) {
-		return text.replace(markerRegex, '')
+		return normalizeCitationMarkerWhitespace(text.replace(markerRegex, ''))
 	}
 
 	const refs: UnifiedCitationReference[] =
@@ -212,24 +216,26 @@ export function processUnifiedCitations(text: string, refsOrUrls?: UnifiedCitati
 	const idsAvailable = new Set<number>()
 	for (const r of refs) if (typeof r.id === 'number') idsAvailable.add(r.id)
 
-	return text.replace(markerRegex, (full: string, bracketNums?: string, modelNums?: string) => {
-		const nums = bracketNums ?? modelNums ?? ''
-		const expanded: number[] = []
-		for (const part of nums.split(',').map((p) => p.trim())) {
-			if (part.includes('-')) {
-				const [start, end] = part.split('-').map((n) => parseInt(n.trim(), 10))
-				if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
-					for (let i = start; i <= end; i++) expanded.push(i)
+	return normalizeCitationMarkerWhitespace(
+		text.replace(markerRegex, (full: string, bracketNums?: string, modelNums?: string) => {
+			const nums = bracketNums ?? modelNums ?? ''
+			const expanded: number[] = []
+			for (const part of nums.split(',').map((p) => p.trim())) {
+				if (part.includes('-')) {
+					const [start, end] = part.split('-').map((n) => parseInt(n.trim(), 10))
+					if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
+						for (let i = start; i <= end; i++) expanded.push(i)
+					}
+				} else {
+					const n = parseInt(part.trim(), 10)
+					if (!Number.isNaN(n)) expanded.push(n)
 				}
-			} else {
-				const n = parseInt(part.trim(), 10)
-				if (!Number.isNaN(n)) expanded.push(n)
 			}
-		}
-		const valid = expanded.filter((id) => idsAvailable.has(id))
-		if (valid.length === 0) return ''
-		return valid.map((id) => `<fact-check-pill data-ref="${id}"></fact-check-pill>`).join('')
-	})
+			const valid = expanded.filter((id) => idsAvailable.has(id))
+			if (valid.length === 0) return ''
+			return valid.map((id) => `<fact-check-pill data-ref="${id}"></fact-check-pill>`).join('')
+		})
+	)
 }
 
 /**
