@@ -173,7 +173,7 @@ export const ResearchLatest: React.FC<ResearchLatestProps> = ({ articles = [] })
 					<Link
 						key={cat.id}
 						href={cat.anchor}
-						className="w-full rounded-[4px] bg-[#D7E7FE] px-[15px] py-[3px] text-center text-[14px] font-medium text-[#3A8BFF] uppercase transition-colors hover:bg-[#0c2956]/10 lg:w-auto dark:border dark:border-white dark:bg-transparent dark:text-white"
+						className="w-full rounded-[4px] border border-[#3A8BFF]/35 bg-transparent px-[15px] py-[3px] text-center text-[14px] font-medium text-[#0c56c5] uppercase transition-[color,border-color,background-color,transform] duration-200 ease-out hover:border-[#3A8BFF] hover:text-[#005dcc] focus-visible:border-[#3A8BFF] focus-visible:text-[#005dcc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3A8BFF] motion-safe:hover:scale-[1.03] motion-safe:focus-visible:scale-[1.03] lg:w-auto dark:border-white dark:text-white dark:hover:border-[#3A8BFF] dark:hover:text-[#6ba8ff] dark:focus-visible:border-[#3A8BFF] dark:focus-visible:text-[#6ba8ff]"
 					>
 						{cat.label}
 					</Link>
