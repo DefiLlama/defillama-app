@@ -175,6 +175,11 @@ describe('formatMetricValue', () => {
 		expect(formatMetricValue('mcap_7d_pct', 0.05)).toBe('5%')
 	})
 
+	it('scales top-10 holder concentration from a 0–1 decimal to percent', () => {
+		expect(formatMetricValue('top10_pct', 1)).toBe('100%')
+		expect(formatMetricValue('top10_pct', 0.945)).toBe('94.5%')
+	})
+
 	it('formats date columns', () => {
 		expect(formatMetricValue('price_ath_ts', '2025-10-06T18:59:01.000Z')).toBe('Oct 6, 2025')
 	})

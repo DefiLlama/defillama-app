@@ -61,6 +61,17 @@ describe('createAgenticCallbacks', () => {
 		expect(notify).toHaveBeenCalledOnce()
 	})
 
+	it('commits the assistant message only once when done fires twice', () => {
+		const { appendMessage, callbacks, notify } = setupCallbacks()
+
+		callbacks.onToken('hello')
+		callbacks.onDone()
+		callbacks.onDone()
+
+		expect(appendMessage).toHaveBeenCalledOnce()
+		expect(notify).toHaveBeenCalledOnce()
+	})
+
 	it('writes unified fact-check refs into buffer.citations without altering text', () => {
 		const { buffer, callbacks, dispatch } = setupCallbacks()
 

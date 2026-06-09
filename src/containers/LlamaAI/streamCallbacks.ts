@@ -77,6 +77,10 @@ export function createAgenticCallbacks({
 			fn(...args)
 		}
 
+	// A resume probe or replayed stream can re-fire `done` after we already committed.
+	// Commit the buffered assistant message at most once per callback set.
+	let committed = false
+
 	return {
 		onToken: guard((content) => {
 			if (!buffer.hasStartedText) {
@@ -211,6 +215,8 @@ export function createAgenticCallbacks({
 			// Resume probes can legitimately end with only a `done` event after the
 			// backend has already persisted the result; avoid committing an empty message.
 			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
+			if (committed) return
+			committed = true
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 			dispatch({ type: 'COMMIT_STREAM' })
 			notify()

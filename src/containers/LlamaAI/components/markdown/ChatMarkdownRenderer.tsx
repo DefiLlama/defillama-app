@@ -20,6 +20,7 @@ import {
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
+	normalizeSourceUrl,
 	processUnifiedCitations,
 	wrapLegacyUrlCitations
 } from '~/containers/LlamaAI/utils/markdownHelpers'
@@ -30,7 +31,6 @@ import { equityIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
 export function headingSlug(text: string): string {
 	return text
@@ -106,15 +106,6 @@ const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
 	category: 'category',
 	stablecoin: 'stablecoin',
 	cex: 'cex'
-}
-
-function normalizeSourceUrl(url: string) {
-	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
-		if (url.startsWith(prefix)) {
-			return `https://defillama.com${url.slice(prefix.length)}`
-		}
-	}
-	return url
 }
 
 function TableWrapper({
@@ -405,6 +396,7 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 		const unique: Array<{ normalizedUrl: string; citationNumber: number }> = []
 		for (let i = 0; i < citations.length; i++) {
 			const normalizedUrl = normalizeSourceUrl(citations[i])
+			if (!normalizedUrl) continue
 			if (!seen.has(normalizedUrl)) {
 				seen.set(normalizedUrl, i + 1)
 				unique.push({ normalizedUrl, citationNumber: i + 1 })

@@ -364,7 +364,7 @@ const USD_BASES = new Set([
 	'debt_ceiling'
 ])
 
-const PERCENT_ALREADY = new Set(['pct_from_ath', 'top10_pct'])
+const PERCENT_ALREADY = new Set(['pct_from_ath'])
 const COUNT_FIELDS = new Set(['protocol_count', 'chain_count', 'holder_count'])
 
 type MetricKind = 'date' | 'usd' | 'percent' | 'percent-decimal' | 'count' | 'ratio' | 'plain'

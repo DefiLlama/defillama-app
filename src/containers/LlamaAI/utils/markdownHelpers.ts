@@ -49,6 +49,21 @@ export function sanitizeUrl(url: string): string | null {
 	}
 }
 
+const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+/**
+ * Normalize a citation source URL (rewriting internal preview hosts to defillama.com)
+ * and sanitize it. Returns null when the URL is unsafe (e.g. a `javascript:` href).
+ */
+export function normalizeSourceUrl(url: string): string | null {
+	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
+		if (url.startsWith(prefix)) {
+			return sanitizeUrl(`https://defillama.com${url.slice(prefix.length)}`)
+		}
+	}
+	return sanitizeUrl(url)
+}
+
 interface ActionPlaceholderData {
 	label: string
 	message: string

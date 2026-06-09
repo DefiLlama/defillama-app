@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { UnifiedCitationReference } from '~/containers/LlamaAI/types'
-import { processUnifiedCitations, wrapLegacyUrlCitations } from '../markdownHelpers'
+import { normalizeSourceUrl, processUnifiedCitations, wrapLegacyUrlCitations } from '../markdownHelpers'
 
 const refs = (ids: number[]): UnifiedCitationReference[] =>
 	ids.map((id) => ({ id, sourceType: 'data', label: 'DefiLlama warehouse' }))
@@ -94,5 +94,24 @@ describe('wrapLegacyUrlCitations', () => {
 		expect(wrapLegacyUrlCitations(['javascript:alert(1)'])).toEqual([
 			{ id: 1, sourceType: 'web', label: 'Web', url: undefined }
 		])
+	})
+})
+
+describe('normalizeSourceUrl', () => {
+	it('passes through safe https source URLs', () => {
+		expect(normalizeSourceUrl('https://example.com/article')).toBe('https://example.com/article')
+	})
+
+	it('rewrites internal preview hosts to defillama.com', () => {
+		expect(normalizeSourceUrl('https://preview.dl.llama.fi/protocol/aave')).toBe('https://defillama.com/protocol/aave')
+	})
+
+	it('drops unsafe protocols so they cannot become a clickable href', () => {
+		expect(normalizeSourceUrl('javascript:alert(1)')).toBeNull()
+		expect(normalizeSourceUrl('data:text/html,<script>alert(1)</script>')).toBeNull()
+	})
+
+	it('drops URLs with embedded credentials', () => {
+		expect(normalizeSourceUrl('https://user:pass@evil.com')).toBeNull()
 	})
 })
