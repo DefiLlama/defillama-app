@@ -331,7 +331,7 @@ function ResearchArticleLists({ articles }: { articles: ArticleDocument[] }) {
 	const rightColumn = articles.filter((_, index) => index % 2 === 1)
 
 	return (
-		<section className="relative mx-auto grid w-full max-w-[1368px] gap-5 px-4 pt-2 pb-8 sm:px-6 lg:gap-10 lg:px-8 lg:pb-12">
+		<section className="relative z-10 mx-auto grid w-full max-w-[1368px] gap-5 px-4 pt-2 pb-8 sm:px-6 lg:gap-10 lg:px-8 lg:pb-12">
 			<div className="flex items-center gap-2">
 				<h2
 					id="latest-research"
@@ -368,7 +368,7 @@ function ResearchArticleLists({ articles }: { articles: ArticleDocument[] }) {
 
 function DefillamaResearchContent({ articles }: { articles: ArticleDocument[] }) {
 	return (
-		<div className="relative isolate col-span-full overflow-x-clip overflow-y-clip bg-[#F5F5F5] text-[#000E41] dark:bg-[#1D1D1D] dark:text-white lg:dark:bg-black">
+		<div className="relative isolate col-span-full overflow-x-clip overflow-y-hidden bg-[#F5F5F5] text-[#000E41] dark:bg-[#1D1D1D] dark:text-white lg:dark:bg-black">
 			<ResearchAuthorBackground />
 			<BrandHero />
 			<ResearchArticleLists articles={articles} />
