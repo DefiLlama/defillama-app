@@ -211,7 +211,12 @@ function BrandHero() {
 			<div className="relative z-10 mx-auto grid w-full max-w-[1368px] gap-6 px-4 pt-8 pb-12 sm:px-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,249px)] lg:items-start lg:gap-10 lg:px-8 lg:pt-12 lg:pb-16">
 				<div className="grid gap-2">
 					<h1 className="text-[28px] leading-tight font-bold tracking-widest text-white sm:text-3xl dark:text-[#3A8BFF]">
-						DefiLlama Research
+						<Link
+							href="/research"
+							className="text-inherit transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+						>
+							DefiLlama Research
+						</Link>
 					</h1>
 					<p className="text-lg leading-tight font-semibold tracking-widest text-[#F5F9FD] italic sm:text-xl">Editor</p>
 				</div>
