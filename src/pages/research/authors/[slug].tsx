@@ -1,19 +1,46 @@
 import { useQuery } from '@tanstack/react-query'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
-import { ArticleApiError, getAuthorBySlug } from '~/containers/Articles/api'
+import { Icon } from '~/components/Icon'
+import { ResearchIcon } from '~/components/ResearchIcon'
+import { FEATURES_SERVER } from '~/constants'
+import {
+	ArticleApiError,
+	getAuthorBySlug,
+	getResearchLanding,
+	type ArticleAuthorResponse
+} from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { isResearcher } from '~/containers/Articles/ArticlesAccessGate'
 import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/landing/utils'
-import { ARTICLE_SECTION_LABELS, type ArticleDocument, type ArticleSection } from '~/containers/Articles/types'
+import {
+	ARTICLE_SECTION_LABELS,
+	type ArticleAuthorProfile,
+	type ArticleDocument,
+	type ArticleSection
+} from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 type ArchiveFilter = ArticleSection | 'all'
 
+type AuthorPageProps = {
+	slug: string
+	initialData: ArticleAuthorResponse | null
+}
+
+const DEFILLAMA_RESEARCH_SLUG = 'defillama-research'
+const AUTHOR_CACHE_CONTROL = 'public, s-maxage=60'
+const AUTHOR_NO_STORE = 'no-store'
+const DEFILLAMA_RESEARCH_ARTICLE_LIMIT = 12
 const EMPTY_ARTICLES: ArticleDocument[] = []
-const shortDateFormatter = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' })
+const shortDateFormatter = new Intl.DateTimeFormat('en', {
+	month: 'short',
+	day: 'numeric'
+})
+const SITE_ORIGIN = 'https://defillama.com'
 
 function formatShort(value: string | null) {
 	if (!value) return ''
@@ -25,6 +52,94 @@ function formatYear(value: string | null) {
 	return new Date(value).getFullYear().toString()
 }
 
+const DEFILLAMA_RESEARCH_AUTHOR: ArticleAuthorProfile = {
+	id: 'defillama-research',
+	pbUserId: 'defillama-research',
+	slug: DEFILLAMA_RESEARCH_SLUG,
+	displayName: 'DefiLlama Research',
+	bio: 'Data-driven digital asset research, market intelligence, and interviews from the DefiLlama Research team.',
+	avatarUrl: '/assets/research/research-icon.svg',
+	socials: {
+		x: 'https://x.com/defillama_res',
+		telegram: 'https://t.me/defillama_research',
+		linkedin: 'https://www.linkedin.com/company/defillama/'
+	},
+	createdAt: '2026-01-01T00:00:00.000Z',
+	updatedAt: '2026-01-01T00:00:00.000Z'
+}
+
+const DEFILLAMA_RESEARCH_LANDING_LIMITS = {
+	hero: 6,
+	latest: 12,
+	spotlight: 12,
+	interviews: 12,
+	highlight: 6,
+	insights: 12,
+	reportsCandidates: 18,
+	spotlightCandidates: 18,
+	collectionsCandidates: 18
+}
+
+function getArticleDateValue(article: ArticleDocument) {
+	return new Date(article.displayDate ?? article.publishedAt ?? article.createdAt).getTime()
+}
+
+function getDefillamaResearchArticlesFromLandingBuckets(
+	buckets: Awaited<ReturnType<typeof getResearchLanding>>
+): ArticleDocument[] {
+	const articlesById = new Map<string, ArticleDocument>()
+	for (const articles of Object.values(buckets)) {
+		for (const article of articles) {
+			if (!article.brandByline) continue
+			articlesById.set(article.id, {
+				...article,
+				authorProfile: article.authorProfile ?? DEFILLAMA_RESEARCH_AUTHOR
+			})
+		}
+	}
+	return [...articlesById.values()]
+		.sort((a, b) => getArticleDateValue(b) - getArticleDateValue(a))
+		.slice(0, DEFILLAMA_RESEARCH_ARTICLE_LIMIT)
+}
+
+async function loadDefillamaResearchPageData(): Promise<ArticleAuthorResponse> {
+	const landingBuckets = await getResearchLanding(DEFILLAMA_RESEARCH_LANDING_LIMITS)
+	return {
+		author: DEFILLAMA_RESEARCH_AUTHOR,
+		articles: getDefillamaResearchArticlesFromLandingBuckets(landingBuckets)
+	}
+}
+
+async function loadAuthorPageData(slug: string): Promise<ArticleAuthorResponse | null> {
+	try {
+		const response = await getAuthorBySlug(slug)
+		if (response && (slug !== DEFILLAMA_RESEARCH_SLUG || response.articles.length > 0)) return response
+		return slug === DEFILLAMA_RESEARCH_SLUG ? loadDefillamaResearchPageData() : null
+	} catch (error) {
+		if (slug === DEFILLAMA_RESEARCH_SLUG) return loadDefillamaResearchPageData()
+		throw error
+	}
+}
+
+const getServerSidePropsHandler: GetServerSideProps<AuthorPageProps> = async ({ params, res }) => {
+	const slug = typeof params?.slug === 'string' ? params.slug : ''
+	if (!slug) {
+		res.setHeader('Cache-Control', AUTHOR_NO_STORE)
+		return { notFound: true }
+	}
+
+	let initialData: ArticleAuthorResponse | null = null
+	try {
+		initialData = await loadAuthorPageData(slug)
+	} catch {
+		initialData = null
+	}
+	res.setHeader('Cache-Control', initialData ? AUTHOR_CACHE_CONTROL : AUTHOR_NO_STORE)
+	return { props: { slug, initialData } }
+}
+
+export const getServerSideProps = withServerSidePropsTelemetry('/research/authors/[slug]', getServerSidePropsHandler)
+
 function SocialLink({ kind, value }: { kind: string; value: string }) {
 	const href = value.startsWith('http') ? value : `https://${value}`
 	return (
@@ -32,9 +147,10 @@ function SocialLink({ kind, value }: { kind: string; value: string }) {
 			href={href}
 			target="_blank"
 			rel="noreferrer noopener"
-			className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
+			className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#0c2956]/15 px-3 text-xs font-medium text-[#0c2956]/70 transition-colors hover:border-[#237BFF]/40 hover:text-[#237BFF] dark:border-white/15 dark:text-white/70 dark:hover:border-white/40 dark:hover:text-white"
 		>
-			{kind.replace(/-/g, ' ')} ↗
+			<span>{kind.replace(/-/g, ' ')}</span>
+			<Icon name="arrow-up-right" className="size-3" />
 		</a>
 	)
 }
@@ -55,28 +171,260 @@ function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 				href="/research/mine"
 				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
-				Your research →
+				Your research
 			</Link>
 		</>
 	)
 }
 
-function AuthorContent({ slug }: { slug: string }) {
+function getResearchArticleLabel(article: ArticleDocument) {
+	if (article.section === 'report') return 'Reports'
+	if (article.section === 'spotlight') return 'Introducing'
+	if (article.section) return ARTICLE_SECTION_LABELS[article.section]
+	return 'Research'
+}
+
+const RESEARCH_GLOW = 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)'
+
+function ResearchBackgroundGradients() {
+	return (
+		<div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+			{/* dark: one continuous blue → navy wash spanning the hero and article area */}
+			<div
+				className="absolute inset-x-0 top-0 hidden h-[1150px] dark:block"
+				style={{
+					background:
+						'linear-gradient(180deg, #1f50d2 0%, #1a44ad 10%, #112c6e 24%, #0b1c44 40%, #07112a 56%, rgba(5,7,14,0) 78%)'
+				}}
+			/>
+			{/* dark: top-right hotspot */}
+			<div
+				className="absolute -top-[120px] -right-[8%] hidden aspect-square w-[760px] max-w-[60vw] rounded-full opacity-70 blur-[120px] dark:block"
+				style={{ background: RESEARCH_GLOW }}
+			/>
+			{/* dark: bottom-left glow */}
+			<div
+				className="absolute bottom-[60px] -left-[14%] hidden aspect-square w-[820px] max-w-[65vw] rounded-full opacity-40 blur-[150px] dark:block"
+				style={{ background: RESEARCH_GLOW }}
+			/>
+
+			{/* light: soft blue glows on the light page */}
+			<div
+				className="absolute top-[260px] -right-[12%] aspect-square w-[820px] max-w-[60vw] rounded-full opacity-50 blur-[140px] dark:hidden"
+				style={{ background: RESEARCH_GLOW }}
+			/>
+			<div
+				className="absolute bottom-[80px] -left-[15%] aspect-square w-[860px] max-w-[65vw] rounded-full opacity-45 blur-[140px] dark:hidden"
+				style={{ background: RESEARCH_GLOW }}
+			/>
+		</div>
+	)
+}
+
+function BrandHero() {
+	return (
+		<header className="relative overflow-hidden bg-[#002237] text-white dark:bg-transparent">
+			{/* light mode: blue glow over the teal hero (dark mode uses the page-wide wash) */}
+			<div
+				aria-hidden
+				className="pointer-events-none absolute inset-0 dark:hidden"
+				style={{
+					background: 'radial-gradient(110% 95% at 72% 8%, rgba(58, 139, 255, 0.45) 0%, transparent 60%)'
+				}}
+			/>
+			{/* light mode: fade the teal hero into the light page */}
+			<div
+				aria-hidden
+				className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-b from-transparent to-[#F5F5F5] dark:hidden"
+			/>
+			<div className="relative z-10 mx-auto grid w-full max-w-[1368px] gap-6 px-4 pt-8 pb-12 sm:px-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,249px)] lg:items-start lg:gap-10 lg:px-8 lg:pt-12 lg:pb-16">
+				<div className="grid gap-2">
+					<h1 className="text-[28px] leading-tight font-bold tracking-widest text-white sm:text-3xl dark:text-[#3A8BFF]">
+						DefiLlama Research
+					</h1>
+					<p className="text-lg leading-tight font-semibold tracking-widest text-[#F5F9FD] italic sm:text-xl">Editor</p>
+				</div>
+
+				<p className="max-w-[60ch] text-base leading-relaxed font-medium text-white lg:text-2xl lg:leading-snug">
+					<span className="font-bold text-[#3A8BFF]">DefiLlama Research</span> is the research arm of{' '}
+					<span className="font-semibold">DefiLlama</span>, delivering bespoke digital asset research, market
+					intelligence, and strategic advisory services powered by the DefiLlama ecosystem.
+				</p>
+
+				<div className="grid w-full max-w-[280px] gap-6 justify-self-center pt-2 md:justify-self-start lg:pt-0">
+					<a
+						href={`${FEATURES_SERVER.replace(/\/$/, '')}/uploads/media-kit.pdf`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-white px-5 text-base font-medium whitespace-nowrap text-[#3A8BFF] transition-opacity hover:opacity-90"
+					>
+						<span>Explore our media kit</span>
+						<ResearchIcon name="research-media-kit" className="size-7 shrink-0" />
+					</a>
+					<Link
+						href="https://calendly.com/research-defillama/30min"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex h-13 items-center justify-center gap-2 rounded-full border border-white px-6 text-base font-medium whitespace-nowrap text-white transition-colors hover:bg-white/10"
+					>
+						<span>Book a call</span>
+						<ResearchIcon name="calendly-mark" className="size-7 shrink-0" />
+					</Link>
+				</div>
+			</div>
+		</header>
+	)
+}
+
+function ResearchArticleListRow({
+	article,
+	compact,
+	index
+}: {
+	article: ArticleDocument
+	compact?: boolean
+	index: number
+}) {
+	if (compact) {
+		return (
+			<li>
+				<Link
+					href={articleHref(article)}
+					className="group grid min-h-16 grid-cols-[84px_minmax(0,1fr)] items-center gap-2.5"
+				>
+					{article.coverImage?.url ? (
+						<img
+							src={article.coverImage.url}
+							alt={article.coverImage.alt ?? ''}
+							width={84}
+							height={64}
+							loading={index < 3 ? 'eager' : 'lazy'}
+							decoding="async"
+							className="h-16 w-full rounded-md object-cover"
+						/>
+					) : (
+						<div className="h-16 w-full rounded-md bg-[#000E41]/10 dark:bg-white/10" aria-hidden />
+					)}
+					<h3 className="line-clamp-3 text-base leading-snug font-medium text-[#000E41] transition-colors group-hover:text-[#3A8BFF] dark:text-white dark:group-hover:text-[#3A8BFF]">
+						{article.title}
+					</h3>
+				</Link>
+			</li>
+		)
+	}
+
+	return (
+		<li>
+			<Link
+				href={articleHref(article)}
+				className={`group grid min-h-[176px] grid-cols-[218px_minmax(0,1fr)] gap-3 border ${
+					index > 0 ? 'border-t-0' : ''
+				} border-[#000E41] bg-transparent p-3 text-[#000E41] transition-colors hover:border-[#3A8BFF] dark:border-white dark:text-white dark:hover:border-[#3A8BFF]`}
+			>
+				{article.coverImage?.url ? (
+					<img
+						src={article.coverImage.url}
+						alt={article.coverImage.alt ?? ''}
+						width={218}
+						height={152}
+						loading={index < 2 ? 'eager' : 'lazy'}
+						decoding="async"
+						className="h-[152px] w-[218px] rounded-md object-cover"
+					/>
+				) : (
+					<div className="h-[152px] w-[218px] rounded-md bg-[#000E41]/10 dark:bg-white/10" aria-hidden />
+				)}
+				<div className="grid min-w-0 content-between gap-4 py-0.5">
+					<h3 className="line-clamp-4 text-lg leading-7 font-bold text-[#000E41] transition-colors group-hover:text-[#3A8BFF] dark:text-white dark:group-hover:text-[#3A8BFF]">
+						{article.title}
+					</h3>
+					<p className="text-sm leading-tight font-bold text-[#3A8BFF]">{getResearchArticleLabel(article)}</p>
+				</div>
+			</Link>
+		</li>
+	)
+}
+
+function ResearchArticleColumn({ articles }: { articles: ArticleDocument[] }) {
+	return (
+		<ol>
+			{articles.map((article, index) => (
+				<ResearchArticleListRow key={article.id} article={article} index={index} />
+			))}
+		</ol>
+	)
+}
+
+function ResearchArticleLists({ articles }: { articles: ArticleDocument[] }) {
+	const leftColumn = articles.filter((_, index) => index % 2 === 0)
+	const rightColumn = articles.filter((_, index) => index % 2 === 1)
+
+	return (
+		<section className="relative mx-auto grid w-full max-w-[1368px] gap-5 px-4 pt-2 pb-16 sm:px-6 lg:gap-10 lg:px-8 lg:pb-24">
+			<div className="flex items-center gap-2">
+				<h2
+					id="latest-research"
+					className="shrink-0 text-base font-medium text-[#000E41] lg:text-lg lg:uppercase dark:text-white"
+				>
+					Our Latest Research
+				</h2>
+				<div className="h-px min-w-0 flex-1 bg-[#000E41] dark:bg-white" aria-hidden />
+			</div>
+
+			{/* mobile + tablet: compact rows, single column then two-up */}
+			<ol className="grid gap-3 sm:grid-cols-2 sm:gap-x-8 lg:hidden">
+				{articles.map((article, index) => (
+					<ResearchArticleListRow key={article.id} article={article} index={index} compact />
+				))}
+			</ol>
+
+			{/* desktop: two columns of cards */}
+			<div className="hidden grid-cols-2 gap-x-[52px] lg:grid">
+				<ResearchArticleColumn articles={leftColumn} />
+				<ResearchArticleColumn articles={rightColumn} />
+			</div>
+
+			<Link
+				href="/research"
+				className="inline-flex items-center gap-2 justify-self-end text-sm font-bold text-[#237BFF] uppercase transition-colors hover:text-[#000E41] lg:text-lg dark:hover:text-white"
+			>
+				<span>View all</span>
+				<Icon name="arrow-right" className="size-4" />
+			</Link>
+		</section>
+	)
+}
+
+function DefillamaResearchContent({ articles }: { articles: ArticleDocument[] }) {
+	return (
+		<div className="relative isolate col-span-full min-h-dvh overflow-hidden bg-[#F5F5F5] text-[#000E41] dark:bg-[#05070E] dark:text-white">
+			<ResearchBackgroundGradients />
+			<BrandHero />
+			<ResearchArticleLists articles={articles} />
+		</div>
+	)
+}
+
+function AuthorContent({ slug, initialData }: { slug: string; initialData: ArticleAuthorResponse | null }) {
+	const isDefillamaResearch = slug === DEFILLAMA_RESEARCH_SLUG
 	const {
 		data = null,
 		isLoading,
 		error
 	} = useQuery({
 		queryKey: ['research', 'author', slug],
-		queryFn: () => getAuthorBySlug(slug),
+		queryFn: () => loadAuthorPageData(slug),
+		initialData,
 		enabled: !!slug,
 		retry: false
 	})
 
-	const articles = useMemo(
-		() => (data?.articles ?? EMPTY_ARTICLES).filter((article) => article.brandByline !== true),
-		[data?.articles]
-	)
+	const articles = useMemo(() => {
+		const items = data?.articles ?? EMPTY_ARTICLES
+		if (isDefillamaResearch) return items
+		return items.filter((article) => article.brandByline !== true)
+	}, [data?.articles, isDefillamaResearch])
+
 	const rest = useMemo(() => articles.slice(1), [articles])
 	const sectionCounts = useMemo(() => {
 		const counts = new Map<ArticleSection, number>()
@@ -100,7 +448,7 @@ function AuthorContent({ slug }: { slug: string }) {
 	if (isLoading) {
 		return (
 			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
-				Loading…
+				Loading...
 			</div>
 		)
 	}
@@ -110,7 +458,7 @@ function AuthorContent({ slug }: { slug: string }) {
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Author not found</h1>
 				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
-					Browse all research →
+					Browse all research
 				</Link>
 			</div>
 		)
@@ -120,10 +468,14 @@ function AuthorContent({ slug }: { slug: string }) {
 		const message = error instanceof ArticleApiError ? error.message : 'Failed to load author'
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load author</h1>
+				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn&apos;t load author</h1>
 				<p className="text-sm text-(--text-secondary)">{message}</p>
 			</div>
 		)
+	}
+
+	if (isDefillamaResearch) {
+		return <DefillamaResearchContent articles={articles} />
 	}
 
 	const { author } = data
@@ -131,7 +483,7 @@ function AuthorContent({ slug }: { slug: string }) {
 	const firstYear = articles.length ? formatYear(articles[articles.length - 1]?.publishedAt) : null
 	const latestYear = articles.length ? formatYear(articles[0]?.publishedAt) : null
 	const yearsLabel =
-		firstYear && latestYear ? (firstYear === latestYear ? firstYear : `${firstYear}–${latestYear}`) : null
+		firstYear && latestYear ? (firstYear === latestYear ? firstYear : `${firstYear}-${latestYear}`) : null
 
 	const lead = articles[0]
 
@@ -144,7 +496,8 @@ function AuthorContent({ slug }: { slug: string }) {
 					href="/research"
 					className="inline-flex items-center gap-1 text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 				>
-					<span aria-hidden>←</span> All research
+					<Icon name="arrow-left" className="size-3.5" />
+					<span>All research</span>
 				</Link>
 				<div className="flex flex-wrap items-center gap-1.5">
 					<OwnerChips authorPbUserId={author.pbUserId} />
@@ -180,13 +533,13 @@ function AuthorContent({ slug }: { slug: string }) {
 						</span>
 						{yearsLabel ? (
 							<>
-								<span aria-hidden>·</span>
+								<span aria-hidden>/</span>
 								<span className="font-jetbrains">{yearsLabel}</span>
 							</>
 						) : null}
 						{totalMinutes > 0 ? (
 							<>
-								<span aria-hidden>·</span>
+								<span aria-hidden>/</span>
 								<span>
 									<strong className="font-semibold text-(--text-primary)">{totalMinutes}</strong> min reading
 								</span>
@@ -218,9 +571,9 @@ function AuthorContent({ slug }: { slug: string }) {
 								<div className="order-2 grid content-start gap-3 p-6 md:order-1 md:p-8">
 									<div className="flex items-center gap-2 text-[11px] tracking-wide text-(--text-tertiary) uppercase">
 										<span className="font-jetbrains">Latest</span>
-										<span aria-hidden>·</span>
+										<span aria-hidden>/</span>
 										<span>{formatDate(lead.displayDate ?? lead.publishedAt)}</span>
-										<span aria-hidden>·</span>
+										<span aria-hidden>/</span>
 										<span>{readingMinutes(lead)} min read</span>
 									</div>
 									<h2 className="text-2xl leading-[1.15] font-semibold tracking-tight text-(--text-primary) group-hover:text-(--link-text) md:text-3xl">
@@ -315,7 +668,7 @@ function AuthorContent({ slug }: { slug: string }) {
 												<span>{readingMinutes(article)} min read</span>
 												{article.tags && article.tags.length > 0 ? (
 													<>
-														<span aria-hidden>·</span>
+														<span aria-hidden>/</span>
 														<span className="font-jetbrains">{article.tags[0]}</span>
 													</>
 												) : null}
@@ -332,19 +685,96 @@ function AuthorContent({ slug }: { slug: string }) {
 	)
 }
 
-export default function ArticleAuthorPage() {
-	const router = useRouter()
-	const slug = typeof router.query.slug === 'string' ? router.query.slug : ''
+function buildDefillamaResearchJsonLd(articles: ArticleDocument[]) {
+	return [
+		{
+			'@context': 'https://schema.org',
+			'@type': 'Organization',
+			'@id': `${SITE_ORIGIN}/research/authors/${DEFILLAMA_RESEARCH_SLUG}`,
+			name: 'DefiLlama Research',
+			url: `${SITE_ORIGIN}/research/authors/${DEFILLAMA_RESEARCH_SLUG}`,
+			parentOrganization: {
+				'@type': 'Organization',
+				name: 'DefiLlama',
+				url: SITE_ORIGIN
+			},
+			sameAs: [
+				'https://x.com/defillama_res',
+				'https://t.me/defillama_research',
+				'https://www.linkedin.com/company/defillama/'
+			]
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'CollectionPage',
+			name: 'DefiLlama Research Articles',
+			description: 'Latest articles and market intelligence from DefiLlama Research.',
+			url: `${SITE_ORIGIN}/research/authors/${DEFILLAMA_RESEARCH_SLUG}`,
+			isPartOf: {
+				'@type': 'WebSite',
+				name: 'DefiLlama',
+				url: SITE_ORIGIN
+			},
+			mainEntity: {
+				'@type': 'ItemList',
+				itemListElement: articles.slice(0, 10).map((article, index) => ({
+					'@type': 'ListItem',
+					position: index + 1,
+					url: `${SITE_ORIGIN}${articleHref(article)}`,
+					name: article.title
+				}))
+			}
+		},
+		{
+			'@context': 'https://schema.org',
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{
+					'@type': 'ListItem',
+					position: 1,
+					name: 'DefiLlama Research',
+					item: `${SITE_ORIGIN}/research`
+				},
+				{
+					'@type': 'ListItem',
+					position: 2,
+					name: 'DefiLlama Research Articles',
+					item: `${SITE_ORIGIN}/research/authors/${DEFILLAMA_RESEARCH_SLUG}`
+				}
+			]
+		}
+	]
+}
+
+export default function ArticleAuthorPage({
+	slug,
+	initialData
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+	const isDefillamaResearch = slug === DEFILLAMA_RESEARCH_SLUG
+	const articles = initialData?.articles ?? EMPTY_ARTICLES
+	const title = isDefillamaResearch
+		? 'DefiLlama Research Articles | DefiLlama Research'
+		: initialData?.author
+			? `${initialData.author.displayName} - DefiLlama Research`
+			: 'Author - DefiLlama'
+	const description = isDefillamaResearch
+		? 'Read the latest DefiLlama Research articles, interviews, and digital asset market intelligence.'
+		: initialData?.author?.bio || 'Read DefiLlama research by this author.'
+	const canonicalUrl = slug ? `/research/authors/${slug}` : '/research'
 
 	return (
 		<Layout
-			title="Author - DefiLlama"
-			description="Read DefiLlama research by this author."
-			canonicalUrl={slug ? `/research/authors/${slug}` : '/research'}
-			noIndex
+			title={title}
+			description={description}
+			canonicalUrl={canonicalUrl}
+			noIndex={!isDefillamaResearch}
+			jsonLd={isDefillamaResearch ? buildDefillamaResearchJsonLd(articles) : undefined}
 			hideDesktopSearch
 		>
-			<ArticleProxyAuthProvider>{slug ? <AuthorContent slug={slug} /> : null}</ArticleProxyAuthProvider>
+			{isDefillamaResearch ? <style>{`main{padding:0}#__next{gap:0;}`}</style> : null}
+			<ArticleProxyAuthProvider>
+				<AuthorContent slug={slug} initialData={initialData} />
+			</ArticleProxyAuthProvider>
 		</Layout>
 	)
 }

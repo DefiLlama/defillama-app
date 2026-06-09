@@ -1,25 +1,7 @@
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { normalizeImageHref, type ArticleImageAttrs } from './ArticleImage.shared'
-
-function PhotoIcon({ className = 'size-5' }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 24 24"
-			className={className}
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="1.5"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-			aria-hidden
-		>
-			<rect x="3" y="3" width="18" height="18" rx="2" />
-			<circle cx="9" cy="9" r="2" />
-			<path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21" />
-		</svg>
-	)
-}
 
 function ToolbarButton({
 	label,
@@ -193,7 +175,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 				) : (
 					<div className="flex aspect-[4/3] w-full items-center justify-center bg-(--app-bg) text-(--text-tertiary)">
 						<div className="flex flex-col items-center gap-2">
-							<PhotoIcon className="size-7" />
+							<Icon name="image-plus" className="size-7" />
 							<span className="text-xs font-medium">{isUploading ? 'Uploading…' : 'Image'}</span>
 						</div>
 					</div>

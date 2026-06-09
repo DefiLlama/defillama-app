@@ -2,6 +2,7 @@ import { common, createLowlight } from 'lowlight'
 import Link from 'next/link'
 import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
+import { ResearchIcon } from '~/components/ResearchIcon'
 import { validateArticleChartConfig } from '../chartAdapters'
 import { normalizeArticleContentJson } from '../document'
 import { validateArticlePeoplePanel } from '../editor/peoplePanel'
@@ -716,14 +717,6 @@ function ArticleToc({ toc, compactMode = false }: { toc: TocEntry[]; compactMode
 	)
 }
 
-function LinkedInIcon({ className }: { className?: string }) {
-	return (
-		<svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-			<path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.37V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.21 0 22.23 0z" />
-		</svg>
-	)
-}
-
 function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; size?: 'sm' | 'md' }) {
 	const [copied, setCopied] = useState(false)
 	const tweetUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`
@@ -757,7 +750,7 @@ function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; s
 				aria-label="Share on LinkedIn"
 				className={buttonClass}
 			>
-				<LinkedInIcon className={iconDim} />
+				<ResearchIcon name="linkedin-square" className={iconDim} />
 			</a>
 			<button type="button" onClick={onCopy} aria-label="Copy link" className={buttonClass}>
 				<Icon name={copied ? 'check-circle' : 'link'} className={iconDim} />
@@ -958,20 +951,7 @@ export function ArticleRenderer({
 								widgetLabel="Article page"
 								className="inline-flex items-center gap-2 rounded-md bg-(--link-text) px-3.5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
 							>
-								<svg
-									viewBox="0 0 24 24"
-									className="size-4"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									aria-hidden
-								>
-									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-									<polyline points="7 10 12 15 17 10" />
-									<line x1="12" y1="15" x2="12" y2="3" />
-								</svg>
+								<Icon name="download-cloud" className="size-4" />
 								Download PDF
 							</DownloadPdfLink>
 						</div>

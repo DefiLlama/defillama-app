@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { DownloadPdfLink } from '~/containers/Articles/landing/DownloadPdfLink'
 import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -62,7 +63,6 @@ interface NavButtonProps {
 }
 
 function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, className }: NavButtonProps) {
-	const path = direction === 'prev' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'
 	const label = direction === 'prev' ? 'Previous slide' : 'Next slide'
 
 	return (
@@ -79,9 +79,7 @@ function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, c
 			)}
 			aria-label={label}
 		>
-			<svg className="size-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={path} />
-			</svg>
+			<Icon name={direction === 'prev' ? 'chevron-left' : 'chevron-right'} className="size-4 text-white" />
 		</button>
 	)
 }

@@ -1,6 +1,7 @@
 import { useIsFetching } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { ResearchIcon } from '~/components/ResearchIcon'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { isResearcher } from './ArticlesAccessGate'
 
@@ -20,18 +21,7 @@ export function ResearchAdminFab() {
 				className="pointer-events-auto flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm font-medium text-(--text-primary) shadow-lg transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 				aria-label="Open research admin"
 			>
-				<svg
-					viewBox="0 0 24 24"
-					className="size-4"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="1.75"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					aria-hidden
-				>
-					<path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z" />
-				</svg>
+				<ResearchIcon name="research-admin" className="size-4" aria-hidden />
 				Admin
 			</Link>
 		</div>

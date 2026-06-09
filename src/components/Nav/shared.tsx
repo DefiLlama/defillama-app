@@ -1,6 +1,7 @@
 import { Icon } from '~/components/Icon'
 import type { IIcon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { ResearchIcon } from '~/components/ResearchIcon'
 
 type NavIconName = IIcon['name']
 
@@ -68,9 +69,11 @@ export function NavItemContent({
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : name === 'DefiLlama Research' ? (
-				<svg viewBox="0 0 21 29" className="size-4 shrink-0 group-hover/link:animate-wiggle">
-					<use href="/assets/research/research-icon.svg#research-icon" />
-				</svg>
+				<ResearchIcon
+					name="research-icon"
+					viewBox="0 0 21 29"
+					className="size-4 shrink-0 group-hover/link:animate-wiggle"
+				/>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-nowrap items-center gap-2 text-left leading-tight">
 				<span className="min-w-0 flex-1 truncate">{name}</span>

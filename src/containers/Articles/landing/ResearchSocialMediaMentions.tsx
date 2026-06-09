@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import React, { useEffect, useRef, useState } from 'react'
+import { ResearchIcon } from '~/components/ResearchIcon'
 import { TweetEmbed } from '~/containers/Articles/renderer/ArticleEmbedBlock'
 import type { ArticleEmbedConfig } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
@@ -70,24 +71,6 @@ const DESKTOP_TWEET_TILE_SIZE = 215
 const DESKTOP_TWEET_RENDER_WIDTH = 320
 const DESKTOP_TWEET_SCALE = DESKTOP_TWEET_TILE_SIZE / DESKTOP_TWEET_RENDER_WIDTH
 
-const OpenQuoteIcon = () => (
-	<svg xmlns="http://www.w3.org/2000/svg" width="27" height="20" fill="none">
-		<path
-			fill="currentColor"
-			d="M26.727 3.094c-3.495 1.719-5.243 3.738-5.243 6.058 1.49.172 2.722.788 3.696 1.848.974 1.031 1.46 2.234 1.46 3.61 0 1.46-.472 2.692-1.417 3.695-.946 1.002-2.134 1.504-3.567 1.504-1.604 0-2.993-.645-4.168-1.934-1.174-1.318-1.761-2.908-1.761-4.77 0-5.585 3.122-9.954 9.367-13.105l1.633 3.094ZM11 3.094C7.477 4.813 5.715 6.832 5.715 9.152c1.518.172 2.764.788 3.738 1.848.974 1.031 1.461 2.234 1.461 3.61 0 1.46-.487 2.692-1.46 3.695-.946 1.002-2.135 1.504-3.567 1.504-1.604 0-2.994-.645-4.168-1.934C.573 16.557 0 14.967 0 13.105 0 7.52 3.108 3.151 9.324 0L11 3.094Z"
-		/>
-	</svg>
-)
-
-const CloseQuoteIcon = () => (
-	<svg xmlns="http://www.w3.org/2000/svg" width="27" height="20" fill="none" className="rotate-180">
-		<path
-			fill="currentColor"
-			d="M26.727 3.094c-3.495 1.719-5.243 3.738-5.243 6.058 1.49.172 2.722.788 3.696 1.848.974 1.031 1.46 2.234 1.46 3.61 0 1.46-.472 2.692-1.417 3.695-.946 1.002-2.134 1.504-3.567 1.504-1.604 0-2.993-.645-4.168-1.934-1.174-1.318-1.761-2.908-1.761-4.77 0-5.585 3.122-9.954 9.367-13.105l1.633 3.094ZM11 3.094C7.477 4.813 5.715 6.832 5.715 9.152c1.518.172 2.764.788 3.738 1.848.974 1.031 1.461 2.234 1.461 3.61 0 1.46-.487 2.692-1.46 3.695-.946 1.002-2.135 1.504-3.567 1.504-1.604 0-2.994-.645-4.168-1.934C.573 16.557 0 14.967 0 13.105 0 7.52 3.108 3.151 9.324 0L11 3.094Z"
-		/>
-	</svg>
-)
-
 const QuoteBlock: React.FC<{
 	quote: MentionQuote
 	variant?: 'primary' | 'secondary'
@@ -117,11 +100,11 @@ const QuoteBlock: React.FC<{
 			{quote.quote && (
 				<blockquote className={`relative font-semibold ${textStyles} ${textColor}`}>
 					<div className={`absolute top-0 left-0 ${textColor}`}>
-						<OpenQuoteIcon />
+						<ResearchIcon name="quote" width={27} height={20} aria-hidden />
 					</div>
 					<div className="line-clamp-5">{quote.quote}</div>
 					<div className={`absolute right-0 bottom-0 ${textColor}`}>
-						<CloseQuoteIcon />
+						<ResearchIcon name="quote" width={27} height={20} className="rotate-180" aria-hidden />
 					</div>
 				</blockquote>
 			)}

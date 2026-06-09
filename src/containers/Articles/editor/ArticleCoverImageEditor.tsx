@@ -1,4 +1,5 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react'
+import { Icon as SharedIcon } from '~/components/Icon'
 import type { LocalArticleDocument } from '../types'
 import { Icon } from './ArticleEditorIcon'
 import type { ArticleFieldUpdater } from './ArticleEditorTypes'
@@ -131,19 +132,7 @@ export function ArticleCoverImageEditor({
 					onClick={openCoverPicker}
 					className="group flex aspect-[700/400] w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 				>
-					<svg
-						viewBox="0 0 24 24"
-						className="size-6"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="1.5"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<rect x="3" y="3" width="18" height="18" rx="2" />
-						<circle cx="9" cy="9" r="2" />
-						<path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21" />
-					</svg>
+					<SharedIcon name="image-plus" className="size-6" />
 					<span className="text-sm font-medium">{isUploadingCover ? 'Uploading…' : 'Add cover image'}</span>
 					<span className="text-[11px] text-(--text-tertiary)/80">PNG, JPEG, WebP, or GIF · up to 8 MB</span>
 				</button>

@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
+import { Icon } from '~/components/Icon'
 import {
 	ArticleApiError,
 	type AuthorProfileUpdate,
@@ -516,18 +517,7 @@ export function AuthorProfileForm() {
 										aria-label="Remove"
 										className="flex size-9 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500"
 									>
-										<svg
-											viewBox="0 0 24 24"
-											className="size-3.5"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth="1.75"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										>
-											<line x1="6" y1="6" x2="18" y2="18" />
-											<line x1="6" y1="18" x2="18" y2="6" />
-										</svg>
+										<Icon name="x" className="size-3.5" />
 									</button>
 								</div>
 							))
