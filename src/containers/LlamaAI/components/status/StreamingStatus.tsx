@@ -26,17 +26,6 @@ function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }
 
 	return <span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 }
-
-export function TypingIndicator() {
-	return (
-		<div className="flex items-center gap-1.5 py-2">
-			<span className="size-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:0ms] dark:bg-[#919296]" />
-			<span className="size-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:150ms] dark:bg-[#919296]" />
-			<span className="size-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:300ms] dark:bg-[#919296]" />
-		</div>
-	)
-}
-
 export function ToolProgressIndicator({
 	toolCalls,
 	thinking,

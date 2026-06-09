@@ -6,15 +6,6 @@ export function resolveBridgeProtocolParamFromMetadata(bridge: string, metadataC
 	if (!bridgeSlug) return null
 	return metadataCache.bridgeProtocolSlugs.includes(bridgeSlug) ? bridgeSlug : null
 }
-
-export function resolveBridgeChainParamFromMetadata(chain: string, metadataCache: MetadataCache): string | null {
-	const chainSlug = slug(chain)
-	if (!chainSlug) return null
-	return metadataCache.bridgeChainSlugs.includes(chainSlug)
-		? (metadataCache.bridgeChainSlugToName[chainSlug] ?? chainSlug)
-		: null
-}
-
 export function getBridgeRoutesFromMetadata(metadataCache: MetadataCache): string[] {
 	const routes: string[] = []
 

@@ -698,14 +698,6 @@ export function getProtocolCategoryDexVolumeLabel(effectiveCategory: string | nu
 	if (!effectiveCategory) return DEFAULT_DEX_VOLUME_LABEL
 	return DEX_VOLUME_LABEL_BY_CATEGORY[effectiveCategory] ?? DEFAULT_DEX_VOLUME_LABEL
 }
-
-export function getProtocolCategoryDexVolumeColumnLabel(
-	effectiveCategory: string | null,
-	period: '24h' | '7d' | '30d'
-): string {
-	return `${getProtocolCategoryDexVolumeLabel(effectiveCategory)} ${period}`
-}
-
 export function getProtocolCategoryChartMetricLabel(
 	metric: ProtocolCategoryChartMetric,
 	effectiveCategory: string | null

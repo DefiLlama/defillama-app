@@ -117,19 +117,6 @@ export const useFetchProtocolActivityChart = ({
 		enabled: isEnabled
 	})
 }
-
-export const useFetchProtocolTokenLiquidity = (token: string | null) => {
-	const isEnabled = !!token
-	return useQuery({
-		queryKey: ['protocol-overview', 'token-liquidity', token],
-		queryFn: () => fetchJson(buildProtocolChartApiUrl({ kind: 'token-liquidity', protocolId: token! })),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	const isEnabled = !!protocolName
 	return useQuery({

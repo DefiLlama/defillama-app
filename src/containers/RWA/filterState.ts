@@ -2,7 +2,7 @@ import type { NextRouter } from 'next/router'
 import { isTrueQueryParam, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import type { RWAAssetOverviewRow, RWAOverviewDisplayRow, RWAPerpsContractOverlayRow } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
-import { getDefaultRWAOverviewInclusion, type RWAOverviewInclusionContext, type RWAOverviewMode } from './constants'
+import { getDefaultRWAOverviewInclusion, type RWAOverviewInclusionContext } from './constants'
 import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 
 export const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
@@ -213,11 +213,6 @@ export function getEmptyRwaFilteredRowsResult(): RWAFilteredRowsResult {
 		totalIssuersCount: 0
 	}
 }
-
-export function isRwaPlatformMode(mode: RWAOverviewMode): boolean {
-	return mode === 'platform'
-}
-
 function matchesSharedRwaFilters(asset: RWAOverviewDisplayRow, filterState: RWAFilterState): boolean {
 	const selectedCategoriesSet = new Set(filterState.selectedCategories)
 	const selectedPlatformsSet = new Set(filterState.selectedPlatforms)

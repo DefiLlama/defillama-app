@@ -1271,12 +1271,6 @@ export function getStaticPropsTelemetryAttributes<T>(result: GetStaticPropsResul
 
 	return attributes
 }
-
-export function shouldInstrumentStaticRoute(route: string): boolean {
-	void route
-	return true
-}
-
 export async function withStaticRouteTelemetry<T>(
 	route: string,
 	run: () => Promise<GetStaticPropsResult<T>>,

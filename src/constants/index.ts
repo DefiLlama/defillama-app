@@ -60,10 +60,6 @@ export const MARKETS_SERVER_URL = getDirectUrlEnv('MARKETS_SERVER_URL')
 export const CONFIG_API = `${SERVER_URL}/config`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
-
-// Protocol config
-export const getProtocolFEConfig = (id: string) => `${SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
-
 // User metrics
 export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
 export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'

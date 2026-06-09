@@ -226,27 +226,6 @@ export function parseArrayParam(param: QueryParamInput, allValues: string[], val
 	const valid = validSet ?? new Set(allValues)
 	return arr.filter((value) => valid.has(value))
 }
-
-/**
- * Parses an include query parameter with 'None' support.
- * Returns all keys if no param, empty array if 'None',
- * or only valid keys otherwise.
- *
- * @example
- * parseIncludeParam('foo', ['foo', 'bar']) // ['foo']
- * parseIncludeParam('None', ['foo', 'bar']) // []
- * parseIncludeParam(undefined, ['foo', 'bar']) // ['foo', 'bar']
- */
-export function parseIncludeParam(param: QueryParamInput, allKeys: string[]): string[] {
-	const validSet = new Set(allKeys)
-	if (!param) return allKeys
-	if (typeof param === 'string') {
-		if (param === 'None') return []
-		return validSet.has(param) ? [param] : []
-	}
-	return toNonEmptyArrayParam(param).filter((value) => validSet.has(value))
-}
-
 /**
  * Resolves selected chain filters from a query param.
  * Handles special 'All' and 'None' values.

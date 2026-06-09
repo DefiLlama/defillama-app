@@ -126,34 +126,6 @@ export const subscribeToStorageKey = (key: string, callback: StorageListener) =>
 		cleanupStorageListener()
 	}
 }
-
-export const subscribeToStorageKeys = (keys: string[], callback: StorageListener) => {
-	const uniqueKeys = Array.from(new Set(keys))
-	const unsubs = uniqueKeys.map((key) => subscribeToStorageKey(key, callback))
-
-	return () => {
-		for (const unsub of unsubs) {
-			unsub()
-		}
-	}
-}
-
-export const subscribeToAnyStorage = (callback: StorageListener) => {
-	ensureStorageListener()
-
-	if (!anyListeners.has(callback)) {
-		anyListeners.add(callback)
-		activeListenerCount += 1
-	}
-
-	return () => {
-		if (!anyListeners.has(callback)) return
-		anyListeners.delete(callback)
-		activeListenerCount -= 1
-		cleanupStorageListener()
-	}
-}
-
 export const getStorageItem = (key: string, fallback: string | null = null) => {
 	if (!canUseStorage()) return fallback
 

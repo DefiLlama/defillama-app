@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import {
@@ -9,7 +8,6 @@ import {
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/Loaders'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -17,7 +15,6 @@ import { Tooltip } from '~/components/Tooltip'
 import { BridgeAddressesTable } from '~/containers/Bridges/BridgeAddressesTable'
 import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { BridgeTokensTable } from '~/containers/Bridges/BridgeTokensTable'
-import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -307,39 +304,6 @@ export function BridgeProtocolOverview(props: BridgePageData) {
 		</>
 	)
 }
-
-export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['bridges', 'protocol-data', protocol],
-		queryFn: () => getBridgePageDatanew(protocol),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-
-	if (isLoading) {
-		return (
-			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<LocalLoader />
-			</div>
-		)
-	}
-
-	if (error || !data) {
-		return (
-			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p className="p-2">{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
-			</div>
-		)
-	}
-
-	return (
-		<div className="flex flex-col gap-10 p-4">
-			<BridgeInfo {...data} />
-		</div>
-	)
-}
-
 const VOLUME_CHARTS = [{ type: 'bar' as const, name: 'Volume', encode: { x: 'timestamp', y: 'Volume' } }]
 
 const INFLOW_CHARTS = [

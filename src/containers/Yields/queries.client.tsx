@@ -8,7 +8,6 @@ import {
 	YIELD_CHART_LEND_BORROW_PROXY_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
-	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -81,19 +80,6 @@ export const useYieldsPaginatedTable = <TRow,>(endpoint: string, queryString: st
 		enabled: !!url
 	})
 }
-
-// single pool
-export const useYieldPoolData = (configID) => {
-	const url = configID ? `${YIELD_POOLS_LAMBDA_API}?pool=${configID}` : null
-	return useQuery({
-		queryKey: ['yield-pool-data', url],
-		queryFn: () => (url ? fetchJson(url) : null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-}
-
 // single pool chart data
 export const useYieldChartData = (configID: string | null) => {
 	return useQuery({

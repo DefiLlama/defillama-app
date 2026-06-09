@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import React, { useEffect, useRef } from 'react'
 import { useIntersectionObserver } from '~/containers/Articles/landing/useIntersectionObserver'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -38,28 +37,6 @@ export function pushResearchAnalyticsEvent(...args: ResearchAnalyticsEventParams
 		triggered_on: triggeredOn,
 		...umamiPayloadFromArticle(article)
 	})
-}
-
-interface PageAnalyticsProps {
-	article: ArticleDocument | null
-}
-
-/** Optional: fires when the route or article id changes; extend if you need richer virtual page views. */
-export const PageAnalytics: React.FC<PageAnalyticsProps> = ({ article }) => {
-	const router = useRouter()
-	const asPath = router.asPath
-	const articleId = article?.id
-	const articleRef = useRef(article)
-	articleRef.current = article
-
-	useEffect(() => {
-		trackUmamiEvent('research_page_view', {
-			path: asPath,
-			...umamiPayloadFromArticle(articleRef.current)
-		})
-	}, [asPath, articleId])
-
-	return null
 }
 
 interface InViewAnalyticsProps {

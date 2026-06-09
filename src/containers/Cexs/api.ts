@@ -3,7 +3,6 @@ import { fetchJson } from '~/utils/async'
 import type { RawCexInflowsResponse, RawCexsResponse } from './api.types'
 import type { ExchangeMarketsListResponse, ExchangeMarketsResponse } from './markets.types'
 
-const INFLOWS_API_URL = `${SERVER_URL}/inflows`
 const CEXS_API_URL = `${SERVER_URL}/cexs`
 
 /**
@@ -12,21 +11,6 @@ const CEXS_API_URL = `${SERVER_URL}/cexs`
 export async function fetchCexs(): Promise<RawCexsResponse> {
 	return fetchJson<RawCexsResponse>(CEXS_API_URL)
 }
-
-/**
- * Fetch inflow/outflow data server-side (direct upstream call, uses API_KEY from env).
- */
-export async function fetchCexInflows(
-	cexSlug: string,
-	startTime: number,
-	endTime: number,
-	tokensToExclude: string
-): Promise<RawCexInflowsResponse> {
-	return fetchJson<RawCexInflowsResponse>(
-		`${INFLOWS_API_URL}/${encodeURIComponent(cexSlug)}/${startTime}?end=${endTime}&tokensToExclude=${encodeURIComponent(tokensToExclude)}`
-	)
-}
-
 /**
  * Fetch inflow/outflow data client-side via the authenticated proxy route.
  */

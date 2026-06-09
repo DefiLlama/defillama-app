@@ -60,11 +60,6 @@ export const toNiceDayMonthAndYearAndTime = (date: number): string => {
 export const toYearMonth = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM')
 }
-
-export const toNiceDate = (date: number): string => {
-	return dayjs.utc(dayjs.unix(date)).format('MMM DD')
-}
-
 export const toNiceCsvDate = (date: number): string => {
 	return dayjs.utc(dayjs.unix(date)).format('YYYY-MM-DD')
 }
@@ -680,12 +675,6 @@ export function formatValue(value: unknown, formatType: string = 'auto'): string
 		}
 	}
 }
-
-export const formatEthAddress = (address: unknown): string => {
-	if (!address || typeof address !== 'string') return ''
-	return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
-
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
 	if (numerator == null || denominator == null) {
 		return null

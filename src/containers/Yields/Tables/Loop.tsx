@@ -9,9 +9,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import type { YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
-import { PaginatedYieldsTableWrapper, YieldsTableWrapper } from './shared'
+import { PaginatedYieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, YieldLoopTableRow } from './types'
 
 const columnHelper = createColumnHelper<YieldLoopTableRow>()
@@ -298,12 +298,6 @@ export const LOOP_TABLE_CONFIG: YieldsTableConfig<YieldLoopTableRow, LoopColumnI
 	columns,
 	columnOrders
 }
-
-export function YieldsLoopTable({ data }: IYieldsTableProps<YieldLoopTableRow>) {
-	const resolvedConfig = resolveVirtualYieldsTableConfig(LOOP_TABLE_CONFIG, undefined)
-	return <YieldsTableWrapper data={data} columns={resolvedConfig.columns} columnOrders={resolvedConfig.columnOrders} />
-}
-
 export function PaginatedYieldsLoopTable(props: IYieldsTableProps<YieldLoopTableRow>) {
 	return <PaginatedYieldsTableWrapper {...props} config={LOOP_TABLE_CONFIG} />
 }

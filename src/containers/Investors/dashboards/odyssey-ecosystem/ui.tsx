@@ -137,12 +137,6 @@ export function fmtNum(v: number | null | undefined, digits = 2): string {
 	if (v == null || Number.isNaN(v)) return '—'
 	return v.toLocaleString(undefined, { maximumFractionDigits: digits })
 }
-
-export function Pct({ v }: { v: number | null | undefined }) {
-	if (v == null) return <>—</>
-	return <>{v.toFixed(2)}%</>
-}
-
 export function UtilBar({ pct }: { pct: number | null | undefined }) {
 	const p = Math.min(100, Math.max(0, pct ?? 0))
 	const color = p >= 90 ? '#f87171' : p >= 70 ? '#fbbf24' : '#6366f1'

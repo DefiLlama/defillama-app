@@ -4,10 +4,8 @@ import {
 	METADATA_ARTIFACT_KEYS,
 	METADATA_ARTIFACT_REGISTRY,
 	METADATA_CI_STUBS,
-	hydrateMetadataCache,
 	parseMetadataArtifact,
-	type CoreMetadataPayload,
-	type MetadataCache
+	type CoreMetadataPayload
 } from './artifactContract'
 import { getMetadataCacheDir } from './config'
 import { METADATA_MANIFEST_FILE, parseMetadataArtifactManifest, type MetadataArtifactManifest } from './manifest'
@@ -44,8 +42,4 @@ export function loadMetadataArtifactsForBoot(cacheDir = getMetadataCacheDir()): 
 			payload: METADATA_CI_STUBS
 		}
 	}
-}
-
-export function createMetadataCacheFromGeneratedArtifacts(): MetadataCache {
-	return hydrateMetadataCache(loadMetadataArtifactsForBoot().payload)
 }

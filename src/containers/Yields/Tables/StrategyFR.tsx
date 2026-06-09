@@ -6,9 +6,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import type { YieldsTableConfig } from './config'
 import { FRStrategyRoute, NameYieldPool } from './Name'
-import { PaginatedYieldsTableWrapper, YieldsTableWrapper } from './shared'
+import { PaginatedYieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, YieldLongShortStrategyTableRow } from './types'
 
 const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d: number; afr30d: number }) => {
@@ -247,19 +247,6 @@ export const STRATEGY_FR_TABLE_CONFIG: YieldsTableConfig<YieldLongShortStrategyT
 	columnOrders,
 	rowSize: 80
 }
-
-export function YieldsStrategyTableFR({ data }: IYieldsTableProps<YieldLongShortStrategyTableRow>) {
-	const resolvedConfig = resolveVirtualYieldsTableConfig(STRATEGY_FR_TABLE_CONFIG, undefined)
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={resolvedConfig.columns}
-			columnOrders={resolvedConfig.columnOrders}
-			rowSize={resolvedConfig.rowSize}
-		/>
-	)
-}
-
 export function PaginatedYieldsStrategyTableFR(props: IYieldsTableProps<YieldLongShortStrategyTableRow>) {
 	return <PaginatedYieldsTableWrapper {...props} config={STRATEGY_FR_TABLE_CONFIG} />
 }

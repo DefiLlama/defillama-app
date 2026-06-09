@@ -5,7 +5,6 @@ import type {
 	IRWAPerpsBreakdownChartResponse,
 	IRWAPerpsFundingHistoryParams,
 	IRWAPerpsFundingHistoryPoint,
-	IRWAPerpsIdMapResponse,
 	IRWAPerpsListResponse,
 	IRWAPerpsMarket,
 	IRWAPerpsMarketChartPoint,
@@ -53,14 +52,6 @@ export async function fetchRWAPerpsList(): Promise<IRWAPerpsListResponse> {
 export async function fetchRWAPerpsStats(): Promise<IRWAPerpsStatsResponse> {
 	return fetchJson<IRWAPerpsStatsResponse>(`${RWA_PERPS_SERVER_URL}/stats?zz=16`)
 }
-
-/**
- * Fetch the contract and venue to market ID mapping.
- */
-export async function fetchRWAPerpsIdMap(): Promise<IRWAPerpsIdMapResponse> {
-	return fetchJson<IRWAPerpsIdMapResponse>(`${RWA_PERPS_SERVER_URL}/id-map?zz=16`)
-}
-
 /**
  * Fetch a single market by its venue:contract ID.
  */

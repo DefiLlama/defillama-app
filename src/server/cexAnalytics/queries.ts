@@ -1,8 +1,7 @@
 import type {
 	CexAnalyticsMarketSharePoint,
 	CexAnalyticsSnapshotResponse,
-	CexAnalyticsTotalsPoint,
-	CexAnalyticsView
+	CexAnalyticsTotalsPoint
 } from '~/containers/ProDashboard/types'
 import { llamaDb } from '~/server/db/llama'
 import metadataCache from '~/utils/metadata'
@@ -254,6 +253,3 @@ export async function getCexAnalyticsMarketShare(
 
 	return points
 }
-
-export const isCexAnalyticsView = (value: string | undefined): value is CexAnalyticsView =>
-	value === 'summary' || value === 'comparison' || value === 'spot-vs-derivatives' || value === 'market-share'

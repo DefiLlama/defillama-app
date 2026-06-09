@@ -1,7 +1,6 @@
 import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { resolveChainId, resolveProtocolId } from '~/containers/LiquidationsV2/queries'
 import type { MetadataCache } from '~/utils/metadata/artifactContract'
-import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import { getMetadataCache, type StaticParamPath } from './common'
 
 export async function getLiquidationsProtocolStaticPaths(): Promise<Array<StaticParamPath<'protocol'>>> {
@@ -42,11 +41,4 @@ export async function resolveLiquidationsChainParams(
 	if (!chainId) return null
 
 	return { protocolId, chainId, metadataCache }
-}
-
-export async function resolveTokenLiquidationsParam(symbol: string): Promise<string | null> {
-	const normalizedSymbol = normalizeLiquidationsTokenSymbol(symbol)
-	if (!normalizedSymbol) return null
-	const metadataCache = await getMetadataCache()
-	return metadataCache.liquidationsTokenSymbolsSet.has(normalizedSymbol) ? normalizedSymbol : null
 }

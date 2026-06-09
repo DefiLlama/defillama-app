@@ -222,24 +222,6 @@ export const getHeadBootstrapScript = (): string => `
 		}
 	})();
 `
-
-export const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
-	if (!origin) return false
-	try {
-		const originUrl = new URL(origin)
-		return allowedOrigins.some((allowed) => {
-			try {
-				const allowedUrl = new URL(allowed)
-				return originUrl.hostname === allowedUrl.hostname && originUrl.protocol === allowedUrl.protocol
-			} catch {
-				return false
-			}
-		})
-	} catch {
-		return false
-	}
-}
-
 export const getThemeCookie = (): Theme | null => {
 	if (typeof document === 'undefined') return null
 
@@ -316,17 +298,6 @@ export const syncLlamaAIChromeAttributes = (fullscreen: boolean, sidebarHidden: 
 
 	syncLlamaAIChromeAttributesForPath(window.location.pathname, fullscreen, sidebarHidden)
 }
-
-export const parseThemeCookie = (cookieString: string, cookieName: string = THEME_COOKIE_NAME): Theme => {
-	const themeCookie = getCookieValue(cookieString, cookieName)
-
-	if (themeCookie) {
-		return sanitizeThemeValue(themeCookie)
-	}
-
-	return 'dark'
-}
-
 export const setThemeCookie = (isDarkMode: boolean): void => {
 	if (typeof document === 'undefined') return
 

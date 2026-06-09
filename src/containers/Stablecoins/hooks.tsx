@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
+import { capitalizeFirstLetter } from '~/utils'
 
 interface IPegged {
 	circulating: number
@@ -107,18 +107,6 @@ type BridgeInfo = {
 	[bridgeID: string]: StablecoinBridgeInfo
 }
 
-interface IChainTvl {
-	[key: string]: number
-}
-
-interface IStackedCirculatingValue {
-	circulating: number
-	unreleased?: number
-}
-
-type IStackedDatasetPoint = [string | number, Record<string, IStackedCirculatingValue>]
-type IExtraPeggedByDayPoint = { date: number } & Record<string, number>
-
 type DataValue = number | null
 
 interface IGroupData {
@@ -166,50 +154,6 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 
 	return peggedAssetTotals
 }
-
-// returns circulating by day for a group of tokens
-export const useCalcGroupExtraPeggedByDay = (chains: IStackedDatasetPoint[], includeUnreleased?: boolean) => {
-	const shouldIncludeUnreleased = Boolean(includeUnreleased)
-
-	const { data, daySum } = useMemo(() => {
-		const daySum: Record<number, number> = {}
-
-		const data: IExtraPeggedByDayPoint[] = chains.map(([date, values]) => {
-			const dateNumber = Number(date)
-			const circulatings: IChainTvl = {}
-			let totalDaySum = 0
-			for (const name in values) {
-				const chainCirculating = values[name]
-				let sum = chainCirculating.circulating
-				totalDaySum += chainCirculating.circulating
-				if (shouldIncludeUnreleased && chainCirculating.unreleased) {
-					sum += chainCirculating.unreleased
-					totalDaySum += chainCirculating.unreleased
-				}
-
-				circulatings[name] = sum
-			}
-			daySum[dateNumber] = totalDaySum
-			return { date: dateNumber, ...circulatings }
-		})
-		return { data, daySum }
-	}, [chains, shouldIncludeUnreleased])
-
-	const dataWithExtraPeggedAndDominanceByDay = useMemo(() => {
-		return data.map(({ date, ...values }): IExtraPeggedByDayPoint => {
-			const shares: Record<string, number> = {}
-
-			for (const key in values) {
-				shares[key] = getDominancePercent(values[key], daySum[date] ?? 0)
-			}
-
-			return { date, ...shares }
-		})
-	}, [data, daySum])
-
-	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
-}
-
 interface StablecoinsChainsRow {
 	name: string
 	mcap: number | null

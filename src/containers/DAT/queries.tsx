@@ -1,7 +1,7 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { CHART_COLORS } from '~/constants/colors'
 import { oldBlue } from '~/constants/colors'
-import { getDominancePercent, getNDistinctColors, slug } from '~/utils'
+import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchDATInstitutions, fetchDATInstitutionDetail, toUnixMsTimestamp } from './api'
 import type { IDATInstitutionsResponse } from './api.types'
 import type {
@@ -490,28 +490,4 @@ export async function getDATCompanyData(company: string): Promise<IDATCompanyPag
 		totalAssetValueChart,
 		ohlcvChartData
 	}
-}
-
-/**
- * Get all institution tickers for getStaticPaths.
- */
-export async function getDATCompanyPaths(): Promise<string[]> {
-	const data = await fetchDATInstitutions()
-	const tickers = new Set<string>()
-	for (const institutionId in data.institutionMetadata) {
-		tickers.add(data.institutionMetadata[institutionId].ticker)
-	}
-	return Array.from(tickers).map((ticker) => slug(ticker))
-}
-
-/**
- * Get all asset slugs for getStaticPaths.
- */
-export async function getDATAssetPaths(): Promise<string[]> {
-	const data = await fetchDATInstitutions()
-	const paths: string[] = []
-	for (const asset in data.assetMetadata) {
-		paths.push(slug(asset))
-	}
-	return paths
 }

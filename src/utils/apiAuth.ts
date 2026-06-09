@@ -41,20 +41,6 @@ export async function validateSubscription(authHeader: string | undefined): Prom
 
 	return { valid: true, isTrial }
 }
-
-export async function getTrialCsvDownloadCount(authHeader: string): Promise<number> {
-	const response = await fetchWithPoolingOnServer(`${POCKETBASE_URL}/api/collections/users/auth-refresh`, {
-		method: 'POST',
-		headers: { Authorization: authHeader }
-	})
-
-	if (!response.ok) return 0
-
-	const data = await response.json()
-	const count = data?.record?.flags?.csvDownload
-	return typeof count === 'number' ? count : 0
-}
-
 export async function trackCsvDownload(authHeader: string): Promise<void> {
 	await fetchWithPoolingOnServer(`${FEATURES_SERVER}/user/track-csv-download`, {
 		method: 'POST',

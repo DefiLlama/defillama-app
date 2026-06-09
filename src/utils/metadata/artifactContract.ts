@@ -247,17 +247,6 @@ export function getMetadataArtifactEntries(payload: CoreMetadataPayload): Array<
 	}
 	return entries
 }
-
-export function createMetadataPayloadFromArtifacts(valuesByFile: Record<string, unknown>): CoreMetadataPayload {
-	const payload = {} as CoreMetadataPayload
-	const writablePayload = payload as Record<MetadataArtifactKey, unknown>
-	for (const key of METADATA_ARTIFACT_KEYS) {
-		const artifact = METADATA_ARTIFACT_REGISTRY[key]
-		writablePayload[key] = artifact.parse(valuesByFile[artifact.file], artifact.file)
-	}
-	return payload
-}
-
 export function validateCoreMetadataPayload(payload: CoreMetadataPayload): CoreMetadataPayload {
 	const validatedPayload = {} as CoreMetadataPayload
 	const writablePayload = validatedPayload as Record<MetadataArtifactKey, unknown>

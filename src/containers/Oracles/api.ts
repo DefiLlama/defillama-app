@@ -3,10 +3,7 @@ import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
 	IOracleMetrics,
-	IOracleChart,
 	IOracleProtocolBreakdownChart,
-	IOracleChainBreakdownChart,
-	IOracleChainChart,
 	IOracleProtocolChart,
 	IOracleProtocolChainBreakdownChart,
 	IOracleChainProtocolBreakdownChart
@@ -24,19 +21,6 @@ function appendKeyParam(url: string, key?: string): string {
 export async function fetchOracleMetrics(): Promise<IOracleMetrics> {
 	return fetchJson<IOracleMetrics>(`${V2_SERVER_URL}/metrics/oracle`, { timeout: 30_000 })
 }
-
-/**
- * Fetch oracle total chart data.
- */
-export async function fetchOracleChart({
-	key
-}: {
-	key?: string
-} = {}): Promise<IOracleChart> {
-	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle`, key)
-	return fetchJson<IOracleChart>(url, { timeout: 30_000 })
-}
-
 /**
  * Fetch oracle protocol breakdown chart data.
  */
@@ -48,19 +32,6 @@ export async function fetchOracleProtocolBreakdownChart({
 	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/protocol-breakdown`, key)
 	return fetchJson<IOracleProtocolBreakdownChart>(url, { timeout: 30_000 })
 }
-
-/**
- * Fetch oracle chain breakdown chart data.
- */
-export async function fetchOracleChainBreakdownChart({
-	key
-}: {
-	key?: string
-} = {}): Promise<IOracleChainBreakdownChart> {
-	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/chain-breakdown`, key)
-	return fetchJson<IOracleChainBreakdownChart>(url, { timeout: 30_000 })
-}
-
 /**
  * Fetch oracle chart data for a specific protocol.
  */
@@ -74,21 +45,6 @@ export async function fetchOracleProtocolChart({
 	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/protocol/${slug(protocol)}`, key)
 	return fetchJson<IOracleProtocolChart>(url, { timeout: 30_000 })
 }
-
-/**
- * Fetch oracle chart data for a specific chain.
- */
-export async function fetchOracleChainChart({
-	chain,
-	key
-}: {
-	chain: string
-	key?: string
-}): Promise<IOracleChainChart> {
-	const url = appendKeyParam(`${V2_SERVER_URL}/chart/oracle/chain/${slug(chain)}`, key)
-	return fetchJson<IOracleChainChart>(url, { timeout: 30_000 })
-}
-
 /**
  * Fetch oracle protocol chain breakdown chart data.
  */

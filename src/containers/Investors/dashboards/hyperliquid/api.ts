@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { HyperliquidCandle } from '~/pages/api/public/hyperliquid/candles'
 import type { HlpFundingData } from '~/pages/api/public/hyperliquid/hlp-funding'
 import type { HlpOpenOrder } from '~/pages/api/public/hyperliquid/hlp-open-orders'
@@ -248,21 +248,6 @@ export function useHyperliquidL2Book(coin: string, nSigFigs = 5) {
 
 	return { ...query, book: query.data ?? null }
 }
-
-export function useHyperliquidCandles(coin: string, interval: string, limit = 200) {
-	const query = useQuery<HyperliquidCandle[]>({
-		queryKey: ['hl-candles', coin, interval, limit],
-		queryFn: () =>
-			fetchJson<HyperliquidCandle[]>(
-				`/api/public/hyperliquid/candles?coin=${encodeURIComponent(coin)}&interval=${encodeURIComponent(interval)}&limit=${limit}`
-			),
-		staleTime: 10_000,
-		refetchOnWindowFocus: false
-	})
-
-	return { ...query, candles: query.data ?? [] }
-}
-
 const DEFAULT_HLP_DATA = {
 	summary: {
 		accountValue: 0,
@@ -329,26 +314,4 @@ export function useHyperliquidHlpPortfolio(window: 'day' | 'week' | 'month' | 'a
 		...query,
 		portfolio: query.data ?? { window, volume: 0, points: [], byVaultVolume: { A: 0, B: 0 } }
 	}
-}
-
-export function useCountdown(targetMs: number | null) {
-	const [now, setNow] = useState(() => Date.now())
-
-	useEffect(() => {
-		if (!targetMs) return
-		const id = setInterval(() => setNow(Date.now()), 1000)
-		return () => clearInterval(id)
-	}, [targetMs])
-
-	return useMemo(() => {
-		if (!targetMs) return '—'
-		const diff = Math.max(0, targetMs - now)
-		const totalSeconds = Math.floor(diff / 1000)
-		const hours = Math.floor(totalSeconds / 3600)
-		const minutes = Math.floor((totalSeconds % 3600) / 60)
-		const seconds = totalSeconds % 60
-		return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
-			.toString()
-			.padStart(2, '0')}`
-	}, [now, targetMs])
 }

@@ -327,11 +327,6 @@ export function setRWAPerpsTimeSeriesMode(
 ): RWAPerpsChartState {
 	return { ...state, timeSeriesMode }
 }
-
-export function getRWAPerpsChartViewQueryValue(view: RWAPerpsChartView) {
-	return view === DEFAULT_CHART_VIEW ? undefined : view
-}
-
 export function getRWAPerpsChartViewQueryValueForMode(mode: RWAPerpsChartMode, view: RWAPerpsChartView) {
 	return view === getDefaultRWAPerpsChartView(mode) ? undefined : view
 }

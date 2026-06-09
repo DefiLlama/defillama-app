@@ -13,7 +13,6 @@ import {
 } from './localStorageStore'
 
 const DEFILLAMA = 'DEFILLAMA' as const
-const PINNED_METRICS_KEY = 'pinned-metrics' as const
 export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
@@ -194,11 +193,6 @@ export const isChainsCategoryGroupKey = (value: string): value is ChainsCategory
 export function subscribeToLocalStorage(callback: () => void) {
 	return subscribeToStorageKey(DEFILLAMA, callback)
 }
-
-export function subscribeToPinnedMetrics(callback: () => void) {
-	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
-}
-
 const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
 
 const getResolvedTheme = (): 'dark' | 'light' => {
@@ -749,23 +743,4 @@ export function useLlamaAINotifyBannerDismissed(): [boolean, () => void] {
 	const raw = useStorageItem(LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY, null)
 	const markDismissed = useMemo(() => () => setStorageItem(LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY, 'true'), [])
 	return [raw === 'true', markDismissed]
-}
-
-export function useLlamaAILandingVisited(): [boolean, () => void] {
-	const visited = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => (readAppStorage()[LLAMA_AI_LANDING_VISITED] ? '1' : '0'),
-		() => '0'
-	)
-
-	const markVisited = useMemo(
-		() => () =>
-			writeAppStorage({
-				...readAppStorage(),
-				[LLAMA_AI_LANDING_VISITED]: true
-			}),
-		[]
-	)
-
-	return [visited === '1', markVisited]
 }

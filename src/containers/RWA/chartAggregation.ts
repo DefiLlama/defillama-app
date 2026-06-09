@@ -1,4 +1,4 @@
-import type { IRWAAssetsOverview, IRWAChartDataByAsset, IRWAChartMetricRows, RWAChartMetricKey } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	appendRwaChartDatasetTotal,
@@ -251,21 +251,6 @@ export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterab
 		return a.localeCompare(b)
 	})
 }
-
-export function aggregateRwaChartData(
-	assets: IRWAAssetsOverview['assets'],
-	chartDataByAsset: IRWAChartDataByAsset,
-	mode: RWAChartAggregationMode
-): RWAChartDatasetsByMetric {
-	const assetToGroups = buildAssetGroupMapping(assets, mode)
-
-	return {
-		onChainMcap: buildAggregatedRwaDataset(chartDataByAsset.onChainMcap, assetToGroups),
-		activeMcap: buildAggregatedRwaDataset(chartDataByAsset.activeMcap, assetToGroups),
-		defiActiveTvl: buildAggregatedRwaDataset(chartDataByAsset.defiActiveTvl, assetToGroups)
-	}
-}
-
 export function aggregateRwaMetricData(
 	assets: IRWAAssetsOverview['assets'],
 	rows: IRWAChartMetricRows,

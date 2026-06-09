@@ -100,9 +100,6 @@ export interface MetadataResponse {
 	links: Record<string, string>
 	faq: Array<{ question: string; answer: string }>
 }
-
-export const useMetadata = () => useTab<MetadataResponse>('metadata')
-
 /* ──────────────────────────── TVL ──────────────────────────── */
 
 interface MorphoMarket {

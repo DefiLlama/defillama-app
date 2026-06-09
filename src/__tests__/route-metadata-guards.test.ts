@@ -11,9 +11,7 @@ const {
 	getOracleDetailPageDataMock,
 	getOraclesListPageDataMock,
 	getDATOverviewDataByAssetMock,
-	getDATAssetPathsMock,
 	getDATCompanyDataMock,
-	getDATCompanyPathsMock,
 	fetchStablecoinAssetsApiMock,
 	getStablecoinAssetPageDataMock,
 	metadataCache
@@ -26,9 +24,7 @@ const {
 	getOracleDetailPageDataMock: vi.fn(),
 	getOraclesListPageDataMock: vi.fn(),
 	getDATOverviewDataByAssetMock: vi.fn(),
-	getDATAssetPathsMock: vi.fn(),
 	getDATCompanyDataMock: vi.fn(),
-	getDATCompanyPathsMock: vi.fn(),
 	fetchStablecoinAssetsApiMock: vi.fn(),
 	getStablecoinAssetPageDataMock: vi.fn(),
 	metadataCache: {
@@ -101,9 +97,7 @@ vi.mock('~/containers/DAT/Company', () => ({
 
 vi.mock('~/containers/DAT/queries', () => ({
 	getDATOverviewDataByAsset: getDATOverviewDataByAssetMock,
-	getDATAssetPaths: getDATAssetPathsMock,
-	getDATCompanyData: getDATCompanyDataMock,
-	getDATCompanyPaths: getDATCompanyPathsMock
+	getDATCompanyData: getDATCompanyDataMock
 }))
 
 vi.mock('~/containers/Stablecoins/api', () => ({

@@ -84,16 +84,6 @@ export function buildSitemapXml(baseUrl: string, entries: SitemapUrlEntry[]): st
    </urlset>
  `
 }
-
-export function buildSitemapXmlFromPaths(baseUrl: string, routes: string[]): string {
-	const entries = routes
-		.map((route) => normalizeSitemapRoute(route))
-		.filter((route): route is string => route != null)
-		.map((path) => ({ path }))
-
-	return buildSitemapXml(baseUrl, entries)
-}
-
 function renderSitemapIndexEntry(baseUrl: string, entry: SitemapIndexEntry): string {
 	const normalizedPath = normalizeSitemapRoute(entry.path)
 	if (normalizedPath == null) return ''

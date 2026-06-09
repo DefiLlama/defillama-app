@@ -97,7 +97,3 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	const maxAge = nextMinute * 60 - currentMinute * 60 - currentSecond
 	return maxAge
 }
-
-export function jitteredMaxAgeForNext(minutesForRollover: number[] = [22], key: string): number {
-	return jitterCacheSeconds(maxAgeForNext(minutesForRollover), key).seconds
-}

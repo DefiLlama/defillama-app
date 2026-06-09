@@ -110,7 +110,3 @@ export function getProtocolFeatureSlugsFromMetadata(
 export function getProtocolMetricSlugsFromMetadata(metadataCache: MetadataCache, metric: ProtocolMetric): string[] {
 	return getProtocolFeatureSlugsFromMetadata(metadataCache, (metadata) => Boolean(metadata[metric]))
 }
-
-export async function getProtocolMetricSlugs(metric: ProtocolMetric): Promise<string[]> {
-	return getProtocolMetricSlugsFromMetadata(await getMetadataCache(), metric)
-}

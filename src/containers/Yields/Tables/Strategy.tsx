@@ -6,9 +6,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import type { YieldsTableConfig } from './config'
 import { NameYieldPool, PoolStrategyRoute } from './Name'
-import { PaginatedYieldsTableWrapper, YieldsTableWrapper } from './shared'
+import { PaginatedYieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, YieldStrategyTableRow } from './types'
 
 const columnHelper = createColumnHelper<YieldStrategyTableRow>()
@@ -195,19 +195,6 @@ export const STRATEGY_TABLE_CONFIG: YieldsTableConfig<YieldStrategyTableRow, Str
 	columnOrders,
 	rowSize: 80
 }
-
-export function YieldsStrategyTable({ data }: IYieldsTableProps<YieldStrategyTableRow>) {
-	const resolvedConfig = resolveVirtualYieldsTableConfig(STRATEGY_TABLE_CONFIG, undefined)
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={resolvedConfig.columns}
-			columnOrders={resolvedConfig.columnOrders}
-			rowSize={resolvedConfig.rowSize}
-		/>
-	)
-}
-
 export function PaginatedYieldsStrategyTable(props: IYieldsTableProps<YieldStrategyTableRow>) {
 	return <PaginatedYieldsTableWrapper {...props} config={STRATEGY_TABLE_CONFIG} />
 }
