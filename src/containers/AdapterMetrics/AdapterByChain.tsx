@@ -756,7 +756,7 @@ const doubleCountedMetricColumn = (
 		cell: (info) => {
 			if (info.getValue() != null && info.row.original.doublecounted) {
 				return (
-					<span className="flex items-center justify-end gap-1">
+					<span className="flex items-center justify-center gap-1">
 						<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
 						<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
 					</span>
@@ -796,7 +796,7 @@ const reportedPerpVolumeColumn = (
 
 			if (helpers.length > 0) {
 				return (
-					<span className="flex items-center justify-end gap-1">
+					<span className="flex items-center justify-center gap-1">
 						{helpers.map((helper) => (
 							<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
 						))}
@@ -830,7 +830,7 @@ const openInterestMetricColumn = (
 		cell: (info) => {
 			if (info.getValue() != null && info.row.original.doublecounted) {
 				return (
-					<span className="flex items-center justify-end gap-1">
+					<span className={`flex items-center ${align === 'center' ? 'justify-center' : 'justify-end'} gap-1`}>
 						<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its open interest is excluded from totals to avoid double-counting the underlying protocol's open interest" />
 						<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
 					</span>
