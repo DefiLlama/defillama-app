@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
-import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { ResearchIcon } from '~/components/ResearchIcon'
 import { FEATURES_SERVER } from '~/constants'
 import {
@@ -182,18 +182,18 @@ function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 	if (!isMine) return null
 	return (
 		<>
-			<Link
+			<BasicLink
 				href="/research/profile"
 				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
 				Edit profile
-			</Link>
-			<Link
+			</BasicLink>
+			<BasicLink
 				href="/research/mine"
 				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
 				Your research
-			</Link>
+			</BasicLink>
 		</>
 	)
 }
@@ -211,12 +211,12 @@ function BrandHero() {
 			<div className="relative z-10 mx-auto grid w-full max-w-[1368px] gap-6 px-4 pt-8 pb-12 sm:px-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,249px)] lg:items-start lg:gap-10 lg:px-8 lg:pt-12 lg:pb-16">
 				<div className="grid gap-2">
 					<h1 className="text-[28px] leading-tight font-bold tracking-widest text-white sm:text-3xl dark:text-[#3A8BFF]">
-						<Link
+						<BasicLink
 							href="/research"
 							className="text-inherit transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
 						>
 							DefiLlama Research
-						</Link>
+						</BasicLink>
 					</h1>
 					<p className="text-lg leading-tight font-semibold tracking-widest text-[#F5F9FD] italic sm:text-xl">Editor</p>
 				</div>
@@ -227,7 +227,7 @@ function BrandHero() {
 					intelligence, and strategic advisory services powered by the DefiLlama ecosystem.
 				</p>
 
-				<div className="grid w-full max-w-[280px] gap-6 justify-self-center pt-2 md:justify-self-start lg:pt-0">
+				<div className="grid w-full max-w-[280px] gap-6 justify-self-center pt-2 lg:justify-self-start lg:pt-0">
 					<a
 						href={`${FEATURES_SERVER.replace(/\/$/, '')}/uploads/media-kit.pdf`}
 						target="_blank"
@@ -237,7 +237,7 @@ function BrandHero() {
 						<span>Explore our media kit</span>
 						<ResearchIcon name="research-media-kit" className="size-7 shrink-0" />
 					</a>
-					<Link
+					<BasicLink
 						href="https://calendly.com/research-defillama/30min"
 						target="_blank"
 						rel="noopener noreferrer"
@@ -245,7 +245,7 @@ function BrandHero() {
 					>
 						<span>Book a call</span>
 						<ResearchIcon name="calendly-mark" className="size-7 shrink-0" />
-					</Link>
+					</BasicLink>
 				</div>
 			</div>
 		</header>
@@ -264,7 +264,7 @@ function ResearchArticleListRow({
 	if (compact) {
 		return (
 			<li>
-				<Link
+				<BasicLink
 					href={articleHref(article)}
 					className="group grid min-h-16 grid-cols-[84px_minmax(0,1fr)] items-center gap-2.5"
 				>
@@ -284,14 +284,14 @@ function ResearchArticleListRow({
 					<h3 className="line-clamp-3 text-base leading-snug font-medium text-[#000E41] transition-colors group-hover:text-[#3A8BFF] dark:text-white dark:group-hover:text-[#3A8BFF]">
 						{article.title}
 					</h3>
-				</Link>
+				</BasicLink>
 			</li>
 		)
 	}
 
 	return (
 		<li>
-			<Link
+			<BasicLink
 				href={articleHref(article)}
 				className={`group grid min-h-[176px] grid-cols-[218px_minmax(0,1fr)] gap-3 border ${
 					index > 0 ? 'border-t-0' : ''
@@ -316,7 +316,7 @@ function ResearchArticleListRow({
 					</h3>
 					<p className="text-sm leading-tight font-bold text-[#3A8BFF]">{getResearchArticleLabel(article)}</p>
 				</div>
-			</Link>
+			</BasicLink>
 		</li>
 	)
 }
@@ -360,13 +360,13 @@ function ResearchArticleLists({ articles }: { articles: ArticleDocument[] }) {
 				<ResearchArticleColumn articles={rightColumn} />
 			</div>
 
-			<Link
+			<BasicLink
 				href="/research"
 				className="inline-flex items-center gap-2 justify-self-end text-sm font-bold text-[#237BFF] uppercase transition-colors hover:text-[#000E41] lg:text-lg dark:hover:text-white"
 			>
 				<span>View all</span>
 				<Icon name="arrow-right" className="size-4" />
-			</Link>
+			</BasicLink>
 		</section>
 	)
 }
@@ -428,9 +428,9 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 	if (!data && !error) {
 		return (
 			<AuthorPageState title="Author not found">
-				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
+				<BasicLink href="/research" className="text-sm text-(--link-text) hover:underline">
 					Browse all research
-				</Link>
+				</BasicLink>
 			</AuthorPageState>
 		)
 	}
@@ -439,9 +439,9 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 		const message = error instanceof ArticleApiError ? error.message : 'Failed to load author'
 		return (
 			<AuthorPageState title="Couldn't load author" description={message}>
-				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
+				<BasicLink href="/research" className="text-sm text-(--link-text) hover:underline">
 					Browse all research
-				</Link>
+				</BasicLink>
 			</AuthorPageState>
 		)
 	}
@@ -464,13 +464,13 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 	return (
 		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">
 			<div className="flex items-center justify-between gap-3">
-				<Link
+				<BasicLink
 					href="/research"
 					className="inline-flex items-center gap-1 text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 				>
 					<Icon name="arrow-left" className="size-3.5" />
 					<span>All research</span>
-				</Link>
+				</BasicLink>
 				<div className="flex flex-wrap items-center gap-1.5">
 					<OwnerChips authorPbUserId={author.pbUserId} />
 				</div>
@@ -536,7 +536,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 				<>
 					{lead ? (
 						<section>
-							<Link
+							<BasicLink
 								href={articleHref(lead)}
 								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)]"
 							>
@@ -566,7 +566,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 										/>
 									</div>
 								) : null}
-							</Link>
+							</BasicLink>
 						</section>
 					) : null}
 
@@ -612,7 +612,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 											{formatShort(article.publishedAt)}
 										</div>
 										{article.coverImage?.url ? (
-											<Link href={articleHref(article)} className="block">
+											<BasicLink href={articleHref(article)} className="block">
 												<img
 													src={article.coverImage.url}
 													alt=""
@@ -620,14 +620,14 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 													decoding="async"
 													className="aspect-4/3 w-full rounded-sm border border-(--cards-border) object-cover"
 												/>
-											</Link>
+											</BasicLink>
 										) : (
 											<div
 												className="aspect-4/3 w-full rounded-sm border border-(--cards-border) bg-(--app-bg)"
 												aria-hidden
 											/>
 										)}
-										<Link href={articleHref(article)} className="group grid gap-1.5">
+										<BasicLink href={articleHref(article)} className="group grid gap-1.5">
 											<h3 className="text-base leading-tight font-semibold text-(--text-primary) transition-colors group-hover:text-(--link-text) md:text-lg">
 												{article.title}
 											</h3>
@@ -645,7 +645,7 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 													</>
 												) : null}
 											</div>
-										</Link>
+										</BasicLink>
 									</li>
 								))}
 							</ul>

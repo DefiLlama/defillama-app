@@ -268,8 +268,8 @@ function FullBleedHeaderImage({
 	)
 }
 
-/** Bottom-left article glow — sits under list content without extending page scroll. */
-function MobileArticleGlow({ className, light = false }: { className: string; light?: boolean }) {
+/** Phone glow extends through the final CTA row. */
+function PhoneArticleGlow({ className, light = false }: { className: string; light?: boolean }) {
 	const src = light ? MOBILE_ARTICLE_GLOW.light : MOBILE_ARTICLE_GLOW.dark
 
 	return (
@@ -278,10 +278,16 @@ function MobileArticleGlow({ className, light = false }: { className: string; li
 			className={`pointer-events-none absolute inset-x-0 z-0 overflow-hidden ${className}`}
 			style={{
 				top: artboardScale(859, MOBILE_FRAME.width),
-				height: artboardScale(525, MOBILE_FRAME.width)
+				bottom: 0
 			}}
 		>
-			<img src={src} alt="" aria-hidden className="h-full w-full object-fill select-none" style={{ opacity: 0.75 }} />
+			<img
+				src={src}
+				alt=""
+				aria-hidden
+				className="absolute inset-0 size-full object-fill select-none"
+				style={{ opacity: 0.75 }}
+			/>
 		</div>
 	)
 }
@@ -326,18 +332,18 @@ export function ResearchAuthorBackground() {
 		<>
 			<div
 				aria-hidden
-				className="pointer-events-none absolute inset-x-0 top-0 -z-10 w-full overflow-visible max-lg:min-h-0 lg:min-h-(--desktop-scene-height)"
+				className="pointer-events-none absolute inset-x-0 top-0 -z-10 w-full overflow-visible max-sm:min-h-0 sm:min-h-(--desktop-scene-height)"
 				style={{ '--desktop-scene-height': DESKTOP_SCENE_HEIGHT } as CSSProperties}
 			>
-				<DesktopDarkBackground className="hidden lg:dark:block" />
-				<DesktopLightBackground className="hidden lg:block lg:dark:hidden" />
+				<DesktopDarkBackground className="hidden sm:dark:block" />
+				<DesktopLightBackground className="hidden sm:block sm:dark:hidden" />
 
-				<IntermediateDarkBackground className="hidden max-lg:dark:block" />
-				<IntermediateLightBackground className="hidden max-lg:block dark:hidden" />
+				<IntermediateDarkBackground className="hidden max-sm:dark:block" />
+				<IntermediateLightBackground className="hidden max-sm:block dark:hidden" />
 			</div>
 
-			<MobileArticleGlow className="hidden max-lg:dark:block" />
-			<MobileArticleGlow className="hidden max-lg:block dark:hidden" light />
+			<PhoneArticleGlow className="hidden max-sm:dark:block" />
+			<PhoneArticleGlow className="hidden max-sm:block dark:hidden" light />
 		</>
 	)
 }
