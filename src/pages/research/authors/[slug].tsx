@@ -34,6 +34,7 @@ type AuthorPageProps = {
 
 const DEFILLAMA_RESEARCH_SLUG = 'defillama-research'
 const AUTHOR_CACHE_CONTROL = 'public, s-maxage=60'
+const AUTHOR_QUERY_STALE_TIME = 60_000
 const AUTHOR_NO_STORE = 'no-store'
 const DEFILLAMA_RESEARCH_ARTICLE_LIMIT = 12
 const EMPTY_ARTICLES: ArticleDocument[] = []
@@ -129,13 +130,12 @@ const getServerSidePropsHandler: GetServerSideProps<AuthorPageProps> = async ({ 
 		return { notFound: true }
 	}
 
-	let initialData: ArticleAuthorResponse | null = null
-	try {
-		initialData = await loadAuthorPageData(slug)
-	} catch {
-		initialData = null
+	const initialData = await loadAuthorPageData(slug)
+	if (!initialData) {
+		res.setHeader('Cache-Control', AUTHOR_NO_STORE)
+		return { notFound: true }
 	}
-	res.setHeader('Cache-Control', initialData ? AUTHOR_CACHE_CONTROL : AUTHOR_NO_STORE)
+	res.setHeader('Cache-Control', AUTHOR_CACHE_CONTROL)
 	return { props: { slug, initialData } }
 }
 
@@ -390,8 +390,10 @@ function AuthorContent({ slug, initialData }: { slug: string; initialData: Artic
 	} = useQuery({
 		queryKey: ['research', 'author', slug],
 		queryFn: () => loadAuthorPageData(slug),
-		initialData,
+		initialData: initialData ?? undefined,
 		enabled: !!slug,
+		staleTime: initialData ? AUTHOR_QUERY_STALE_TIME : 0,
+		refetchOnMount: !initialData,
 		retry: false
 	})
 

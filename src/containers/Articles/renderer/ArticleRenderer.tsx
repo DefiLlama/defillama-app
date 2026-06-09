@@ -750,7 +750,7 @@ function ShareIcons({ url, title, size = 'md' }: { url: string; title: string; s
 				aria-label="Share on LinkedIn"
 				className={buttonClass}
 			>
-				<ResearchIcon name="linkedin-square" className={iconDim} />
+				<ResearchIcon name="linkedin-square" className={iconDim} aria-hidden="true" />
 			</a>
 			<button type="button" onClick={onCopy} aria-label="Copy link" className={buttonClass}>
 				<Icon name={copied ? 'check-circle' : 'link'} className={iconDim} />
