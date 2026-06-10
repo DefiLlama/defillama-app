@@ -1,9 +1,13 @@
 import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
+import { getMyDashboardAuthorProfile } from '~/containers/Authors/api'
+import { avatarColorStyle } from '~/containers/Authors/avatarColor'
+import type { PublicDashboardAuthor } from '~/containers/Authors/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { AppMetadataProvider } from './AppMetadataContext'
@@ -47,9 +51,79 @@ const AIGenerationHistory = lazy(() =>
 const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: m.Rating })))
 
 const COUNT_FORMATTER = new Intl.NumberFormat('en-US')
+const DEFAULT_AUTHOR_SLUG_RE = /^llama-[a-f0-9]{12}$/i
+const DEFAULT_AUTHOR_NAME_RE = /^Llama [a-f0-9]{6}$/i
 
 function formatCount(value: number | undefined): string {
 	return COUNT_FORMATTER.format(value ?? 0)
+}
+
+function hasCustomizedAuthorProfile(author: PublicDashboardAuthor): boolean {
+	if (!DEFAULT_AUTHOR_SLUG_RE.test(author.slug)) return true
+	if (!DEFAULT_AUTHOR_NAME_RE.test(author.displayName)) return true
+	if (author.bio?.trim()) return true
+	if (author.avatarUrl?.trim()) return true
+	return Object.values(author.socials || {}).some((value) => typeof value === 'string' && value.trim())
+}
+
+function DashboardAuthorByline({ author }: { author?: PublicDashboardAuthor }) {
+	if (!author) return null
+	return (
+		<BasicLink
+			href={`/authors/${author.slug}`}
+			className="mt-3 inline-flex items-center gap-2 text-sm text-(--text-secondary) hover:text-(--link-text)"
+		>
+			{author.avatarUrl ? (
+				// eslint-disable-next-line @next/next/no-img-element
+				<img src={author.avatarUrl} alt="" className="size-6 rounded-full object-cover" />
+			) : (
+				<span
+					className="flex size-6 items-center justify-center rounded-full text-sm"
+					style={avatarColorStyle(author.slug)}
+				>
+					🦙
+				</span>
+			)}
+			<span>
+				By <span className="font-medium">{author.displayName}</span>
+			</span>
+		</BasicLink>
+	)
+}
+
+function AuthorProfileSetupNotice() {
+	const [dismissed, setDismissed] = useState(false)
+	if (dismissed) return null
+
+	return (
+		<div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-(--link-text)/20 bg-(--link-button) px-3 py-2.5 text-sm">
+			<div className="flex min-w-0 items-start gap-2">
+				<Icon name="users" className="mt-0.5 size-4 shrink-0 text-(--link-text)" />
+				<div className="min-w-0">
+					<p className="font-medium text-(--text-primary)">Set up your dashboard author profile</p>
+					<p className="mt-0.5 text-xs leading-5 text-(--text-secondary)">
+						Add your name, avatar, and links so visitors can see who built this dashboard.
+					</p>
+				</div>
+			</div>
+			<div className="flex shrink-0 items-center gap-2">
+				<BasicLink
+					href="/account?tab=profile"
+					className="rounded-md bg-(--link-text) px-3 py-1.5 text-xs font-medium text-white"
+				>
+					Open settings
+				</BasicLink>
+				<button
+					type="button"
+					onClick={() => setDismissed(true)}
+					aria-label="Dismiss profile setup notice"
+					className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--cards-bg) hover:text-(--text-primary)"
+				>
+					<Icon name="x" className="size-3.5" />
+				</button>
+			</div>
+		</div>
+	)
 }
 
 function ProDashboardContent() {
@@ -59,7 +133,7 @@ function ProDashboardContent() {
 		focusSection?: UnifiedTableFocusSection
 	}>({ item: null, focusSection: undefined })
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-	const { isAuthenticated, hasActiveSubscription, user } = useAuthContext()
+	const { authorizedFetch, isAuthenticated, hasActiveSubscription, user } = useAuthContext()
 	const { canCreateDashboard } = useFreeTierStatus()
 	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
 		open: false,
@@ -110,6 +184,14 @@ function ProDashboardContent() {
 		showIterateDashboardModal,
 		setShowIterateDashboardModal
 	} = useProDashboardUI()
+	const isDashboardOwner = isAuthenticated && !!currentDashboard?.user && currentDashboard.user === user?.id
+	const { data: authorProfile, isSuccess: authorProfileLoaded } = useQuery({
+		queryKey: ['dashboard-author-profile', user?.id],
+		queryFn: () => getMyDashboardAuthorProfile(authorizedFetch),
+		enabled: isDashboardOwner && hasActiveSubscription && !!user?.id,
+		retry: false,
+		refetchOnWindowFocus: false
+	})
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },
@@ -137,6 +219,12 @@ function ProDashboardContent() {
 	)
 
 	const currentRatingSession = getCurrentRatingSession()
+	const shouldShowAuthorProfileSetup =
+		isDashboardOwner &&
+		hasActiveSubscription &&
+		authorProfileLoaded &&
+		!!authorProfile &&
+		!hasCustomizedAuthorProfile(authorProfile)
 
 	const openAddModal = () => {
 		setShowAddModal(true)
@@ -194,6 +282,8 @@ function ProDashboardContent() {
 								</p>
 							) : null}
 						</div>
+						<DashboardAuthorByline author={currentDashboard?.author} />
+						{shouldShowAuthorProfileSetup ? <AuthorProfileSetupNotice /> : null}
 						{dashboardDescription ? (
 							<p className="mt-2 max-w-3xl text-sm leading-6 text-(--text-form)">{dashboardDescription}</p>
 						) : null}

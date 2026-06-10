@@ -3,8 +3,10 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
+import { avatarColorStyle } from '~/containers/Authors/avatarColor'
 import type { Dashboard } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
+import { CardLikeButton } from './CardLikeButton'
 import { ConfirmationModal } from './ConfirmationModal'
 
 interface DashboardCardProps {
@@ -14,6 +16,32 @@ interface DashboardCardProps {
 	isDeleting?: boolean
 	viewMode?: 'grid' | 'list'
 	className?: string
+}
+
+function DashboardAuthorLink({ author }: { author: Dashboard['author'] }) {
+	if (!author?.slug || !author.displayName) return null
+
+	return (
+		<BasicLink
+			href={`/authors/${author.slug}`}
+			className="relative z-10 mt-1 inline-flex max-w-full items-center gap-1.5 text-xs text-(--text-label) transition-colors hover:text-(--old-blue)"
+		>
+			{author.avatarUrl ? (
+				// eslint-disable-next-line @next/next/no-img-element
+				<img src={author.avatarUrl} alt="" className="size-5 shrink-0 rounded-full object-cover" />
+			) : (
+				<span
+					className="flex size-5 shrink-0 items-center justify-center rounded-full text-xs"
+					style={avatarColorStyle(author.slug)}
+				>
+					🦙
+				</span>
+			)}
+			<span className="min-w-0 truncate">
+				By <span className="font-medium">{author.displayName}</span>
+			</span>
+		</BasicLink>
+	)
 }
 
 export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'grid', className }: DashboardCardProps) {
@@ -87,9 +115,12 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 			<div className="flex flex-1 flex-col gap-1.5 p-3">
 				<div className="flex min-w-0 items-start gap-2">
-					<h2 className="min-w-0 flex-1 truncate text-lg leading-snug font-bold">
-						{dashboard.data.dashboardName || 'Untitled Dashboard'}
-					</h2>
+					<div className="min-w-0 flex-1">
+						<h2 className="truncate text-lg leading-snug font-bold">
+							{dashboard.data.dashboardName || 'Untitled Dashboard'}
+						</h2>
+						<DashboardAuthorLink author={dashboard.author} />
+					</div>
 
 					{viewMode !== 'grid' ? <Tags dashboard={dashboard} onTagClick={onTagClick} /> : null}
 
@@ -108,7 +139,14 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 							)}
 							<Tooltip
 								content="Delete dashboard"
-								render={<button disabled={isDeleting} onClick={handleDeleteClick} />}
+								render={
+									<button
+										type="button"
+										aria-label="Delete dashboard"
+										disabled={isDeleting}
+										onClick={handleDeleteClick}
+									/>
+								}
 								className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
 							>
 								{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
@@ -143,13 +181,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 							<Icon name="eye" height={12} width={12} />
 							{dashboard.viewCount || 0}
 						</span>
-						<span
-							className="flex items-center gap-1.5 rounded-md bg-blue-500/15 px-2 py-1 text-xs font-medium text-blue-600 tabular-nums dark:text-blue-400"
-							title="Likes"
-						>
-							<Icon name="star" height={12} width={12} className={dashboard.liked ? 'fill-current' : 'fill-none'} />
-							{dashboard.likeCount || 0}
-						</span>
+						<CardLikeButton dashboardId={dashboard.id} liked={dashboard.liked} likeCount={dashboard.likeCount} />
 					</div>
 					<p
 						className="flex items-center gap-1.5 text-xs text-(--text-form)"
@@ -185,6 +217,7 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 		<div className="flex max-w-[65%] flex-wrap items-center gap-1.5">
 			{dashboard.tags.slice(0, 2).map((tag) => (
 				<button
+					type="button"
 					key={tag}
 					onClick={(e) => {
 						e.stopPropagation()

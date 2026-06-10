@@ -1,3 +1,4 @@
+import type { PublicDashboardAuthor } from '~/containers/Authors/types'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import type { Dashboard } from '../services/DashboardAPI'
@@ -36,6 +37,7 @@ export interface DashboardSeoPublicDashboard {
 	description: string
 	viewCount?: number
 	likeCount?: number
+	author?: PublicDashboardAuthor
 	created: string
 	updated: string
 	editedAt?: string
@@ -52,10 +54,24 @@ export function toDashboardSeoPublicDashboard(dashboard: Dashboard): DashboardSe
 		description: typeof dashboard.description === 'string' ? dashboard.description : '',
 		viewCount: dashboard.viewCount,
 		likeCount: dashboard.likeCount,
+		author: dashboard.author,
 		created: dashboard.created,
 		updated: dashboard.updated,
 		editedAt: dashboard.editedAt
 	}
+}
+
+function safeSameAs(author: PublicDashboardAuthor | undefined): string[] {
+	if (!author?.socials) return []
+	return Object.values(author.socials).filter((value): value is string => {
+		if (typeof value !== 'string') return false
+		try {
+			const url = new URL(value)
+			return url.protocol === 'https:' && !url.username && !url.password
+		} catch {
+			return false
+		}
+	})
 }
 
 function compactWhitespace(value: string): string {
@@ -247,6 +263,21 @@ export function buildDashboardSeo(dashboard: Dashboard): DashboardSeo {
 		? dashboard.tags.filter((tag) => typeof tag === 'string' && tag.trim())
 		: []
 	const url = `${SITE_URL}${canonicalPath}`
+	const author = dashboard.author
+	const authorUrl = author ? `${SITE_URL}/authors/${author.slug}` : null
+	const authorSameAs = safeSameAs(author)
+	const authorNode =
+		author && authorUrl
+			? {
+					'@type': 'Person',
+					'@id': `${authorUrl}#person`,
+					name: author.displayName,
+					url: authorUrl,
+					...(author.bio ? { description: author.bio } : {}),
+					...(author.avatarUrl ? { image: author.avatarUrl } : {}),
+					...(authorSameAs.length ? { sameAs: authorSameAs } : {})
+				}
+			: null
 	const webPage = {
 		'@type': 'WebPage',
 		'@id': `${url}#webpage`,
@@ -256,12 +287,26 @@ export function buildDashboardSeo(dashboard: Dashboard): DashboardSeo {
 		...(dashboard.created ? { datePublished: dashboard.created } : {}),
 		...(updated ? { dateModified: updated } : {}),
 		...(tags.length ? { keywords: tags.join(', ') } : {}),
+		...(authorNode ? { author: { '@id': authorNode['@id'] } } : {}),
 		isPartOf: {
 			'@type': 'WebSite',
 			name: 'DefiLlama',
 			url: SITE_URL
 		}
 	}
+
+	const graph: Record<string, unknown>[] = [
+		webPage,
+		{
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{ '@type': 'ListItem', position: 1, name: 'DefiLlama', item: SITE_URL },
+				{ '@type': 'ListItem', position: 2, name: 'Pro Dashboards', item: `${SITE_URL}/pro` },
+				{ '@type': 'ListItem', position: 3, name, item: url }
+			]
+		}
+	]
+	if (authorNode) graph.push(authorNode)
 
 	return {
 		title: `${name} - DefiLlama Pro Dashboard`,
@@ -273,17 +318,7 @@ export function buildDashboardSeo(dashboard: Dashboard): DashboardSeo {
 		itemSummaries,
 		jsonLd: {
 			'@context': 'https://schema.org',
-			'@graph': [
-				webPage,
-				{
-					'@type': 'BreadcrumbList',
-					itemListElement: [
-						{ '@type': 'ListItem', position: 1, name: 'DefiLlama', item: SITE_URL },
-						{ '@type': 'ListItem', position: 2, name: 'Pro Dashboards', item: `${SITE_URL}/pro` },
-						{ '@type': 'ListItem', position: 3, name, item: url }
-					]
-				}
-			]
+			'@graph': graph
 		}
 	}
 }

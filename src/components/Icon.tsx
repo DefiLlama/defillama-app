@@ -112,7 +112,15 @@ const ICON_NAMES = [
 	'circle-external-link',
 	'cli',
 	'checkmark',
-	'box'
+	'box',
+	'globe',
+	'user',
+	'telegram',
+	'discord',
+	'linkedin',
+	'farcaster',
+	'bluesky',
+	'mastodon'
 ] as const
 
 type Name = (typeof ICON_NAMES)[number]
@@ -123,7 +131,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v38.svg#${name}`} />
+			<use href={`/icons/v39.svg#${name}`} />
 		</svg>
 	)
 }

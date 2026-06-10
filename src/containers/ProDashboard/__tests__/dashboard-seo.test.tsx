@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DashboardSeoSummary } from '../components/DashboardSeoSummary'
 import { ProDashboardLoader } from '../components/ProDashboardLoader'
 import type { Dashboard } from '../services/DashboardAPI'
-import { buildDashboardSeo, markdownToPlainText } from '../utils/seo'
+import { buildDashboardSeo, markdownToPlainText, toDashboardSeoPublicDashboard } from '../utils/seo'
 
 function hasNestedUndefined(value: unknown): boolean {
 	if (value === undefined) return true
@@ -44,6 +44,19 @@ describe('pro dashboard SEO shell', () => {
 					chains: ['Ethereum']
 				}
 			]
+		},
+		author: {
+			slug: 'jane-builder',
+			displayName: 'Jane Builder',
+			bio: 'Builds revenue dashboards.',
+			avatarUrl: 'https://example.com/avatar.png',
+			socials: {
+				twitter: 'https://x.com/janebuilder',
+				github: 'https://github.com/janebuilder',
+				unsafe: 'javascript:alert(1)'
+			},
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-02T00:00:00.000Z'
 		}
 	} satisfies Dashboard
 
@@ -66,7 +79,14 @@ describe('pro dashboard SEO shell', () => {
 			'@graph': expect.arrayContaining([
 				expect.objectContaining({
 					'@type': 'WebPage',
-					url: 'https://defillama.com/pro/dashboard-1'
+					url: 'https://defillama.com/pro/dashboard-1',
+					author: { '@id': 'https://defillama.com/authors/jane-builder#person' }
+				}),
+				expect.objectContaining({
+					'@type': 'Person',
+					name: 'Jane Builder',
+					url: 'https://defillama.com/authors/jane-builder',
+					sameAs: ['https://x.com/janebuilder', 'https://github.com/janebuilder']
 				}),
 				expect.objectContaining({ '@type': 'BreadcrumbList' })
 			])
@@ -84,9 +104,25 @@ describe('pro dashboard SEO shell', () => {
 		expect(html).toContain('Aave Fees chart')
 		expect(html).toContain('href="/protocol/aave"')
 		expect(html).toContain('Revenue table for Ethereum')
+		expect(html).toContain('By <span class="font-medium">Jane Builder</span>')
+		expect(html).toContain('href="/authors/jane-builder"')
 		expect(html).toContain('2026-01-03')
 		expect(html).toContain('fees')
 		expect(html).toContain('ethereum')
+	})
+
+	it('compacts dashboard SEO props without raw owner ids', () => {
+		const compact = toDashboardSeoPublicDashboard(dashboard)
+
+		expect(compact.author).toEqual(
+			expect.objectContaining({
+				slug: 'jane-builder',
+				displayName: 'Jane Builder'
+			})
+		)
+		expect(compact).not.toHaveProperty('user')
+		expect(compact).not.toHaveProperty('collectionId')
+		expect(compact).not.toHaveProperty('collectionName')
 	})
 
 	it('keeps the loader heading opt-in for headingless SEO shell fallbacks', () => {

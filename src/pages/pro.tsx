@@ -9,6 +9,7 @@ import type { ComparisonPreset } from '~/containers/ProDashboard/components/Comp
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
+import { FollowingShelves } from '~/containers/ProDashboard/components/FollowingShelves'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
@@ -47,7 +48,28 @@ type ProPageProps = {
 	initialDiscoveryCategories: DiscoveryCategoriesInitialData
 }
 
+function compactDiscoveryAuthor(author: Dashboard['author']): Dashboard['author'] {
+	if (
+		!author?.slug ||
+		!author.displayName ||
+		typeof author.createdAt !== 'string' ||
+		typeof author.updatedAt !== 'string'
+	) {
+		return undefined
+	}
+	return {
+		slug: author.slug,
+		displayName: author.displayName,
+		bio: author.bio ?? null,
+		avatarUrl: author.avatarUrl ?? null,
+		socials: author.socials || {},
+		createdAt: author.createdAt,
+		updatedAt: author.updatedAt
+	}
+}
+
 function compactDiscoveryDashboard(dashboard: Dashboard): Dashboard {
+	const author = compactDiscoveryAuthor(dashboard.author)
 	return {
 		id: dashboard.id,
 		visibility: dashboard.visibility,
@@ -56,6 +78,7 @@ function compactDiscoveryDashboard(dashboard: Dashboard): Dashboard {
 		viewCount: dashboard.viewCount,
 		likeCount: dashboard.likeCount,
 		liked: dashboard.liked,
+		...(author ? { author } : {}),
 		created: dashboard.created,
 		updated: dashboard.updated,
 		editedAt: dashboard.editedAt,
@@ -170,7 +193,7 @@ function ProPageContent({ initialDiscoveryCategories }: ProPageProps) {
 	)
 }
 
-const tabs = ['my-dashboards', 'discover', 'favorites'] as const
+const tabs = ['my-dashboards', 'discover', 'favorites', 'following'] as const
 type ProTab = (typeof tabs)[number]
 
 const tabClassName =
@@ -326,6 +349,19 @@ function ProContent({
 							Favorites
 						</button>
 					) : null}
+					{isAuthenticated ? (
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'following'}
+							onClick={() => switchTab('following')}
+							data-active={activeTab === 'following'}
+							data-umami-event="dashboard-open-following"
+							className={tabClassName}
+						>
+							Following
+						</button>
+					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
@@ -456,6 +492,16 @@ function ProContent({
 					className={activeTab === 'favorites' ? 'flex flex-col gap-4' : 'hidden'}
 				>
 					<LikedDashboards />
+				</div>
+			) : null}
+
+			{isAuthenticated ? (
+				<div
+					role="tabpanel"
+					aria-hidden={activeTab !== 'following'}
+					className={activeTab === 'following' ? 'flex flex-col gap-4' : 'hidden'}
+				>
+					<FollowingShelves />
 				</div>
 			) : null}
 
