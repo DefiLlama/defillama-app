@@ -3,9 +3,9 @@ import type {
 	ChartConfiguration,
 	ChartDataByKey,
 	DashboardArtifact,
-	FactCheckReference,
 	GeneratedImage,
-	Message
+	Message,
+	UnifiedCitationReference
 } from '~/containers/LlamaAI/types'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
@@ -65,7 +65,13 @@ export type ArtifactRecord =
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
 export type MessageRenderBlock =
-	| { type: 'markdown'; key: string; content: string; citations?: string[]; factCheckReferences?: FactCheckReference[] }
+	| {
+			type: 'markdown'
+			key: string
+			content: string
+			citations?: UnifiedCitationReference[]
+			legacyUrlCitations?: string[]
+	  }
 	| { type: 'sources'; key: string; citations: string[] }
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
@@ -201,7 +207,7 @@ export function parseMessageToRenderModel(
 				key: `markdown-${markdownBlockIndex++}`,
 				content: part.content,
 				citations: message.citations,
-				factCheckReferences: message.factCheckReferences
+				legacyUrlCitations: message.legacyUrlCitations
 			})
 			continue
 		}
@@ -275,7 +281,7 @@ export function parseMessageToRenderModel(
 
 	flushActionGroup()
 
-	const citations = message.citations ?? []
+	const citations = message.citations && message.citations.length > 0 ? [] : (message.legacyUrlCitations ?? [])
 	let lastMarkdownIndex = -1
 	for (let index = blocks.length - 1; index >= 0; index--) {
 		if (blocks[index]?.type === 'markdown') {

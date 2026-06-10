@@ -9,7 +9,7 @@ import { Icon } from '~/components/Icon'
 import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
 import type { ArticleEntityType } from '~/containers/Articles/types'
 import { CitationPill } from '~/containers/LlamaAI/components/messages/CitationPill'
-import type { FactCheckReference } from '~/containers/LlamaAI/types'
+import type { UnifiedCitationReference } from '~/containers/LlamaAI/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import {
 	allowLlamaAIExternalHostname,
@@ -20,8 +20,9 @@ import {
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
-	processCitationMarkers,
-	processFactCheckCitations
+	normalizeSourceUrl,
+	processUnifiedCitations,
+	wrapLegacyUrlCitations
 } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
@@ -30,7 +31,6 @@ import { equityIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
 export function headingSlug(text: string): string {
 	return text
@@ -98,7 +98,6 @@ type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
 type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
-type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
 
 const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
 	protocol: 'protocol',
@@ -107,15 +106,6 @@ const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
 	category: 'category',
 	stablecoin: 'stablecoin',
 	cex: 'cex'
-}
-
-function normalizeSourceUrl(url: string) {
-	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
-		if (url.startsWith(prefix)) {
-			return `https://defillama.com${url.slice(prefix.length)}`
-		}
-	}
-	return url
 }
 
 function TableWrapper({
@@ -400,27 +390,13 @@ function CodeBlock({ children, node: _node, className, ...props }: MarkdownPrePr
 	)
 }
 
-function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
-	const className =
-		'mx-px inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline hover:border-[rgba(31,103,210,0.35)] hover:bg-[rgba(31,103,210,0.15)]'
-
-	if (!href) {
-		return <span className={className}>{children}</span>
-	}
-
-	return (
-		<a href={href} target="_blank" rel="noopener noreferrer" className={className}>
-			{children}
-		</a>
-	)
-}
-
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
 	const sourceEntries = useMemo(() => {
 		const seen = new Map<string, number>()
 		const unique: Array<{ normalizedUrl: string; citationNumber: number }> = []
 		for (let i = 0; i < citations.length; i++) {
 			const normalizedUrl = normalizeSourceUrl(citations[i])
+			if (!normalizedUrl) continue
 			if (!seen.has(normalizedUrl)) {
 				seen.set(normalizedUrl, i + 1)
 				unique.push({ normalizedUrl, citationNumber: i + 1 })
@@ -474,18 +450,32 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 	)
 }
 
+interface MarkdownRenderContext {
+	allowedExternalHosts: ReadonlySet<string>
+	advancedProvenance?: boolean
+	citationRefsById: Map<number, UnifiedCitationReference> | null
+	isStreaming: boolean
+	linkMap: Map<string, string>
+	messageId?: string
+	onTableFullscreenOpen?: () => void
+	resolveHeadingId: (text: string) => string
+	setPendingExternalHref: (href: string) => void
+}
+
 export function ChatMarkdownRenderer({
 	content,
 	citations,
-	factCheckReferences,
+	legacyUrlCitations,
+	advancedProvenance,
 	isStreaming = false,
 	hackerMode = false,
 	onTableFullscreenOpen,
 	messageId
 }: {
 	content: string
-	citations?: string[]
-	factCheckReferences?: FactCheckReference[]
+	citations?: UnifiedCitationReference[]
+	legacyUrlCitations?: string[]
+	advancedProvenance?: boolean
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
@@ -501,103 +491,127 @@ export function ChatMarkdownRenderer({
 		() => parseLlamaAIExternalAllowlistSnapshot(externalAllowlistSnapshot),
 		[externalAllowlistSnapshot]
 	)
-	const processedData = useMemo(() => {
-		const linkMap = extractLlamaLinks(content)
-		const factCheckProcessed =
-			factCheckReferences && factCheckReferences.length > 0
-				? processFactCheckCitations(content, factCheckReferences)
-				: content
-		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(factCheckProcessed, citations))
-		return { content: processedContent, linkMap }
-	}, [content, citations, factCheckReferences])
+	const renderCitationRefs: UnifiedCitationReference[] | undefined = useMemo(() => {
+		if (citations && citations.length > 0) return citations
+		if (legacyUrlCitations && legacyUrlCitations.length > 0) return wrapLegacyUrlCitations(legacyUrlCitations)
+		if (legacyUrlCitations && legacyUrlCitations.length === 0) return []
+		return undefined
+	}, [citations, legacyUrlCitations])
+	const citationRefsById = useMemo(() => {
+		if (!renderCitationRefs || renderCitationRefs.length === 0) return null
+		const byId = new Map<number, UnifiedCitationReference>()
+		for (const ref of renderCitationRefs) byId.set(ref.id, ref)
+		return byId
+	}, [renderCitationRefs])
+	const linkMap = useMemo(() => extractLlamaLinks(content), [content])
+	const processedContent = useMemo(
+		() => escapeBareOrderedListMarkers(processUnifiedCitations(content, renderCitationRefs)),
+		[content, renderCitationRefs]
+	)
+	const renderContextRef = useRef<MarkdownRenderContext | null>(null)
+	renderContextRef.current = {
+		allowedExternalHosts,
+		advancedProvenance,
+		citationRefsById,
+		isStreaming,
+		linkMap,
+		messageId,
+		onTableFullscreenOpen,
+		resolveHeadingId: createHeadingIdFactory(messageId),
+		setPendingExternalHref: (href) => setPendingExternalHref(href)
+	}
 
-	const resolveHeadingId = createHeadingIdFactory(messageId)
-	const markdownComponents: Components = {
-		h1: ({ node: _node, children, ...props }: any) => (
-			<HeadingWithId level={1} messageId={messageId} resolveId={resolveHeadingId} {...props}>
-				{children}
-			</HeadingWithId>
-		),
-		h2: ({ node: _node, children, ...props }: any) => (
-			<HeadingWithId level={2} messageId={messageId} resolveId={resolveHeadingId} {...props}>
-				{children}
-			</HeadingWithId>
-		),
-		h3: ({ node: _node, children, ...props }: any) => (
-			<HeadingWithId level={3} messageId={messageId} resolveId={resolveHeadingId} {...props}>
-				{children}
-			</HeadingWithId>
-		),
-		a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
-			const textChild = getSingleTextChild(props.children)
-			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
-				const llamaUrl = processedData.linkMap.get(textChild)
+	const markdownComponents: Components = useMemo(() => {
+		const heading = (level: number, children: ReactNode, props: Record<string, any>) => {
+			const current = renderContextRef.current
+			if (!current) return createElement(`h${level}`, props, children)
+			return (
+				<HeadingWithId level={level} messageId={current.messageId} resolveId={current.resolveHeadingId} {...props}>
+					{children}
+				</HeadingWithId>
+			)
+		}
+		const components: Components = {
+			h1: ({ node: _node, children, ...props }: any) => heading(1, children, props),
+			h2: ({ node: _node, children, ...props }: any) => heading(2, children, props),
+			h3: ({ node: _node, children, ...props }: any) => heading(3, children, props),
+			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
+				const current = renderContextRef.current
+				const textChild = getSingleTextChild(props.children)
+				if (current && !props.href && textChild && current.linkMap.has(textChild)) {
+					const llamaUrl = current.linkMap.get(textChild)
+					return EntityLinkRenderer({
+						...props,
+						href: llamaUrl,
+						onExternalLinkClick: current.setPendingExternalHref,
+						allowedExternalHosts: current.allowedExternalHosts
+					})
+				}
 				return EntityLinkRenderer({
 					...props,
-					href: llamaUrl,
-					onExternalLinkClick: setPendingExternalHref,
-					allowedExternalHosts
+					onExternalLinkClick: current?.setPendingExternalHref,
+					allowedExternalHosts: current?.allowedExternalHosts
 				})
-			}
-			return EntityLinkRenderer({ ...props, onExternalLinkClick: setPendingExternalHref, allowedExternalHosts })
-		},
-		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-			<TableWrapper
-				isStreaming={isStreaming}
-				tableProps={props}
-				onTableFullscreenOpen={onTableFullscreenOpen}
-				messageId={messageId}
-			>
-				{children}
-			</TableWrapper>
-		),
-		th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
-			<th
-				{...props}
-				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
-			>
-				{children}
-			</th>
-		),
-		td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
-			<td
-				{...props}
-				className={`border border-[#e6e6e6] bg-white px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
-			>
-				{children}
-			</td>
-		),
-		ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
-			<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
-				{children}
-			</ul>
-		),
-		ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-			<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
-				{children}
-			</ol>
-		),
-		pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
-	}
+			},
+			table: ({ children, node: _node, ...props }: MarkdownTableProps) => {
+				const current = renderContextRef.current
+				return (
+					<TableWrapper
+						isStreaming={current?.isStreaming ?? false}
+						tableProps={props}
+						onTableFullscreenOpen={current?.onTableFullscreenOpen}
+						messageId={current?.messageId}
+					>
+						{children}
+					</TableWrapper>
+				)
+			},
+			th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
+				<th
+					{...props}
+					className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
+				>
+					{children}
+				</th>
+			),
+			td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
+				<td
+					{...props}
+					className={`border border-[#e6e6e6] bg-white px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
+				>
+					{children}
+				</td>
+			),
+			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
+				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
+					{children}
+				</ul>
+			),
+			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
+				<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
+					{children}
+				</ol>
+			),
+			pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
+		}
 
-	;(markdownComponents as Record<string, any>)['citation-badge'] = ({
-		node: _node,
-		children,
-		...props
-	}: CitationBadgeProps) => (
-		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
-	)
+		;(components as Record<string, any>)['fact-check-pill'] = (props: Record<string, any>) => {
+			const current = renderContextRef.current
+			const refsById = current?.citationRefsById
+			if (!refsById || refsById.size === 0) return null
+			const raw = props.dataRef ?? props['data-ref']
+			if (raw == null) return null
+			const numericId = Number(raw)
+			if (!Number.isFinite(numericId)) return null
+			const ref = refsById.get(numericId)
+			if (!ref) return null
+			return <CitationPill reference={ref} advancedProvenance={current?.advancedProvenance} />
+		}
 
-	;(markdownComponents as Record<string, any>)['fact-check-pill'] = (props: Record<string, any>) => {
-		if (!factCheckReferences) return null
-		const raw = props['data-ref'] ?? props.dataRef
-		const numericId = Number(raw)
-		const ref = factCheckReferences.find((r) => r.id === numericId)
-		if (!ref) return <span>[{raw}]</span>
-		return <CitationPill reference={ref} />
-	}
+		return components
+	}, [])
 
-	if (!processedData.content.trim()) {
+	if (!processedContent.trim()) {
 		return null
 	}
 
@@ -610,7 +624,7 @@ export function ChatMarkdownRenderer({
 				rehypePlugins={SANITIZE_REHYPE_PLUGINS}
 				components={markdownComponents}
 			>
-				{processedData.content}
+				{processedContent}
 			</ReactMarkdown>
 			<ExternalLinkInterstitial
 				href={pendingExternalHref}

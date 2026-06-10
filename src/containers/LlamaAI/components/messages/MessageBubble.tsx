@@ -15,12 +15,9 @@ import { ToolExecutionPanel } from '~/containers/LlamaAI/components/messages/Too
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import { ThinkingPanel } from '~/containers/LlamaAI/components/status/ThinkingPanel'
-import {
-	deriveTodosFromToolExecutions,
-	TodoChecklistPanel
-} from '~/containers/LlamaAI/components/status/TodoChecklistPanel'
 import { useHackerMode } from '~/containers/LlamaAI/components/status/useHackerMode'
 import { TrialUpgradeCard } from '~/containers/LlamaAI/components/TrialUpgradeCard'
+import { useAdvancedProvenance } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import {
 	parseMessageToRenderModel,
 	type ArtifactRecord,
@@ -235,6 +232,7 @@ function MessageContentBlock({
 	onActionClick,
 	nextUserMessage,
 	hackerMode,
+	advancedProvenance,
 	onTableFullscreenOpen,
 	messageId,
 	onImageClick
@@ -246,6 +244,7 @@ function MessageContentBlock({
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 	hackerMode?: boolean
+	advancedProvenance?: boolean
 	onTableFullscreenOpen?: () => void
 	messageId?: string
 	onImageClick?: (url: string) => void
@@ -259,9 +258,10 @@ function MessageContentBlock({
 			<ChatMarkdownRenderer
 				content={block.content}
 				citations={block.citations}
-				factCheckReferences={block.factCheckReferences}
+				legacyUrlCitations={block.legacyUrlCitations}
 				isStreaming={isStreaming}
 				hackerMode={hackerMode}
+				advancedProvenance={advancedProvenance}
 				onTableFullscreenOpen={onTableFullscreenOpen}
 				messageId={messageId}
 			/>
@@ -292,6 +292,7 @@ function InlineContent({
 	onActionClick,
 	nextUserMessage,
 	hackerMode,
+	advancedProvenance,
 	showToolDetails = false,
 	onTableFullscreenOpen,
 	onImageClick
@@ -303,6 +304,7 @@ function InlineContent({
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 	hackerMode?: boolean
+	advancedProvenance?: boolean
 	showToolDetails?: boolean
 	onTableFullscreenOpen?: () => void
 	onImageClick?: (url: string) => void
@@ -325,6 +327,7 @@ function InlineContent({
 						onActionClick={onActionClick}
 						nextUserMessage={nextUserMessage}
 						hackerMode={hackerMode}
+						advancedProvenance={advancedProvenance}
 						onTableFullscreenOpen={onTableFullscreenOpen}
 						messageId={message.id}
 						onImageClick={onImageClick}
@@ -337,31 +340,12 @@ function InlineContent({
 			) : null}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
-				<>
-					<FrozenTodoChecklist
-						toolExecutions={toolExecutions}
-						completionReason={message.messageMetadata?.completionReason}
-					/>
-					<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
-				</>
+				<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
 			) : null}
 
 			{message.upgradeOffer ? <TrialUpgradeCard offer={message.upgradeOffer} /> : null}
 		</div>
 	)
-}
-
-function FrozenTodoChecklist({
-	toolExecutions,
-	completionReason
-}: {
-	toolExecutions: ToolExecution[]
-	completionReason?: string
-}) {
-	const todos = useMemo(() => deriveTodosFromToolExecutions(toolExecutions), [toolExecutions])
-	if (todos.length === 0) return null
-	const interrupted = !!completionReason && completionReason !== 'natural'
-	return <TodoChecklistPanel todos={todos} interrupted={interrupted} />
 }
 
 export function MessageBubble({
@@ -409,6 +393,7 @@ export function MessageBubble({
 	const [isSaving, setIsSaving] = useState(false)
 	const [draftText, setDraftText] = useState(message.content || '')
 	const hackerMode = useHackerMode()
+	const advancedProvenance = useAdvancedProvenance()
 	const handleCancelEdit = () => {
 		if (isSaving) return
 		setIsEditing(false)
@@ -630,6 +615,7 @@ export function MessageBubble({
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
 				hackerMode={hackerMode}
+				advancedProvenance={advancedProvenance}
 				showToolDetails={isLlama}
 				onTableFullscreenOpen={onTableFullscreenOpen}
 				onImageClick={setPreviewImage}

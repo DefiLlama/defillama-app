@@ -8,7 +8,7 @@ import {
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
 import { getToolLabel } from '~/containers/LlamaAI/toolMetadata'
-import type { DashboardArtifact, FactCheckReference, Message, TodoItem } from '~/containers/LlamaAI/types'
+import type { DashboardArtifact, Message, TodoItem, UnifiedCitationReference } from '~/containers/LlamaAI/types'
 import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 // Consume the current streamed message id once the buffered assistant message is committed.
@@ -65,7 +65,7 @@ export function createAgenticCallbacks({
 	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
 	deferEmptyDone?: boolean
 	onFactCheckStatus?: (status: 'drafting' | 'verifying' | 'finalizing') => void
-	onFactCheckCitations?: (sources: FactCheckReference[]) => void
+	onFactCheckCitations?: (refs: UnifiedCitationReference[], finalizedText?: string) => void
 	notify: () => void
 }): AgenticSSECallbacks {
 	// One guard wraps every callback so late chunks from an aborted or superseded
@@ -76,6 +76,10 @@ export function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			fn(...args)
 		}
+
+	// A resume probe or replayed stream can re-fire `done` after we already committed.
+	// Commit the buffered assistant message at most once per callback set.
+	let committed = false
 
 	return {
 		onToken: guard((content) => {
@@ -118,7 +122,7 @@ export function createAgenticCallbacks({
 			onDashboardArtifact?.(dashboard)
 		}),
 		onCitations: guard((citations) => {
-			buffer.citations = [...new Set([...buffer.citations, ...citations])]
+			buffer.legacyUrlCitations = [...new Set([...buffer.legacyUrlCitations, ...citations])]
 			dispatch({ type: 'MERGE_CITATIONS', value: citations })
 		}),
 		onProgress: guard((toolName, isPremium) => {
@@ -196,10 +200,12 @@ export function createAgenticCallbacks({
 			dispatch({ type: 'SET_FACT_CHECK_PHASE', value: status })
 			onFactCheckStatus?.(status)
 		}),
-		onFactCheckCitations: guard((sources) => {
-			buffer.factCheckReferences = sources
-			dispatch({ type: 'SET_FACT_CHECK_REFERENCES', references: sources })
-			onFactCheckCitations?.(sources)
+		onFactCheckCitations: guard((refs, finalizedText) => {
+			buffer.citations = refs
+			const hasFinalizedText = typeof finalizedText === 'string' && finalizedText.length > 0
+			if (hasFinalizedText) buffer.text = finalizedText
+			dispatch({ type: 'SET_CITATIONS', citations: refs, ...(hasFinalizedText ? { text: finalizedText } : {}) })
+			onFactCheckCitations?.(refs, finalizedText)
 		}),
 		onError: guard((content) => {
 			buffer.error = content
@@ -209,6 +215,8 @@ export function createAgenticCallbacks({
 			// Resume probes can legitimately end with only a `done` event after the
 			// backend has already persisted the result; avoid committing an empty message.
 			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
+			if (committed) return
+			committed = true
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 			dispatch({ type: 'COMMIT_STREAM' })
 			notify()
