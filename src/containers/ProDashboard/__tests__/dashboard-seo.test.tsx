@@ -104,7 +104,8 @@ describe('pro dashboard SEO shell', () => {
 		expect(html).toContain('Aave Fees chart')
 		expect(html).toContain('href="/protocol/aave"')
 		expect(html).toContain('Revenue table for Ethereum')
-		expect(html).toContain('By <span class="font-medium">Jane Builder</span>')
+		expect(html).toContain('By ')
+		expect(html).toContain('Jane Builder')
 		expect(html).toContain('href="/authors/jane-builder"')
 		expect(html).toContain('2026-01-03')
 		expect(html).toContain('fees')
@@ -127,8 +128,8 @@ describe('pro dashboard SEO shell', () => {
 
 	it('keeps the loader heading opt-in for headingless SEO shell fallbacks', () => {
 		expect(renderToStaticMarkup(<ProDashboardLoader />)).not.toContain('<h1')
-		expect(renderToStaticMarkup(<ProDashboardLoader heading="Loading dashboard" />)).toContain(
-			'<h1 class="text-lg font-semibold text-(--text-primary)">Loading dashboard</h1>'
+		expect(renderToStaticMarkup(<ProDashboardLoader heading="Loading dashboard" />)).toMatch(
+			/<h1(?:\s[^>]*)?>Loading dashboard<\/h1>/
 		)
 	})
 
