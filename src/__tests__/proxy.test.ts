@@ -151,6 +151,7 @@ describe('investors landing links', () => {
 			'sonic',
 			'near',
 			'flare',
+			'thorchain',
 			'odyssey-ecosystem'
 		])
 		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(['odyssey-ecosystem'])
@@ -166,7 +167,13 @@ describe('investors landing links', () => {
 	it('keeps investor-domain landing cards local', async () => {
 		const config = await loadInvestorsConfig('investors')
 
-		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(['spark', 'sonic', 'near', 'flare'])
+		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual([
+			'spark',
+			'sonic',
+			'near',
+			'flare',
+			'thorchain'
+		])
 		expect(config.getInvestorsLandingProjectHref('spark')).toBe('/spark')
 		expect(config.isInvestorsLandingProjectExternal('spark')).toBe(false)
 	})
