@@ -160,4 +160,21 @@ describe('useFinalTVL', () => {
 		expect(result.tvlByChain).toEqual([['Ethereum', 100]])
 		expect(result.toggleOptions.map((option) => option.key)).toEqual(['bribes', 'tokentax'])
 	})
+
+	it('applies tvl_fees TVL toggles to oracle TVS aggregation', () => {
+		tvlFeesSettings = { staking: true, liquidstaking: false }
+
+		const result = getFinalTvlResult({
+			...baseProtocolOverviewData,
+			oracleTvs: {
+				Ethereum: 200,
+				'Ethereum-staking': 30,
+				'Ethereum-liquidstaking': 40
+			}
+		})
+
+		expect(result.oracleTvs).toBe(230)
+		expect(result.oracleTvsByChain).toEqual([['Ethereum', 230]])
+		expect(result.toggleOptions.map((option) => option.key)).toEqual(['staking', 'liquidstaking'])
+	})
 })
