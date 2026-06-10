@@ -86,7 +86,8 @@ export const ADAPTER_CHART_DESCRIPTORS = [
 	}
 ] as const satisfies ReadonlyArray<IAdapterChartDescriptor>
 
-export const ADAPTER_CHART_DESCRIPTORS_BY_LABEL: Partial<Record<ProtocolChartsLabels, IAdapterChartDescriptor>> =
-	Object.fromEntries(ADAPTER_CHART_DESCRIPTORS.map((descriptor) => [descriptor.label, descriptor])) as Partial<
-		Record<ProtocolChartsLabels, IAdapterChartDescriptor>
-	>
+export type AdapterChartDescriptorLabel = (typeof ADAPTER_CHART_DESCRIPTORS)[number]['label']
+
+export const ADAPTER_CHART_DESCRIPTORS_BY_LABEL = Object.fromEntries(
+	ADAPTER_CHART_DESCRIPTORS.map((descriptor) => [descriptor.label, descriptor])
+) as Record<AdapterChartDescriptorLabel, IAdapterChartDescriptor>
