@@ -2,6 +2,12 @@ import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 
 export const DC_AND_LS_OVERLAP_API_KEY = 'dcAndLsOverlap'
 
+type EnabledTvlKeys = readonly string[] | ReadonlySet<string>
+
+function hasEnabledTvlKey(enabledKeys: EnabledTvlKeys, key: string): boolean {
+	return 'has' in enabledKeys ? enabledKeys.has(key) : enabledKeys.includes(key)
+}
+
 function hasEnabledTvlOverlap(extraTvlsEnabled: Record<string, boolean>): boolean {
 	return !!extraTvlsEnabled[TVL_SETTINGS.DOUBLE_COUNT] && !!extraTvlsEnabled[TVL_SETTINGS.LIQUID_STAKING]
 }
@@ -20,9 +26,10 @@ export function getEnabledExtraTvlApiKeys(extraTvlsEnabled: Record<string, boole
 	return apiKeys.toSorted((a, b) => a.localeCompare(b))
 }
 
-export function shouldSubtractTvlOverlapSeries(enabledExtraApiKeys: string[]): boolean {
+export function shouldSubtractTvlOverlapSeries(enabledExtraApiKeys: EnabledTvlKeys): boolean {
 	return (
-		enabledExtraApiKeys.includes(TVL_SETTINGS.DOUBLE_COUNT) && enabledExtraApiKeys.includes(TVL_SETTINGS.LIQUID_STAKING)
+		hasEnabledTvlKey(enabledExtraApiKeys, TVL_SETTINGS.DOUBLE_COUNT) &&
+		hasEnabledTvlKey(enabledExtraApiKeys, TVL_SETTINGS.LIQUID_STAKING)
 	)
 }
 
