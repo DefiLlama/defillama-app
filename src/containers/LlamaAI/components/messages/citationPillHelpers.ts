@@ -410,8 +410,11 @@ function metricKind(field: string): MetricKind {
 	if (DATE_COLS.includes(field) || field.endsWith('_ts') || field.endsWith('_date')) return 'date'
 	if (field.startsWith('apy')) return 'percent'
 	if (PERCENT_ALREADY.has(field)) return 'percent'
-	const { base, isChange } = parseMetricField(field)
-	if (isChange) return 'percent-decimal'
+	const { base, isChange, window } = parseMetricField(field)
+	if (isChange) {
+		if (window && field.endsWith('_pct')) return 'percent'
+		return 'percent-decimal'
+	}
 	if (field.endsWith('_count') || COUNT_FIELDS.has(field)) return 'count'
 	if (field.endsWith('_ratio')) return 'ratio'
 	if (USD_BASES.has(base)) return 'usd'
