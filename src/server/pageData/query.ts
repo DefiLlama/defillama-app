@@ -1,5 +1,10 @@
 type QueryParamValue = string | string[] | undefined
 
+export function getFirstQueryParam(value: QueryParamValue): string | undefined {
+	if (Array.isArray(value)) return value[0]
+	return value
+}
+
 export function getCommaSeparatedQueryParam(value: QueryParamValue): string[] {
 	if (!value) return []
 

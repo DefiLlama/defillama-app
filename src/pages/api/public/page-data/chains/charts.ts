@@ -1,18 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getChainsByCategoryChartData } from '~/containers/ChainsByCategory/queries'
 import { setPageDataCacheHeaders } from '~/server/pageData/cache'
-import { getCommaSeparatedQueryParam } from '~/server/pageData/query'
+import { getCommaSeparatedQueryParam, getFirstQueryParam } from '~/server/pageData/query'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
 		responseLimit: false
 	}
-}
-
-function getStringParam(value: string | string[] | undefined): string | undefined {
-	if (Array.isArray(value)) return value[0]
-	return value
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,8 +17,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	try {
-		const category = getStringParam(req.query.category) ?? 'All'
-		const sampledChart = getStringParam(req.query.sampledChart) === 'true'
+		const category = getFirstQueryParam(req.query.category) ?? 'All'
+		const sampledChart = getFirstQueryParam(req.query.sampledChart) === 'true'
 		const extraTvlTypes = getCommaSeparatedQueryParam(req.query.extraTvlTypes)
 		const data = await getChainsByCategoryChartData({
 			category,
