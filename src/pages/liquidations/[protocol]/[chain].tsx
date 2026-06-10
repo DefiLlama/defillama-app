@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import type { LiquidationsChainShell } from '~/containers/LiquidationsV2/api.types'
 import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsChainRouteContent } from '~/containers/LiquidationsV2/RouteContent'
@@ -9,6 +9,13 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return {
 		paths: [],
 		fallback: 'blocking'
@@ -26,21 +33,20 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const protocolParam = slug(params.protocol)
-		const chainParam = slug(params.chain)
-
-		const protocolsResponse = await fetchProtocolsList()
-		if (!protocolsResponse.protocols.includes(protocolParam)) {
+		const { resolveLiquidationsChainParams } = await import('~/server/routeCache/liquidations')
+		const route = await resolveLiquidationsChainParams(params.protocol, params.chain)
+		if (!route) {
 			return { notFound: true }
 		}
 
-		const metadataModule = await import('~/utils/metadata')
-		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
+		const { protocolId: protocolParam, chainId, metadataCache } = route
+		const { getLiquidationsProtocolsResponseFromCache } = await import('~/server/datasetCache/liquidations')
+		const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
+		const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 
-		const chainMetadata = metadataModule.default.chainMetadata[chainParam]
-		if (!chainMetadata) {
-			return { notFound: true }
-		}
+		const chainMetadata = metadataCache.chainMetadata[slug(chainId)]
+		const chainName = chainMetadata?.name ?? chainId
+		const chainParam = slug(chainName)
 
 		const protocolLinks = [
 			{ label: 'Overview', to: '/liquidations' },
@@ -59,12 +65,12 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				protocolName,
 				protocolSlug: protocolParam,
-				chainName: chainMetadata.name,
+				chainName,
 				chainSlug: chainParam,
 				protocolLinks,
 				chainLinks: [
 					{ label: 'All Chains', to: `/liquidations/${protocolParam}` },
-					{ label: chainMetadata.name, to: `/liquidations/${protocolParam}/${chainParam}` }
+					{ label: chainName, to: `/liquidations/${protocolParam}/${chainParam}` }
 				]
 			},
 			revalidate: maxAgeForNext([22])

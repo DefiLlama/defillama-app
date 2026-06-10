@@ -24,6 +24,7 @@ function Layout({
 	description,
 	canonicalUrl,
 	noIndex,
+	jsonLd,
 	children,
 	pageName,
 	metricFilters,
@@ -36,7 +37,7 @@ function Layout({
 	const isClient = useIsClient()
 	return (
 		<>
-			<SEO title={title} description={description} canonicalUrl={canonicalUrl} noIndex={noIndex} />
+			<SEO title={title} description={description} canonicalUrl={canonicalUrl} noIndex={noIndex} jsonLd={jsonLd} />
 			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}

@@ -75,16 +75,16 @@ export const MultiSelectCombobox = ({
 								}}
 							>
 								<span>{value}</span>
-								<Icon name="x" className="h-3 w-3" />
+								<Icon name="x" className="size-3" />
 							</button>
 						))}
 					</div>
 				) : null}
 				<Ariakit.Combobox placeholder={placeholder} className="w-full flex-1 px-3 py-2 text-base outline-hidden" />
 				{open ? (
-					<Icon name="x" className="absolute top-0 right-2 bottom-0 my-auto h-4 w-4" />
+					<Icon name="x" className="absolute top-0 right-2 bottom-0 my-auto size-4" />
 				) : (
-					<Icon name="chevron-down" className="absolute top-0 right-2 bottom-0 my-auto h-4 w-4" />
+					<Icon name="chevron-down" className="absolute top-0 right-2 bottom-0 my-auto size-4" />
 				)}
 			</span>
 			<Ariakit.ComboboxPopover
@@ -100,7 +100,7 @@ export const MultiSelectCombobox = ({
 				sameWidth
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-					<Icon name="x" className="h-5 w-5" />
+					<Icon name="x" className="size-5" />
 				</Ariakit.PopoverDismiss>
 
 				<span className="relative mb-2 p-3">
@@ -122,7 +122,7 @@ export const MultiSelectCombobox = ({
 							hideOnClick
 							className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
-							{item.logo ? <img src={item.logo} alt={item.label} className="h-5 w-5 shrink-0 rounded-full" /> : null}
+							{item.logo ? <img src={item.logo} alt={item.label} className="size-5 shrink-0 rounded-full" /> : null}
 							<span>{item.label}</span>
 							<Ariakit.ComboboxItemCheck />
 						</Ariakit.ComboboxItem>

@@ -12,6 +12,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { extractYieldPoolTokens } from '~/containers/Yields/domain/poolFilters'
 import { ProtocolInformationCard } from '~/containers/Yields/ProtocolInformationCard'
 import {
 	useYieldChartData,
@@ -19,7 +20,7 @@ import {
 	useVolatility,
 	useHolderHistory,
 	useHolderStats
-} from '~/containers/Yields/queries/client'
+} from '~/containers/Yields/queries.client'
 import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import {
 	computeHolderChanges,
@@ -31,7 +32,6 @@ import {
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
-import { extractPoolTokens } from '~/containers/Yields/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
@@ -39,6 +39,7 @@ import type { YieldPoolPageData } from '~/server/datasetCache/runtime/yields.typ
 import { formattedNum } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { jitterCacheControlHeader, maxAgeForNext } from '~/utils/maxAgeForNext'
+import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
 import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const MultiSeriesChart2 = lazy(
@@ -55,6 +56,10 @@ const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async 
 	const poolId = typeof poolParam === 'string' ? poolParam : Array.isArray(poolParam) ? poolParam[0] : null
 
 	if (!poolId) {
+		return { notFound: true }
+	}
+
+	if (!YIELD_POOL_CONFIG_ID_REGEX.test(poolId)) {
 		return { notFound: true }
 	}
 
@@ -129,7 +134,7 @@ function truncateAddress(addr: string): string {
 
 export function getYieldPoolAssetTokens(poolSymbol?: string | null): string[] {
 	if (!poolSymbol) return []
-	return [...new Set(extractPoolTokens(poolSymbol))]
+	return [...new Set(extractYieldPoolTokens(poolSymbol))]
 }
 
 function ShareBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {
@@ -231,7 +236,7 @@ function HolderFlowSummaryBar({
 					key={seg.label}
 					className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${seg.pillClass}`}
 				>
-					<span className={`h-1.5 w-1.5 rounded-full ${seg.dotClass}`} />
+					<span className={`size-1.5 rounded-full ${seg.dotClass}`} />
 					{seg.count} {seg.label}
 				</span>
 			))}
@@ -425,7 +430,7 @@ function TopHoldersTable({
 								<td className="py-1.5 pl-2">
 									<div className="flex items-center gap-2">
 										<span
-											className="h-2.5 w-2.5 shrink-0 rounded-full transition-transform duration-200"
+											className="size-2.5 shrink-0 rounded-full transition-transform duration-200"
 											style={{
 												backgroundColor: barColor,
 												transform: hoveredIndex === i ? 'scale(1.5)' : 'scale(1)'
@@ -824,7 +829,7 @@ const PageView = ({ pool, config, poolId }: { pool: IYieldTableRow; config: any;
 										<span className="font-semibold">Top 10 %</span>
 										<span className="ml-auto flex items-center gap-1.5 font-jetbrains">
 											<span
-												className="h-2 w-2 rounded-full"
+												className="size-2 rounded-full"
 												style={{
 													backgroundColor:
 														holderStats.top10Pct >= 80 ? '#ef4444' : holderStats.top10Pct >= 50 ? '#eab308' : '#22c55e'

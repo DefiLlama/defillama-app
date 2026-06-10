@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
+import { isInvestorsEnabled } from '~/containers/Investors/config'
 import { checkParentAuth } from '~/utils/checkParentAuth'
 
-// Only runs on the IR site (NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID is set).
-const IS_IR_SITE = !!process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID
+// Only runs on investor-site deployments.
+const IS_INVESTORS_SITE = isInvestorsEnabled()
 
 const SESSION_KEY = 'ir-parent-auth-tracked'
 const UMAMI_RETRY_INTERVAL_MS = 500
@@ -10,7 +11,7 @@ const MAX_UMAMI_RETRIES = 10
 
 export function useParentAuthTracker() {
 	useEffect(() => {
-		if (!IS_IR_SITE) return
+		if (!IS_INVESTORS_SITE) return
 		if (typeof window === 'undefined') return
 		if (sessionStorage.getItem(SESSION_KEY)) {
 			console.log('[auth-tracker] already tracked this session:', sessionStorage.getItem(SESSION_KEY))

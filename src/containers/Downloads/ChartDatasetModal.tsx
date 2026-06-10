@@ -276,7 +276,7 @@ export function ChartDatasetModal({
 		for (const opt of options) {
 			if (opt.category) cats.set(opt.category, (cats.get(opt.category) ?? 0) + 1)
 		}
-		return [...cats.entries()].sort((a, b) => b[1] - a[1])
+		return Array.from(cats.entries()).toSorted((a, b) => b[1] - a[1])
 	}, [options, supportsBreakdown])
 
 	const filteredOptions = useMemo(() => {
@@ -320,7 +320,7 @@ export function ChartDatasetModal({
 						queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
 						queryFn: async () => {
 							const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-							const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
+							const url = `/api/private/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
 							const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 							if (!response || !response.ok) {
 								const errorData = await response?.json().catch(() => null)
@@ -343,7 +343,7 @@ export function ChartDatasetModal({
 			const cat = selectedCategory
 			if (!cat) throw new Error('No category selected')
 			const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-			const url = `/api/downloads/chart-breakdown/${dataset.slug}?category=${encodeURIComponent(cat)}${nonce}`
+			const url = `/api/private/downloads/chart-breakdown/${dataset.slug}?category=${encodeURIComponent(cat)}${nonce}`
 			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)
@@ -551,7 +551,7 @@ export function ChartDatasetModal({
 		if (!activeColumn) return filteredRows
 		const dir = sortState.direction === 'asc' ? 1 : -1
 
-		return [...filteredRows].sort((a, b) => {
+		return filteredRows.toSorted((a, b) => {
 			const av = a.values[activeColumn.index] ?? ''
 			const bv = b.values[activeColumn.index] ?? ''
 			const aBlank = !av.trim()
@@ -1221,7 +1221,7 @@ export function ChartDatasetModal({
 											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 											title="Copy selected columns as TSV"
 										>
-											<Icon name="clipboard" className="h-3.5 w-3.5" />
+											<Icon name="clipboard" className="size-3.5" />
 											<span className="hidden lg:inline">Copy</span>
 										</button>
 									) : null}
@@ -1234,7 +1234,7 @@ export function ChartDatasetModal({
 											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 											title="Save as preset"
 										>
-											<Icon name="bookmark" className="h-3.5 w-3.5" />
+											<Icon name="bookmark" className="size-3.5" />
 											<span className="hidden lg:inline">Save preset</span>
 										</button>
 									) : null}
@@ -1247,7 +1247,7 @@ export function ChartDatasetModal({
 											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 											title="Copy shareable link"
 										>
-											<Icon name="link" className="h-3.5 w-3.5" />
+											<Icon name="link" className="size-3.5" />
 										</button>
 									) : null}
 
@@ -1260,7 +1260,7 @@ export function ChartDatasetModal({
 											}}
 											className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
 										>
-											<Icon name="download-cloud" className="h-3.5 w-3.5" />
+											<Icon name="download-cloud" className="size-3.5" />
 											<span className="hidden sm:inline">{downloadLabel}</span>
 										</button>
 									) : (
@@ -1278,7 +1278,7 @@ export function ChartDatasetModal({
 								onClick={onClose}
 								className="rounded-md p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 							>
-								<Icon name="x" className="h-4 w-4" />
+								<Icon name="x" className="size-4" />
 							</button>
 						</div>
 
@@ -1302,7 +1302,7 @@ export function ChartDatasetModal({
 								/>
 							) : (
 								<span className="flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--link-hover-bg) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary)">
-									<Icon name="layers" className="h-3.5 w-3.5" />
+									<Icon name="layers" className="size-3.5" />
 									{selectedParams.length} protocols
 								</span>
 							)}
@@ -1323,7 +1323,7 @@ export function ChartDatasetModal({
 											: 'border-(--divider) text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
 									}`}
 								>
-									<Icon name="plus" className="h-3.5 w-3.5" />
+									<Icon name="plus" className="size-3.5" />
 									<span>Sum all</span>
 								</button>
 							) : null}
@@ -1369,7 +1369,7 @@ export function ChartDatasetModal({
 										className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:hidden"
 										title="Copy selected columns as TSV"
 									>
-										<Icon name="clipboard" className="h-3.5 w-3.5" />
+										<Icon name="clipboard" className="size-3.5" />
 									</button>
 								</>
 							) : hasData && isPreview ? (
@@ -1383,7 +1383,7 @@ export function ChartDatasetModal({
 							{!hasPreviewTarget ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
-										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+										<Icon name="search" className="size-6 text-(--text-tertiary)" />
 										<p className="text-sm text-(--text-secondary)">
 											Select a {dataset.paramLabel.toLowerCase()} above to load chart data
 										</p>
@@ -1399,7 +1399,7 @@ export function ChartDatasetModal({
 							) : dataError ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2">
-										<Icon name="alert-triangle" className="h-6 w-6 text-red-500" />
+										<Icon name="alert-triangle" className="size-6 text-red-500" />
 										<p className="text-sm text-red-500">
 											{dataError instanceof Error ? dataError.message : 'Failed to fetch data'}
 										</p>
@@ -1408,14 +1408,14 @@ export function ChartDatasetModal({
 							) : columnMeta.length === 0 ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
-										<Icon name="eye-off" className="h-6 w-6 text-(--text-tertiary)" />
+										<Icon name="eye-off" className="size-6 text-(--text-tertiary)" />
 										<p className="text-sm text-(--text-secondary)">No data</p>
 									</div>
 								</div>
 							) : sortedRows.length === 0 ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
-										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+										<Icon name="search" className="size-6 text-(--text-tertiary)" />
 										<p className="text-sm text-(--text-secondary)">
 											{dateRange && rows.length > 0
 												? 'No rows in selected date range'
@@ -1468,7 +1468,7 @@ export function ChartDatasetModal({
 																	type="checkbox"
 																	checked={isSelected}
 																	onChange={() => toggleColumn(column.index)}
-																	className="mr-1 h-3.5 w-3.5 shrink-0 cursor-pointer accent-(--primary)"
+																	className="mr-1 size-3.5 shrink-0 cursor-pointer accent-(--primary)"
 																/>
 																<button
 																	type="button"
@@ -1576,7 +1576,7 @@ export function ChartDatasetModal({
 														href="/subscribe"
 														className="mt-1 inline-flex items-center gap-2 rounded-lg bg-(--primary) px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
 													>
-														<Icon name="arrow-up-right" className="h-4 w-4" />
+														<Icon name="arrow-up-right" className="size-4" />
 														Subscribe
 													</Link>
 												</div>
@@ -1701,7 +1701,7 @@ function CategoryPickerPopover({
 	return (
 		<Ariakit.PopoverProvider>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="tag" className="h-3.5 w-3.5" />
+				<Icon name="tag" className="size-3.5" />
 				<span>{selected ?? 'All categories'}</span>
 				{selected ? (
 					<button
@@ -1712,7 +1712,7 @@ function CategoryPickerPopover({
 						}}
 						className="rounded-full p-0.5 hover:bg-(--link-hover-bg)"
 					>
-						<Icon name="x" className="h-2.5 w-2.5" />
+						<Icon name="x" className="size-2.5" />
 					</button>
 				) : null}
 			</Ariakit.PopoverDisclosure>
@@ -1807,7 +1807,7 @@ function MultiOptionPickerPopover({
 	return (
 		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="chevron-down" className="h-3.5 w-3.5" />
+				<Icon name="chevron-down" className="size-3.5" />
 				<span>{triggerText}</span>
 				{selected.length > 0 ? (
 					<span className="rounded bg-(--primary) px-1 text-[10px] font-semibold text-white">{selected.length}</span>
@@ -1870,11 +1870,11 @@ function MultiOptionPickerPopover({
 									} ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 								>
 									<span
-										className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+										className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
 											isSelected ? 'border-(--primary) bg-(--primary) text-white' : 'border-(--divider)'
 										}`}
 									>
-										{isSelected ? <Icon name="check" className="h-2.5 w-2.5" /> : null}
+										{isSelected ? <Icon name="check" className="size-2.5" /> : null}
 									</span>
 									<span className="truncate">{opt.label}</span>
 								</button>
@@ -1910,7 +1910,7 @@ function ColumnPickerPopover({
 	return (
 		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="eye" className="h-3.5 w-3.5" />
+				<Icon name="eye" className="size-3.5" />
 				Columns
 				<span className="text-(--text-tertiary)">
 					{selected.size}/{columns.length}
@@ -1939,11 +1939,11 @@ function ColumnPickerPopover({
 								className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg)"
 							>
 								<span
-									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+									className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
 										isSelected ? 'border-(--primary) bg-(--primary) text-white' : 'border-(--divider)'
 									}`}
 								>
-									{isSelected ? <Icon name="check" className="h-2.5 w-2.5" /> : null}
+									{isSelected ? <Icon name="check" className="size-2.5" /> : null}
 								</span>
 								<span className={isSelected ? 'text-(--text-primary)' : 'text-(--text-tertiary)'}>{column.header}</span>
 							</button>
@@ -2036,13 +2036,13 @@ function BulkPreviewSidebar({
 								className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
 								title={`Preview ${param.label}`}
 							>
-								<span className="flex h-4 w-4 shrink-0 items-center justify-center">
+								<span className="flex size-4 shrink-0 items-center justify-center">
 									{isQueryLoading ? (
 										<LoadingSpinner size={12} />
 									) : hasError ? (
-										<Icon name="alert-triangle" className="h-3.5 w-3.5 text-red-500" />
+										<Icon name="alert-triangle" className="size-3.5 text-red-500" />
 									) : isReady ? (
-										<Icon name="check" className="h-3.5 w-3.5 text-green-500" />
+										<Icon name="check" className="size-3.5 text-green-500" />
 									) : null}
 								</span>
 								<span
@@ -2058,7 +2058,7 @@ function BulkPreviewSidebar({
 								title={isPreview ? 'Subscribe to download' : 'Download this CSV'}
 								className="shrink-0 rounded p-1 text-(--text-tertiary) transition-colors hover:bg-(--bg-main) hover:text-(--primary) disabled:cursor-not-allowed disabled:opacity-30"
 							>
-								<Icon name="download-cloud" className="h-3.5 w-3.5" />
+								<Icon name="download-cloud" className="size-3.5" />
 							</button>
 							<button
 								type="button"
@@ -2066,7 +2066,7 @@ function BulkPreviewSidebar({
 								title="Remove"
 								className="shrink-0 rounded p-1 text-(--text-tertiary) transition-colors hover:bg-(--bg-main) hover:text-red-500"
 							>
-								<Icon name="x" className="h-3.5 w-3.5" />
+								<Icon name="x" className="size-3.5" />
 							</button>
 						</div>
 					)
@@ -2079,7 +2079,7 @@ function BulkPreviewSidebar({
 						onClick={onSubscribeClick}
 						className="flex w-full items-center justify-center gap-1.5 rounded-md bg-(--primary) px-3 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90"
 					>
-						<Icon name="arrow-up-right" className="h-3.5 w-3.5" />
+						<Icon name="arrow-up-right" className="size-3.5" />
 						Subscribe to download
 					</button>
 				) : (
@@ -2090,7 +2090,7 @@ function BulkPreviewSidebar({
 							disabled={combinedDisabled}
 							className="flex w-full items-center justify-center gap-1.5 rounded-md bg-(--primary) px-3 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-40"
 						>
-							<Icon name="download-cloud" className="h-3.5 w-3.5" />
+							<Icon name="download-cloud" className="size-3.5" />
 							Download combined CSV
 						</button>
 						<p className="mt-1.5 text-center text-[10px] text-(--text-tertiary)">

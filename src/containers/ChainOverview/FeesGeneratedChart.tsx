@@ -65,7 +65,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 				<div className="mt-1 flex h-[18px] items-center">
 					{series.map((s, i) => (
 						<div key={i} className="flex flex-1 items-center justify-center">
-							<img src={s[2]} alt={s[0]} className="h-[18px] w-[18px] rounded-full" loading="lazy" decoding="async" />
+							<img src={s[2]} alt={s[0]} className="size-[18px] rounded-full" loading="lazy" decoding="async" />
 						</div>
 					))}
 				</div>

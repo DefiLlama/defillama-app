@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseOverviewBreakdownRequest } from '~/pages/api/rwa/perps/overview-breakdown'
+import { parseOverviewBreakdownRequest } from '~/pages/api/public/rwa/perps/overview-breakdown'
 
 describe('parseOverviewBreakdownRequest', () => {
 	it('accepts overview requests without a target', () => {

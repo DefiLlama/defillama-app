@@ -73,9 +73,9 @@ export function DateRangePicker({ value, onChange, minDate, maxDate, disabled }:
 			<Ariakit.PopoverProvider store={popover}>
 				<div className="inline-flex items-stretch">
 					<Ariakit.PopoverDisclosure disabled={disabled} className={triggerClass}>
-						<Icon name="calendar" className="h-3.5 w-3.5" />
+						<Icon name="calendar" className="size-3.5" />
 						<span className="max-w-[160px] truncate">{triggerLabel}</span>
-						<Icon name="chevron-down" className="h-3 w-3" />
+						<Icon name="chevron-down" className="size-3" />
 					</Ariakit.PopoverDisclosure>
 					{isActive ? (
 						<button
@@ -86,7 +86,7 @@ export function DateRangePicker({ value, onChange, minDate, maxDate, disabled }:
 							title="Clear date range"
 							className="-ml-px flex items-center justify-center rounded-md rounded-l-none border border-(--primary)/40 bg-(--primary)/10 px-1.5 text-(--primary) transition-colors hover:bg-(--primary)/20 disabled:opacity-40"
 						>
-							<Icon name="x" className="h-3 w-3" />
+							<Icon name="x" className="size-3" />
 						</button>
 					) : null}
 				</div>

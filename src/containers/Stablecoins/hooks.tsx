@@ -1,10 +1,6 @@
-import { useRouter } from 'next/router'
-import * as React from 'react'
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
-import { parseExcludeParam } from '~/utils/routerQuery'
-import type { StablecoinFilterOption } from './Filters'
+import { capitalizeFirstLetter } from '~/utils'
 
 interface IPegged {
 	circulating: number
@@ -111,18 +107,6 @@ type BridgeInfo = {
 	[bridgeID: string]: StablecoinBridgeInfo
 }
 
-interface IChainTvl {
-	[key: string]: number
-}
-
-interface IStackedCirculatingValue {
-	circulating: number
-	unreleased?: number
-}
-
-type IStackedDatasetPoint = [string | number, Record<string, IStackedCirculatingValue>]
-type IExtraPeggedByDayPoint = { date: number } & Record<string, number>
-
 type DataValue = number | null
 
 interface IGroupData {
@@ -170,50 +154,6 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 
 	return peggedAssetTotals
 }
-
-// returns circulating by day for a group of tokens
-export const useCalcGroupExtraPeggedByDay = (chains: IStackedDatasetPoint[], includeUnreleased?: boolean) => {
-	const shouldIncludeUnreleased = Boolean(includeUnreleased)
-
-	const { data, daySum } = useMemo(() => {
-		const daySum: Record<number, number> = {}
-
-		const data: IExtraPeggedByDayPoint[] = chains.map(([date, values]) => {
-			const dateNumber = Number(date)
-			const circulatings: IChainTvl = {}
-			let totalDaySum = 0
-			for (const name in values) {
-				const chainCirculating = values[name]
-				let sum = chainCirculating.circulating
-				totalDaySum += chainCirculating.circulating
-				if (shouldIncludeUnreleased && chainCirculating.unreleased) {
-					sum += chainCirculating.unreleased
-					totalDaySum += chainCirculating.unreleased
-				}
-
-				circulatings[name] = sum
-			}
-			daySum[dateNumber] = totalDaySum
-			return { date: dateNumber, ...circulatings }
-		})
-		return { data, daySum }
-	}, [chains, shouldIncludeUnreleased])
-
-	const dataWithExtraPeggedAndDominanceByDay = useMemo(() => {
-		return data.map(({ date, ...values }): IExtraPeggedByDayPoint => {
-			const shares: Record<string, number> = {}
-
-			for (const key in values) {
-				shares[key] = getDominancePercent(values[key], daySum[date] ?? 0)
-			}
-
-			return { date, ...shares }
-		})
-	}, [data, daySum])
-
-	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
-}
-
 interface StablecoinsChainsRow {
 	name: string
 	mcap: number | null
@@ -450,96 +390,4 @@ export const useGroupBridgeData = (
 	}, [chains, bridgeInfoObject])
 
 	return data
-}
-
-export const useFormatStablecoinQueryParams = ({
-	stablecoinAttributeOptions,
-	stablecoinPegTypeOptions,
-	stablecoinBackingOptions
-}: {
-	stablecoinAttributeOptions: ReadonlyArray<StablecoinFilterOption>
-	stablecoinPegTypeOptions: ReadonlyArray<StablecoinFilterOption>
-	stablecoinBackingOptions: ReadonlyArray<StablecoinFilterOption>
-}) => {
-	const router = useRouter()
-	const { attribute, excludeAttribute, pegtype, excludePegtype, backing, excludeBacking } = router.query
-
-	return React.useMemo(() => {
-		// Fast path: when no stablecoin filter params are present in URL, keep defaults as-is.
-		if (
-			attribute == null &&
-			excludeAttribute == null &&
-			pegtype == null &&
-			excludePegtype == null &&
-			backing == null &&
-			excludeBacking == null
-		) {
-			return {
-				selectedAttributes: stablecoinAttributeOptions.map((option) => option.key),
-				selectedPegTypes: stablecoinPegTypeOptions.map((option) => option.key),
-				selectedBackings: stablecoinBackingOptions.map((option) => option.key)
-			}
-		}
-
-		// Parse exclude sets upfront
-		const excludeAttributeSet = parseExcludeParam(excludeAttribute)
-		const excludePegtypeSet = parseExcludeParam(excludePegtype)
-		const excludeBackingSet = parseExcludeParam(excludeBacking)
-
-		// Build selectedAttributes and filter out excludes inline
-		let attributes: string[]
-		if (attribute) {
-			if (typeof attribute === 'string') {
-				attributes = attribute === 'None' ? [] : [attribute]
-			} else {
-				attributes = [...attribute]
-			}
-		} else {
-			attributes = stablecoinAttributeOptions.map((option) => option.key)
-		}
-		const selectedAttributes =
-			excludeAttributeSet.size > 0 ? attributes.filter((a) => !excludeAttributeSet.has(a)) : attributes
-
-		// Build selectedPegTypes and filter out excludes inline
-		let pegTypes: string[]
-		if (pegtype) {
-			if (typeof pegtype === 'string') {
-				pegTypes = pegtype === 'None' ? [] : [pegtype]
-			} else {
-				pegTypes = [...pegtype]
-			}
-		} else {
-			pegTypes = stablecoinPegTypeOptions.map((option) => option.key)
-		}
-		const selectedPegTypes = excludePegtypeSet.size > 0 ? pegTypes.filter((p) => !excludePegtypeSet.has(p)) : pegTypes
-
-		// Build selectedBackings and filter out excludes inline
-		let backings: string[]
-		if (backing) {
-			if (typeof backing === 'string') {
-				backings = backing === 'None' ? [] : [backing]
-			} else {
-				backings = [...backing]
-			}
-		} else {
-			backings = stablecoinBackingOptions.map((option) => option.key)
-		}
-		const selectedBackings = excludeBackingSet.size > 0 ? backings.filter((b) => !excludeBackingSet.has(b)) : backings
-
-		return {
-			selectedAttributes,
-			selectedPegTypes,
-			selectedBackings
-		}
-	}, [
-		attribute,
-		excludeAttribute,
-		pegtype,
-		excludePegtype,
-		backing,
-		excludeBacking,
-		stablecoinAttributeOptions,
-		stablecoinPegTypeOptions,
-		stablecoinBackingOptions
-	])
 }

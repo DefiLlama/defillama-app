@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
+import { Icon } from '~/components/Icon'
 import {
 	ArticleApiError,
 	type AuthorProfileUpdate,
@@ -145,11 +146,13 @@ function CharCount({ value, max }: { value: string; max: number }) {
 	)
 }
 
+const joinedDateFormatter = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' })
+
 function formatJoined(iso: string | null | undefined): string {
 	if (!iso) return ''
 	const d = new Date(iso)
 	if (Number.isNaN(d.getTime())) return ''
-	return new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(d)
+	return joinedDateFormatter.format(d)
 }
 
 function LivePreview({ state, createdAt }: { state: FormState; createdAt: string | null | undefined }) {
@@ -175,10 +178,10 @@ function LivePreview({ state, createdAt }: { state: FormState; createdAt: string
 					<img
 						src={state.avatarUrl}
 						alt=""
-						className="h-20 w-20 shrink-0 rounded-full border border-(--cards-border) object-cover"
+						className="size-20 shrink-0 rounded-full border border-(--cards-border) object-cover"
 					/>
 				) : (
-					<div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-(--cards-border) bg-(--app-bg) text-xl font-semibold text-(--text-secondary)">
+					<div className="flex size-20 shrink-0 items-center justify-center rounded-full border border-(--cards-border) bg-(--app-bg) text-xl font-semibold text-(--text-secondary)">
 						{initials}
 					</div>
 				)}
@@ -429,7 +432,7 @@ export function AuthorProfileForm() {
 						<span className="text-xs text-red-500">{slugError}</span>
 					) : slugChanged ? (
 						<span className="inline-flex items-center gap-1.5 text-xs text-amber-500">
-							<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+							<span aria-hidden className="size-1.5 rounded-full bg-amber-500" />
 							Old links to <span className="font-jetbrains">/research/authors/{initial?.slug}</span> will 404.
 						</span>
 					) : null}
@@ -485,7 +488,7 @@ export function AuthorProfileForm() {
 							<button
 								type="button"
 								onClick={addCustom}
-								className="rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) px-3 py-3 text-sm text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+								className="rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) p-3 text-sm text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
 							>
 								Add a custom link
 							</button>
@@ -512,20 +515,9 @@ export function AuthorProfileForm() {
 										type="button"
 										onClick={() => removeCustom(index)}
 										aria-label="Remove"
-										className="flex h-9 w-9 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500"
+										className="flex size-9 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500"
 									>
-										<svg
-											viewBox="0 0 24 24"
-											className="h-3.5 w-3.5"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth="1.75"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										>
-											<line x1="6" y1="6" x2="18" y2="18" />
-											<line x1="6" y1="18" x2="18" y2="6" />
-										</svg>
+										<Icon name="x" className="size-3.5" />
 									</button>
 								</div>
 							))
@@ -550,7 +542,7 @@ export function AuthorProfileForm() {
 					<span className="inline-flex items-center gap-2 text-xs text-(--text-tertiary)">
 						<span
 							aria-hidden
-							className={`h-1.5 w-1.5 rounded-full transition-colors ${dirty ? 'bg-amber-500' : 'bg-emerald-500'}`}
+							className={`size-1.5 rounded-full transition-colors ${dirty ? 'bg-amber-500' : 'bg-emerald-500'}`}
 						/>
 						{dirty ? 'Unsaved changes' : 'All changes saved'}
 					</span>

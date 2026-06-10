@@ -1,0 +1,294 @@
+import { useQuery } from '@tanstack/react-query'
+import { createColumnHelper } from '@tanstack/react-table'
+import * as React from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
+import { LocalLoader } from '~/components/Loaders'
+import { PercentChange } from '~/components/PercentChange'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { getCategoryRoute } from '~/constants'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { formattedNum, getPercentChange, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { getErrorMessage } from '~/utils/error'
+import { categoriesPageExcludedExtraTvls } from './constants'
+import type { IProtocolsCategoriesChartData, IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
+
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
+const columnHelper = createColumnHelper<IProtocolsCategoriesTableRow>()
+
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+
+const categoriesColumns = [
+	columnHelper.accessor('name', {
+		header: 'Category',
+		enableSorting: false,
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		},
+		cell: ({ getValue, row }) => {
+			const categoryName = getValue()
+
+			return (
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
+					{row.subRows?.length != null && row.subRows.length > 0 ? (
+						<button
+							className="absolute -left-1"
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? (
+								<>
+									<Icon name="chevron-down" height={16} width={16} />
+									<span className="sr-only">Hide tags</span>
+								</>
+							) : (
+								<>
+									<Icon name="chevron-right" height={16} width={16} />
+									<span className="sr-only">View tags</span>
+								</>
+							)}
+						</button>
+					) : null}
+					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<BasicLink
+						href={getCategoryRoute(slug(categoryName))}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{categoryName}
+					</BasicLink>
+				</span>
+			)
+		}
+	}),
+	columnHelper.accessor('protocols', {
+		header: 'Protocols',
+		meta: {
+			headerClassName: 'w-[100px]',
+			align: 'end'
+		}
+	}),
+	columnHelper.accessor('tvl', {
+		header: 'Combined TVL',
+		meta: {
+			headerClassName: 'w-[135px]',
+			align: 'end'
+		},
+		cell: ({ getValue }) => {
+			const value = getValue()
+			return formattedNum(value, true)
+		}
+	}),
+	columnHelper.accessor('change_1d', {
+		header: '1d TVL Change',
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end'
+		},
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor('change_7d', {
+		header: '7d TVL Change',
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end'
+		},
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor('change_1m', {
+		header: '1m TVL Change',
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end'
+		},
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor('revenue', {
+		header: 'Combined 24h Revenue',
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
+			align: 'end'
+		},
+		cell: ({ getValue }) => {
+			const value = getValue()
+			return formattedNum(value, true)
+		}
+	}),
+	columnHelper.accessor('description', {
+		header: 'Description',
+		enableSorting: false,
+		meta: {
+			headerClassName: 'w-[min(1600px,40vw)]'
+		}
+	})
+]
+
+export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
+	const { categories, tableData, chartSource, categoryColors, extraTvlCharts } = props
+	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const enabledTvls = React.useMemo(
+		() => TVL_SETTINGS_KEYS.filter((key) => extraTvlsEnabled[key] && !categoriesPageExcludedExtraTvls.has(key)),
+		[extraTvlsEnabled]
+	)
+	const enabledTvlsKey = enabledTvls.join(',')
+	const shouldFetchChartData = chartSource.length === 0
+	const chartDataQuery = useQuery({
+		queryKey: ['page-data', 'categories', 'charts', enabledTvlsKey],
+		queryFn: () => {
+			const searchParams = new URLSearchParams()
+			if (enabledTvlsKey) {
+				searchParams.set('extraTvlTypes', enabledTvlsKey)
+			}
+			const queryString = searchParams.toString()
+			return fetchJson<IProtocolsCategoriesChartData>(
+				`/api/public/page-data/categories/charts${queryString ? `?${queryString}` : ''}`
+			)
+		},
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: shouldFetchChartData
+	})
+	const categoriesChartSource = chartDataQuery.data?.chartSource ?? chartSource
+	const categoriesExtraTvlCharts = chartDataQuery.data?.extraTvlCharts ?? extraTvlCharts
+
+	const finalCharts = React.useMemo(() => {
+		const selectedCategoriesSet = new Set(selectedCategories)
+		const filteredCategories = categories.filter((categoryName) => selectedCategoriesSet.has(categoryName))
+
+		const source: IProtocolsCategoriesPageData['chartSource'] = categoriesChartSource.map((row) => {
+			if (enabledTvls.length === 0) return row
+
+			const adjustedRow: IProtocolsCategoriesPageData['chartSource'][number] = {
+				timestamp: row.timestamp
+			}
+
+			for (const categoryName of filteredCategories) {
+				const baseValue = row[categoryName]
+				const safeBaseValue = typeof baseValue === 'number' ? baseValue : 0
+				const extraTvlValue = enabledTvls.reduce((sum, key) => {
+					return sum + (categoriesExtraTvlCharts[categoryName]?.[key]?.[row.timestamp] ?? 0)
+				}, 0)
+
+				adjustedRow[categoryName] = safeBaseValue + extraTvlValue
+			}
+
+			return adjustedRow
+		})
+
+		const dimensions = ['timestamp', ...filteredCategories]
+		const charts = filteredCategories.map((categoryName) => ({
+			type: 'line' as const,
+			name: categoryName,
+			encode: { x: 'timestamp', y: categoryName },
+			stack: 'stackA',
+			color: categoryColors[categoryName]
+		}))
+
+		return { dataset: { source, dimensions }, charts }
+	}, [categories, categoryColors, categoriesChartSource, enabledTvls, categoriesExtraTvlCharts, selectedCategories])
+	const deferredFinalCharts = React.useDeferredValue(finalCharts)
+	const chartErrorMessage = chartDataQuery.error ? getErrorMessage(chartDataQuery.error) : null
+
+	const finalCategoriesList = React.useMemo(() => {
+		if (enabledTvls.length === 0) return tableData
+
+		const applyEnabledExtraTvls = (row: IProtocolsCategoriesTableRow): IProtocolsCategoriesTableRow => {
+			let tvl = row.tvl
+			let tvlPrevDay = row.tvlPrevDay
+			let tvlPrevWeek = row.tvlPrevWeek
+			let tvlPrevMonth = row.tvlPrevMonth
+
+			for (const extraTvlKey of enabledTvls) {
+				const extraTvl = row.extraTvls[extraTvlKey]
+				if (extraTvl == null) continue
+				tvl += extraTvl.tvl
+				tvlPrevDay += extraTvl.tvlPrevDay
+				tvlPrevWeek += extraTvl.tvlPrevWeek
+				tvlPrevMonth += extraTvl.tvlPrevMonth
+			}
+
+			const updatedRow: IProtocolsCategoriesTableRow = {
+				...row,
+				tvl,
+				tvlPrevDay,
+				tvlPrevWeek,
+				tvlPrevMonth,
+				change_1d: getPercentChange(tvl, tvlPrevDay),
+				change_7d: getPercentChange(tvl, tvlPrevWeek),
+				change_1m: getPercentChange(tvl, tvlPrevMonth)
+			}
+
+			if (row.subRows != null && row.subRows.length > 0) {
+				updatedRow.subRows = row.subRows.map(applyEnabledExtraTvls)
+			}
+
+			return updatedRow
+		}
+
+		return tableData.map(applyEnabledExtraTvls)
+	}, [enabledTvls, tableData])
+
+	return (
+		<>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
+					<h1 className="mr-auto text-xl font-semibold">TVL by Category</h1>
+					<SelectWithCombobox
+						allValues={categories}
+						selectedValues={selectedCategories}
+						setSelectedValues={setSelectedCategories}
+						label="Categories"
+						labelType="smol"
+						variant="filter"
+					/>
+					<ChartExportButtons chartInstance={chartInstance} filename="categories-tvl" title="TVL by Category" />
+				</div>
+				{shouldFetchChartData && chartDataQuery.isLoading ? (
+					<div className="flex min-h-[360px] items-center justify-center text-(--text-tertiary)">
+						<LocalLoader />
+					</div>
+				) : chartErrorMessage ? (
+					<div className="flex min-h-[360px] items-center justify-center p-4 text-center text-sm text-(--text-tertiary)">
+						Failed to load chart data: {chartErrorMessage}
+					</div>
+				) : (
+					<React.Suspense fallback={<div className="min-h-[360px]" />}>
+						<MultiSeriesChart2
+							dataset={deferredFinalCharts.dataset}
+							charts={deferredFinalCharts.charts}
+							valueSymbol="$"
+							solidChartAreaStyle
+							onReady={handleChartReady}
+							showTotalInTooltip
+						/>
+					</React.Suspense>
+				)}
+			</div>
+
+			<React.Suspense
+				fallback={
+					<div
+						style={{ minHeight: `${categories.length * 50 + 200}px` }}
+						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
+					/>
+				}
+			>
+				<TableWithSearch
+					data={finalCategoriesList}
+					columns={categoriesColumns}
+					columnToSearch="name"
+					placeholder="Search category..."
+					csvFileName="protocol-categories"
+					sortingState={DEFAULT_SORTING_STATE}
+				/>
+			</React.Suspense>
+		</>
+	)
+}

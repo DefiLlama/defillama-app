@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useContext, useMemo, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
-import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
@@ -117,7 +117,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handleEditItem,
 		handleDuplicateChartBuilder
 	} = useProDashboardEditorActions()
-	const { isReadOnly } = useProDashboardPermissions()
+	const { isReadOnly, hideDuplicateButton } = useProDashboardPermissions()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chartInstance, handleChartReady } = useChartImageExport()
@@ -157,6 +157,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		return timePeriod || 'all'
 	}, [timePeriod, customTimePeriod])
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
 			'pro-dashboard',
@@ -174,9 +175,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			chainFilterMode,
 			categoryFilterMode,
 			chainCategoryFilterMode,
-			protocolCategoryFilterMode,
-			timePeriod,
-			customTimePeriod
+			protocolCategoryFilterMode
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
@@ -197,13 +196,6 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				}
 
 				let series = data.series
-				if (timePeriod && timePeriod !== 'all') {
-					series = series.map((s) => ({
-						...s,
-						data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
-					}))
-				}
-
 				if (
 					config.hideOthers ||
 					(config.mode === 'protocol' &&
@@ -235,20 +227,22 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			}
 
 			let series = data.series
-			if (timePeriod && timePeriod !== 'all') {
-				series = series.map((s) => ({
-					...s,
-					data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
-				}))
-			}
-
 			if (config.hideOthers || (config.chainCategories && config.chainCategories.length > 0)) {
 				series = series.filter((s) => !s.name.startsWith('Others'))
 			}
 
 			return { series }
 		},
-		enabled: !!config.metric,
+		select: (data) => {
+			if (!data?.series || !timePeriod || timePeriod === 'all') return data
+			return {
+				series: data.series.map((s: any) => ({
+					...s,
+					data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
+				}))
+			}
+		},
+		enabled: streamDone && !!config.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -679,6 +673,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					{chartSeries.length > 0 ? (
 						<button
 							type="button"
+							data-btn="colors"
 							onClick={() => setShowColors((prev) => !prev)}
 							disabled={isReadOnly}
 							aria-pressed={effectiveShowColors}
@@ -704,7 +699,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							variant="pro"
 						/>
 					) : null}
-					{!isReadOnly ? (
+					{!isReadOnly && !hideDuplicateButton ? (
 						<button
 							type="button"
 							onClick={() => setShowDuplicateConfirm(true)}
@@ -732,7 +727,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					) : null}
 				</div>
 				{effectiveShowColors && chartSeries.length > 0 ? (
-					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
 						{chartSeries.map((series: any) => {
 							const colorValue = seriesColors[series.name] || series.color || DEFAULT_SERIES_COLOR
@@ -750,7 +745,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 										value={colorValue}
 										onChange={(event) => handleSeriesColorChange(series.name, event.target.value)}
 										disabled={isReadOnly}
-										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0 disabled:cursor-not-allowed"
+										className="size-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0 disabled:cursor-not-allowed"
 										aria-label={`Select color for ${series.name}`}
 									/>
 									<button
@@ -829,7 +824,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 			{isLoading ? (
 				<div className="flex flex-1 flex-col items-center justify-center">
-					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
+					<div className="mx-auto mb-2 size-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
 					<p className="text-sm text-(--text-form)">Loading chart...</p>
 				</div>
 			) : chartSeries.length > 0 || treemapData.length > 0 ? (

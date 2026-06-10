@@ -4,8 +4,8 @@ import { startTransition, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import { basicProtocolPropertiesToKeepV1List } from '~/containers/ProtocolLists/utils.old'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils/icons'
@@ -144,7 +144,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 									{protocol.logo ? (
 										<TokenLogo src={protocol.logo} alt={`Logo of ${protocol.name}`} />
 									) : (
-										<div className="h-6 w-6 rounded bg-(--bg-secondary)" />
+										<div className="size-6 rounded bg-(--bg-secondary)" />
 									)}
 									<span className="truncate">{protocol.name}</span>
 								</button>

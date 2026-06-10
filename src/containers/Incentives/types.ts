@@ -1,5 +1,5 @@
-import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
-import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
+import type { IAdapterChainMetrics } from '~/containers/AdapterMetrics/api.types'
+import type { IAdapterChainOverview } from '~/containers/AdapterMetrics/types'
 
 export interface ChainIncentivesSummary {
 	emissions24h: number | null

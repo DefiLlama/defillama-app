@@ -4,20 +4,35 @@ import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import type { FormSubmitEvent } from '~/types/forms'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
+type QueryUpdates = Record<string, string | string[] | undefined>
+
 export function TVLRange({
 	variant = 'primary',
 	nestedMenu,
 	triggerClassName,
 	placement,
-	onValueChange
+	onValueChange,
+	resetPageOnChange,
+	pushQueryUpdates
 }: {
 	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
 	onValueChange?: (min: number | null, max: number | null) => void
+	resetPageOnChange?: boolean
+	pushQueryUpdates?: (updates: QueryUpdates) => void
 }) {
 	const router = useRouter()
+
+	const updateQuery = (updates: QueryUpdates) => {
+		const payload = resetPageOnChange ? { ...updates, page: undefined } : updates
+		if (pushQueryUpdates) {
+			pushQueryUpdates(payload)
+			return
+		}
+		void pushShallowQuery(router, payload)
+	}
 
 	const handleSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
@@ -27,7 +42,7 @@ export function TVLRange({
 
 		onValueChange?.(minTvl ? Number(minTvl) : null, maxTvl ? Number(maxTvl) : null)
 
-		void pushShallowQuery(router, {
+		updateQuery({
 			minTvl: minTvl || undefined,
 			maxTvl: maxTvl || undefined
 		})
@@ -38,7 +53,10 @@ export function TVLRange({
 
 	const handleClear = () => {
 		onValueChange?.(null, null)
-		void pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
+		updateQuery({
+			minTvl: undefined,
+			maxTvl: undefined
+		})
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

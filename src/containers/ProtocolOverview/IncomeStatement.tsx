@@ -562,9 +562,9 @@ export const IncomeStatement = ({
 							aria-hidden="true"
 							tabIndex={-1}
 							href={`#${headerId}`}
-							className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+							className="absolute top-0 right-0 z-10 flex size-full items-center"
 						/>
-						<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+						<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 					</h2>
 				) : null}
 				{showTable ? (
@@ -851,12 +851,12 @@ const IncomeStatementByLabel = ({
 									e.stopPropagation()
 									setIsExpanded((expanded) => !expanded)
 								}}
-								className="-ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--text-secondary) transition-transform hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+								className="-ml-1 flex size-5 shrink-0 items-center justify-center rounded-sm text-(--text-secondary) transition-transform hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							>
 								<Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} height={14} width={14} />
 							</button>
 						) : alignWithBreakdownRows ? (
-							<span aria-hidden="true" className="-ml-1 block h-5 w-5 shrink-0" />
+							<span aria-hidden="true" className="-ml-1 block size-5 shrink-0" />
 						) : null}
 						{methodology ? (
 							<Tooltip

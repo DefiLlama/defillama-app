@@ -5,6 +5,55 @@ import { normalizeLocalArticleDocument } from '../document'
 import { ArticleRenderer } from '../renderer/ArticleRenderer'
 
 describe('ArticleRenderer', () => {
+	it('renders visible co-authors in the article byline', () => {
+		const normalized = normalizeLocalArticleDocument({
+			title: 'Aave fees after the exploit',
+			status: 'published',
+			author: 'Jane Doe',
+			authorProfile: {
+				id: 'profile-1',
+				pbUserId: 'pb-user-1',
+				slug: 'jane-doe',
+				displayName: 'Jane Doe',
+				socials: {},
+				createdAt: '2026-01-01T00:00:00.000Z',
+				updatedAt: '2026-01-01T00:00:00.000Z'
+			},
+			section: 'report',
+			contentJson: {
+				type: 'doc',
+				content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Body text.' }] }]
+			}
+		})
+
+		expect(normalized.ok).toBe(true)
+		if (!normalized.ok) return
+		const client = new QueryClient()
+		const html = renderToStaticMarkup(
+			<QueryClientProvider client={client}>
+				<ArticleRenderer
+					article={{
+						...normalized.value,
+						coAuthors: [
+							{
+								slug: 'john-doe',
+								displayName: 'John Doe',
+								socials: {},
+								createdAt: '2026-01-01T00:00:00.000Z',
+								updatedAt: '2026-01-01T00:00:00.000Z'
+							}
+						]
+					}}
+				/>
+			</QueryClientProvider>
+		)
+
+		expect(html).toContain('Jane Doe')
+		expect(html).toContain('John Doe')
+		expect(html).toContain('/research/authors/jane-doe')
+		expect(html).toContain('/research/authors/john-doe')
+	})
+
 	it('renders custom article primitives without the editor', () => {
 		const normalized = normalizeLocalArticleDocument({
 			title: 'Aave fees after the exploit',
@@ -61,5 +110,70 @@ describe('ArticleRenderer', () => {
 		expect(html).toContain('Watch the revenue line.')
 		expect(html).toContain('Fees · All time')
 		expect(html).not.toContain('ProseMirror')
+	})
+
+	it('flattens nested Q&A blocks before rendering published content', () => {
+		const normalized = normalizeLocalArticleDocument({
+			id: 'nested-interview',
+			title: 'Nested interview',
+			status: 'published',
+			contentJson: { type: 'doc', content: [] }
+		})
+
+		expect(normalized.ok).toBe(true)
+		if (!normalized.ok) return
+
+		const nestedContentJson = {
+			type: 'doc',
+			content: [
+				{
+					type: 'qa',
+					content: [
+						{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question one?' }] },
+						{
+							type: 'qaAnswer',
+							content: [
+								{ type: 'paragraph', content: [{ type: 'text', text: 'Answer one.' }] },
+								{
+									type: 'qa',
+									content: [
+										{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question two?' }] },
+										{
+											type: 'qaAnswer',
+											content: [
+												{ type: 'paragraph', content: [{ type: 'text', text: 'Answer two.' }] },
+												{
+													type: 'qa',
+													content: [
+														{ type: 'qaQuestion', content: [{ type: 'text', text: 'Question three?' }] },
+														{
+															type: 'qaAnswer',
+															content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Answer three.' }] }]
+														}
+													]
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+
+		const client = new QueryClient()
+		const html = renderToStaticMarkup(
+			<QueryClientProvider client={client}>
+				<ArticleRenderer article={{ ...normalized.value, contentJson: nestedContentJson }} />
+			</QueryClientProvider>
+		)
+
+		expect(html.match(/data-article-qa="true"/g)).toHaveLength(3)
+		expect(html).toContain('Question one?')
+		expect(html).toContain('Question two?')
+		expect(html).toContain('Question three?')
+		expect(html).not.toMatch(/data-article-qa-answer="true"[^>]*>(?:(?!<\/dd>)[\s\S])*<dl data-article-qa="true"/)
 	})
 })

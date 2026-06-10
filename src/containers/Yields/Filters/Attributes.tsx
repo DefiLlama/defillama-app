@@ -1,9 +1,10 @@
 import { useRouter } from 'next/router'
 import { useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { badDebt, lockupsCollateral } from '~/containers/Yields/utils'
+import { badDebt, lockupsCollateral } from '~/containers/Yields/constants'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 export const attributeOptions = [
 	{
@@ -155,7 +156,12 @@ export const attributeOptions = [
 	}
 ]
 
-export const attributeOptionsMap = new Map(attributeOptions.map((option) => [option.key, option]))
+const attributeOptionsMapEntries = new Map<string, (typeof attributeOptions)[number]>()
+for (const option of attributeOptions) {
+	attributeOptionsMapEntries.set(option.key, option)
+}
+
+export const attributeOptionsMap = attributeOptionsMapEntries
 
 function filterAttributeOptions(option, pathname) {
 	switch (pathname) {
@@ -181,26 +187,27 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 	const { attribute = [] } = router.query
 
 	const { attributeOptionsFiltered, selectedAttributes } = useMemo(() => {
-		const attributeOptionsFiltered = attributeOptions.filter((option) => filterAttributeOptions(option, pathname))
+		const attributeOptionsFiltered = []
+		const values = []
+		const selectedAttributes = []
+		const attributeSet = Array.isArray(attribute) ? new Set(attribute) : null
 
-		const values = attributeOptionsFiltered
-			.filter((o) => {
-				if (attribute) {
-					if (typeof attribute === 'string') {
-						return o.key === attribute
-					} else {
-						return attribute.includes(o.key)
-					}
-				}
-			})
-			.map((o) => o.key)
+		for (const option of attributeOptions) {
+			if (!filterAttributeOptions(option, pathname)) continue
+			attributeOptionsFiltered.push(option)
 
-		const selectedAttributes = attributeOptionsFiltered
-			.filter((option) => option.defaultFilterFnOnPage[router.pathname])
-			.map((x) => x.name)
-			.concat(values)
+			if (option.defaultFilterFnOnPage[router.pathname]) {
+				selectedAttributes.push(option.name)
+			}
+			if (typeof attribute === 'string' ? option.key === attribute : attributeSet?.has(option.key)) {
+				values.push(option.key)
+			}
+		}
+		for (const value of values) {
+			selectedAttributes.push(value)
+		}
 
-		return { attributeOptionsFiltered, values, selectedAttributes }
+		return { attributeOptionsFiltered, selectedAttributes }
 	}, [attribute, pathname, router.pathname])
 
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedAttributes))
@@ -214,6 +221,9 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			nestedMenu={nestedMenu}
 			includeQueryKey="attribute"
 			excludeQueryKey="excludeAttribute"
+			pushQueryUpdates={(updates) => {
+				void pushYieldsQuery(router, updates, { pathname: pathname || router.pathname })
+			}}
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
 				for (const attributeKey of values) {

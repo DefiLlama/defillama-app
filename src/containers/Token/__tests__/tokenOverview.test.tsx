@@ -30,7 +30,6 @@ const mocks = vi.hoisted(() => ({
 	fetchProtocolOverviewMetrics: vi.fn(),
 	fetchRaisesByDefillamaId: vi.fn(),
 	fetchTreasuryById: vi.fn(),
-	fetchProtocolEmissionFromDatasets: vi.fn(),
 	fetchLiquidityDatasetEntryByProtocolId: vi.fn(),
 	fetchJson: vi.fn(),
 	useFetchTokenOverviewChartData: vi.fn()
@@ -52,13 +51,18 @@ function renderTokenOverviewSection(props: Parameters<typeof TokenOverviewSectio
 	)
 }
 
+const textFromMarkup = (html: string) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ')
+
 vi.mock('next/router', () => ({
 	useRouter: () => routerState
 }))
 
 vi.mock('~/api/coingecko', () => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback,
-	fetchCoinGeckoCoinById: mocks.fetchCoinGeckoCoinById,
+	fetchCoinGeckoCoinById: mocks.fetchCoinGeckoCoinById
+}))
+
+vi.mock('~/api/pricing', () => ({
 	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices
 }))
 
@@ -72,10 +76,6 @@ vi.mock('~/containers/Raises/api', () => ({
 
 vi.mock('~/containers/Treasuries/api', () => ({
 	fetchTreasuryById: mocks.fetchTreasuryById
-}))
-
-vi.mock('~/containers/Unlocks/api', () => ({
-	fetchProtocolEmissionFromDatasets: mocks.fetchProtocolEmissionFromDatasets
 }))
 
 vi.mock('~/api', () => ({
@@ -120,6 +120,39 @@ const protocolMetadataFixture = {
 	liquidity: true,
 	emissions: true
 } as IProtocolMetadata
+
+const emissionsSupplyMetricsFixture = {
+	'test-protocol': {
+		name: 'Test Protocol',
+		supplyMetrics: {
+			maxSupply: 1000,
+			adjustedSupply: 900,
+			tbdAmount: 0,
+			incentiveAmount: 0,
+			nonIncentiveAmount: 900
+		}
+	},
+	uniswap: {
+		name: 'Uniswap',
+		supplyMetrics: {
+			maxSupply: 1000,
+			adjustedSupply: 900,
+			tbdAmount: 0,
+			incentiveAmount: 0,
+			nonIncentiveAmount: 900
+		}
+	},
+	'pudgy-penguins': {
+		name: 'Pudgy Penguins',
+		supplyMetrics: {
+			maxSupply: 1000,
+			adjustedSupply: 900,
+			tbdAmount: 0,
+			incentiveAmount: 0,
+			nonIncentiveAmount: 900
+		}
+	}
+}
 
 const cgChartFixture = {
 	data: {
@@ -312,11 +345,6 @@ beforeEach(() => {
 		},
 		mcap: null
 	} satisfies RawTreasuriesResponse[number])
-	mocks.fetchProtocolEmissionFromDatasets.mockResolvedValue({
-		supplyMetrics: {
-			adjustedSupply: 900
-		}
-	})
 	mocks.fetchLiquidityDatasetEntryByProtocolId.mockResolvedValue({
 		id: 'proto-data',
 		tokenPools: [
@@ -357,6 +385,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -391,6 +420,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: overviewFixture.llamaswapChains,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -424,6 +454,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: {
 				kind: 'prefetched',
 				raises: [
@@ -524,15 +555,84 @@ describe('tokenOverview helpers', () => {
 			} as IProtocolMetadata,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
 		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('uniswap')
-		expect(mocks.fetchProtocolEmissionFromDatasets).toHaveBeenCalledWith('uniswap')
 		expect(result.rawChartData.FDV).toEqual([
 			[1711929600000, 2100000],
 			[1712016000000, 2310000]
 		])
+	})
+
+	it('resolves numeric protocol IDs through metadata before reading emissions supply metrics', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Pudgy Penguins',
+				symbol: 'PENGU',
+				protocolId: '6146'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'PENGU',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: {
+				displayName: 'Pudgy Penguins',
+				emissions: true
+			} as IProtocolMetadata,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
+			source: { kind: 'network' }
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('pudgy-penguins')
+		expect(result.outstandingFDV).toBe(99900)
+	})
+
+	it('skips emissions adjusted supply when the resolved slug is absent from the cached emissions list', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Missing Protocol',
+				symbol: 'MISS',
+				protocolId: '9876'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'MISS',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: {
+				displayName: 'Missing Protocol',
+				emissions: true
+			} as IProtocolMetadata,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
+			source: { kind: 'network' }
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('missing-protocol')
+		expect(result.outstandingFDV).toBeNull()
+	})
+
+	it('does not call protocol metrics with a numeric protocol ID when metadata is missing', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Unknown Protocol',
+				symbol: 'MISS',
+				protocolId: '9876'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'MISS',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
+			source: { kind: 'network' }
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).not.toHaveBeenCalled()
+		expect(result.outstandingFDV).toBeNull()
 	})
 
 	it('can limit server-prefetched chart data to only the default price series', async () => {
@@ -547,6 +647,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' },
 			prefetchedCharts: ['Token Price']
 		})
@@ -584,6 +685,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -609,6 +711,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -639,6 +742,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -664,6 +768,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -695,6 +800,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -715,6 +821,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			emissionsSupplyMetrics: emissionsSupplyMetricsFixture,
 			source: { kind: 'network' }
 		})
 
@@ -806,7 +913,7 @@ describe('tokenOverview helpers', () => {
 })
 
 describe('TokenPageHero component', () => {
-	it('renders the token identity, price breakdown, and buy action in the page hero', () => {
+	it('renders the token identity and price breakdown in the page hero', () => {
 		const html = renderToStaticMarkup(
 			<TokenPageHero overview={overviewFixture} logo="https://metadata.example.com/btc.png" />
 		)
@@ -816,7 +923,6 @@ describe('TokenPageHero component', () => {
 		expect(html).toContain('Token Price')
 		expect(html).toContain('All Time High')
 		expect(html).toContain('All Time Low')
-		expect(html).toContain('Buy Now')
 	})
 })
 
@@ -830,10 +936,7 @@ describe('TokenOverviewSection component', () => {
 
 		expect(html).toContain('Bitcoin')
 		expect(html).toContain('(BTC)')
-		expect(html).toContain('Buy Now')
-		expect((html.match(/Buy Now/g) || []).length).toBe(1)
 		expect((html.match(/\(BTC\)/g) || []).length).toBe(1)
-		expect((html.match(/id="token-key-metrics"/g) || []).length).toBe(1)
 		expect(html).toContain('Overview')
 		expect(html).toContain('Key Metrics')
 		expect(html).toContain('Add Metrics')
@@ -842,7 +945,6 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('DEX Volume')
 		expect(html).toContain('Total Raised')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
-		expect(html).toContain('min-h-[360px]')
 		expect(html.indexOf('Market Cap')).toBeLessThan(html.indexOf('Circ. Supply'))
 		expect(html.indexOf('Fully Diluted Valuation')).toBeLessThan(html.indexOf('Circ. Supply'))
 	})
@@ -863,9 +965,10 @@ describe('TokenOverviewSection component', () => {
 			geckoId: 'bitcoin',
 			logo: 'https://metadata.example.com/btc.png'
 		})
+		const text = textFromMarkup(html)
 
-		expect(html).toContain('Undisclosed')
-		expect(html).not.toContain('>$0<')
+		expect(text).toContain('Undisclosed')
+		expect(text).not.toContain('$0')
 		expect(html).toContain('aria-label="Remove $BTC Price"')
 	})
 

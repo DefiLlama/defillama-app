@@ -2,7 +2,7 @@ import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useReducer, useR
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
 import { ChartControls } from '~/containers/LlamaAI/components/charts/ChartControls'
-import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import type { ChartConfiguration, ChartDataByKey, ChartDataSeries } from '~/containers/LlamaAI/types'
 import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
 import { adaptCandlestickData, adaptChartData } from '~/containers/LlamaAI/utils/chartAdapter'
 import {
@@ -24,7 +24,7 @@ const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
 interface ChartRendererProps {
 	charts: ChartConfiguration[]
-	chartData: any[] | Record<string, any[]>
+	chartData: ChartDataSeries | ChartDataByKey
 	isLoading?: boolean
 	hasError?: boolean
 	chartTypes?: string[]
@@ -35,7 +35,7 @@ interface ChartRendererProps {
 
 interface SingleChartProps {
 	config: ChartConfiguration
-	data: any[]
+	data: ChartDataSeries
 	isActive: boolean
 	title?: string
 	sessionId?: string | null
@@ -49,6 +49,7 @@ type ChartAction =
 	| { type: 'SET_GROUPING'; payload: ChartViewState['grouping'] }
 	| { type: 'SET_HALLMARKS'; payload: boolean }
 	| { type: 'SET_LABELS'; payload: boolean }
+	| { type: 'SET_LOG_SCALE'; payload: boolean }
 
 const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewState => {
 	switch (action.type) {
@@ -64,6 +65,8 @@ const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewStat
 			return { ...state, showHallmarks: action.payload }
 		case 'SET_LABELS':
 			return { ...state, showLabels: action.payload }
+		case 'SET_LOG_SCALE':
+			return { ...state, logScale: action.payload }
 		default:
 			return state
 	}
@@ -76,7 +79,8 @@ function createInitialChartState(config: ChartConfiguration): ChartViewState {
 		cumulative: false,
 		grouping: 'day',
 		showHallmarks: true,
-		showLabels: config.displayOptions?.showLabels || false
+		showLabels: config.displayOptions?.showLabels || false,
+		logScale: config.displayOptions?.defaultLogScale || false
 	}
 }
 
@@ -86,12 +90,16 @@ function removeAdaptedChartTitle<T extends AdaptedChartData>(adaptedChart: T): T
 	return { ...adaptedChart, props: restProps } as T
 }
 
-function buildChartPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): ChartRenderPlan {
+function buildChartPresentation(
+	config: ChartConfiguration,
+	data: ChartDataSeries,
+	chartState: ChartViewState
+): ChartRenderPlan {
 	// Pipeline order matters:
 	// adapt base data -> derive intrinsic capabilities -> normalize view state -> transform -> render plan.
 	const baseAdaptedChart = removeAdaptedChartTitle(adaptChartData(config, data))
 	const capabilities = deriveCapabilities(config, baseAdaptedChart)
-	const normalizedState = normalizeViewState(chartState, capabilities, config)
+	const normalizedState = normalizeViewState(chartState, capabilities)
 	const transformedChart = ChartDataTransformer.applyViewState(baseAdaptedChart, normalizedState, capabilities)
 	return buildRenderPlan(config, transformedChart, normalizedState, capabilities)
 }
@@ -199,7 +207,11 @@ function ChartExportButtonsSlot({
 
 type PresentationResult = { ok: true; plan: ChartRenderPlan } | { ok: false; error: unknown }
 
-function tryBuildPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): PresentationResult {
+function tryBuildPresentation(
+	config: ChartConfiguration,
+	data: ChartDataSeries,
+	chartState: ChartViewState
+): PresentationResult {
 	try {
 		return { ok: true, plan: buildChartPresentation(config, data, chartState) }
 	} catch (error) {
@@ -230,6 +242,10 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 	)
 	const handleLabelsChange = useCallback(
 		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
+		[]
+	)
+	const handleLogScaleChange = useCallback(
+		(logScale: boolean) => dispatch({ type: 'SET_LOG_SCALE', payload: logScale }),
 		[]
 	)
 
@@ -279,7 +295,7 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 	const normalizedState = renderPlan.controls.state
 	const exportModel = renderPlan.exportModel
 	const chartTitle = title ?? config.title
-	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
+	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}-${normalizedState.logScale}`
 	const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
 
 	return (
@@ -292,6 +308,7 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 				onGroupingChange={handleGroupingChange}
 				onHallmarksChange={handleHallmarksChange}
 				onLabelsChange={handleLabelsChange}
+				onLogScaleChange={handleLogScaleChange}
 			>
 				<ChartExportButtonsSlot
 					chartInstance={chartInstance}
@@ -308,15 +325,19 @@ function SingleChart({ config, data, isActive, title, sessionId, messageId }: Si
 	)
 }
 
-const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
+const ChartLoadingSpinner = () => <div className="size-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
 const ChartLoadingPlaceholder = ({ chartTypes }: { chartTypes?: string[] }) => (
 	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
 		<p className="text-[#666] dark:text-[#919296]">
-			{chartTypes?.length
-				? `Creating ${chartTypes.join(', ')} visualization${chartTypes.length > 1 ? 's' : ''}...`
-				: 'Creating visualization...'}
+			{chartTypes?.length ? (
+				<>
+					Creating {chartTypes.join(', ')} visualization{chartTypes.length > 1 ? 's' : ''}&hellip;
+				</>
+			) : (
+				<>Creating visualization&hellip;</>
+			)}
 		</p>
 	</div>
 )
@@ -363,6 +384,8 @@ function ChartRendererImpl({
 		if (!el) return
 		let lastWidth = el.getBoundingClientRect().width
 		let timer: ReturnType<typeof setTimeout> | null = null
+		// ECharts instances listen for the shared resize event; debounce container
+		// width changes so side panels and fullscreen toggles do not thrash charts.
 		const observer = new ResizeObserver((entries) => {
 			const w = entries[0]?.contentRect.width ?? 0
 			if (Math.abs(w - lastWidth) < 1) return
@@ -419,17 +442,22 @@ function ChartRendererImpl({
 					))}
 				</div>
 			) : null}
-			{charts.map((chart, index) => (
-				<SingleChart
-					key={chart.id}
-					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
-					isActive={!hasMultipleCharts || activeTabIndex === index}
-					title={chart.title}
-					sessionId={sessionId}
-					messageId={messageId}
-				/>
-			))}
+			{charts.map((chart, index) => {
+				// Backend sessions before the keyed chart-data transition (commit a6035b1)
+				// stored one flat row array. PR #2666 kept this branch load-bearing.
+				const data = Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []
+				return (
+					<SingleChart
+						key={chart.id}
+						config={chart}
+						data={data}
+						isActive={!hasMultipleCharts || activeTabIndex === index}
+						title={chart.title}
+						sessionId={sessionId}
+						messageId={messageId}
+					/>
+				)
+			})}
 		</div>
 	)
 }

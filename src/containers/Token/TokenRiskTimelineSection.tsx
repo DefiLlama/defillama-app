@@ -119,7 +119,7 @@ function TimelineEntry({ entry, matchingAsset }: { entry: RiskTimelineEntry; mat
 						className="inline-flex items-baseline gap-1 hover:underline"
 					>
 						<span>{entry.title}</span>
-						<Icon name="external-link" className="h-3 w-3 shrink-0 translate-y-[2px] text-(--text-tertiary)" />
+						<Icon name="external-link" className="size-3 shrink-0 translate-y-[2px] text-(--text-tertiary)" />
 					</a>
 				) : (
 					<span>{entry.title}</span>
@@ -171,9 +171,9 @@ export function TokenRiskTimelineSection({
 							aria-hidden="true"
 							tabIndex={-1}
 							href={`#${TOKEN_RISK_TIMELINE_SECTION_ID}`}
-							className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+							className="absolute top-0 right-0 z-10 flex size-full items-center"
 						/>
-						<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+						<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 					</h2>
 					<p className="mt-1 max-w-4xl text-sm text-(--text-secondary)">
 						Risk-management actions published about {tokenSymbol} by tracked risk managers and governance contributors,

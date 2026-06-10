@@ -1,316 +1,22 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import {
+	LLAMA_AI_ANIMATION_SRC,
+	LLAMA_AI_HACKER_ANIMATION_SRC
+} from '~/containers/LlamaAI/components/status/LlamaAIAnimationPreloads'
+import { ThinkingPanel } from '~/containers/LlamaAI/components/status/ThinkingPanel'
+import { formatTime } from '~/containers/LlamaAI/components/status/time'
+import {
+	TodoChecklistPanel,
+	deriveTodosFromToolExecutions
+} from '~/containers/LlamaAI/components/status/TodoChecklistPanel'
+import { useCurrentSecond } from '~/containers/LlamaAI/components/status/useCurrentSecond'
+import { useHackerMode } from '~/containers/LlamaAI/components/status/useHackerMode'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
+import { getToolLabel, TOOL_ICONS } from '~/containers/LlamaAI/toolMetadata'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 
-export const TOOL_LABELS: Record<string, string> = {
-	execute_sql: 'Querying database',
-	resolve_entity: 'Resolving entity',
-	load_skill: 'Loading knowledge',
-	generate_chart: 'Generating visualization',
-	generate_image: 'Generating image',
-	web_search: 'Searching the web',
-	x_search: 'Searching X/Twitter',
-	spawn_agent: 'Spawning parallel agents',
-	export_csv: 'Exporting CSV',
-	export_markdown: 'Exporting Markdown',
-	create_alert: 'Creating alert',
-	valyu_search: 'Searching financial data',
-	execute_code: 'Running code',
-	read_url: 'Reading URL',
-	get_polymarket_data: 'Fetching prediction markets',
-	get_wallet_data: 'Fetching wallet data',
-	get_token_data: 'Fetching token data',
-	get_tx_data: 'Fetching transaction data',
-	get_kg_enrichment: 'Enriching knowledge graph',
-	get_feed_enrichment: 'Enriching feed data',
-	get_docs: 'Reading documentation',
-	list_alerts: 'Listing alerts',
-	manage_alert: 'Managing alert',
-	search_adapters: 'Searching adapters',
-	get_adapter_code: 'Reading adapter code',
-	query_logs: 'Querying logs',
-	call_contract: 'Calling contract',
-	get_contract: 'Fetching contract',
-	get_monte_carlo_forecast: 'Running Monte Carlo forecast',
-	get_tsmom: 'Computing momentum signal',
-	get_governance_data: 'Fetching governance data',
-	manage_user_memory: 'Updating memory',
-	flag_capability_gap: 'Flagging capability gap',
-	x_advanced_search: 'Searching X/Twitter',
-	x_get_user: 'Fetching X user profile',
-	x_get_user_by_id: 'Fetching X user profile',
-	x_get_users: 'Fetching X users',
-	x_get_tweets: 'Fetching tweets',
-	x_get_tweet: 'Fetching tweet',
-	x_get_user_tweets: 'Fetching user tweets',
-	x_search_users: 'Searching X users',
-	x_get_followers: 'Fetching X followers',
-	x_get_following: 'Fetching X following',
-	x_get_quote_tweets: 'Fetching quote tweets',
-	x_get_replies: 'Fetching replies',
-	x_get_retweeted_by: 'Fetching retweets',
-	x_get_community: 'Fetching X community',
-	x_get_community_members: 'Fetching community members',
-	x_get_community_posts: 'Fetching community posts',
-	query_allium: 'Querying onchain data',
-	query_dune: 'Querying Dune',
-	x_semantic_search: 'Searching X/Twitter',
-	apollo_org_search: 'Searching organizations',
-	apollo_people_search: 'Searching people',
-	apollo_people_enrich: 'Enriching people data',
-	apollo_org_enrich: 'Enriching org data',
-	clado_linkedin_scrape: 'Scraping LinkedIn profile',
-	clado_contacts_enrich: 'Enriching contact data',
-	feed_enrichment: 'Enriching feed data',
-	generate_dashboard: 'Generating dashboard',
-	dashboard_generation_history: 'Loading dashboard history',
-	load_dashboard: 'Loading dashboard',
-	fetch_ohlcv: 'Fetching price data',
-	fetch_exchange_data: 'Fetching exchange data',
-	get_balance_history: 'Fetching balance history',
-	read_result: 'Reading result',
-	list_results: 'Listing results',
-	x_get_article: 'Reading X article',
-	nansen_smart_money_holdings: 'Fetching smart money holdings',
-	nansen_smart_money_trades: 'Fetching smart money trades',
-	nansen_smart_money_netflow: 'Fetching smart money netflow',
-	nansen_token_screener: 'Screening tokens',
-	nansen_token_holders: 'Fetching token holders',
-	nansen_who_bought_sold: 'Fetching buy/sell data',
-	nansen_flow_intelligence: 'Fetching flow intelligence',
-	nansen_token_trades: 'Fetching token trades',
-	nansen_token_flows: 'Fetching token flows',
-	nansen_pnl_leaderboard: 'Fetching PnL leaderboard',
-	nansen_pm_event_screener: 'Screening prediction events',
-	nansen_pm_market_screener: 'Screening prediction markets',
-	nansen_pm_top_holders: 'Fetching top holders',
-	nansen_pm_trades: 'Fetching market trades',
-	nansen_pm_pnl: 'Fetching market PnL',
-	nansen_pm_ohlcv: 'Fetching market OHLCV'
-}
-
-export const getToolLabel = (name: string): string =>
-	TOOL_LABELS[name] ??
-	name
-		.split('_')
-		.map((word) => (word ? word[0].toUpperCase() + word.slice(1) : word))
-		.join(' ')
-
-export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
-	execute_sql: { icon: 'layers', color: '#6366f1' },
-	resolve_entity: { icon: 'search', color: '#a78bfa' },
-	load_skill: { icon: 'graduation-cap', color: '#34d399' },
-	generate_chart: { icon: 'bar-chart-2', color: '#f59e0b' },
-	generate_image: { icon: 'image-plus', color: '#2172E5' },
-	web_search: { icon: 'earth', color: '#22d3ee' },
-	x_search: { icon: 'twitter', color: '#94a3b8' },
-	spawn_agent: { icon: 'users', color: '#f472b6' },
-	export_csv: { icon: 'sheets', color: '#4ade80' },
-	export_markdown: { icon: 'file-text', color: '#60a5fa' },
-	create_alert: { icon: 'sparkles', color: '#fbbf24' },
-	valyu_search: { icon: 'search', color: '#10b981' },
-	execute_code: { icon: 'code', color: '#8b5cf6' },
-	read_url: { icon: 'earth', color: '#06b6d4' },
-	get_polymarket_data: { icon: 'activity', color: '#ec4899' },
-	get_wallet_data: { icon: 'wallet', color: '#f97316' },
-	get_token_data: { icon: 'dollar-sign', color: '#eab308' },
-	get_tx_data: { icon: 'repeat', color: '#14b8a6' },
-	get_kg_enrichment: { icon: 'layers', color: '#6366f1' },
-	get_feed_enrichment: { icon: 'layers', color: '#8b5cf6' },
-	get_docs: { icon: 'file-text', color: '#22d3ee' },
-	list_alerts: { icon: 'sparkles', color: '#fbbf24' },
-	manage_alert: { icon: 'sparkles', color: '#fbbf24' },
-	search_adapters: { icon: 'search', color: '#a78bfa' },
-	get_adapter_code: { icon: 'code', color: '#a78bfa' },
-	query_logs: { icon: 'file-text', color: '#94a3b8' },
-	call_contract: { icon: 'plug', color: '#6366f1' },
-	get_contract: { icon: 'plug', color: '#6366f1' },
-	get_monte_carlo_forecast: { icon: 'trending-up', color: '#f472b6' },
-	get_tsmom: { icon: 'trending-up', color: '#f59e0b' },
-	get_governance_data: { icon: 'users', color: '#8b5cf6' },
-	manage_user_memory: { icon: 'bookmark', color: '#34d399' },
-	flag_capability_gap: { icon: 'flag', color: '#f43f5e' },
-	x_advanced_search: { icon: 'twitter', color: '#94a3b8' },
-	x_get_user: { icon: 'twitter', color: '#94a3b8' },
-	x_get_user_by_id: { icon: 'twitter', color: '#94a3b8' },
-	x_get_users: { icon: 'twitter', color: '#94a3b8' },
-	x_get_tweets: { icon: 'twitter', color: '#94a3b8' },
-	x_get_tweet: { icon: 'twitter', color: '#94a3b8' },
-	x_get_user_tweets: { icon: 'twitter', color: '#94a3b8' },
-	x_search_users: { icon: 'twitter', color: '#94a3b8' },
-	x_get_followers: { icon: 'twitter', color: '#94a3b8' },
-	x_get_following: { icon: 'twitter', color: '#94a3b8' },
-	x_get_quote_tweets: { icon: 'twitter', color: '#94a3b8' },
-	x_get_replies: { icon: 'twitter', color: '#94a3b8' },
-	x_get_retweeted_by: { icon: 'twitter', color: '#94a3b8' },
-	x_get_community: { icon: 'twitter', color: '#94a3b8' },
-	x_get_community_members: { icon: 'twitter', color: '#94a3b8' },
-	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' },
-	query_allium: { icon: 'layers', color: '#6366f1' },
-	query_dune: { icon: 'layers', color: '#f59e0b' },
-	x_semantic_search: { icon: 'twitter', color: '#94a3b8' },
-	apollo_org_search: { icon: 'search', color: '#8b5cf6' },
-	apollo_people_search: { icon: 'users', color: '#8b5cf6' },
-	apollo_people_enrich: { icon: 'users', color: '#a78bfa' },
-	apollo_org_enrich: { icon: 'search', color: '#a78bfa' },
-	clado_linkedin_scrape: { icon: 'users', color: '#0077b5' },
-	clado_contacts_enrich: { icon: 'users', color: '#0077b5' },
-	feed_enrichment: { icon: 'layers', color: '#8b5cf6' },
-	generate_dashboard: { icon: 'layout-grid', color: '#2563eb' },
-	dashboard_generation_history: { icon: 'layout-grid', color: '#6366f1' },
-	load_dashboard: { icon: 'layout-grid', color: '#6366f1' },
-	fetch_ohlcv: { icon: 'bar-chart-2', color: '#f59e0b' },
-	fetch_exchange_data: { icon: 'bar-chart-2', color: '#f97316' },
-	get_balance_history: { icon: 'wallet', color: '#f97316' },
-	read_result: { icon: 'file-text', color: '#94a3b8' },
-	list_results: { icon: 'file-text', color: '#94a3b8' },
-	x_get_article: { icon: 'twitter', color: '#94a3b8' },
-	nansen_smart_money_holdings: { icon: 'trending-up', color: '#2563eb' },
-	nansen_smart_money_trades: { icon: 'trending-up', color: '#2563eb' },
-	nansen_smart_money_netflow: { icon: 'trending-up', color: '#2563eb' },
-	nansen_token_screener: { icon: 'search', color: '#2563eb' },
-	nansen_token_holders: { icon: 'users', color: '#2563eb' },
-	nansen_who_bought_sold: { icon: 'repeat', color: '#2563eb' },
-	nansen_flow_intelligence: { icon: 'activity', color: '#2563eb' },
-	nansen_token_trades: { icon: 'repeat', color: '#2563eb' },
-	nansen_token_flows: { icon: 'activity', color: '#2563eb' },
-	nansen_pnl_leaderboard: { icon: 'trending-up', color: '#2563eb' },
-	nansen_pm_event_screener: { icon: 'activity', color: '#ec4899' },
-	nansen_pm_market_screener: { icon: 'search', color: '#ec4899' },
-	nansen_pm_top_holders: { icon: 'users', color: '#ec4899' },
-	nansen_pm_trades: { icon: 'repeat', color: '#ec4899' },
-	nansen_pm_pnl: { icon: 'trending-up', color: '#ec4899' },
-	nansen_pm_ohlcv: { icon: 'bar-chart-2', color: '#ec4899' }
-}
-
-let currentSecondSnapshot = Math.floor(Date.now() / 1000)
-const currentSecondListeners = new Set<() => void>()
-let currentSecondIntervalId: number | null = null
-
-function notifyCurrentSecondListeners() {
-	for (const listener of currentSecondListeners) {
-		listener()
-	}
-}
-
-function syncCurrentSecondSnapshot() {
-	const nextSecond = Math.floor(Date.now() / 1000)
-	if (nextSecond === currentSecondSnapshot) return
-	currentSecondSnapshot = nextSecond
-	notifyCurrentSecondListeners()
-}
-
-function subscribeToCurrentSecond(listener: () => void) {
-	currentSecondListeners.add(listener)
-	syncCurrentSecondSnapshot()
-
-	if (currentSecondIntervalId === null && typeof window !== 'undefined') {
-		currentSecondIntervalId = window.setInterval(syncCurrentSecondSnapshot, 1000)
-	}
-
-	return () => {
-		currentSecondListeners.delete(listener)
-		if (currentSecondListeners.size === 0 && currentSecondIntervalId !== null) {
-			window.clearInterval(currentSecondIntervalId)
-			currentSecondIntervalId = null
-		}
-	}
-}
-
-function useCurrentSecond() {
-	return useSyncExternalStore(
-		subscribeToCurrentSecond,
-		() => currentSecondSnapshot,
-		() => currentSecondSnapshot
-	)
-}
-
-function formatTime(seconds: number) {
-	const minutes = Math.floor(seconds / 60)
-	const remainder = seconds % 60
-	return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`
-}
-
-export function useHackerMode() {
-	const [isDark] = useDarkModeManager()
-	const enabled = useLlamaAISetting('hackerMode')
-	return enabled && isDark
-}
-
-export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
-	const detailsRef = useRef<HTMLDetailsElement>(null)
-	const contentRef = useRef<HTMLDivElement>(null)
-	const shouldAutoScrollRef = useRef(true)
-	const hackerMode = useHackerMode()
-
-	const syncAutoScrollIntent = useCallback(() => {
-		const content = contentRef.current
-		if (!content) return
-		shouldAutoScrollRef.current = Math.ceil(content.scrollTop + content.clientHeight) >= content.scrollHeight - 16
-	}, [])
-
-	const scrollContentToBottom = useCallback((force = false) => {
-		requestAnimationFrame(() => {
-			const content = contentRef.current
-			if (!content || (!force && !shouldAutoScrollRef.current)) return
-			content.scrollTop = content.scrollHeight
-			shouldAutoScrollRef.current = true
-		})
-	}, [])
-
-	useEffect(() => {
-		if (defaultOpen && detailsRef.current) {
-			detailsRef.current.open = true
-			scrollContentToBottom(true)
-		}
-	}, [defaultOpen, scrollContentToBottom])
-
-	useEffect(() => {
-		if (detailsRef.current?.open) {
-			scrollContentToBottom()
-		}
-	}, [thinking, scrollContentToBottom])
-
-	if (!thinking) return null
-
-	return (
-		<details
-			ref={detailsRef}
-			className="group"
-			onToggle={() => {
-				if (detailsRef.current?.open) {
-					scrollContentToBottom(true)
-				}
-			}}
-		>
-			<summary
-				className={
-					hackerMode
-						? 'flex items-center gap-1 text-xs text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
-						: 'flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]'
-				}
-			>
-				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
-				<span>{hackerMode ? '> decrypting...' : 'Reasoning'}</span>
-			</summary>
-			<div
-				ref={contentRef}
-				onScroll={syncAutoScrollIntent}
-				className={
-					hackerMode
-						? 'mt-1 h-[160px] min-h-[40px] resize-y overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
-						: 'mt-1 h-[120px] min-h-[40px] resize-y overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
-				}
-				style={hackerMode ? { textShadow: '0 0 8px rgba(0,255,65,0.4)' } : undefined}
-			>
-				{thinking}
-			</div>
-		</details>
-	)
-}
+export { ThinkingPanel, TodoChecklistPanel, deriveTodosFromToolExecutions, useHackerMode }
 
 function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }) {
 	const currentSecond = useCurrentSecond()
@@ -320,24 +26,15 @@ function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }
 
 	return <span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 }
-
-export function TypingIndicator() {
-	return (
-		<div className="flex items-center gap-1.5 py-2">
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:0ms] dark:bg-[#919296]" />
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:150ms] dark:bg-[#919296]" />
-			<span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#666] [animation-delay:300ms] dark:bg-[#919296]" />
-		</div>
-	)
-}
-
 export function ToolProgressIndicator({
 	toolCalls,
 	thinking,
 	isCompacting,
 	spawnProgress,
 	isWaiting,
-	executionStartedAt
+	executionStartedAt,
+	indentForActiveTodo,
+	factCheckPhase
 }: {
 	toolCalls: ToolCall[]
 	thinking?: string
@@ -345,19 +42,27 @@ export function ToolProgressIndicator({
 	spawnProgress?: Map<string, SpawnAgentStatus>
 	isWaiting?: boolean
 	executionStartedAt?: number
+	indentForActiveTodo?: boolean
+	factCheckPhase?: 'drafting' | 'verifying' | 'finalizing' | null
 }) {
 	const hasSpawn = spawnProgress && spawnProgress.size > 0
-	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting
+	const hasActivity =
+		toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting || !!factCheckPhase
 	const hackerMode = useHackerMode()
 
 	if (!hasActivity) return null
 
 	return (
-		<section className="flex gap-3 py-1.5" aria-label="LlamaAI progress">
+		<section
+			className={`flex gap-3 py-1.5 ${indentForActiveTodo ? 'border-l-2 border-[#e6e6e6] pl-4 dark:border-[#222324]' : ''}`}
+			aria-label="LlamaAI progress"
+		>
 			<img
-				src={hackerMode ? '/assets/llamaai/hackerllama.webp' : '/assets/llamaai/llamaai_animation.webp'}
+				src={hackerMode ? LLAMA_AI_HACKER_ANIMATION_SRC : LLAMA_AI_ANIMATION_SRC}
 				alt=""
-				className={`h-16 w-16 shrink-0 ${hackerMode ? 'rounded-lg drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]' : ''}`}
+				className={`size-16 shrink-0 ${hackerMode ? 'rounded-lg drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]' : ''}`}
+				loading="eager"
+				fetchPriority="high"
 			/>
 			<div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
 				<div className="flex flex-col gap-0.5">
@@ -368,7 +73,17 @@ export function ToolProgressIndicator({
 								: 'm-0 text-base font-semibold text-[#555] dark:text-[#919296]'
 						}
 					>
-						{hackerMode ? '> infiltrating mainframe...' : 'LlamaAI is thinking...'}
+						{hackerMode ? (
+							<>{'>'} infiltrating mainframe&hellip;</>
+						) : factCheckPhase === 'drafting' ? (
+							<>Drafting answer&hellip;</>
+						) : factCheckPhase === 'verifying' ? (
+							<>Checking claims&hellip;</>
+						) : factCheckPhase === 'finalizing' ? (
+							<>Preparing verified answer&hellip;</>
+						) : (
+							<>LlamaAI is thinking&hellip;</>
+						)}
 					</p>
 					<ElapsedTimeLabel startedAt={executionStartedAt} />
 				</div>
@@ -382,7 +97,7 @@ export function ToolProgressIndicator({
 							className="shrink-0 animate-pulse opacity-70"
 							style={{ color: '#8b5cf6' }}
 						/>
-						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory...</span>
+						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory&hellip;</span>
 					</p>
 				) : null}
 				{toolCalls.length > 0 ? (
@@ -413,7 +128,7 @@ export function ToolProgressIndicator({
 					<div className="flex flex-col gap-1.5">
 						<p className="m-0 flex items-center gap-2 text-xs font-medium text-[#444] dark:text-[#ccc]">
 							<Icon name="users" height={14} width={14} className="shrink-0 opacity-70" style={{ color: '#f472b6' }} />
-							Working in herd...
+							Working in herd&hellip;
 						</p>
 						<ul className="flex flex-col gap-1 pl-5">
 							{[...spawnProgress!.values()].map((agent) => (
@@ -423,14 +138,14 @@ export function ToolProgressIndicator({
 									) : agent.status === 'error' ? (
 										<span className="text-[10px] text-red-500">✗</span>
 									) : (
-										<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
+										<span className="size-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
 									)}
 									<span className="text-xs text-[#666] dark:text-[#919296]">
 										{agent.id}
 										{agent.status === 'tool_call' && agent.tool ? (
 											<span className="opacity-60"> — {getToolLabel(agent.tool)}</span>
 										) : null}
-										{agent.status === 'thinking' ? <span className="opacity-60"> — Thinking...</span> : null}
+										{agent.status === 'thinking' ? <span className="opacity-60"> — Thinking&hellip;</span> : null}
 										{agent.status === 'completed' ? <span className="opacity-60"> — Done</span> : null}
 									</span>
 								</li>
@@ -448,13 +163,15 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 	startTime,
 	isResearchMode,
 	recovery,
-	onReconnect
+	onReconnect,
+	indentForActiveTodo
 }: {
 	agents: Map<string, SpawnAgentStatus>
 	startTime: number
 	isResearchMode?: boolean
 	recovery?: RecoveryState
 	onReconnect?: () => void
+	indentForActiveTodo?: boolean
 }) {
 	const currentSecond = useCurrentSecond()
 	const elapsed = startTime ? Math.max(0, currentSecond - Math.floor(startTime / 1000)) : 0
@@ -466,7 +183,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 
 	return (
 		<section
-			className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]"
+			className={`flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324] ${indentForActiveTodo ? 'ml-4 border-l-2' : ''}`}
 			aria-label={isResearchMode ? 'Parallel research progress' : 'Herd work progress'}
 		>
 			<button
@@ -474,10 +191,10 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 				onClick={() => setIsExpanded(!isExpanded)}
 				className="flex items-center gap-2 text-left sm:gap-3"
 			>
-				<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
+				<img src={LLAMA_AI_ANIMATION_SRC} alt="" className="size-6 shrink-0" loading="eager" fetchPriority="high" />
 
 				<p className="m-0 flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
-					{isResearchMode ? 'Researching in parallel...' : 'Working in herd...'}
+					{isResearchMode ? <>Researching in parallel&hellip;</> : <>Working in herd&hellip;</>}
 				</p>
 
 				<p className="m-0 flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
@@ -540,7 +257,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 									<line x1="6" y1="6" x2="18" y2="18" />
 								</svg>
 							) : (
-								<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
+								<span className="size-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
 							)}
 							<p className="m-0 text-xs text-[#666] dark:text-[#919296]">
 								{agent.id}
@@ -559,7 +276,10 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 									</span>
 								) : null}
 								{agent.status === 'started' || agent.status === 'thinking' ? (
-									<span className="opacity-60"> - {agent.status === 'thinking' ? 'Thinking...' : 'Starting...'}</span>
+									<span className="opacity-60">
+										{' '}
+										- {agent.status === 'thinking' ? <>Thinking&hellip;</> : <>Starting&hellip;</>}
+									</span>
 								) : null}
 								{agent.status === 'error' ? <span className="opacity-60"> - Error</span> : null}
 							</p>
@@ -585,7 +305,8 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 						<path d="M21 12a9 9 0 1 1-6.219-8.56" />
 					</svg>
 					<p className="m-0 flex-1 text-xs text-amber-700 dark:text-amber-300">
-						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}...
+						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}
+						&hellip;
 					</p>
 					{onReconnect ? (
 						<button

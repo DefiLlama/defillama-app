@@ -67,9 +67,9 @@ export function PinnedPages({ pinnedPages, asPath }: { pinnedPages: Array<TNavLi
 										}}
 									/>
 								}
-								className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) px-1 py-1 text-white group-focus-within:block group-hover:block"
+								className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) p-1 text-white group-focus-within:block group-hover:block"
 							>
-								<Icon name="x" className="h-4 w-4" />
+								<Icon name="x" className="size-4" />
 							</Tooltip>
 						</span>
 					))}

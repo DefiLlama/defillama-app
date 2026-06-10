@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
+import { ResearchIcon } from '~/components/ResearchIcon'
 import {
 	ArticleApiError,
 	listArticles,
@@ -13,15 +14,14 @@ import {
 	type ResearchSearchQuery,
 	useResearchSearchParams
 } from '~/containers/Articles/landing/useResearchSearchParams'
-import { articleHref, formatDate, getArticleBylineAuthorEntries } from '~/containers/Articles/landing/utils'
+import {
+	articleHref,
+	formatDate,
+	getArticleBylineAuthorEntries,
+	readingMinutes
+} from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
-
-function readingMinutes(article: ArticleDocument) {
-	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
-	const words = text ? text.split(/\s+/).length : 0
-	return Math.max(1, Math.ceil(words / 220))
-}
 
 function humanizeTag(tag: string) {
 	return tag.replace(/-/g, ' ')
@@ -76,7 +76,7 @@ function ByLine({ article }: { article: ArticleDocument }) {
 				</span>
 			) : null}
 			{authorEntries?.length ? <span aria-hidden>·</span> : null}
-			<span>{formatDate(article.publishedAt)}</span>
+			<span>{formatDate(article.displayDate ?? article.publishedAt)}</span>
 			<span aria-hidden>·</span>
 			<span>{readingMinutes(article)} min read</span>
 		</div>
@@ -125,7 +125,7 @@ function SearchBar({ searchQuery, routePath }: { searchQuery: ResearchSearchQuer
 			</label>
 			<button
 				type="submit"
-				className="ml-2 inline-flex items-center gap-1 px-1 py-1 font-jetbrains text-[11px] tracking-[0.18em] text-[#237BFF] uppercase transition-colors hover:text-[#0c2956] dark:hover:text-white"
+				className="ml-2 inline-flex items-center gap-1 p-1 font-jetbrains text-[11px] tracking-[0.18em] text-[#237BFF] uppercase transition-colors hover:text-[#0c2956] dark:hover:text-white"
 			>
 				<span>Search</span>
 				<span aria-hidden>→</span>
@@ -184,53 +184,44 @@ function ResultCard({ article }: { article: ArticleDocument }) {
 	const cover = resolveCover(article)
 	const sectionLabel = article.section ? humanizeTag(article.section) : null
 	return (
-		<li>
+		<li className="group relative top-0 grid grid-cols-1 gap-[14px] py-[22px] transition-all duration-200 ease-out hover:top-[-2px] sm:grid-cols-[clamp(180px,28vw,260px)_minmax(0,1fr)] sm:gap-[24px]">
 			<Link
 				href={articleHref(article)}
-				className="group relative top-0 grid grid-cols-1 gap-[14px] py-[22px] transition-all duration-200 ease-out hover:top-[-2px] sm:grid-cols-[clamp(180px,28vw,260px)_minmax(0,1fr)] sm:gap-[24px]"
+				aria-label={article.title}
+				className="relative aspect-[16/10] w-full overflow-hidden rounded-[7.2px] bg-[#0c2956]/5 dark:bg-white/5"
 			>
-				<div className="relative aspect-[16/10] w-full overflow-hidden rounded-[7.2px] bg-[#0c2956]/5 dark:bg-white/5">
-					{cover ? (
-						<img
-							src={cover}
-							alt=""
-							loading="lazy"
-							decoding="async"
-							className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
-						/>
-					) : (
-						<div className="grid h-full w-full place-items-center text-[#0c2956]/20 dark:text-white/20">
-							<svg
-								viewBox="0 0 32 32"
-								className="h-6 w-6"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="1.5"
-								aria-hidden
-							>
-								<path d="M4 10h24v18H4z" />
-								<path d="M9 6h14v4" />
-							</svg>
-						</div>
-					)}
-					{sectionLabel ? (
-						<span className="absolute top-[10px] left-[10px] z-[1]">
-							<ResultBadge>{sectionLabel}</ResultBadge>
-						</span>
-					) : null}
-				</div>
-				<div className="grid content-start gap-[10px]">
+				{cover ? (
+					<img
+						src={cover}
+						alt={article.coverImage?.alt}
+						loading="lazy"
+						decoding="async"
+						className="size-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]"
+					/>
+				) : (
+					<div className="grid size-full place-items-center text-[#0c2956]/20 dark:text-white/20">
+						<ResearchIcon name="research-placeholder" className="size-6" aria-hidden />
+					</div>
+				)}
+				{sectionLabel ? (
+					<span className="absolute top-[10px] left-[10px] z-[1]">
+						<ResultBadge>{sectionLabel}</ResultBadge>
+					</span>
+				) : null}
+			</Link>
+			<div className="grid content-start gap-[10px]">
+				<Link href={articleHref(article)} className="block">
 					<h3 className="text-[19px] leading-[130%] font-semibold tracking-tight text-[#0c2956] transition-colors group-hover:text-[#237BFF] sm:text-[22px] dark:text-white dark:group-hover:text-[#9ec5ff]">
 						{article.title}
 					</h3>
 					{article.excerpt || article.subtitle ? (
-						<p className="line-clamp-2 text-[14px] leading-[150%] text-[#0c2956]/70 dark:text-white/70">
+						<p className="mt-[10px] line-clamp-2 text-[14px] leading-[150%] text-[#0c2956]/70 dark:text-white/70">
 							{article.excerpt || article.subtitle}
 						</p>
 					) : null}
-					<ByLine article={article} />
-				</div>
-			</Link>
+				</Link>
+				<ByLine article={article} />
+			</div>
 		</li>
 	)
 }
@@ -312,18 +303,11 @@ function EmptyState({ query, tag, section }: { query: string; tag: string; secti
 	return (
 		<div className="grid place-items-center px-4 py-20 text-center">
 			<div className="grid max-w-md gap-3">
-				<svg
-					viewBox="0 0 64 64"
-					className="mx-auto h-12 w-12 text-[#0c2956]/25 dark:text-white/25"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
+				<ResearchIcon
+					name="research-search-empty"
+					className="mx-auto size-12 text-[#0c2956]/25 dark:text-white/25"
 					aria-hidden
-				>
-					<circle cx="28" cy="28" r="18" />
-					<line x1="42" y1="42" x2="56" y2="56" strokeLinecap="round" />
-					<line x1="18" y1="28" x2="38" y2="28" strokeLinecap="round" />
-				</svg>
+				/>
 				<h2 className="text-[22px] leading-[130%] font-semibold tracking-tight text-[#0c2956] dark:text-white">
 					{hasFilters ? 'Nothing matches that.' : 'No research yet.'}
 				</h2>

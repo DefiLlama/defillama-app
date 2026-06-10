@@ -1,25 +1,7 @@
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState } from 'react'
-import { normalizeImageHref, type ArticleImageAttrs } from './ArticleImage'
-
-function PhotoIcon({ className = 'h-5 w-5' }: { className?: string }) {
-	return (
-		<svg
-			viewBox="0 0 24 24"
-			className={className}
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="1.5"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-			aria-hidden
-		>
-			<rect x="3" y="3" width="18" height="18" rx="2" />
-			<circle cx="9" cy="9" r="2" />
-			<path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21" />
-		</svg>
-	)
-}
+import { Icon } from '~/components/Icon'
+import { normalizeImageHref, type ArticleImageAttrs } from './ArticleImage.shared'
 
 function ToolbarButton({
 	label,
@@ -52,7 +34,7 @@ function ToolbarButton({
 			{typeof indicator === 'boolean' ? (
 				<span
 					aria-hidden
-					className={`h-1.5 w-1.5 rounded-full transition-colors ${
+					className={`size-1.5 rounded-full transition-colors ${
 						indicator ? 'bg-(--link-text)' : 'bg-(--text-tertiary)/40'
 					}`}
 				/>
@@ -93,11 +75,15 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	}, [attrs.caption])
 
 	useEffect(() => {
-		if (linkOpen) setTimeout(() => linkInputRef.current?.focus(), 0)
+		if (!linkOpen) return
+		const timeout = setTimeout(() => linkInputRef.current?.focus(), 0)
+		return () => clearTimeout(timeout)
 	}, [linkOpen])
 
 	useEffect(() => {
-		if (altOpen) setTimeout(() => altInputRef.current?.focus(), 0)
+		if (!altOpen) return
+		const timeout = setTimeout(() => altInputRef.current?.focus(), 0)
+		return () => clearTimeout(timeout)
 	}, [altOpen])
 
 	useEffect(() => {
@@ -113,7 +99,9 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	}, [attrs.headline])
 
 	useEffect(() => {
-		if (creditOpen) setTimeout(() => headlineInputRef.current?.focus(), 0)
+		if (!creditOpen) return
+		const timeout = setTimeout(() => headlineInputRef.current?.focus(), 0)
+		return () => clearTimeout(timeout)
 	}, [creditOpen])
 
 	const isEditable = editor?.isEditable !== false
@@ -187,7 +175,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 				) : (
 					<div className="flex aspect-[4/3] w-full items-center justify-center bg-(--app-bg) text-(--text-tertiary)">
 						<div className="flex flex-col items-center gap-2">
-							<PhotoIcon className="h-7 w-7" />
+							<Icon name="image-plus" className="size-7" />
 							<span className="text-xs font-medium">{isUploading ? 'Uploading…' : 'Image'}</span>
 						</div>
 					</div>
@@ -446,6 +434,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						ref={captionInputRef}
 						value={captionDraft}
 						onChange={(e) => setCaptionDraft(e.target.value)}
+						aria-label="Image caption"
 						onFocus={() => setCaptionFocused(true)}
 						onBlur={() => {
 							setCaptionFocused(false)

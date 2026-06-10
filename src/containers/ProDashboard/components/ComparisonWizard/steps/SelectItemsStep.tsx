@@ -226,14 +226,14 @@ export function SelectItemsStep() {
 											alt={item.label}
 											width={20}
 											height={20}
-											className="h-5 w-5 rounded-full object-cover"
+											className="size-5 rounded-full object-cover"
 										/>
 									) : null}
 									<span className="whitespace-nowrap text-(--text-primary)">{item.label}</span>
 									<button
 										type="button"
 										onClick={() => handleRemoveItem(item.value)}
-										className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-(--cards-bg-alt) text-(--text-tertiary) transition-colors hover:bg-red-500/20 hover:text-red-500"
+										className="flex size-5 shrink-0 items-center justify-center rounded-full bg-(--cards-bg-alt) text-(--text-tertiary) transition-colors hover:bg-red-500/20 hover:text-red-500"
 									>
 										<Icon name="x" height={12} width={12} />
 									</button>
@@ -284,7 +284,7 @@ export function SelectItemsStep() {
 				<div ref={listRef} className="thin-scrollbar h-[280px] overflow-y-auto bg-(--cards-bg)">
 					{protocolsLoading ? (
 						<div className="flex h-full items-center justify-center">
-							<div className="h-6 w-6 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
+							<div className="size-6 animate-spin rounded-full border-2 border-(--primary) border-t-transparent" />
 						</div>
 					) : filteredOptions.length === 0 ? (
 						<div className="flex h-full flex-col items-center justify-center gap-2 text-(--text-tertiary)">
@@ -327,7 +327,7 @@ export function SelectItemsStep() {
 										}}
 									>
 										<div
-											className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+											className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
 												isSelected
 													? 'border-(--primary) bg-(--primary)'
 													: 'border-(--form-control-border) bg-(--bg-input)'
@@ -341,7 +341,7 @@ export function SelectItemsStep() {
 											alt={option.label}
 											width={24}
 											height={24}
-											className={`h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
+											className={`size-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 												option.isChild ? 'opacity-70' : ''
 											}`}
 										/>

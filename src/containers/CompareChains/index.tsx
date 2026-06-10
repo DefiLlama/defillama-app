@@ -7,12 +7,13 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { Select } from '~/components/Select/Select'
+import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/AdapterMetrics/types'
 import { Stats } from '~/containers/ChainOverview/Stats'
 import type { IChainOverviewData } from '~/containers/ChainOverview/types'
-import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/DimensionAdapters/types'
-import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { buildCompareChainsTvlChartState, type CompareChainsTvlChartState } from './tvlChart'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -47,7 +48,7 @@ type ChainDataResult = {
 }
 
 const getChainData = async (chain: string): Promise<ChainDataResult> => {
-	const { chain: chainData } = (await fetchJson(`/api/cache/chain/${chain}`)) as {
+	const { chain: chainData } = (await fetchJson(`/api/dynamic/cache/chain/${chain}`)) as {
 		chain: {
 			chainOverviewData: IChainOverviewData
 			dexVolumeChart: IAdapterChainOverview['totalDataChart']
@@ -205,10 +206,10 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 	const selectedChainValues = React.useMemo(() => selectedChains.map((chain) => chain.value), [selectedChains])
 
 	const tvlCharts = React.useMemo(() => {
-		const charts: Record<string, TvlChartResult> = {}
+		const charts: Record<string, CompareChainsTvlChartState> = {}
 		for (const chainData of data) {
 			if (!chainData?.chainOverviewData?.tvlChart?.length) continue
-			charts[chainData.chain] = formatTvlChart({
+			charts[chainData.chain] = buildCompareChainsTvlChartState({
 				tvlChart: chainData.chainOverviewData.tvlChart,
 				tvlSettings,
 				extraTvlCharts: chainData.chainOverviewData.extraTvlCharts
@@ -287,70 +288,6 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 			)}
 		</>
 	)
-}
-
-type TvlChartResult = {
-	finalTvlChart: Array<[number, number]>
-	totalValueUSD: number | null
-	valueChange24hUSD: number | null
-	change24h: number | null
-	isGovTokensEnabled?: boolean
-}
-
-const formatTvlChart = ({
-	tvlChart,
-	tvlSettings,
-	extraTvlCharts
-}: {
-	tvlChart: IChainOverviewData['tvlChart']
-	tvlSettings: Record<string, boolean>
-	extraTvlCharts: IChainOverviewData['extraTvlCharts']
-}): TvlChartResult => {
-	const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
-
-	if (toggledTvlSettings.length === 0) {
-		const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)
-		const tvlPrevDay = getPrevTvlFromChart(tvlChart, 1)
-		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
-		const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
-		return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
-	}
-
-	const toggledTvlSettingsSet = new Set(toggledTvlSettings)
-
-	const extraCharts = extraTvlCharts as Record<string, Record<string, number> | undefined>
-	const store: Record<string, number> = {}
-	for (const [date, tvl] of tvlChart) {
-		let sum = tvl
-		for (const toggledTvlSetting of toggledTvlSettings) {
-			sum += extraCharts[toggledTvlSetting]?.[date] ?? 0
-		}
-		store[date] = sum
-	}
-
-	// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
-	const dates: string[] = []
-	for (const date in store) {
-		dates.push(date)
-	}
-	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
-		for (const date of dates) {
-			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
-		}
-	}
-
-	const finalTvlChart: Array<[number, number]> = []
-	dates.sort((a, b) => Number(a) - Number(b))
-	for (const date of dates) {
-		finalTvlChart.push([+date, store[date]])
-	}
-
-	const totalValueUSD = getPrevTvlFromChart(finalTvlChart, 0)
-	const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1)
-	const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
-	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
-	const isGovTokensEnabled = !!tvlSettings?.govtokens
-	return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
 }
 
 function useChainsChartFilterState() {

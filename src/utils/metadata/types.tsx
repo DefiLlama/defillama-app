@@ -35,6 +35,8 @@ export interface IChainMetadata {
 
 export interface IProtocolMetadata {
 	name?: string
+	category?: string
+	parentProtocol?: string
 	tvl?: boolean
 	yields?: boolean
 	forks?: boolean
@@ -90,20 +92,29 @@ export interface ICexItem {
 	auditLink?: string | null
 }
 
+export interface ICategoriesAndTagsConfig {
+	category: string
+	chains?: Array<string>
+	slug?: string
+	dimAgg?: Record<string, Record<string, { '24h'?: number | null; '7d'?: number | null; '30d'?: number | null }>>
+	bridgeAggregators?: boolean
+	dexAggregators?: boolean
+	dexs?: boolean
+	fees?: boolean
+	normalizedVolume?: boolean
+	openInterest?: boolean
+	optionsNotionalVolume?: boolean
+	optionsPremiumVolume?: boolean
+	perps?: boolean
+	perpsAggregators?: boolean
+	revenue?: boolean
+}
+
 export interface ICategoriesAndTags {
 	categories: Array<string>
 	tags: Array<string>
 	tagCategoryMap: Record<string, string>
-	configs: Record<
-		string,
-		{
-			category: string
-			chains?: Array<string>
-			slug?: string
-			dexs?: boolean
-			perps?: boolean
-		}
-	>
+	configs: Record<string, ICategoriesAndTagsConfig>
 }
 
 export interface IRWAList {
@@ -139,6 +150,13 @@ export interface ITokenListEntry {
 	circulating_supply: number | null
 	max_supply: number | null
 }
+
+export interface IEmissionsHistoricalPricePoint {
+	timestamp: number
+	price: number
+}
+
+export type IEmissionsHistoricalPrices = Record<string, { prices: Array<IEmissionsHistoricalPricePoint> }>
 
 export interface IProtocolLlamaswapChain {
 	chain: string

@@ -1,0 +1,70 @@
+#!/usr/bin/env sh
+
+status=0
+staged_files=$(mktemp)
+partially_staged_files=$(mktemp)
+
+trap 'rm -f "$staged_files" "$partially_staged_files"' EXIT HUP INT TERM
+
+git diff --cached --name-only -z --diff-filter=ACMR |
+	xargs -0 sh -c '
+		for file do
+			case "$file" in
+				*.js|*.jsx|*.ts|*.tsx|*.mjs|*.cjs|*.json|*.jsonc|*.css)
+					printf "%s\0" "$file"
+					;;
+			esac
+		done
+	' sh > "$staged_files"
+
+if [ -s "$staged_files" ]; then
+	xargs -0 sh -c '
+		for file do
+			if ! git diff --quiet -- "$file"; then
+				printf "%s\n" "$file"
+			fi
+		done
+	' sh < "$staged_files" > "$partially_staged_files"
+
+	if [ -s "$partially_staged_files" ]; then
+		echo "These staged files also have unstaged changes:"
+		sed 's/^/  /' "$partially_staged_files"
+		echo "Commit, stash, or unstage those changes before committing."
+		exit 1
+	fi
+
+	echo "Formatting staged files..."
+	xargs -0 bunx oxfmt --write -- < "$staged_files" || status=$?
+
+	if [ "$status" -eq 0 ]; then
+		xargs -0 git add -- < "$staged_files" || status=$?
+	fi
+
+	if [ "$status" -eq 0 ]; then
+		echo "Linting staged files..."
+		xargs -0 bunx oxlint --no-error-on-unmatched-pattern -- < "$staged_files" || status=$?
+	fi
+else
+	echo "No staged source files to format or lint."
+fi
+
+if [ "$status" -ne 0 ]; then
+	echo "Pre-commit checks failed."
+	exit "$status"
+fi
+
+echo "Running bun run typecheck and bun run test:typecheck in parallel..."
+
+bun run typecheck &
+typecheck_pid=$!
+
+bun run test:typecheck &
+test_typecheck_pid=$!
+
+wait "$typecheck_pid" || status=$?
+wait "$test_typecheck_pid" || status=$?
+
+if [ "$status" -ne 0 ]; then
+	echo "Pre-commit checks failed."
+	exit "$status"
+fi

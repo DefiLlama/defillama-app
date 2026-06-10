@@ -17,7 +17,7 @@ export const bridgeAggregatorsDatasetColumns: ColumnDef<any>[] = [
 							alt={row.original.name}
 							width={28}
 							height={28}
-							className="h-7 w-7 rounded-full object-cover"
+							className="size-7 rounded-full object-cover"
 							onError={(e) => {
 								e.currentTarget.style.display = 'none'
 							}}

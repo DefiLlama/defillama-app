@@ -569,13 +569,13 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 					<Ariakit.DialogProvider store={metricsDialogStore}>
 						<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 							<span>Add Metrics</span>
-							<Icon name="plus" className="h-3.5 w-3.5" />
+							<Icon name="plus" className="size-3.5" />
 						</Ariakit.DialogDisclosure>
 						<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 							<span className="flex items-center justify-between gap-1">
 								<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 								<Ariakit.DialogDismiss aria-label="Close dialog" className="ml-auto p-2 opacity-50">
-									<Icon name="x" aria-hidden="true" className="h-5 w-5" />
+									<Icon name="x" aria-hidden="true" className="size-5" />
 								</Ariakit.DialogDismiss>
 							</span>
 
@@ -617,9 +617,9 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									>
 										<span>{option.label}</span>
 										{option.active ? (
-											<Icon name="x" aria-hidden="true" className="h-3.5 w-3.5" />
+											<Icon name="x" aria-hidden="true" className="size-3.5" />
 										) : (
-											<Icon name="plus" aria-hidden="true" className="h-3.5 w-3.5" />
+											<Icon name="plus" aria-hidden="true" className="size-3.5" />
 										)}
 									</button>
 								))}
@@ -640,7 +640,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 						style={{ borderColor: TOKEN_OVERVIEW_CHART_COLORS[chart] }}
 					>
 						<span>{getChartLabel(chart, overview.symbol)}</span>
-						<Icon name="x" aria-hidden="true" className="h-3.5 w-3.5" />
+						<Icon name="x" aria-hidden="true" className="size-3.5" />
 					</button>
 				))}
 				<div className="ml-auto">

@@ -1,5 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import * as React from 'react'
+import { getExtraTvlSeriesSign, shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 import { fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
 
 export function useForksOverviewExtraSeries({ enabledExtraApiKeys }: { enabledExtraApiKeys: string[] }) {
@@ -15,8 +16,7 @@ export function useForksOverviewExtraSeries({ enabledExtraApiKeys }: { enabledEx
 	const isFetchingExtraSeries = extraChartQueries.some((query) => query.isLoading || query.isFetching)
 
 	const extraBreakdownByTimestamp = React.useMemo(() => {
-		const shouldSubtractOverlapSeries =
-			enabledExtraApiKeys.includes('doublecounted') && enabledExtraApiKeys.includes('liquidstaking')
+		const shouldSubtractOverlapSeries = shouldSubtractTvlOverlapSeries(enabledExtraApiKeys)
 		const result = new Map<number, Record<string, number>>()
 
 		for (let index = 0; index < extraChartQueries.length; index++) {
@@ -25,9 +25,7 @@ export function useForksOverviewExtraSeries({ enabledExtraApiKeys }: { enabledEx
 			if (!apiKey) continue
 			const data = query.data ?? []
 
-			const normalizedApiKey = apiKey.toLowerCase()
-			const shouldSubtract = normalizedApiKey === 'dcandlsoverlap' && shouldSubtractOverlapSeries
-			const sign = shouldSubtract ? -1 : 1
+			const sign = getExtraTvlSeriesSign({ apiKey, shouldSubtractOverlapSeries })
 
 			for (const row of data) {
 				if (!Number.isFinite(row.timestamp)) continue
@@ -76,8 +74,7 @@ export function useForkByProtocolExtraSeries({
 	const isFetchingExtraSeries = extraChartQueries.some((query) => query.isLoading || query.isFetching)
 
 	const extraTvsByTimestamp = React.useMemo(() => {
-		const shouldSubtractOverlapSeries =
-			enabledExtraApiKeys.includes('doublecounted') && enabledExtraApiKeys.includes('liquidstaking')
+		const shouldSubtractOverlapSeries = shouldSubtractTvlOverlapSeries(enabledExtraApiKeys)
 		const result = new Map<number, number>()
 
 		for (let index = 0; index < extraChartQueries.length; index++) {
@@ -86,9 +83,7 @@ export function useForkByProtocolExtraSeries({
 			if (!apiKey) continue
 			const data = query.data ?? []
 
-			const normalizedApiKey = apiKey.toLowerCase()
-			const shouldSubtract = normalizedApiKey === 'dcandlsoverlap' && shouldSubtractOverlapSeries
-			const sign = shouldSubtract ? -1 : 1
+			const sign = getExtraTvlSeriesSign({ apiKey, shouldSubtractOverlapSeries })
 
 			for (const [timestampInSeconds, value] of data) {
 				if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue

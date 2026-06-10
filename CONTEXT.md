@@ -10,13 +10,13 @@ Dataset cache artifacts are runtime-loaded from disk through the dataset JSON ca
 
 ## Metadata Artifacts
 
-Metadata artifacts are the generated `.cache/*.json` files imported by `src/utils/metadata`. Their filenames, CI stubs, initial runtime cache shape, and refresh application live behind the metadata artifact module so the artifact contract stays in one place.
+Metadata artifacts are the generated `.cache/app-metadata/*.json` files loaded by `src/utils/metadata` at server boot. Their filenames, CI stubs, artifact parsers, initial runtime cache shape, and refresh application live behind the metadata artifact registry so the artifact contract stays in one place.
 
-The metadata manifest is `.cache/metadata-manifest.json`. It records whether the static metadata artifacts are a `ready` pull or a local/CI `stub` set, and replaces the older `.cache/lastPull.json` freshness marker.
+The metadata manifest is `.cache/app-metadata/manifest.json`. It records whether the static metadata artifacts are a `ready` pull or a local/CI `stub` set, and replaces the older `.cache/lastPull.json` freshness marker.
 
-The metadata pull command is a thin command Adapter around metadata artifact publishing. Page ordering, Tasty metrics, upstream source fetching, and local/CI stub policy live in separate Modules so each reason to change stays local.
+The metadata pull command is a thin command Adapter around metadata artifact publishing. Site navigation publishing owns page ordering, Tasty metrics, and trending output separately. Upstream source fetching and local/CI stub policy live in separate Modules so each reason to change stays local.
 
-Metadata artifacts are statically imported and refreshed in memory. Local/CI metadata stubs intentionally demote upstream failures into empty artifacts so contributors can start the dev server without private API access. Dataset cache strict mode goes the other direction: it escalates partial domain build failures when operators need a complete runtime cache.
+Metadata artifacts are the boot snapshot, while runtime refresh keeps each live process current in memory. Runtime refresh accepts parsed backend JSON according to the TypeScript artifact contract before replacing the current cache; failed refreshes keep stale data. Local/CI metadata stubs intentionally demote upstream failures into empty artifacts so contributors can start the dev server without private API access. Dataset cache strict mode goes the other direction: it escalates partial domain build failures when operators need a complete runtime cache.
 
 ## Runtime Domain Modules
 

@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'reac
 import { Icon } from '~/components/Icon'
 import type { TelegramStatus } from '~/containers/LlamaAI/api/telegram'
 import { getIntegrationRowResetKey, IntegrationRow } from '~/containers/LlamaAI/components/IntegrationRow'
+import { SlackIntegrationRow } from '~/containers/LlamaAI/components/SlackIntegrationRow'
 import {
 	type EffortOption,
 	type LlamaAISettings,
@@ -216,7 +217,12 @@ export const SettingsModal = memo(function SettingsModal({
 		void actions.setEnterToSend(!settings.enterToSend)
 	}, [actions, settings.enterToSend])
 
-	const [spendCapDraft, setSpendCapDraft] = useState<string>(settings.spendCapPerMessage.toFixed(2))
+	const handleAdvancedProvenanceToggle = useCallback(() => {
+		trackUmamiEvent('llamaai-advanced-provenance-toggle')
+		void actions.setAdvancedProvenance(!settings.advancedProvenance)
+	}, [actions, settings.advancedProvenance])
+
+	const [spendCapDraft, setSpendCapDraft] = useState<string>(() => settings.spendCapPerMessage.toFixed(2))
 	const lastCommittedSpendCapRef = useRef<number>(settings.spendCapPerMessage)
 
 	useEffect(() => {
@@ -333,8 +339,8 @@ export const SettingsModal = memo(function SettingsModal({
 					<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1853A8]/[0.05] via-transparent to-transparent dark:from-[#4B86DB]/[0.07]" />
 					<div className="relative flex items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5">
 						<div className="flex items-center gap-3">
-							<div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1853A8]/15 to-[#1853A8]/5 ring-1 ring-[#1853A8]/15 ring-inset dark:from-[#4B86DB]/20 dark:to-[#4B86DB]/5 dark:ring-[#4B86DB]/20">
-								<Icon name="settings" className="h-[18px] w-[18px] text-[#1853A8] dark:text-[#4B86DB]" />
+							<div className="relative flex size-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1853A8]/15 to-[#1853A8]/5 ring-1 ring-[#1853A8]/15 ring-inset dark:from-[#4B86DB]/20 dark:to-[#4B86DB]/5 dark:ring-[#4B86DB]/20">
+								<Icon name="settings" className="size-[18px] text-[#1853A8] dark:text-[#4B86DB]" />
 							</div>
 							<div className="flex flex-col leading-tight">
 								<h2 className="m-0 text-[15px] font-semibold tracking-tight text-black dark:text-white">Settings</h2>
@@ -342,7 +348,7 @@ export const SettingsModal = memo(function SettingsModal({
 							</div>
 						</div>
 						<Ariakit.DialogDismiss className="-mr-1.5 rounded-lg p-2 text-[#666] transition-colors hover:bg-black/[0.05] hover:text-black dark:text-gray-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
-							<Icon name="x" className="h-4 w-4" />
+							<Icon name="x" className="size-4" />
 						</Ariakit.DialogDismiss>
 					</div>
 				</header>
@@ -350,7 +356,7 @@ export const SettingsModal = memo(function SettingsModal({
 				<div className="flex flex-col sm:min-h-[480px] sm:flex-row">
 					<nav
 						aria-label="Settings sections"
-						className="flex shrink-0 gap-1 overflow-x-auto border-b border-black/[0.06] px-2 py-2 sm:w-[180px] sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-r sm:border-b-0 sm:bg-black/[0.015] sm:p-3 dark:border-white/[0.05] dark:sm:bg-white/[0.012]"
+						className="flex shrink-0 gap-1 overflow-x-auto border-b border-black/[0.06] p-2 sm:w-[180px] sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-r sm:border-b-0 sm:bg-black/[0.015] sm:p-3 dark:border-white/[0.05] dark:sm:bg-white/[0.012]"
 					>
 						{tabs.map((tab) => {
 							const isActive = activeTab === tab.id
@@ -367,7 +373,7 @@ export const SettingsModal = memo(function SettingsModal({
 								>
 									<Icon
 										name={tab.icon}
-										className={`h-[14px] w-[14px] shrink-0 ${
+										className={`size-[14px] shrink-0 ${
 											isActive ? 'text-[#1853A8] dark:text-[#4B86DB]' : 'text-[#999] dark:text-[#777]'
 										}`}
 									/>
@@ -378,7 +384,7 @@ export const SettingsModal = memo(function SettingsModal({
 					</nav>
 
 					<div className="thin-scrollbar max-h-[calc(88vh-130px)] flex-1 overflow-y-auto sm:max-h-[calc(88vh-81px)]">
-						<div className="px-5 py-5 sm:px-6 sm:py-6">
+						<div className="p-5 sm:p-6">
 							{activeTab === 'persona' && (
 								<div className="space-y-6">
 									<div>
@@ -455,6 +461,13 @@ export const SettingsModal = memo(function SettingsModal({
 											}
 											checked={settings.enterToSend}
 											onClick={handleEnterToSendToggle}
+										/>
+										<RowDivider />
+										<ToggleRow
+											label="Advanced provenance details"
+											description="Show the raw query behind a citation by default when you open its sources."
+											checked={settings.advancedProvenance}
+											onClick={handleAdvancedProvenanceToggle}
 										/>
 										{notifSupported ? (
 											<>
@@ -582,15 +595,21 @@ export const SettingsModal = memo(function SettingsModal({
 											</div>
 										</div>
 									) : (
-										<IntegrationRow
-											key={getIntegrationRowResetKey(initialState?.tgloginToken, telegramStatus)}
-											kind="telegram"
-											title="Telegram"
-											description="Chat with LlamaAI and receive alerts in your Telegram DMs."
-											initialStatus={telegramStatus}
-											initialTgloginToken={initialState?.tgloginToken ?? null}
-											onInitialStateConsumed={onInitialStateConsumed}
-										/>
+										<div className="flex flex-col gap-3">
+											<IntegrationRow
+												key={getIntegrationRowResetKey(initialState?.tgloginToken, telegramStatus)}
+												kind="telegram"
+												title="Telegram"
+												description="Chat with LlamaAI and receive alerts in your Telegram DMs."
+												initialStatus={telegramStatus}
+												initialTgloginToken={initialState?.tgloginToken ?? null}
+												onInitialStateConsumed={onInitialStateConsumed}
+											/>
+											<SlackIntegrationRow
+												title="Slack"
+												description="Receive scheduled alerts in your Slack channels. Multi-workspace supported."
+											/>
+										</div>
 									)}
 								</div>
 							)}
@@ -616,7 +635,7 @@ export const SettingsModal = memo(function SettingsModal({
 											</div>
 										) : null}
 										<div className="relative flex items-center gap-3">
-											<img src="/assets/llamaai/hackerllama.webp" alt="" className="h-11 w-11 rounded-lg shadow-sm" />
+											<img src="/assets/llamaai/hackerllama.webp" alt="" className="size-11 rounded-lg shadow-sm" />
 											<div className="flex flex-col gap-0.5">
 												<p
 													className={`m-0 text-sm font-medium ${
@@ -638,7 +657,7 @@ export const SettingsModal = memo(function SettingsModal({
 											}`}
 										>
 											<div
-												className={`absolute top-[3px] h-4 w-4 rounded-full shadow transition-transform duration-200 ${
+												className={`absolute top-[3px] size-4 rounded-full shadow transition-transform duration-200 ${
 													settings.hackerMode ? 'translate-x-[19px] bg-[#0d0d0d]' : 'translate-x-[3px] bg-white'
 												}`}
 											/>
@@ -708,7 +727,7 @@ function ToggleRow({
 				}`}
 			>
 				<div
-					className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+					className={`absolute top-[3px] size-4 rounded-full bg-white shadow transition-transform duration-200 ${
 						checked ? 'translate-x-[19px]' : 'translate-x-[3px]'
 					}`}
 				/>
@@ -746,7 +765,7 @@ function SelectField({
 				</select>
 				<Icon
 					name="chevron-down"
-					className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[#999] dark:text-[#666]"
+					className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#999] dark:text-[#666]"
 				/>
 			</div>
 		</div>

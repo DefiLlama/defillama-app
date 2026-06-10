@@ -35,11 +35,23 @@ const WalletSignInButton = dynamic<WalletSignInButtonProps>(
 
 /* ── Dialog entry point ─────────────────────────────────────────────── */
 
-export function SignInDialog({ store }: { store: Ariakit.DialogStore }) {
+export function SignInDialog({
+	store,
+	initialStep,
+	suppressVerifyEmailPrompt
+}: {
+	store: Ariakit.DialogStore
+	initialStep?: 'signin' | 'signup'
+	suppressVerifyEmailPrompt?: boolean
+}) {
 	return (
 		<Ariakit.Dialog store={store} className={signInDialogCls} unmountOnHide>
 			<div>
-				<SignInFlow dialogStore={store} />
+				<SignInFlow
+					dialogStore={store}
+					initialStep={initialStep}
+					suppressVerifyEmailPrompt={suppressVerifyEmailPrompt}
+				/>
 			</div>
 		</Ariakit.Dialog>
 	)
@@ -47,8 +59,16 @@ export function SignInDialog({ store }: { store: Ariakit.DialogStore }) {
 
 /* ── Multi-step flow ───────────────────────────────────────────────── */
 
-export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
-	const [step, setStep] = useState<Step>('signin')
+export function SignInFlow({
+	dialogStore,
+	initialStep = 'signin',
+	suppressVerifyEmailPrompt
+}: {
+	dialogStore: Ariakit.DialogStore
+	initialStep?: 'signin' | 'signup'
+	suppressVerifyEmailPrompt?: boolean
+}) {
+	const [step, setStep] = useState<Step>(initialStep)
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
@@ -94,7 +114,9 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 		}
 		if (!turnstileToken) return
 		try {
-			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails)
+			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails, undefined, {
+				suppressVerifyEmailPrompt
+			})
 			setTurnstileToken('')
 			dialogStore.hide()
 		} catch (err: any) {
@@ -131,7 +153,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 	const header = (
 		<div className="mb-5 flex items-center justify-between">
 			<div className="flex items-center gap-2">
-				<img src="/assets/logo_white.webp" alt="" className="h-7 w-7" />
+				<img src="/assets/logo_white.webp" alt="" className="size-7" />
 				<span className="text-sm font-semibold text-(--text-primary)">DefiLlama</span>
 			</div>
 			<Ariakit.DialogDismiss className="rounded-full p-1 text-(--text-tertiary) transition-colors hover:text-(--text-primary)">
@@ -319,7 +341,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 					<label className="flex items-start gap-2">
 						<input
 							type="checkbox"
-							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-(--primary)"
+							className="mt-0.5 size-4 shrink-0 rounded accent-(--primary)"
 							checked={acceptedTerms}
 							onChange={(e) => setAcceptedTerms(e.target.checked)}
 						/>
@@ -338,7 +360,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 					<label className="flex items-start gap-2">
 						<input
 							type="checkbox"
-							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-(--primary)"
+							className="mt-0.5 size-4 shrink-0 rounded accent-(--primary)"
 							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>

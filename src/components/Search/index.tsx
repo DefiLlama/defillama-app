@@ -61,7 +61,7 @@ export const MobileSearch = () => {
 				data-umami-event="llamaai-mobile-nav-link"
 				data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
 			>
-				<svg className="h-4 w-4 shrink-0">
+				<svg className="size-4 shrink-0">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 				<span className="sr-only">{isClient && shouldSkipLanding ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
@@ -92,7 +92,7 @@ export const MobileSearch = () => {
 								className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base focus:ring-(--primary) dark:bg-black"
 							/>
 							<Ariakit.DialogDismiss className="p-2">
-								<Icon name="x" className="h-5 w-5" />
+								<Icon name="x" className="size-5" />
 							</Ariakit.DialogDismiss>
 						</span>
 
@@ -304,7 +304,7 @@ export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boo
 					data-umami-event="llamaai-nav-link"
 					data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
 				>
-					<svg className="h-4 w-4 shrink-0">
+					<svg className="size-4 shrink-0">
 						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 					<span className="whitespace-nowrap">{isClient && shouldSkipLanding ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
@@ -326,7 +326,7 @@ const SearchItem = ({
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex flex-wrap items-center gap-2 px-2 py-2 outline-hidden cv-auto-40 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
+			className="flex flex-wrap items-center gap-2 p-2 outline-hidden cv-auto-40 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
 			render={
 				<BasicLink
 					href={route.route}
@@ -347,9 +347,9 @@ const SearchItem = ({
 			hideOnClick
 		>
 			{route.logo ? (
-				<img src={route.logo} alt={route.name} className="h-6 w-6 rounded-full" loading="lazy" />
+				<img src={route.logo} alt={route.name} className="size-6 rounded-full" loading="lazy" />
 			) : (
-				<Icon name="file-text" className="h-6 w-6" />
+				<Icon name="file-text" className="size-6" />
 			)}
 			<span>{route.name}</span>
 			{route.subName ? (
@@ -374,7 +374,7 @@ const SeeMoreButton = ({ isLoading, onClick }: { isLoading: boolean; onClick: ()
 			type="button"
 			onClick={onClick}
 			disabled={isLoading}
-			className="flex w-full items-center justify-center gap-1 px-2 py-2 text-sm text-(--link-text) hover:bg-(--link-bg) disabled:opacity-60 lg:px-4"
+			className="flex w-full items-center justify-center gap-1 p-2 text-sm text-(--link-text) hover:bg-(--link-bg) disabled:opacity-60 lg:px-4"
 		>
 			{isLoading ? (
 				<>

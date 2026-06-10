@@ -1,4 +1,4 @@
-import type { SortingState } from '@tanstack/react-table'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 
 export interface IYieldTableRow {
 	rewardMeta?: string
@@ -69,12 +69,56 @@ export interface IYieldsProjectsTableRow {
 	airdrop?: boolean
 }
 
-export interface IYieldsTableProps {
-	data: Array<IYieldTableRow>
+export interface YieldPoolTableRow extends IYieldTableRow {}
+
+export interface YieldBorrowTableRow extends Pick<
+	IYieldTableRow,
+	| 'pool'
+	| 'configID'
+	| 'projectslug'
+	| 'project'
+	| 'airdrop'
+	| 'raiseValuation'
+	| 'chains'
+	| 'apyBase'
+	| 'apyReward'
+	| 'apyBorrow'
+	| 'apyBaseBorrow'
+	| 'apyRewardBorrow'
+	| 'totalSupplyUsd'
+	| 'totalBorrowUsd'
+	| 'totalAvailableUsd'
+	| 'url'
+	| 'ltv'
+	| 'rewardTokensSymbols'
+	| 'rewards'
+	| 'tvl'
+	| 'apy'
+	| 'change1d'
+	| 'change7d'
+	| 'confidence'
+	| 'category'
+	| 'strikeTvl'
+> {}
+
+export interface YieldLoopTableRow extends YieldBorrowTableRow {
+	loopApy?: number | null
+	netSupplyApy?: number | null
+	boost?: number | null
+}
+
+export interface IYieldsTableProps<TRow = IYieldTableRow> {
+	data: Array<TRow>
 	enablePagination?: boolean
 	initialPageSize?: number
 	initialPageIndex?: number
+	rowCount?: number
+	manualPagination?: boolean
+	manualSorting?: boolean
+	serverMode?: boolean
+	paginationState?: PaginationState
 	sortingState?: SortingState
+	onPaginationChange?: (paginationState: PaginationState) => void
 	onSortingChange?: (sortingState: SortingState) => void
 	interactionDisabled?: boolean
 }
@@ -97,19 +141,50 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 	borrowAmount: number
 }
 
-export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
+export interface YieldStrategyTableRow {
 	strategy?: string
-	totalApy?: number | null
-	delta?: number | null
-	strategyAPY?: number | null
-	fr8hCurrent?: number | string | null
-	fundingRate7dAverage?: number | string | null
+	symbol: string
+	pool: string
+	project: string
+	projectName: string
+	airdrop?: boolean
+	raiseValuation?: number | null
+	chains: string[]
+	url: string
+	apy?: number | null
+	borrow: {
+		pool: string
+		symbol: string
+		apyBorrow?: number | null
+		totalAvailableUsd?: number | null
+	}
 	farmPool: string
 	farmSymbol: string
 	farmTvlUsd: number
 	farmProjectName: string
-	farmChain: Array<string>
-	farmApy: number
+	farmApy: number | null
+	totalApy?: number | null
+	delta?: number | null
+	ltv?: number | null
+	strikeTvl?: boolean
+	borrowAvailableUsd?: number | null
+}
+
+export interface YieldLongShortStrategyTableRow {
+	strategy?: string
+	symbol: string
+	pool: string
+	project: string
+	projectName: string
+	airdrop?: boolean
+	raiseValuation?: number | null
+	chains: string[]
+	url: string
+	apy?: number | null
+	strikeTvl?: boolean
+	strategyAPY?: number | null
+	fr8hCurrent?: number | string | null
+	fundingRate7dAverage?: number | string | null
 	symbolPerp: string
 	openInterest: number
 	tvlUsd: number
@@ -119,3 +194,8 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	afr30d: number
 	indexPrice: number
 }
+
+export type IYieldsStrategyTableRow = YieldStrategyTableRow | YieldLongShortStrategyTableRow
+
+export interface YieldOptimizerTableRow extends IYieldsOptimizerTableRow {}
+export interface YieldProjectTableRow extends IYieldsProjectsTableRow {}

@@ -4,10 +4,12 @@ import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 import { fetchJson } from '../async'
 import { fetchWithPoolingOnServer } from '../http-client'
 import {
+	addRouteTelemetryAttributes,
 	buildStaticRouteRequestPath,
 	flushTelemetry,
 	recordDomainEvent,
 	recordTelemetry,
+	runOutsideRouteTelemetry,
 	staticRouteTelemetryAttributes,
 	telemetryTest,
 	withApiRouteTelemetry,
@@ -16,6 +18,17 @@ import {
 	withStaticRouteTelemetry,
 	type TelemetryEvent
 } from '../telemetry'
+
+const axiomMock = vi.hoisted(() => {
+	const ingest = vi.fn(async (_dataset: string, _events: Record<string, unknown>[]) => undefined)
+	const flush = vi.fn(async () => undefined)
+	const Axiom = vi.fn(function () {
+		return { ingest, flush }
+	})
+	return { Axiom, ingest, flush }
+})
+
+vi.mock('@axiomhq/js', () => ({ Axiom: axiomMock.Axiom }))
 
 function runtimeError(message: string): TelemetryEvent {
 	return {
@@ -51,6 +64,11 @@ function sentEvents(fetchMock: ReturnType<typeof vi.fn>): TelemetryEvent[] {
 	return batches.flatMap((batch) => batch.events)
 }
 
+async function flushPromises() {
+	await Promise.resolve()
+	await Promise.resolve()
+}
+
 function ssrContext(path: string, statusCode = 200, params?: Record<string, string>, query?: Record<string, string>) {
 	return {
 		req: { method: 'GET' },
@@ -80,6 +98,9 @@ describe('telemetry client', () => {
 		telemetryTest.reset()
 		vi.unstubAllEnvs()
 		vi.unstubAllGlobals()
+		axiomMock.Axiom.mockClear()
+		axiomMock.ingest.mockClear()
+		axiomMock.flush.mockClear()
 	})
 
 	it('drops oldest queued events when the queue cap is exceeded', async () => {
@@ -104,6 +125,52 @@ describe('telemetry client', () => {
 		expect(firstInit.headers).toMatchObject({
 			Authorization: 'Bearer secret',
 			'Idempotency-Key': expect.any(String)
+		})
+	})
+
+	it('uses the Coolify source commit as the producer service version', async () => {
+		vi.stubEnv('GITHUB_SHA', 'github-sha')
+		vi.stubEnv('SOURCE_COMMIT', 'coolify-sha')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordTelemetry(runtimeError('versioned event'))
+		await flushTelemetry({ runtime: 'build', timeoutMs: 1000 })
+
+		expect(sentBatch(fetchMock).producer).toMatchObject({
+			app: 'defillama-app',
+			runtime: 'build',
+			serviceVersion: 'coolify-sha'
+		})
+		expect(sentEvents(fetchMock)[0]?.attributes).toMatchObject({
+			telemetry_target_id: 'defillama'
+		})
+	})
+
+	it('skips blank source commit env vars in producer service version fallback', async () => {
+		vi.stubEnv('GITHUB_SHA', 'github-sha')
+		vi.stubEnv('SOURCE_COMMIT', '')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordTelemetry(runtimeError('versioned event'))
+		await flushTelemetry({ runtime: 'build', timeoutMs: 1000 })
+
+		expect(sentBatch(fetchMock).producer).toMatchObject({
+			serviceVersion: 'github-sha'
+		})
+	})
+
+	it('uses the configured telemetry target id on emitted events', async () => {
+		vi.stubEnv('OPS_TELEMETRY_TARGET_ID', 'defillama-ayo3')
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordDomainEvent('metadata.refresh', 'info', 'runtime_loop', 'Metadata refresh completed')
+		await flushTelemetry({ timeoutMs: 1000 })
+
+		expect(sentEvents(fetchMock)[0]?.attributes).toMatchObject({
+			telemetry_target_id: 'defillama-ayo3'
 		})
 	})
 
@@ -172,6 +239,94 @@ describe('telemetry client', () => {
 		expect(ticks[1]).toMatchObject({ parent_span_id: routes[1].span_id, route: '/second' })
 	})
 
+	it('records static notFound results as successful 404s with reasons', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry(
+			'protocol/[protocol]',
+			async () => {
+				addRouteTelemetryAttributes({ not_found_reason: 'unknown_protocol_slug', protocol_slug: 'missing' })
+				return { notFound: true }
+			},
+			staticRouteTelemetryAttributes({ protocol: 'missing' }),
+			buildStaticRouteRequestPath('protocol/[protocol]', { protocol: 'missing' })
+		)
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution')
+		const tick = events.find((event) => event.type === 'page_build_finish_tick')
+
+		expect(route).toMatchObject({
+			route: 'protocol/[protocol]',
+			request_path: '/protocol/missing',
+			status: 'success',
+			http_status: 404,
+			attributes: {
+				params: { protocol: 'missing' },
+				result: 'not_found',
+				not_found_reason: 'unknown_protocol_slug',
+				protocol_slug: 'missing'
+			}
+		})
+		expect(tick).toMatchObject({
+			route: 'protocol/[protocol]',
+			status: 'success',
+			attributes: {
+				params: { protocol: 'missing' },
+				result: 'not_found',
+				not_found_reason: 'unknown_protocol_slug',
+				protocol_slug: 'missing'
+			}
+		})
+	})
+
+	it('merges dimension route attributes into failed route and runtime telemetry', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(
+			withStaticRouteTelemetry(
+				'DEX Volume/chain/[chain]',
+				async () => {
+					addRouteTelemetryAttributes({
+						adapter_type: 'dexs',
+						data_type: 'dailyVolume',
+						chain: 'Litecoin',
+						canonical_route: '/dexs/chain/[chain]',
+						metadata_flag: 'dexs'
+					})
+					throw new Error('backend contract failed')
+				},
+				staticRouteTelemetryAttributes({ chain: 'litecoin' }),
+				'/dexs/chain/litecoin'
+			)
+		).rejects.toThrow('backend contract failed')
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution')
+		const runtimeFailure = events.find((event) => event.type === 'runtime_error')
+		const dimensionAttributes = {
+			adapter_type: 'dexs',
+			data_type: 'dailyVolume',
+			chain: 'Litecoin',
+			canonical_route: '/dexs/chain/[chain]',
+			metadata_flag: 'dexs'
+		}
+
+		expect(route).toMatchObject({
+			route: 'DEX Volume/chain/[chain]',
+			request_path: '/dexs/chain/litecoin',
+			status: 'error',
+			attributes: expect.objectContaining(dimensionAttributes)
+		})
+		expect(runtimeFailure).toMatchObject({
+			route: 'DEX Volume/chain/[chain]',
+			phase: 'getStaticProps',
+			attributes: expect.objectContaining(dimensionAttributes)
+		})
+	})
+
 	it('marks large page build finish gaps', async () => {
 		vi.useFakeTimers()
 		vi.setSystemTime(new Date('2026-04-27T00:00:00.000Z'))
@@ -199,6 +354,19 @@ describe('telemetry client', () => {
 		const success = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ props: { id: 'abc' } }))
 		await success(ssrContext('/ssr/abc?tab=one', 202, { id: 'abc' }, { id: 'abc', tab: 'one' }))
 
+		const notFound = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ notFound: true }))
+		await notFound(ssrContext('/ssr/missing', 200, { id: 'missing' }, { id: 'missing' }))
+
+		const redirect = withServerSidePropsTelemetry('/ssr/redirect', async () => ({
+			redirect: { destination: '/next', permanent: true }
+		}))
+		await redirect(ssrContext('/ssr/redirect'))
+
+		const temporaryRedirect = withServerSidePropsTelemetry('/ssr/temporary-redirect', async () => ({
+			redirect: { destination: '/next', statusCode: 302 }
+		}))
+		await temporaryRedirect(ssrContext('/ssr/temporary-redirect'))
+
 		const failure = withServerSidePropsTelemetry('/ssr/error', async () => {
 			throw new Error('ssr failed')
 		})
@@ -206,6 +374,13 @@ describe('telemetry client', () => {
 
 		const events = sentEvents(fetchMock)
 		const successRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/[id]')
+		const notFoundRoute = events.find(
+			(event) => event.type === 'route_execution' && event.route === '/ssr/[id]' && event.http_status === 404
+		)
+		const redirectRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/redirect')
+		const temporaryRedirectRoute = events.find(
+			(event) => event.type === 'route_execution' && event.route === '/ssr/temporary-redirect'
+		)
 		const errorRoute = events.find((event) => event.type === 'route_execution' && event.route === '/ssr/error')
 		const ssrRuntimeError = events.find((event) => event.type === 'runtime_error' && event.route === '/ssr/error')
 
@@ -215,6 +390,23 @@ describe('telemetry client', () => {
 			http_status: 202,
 			status: 'success',
 			attributes: { params: { id: 'abc' }, query: { id: 'abc', tab: 'one' }, props_bytes: 12 }
+		})
+		expect(notFoundRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			request_path: '/ssr/missing',
+			http_status: 404,
+			status: 'success',
+			attributes: { params: { id: 'missing' }, query: { id: 'missing' } }
+		})
+		expect(redirectRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			http_status: 308,
+			status: 'success'
+		})
+		expect(temporaryRedirectRoute).toMatchObject({
+			operation_type: 'getServerSideProps',
+			http_status: 302,
+			status: 'success'
 		})
 		expect(errorRoute).toMatchObject({
 			operation_type: 'getServerSideProps',
@@ -343,6 +535,38 @@ describe('telemetry client', () => {
 		})
 	})
 
+	it('records build and metadata marker domain events outside route traces', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		recordDomainEvent('build.complete', 'info', 'main', 'Build completed on main', {
+			branch: 'main',
+			commit_sha: 'abcdef123456'
+		})
+		recordDomainEvent('metadata.refresh', 'info', 'runtime_loop', 'Metadata refresh completed', {
+			duration_ms: 250,
+			source: 'runtime_loop'
+		})
+		await flushTelemetry({ timeoutMs: 1000 })
+
+		expect(sentEvents(fetchMock)).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					event_name: 'build.complete',
+					level: 'info',
+					message: 'Build completed on main',
+					subject: 'main'
+				}),
+				expect.objectContaining({
+					event_name: 'metadata.refresh',
+					level: 'info',
+					message: 'Metadata refresh completed',
+					subject: 'runtime_loop'
+				})
+			])
+		)
+	})
+
 	it('links outbound fetch events to the active route span', async () => {
 		const fetchMock = vi.fn(async (url: string) => {
 			if (url === 'https://api.llama.fi/test') {
@@ -390,6 +614,96 @@ describe('telemetry client', () => {
 			attributes: { api_group: 'api.llama.fi/test', response_bytes: 11 }
 		})
 		expect(outbound).not.toHaveProperty('apiGroup')
+	})
+
+	it('records custom outbound telemetry attributes', async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === 'https://api.llama.fi/v2/chart/dexs/chain/litecoin?dataType=dailyVolume') {
+				return new Response('[]', {
+					status: 200,
+					headers: { 'content-length': '2' }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withRouteTelemetry(
+			{
+				route: 'DEX Volume/chain/[chain]',
+				operationType: 'getStaticProps',
+				runtime: 'build',
+				flushTimeoutMs: 1000
+			},
+			async () => {
+				await fetchWithPoolingOnServer('https://api.llama.fi/v2/chart/dexs/chain/litecoin?dataType=dailyVolume', {
+					timeout: 1234,
+					telemetry: {
+						attributes: {
+							adapter_type: 'dexs',
+							data_type: 'dailyVolume',
+							chain: 'Litecoin'
+						}
+					}
+				})
+				return 'ok'
+			}
+		)
+
+		const outbound = sentEvents(fetchMock).find((event) => event.type === 'outbound_http_request')
+
+		expect(outbound).toMatchObject({
+			type: 'outbound_http_request',
+			attributes: {
+				adapter_type: 'dexs',
+				api_group: 'api.llama.fi/v2/chart/dexs/chain/litecoin',
+				chain: 'Litecoin',
+				data_type: 'dailyVolume',
+				response_bytes: 2
+			}
+		})
+	})
+
+	it('does not record malformed outbound content-length values as response bytes', async () => {
+		const responseHeadersByUrl = new Map([
+			['https://api.llama.fi/negative-length', '-1'],
+			['https://api.llama.fi/decimal-length', '1.5'],
+			['https://api.llama.fi/nan-length', 'not-a-number']
+		])
+		const fetchMock = vi.fn(async (url: string) => {
+			const contentLength = responseHeadersByUrl.get(url)
+			if (contentLength) {
+				return new Response('{}', {
+					status: 200,
+					headers: { 'content-length': contentLength }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withRouteTelemetry(
+			{
+				route: 'malformed-content-length-route',
+				operationType: 'apiRoute',
+				runtime: 'node',
+				flushTimeoutMs: 1000
+			},
+			async () => {
+				for (const url of responseHeadersByUrl.keys()) {
+					await fetchWithPoolingOnServer(url)
+				}
+				return 'ok'
+			}
+		)
+
+		const outbound = sentEvents(fetchMock).filter((event) => event.type === 'outbound_http_request')
+		expect(outbound).toHaveLength(3)
+		for (const event of outbound) {
+			expect(event.attributes).not.toHaveProperty('response_bytes')
+		}
 	})
 
 	it('resolves relative server fetch URLs before pooling and telemetry', async () => {
@@ -661,6 +975,30 @@ describe('telemetry client', () => {
 		}
 	})
 
+	it('does not link outbound spans started outside route telemetry', async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.startsWith('https://api.llama.fi/')) return new Response('{}', { status: 200 })
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry('/detached-page', async () => {
+			await fetchWithPoolingOnServer('https://api.llama.fi/attached')
+			await runOutsideRouteTelemetry(() => fetchWithPoolingOnServer('https://api.llama.fi/detached'))
+			return { props: {} }
+		})
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution' && event.route === '/detached-page')
+		const outbounds = events.filter((event) => event.type === 'outbound_http_request')
+		expect(outbounds).toHaveLength(1)
+		expect(outbounds[0]).toMatchObject({
+			trace_id: route?.trace_id,
+			parent_span_id: route?.span_id,
+			url: 'https://api.llama.fi/attached'
+		})
+	})
+
 	it('records retry attempt metadata for each outbound fetch attempt', async () => {
 		let upstreamCalls = 0
 		const fetchMock = vi.fn(async (url: string) => {
@@ -720,5 +1058,58 @@ describe('telemetry client', () => {
 				singleflight_role: 'leader'
 			}
 		})
+	})
+
+	it('logs completed outbound responses to Axiom without an active route context', async () => {
+		vi.stubEnv('AXIOM_TOKEN', 'axiom-token')
+		vi.stubEnv('API_KEY', 'pro-secret')
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === 'https://pro-api.llama.fi/pro-secret/api/v2/chains?api_key=leaky') {
+				return new Response('fail', {
+					status: 500,
+					headers: { 'content-length': '4' }
+				})
+			}
+
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await fetchWithPoolingOnServer('https://pro-api.llama.fi/pro-secret/api/v2/chains?api_key=leaky')
+
+		await vi.waitFor(() => {
+			expect(axiomMock.ingest).toHaveBeenCalledWith('frontend-requests', [
+				expect.objectContaining({
+					source: 'app',
+					domain: 'pro-api.llama.fi',
+					section: 'api',
+					subRoute: 'chains',
+					method: 'GET',
+					responseBytes: 4,
+					httpStatus: 500,
+					status: 'http_error'
+				})
+			])
+		})
+		const ingestCall = axiomMock.ingest.mock.calls[0]
+		if (!ingestCall) throw new Error('missing Axiom ingest call')
+		const event = ingestCall[1][0]
+		expect(event).not.toHaveProperty('url')
+		expect(JSON.stringify(event)).not.toContain('pro-secret')
+		expect(JSON.stringify(event)).not.toContain('leaky')
+		expect(JSON.stringify(event)).not.toContain('[REDACTED]')
+	})
+
+	it('does not log thrown outbound failures to Axiom', async () => {
+		vi.stubEnv('AXIOM_TOKEN', 'axiom-token')
+		const fetchMock = vi.fn(async () => {
+			throw new TypeError('network down')
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(fetchWithPoolingOnServer('https://api.llama.fi/fail')).rejects.toThrow('network down')
+		await flushPromises()
+
+		expect(axiomMock.ingest).not.toHaveBeenCalled()
 	})
 })

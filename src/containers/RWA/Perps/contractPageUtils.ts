@@ -99,11 +99,6 @@ function formatMaybeNumber(value: number | null | undefined): string {
 function formatTextValue(value: string | null | undefined): string | null {
 	return value ?? null
 }
-
-export function formatRWAPerpsContractPriceChange(value: number | null | undefined): string | null {
-	return formatPercentChangeText(value)
-}
-
 export function formatRWAPerpsContractChartDate(value: number): string {
 	return toNiceDayMonthAndYearAndTime(Math.floor(toUnixMsTimestamp(value) / 1e3))
 }

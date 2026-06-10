@@ -1,30 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchBlockExplorers } from '~/api'
-import {
-	fetchCoinGeckoChartByIdWithCacheFallback,
-	fetchCoinGeckoIdByAddress,
-	fetchCoinGeckoTokensListFromDataset,
-	fetchCoinPriceByCoinGeckoIdViaLlamaPrices,
-	fetchDenominationPriceHistoryByCoinGeckoId
-} from '~/api/coingecko'
-import type {
-	CgChartResponse,
-	DenominationPriceHistory,
-	GeckoIdResponse,
-	IResponseCGMarketsAPI
-} from './coingecko.types'
+import { fetchCoinGeckoChartByIdWithCacheFallback, fetchCoinGeckoIdByAddress } from '~/api/coingecko'
+import { fetchCoinPriceByCoinGeckoIdViaLlamaPrices } from '~/api/pricing'
+import type { CgChartResponse, GeckoIdResponse } from './coingecko.types'
 import type { BlockExplorersResponse, PriceObject } from './types'
-
-export const useFetchCoingeckoTokensList = () => {
-	return useQuery<Array<IResponseCGMarketsAPI>, Error>({
-		queryKey: ['coingecko', 'tokens-list'],
-		queryFn: fetchCoinGeckoTokensListFromDataset,
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		refetchOnMount: false,
-		retry: 1
-	})
-}
 
 export const useGeckoId = (addressData: string | null) => {
 	const isEnabled = !!addressData
@@ -60,18 +39,6 @@ export const useGetTokenPrice = (geckoId?: string) => {
 		enabled: isEnabled
 	})
 }
-
-export const useDenominationPriceHistory = (geckoId?: string) => {
-	const isEnabled = Boolean(geckoId)
-	return useQuery<DenominationPriceHistory, Error>({
-		queryKey: ['coingecko', 'denom-price-history', geckoId ?? null],
-		queryFn: () => fetchDenominationPriceHistoryByCoinGeckoId(geckoId!),
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
 export const useBlockExplorers = () => {
 	return useQuery<BlockExplorersResponse, Error>({
 		queryKey: ['block-explorers'],

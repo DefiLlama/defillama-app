@@ -1,29 +1,67 @@
 import { useQuery } from '@tanstack/react-query'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { ArticleApiError, listArticles } from '~/containers/Articles/api'
+import { ArticleApiError, getSectionBanner, listArticles } from '~/containers/Articles/api'
+import type { ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
+import { GenericCard } from '~/containers/Articles/landing/GenericCard'
+import { articleHref, formatDate, readingMinutes } from '~/containers/Articles/landing/utils'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
+import type { ArticleDocument, ArticleSection, BannerLookupResult } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
-function formatDate(value: string | null) {
-	if (!value) return 'Draft'
-	return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
+const SECTION_LANDING_CACHE_CONTROL = 'public, s-maxage=60'
+
+type SectionRouteParams = {
+	section: string
 }
 
-function readingMinutes(article: ArticleDocument) {
-	const text = article.plainText?.trim() || article.excerpt?.trim() || ''
-	const words = text ? text.split(/\s+/).length : 0
-	return Math.max(1, Math.ceil(words / 220))
+type SectionLandingPageProps = {
+	section: ArticleSection
+	initialArticles: ArticleListResponse
+	sectionBanner: BannerLookupResult | null
 }
 
-function articleHref(article: ArticleDocument) {
-	if (article.section) return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
-	return '/research'
+async function loadSectionLandingData(section: ArticleSection): Promise<SectionLandingPageProps> {
+	const [articlesResult, bannerResult] = await Promise.allSettled([
+		listArticles({ section, sort: 'newest', limit: 60 }),
+		getSectionBanner(section)
+	])
+
+	if (articlesResult.status === 'rejected') {
+		throw articlesResult.reason
+	}
+
+	return {
+		section,
+		initialArticles: articlesResult.value,
+		sectionBanner: bannerResult.status === 'fulfilled' ? bannerResult.value : null
+	}
 }
+
+const getServerSidePropsHandler: GetServerSideProps<SectionLandingPageProps, SectionRouteParams> = async ({
+	params,
+	res
+}) => {
+	res.setHeader('Cache-Control', SECTION_LANDING_CACHE_CONTROL)
+
+	const sectionSlug = params?.section
+	if (!sectionSlug) {
+		return { notFound: true }
+	}
+
+	const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
+	if (!section) {
+		return { notFound: true }
+	}
+
+	return { props: await loadSectionLandingData(section) }
+}
+
+export const getServerSideProps = withServerSidePropsTelemetry('/research/[section]', getServerSidePropsHandler)
 
 function intervieweeLabel(article: ArticleDocument): string | null {
 	const list = (article.interviewees ?? []).filter((p) => p?.name?.trim()).map((p) => p.name)
@@ -48,7 +86,7 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 			</div>
 			{cover ? (
 				<div className="aspect-[16/9] w-full overflow-hidden">
-					<img src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+					<img src={cover} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
 				</div>
 			) : null}
 			{interviewee ? (
@@ -58,7 +96,7 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 						<img
 							src={firstInterviewee.avatarUrl}
 							alt=""
-							className="h-9 w-9 shrink-0 rounded-full border border-(--cards-border) object-cover"
+							className="size-9 shrink-0 rounded-full border border-(--cards-border) object-cover"
 						/>
 					) : null}
 					<div className="grid">
@@ -78,60 +116,25 @@ function InterviewCard({ article }: { article: ArticleDocument }) {
 				</p>
 			) : null}
 			<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
-				{formatDate(article.publishedAt)}
+				{formatDate(article.displayDate ?? article.publishedAt)}
 			</span>
 		</Link>
 	)
 }
 
-function GenericCard({ article }: { article: ArticleDocument }) {
-	const cover = article.coverImage?.url || null
-	const primaryTag = article.tags?.[0]
-	return (
-		<Link
-			href={articleHref(article)}
-			className="group grid content-start gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)/40 p-4 transition-colors hover:border-(--link-text)/40"
-		>
-			<div className="flex items-center justify-between gap-3 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-				<span>{primaryTag?.replace(/-/g, ' ') || 'Story'}</span>
-				<span className="tabular-nums">{readingMinutes(article)} min</span>
-			</div>
-			{cover ? (
-				<div className="aspect-[16/9] w-full overflow-hidden">
-					<img src={cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-				</div>
-			) : null}
-			<h3 className="text-base leading-snug font-semibold tracking-tight text-(--text-primary) group-hover:text-(--link-text)">
-				{article.title}
-			</h3>
-			{article.excerpt || article.subtitle ? (
-				<p className="line-clamp-3 text-sm leading-relaxed text-(--text-secondary)">
-					{article.excerpt || article.subtitle}
-				</p>
-			) : null}
-			<span className="flex items-center gap-2 text-xs text-(--text-tertiary)">
-				{article.brandByline ? (
-					<>
-						<span className="font-medium text-(--text-secondary)">DefiLlama Research</span>
-						<span aria-hidden>·</span>
-					</>
-				) : article.authorProfile?.displayName ? (
-					<>
-						<span className="font-medium text-(--text-secondary)">{article.authorProfile.displayName}</span>
-						<span aria-hidden>·</span>
-					</>
-				) : null}
-				<span>{formatDate(article.publishedAt)}</span>
-			</span>
-		</Link>
-	)
-}
-
-function SectionLandingContent({ section }: { section: ArticleSection }) {
+function SectionLandingContent({
+	section,
+	initialData
+}: {
+	section: ArticleSection
+	initialData: Pick<SectionLandingPageProps, 'initialArticles' | 'sectionBanner'>
+}) {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['research', 'section-index', section],
 		queryFn: () => listArticles({ section, sort: 'newest', limit: 60 }),
-		retry: false
+		initialData: initialData.initialArticles,
+		retry: false,
+		staleTime: 60_000
 	})
 
 	if (isLoading) return <ResearchLoader />
@@ -153,7 +156,7 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 
 	return (
 		<>
-			<ArticleBannerStrip scope="section" section={section} />
+			<ArticleBannerStrip scope="section" section={section} initialData={{ section: initialData.sectionBanner }} />
 			<div className="mx-auto grid w-full max-w-[1180px] gap-8 px-4 pt-8 pb-24 sm:px-6">
 				<header className="grid gap-3 border-b border-(--cards-border) pb-6">
 					<div className="flex items-center justify-between gap-3">
@@ -200,15 +203,16 @@ function SectionLandingContent({ section }: { section: ArticleSection }) {
 	)
 }
 
-export default function SectionLandingPage() {
-	const router = useRouter()
-	const sectionSlug = typeof router.query.section === 'string' ? router.query.section : ''
-	const section = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-	const canonical = section ? `/research/${ARTICLE_SECTION_SLUGS[section]}` : '/research'
+export default function SectionLandingPage({
+	section,
+	initialArticles,
+	sectionBanner
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+	const canonical = `/research/${ARTICLE_SECTION_SLUGS[section]}`
 
 	return (
 		<Layout
-			title={section ? `${ARTICLE_SECTION_LABELS[section]} — DefiLlama Research` : 'Research — DefiLlama'}
+			title={`${ARTICLE_SECTION_LABELS[section]} — DefiLlama Research`}
 			description={
 				section === 'interview'
 					? 'Interviews with the people building, funding, and using DeFi — by DefiLlama Research.'
@@ -218,16 +222,7 @@ export default function SectionLandingPage() {
 			hideDesktopSearch
 		>
 			<ArticleProxyAuthProvider>
-				{section ? (
-					<SectionLandingContent section={section} />
-				) : (
-					<div className="mx-auto grid max-w-xl gap-3 px-4 py-10">
-						<h1 className="text-xl font-semibold text-(--text-primary)">Section not found</h1>
-						<Link href="/research" className="text-sm text-(--link-text) hover:underline">
-							Browse all research →
-						</Link>
-					</div>
-				)}
+				<SectionLandingContent section={section} initialData={{ initialArticles, sectionBanner }} />
 			</ArticleProxyAuthProvider>
 		</Layout>
 	)

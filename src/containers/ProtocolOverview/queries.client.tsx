@@ -8,6 +8,12 @@ import type {
 	IProtocolTokenBreakdownChart,
 	IProtocolValueChart
 } from './api.types'
+import {
+	buildProtocolValueChartApiUrl,
+	buildProtocolValueChartQueryKey,
+	type ProtocolValueChartQueryKey,
+	type ProtocolValueChartSource
+} from './valueChartSources'
 
 interface IProtocolChartParams extends Omit<IProtocolChartV2Params, 'protocol'> {
 	protocol: string | null
@@ -24,16 +30,7 @@ interface IProtocolBreakdownChartParams extends Omit<IProtocolChartParams, 'brea
 
 type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
-type ProtocolChartSource = 'tvl' | 'treasury'
 type IActivityChart = Array<[number, number]> | null
-type IProtocolChartQueryKey = [
-	'protocol-overview',
-	'tvl-chart' | 'treasury-chart',
-	string | null,
-	string | undefined,
-	string | undefined,
-	string | undefined
-]
 
 const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -42,7 +39,7 @@ const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) =>
 			searchParams.set(key, value)
 		}
 	}
-	return `/api/charts/protocol?${searchParams.toString()}`
+	return `/api/public/charts/protocol?${searchParams.toString()}`
 }
 
 const getProtocolChartQueryOptions = ({
@@ -52,20 +49,19 @@ const getProtocolChartQueryOptions = ({
 	currency,
 	breakdownType,
 	enabled = true
-}: IProtocolChartParams & { source: ProtocolChartSource }): UseQueryOptions<
+}: IProtocolChartParams & { source: ProtocolValueChartSource }): UseQueryOptions<
 	IProtocolChartQueryData,
 	Error,
 	IProtocolChartQueryData,
-	IProtocolChartQueryKey
+	ProtocolValueChartQueryKey
 > => {
 	const isEnabled = !!protocol && enabled
-	const chartKey = source === 'tvl' ? 'tvl-chart' : 'treasury-chart'
 	return {
-		queryKey: ['protocol-overview', chartKey, protocol, key, currency, breakdownType],
+		queryKey: buildProtocolValueChartQueryKey({ source, protocol, key, currency, breakdownType }),
 		queryFn: () =>
 			fetchJson<IProtocolChartQueryData>(
-				buildProtocolChartApiUrl({
-					kind: source,
+				buildProtocolValueChartApiUrl({
+					source,
 					protocol: protocol!,
 					key,
 					currency,
@@ -121,19 +117,6 @@ export const useFetchProtocolActivityChart = ({
 		enabled: isEnabled
 	})
 }
-
-export const useFetchProtocolTokenLiquidity = (token: string | null) => {
-	const isEnabled = !!token
-	return useQuery({
-		queryKey: ['protocol-overview', 'token-liquidity', token],
-		queryFn: () => fetchJson(buildProtocolChartApiUrl({ kind: 'token-liquidity', protocolId: token! })),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	const isEnabled = !!protocolName
 	return useQuery({
@@ -158,7 +141,7 @@ export function useFetchProtocolTVLChart({
 	breakdownType,
 	enabled = true
 }: IProtocolChartParams): UseQueryResult<IProtocolValueChart | IProtocolAnyBreakdownChart | null> {
-	return useQuery<IProtocolChartQueryData, Error, IProtocolChartQueryData, IProtocolChartQueryKey>(
+	return useQuery<IProtocolChartQueryData, Error, IProtocolChartQueryData, ProtocolValueChartQueryKey>(
 		getProtocolTvlChartQueryOptions({ protocol, key, currency, breakdownType, enabled })
 	)
 }
@@ -167,7 +150,7 @@ interface IFetchProtocolChartsByKeysParams {
 	protocol: string | null
 	keys: string[]
 	includeBase?: boolean
-	source: ProtocolChartSource
+	source: ProtocolValueChartSource
 	inflows?: boolean
 	chainBreakdown?: boolean
 }

@@ -1,6 +1,7 @@
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '~/components/Icon'
+import type { AgenticAnswerMode } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useMedia } from '~/hooks/useMedia'
 import { getExperimentVariant } from '~/utils/analytics/experiment'
@@ -150,20 +151,21 @@ const SPOTLIGHT_CONFIGS: Partial<Record<Step, SpotlightConfig>> = {
 }
 
 interface OnboardingWalkthroughProps {
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	handleSubmit: ChatLandingProps['handleSubmit']
 	promptInputRef: ChatLandingProps['promptInputRef']
 	onComplete: () => void
 }
 
 export function OnboardingWalkthrough({
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	handleSubmit,
 	promptInputRef,
 	onComplete
 }: OnboardingWalkthroughProps) {
+	const isResearchMode = mode === 'research'
 	const [step, setStep] = useState<Step>('intro')
 	const [introExiting, setIntroExiting] = useState(false)
 	const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null)
@@ -301,19 +303,19 @@ export function OnboardingWalkthrough({
 		(prompt: string) => {
 			trackUmamiEvent('llamaai-walkthrough-complete', { action: 'prompt-click', prompt: prompt.slice(0, 60), variant })
 			if (!isResearchMode) {
-				setIsResearchMode(true)
+				setMode('research')
 			}
 			onComplete()
 			handleSubmit(prompt, undefined, undefined, undefined, true)
 		},
-		[handleSubmit, onComplete, isResearchMode, setIsResearchMode, variant]
+		[handleSubmit, onComplete, isResearchMode, setMode, variant]
 	)
 
 	const handleSkip = useCallback(() => {
 		trackUmamiEvent('llamaai-walkthrough-skip', { step: currentStep, variant })
-		setIsResearchMode(true)
+		setMode('research')
 		onComplete()
-	}, [currentStep, variant, setIsResearchMode, onComplete])
+	}, [currentStep, variant, setMode, onComplete])
 
 	// Dismiss walkthrough on Escape key
 	useEffect(() => {
@@ -326,10 +328,10 @@ export function OnboardingWalkthrough({
 
 	const handleStartChatting = useCallback(() => {
 		trackUmamiEvent('llamaai-walkthrough-complete', { action: 'start-chatting', variant })
-		setIsResearchMode(true)
+		setMode('research')
 		onComplete()
 		requestAnimationFrame(() => promptInputRef.current?.focus())
-	}, [variant, setIsResearchMode, onComplete, promptInputRef])
+	}, [variant, setMode, onComplete, promptInputRef])
 
 	if (typeof document === 'undefined') return null
 
@@ -390,7 +392,7 @@ export function OnboardingWalkthrough({
 										<img
 											src="/assets/llamaai/llama-ai.svg"
 											alt=""
-											className="relative h-14 w-14 object-contain"
+											className="relative size-14 object-contain"
 											width={56}
 											height={56}
 										/>
@@ -482,7 +484,7 @@ export function OnboardingWalkthrough({
 					>
 						{tooltipPosition === 'below' ? (
 							<div className="mb-1 flex justify-center">
-								<div className="h-0 w-0 border-x-8 border-b-8 border-x-transparent border-b-[#111214]" />
+								<div className="size-0 border-x-8 border-b-8 border-x-transparent border-b-[#111214]" />
 							</div>
 						) : null}
 
@@ -496,7 +498,7 @@ export function OnboardingWalkthrough({
 							<div className="p-4">
 								<div className="flex items-start gap-3">
 									<div
-										className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+										className="flex size-7 shrink-0 items-center justify-center rounded-lg"
 										style={{ backgroundColor: `${config.iconColor}15` }}
 									>
 										<Icon name={config.icon} height={14} width={14} style={{ color: config.iconColor }} />
@@ -524,7 +526,7 @@ export function OnboardingWalkthrough({
 
 						{tooltipPosition === 'above' ? (
 							<div className="mt-px flex justify-center">
-								<div className="h-0 w-0 border-x-8 border-t-8 border-x-transparent border-t-[#111214]" />
+								<div className="size-0 border-x-8 border-t-8 border-x-transparent border-t-[#111214]" />
 							</div>
 						) : null}
 					</div>
@@ -546,7 +548,7 @@ export function OnboardingWalkthrough({
 
 							<div className="p-6">
 								<div className="mb-4 flex flex-col items-center gap-1 text-center">
-									<div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-green-500/12">
+									<div className="mb-1 flex size-7 items-center justify-center rounded-full bg-green-500/12">
 										<Icon name="check" height={14} width={14} className="text-green-400" />
 									</div>
 									<span className="text-[15px] font-bold text-white">Research mode is on</span>

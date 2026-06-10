@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decodePoolsColumnVisibilityQuery, decodeYieldsQuery } from '../queryState'
+import { decodePoolsColumnVisibilityQuery, decodeYieldsQuery, resetYieldsPoolPageOnFilterChange } from '../queryState'
 
 describe('decodeYieldsQuery', () => {
 	it('applies include, exclude, range, and ALL_EVM semantics consistently', () => {
@@ -58,5 +58,37 @@ describe('decodePoolsColumnVisibilityQuery', () => {
 		expect(visibility.apyStd30d).toBe(false)
 		expect(visibility.cv30d).toBe(true)
 		expect(visibility.pegDeviation).toBe(false)
+	})
+})
+
+describe('resetYieldsPoolPageOnFilterChange', () => {
+	it('clears table pagination only on server-paginated yield routes', () => {
+		expect(resetYieldsPoolPageOnFilterChange('/yields', { chain: 'Ethereum' })).toEqual({
+			chain: 'Ethereum',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/stablecoins', { token: 'USDC' })).toEqual({
+			token: 'USDC',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/loop', { token: 'ETH' })).toEqual({
+			token: 'ETH',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/strategy', { lend: 'ETH' })).toEqual({
+			lend: 'ETH',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/strategy-long-short', { token: 'BTC' })).toEqual({
+			token: 'BTC',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/yields/halal', { chain: 'Ethereum' })).toEqual({
+			chain: 'Ethereum',
+			page: undefined
+		})
+		expect(resetYieldsPoolPageOnFilterChange('/borrow', { chain: 'Ethereum' })).toEqual({
+			chain: 'Ethereum'
+		})
 	})
 })

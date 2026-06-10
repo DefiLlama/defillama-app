@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+	METADATA_ARTIFACT_KEYS,
 	METADATA_ARTIFACT_FILES,
+	METADATA_ARTIFACT_REGISTRY,
 	METADATA_CI_STUBS,
 	applyMetadataRefresh,
 	createMetadataCacheFromArtifacts,
 	getMetadataArtifactEntries,
+	validateCoreMetadataPayload,
 	type CoreMetadataPayload
 } from '../artifactContract'
 
@@ -37,18 +40,40 @@ function createPayload(overrides: Partial<CoreMetadataPayload> = {}): CoreMetada
 		tokenDirectory: { aave: { name: 'Aave', symbol: 'AAVE' } },
 		protocolDisplayNames: { aave: 'Aave' },
 		chainDisplayNames: { ethereum: 'Ethereum' },
+		chainCategories: ['EVM'],
 		liquidationsTokenSymbols: ['ETH'],
 		emissionsProtocolsList: ['aave'],
+		emissionsSupplyMetrics: {},
+		emissionsHistoricalPrices: {},
 		cgExchangeIdentifiers: ['binance'],
 		bridgeProtocolSlugs: ['stargate'],
 		bridgeChainSlugs: ['ethereum'],
 		bridgeChainSlugToName: { ethereum: 'Ethereum' },
 		protocolLlamaswapDataset: {},
+		narrativeCategories: { ids: ['ai'], nameById: { ai: 'AI' } },
+		oracleRoutes: {
+			oracleNameBySlug: { chainlink: 'Chainlink' },
+			chainNameBySlug: { ethereum: 'Ethereum' },
+			chainSlugsByOracleSlug: { chainlink: ['ethereum'] }
+		},
+		digitalAssetTreasuryRoutes: { assetSlugs: ['bitcoin'], companySlugs: ['mstr'] },
+		stablecoinPeggedAssetSlugs: ['tether'],
 		...overrides
 	}
 }
 
 describe('metadata artifact contract', () => {
+	it('declares a registry entry for every payload key', () => {
+		expect(METADATA_ARTIFACT_KEYS.toSorted()).toEqual(Object.keys(createPayload()).toSorted())
+
+		for (const key of METADATA_ARTIFACT_KEYS) {
+			const artifact = METADATA_ARTIFACT_REGISTRY[key]
+			expect(artifact.file).toMatch(/\.json$/)
+			expect(artifact.file).not.toContain('..')
+			expect(artifact.parse(artifact.stub, artifact.file)).toBe(artifact.stub)
+		}
+	})
+
 	it('lists every generated artifact filename once', () => {
 		const artifactFiles = Object.values(METADATA_ARTIFACT_FILES)
 		expect(new Set(artifactFiles).size).toBe(artifactFiles.length)
@@ -73,7 +98,13 @@ describe('metadata artifact contract', () => {
 		expect(metadata.protocolMetadata['parent#aave'].displayName).toBe('Aave')
 		expect(metadata.protocolDisplayNames.get('aave')).toBe('Aave')
 		expect(metadata.chainDisplayNames.get('ethereum')).toBe('Ethereum')
+		expect(metadata.chainCategories).toEqual(['EVM'])
 		expect(metadata.liquidationsTokenSymbolsSet.has('ETH')).toBe(true)
+		expect(metadata.narrativeCategoryIdsSet.has('ai')).toBe(true)
+		expect(metadata.oracleRoutes.oracleNameBySlug.chainlink).toBe('Chainlink')
+		expect(metadata.digitalAssetTreasuryAssetSlugsSet.has('bitcoin')).toBe(true)
+		expect(metadata.digitalAssetTreasuryCompanySlugsSet.has('mstr')).toBe(true)
+		expect(metadata.stablecoinPeggedAssetSlugsSet.has('tether')).toBe(true)
 	})
 
 	it('applies refresh payloads directly', () => {
@@ -85,7 +116,9 @@ describe('metadata artifact contract', () => {
 				protocols: {},
 				protocolDisplayNames: {},
 				tokenDirectory: {},
-				tokenlist: {}
+				tokenlist: {},
+				narrativeCategories: { ids: ['meme'], nameById: { meme: 'Meme' } },
+				stablecoinPeggedAssetSlugs: ['usd-coin']
 			})
 		)
 
@@ -93,6 +126,8 @@ describe('metadata artifact contract', () => {
 		expect(metadata.protocolDisplayNames.size).toBe(0)
 		expect(metadata.tokenDirectory).toEqual({})
 		expect(metadata.tokenlist).toEqual({})
+		expect(metadata.narrativeCategoryIdsSet.has('meme')).toBe(true)
+		expect(metadata.stablecoinPeggedAssetSlugsSet.has('usd-coin')).toBe(true)
 	})
 
 	it('rebuilds chain display-name fallbacks during refresh', () => {
@@ -111,5 +146,37 @@ describe('metadata artifact contract', () => {
 		expect(metadata.chainDisplayNames.get('Arbitrum')).toBe('Arbitrum One')
 		expect(metadata.chainDisplayNames.get('arbitrum-one')).toBe('Arbitrum One')
 		expect(metadata.chainDisplayNames.get('arbitrum')).toBe('Arbitrum One')
+	})
+
+	it('allows smaller but valid refresh payloads', () => {
+		const payload = createPayload({
+			chains: {}
+		})
+
+		expect(validateCoreMetadataPayload(payload).chains).toEqual({})
+	})
+
+	it('accepts backend-owned artifact shapes without revalidating them', () => {
+		const payload = createPayload({
+			chains: [] as unknown as CoreMetadataPayload['chains']
+		})
+
+		expect(validateCoreMetadataPayload(payload).chains).toEqual([])
+	})
+
+	it('accepts nested backend-owned fields without revalidating them', () => {
+		const payload = createPayload({
+			tokenDirectory: {
+				aave: { name: 'Aave' }
+			} as unknown as CoreMetadataPayload['tokenDirectory'],
+			categoriesAndTags: {
+				categories: ['Lending'],
+				tags: [1],
+				tagCategoryMap: {},
+				configs: {}
+			} as unknown as CoreMetadataPayload['categoriesAndTags']
+		})
+
+		expect(validateCoreMetadataPayload(payload).tokenDirectory).toEqual({ aave: { name: 'Aave' } })
 	})
 })

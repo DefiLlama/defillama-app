@@ -1,13 +1,4 @@
-import {
-	type Dispatch,
-	type RefObject,
-	type SetStateAction,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState
-} from 'react'
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { CapabilityChips } from '~/containers/LlamaAI/components/input/CapabilityChips'
@@ -20,7 +11,7 @@ import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
 import { fileToBase64, useImageUpload } from '~/containers/LlamaAI/hooks/useImageUpload'
-import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { setInputSize, syncHighlightScroll } from '~/containers/LlamaAI/utils/scrollUtils'
 import { highlightWord } from '~/containers/LlamaAI/utils/textUtils'
 import { useMedia } from '~/hooks/useMedia'
@@ -40,7 +31,7 @@ interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: undefined,
 		isSuggestedQuestion?: boolean
 	) => void | Promise<void>
@@ -54,9 +45,11 @@ interface PromptInputProps {
 		text: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
 	} | null
-	isResearchMode: boolean
-	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	mode: AgenticAnswerMode
+	setMode: (mode: AgenticAnswerMode) => void
 	researchUsage?: ResearchUsage | null
+	factCheckedUsage?: FactCheckedUsage | null
+	onFactCheckedGated?: () => void
 	droppedFiles?: File[] | null
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
@@ -85,9 +78,11 @@ export function PromptInput({
 	isStreaming,
 	placeholder,
 	restoreRequest,
-	isResearchMode,
-	setIsResearchMode,
+	mode,
+	setMode,
 	researchUsage,
+	factCheckedUsage,
+	onFactCheckedGated,
 	droppedFiles,
 	clearDroppedFiles,
 	externalDragging,
@@ -256,15 +251,16 @@ export function PromptInput({
 		setSubmitError((current) => (current ? null : current))
 	}, [])
 
-	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File }>) => {
-		const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
+	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File; isPasted?: boolean }>) => {
+		const imagePromises: Promise<{ data: string; mimeType: string; filename: string; isPasted?: boolean }>[] = []
 		for (let i = 0; i < imagesToSend.length; i++) {
 			const file = imagesToSend[i].file
 			imagePromises.push(
 				fileToBase64(file).then((data) => ({
 					data,
 					mimeType: file.type,
-					filename: file.name
+					filename: file.name,
+					...(imagesToSend[i].isPasted ? { isPasted: true } : {})
 				}))
 			)
 		}
@@ -441,7 +437,7 @@ export function PromptInput({
 			{quotedText ? (
 				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/4 py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/4">
 					<svg
-						className="h-3.5 w-3.5 shrink-0 -scale-x-100 text-[#2172e5]/50 dark:text-[#4190f7]/50"
+						className="size-3.5 shrink-0 -scale-x-100 text-[#2172e5]/50 dark:text-[#4190f7]/50"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
@@ -457,10 +453,10 @@ export function PromptInput({
 						type="button"
 						onClick={onClearQuotedText}
 						aria-label="Clear quoted text"
-						className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#555] dark:hover:bg-white/5 dark:hover:text-white"
+						className="flex size-5 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#555] dark:hover:bg-white/5 dark:hover:text-white"
 					>
 						<svg
-							className="h-3.5 w-3.5"
+							className="size-3.5"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -507,15 +503,17 @@ export function PromptInput({
 			<div className="flex items-center justify-between gap-4 p-0">
 				<div className="hidden items-center gap-2 sm:flex">
 					<ModeToggle
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
+						mode={mode}
+						setMode={setMode}
 						researchUsage={researchUsage}
+						factCheckedUsage={factCheckedUsage}
+						onFactCheckedGated={onFactCheckedGated}
 					/>
 					<CapabilityChips
 						key={isPending || isStreaming ? 'capability-chips-disabled' : 'capability-chips-enabled'}
 						onPromptSelect={(prompt, categoryKey) => {
 							if (categoryKey === 'research') {
-								setIsResearchMode(true)
+								setMode('research')
 							}
 							isSuggestedRef.current = true
 							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
@@ -527,7 +525,7 @@ export function PromptInput({
 						<Tooltip
 							content="Manage Alerts"
 							render={<button type="button" onClick={onOpenAlerts} data-walkthrough="alerts-button" />}
-							className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white"
+							className="flex size-7 items-center justify-center rounded-md bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white"
 						>
 							<Icon name="calendar-plus" height={14} width={14} />
 							<span className="sr-only">Manage Alerts</span>
@@ -535,13 +533,15 @@ export function PromptInput({
 					) : null}
 				</div>
 				<MobileToolsPopover
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
+					mode={mode}
+					setMode={setMode}
 					researchUsage={researchUsage}
+					factCheckedUsage={factCheckedUsage}
+					onFactCheckedGated={onFactCheckedGated}
 					onOpenAlerts={onOpenAlerts}
 					onPromptSelect={(prompt, categoryKey) => {
 						if (categoryKey === 'research') {
-							setIsResearchMode(true)
+							setMode('research')
 						}
 						isSuggestedRef.current = true
 						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })

@@ -46,6 +46,7 @@ interface IAdapterOverview {
 	total7d: number | null
 	total30d: number | null
 	total1y: number | null
+	annualized1y: number | null
 	totalAllTime: number | null
 	methodology?: string | null
 	methodologyURL?: string | null
@@ -81,6 +82,7 @@ export interface IProtocolOverviewPageData {
 	currentTvlByChain: Record<string, number> | null
 	description?: string
 	website?: string | null
+	isWebsiteReferral?: boolean
 	twitter?: string | null
 	safeHarbor?: boolean
 	tvlMethodology?: string | null

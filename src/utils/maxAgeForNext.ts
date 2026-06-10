@@ -20,13 +20,18 @@ function cacheJitterWindowSeconds(): number {
 	return Math.max(0, Math.floor(envNumber('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', DEFAULT_CACHE_JITTER_SECONDS)))
 }
 
+function envText(name: string): string | undefined {
+	return process.env[name]?.trim() || undefined
+}
+
 function buildIdSegment(): string {
 	return (
-		process.env.NEXT_BUILD_ID ??
-		process.env.VERCEL_GIT_COMMIT_SHA ??
-		process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ??
-		process.env.BUILD_ID ??
-		process.env.VERCEL_DEPLOYMENT_ID ??
+		envText('NEXT_BUILD_ID') ??
+		envText('SOURCE_COMMIT') ??
+		envText('VERCEL_GIT_COMMIT_SHA') ??
+		envText('NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA') ??
+		envText('BUILD_ID') ??
+		envText('VERCEL_DEPLOYMENT_ID') ??
 		''
 	)
 }
@@ -91,8 +96,4 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	const nextMinute = minutesForRollover.find((m) => m > currentMinute) ?? Math.min(...minutesForRollover) + 60
 	const maxAge = nextMinute * 60 - currentMinute * 60 - currentSecond
 	return maxAge
-}
-
-export function jitteredMaxAgeForNext(minutesForRollover: number[] = [22], key: string): number {
-	return jitterCacheSeconds(maxAgeForNext(minutesForRollover), key).seconds
 }

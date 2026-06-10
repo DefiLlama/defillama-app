@@ -1,12 +1,10 @@
 import type { GetStaticPropsContext } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import {
-	getAdapterByChainPageData,
-	getDimensionAdapterOverviewOfAllChains
-} from '~/containers/DimensionAdapters/queries'
-import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import { AdapterByChain } from '~/containers/AdapterMetrics/AdapterByChain'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import { getAdapterByChainPageData, getDimensionAdapterOverviewOfAllChains } from '~/containers/AdapterMetrics/queries'
+import { addDimensionChainRouteTelemetry } from '~/containers/AdapterMetrics/telemetry'
+import type { IAdapterByChainPageData } from '~/containers/AdapterMetrics/types'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -50,15 +48,24 @@ export const getStaticProps = withPerformanceLogging(
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadata = metadataCache.chainMetadata[chain]
 
-		if (!metadataCache.chainMetadata[chain]?.optionsNotionalVolume) {
+		addDimensionChainRouteTelemetry({
+			adapterType,
+			chain: metadata?.name ?? chain,
+			canonicalRoute: '/options/notional-volume/chain/[chain]',
+			dataType,
+			metadataFlag: 'optionsNotionalVolume'
+		})
+
+		if (!metadata?.optionsNotionalVolume) {
 			return { notFound: true }
 		}
 
 		const data = await getAdapterByChainPageData({
 			adapterType,
 			dataType,
-			chain: metadataCache.chainMetadata[chain].name,
+			chain: metadata.name,
 			route: 'options/notional-volume',
 			metricName: type
 		})

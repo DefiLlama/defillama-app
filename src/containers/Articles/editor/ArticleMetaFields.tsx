@@ -50,7 +50,7 @@ export function MetaSwitch({
 						}`}
 					>
 						<span
-							className={`absolute top-1/2 inline-block h-3 w-3 -translate-y-1/2 rounded-full shadow-sm transition-all duration-200 ease-out ${
+							className={`absolute top-1/2 inline-block size-3 -translate-y-1/2 rounded-full shadow-sm transition-all duration-200 ease-out ${
 								checked ? 'left-[15px] bg-white' : 'left-[2px] bg-(--text-tertiary) group-hover:bg-(--text-secondary)'
 							}`}
 						/>
@@ -65,7 +65,7 @@ export function MetaFieldHint({ children, error }: { children?: ReactNode; error
 	if (error) {
 		return (
 			<span className="flex items-center gap-1.5 text-[11px] text-red-500">
-				<span aria-hidden className="inline-block h-1 w-1 rounded-full bg-red-500" />
+				<span aria-hidden className="inline-block size-1 rounded-full bg-red-500" />
 				{error}
 			</span>
 		)

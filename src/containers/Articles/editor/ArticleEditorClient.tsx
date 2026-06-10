@@ -4,6 +4,7 @@ import { useEditor } from '@tiptap/react'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useResearchLandingRevalidation } from '~/containers/Articles/admin/useResearchLandingRevalidation'
 import { canManageResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
@@ -17,6 +18,7 @@ import {
 	unpublishArticle,
 	updateArticle as updateRemoteArticle
 } from '../api'
+import { isScheduled } from '../articleSchedule'
 import { validateArticleChartConfig } from '../chartAdapters'
 import {
 	applyPendingToLocalArticle,
@@ -34,8 +36,10 @@ import { ArticleCoverImageEditor } from './ArticleCoverImageEditor'
 import { ArticleEditorCanvas } from './ArticleEditorCanvas'
 import { useActiveEntityLink, useEditorFlags, type BlockItem, type MarkButton } from './ArticleEditorControls'
 import { CoverDetailsDialog, DeleteArticleDialog } from './ArticleEditorDialogs'
-import { ArticleEditorHeader } from './ArticleEditorHeader'
+import { ArticleEditorHeader, type ArticleEditorViewMode } from './ArticleEditorHeader'
+import { ArticleEditorPreview } from './ArticleEditorPreview'
 import { articleQueryKey, formatRelative, sanitizeLinkHref, slugFromTitle, useTicker } from './ArticleEditorUtils'
+import { formatArticleDate } from './ArticleEditorUtils'
 import { ArticleMetaDialog } from './ArticleMetaDialog'
 import { ArticleTitleFields } from './ArticleTitleFields'
 import { EmbedPicker } from './EmbedPicker'
@@ -48,7 +52,9 @@ import { useArticleCollaborators } from './useArticleCollaborators'
 
 export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
+	const routeView = Array.isArray(router.query.view) ? router.query.view[0] : router.query.view
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const revalidateLanding = useResearchLandingRevalidation()
 	const queryClient = useQueryClient()
 	const [article, setArticle] = useState<LocalArticleDocument>(() => createEmptyLocalArticle())
 	const [isDirty, setIsDirty] = useState(false)
@@ -81,10 +87,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [slugEditing, setSlugEditing] = useState(false)
 	const [slugDraft, setSlugDraft] = useState('')
 	const [publishErrors, setPublishErrors] = useState<Record<string, string>>({})
+	const [viewMode, setViewMode] = useState<ArticleEditorViewMode>('write')
+	const [previewArticle, setPreviewArticle] = useState<LocalArticleDocument | null>(null)
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
 	const autoRedirectingRef = useRef(false)
 	const hydratedArticleIdRef = useRef<string | null>(null)
+	const routeViewModeHandledRef = useRef<string | null>(null)
 	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
 	const articleIdRef = useRef<string | undefined>(article.id)
 	articleIdRef.current = article.id
@@ -543,7 +552,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const [historyOpen, setHistoryOpen] = useState(false)
 	const publishMutation = useMutation({
-		mutationFn: (targetArticleId: string) => publishArticle(targetArticleId, authorizedFetch),
+		mutationFn: ({ articleId: targetArticleId, goLiveAt }: { articleId: string; goLiveAt?: string | null }) =>
+			publishArticle(targetArticleId, authorizedFetch, goLiveAt !== undefined ? { goLiveAt } : {}),
 		onSuccess: (saved) => setOwnedArticleCache(saved)
 	})
 	const unpublishMutation = useMutation({
@@ -557,6 +567,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const deleteArticleMutation = useMutation({
 		mutationFn: (targetArticleId: string) => deleteArticle(targetArticleId, authorizedFetch),
 		onSuccess: () => {
+			revalidateLanding()
 			void router.replace('/research')
 		},
 		onError: (error) => {
@@ -564,6 +575,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	})
 	const isPublishing = publishMutation.isPending || unpublishMutation.isPending
+	const articleIsScheduled = isScheduled(article)
 	const isDiscarding = discardPendingMutation.isPending
 	const {
 		collaboratorAdding,
@@ -596,7 +608,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	}, [isDirty])
 
-	const handlePublish = async (): Promise<boolean> => {
+	const handlePublish = async (opts?: { goLiveAt?: string | null }): Promise<boolean> => {
 		if (!article.id) {
 			toast.error('Save the draft before publishing')
 			return false
@@ -610,11 +622,22 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		setPublishErrors({})
 		try {
 			await flushPendingSave()
-			const saved = await publishMutation.mutateAsync(article.id)
+			const goLiveAt = opts && 'goLiveAt' in opts ? opts.goLiveAt : article.goLiveAt != null ? null : undefined
+			const saved = await publishMutation.mutateAsync({
+				articleId: article.id,
+				...(goLiveAt !== undefined ? { goLiveAt } : {})
+			})
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
 			setSavedAt(merged.updatedAt)
-			toast.success(article.status === 'published' ? 'Update published' : 'Published')
+			revalidateLanding()
+			if (isScheduled(merged)) {
+				toast.success(`Scheduled for ${formatArticleDate(merged.goLiveAt)}`)
+			} else if (merged.status === 'published') {
+				toast.success(article.status === 'published' ? 'Update published' : 'Published')
+			} else {
+				toast.success('Saved')
+			}
 			return true
 		} catch (error) {
 			if (error instanceof ArticleApiError && error.validationErrors?.length) {
@@ -635,6 +658,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setArticle(merged)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
+			revalidateLanding()
 			toast.success('Moved to drafts')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to unpublish')
@@ -731,6 +755,44 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			.insertCitation({ id: String(next), label: String(next) })
 			.run()
 	}
+
+	const buildPreviewArticle = useCallback((): LocalArticleDocument => {
+		const contentJson = editor && !editor.isDestroyed ? editor.getJSON() : article.contentJson
+		const normalized = normalizeLocalArticleDocument({ ...article, contentJson }, article)
+		if (normalized.ok === false) return { ...article, contentJson }
+		return {
+			...normalized.value,
+			coAuthors: article.coAuthors,
+			editorialTagMetadata: article.editorialTagMetadata,
+			pending: article.pending,
+			pendingActorPbUserId: article.pendingActorPbUserId,
+			pendingUpdatedAt: article.pendingUpdatedAt,
+			viewerRole: article.viewerRole
+		}
+	}, [article, editor])
+
+	const handleViewModeChange = useCallback(
+		(mode: ArticleEditorViewMode) => {
+			if (mode === 'preview') setPreviewArticle(buildPreviewArticle())
+			setViewMode(mode)
+		},
+		[buildPreviewArticle]
+	)
+
+	useEffect(() => {
+		if (viewMode !== 'preview') return
+		setPreviewArticle(buildPreviewArticle())
+	}, [buildPreviewArticle, viewMode])
+
+	useEffect(() => {
+		if (!router.isReady) return
+		const routeMode: ArticleEditorViewMode = routeView === 'preview' ? 'preview' : 'write'
+		const routeModeKey = `${articleId ?? 'new'}:${routeMode}`
+		if (routeViewModeHandledRef.current === routeModeKey) return
+		routeViewModeHandledRef.current = routeModeKey
+		setViewMode(routeMode)
+		if (routeMode === 'write') setPreviewArticle(null)
+	}, [articleId, routeView, router.isReady])
 
 	if (isLoading) {
 		return <ResearchLoader />
@@ -859,6 +921,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] animate-fadein px-4 pb-32 sm:px-6">
 			<ArticleEditorHeader
 				article={article}
+				articleIsScheduled={articleIsScheduled}
 				articleViewHref={articleViewHref}
 				beginSlugEdit={beginSlugEdit}
 				cancelSlugEdit={cancelSlugEdit}
@@ -883,51 +946,67 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				setSlugDraft={setSlugDraft}
 				slugDraft={slugDraft}
 				slugEditing={slugEditing}
+				viewMode={viewMode}
+				onViewModeChange={handleViewModeChange}
 			/>
 
-			<ArticleTitleFields article={article} updateArticle={updateArticle} />
+			{viewMode === 'preview' ? (
+				<ArticleEditorPreview
+					article={previewArticle ?? article}
+					articleViewHref={articleViewHref}
+					isDirty={isDirty}
+					onEdit={() => handleViewModeChange('write')}
+					readMins={readMins}
+					wordCount={wordCount}
+				/>
+			) : (
+				<>
+					<ArticleTitleFields article={article} updateArticle={updateArticle} />
 
-			<ArticleCoverImageEditor
-				article={article}
-				coverFileInputRef={coverFileInputRef}
-				coverHovered={coverHovered}
-				handleCoverFile={handleCoverFile}
-				isUploadingCover={isUploadingCover}
-				onOpenCoverDetails={() => coverDetailsDialog.show()}
-				openCoverPicker={openCoverPicker}
-				publishError={publishErrors.coverImage}
-				setCoverHovered={setCoverHovered}
-				updateArticle={updateArticle}
-			/>
+					<ArticleCoverImageEditor
+						article={article}
+						coverFileInputRef={coverFileInputRef}
+						coverHovered={coverHovered}
+						handleCoverFile={handleCoverFile}
+						isUploadingCover={isUploadingCover}
+						onOpenCoverDetails={() => coverDetailsDialog.show()}
+						openCoverPicker={openCoverPicker}
+						publishError={publishErrors.coverImage}
+						setCoverHovered={setCoverHovered}
+						updateArticle={updateArticle}
+					/>
 
-			<ArticleEditorCanvas
-				activeEntity={activeEntity}
-				applyLink={applyLink}
-				blockItems={blockItems}
-				changeActiveEntityLink={changeActiveEntityLink}
-				editor={editor}
-				flags={flags}
-				handleLinkRail={handleLinkRail}
-				insertCallout={insertCallout}
-				insertCitation={insertCitation}
-				linkEdit={linkEdit}
-				linkInputRef={linkInputRef}
-				markButtons={markButtons}
-				onOpenChartPicker={() => chartDialog.show()}
-				onOpenEmbedPicker={() => {
-					setEditingEmbed(null)
-					embedDialog.show()
-				}}
-				openActiveEntityLink={openActiveEntityLink}
-				openLinkEditor={openLinkEditor}
-				readMins={readMins}
-				setLinkEdit={setLinkEdit}
-				unsetActiveEntityLink={unsetActiveEntityLink}
-				wordCount={wordCount}
-			/>
+					<ArticleEditorCanvas
+						activeEntity={activeEntity}
+						applyLink={applyLink}
+						blockItems={blockItems}
+						changeActiveEntityLink={changeActiveEntityLink}
+						editor={editor}
+						flags={flags}
+						handleLinkRail={handleLinkRail}
+						insertCallout={insertCallout}
+						insertCitation={insertCitation}
+						linkEdit={linkEdit}
+						linkInputRef={linkInputRef}
+						markButtons={markButtons}
+						onOpenChartPicker={() => chartDialog.show()}
+						onOpenEmbedPicker={() => {
+							setEditingEmbed(null)
+							embedDialog.show()
+						}}
+						openActiveEntityLink={openActiveEntityLink}
+						openLinkEditor={openLinkEditor}
+						readMins={readMins}
+						setLinkEdit={setLinkEdit}
+						unsetActiveEntityLink={unsetActiveEntityLink}
+						wordCount={wordCount}
+					/>
+				</>
+			)}
 
 			<ArticleMetaDialog
 				article={article}
+				articleIsScheduled={articleIsScheduled}
 				collaboratorAdding={collaboratorAdding}
 				collaboratorEmail={collaboratorEmail}
 				collaboratorError={collaboratorError}

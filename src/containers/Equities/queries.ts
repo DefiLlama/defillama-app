@@ -42,7 +42,7 @@ export function buildPriceHistoryChart(
 
 export async function getEquitiesListPageData(): Promise<IEquitiesListPageProps> {
 	const companies = await fetchEquitiesCompanies()
-	const sortedCompanies = [...companies].sort((a, b) => {
+	const sortedCompanies = companies.toSorted((a, b) => {
 		const aMarketCap = a.marketCap ?? -1
 		const bMarketCap = b.marketCap ?? -1
 		return bMarketCap - aMarketCap
@@ -86,7 +86,7 @@ export async function getEquitiesTickerPageData(rawTicker: string): Promise<IEqu
 
 export async function getEquitiesTickerPaths(limit = 50): Promise<string[]> {
 	const companies = await fetchEquitiesCompanies().catch(() => [])
-	const sortedCompanies = [...companies].sort((a, b) => (b.marketCap ?? -1) - (a.marketCap ?? -1))
+	const sortedCompanies = companies.toSorted((a, b) => (b.marketCap ?? -1) - (a.marketCap ?? -1))
 	return sortedCompanies
 		.slice(0, limit)
 		.map((company) => company.ticker?.toLowerCase())

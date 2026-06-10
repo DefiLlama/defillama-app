@@ -63,7 +63,8 @@ export async function getProtocolUnlocksStaticPropsData(
 	}
 
 	const emissions = await getProtocolEmissons(normalizedName, {
-		emissionsProtocolsList
+		emissionsProtocolsList,
+		tokenlist
 	}).catch(() => null)
 	const geckoId = emissions?.geckoId ?? emissions?.meta?.gecko_id ?? null
 	const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null

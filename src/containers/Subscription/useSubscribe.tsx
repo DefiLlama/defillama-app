@@ -577,6 +577,7 @@ export const useSubscribe = () => {
 		llamafeedSubscription: llamafeedSubscription,
 		legacySubscription: legacySubscription,
 		isTrialAvailable: isAuthenticated ? (trialAvailabilityQuery.data?.trialAvailable ?? false) : true,
+		isTrialStatusLoading: isAuthenticated && trialAvailabilityQuery.isLoading,
 		usageStats: usageStatsQuery.data ?? null,
 		isUsageStatsLoading: usageStatsQuery.isLoading,
 		isUsageStatsError: usageStatsQuery.isError,

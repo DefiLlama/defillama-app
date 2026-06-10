@@ -8,7 +8,7 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 			chain && chain !== 'All'
 				? () =>
 						fetchJson<Array<[number | null, number | null, number | null]> | null>(
-							`/api/charts/chain?kind=net-inflows&chain=${encodeURIComponent(chain)}`
+							`/api/public/charts/chain?kind=net-inflows&chain=${encodeURIComponent(chain)}`
 						).catch((err) => {
 							console.log(err)
 							return null

@@ -9,8 +9,9 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
+import { getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
 import { useForksOverviewExtraSeries } from './queries.client'
-import { getEnabledExtraApiKeys, getForkToOriginalTvlPercent } from './tvl'
+import { getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
@@ -84,7 +85,7 @@ export const ForksOverview = ({
 	chartData
 }: ForkOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
 	const { isFetchingExtraSeries, extraBreakdownByTimestamp } = useForksOverviewExtraSeries({
 		enabledExtraApiKeys
 	})

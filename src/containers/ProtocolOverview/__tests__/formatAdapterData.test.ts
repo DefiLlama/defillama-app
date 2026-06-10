@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import type { IAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api.types'
 import { formatAdapterData } from '../formatAdapterData'
 
 function createAdapterMetrics(overrides: Partial<IAdapterProtocolMetrics> = {}): IAdapterProtocolMetrics {
@@ -13,6 +13,7 @@ function createAdapterMetrics(overrides: Partial<IAdapterProtocolMetrics> = {}):
 		total60dto30d: 250,
 		total30d: 300,
 		total1y: 3500,
+		annualized1y: 3400,
 		change_1d: 1,
 		change_7d: 2,
 		change_1m: 3,
@@ -98,6 +99,7 @@ describe('formatAdapterData', () => {
 			total7d: 70,
 			total30d: 300,
 			total1y: 3500,
+			annualized1y: 3400,
 			totalAllTime: 1500,
 			methodology: 'Fees methodology',
 			methodologyURL: 'https://example.com/methodology',

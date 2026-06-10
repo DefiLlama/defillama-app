@@ -29,6 +29,15 @@ var routerState = {
 	push: vi.fn()
 }
 
+const { yieldsTableCalls } = vi.hoisted(() => ({
+	yieldsTableCalls: [] as Array<{
+		dataLength: number
+		enablePagination?: boolean
+		initialPageIndex?: number
+		initialPageSize?: number
+	}>
+}))
+
 vi.mock('@tanstack/react-query', () => ({
 	useQuery: (options: { enabled?: boolean }) =>
 		options.enabled === false ? { data: undefined, error: null, isLoading: false } : queryState
@@ -77,7 +86,7 @@ vi.mock('~/containers/Yields/hooks', () => ({
 	useFormatYieldQueryParams: () => yieldsQueryState
 }))
 
-vi.mock('~/containers/Yields/queries/client', () => ({
+vi.mock('~/containers/Yields/queries.client', () => ({
 	useVolatility: () => ({ data: {} }),
 	useHolderStats: () => ({ data: {} })
 }))
@@ -93,9 +102,10 @@ vi.mock('~/containers/Yields/Tables/Pools', () => ({
 		enablePagination?: boolean
 		initialPageSize?: number
 		initialPageIndex?: number
-	}) => (
-		<div>{`yields-table:${data.length}:${enablePagination ? 'paginated' : 'plain'}:${initialPageSize ?? 'default'}:${initialPageIndex ?? 0}`}</div>
-	)
+	}) => {
+		yieldsTableCalls.push({ dataLength: data.length, enablePagination, initialPageIndex, initialPageSize })
+		return <div>Yield pools table</div>
+	}
 }))
 
 afterEach(() => {
@@ -118,6 +128,7 @@ afterEach(() => {
 		query: {},
 		push: vi.fn()
 	}
+	yieldsTableCalls.length = 0
 	vi.clearAllMocks()
 })
 
@@ -161,7 +172,12 @@ describe('TokenYieldsSection', () => {
 		expect(html).toContain('TVL Range')
 		expect(html).toContain('APY')
 		expect(html).toContain('Columns')
-		expect(html).toContain('yields-table:1:paginated:10:0')
+		expect(yieldsTableCalls[0]).toMatchObject({
+			dataLength: 1,
+			enablePagination: true,
+			initialPageIndex: 0,
+			initialPageSize: 10
+		})
 	})
 
 	it('renders prefetched rows without waiting for a client fetch', () => {
@@ -172,12 +188,25 @@ describe('TokenYieldsSection', () => {
 		}
 
 		const html = renderToStaticMarkup(
-			<TokenYieldsSection tokenSymbol="ETH" initialData={[makeYieldRow()]} initialRowCount={1} />
+			<TokenYieldsSection
+				tokenSymbol="ETH"
+				hydration={{
+					rows: [makeYieldRow()],
+					rowCount: 1,
+					chainList: ['Ethereum'],
+					tokensList: ['ETH', 'STETH'],
+					pageSize: 10
+				}}
+			/>
 		)
 
 		expect(html).toContain('Tracking 1 pool, average APY 5.10%')
-		expect(html).toContain('yields-table:1:paginated:10:0')
-		expect(html).not.toContain('loader')
+		expect(yieldsTableCalls[0]).toMatchObject({
+			dataLength: 1,
+			enablePagination: true,
+			initialPageIndex: 0,
+			initialPageSize: 10
+		})
 	})
 
 	it('shows deferred pagination controls when only the first page is prefetched', () => {
@@ -190,10 +219,13 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenYieldsSection
 				tokenSymbol="ETH"
-				initialData={[makeYieldRow()]}
-				initialRowCount={25}
-				initialChainList={['Ethereum']}
-				initialTokensList={['ETH', 'STETH']}
+				hydration={{
+					rows: [makeYieldRow()],
+					rowCount: 25,
+					chainList: ['Ethereum'],
+					tokensList: ['ETH', 'STETH'],
+					pageSize: 10
+				}}
 			/>
 		)
 
@@ -212,16 +244,24 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenYieldsSection
 				tokenSymbol="ETH"
-				initialData={[makeYieldRow()]}
-				initialRowCount={25}
-				initialChainList={['Ethereum']}
-				initialTokensList={['ETH', 'STETH']}
+				hydration={{
+					rows: [makeYieldRow()],
+					rowCount: 25,
+					chainList: ['Ethereum'],
+					tokensList: ['ETH', 'STETH'],
+					pageSize: 10
+				}}
 			/>
 		)
 
 		expect(html).toContain('spinner')
 		expect(html).toContain('Loading full dataset...')
-		expect(html).toContain('yields-table:1:paginated:10:0')
+		expect(yieldsTableCalls[0]).toMatchObject({
+			dataLength: 1,
+			enablePagination: true,
+			initialPageIndex: 0,
+			initialPageSize: 10
+		})
 	})
 
 	it('ignores null APYs when computing the average', () => {
@@ -256,7 +296,6 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('loader')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows an error state when the fetch fails', () => {
@@ -269,14 +308,12 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('Failed to fetch yields data')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows an empty state when no pools match the token', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('No yield pools found.')
-		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows the filtered empty state when selectors remove all rows', () => {
@@ -293,7 +330,7 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('No pools match current filters')
-		expect(html).not.toContain('yields-table:')
+		expect(yieldsTableCalls).toHaveLength(0)
 	})
 
 	it('uses canonical token matching for include filters without substring false positives', () => {
@@ -319,7 +356,8 @@ describe('TokenYieldsSection', () => {
 
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="LINK" />)
 
-		expect(html).not.toContain('yields-table:1')
+		expect(html).toContain('No pools match current filters')
+		expect(yieldsTableCalls).toHaveLength(0)
 	})
 
 	it('uses cached canonical token variants for exclude filters', () => {
@@ -345,7 +383,8 @@ describe('TokenYieldsSection', () => {
 
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="BTC" />)
 
-		expect(html).not.toContain('yields-table:1')
+		expect(html).toContain('No pools match current filters')
+		expect(yieldsTableCalls).toHaveLength(0)
 	})
 
 	it('does not show reset filters when only column visibility query params are active', () => {

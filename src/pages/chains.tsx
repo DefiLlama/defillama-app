@@ -14,7 +14,8 @@ export const getStaticProps = withPerformanceLogging('chains', async () => {
 	const data = await getChainsByCategory({
 		chainMetadata: metadataCache.chainMetadata,
 		category: 'All',
-		sampledChart: true
+		sampledChart: true,
+		includeChartData: false
 	})
 
 	const chainsContext = {

@@ -7,6 +7,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AI_SERVER } from '~/constants'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { useClearUnseenCompletion } from '~/containers/LlamaAI/hooks/useClearUnseenCompletion'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import { MoveToProjectMenuItem } from '~/containers/LlamaAI/projects/MoveToProjectMenu'
@@ -20,15 +21,15 @@ interface AgenticSessionItemProps {
 	isActive: boolean
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
-	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<unknown>
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
-	style: React.CSSProperties
+	style?: React.CSSProperties
 	selectMode?: boolean
 	isSelected?: boolean
 	onToggleSelect?: (sessionId: string) => void
-	onPinSession?: (sessionId: string) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<unknown>
 }
 
 export const AgenticSessionItem = memo(function AgenticSessionItem({
@@ -49,6 +50,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const { authorizedFetch } = useAuthContext()
 	const { hideSidebar } = useLlamaAIChrome()
 	const queryClient = useQueryClient()
+	const clearUnseenCompletion = useClearUnseenCompletion()
 
 	const [isEditing, setIsEditing] = useState(false)
 	const [isCopyingLink, setIsCopyingLink] = useState(false)
@@ -78,6 +80,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
 		trackUmamiEvent('llamaai-session-click')
+		if (session.hasUnseenCompletion) clearUnseenCompletion(sessionId, session.projectId)
 		onSessionSelect(sessionId)
 		if (document.documentElement.clientWidth < 1024) {
 			hideSidebar()
@@ -90,7 +93,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
 			try {
-				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim() })
+				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim(), projectId: session.projectId })
 				setIsEditing(false)
 			} catch (err) {
 				console.error('Failed to update title:', err)
@@ -162,11 +165,11 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 			>
 				<span
 					data-checked={isSelected}
-					className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#ccc] data-[checked=true]:border-(--old-blue) data-[checked=true]:bg-(--old-blue) dark:border-[#555] dark:data-[checked=true]:border-(--old-blue)"
+					className="flex size-3.5 shrink-0 items-center justify-center rounded-sm border border-[#ccc] data-[checked=true]:border-(--old-blue) data-[checked=true]:bg-(--old-blue) dark:border-[#555] dark:data-[checked=true]:border-(--old-blue)"
 				>
 					{isSelected ? (
 						<svg
-							className="h-2.5 w-2.5 text-white"
+							className="size-2.5 text-white"
 							viewBox="0 0 24 24"
 							fill="none"
 							stroke="currentColor"
@@ -203,6 +206,11 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 				className="flex flex-1 items-center gap-1 overflow-hidden p-1.5 text-left aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.isPinned ? <Icon name="pin" height={10} width={10} className="shrink-0 opacity-40" /> : null}
+				{session.hasUnseenCompletion ? (
+					<Tooltip content="New response ready">
+						<span className="size-1.5 shrink-0 rounded-full bg-(--old-blue)" aria-label="Unseen completion" />
+					</Tooltip>
+				) : null}
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
 			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
@@ -229,7 +237,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 						className="z-50 flex thin-scrollbar min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] sm:max-w-md lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-							<Icon name="x" className="h-5 w-5" />
+							<Icon name="x" className="size-5" />
 						</Ariakit.PopoverDismiss>
 						<Ariakit.MenuItem
 							onClick={() => {
@@ -294,7 +302,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							)}
 							{session.isPublic ? 'Make Private' : 'Make Public'}
 						</Ariakit.MenuItem>
-						<MoveToProjectMenuItem sessionId={session.sessionId} />
+						<MoveToProjectMenuItem sessionId={session.sessionId} currentProjectId={session.projectId ?? null} />
 						<Ariakit.MenuItem
 							onClick={() => {
 								void handleDelete()

@@ -76,7 +76,7 @@ export const SlashCommandList = forwardRef<SlashCommandListHandle, Props>(functi
 									active ? 'bg-(--link-button)' : 'hover:bg-(--link-hover-bg)'
 								}`}
 							>
-								<span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--cards-border) bg-(--app-bg) font-jetbrains text-[11px] text-(--text-secondary)">
+								<span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-(--cards-border) bg-(--app-bg) font-jetbrains text-[11px] text-(--text-secondary)">
 									{item.icon}
 								</span>
 								<span className="flex min-w-0 flex-1 flex-col">

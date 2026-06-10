@@ -25,7 +25,7 @@ export function SelectMetricsStep() {
 
 			<div className="flex items-center justify-between rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 px-4 py-2.5">
 				<div className="flex items-center gap-3">
-					<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-(--primary)/10">
+					<div className="flex size-9 items-center justify-center rounded-lg bg-(--primary)/10">
 						<Icon name="bar-chart-2" height={18} width={18} className="text-(--primary)" />
 					</div>
 					<div>

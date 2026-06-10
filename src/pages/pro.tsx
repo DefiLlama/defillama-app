@@ -1,32 +1,37 @@
 import * as Ariakit from '@ariakit/react'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
+import { FEATURES_SERVER } from '~/constants'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
+import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
+import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import {
+	DISCOVERY_CATEGORIES,
+	type DiscoveryCategoryResponse,
+	type DiscoveryCategoriesInitialData
+} from '~/containers/ProDashboard/hooks/useDiscoveryCategories'
+import {
 	ProDashboardAPIProvider,
 	useProDashboardDashboard,
 	useProDashboardUI
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
+import type { Dashboard } from '~/containers/ProDashboard/services/DashboardAPI'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
 		default: m.CreateDashboardPicker
 	}))
-)
-const DashboardDiscovery = lazy(() =>
-	import('~/containers/ProDashboard/components/DashboardDiscovery').then((m) => ({ default: m.DashboardDiscovery }))
-)
-const DashboardList = lazy(() =>
-	import('~/containers/ProDashboard/components/DashboardList').then((m) => ({ default: m.DashboardList }))
 )
 const GenerateDashboardModal = lazy(() =>
 	import('~/containers/ProDashboard/components/GenerateDashboardModal').then((m) => ({
@@ -34,7 +39,108 @@ const GenerateDashboardModal = lazy(() =>
 	}))
 )
 
-function ProPageContent() {
+const PUBLIC_PRO_CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
+const PRIVATE_PRO_CACHE_CONTROL = 'private, no-cache, no-store, must-revalidate'
+const DISCOVERY_FETCH_TIMEOUT_MS = 3_000
+
+type ProPageProps = {
+	initialDiscoveryCategories: DiscoveryCategoriesInitialData
+}
+
+function compactDiscoveryDashboard(dashboard: Dashboard): Dashboard {
+	return {
+		id: dashboard.id,
+		visibility: dashboard.visibility,
+		tags: Array.isArray(dashboard.tags) ? dashboard.tags.filter((tag) => typeof tag === 'string' && tag.trim()) : [],
+		description: typeof dashboard.description === 'string' ? dashboard.description : '',
+		viewCount: dashboard.viewCount,
+		likeCount: dashboard.likeCount,
+		liked: dashboard.liked,
+		created: dashboard.created,
+		updated: dashboard.updated,
+		editedAt: dashboard.editedAt,
+		data: {
+			dashboardName: dashboard.data?.dashboardName || 'Untitled Dashboard',
+			items: (dashboard.data?.items ?? []).map((item: any, index) => ({
+				id: typeof item?.id === 'string' ? item.id : `item-${index}`,
+				kind: typeof item?.kind === 'string' ? item.kind : 'text'
+			})) as Dashboard['data']['items']
+		}
+	} as Dashboard
+}
+
+function compactDiscoveryResponse(response: DiscoveryCategoryResponse): DiscoveryCategoryResponse {
+	return {
+		...response,
+		items: response.items.map(compactDiscoveryDashboard)
+	}
+}
+
+function emptyDiscoveryResponse(category: (typeof DISCOVERY_CATEGORIES)[number]): DiscoveryCategoryResponse {
+	return {
+		items: [],
+		page: 1,
+		perPage: category.limit,
+		totalItems: 0,
+		totalPages: 0
+	}
+}
+
+async function fetchDiscoveryCategory(
+	category: (typeof DISCOVERY_CATEGORIES)[number]
+): Promise<DiscoveryCategoryResponse> {
+	const controller = new AbortController()
+	const timeout = setTimeout(() => controller.abort(), DISCOVERY_FETCH_TIMEOUT_MS)
+	const params = new URLSearchParams({
+		visibility: 'public',
+		sortBy: category.sortBy,
+		page: '1',
+		limit: String(category.limit)
+	})
+	if (category.timeFrame) params.set('timeFrame', category.timeFrame)
+
+	try {
+		const response = await fetch(`${FEATURES_SERVER}/dashboards/search?${params.toString()}`, {
+			signal: controller.signal
+		})
+		if (!response.ok) throw new Error(`features-server responded with ${response.status}`)
+		return compactDiscoveryResponse((await response.json()) as DiscoveryCategoryResponse)
+	} finally {
+		clearTimeout(timeout)
+	}
+}
+
+async function fetchInitialDiscoveryCategories(): Promise<DiscoveryCategoriesInitialData> {
+	const results = await Promise.allSettled(
+		DISCOVERY_CATEGORIES.map(async (category) => ({
+			key: category.key,
+			data: await fetchDiscoveryCategory(category).catch(() => emptyDiscoveryResponse(category))
+		}))
+	)
+	const categories: DiscoveryCategoriesInitialData = {}
+
+	for (const result of results) {
+		if (result.status === 'fulfilled') {
+			categories[result.value.key] = result.value.data
+		}
+	}
+
+	return categories
+}
+
+const getServerSidePropsHandler: GetServerSideProps<ProPageProps> = async ({ req, res }) => {
+	const authToken = getAuthTokenFromRequest(req)
+	res.setHeader('Cache-Control', authToken ? PRIVATE_PRO_CACHE_CONTROL : PUBLIC_PRO_CACHE_CONTROL)
+	res.setHeader('Vary', 'Cookie, Authorization')
+
+	return {
+		props: {
+			initialDiscoveryCategories: await fetchInitialDiscoveryCategories()
+		}
+	}
+}
+
+function ProPageContent({ initialDiscoveryCategories }: ProPageProps) {
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 
 	if (loaders.userLoading) {
@@ -44,7 +150,7 @@ function ProPageContent() {
 				description="Build custom no-code DeFi dashboards with DefiLlama Pro. Combine TVL, fees, volume, and protocol metrics into personalized analytics views."
 				canonicalUrl={`/pro`}
 			>
-				<ProDashboardLoader />
+				<ProDashboardLoader heading="Custom Dashboards" />
 			</Layout>
 		)
 	}
@@ -55,12 +161,20 @@ function ProPageContent() {
 			description="Build custom no-code DeFi dashboards with DefiLlama Pro. Combine TVL, fees, volume, and protocol metrics into personalized analytics views."
 			canonicalUrl={`/pro`}
 		>
-			<ProContent hasActiveSubscription={hasActiveSubscription} isAuthenticated={isAuthenticated} />
+			<ProContent
+				hasActiveSubscription={hasActiveSubscription}
+				isAuthenticated={isAuthenticated}
+				initialDiscoveryCategories={initialDiscoveryCategories}
+			/>
 		</Layout>
 	)
 }
 
 const tabs = ['my-dashboards', 'discover', 'favorites'] as const
+type ProTab = (typeof tabs)[number]
+
+const tabClassName =
+	'shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap outline-hidden hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)'
 
 function getDashboardPagesToShow(selectedPage: number, totalPages: number): number[] {
 	if (totalPages < 1) return []
@@ -77,14 +191,21 @@ function getDashboardPagesToShow(selectedPage: number, totalPages: number): numb
 
 function ProContent({
 	hasActiveSubscription,
-	isAuthenticated
+	isAuthenticated,
+	initialDiscoveryCategories
 }: {
 	hasActiveSubscription: boolean
 	isAuthenticated: boolean
+	initialDiscoveryCategories: DiscoveryCategoriesInitialData
 }) {
 	const router = useRouter()
 	const { tab } = router.query
-	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
+	const activeTab: ProTab = typeof tab === 'string' && tabs.includes(tab as ProTab) ? (tab as ProTab) : 'discover'
+
+	const switchTab = (nextTab: ProTab) => {
+		if (nextTab === activeTab) return
+		void router.replace({ pathname: '/pro', query: { tab: nextTab } }, undefined, { shallow: true, scroll: false })
+	}
 
 	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
 		open: false,
@@ -113,7 +234,7 @@ function ProContent({
 		totalPages: myDashboardsTotalPages,
 		totalItems: myDashboardsTotalItems,
 		goToPage
-	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: activeTab === 'my-dashboards' })
+	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: isAuthenticated })
 
 	useEffect(() => {
 		if (createDialogOpen && !dialogWasOpenRef.current) {
@@ -140,10 +261,10 @@ function ProContent({
 		const items = router.query.items
 		if (comparison !== 'protocols' || typeof items !== 'string') return
 		if (comparisonPreset) return
-		const parsedItems = items
-			.split(',')
-			.map((item) => item.trim())
-			.filter(Boolean)
+		const parsedItems = items.split(',').flatMap((item) => {
+			const trimmed = item.trim()
+			return trimmed ? [trimmed] : []
+		})
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
 		let cancelled = false
 		if (parsedItems.length > 0) {
@@ -167,42 +288,49 @@ function ProContent({
 	return (
 		<div className="flex flex-1 flex-col gap-4 pro-dashboard p-2 lg:px-0">
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<div className="flex overflow-x-auto">
-					<BasicLink
-						href={`/pro?tab=discover`}
-						shallow
+				<div className="flex overflow-x-auto" role="tablist" aria-label="Dashboard views">
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeTab === 'discover'}
+						onClick={() => switchTab('discover')}
 						data-active={activeTab === 'discover'}
 						data-umami-event="dashboard-open-discover"
-						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+						className={tabClassName}
 					>
 						Discover
-					</BasicLink>
+					</button>
 					{isAuthenticated ? (
-						<BasicLink
-							href={`/pro?tab=my-dashboards`}
-							shallow
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'my-dashboards'}
+							onClick={() => switchTab('my-dashboards')}
 							data-active={activeTab === 'my-dashboards'}
 							data-umami-event="dashboard-open-my-dashboards"
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+							className={tabClassName}
 						>
 							My Dashboards
-						</BasicLink>
+						</button>
 					) : null}
 					{isAuthenticated ? (
-						<BasicLink
-							href={`/pro?tab=favorites`}
-							shallow
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'favorites'}
+							onClick={() => switchTab('favorites')}
 							data-active={activeTab === 'favorites'}
 							data-umami-event="dashboard-open-favorites"
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+							className={tabClassName}
 						>
 							Favorites
-						</BasicLink>
+						</button>
 					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
 						<button
+							type="button"
 							onClick={
 								!isAuthenticated
 									? () => router.push('/pro/preview')
@@ -218,6 +346,7 @@ function ProContent({
 						</button>
 					}
 					<button
+						type="button"
 						onClick={
 							!isAuthenticated
 								? () => router.push('/pro/preview')
@@ -235,87 +364,100 @@ function ProContent({
 				</div>
 			</div>
 
-			{activeTab === 'my-dashboards' ? (
-				<Suspense fallback={<></>}>
-					<>
-						{!isLoadingMyDashboards ? (
-							<p className="-mb-2 text-xs text-(--text-label)">
-								Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
-							</p>
-						) : null}
+			<div
+				role="tabpanel"
+				aria-hidden={activeTab !== 'discover'}
+				className={activeTab === 'discover' ? 'flex flex-col gap-4' : 'hidden'}
+			>
+				<DashboardDiscovery initialCategories={initialDiscoveryCategories} />
+			</div>
 
-						<DashboardList
-							dashboards={myDashboards}
-							isLoading={isLoadingMyDashboards}
-							onCreateNew={() => createDashboardDialogStore.show()}
-							onDeleteDashboard={
-								isAuthenticated
-									? (dashboardId) => {
-											void handleDeleteDashboard(dashboardId)
-										}
-									: undefined
-							}
-						/>
+			{isAuthenticated ? (
+				<div
+					role="tabpanel"
+					aria-hidden={activeTab !== 'my-dashboards'}
+					className={activeTab === 'my-dashboards' ? 'flex flex-col gap-4' : 'hidden'}
+				>
+					{!isLoadingMyDashboards ? (
+						<p className="text-xs text-(--text-label)">
+							Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
+						</p>
+					) : null}
 
-						{myDashboardsTotalPages > 1 ? (
-							<div className="mt-4 flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
-								<button
-									onClick={() => goToPage(1)}
-									disabled={selectedPage < 3}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevrons-left" height={16} width={16} />
-								</button>
+					<DashboardList
+						dashboards={myDashboards}
+						isLoading={isLoadingMyDashboards}
+						onCreateNew={() => createDashboardDialogStore.show()}
+						onDeleteDashboard={(dashboardId) => {
+							void handleDeleteDashboard(dashboardId)
+						}}
+					/>
 
-								<button
-									onClick={() => goToPage(Math.max(1, selectedPage - 1))}
-									disabled={selectedPage === 1}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevron-left" height={16} width={16} />
-								</button>
+					{myDashboardsTotalPages > 1 ? (
+						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
+							<button
+								type="button"
+								onClick={() => goToPage(1)}
+								disabled={selectedPage < 3}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevrons-left" height={16} width={16} />
+							</button>
 
-								{getDashboardPagesToShow(selectedPage, myDashboardsTotalPages).map((pageNum) => {
-									const isActive = selectedPage === pageNum
-									return (
-										<button
-											key={`my-dashboard-page-${pageNum}`}
-											onClick={() => goToPage(pageNum)}
-											data-active={isActive}
-											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-										>
-											{pageNum}
-										</button>
-									)
-								})}
+							<button
+								type="button"
+								onClick={() => goToPage(Math.max(1, selectedPage - 1))}
+								disabled={selectedPage === 1}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevron-left" height={16} width={16} />
+							</button>
 
-								<button
-									onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
-									disabled={selectedPage === myDashboardsTotalPages}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevron-right" height={16} width={16} />
-								</button>
-								<button
-									onClick={() => goToPage(myDashboardsTotalPages)}
-									disabled={selectedPage > myDashboardsTotalPages - 2}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-								>
-									<Icon name="chevrons-right" height={16} width={16} />
-								</button>
-							</div>
-						) : null}
-					</>
-				</Suspense>
-			) : activeTab === 'favorites' ? (
-				<Suspense fallback={<></>}>
+							{getDashboardPagesToShow(selectedPage, myDashboardsTotalPages).map((pageNum) => {
+								const isActive = selectedPage === pageNum
+								return (
+									<button
+										type="button"
+										key={`my-dashboard-page-${pageNum}`}
+										onClick={() => goToPage(pageNum)}
+										data-active={isActive}
+										className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									>
+										{pageNum}
+									</button>
+								)
+							})}
+
+							<button
+								type="button"
+								onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
+								disabled={selectedPage === myDashboardsTotalPages}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevron-right" height={16} width={16} />
+							</button>
+							<button
+								type="button"
+								onClick={() => goToPage(myDashboardsTotalPages)}
+								disabled={selectedPage > myDashboardsTotalPages - 2}
+								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+							>
+								<Icon name="chevrons-right" height={16} width={16} />
+							</button>
+						</div>
+					) : null}
+				</div>
+			) : null}
+
+			{isAuthenticated ? (
+				<div
+					role="tabpanel"
+					aria-hidden={activeTab !== 'favorites'}
+					className={activeTab === 'favorites' ? 'flex flex-col gap-4' : 'hidden'}
+				>
 					<LikedDashboards />
-				</Suspense>
-			) : (
-				<Suspense fallback={<></>}>
-					<DashboardDiscovery />
-				</Suspense>
-			)}
+				</div>
+			) : null}
 
 			<Suspense fallback={<></>}>
 				<CreateDashboardPicker
@@ -344,12 +486,16 @@ function ProContent({
 	)
 }
 
-export default function HomePage() {
+export default function HomePage({
+	initialDiscoveryCategories
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	return (
 		<AppMetadataProvider>
 			<ProDashboardAPIProvider>
-				<ProPageContent />
+				<ProPageContent initialDiscoveryCategories={initialDiscoveryCategories} />
 			</ProDashboardAPIProvider>
 		</AppMetadataProvider>
 	)
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/pro', getServerSidePropsHandler)

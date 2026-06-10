@@ -137,7 +137,21 @@ function LinkCard({ config, action }: { config: ArticleEmbedConfig; action: stri
 	)
 }
 
-export function TweetEmbed({ config, action }: { config: ArticleEmbedConfig; action: string }) {
+type TweetEmbedOptions = {
+	width?: number
+	cards?: 'hidden'
+	conversation?: 'none'
+}
+
+export function TweetEmbed({
+	config,
+	action,
+	options
+}: {
+	config: ArticleEmbedConfig
+	action: string
+	options?: TweetEmbedOptions
+}) {
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const [visible, setVisible] = useState(false)
 	const [resolved, setResolved] = useState(false)
@@ -206,7 +220,14 @@ export function TweetEmbed({ config, action }: { config: ArticleEmbedConfig; act
 	return (
 		<div ref={containerRef} className="grid min-h-32 place-items-center">
 			{visible ? (
-				<blockquote className="twitter-tweet" data-dnt="true" cite={config.url}>
+				<blockquote
+					className="twitter-tweet"
+					data-dnt="true"
+					data-width={options?.width}
+					data-cards={options?.cards}
+					data-conversation={options?.conversation}
+					cite={config.url}
+				>
 					<a href={config.url} target="_blank" rel="noreferrer noopener">
 						{config.title || 'View tweet'}
 					</a>

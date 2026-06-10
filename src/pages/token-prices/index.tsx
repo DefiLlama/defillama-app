@@ -1,6 +1,6 @@
 import type { InferGetStaticPropsType } from 'next'
-import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
-import { getProtocolsTokenPricesByChain } from '~/containers/Protocols/queries'
+import { ProtocolsWithTokens } from '~/containers/ProtocolLists/ProtocolsWithTokens'
+import { getProtocolsTokenPricesByChain } from '~/containers/ProtocolLists/queries'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'

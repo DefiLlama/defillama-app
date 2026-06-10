@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
-import { fetchCoinPrices } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
+import { fetchCoinPrices } from '~/api/pricing'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { CACHE_SERVER } from '~/constants'
@@ -257,7 +257,7 @@ export function CompareTokens({
 						className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-							<Icon name="x" className="h-5 w-5" />
+							<Icon name="x" className="size-5" />
 						</Ariakit.PopoverDismiss>
 
 						{compareTypes.map((item) => {

@@ -145,7 +145,7 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 								<button
 									onClick={() => setSeatCount((c) => Math.max(minSeats, c - 1))}
 									disabled={decrementDisabled}
-									className="flex h-10 w-10 items-center justify-center rounded-lg border border-(--sub-border-slate-100) text-(--sub-ink-primary) disabled:opacity-30 dark:border-(--sub-border-strong) dark:text-white"
+									className="flex size-10 items-center justify-center rounded-lg border border-(--sub-border-slate-100) text-(--sub-ink-primary) disabled:opacity-30 dark:border-(--sub-border-strong) dark:text-white"
 								>
 									<Icon name="minus" height={16} width={16} />
 								</button>
@@ -164,7 +164,7 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 							/>
 							<button
 								onClick={() => setSeatCount((c) => c + 1)}
-								className="flex h-10 w-10 items-center justify-center rounded-lg border border-(--sub-border-slate-100) text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white"
+								className="flex size-10 items-center justify-center rounded-lg border border-(--sub-border-slate-100) text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white"
 							>
 								<Icon name="plus" height={16} width={16} />
 							</button>

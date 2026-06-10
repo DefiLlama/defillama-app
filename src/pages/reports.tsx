@@ -75,7 +75,7 @@ export default function ReportsPage() {
 				/>
 
 				{/* Glow orb behind logo */}
-				<div className="pointer-events-none absolute -top-20 -left-20 h-40 w-40 rounded-full bg-[#237BFF]/10 blur-3xl" />
+				<div className="pointer-events-none absolute -top-20 -left-20 size-40 rounded-full bg-[#237BFF]/10 blur-3xl" />
 
 				<div className="relative flex flex-col gap-5">
 					{/* Header */}
@@ -131,7 +131,7 @@ function DLReportCard({ report }: { report: Report }) {
 			<div className="relative flex flex-col overflow-hidden rounded-md border border-[#237BFF]/15 bg-(--cards-bg) shadow-[0_0_20px_-5px_rgba(35,123,255,0.1)] transition-shadow duration-300 hover:shadow-[0_0_25px_-5px_rgba(35,123,255,0.2)]">
 				{report.image && (
 					<div className="relative h-36 w-full overflow-hidden bg-[#0a1628]">
-						<img src={report.image} alt="" className="h-full w-full object-cover opacity-40" />
+						<img src={report.image} alt="" className="size-full object-cover opacity-40" />
 						<div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
 						<div className="absolute bottom-3 left-4 flex items-center gap-2">
 							<h3 className="text-lg font-semibold text-white">{report.title}</h3>
@@ -202,7 +202,7 @@ function DLReportCard({ report }: { report: Report }) {
 					<img
 						src={report.image}
 						alt=""
-						className="h-full w-full object-cover opacity-60 transition-transform duration-300 group-hover:scale-105"
+						className="size-full object-cover opacity-60 transition-transform duration-300 group-hover:scale-105"
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/60 to-transparent" />
 					<h3 className="absolute bottom-3 left-4 text-lg font-semibold text-white">{report.title}</h3>
@@ -263,7 +263,7 @@ function ReportCard({ report }: { report: Report }) {
 					<img
 						src={report.image}
 						alt=""
-						className="h-full w-full object-cover opacity-60 transition-transform duration-300 group-hover:scale-105"
+						className="size-full object-cover opacity-60 transition-transform duration-300 group-hover:scale-105"
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] to-transparent" />
 					<h3 className="absolute bottom-3 left-4 text-lg font-semibold text-white">{report.title}</h3>

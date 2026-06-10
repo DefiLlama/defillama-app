@@ -134,7 +134,7 @@ function Support() {
 						<span className="flex items-center justify-center gap-2 font-semibold">
 							{chatLoading ? (
 								<>
-									<svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+									<svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
 										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
 										<path
 											className="opacity-75"
@@ -222,9 +222,9 @@ export default Support
 
 const SuccessScreen = ({ setIsSubmitted }: { setIsSubmitted: (isSubmitted: boolean) => void }) => (
 	<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-center">
-		<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+		<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
 			<svg
-				className="h-8 w-8 text-green-600 dark:text-green-400"
+				className="size-8 text-green-600 dark:text-green-400"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"

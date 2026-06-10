@@ -149,6 +149,40 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(400)
 		expect(payload?.exposures.summary.minBadDebtKnownCount).toBe(1)
 		expect(payload?.exposures.summary.minBadDebtUnknownCount).toBe(1)
+		expect(payload?.exposures.protocolSummaries).toEqual([
+			{
+				protocol: 'aave-v3',
+				protocolDisplayName: 'Aave V3',
+				totalCurrentMaxBorrowUsd: 1000,
+				totalMinBadDebtAtPriceZeroUsd: 400,
+				minBadDebtAtPriceZeroCoverage: 'known',
+				chainBreakdowns: [
+					{
+						chain: 'ethereum',
+						chainDisplayName: 'Ethereum',
+						totalCurrentMaxBorrowUsd: 1000,
+						totalMinBadDebtAtPriceZeroUsd: 400,
+						minBadDebtAtPriceZeroCoverage: 'known'
+					}
+				]
+			},
+			{
+				protocol: 'morpho-blue',
+				protocolDisplayName: 'Morpho Blue',
+				totalCurrentMaxBorrowUsd: 500,
+				totalMinBadDebtAtPriceZeroUsd: null,
+				minBadDebtAtPriceZeroCoverage: 'unavailable',
+				chainBreakdowns: [
+					{
+						chain: 'ethereum',
+						chainDisplayName: 'Ethereum',
+						totalCurrentMaxBorrowUsd: 500,
+						totalMinBadDebtAtPriceZeroUsd: null,
+						minBadDebtAtPriceZeroCoverage: 'unavailable'
+					}
+				]
+			}
+		])
 		expect(payload?.limitations).toContain(
 			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 		)
@@ -175,6 +209,10 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(425)
 		expect(payload?.exposures.summary.protocolCount).toBe(2)
 		expect(payload?.exposures.summary.chainCount).toBe(2)
+		expect(payload?.exposures.protocolSummaries[0].chainBreakdowns.map((chain) => chain.chainDisplayName)).toEqual([
+			'Ethereum',
+			'Base'
+		])
 	})
 
 	it('includes API symbol matches that metadata misses for native token risk rows', async () => {

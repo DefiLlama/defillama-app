@@ -23,36 +23,6 @@ export type VolumeChartEntry = {
 	volumeUSD?: number
 	volume?: number
 }
-
-export const getNFTStatistics = (chart: VolumeChartEntry[]) => {
-	const { totalVolume, totalVolumeUSD } = (chart.length > 0
-		? chart.reduce(
-				(volumes, data) => {
-					volumes.totalVolumeUSD += data.volumeUSD ?? 0
-					volumes.totalVolume += data.volume ?? 0
-					return volumes
-				},
-				{ totalVolumeUSD: 0, totalVolume: 0 }
-			)
-		: null) ?? {
-		totalVolume: 0,
-		totalVolumeUSD: 0
-	}
-
-	const dailyVolume = chart.length > 0 ? (chart[chart.length - 1]?.volume ?? 0) : 0
-	const dailyVolumeUSD = chart.length > 0 ? (chart[chart.length - 1]?.volumeUSD ?? 0) : 0
-	const prevDayVolumeUSD = chart.length > 1 ? (chart[chart.length - 2]?.volumeUSD ?? 0) : 0
-	const dailyChange = prevDayVolumeUSD !== 0 ? ((dailyVolumeUSD - prevDayVolumeUSD) / prevDayVolumeUSD) * 100 : 0
-
-	return {
-		totalVolumeUSD,
-		totalVolume,
-		dailyVolumeUSD,
-		dailyVolume,
-		dailyChange
-	}
-}
-
 type NftDataResult = {
 	chart: VolumeChartEntry[]
 	collections: ExtendedNftCollection[]

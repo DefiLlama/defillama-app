@@ -273,7 +273,7 @@ export function ProtocolOverviewLayout({
 								portal
 							>
 								<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-									<Icon name="x" className="h-5 w-5" />
+									<Icon name="x" className="size-5" />
 								</Ariakit.PopoverDismiss>
 
 								{otherProtocols?.map((value, i) => {

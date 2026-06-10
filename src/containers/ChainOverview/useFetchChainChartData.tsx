@@ -5,25 +5,11 @@ import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
-import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getPercentChange, getPrevTvlFromChart } from '~/utils'
+import { feeRevenueMetrics } from '~/metrics/feesRevenue'
+import { getFeeRevenueChainChartApiParams } from '~/metrics/routeSemantics'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
-
-/**
- * Get TVL values for 24h change calculation.
- * Only returns a previous-day value when the chart has current-day data and
- * a point close to latestTimestamp - 24h.
- */
-const getTvl24hChange = (
-	chart: Array<[number, number]>,
-	now: number
-): { totalValueUSD: number | null; tvlPrevDay: number | null } => {
-	return {
-		totalValueUSD: getPrevTvlFromChart(chart, 0, now),
-		tvlPrevDay: getPrevTvlFromChart(chart, 1, now)
-	}
-}
+import { buildChainTvlChartState } from './tvlChart'
 
 const normalizeActivityChart = (values: Array<[number, number]> | null): Array<[number, number]> | null =>
 	values && values.length > 0
@@ -37,8 +23,13 @@ const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
 			searchParams.set(key, value)
 		}
 	}
-	return `/api/charts/chain?${searchParams.toString()}`
+	return `/api/public/charts/chain?${searchParams.toString()}`
 }
+
+const chainFeesMetric = feeRevenueMetrics.chainFees
+const chainRevenueMetric = feeRevenueMetrics.chainRevenue
+const appFeesMetric = feeRevenueMetrics.appFees
+const appRevenueMetric = feeRevenueMetrics.appRevenue
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -90,44 +81,53 @@ export const useFetchChainChartData = ({
 	}>({
 		queryKey: ['chain-overview', 'price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`/api/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then((res) => {
-				if (!res.data?.prices?.length) return null
+			fetchJson(`/api/public/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
+				(res) => {
+					if (!res.data?.prices?.length) return null
 
-				const store = {}
-				for (const [date, value] of res.data.prices) {
-					store[date] = value
+					const store = {}
+					for (const [date, value] of res.data.prices) {
+						store[date] = value
+					}
+
+					return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
 				}
-
-				return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
-			}),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!denominationGeckoId
 	})
 
-	const isChainFeesEnabled = toggledChartsSet.has('Chain Fees')
+	const isChainFeesEnabled = toggledChartsSet.has(chainFeesMetric.label)
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'chain-fees', selectedChain],
+		queryKey: ['chain-overview', chainFeesMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
-			fetchJson(buildChainChartApiUrl({ kind: 'adapter-protocol', adapterType: 'fees', protocol: selectedChain })),
+			fetchJson(
+				buildChainChartApiUrl(
+					getFeeRevenueChainChartApiParams({
+						metric: chainFeesMetric,
+						chain: selectedChain
+					})
+				)
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainFeesEnabled
 	})
 
-	const isChainRevenueEnabled = toggledChartsSet.has('Chain Revenue')
+	const isChainRevenueEnabled = toggledChartsSet.has(chainRevenueMetric.label)
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'chain-revenue', selectedChain],
+		queryKey: ['chain-overview', chainRevenueMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-protocol',
-					adapterType: 'fees',
-					protocol: selectedChain,
-					dataType: 'dailyRevenue'
-				})
+				buildChainChartApiUrl(
+					getFeeRevenueChainChartApiParams({
+						metric: chainRevenueMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -157,17 +157,17 @@ export const useFetchChainChartData = ({
 		enabled: isPerpsVolumeEnabled
 	})
 
-	const isChainAppFeesEnabled = toggledChartsSet.has('App Fees')
+	const isChainAppFeesEnabled = toggledChartsSet.has(appFeesMetric.label)
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'app-fees', selectedChain],
+		queryKey: ['chain-overview', appFeesMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-chain',
-					adapterType: 'fees',
-					chain: selectedChain,
-					dataType: 'dailyAppFees'
-				})
+				buildChainChartApiUrl(
+					getFeeRevenueChainChartApiParams({
+						metric: appFeesMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -175,19 +175,19 @@ export const useFetchChainChartData = ({
 		enabled: isChainAppFeesEnabled
 	})
 
-	const isChainAppRevenueEnabled = toggledChartsSet.has('App Revenue')
+	const isChainAppRevenueEnabled = toggledChartsSet.has(appRevenueMetric.label)
 	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
 		Array<[number, number]>
 	>({
-		queryKey: ['chain-overview', 'app-revenue', selectedChain],
+		queryKey: ['chain-overview', appRevenueMetric.chainOverview.queryKey, selectedChain],
 		queryFn: () =>
 			fetchJson(
-				buildChainChartApiUrl({
-					kind: 'adapter-chain',
-					adapterType: 'fees',
-					chain: selectedChain,
-					dataType: 'dailyAppRevenue'
-				})
+				buildChainChartApiUrl(
+					getFeeRevenueChainChartApiParams({
+						metric: appRevenueMetric,
+						chain: selectedChain
+					})
+				)
 			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -313,47 +313,7 @@ export const useFetchChainChartData = ({
 	})
 
 	const { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled } = useMemo(() => {
-		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
-
-		if (toggledTvlSettings.length === 0) {
-			// Use pre-computed values from server to avoid client-side iteration
-			return {
-				finalTvlChart: tvlChart,
-				totalValueUSD: tvlChartSummary.totalValueUSD,
-				valueChange24hUSD: tvlChartSummary.valueChange24hUSD,
-				change24h: tvlChartSummary.change24h
-			}
-		}
-
-		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
-
-		const store: Record<string, number> = {}
-		for (const [date, tvl] of tvlChart) {
-			let sum = tvl
-			for (const toggledTvlSetting of toggledTvlSettings) {
-				sum += extraTvlCharts[toggledTvlSetting]?.[date] ?? 0
-			}
-			store[date] = sum
-		}
-
-		// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
-		if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
-			for (const date in store) {
-				store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
-			}
-		}
-
-		const finalTvlChart: Array<[number, number]> = []
-		for (const date in store) {
-			finalTvlChart.push([+date, store[date]])
-		}
-		finalTvlChart.sort((a, b) => a[0] - b[0])
-
-		const { totalValueUSD, tvlPrevDay } = getTvl24hChange(finalTvlChart, nowMs)
-		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
-		const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
-		const isGovTokensEnabled = !!tvlSettings?.govtokens
-		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
+		return buildChainTvlChartState({ tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs })
 	}, [tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs])
 
 	const chartData = useMemo(() => {
@@ -366,11 +326,11 @@ export const useFetchChainChartData = ({
 		}
 
 		if (fetchingChainFees) {
-			loadingCharts.push('Chain Fees')
+			loadingCharts.push(chainFeesMetric.label)
 		}
 
 		if (fetchingChainRevenue) {
-			loadingCharts.push('Chain Revenue')
+			loadingCharts.push(chainRevenueMetric.label)
 		}
 
 		if (fetchingDexVolume) {
@@ -381,11 +341,11 @@ export const useFetchChainChartData = ({
 		}
 
 		if (fetchingChainAppFees) {
-			loadingCharts.push('App Fees')
+			loadingCharts.push(appFeesMetric.label)
 		}
 
 		if (fetchingChainAppRevenue) {
-			loadingCharts.push('App Revenue')
+			loadingCharts.push(appRevenueMetric.label)
 		}
 
 		if (fetchingInflowsChartData) {
@@ -444,7 +404,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainFeesEnabled && chainFeesDataChart) {
-			const chartName: ChainChartLabels = 'Chain Fees' as const
+			const chartName: ChainChartLabels = chainFeesMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainFeesDataChart,
 				groupBy,
@@ -453,7 +413,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainRevenueEnabled && chainRevenueDataChart) {
-			const chartName: ChainChartLabels = 'Chain Revenue' as const
+			const chartName: ChainChartLabels = chainRevenueMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainRevenueDataChart,
 				groupBy,
@@ -480,7 +440,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainAppFeesEnabled && chainAppFeesDataChart) {
-			const chartName: ChainChartLabels = 'App Fees' as const
+			const chartName: ChainChartLabels = appFeesMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainAppFeesDataChart,
 				groupBy,
@@ -489,7 +449,7 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isChainAppRevenueEnabled && chainAppRevenueDataChart) {
-			const chartName: ChainChartLabels = 'App Revenue' as const
+			const chartName: ChainChartLabels = appRevenueMetric.label
 			charts[chartName] = formatBarChart({
 				data: chainAppRevenueDataChart,
 				groupBy,

@@ -13,7 +13,6 @@ import {
 } from './localStorageStore'
 
 const DEFILLAMA = 'DEFILLAMA' as const
-const PINNED_METRICS_KEY = 'pinned-metrics' as const
 export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
@@ -24,6 +23,7 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
 export const LLAMA_AI_WALKTHROUGH_STATE = 'LLAMA_AI_WALKTHROUGH_STATE' as const
 const LLAMA_AI_LANDING_VISITED = 'LLAMA_AI_LANDING_VISITED' as const
+export const EXTERNAL_LINK_ALLOWLIST = 'EXTERNAL_LINK_ALLOWLIST' as const
 //stored outside so useUserConfig does not sync it across devices
 const LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY = 'llamaai-notify-banner-dismissed' as const
 const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
@@ -162,6 +162,7 @@ export type AppStorage = SettingsStore & {
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
 	[LLAMA_AI_WALKTHROUGH_STATE]?: LlamaAIWalkthroughState
 	[LLAMA_AI_LANDING_VISITED]?: boolean
+	[EXTERNAL_LINK_ALLOWLIST]?: string[]
 	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore
@@ -192,11 +193,6 @@ export const isChainsCategoryGroupKey = (value: string): value is ChainsCategory
 export function subscribeToLocalStorage(callback: () => void) {
 	return subscribeToStorageKey(DEFILLAMA, callback)
 }
-
-export function subscribeToPinnedMetrics(callback: () => void) {
-	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
-}
-
 const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
 
 const getResolvedTheme = (): 'dark' | 'light' => {
@@ -747,23 +743,4 @@ export function useLlamaAINotifyBannerDismissed(): [boolean, () => void] {
 	const raw = useStorageItem(LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY, null)
 	const markDismissed = useMemo(() => () => setStorageItem(LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY, 'true'), [])
 	return [raw === 'true', markDismissed]
-}
-
-export function useLlamaAILandingVisited(): [boolean, () => void] {
-	const visited = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => (readAppStorage()[LLAMA_AI_LANDING_VISITED] ? '1' : '0'),
-		() => '0'
-	)
-
-	const markVisited = useMemo(
-		() => () =>
-			writeAppStorage({
-				...readAppStorage(),
-				[LLAMA_AI_LANDING_VISITED]: true
-			}),
-		[]
-	)
-
-	return [visited === '1', markVisited]
 }

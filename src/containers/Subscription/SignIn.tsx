@@ -260,7 +260,7 @@ export const SignInForm = ({
 								{loaders.login ? (
 									<span className="flex items-center justify-center gap-2">
 										<svg
-											className="h-5 w-5 animate-spin text-white"
+											className="size-5 animate-spin text-white"
 											xmlns="http://www.w3.org/2000/svg"
 											fill="none"
 											viewBox="0 0 24 24"
@@ -367,7 +367,7 @@ export const SignInForm = ({
 							{resetPasswordMutation.isPending ? (
 								<span className="flex items-center justify-center gap-2">
 									<svg
-										className="h-5 w-5 animate-spin text-white"
+										className="size-5 animate-spin text-white"
 										xmlns="http://www.w3.org/2000/svg"
 										fill="none"
 										viewBox="0 0 24 24"
@@ -494,7 +494,7 @@ export const SignInForm = ({
 					</div>
 
 					<label className="flex items-center gap-2">
-						<input type="checkbox" className="h-4 w-4" required />
+						<input type="checkbox" className="size-4" required />
 						<span className="text-sm text-[#b4b7bc]">
 							I agree to the{' '}
 							<BasicLink
@@ -519,7 +519,7 @@ export const SignInForm = ({
 						<input
 							id={promotionalEmailsCheckboxId}
 							type="checkbox"
-							className="mt-0.5 h-4 w-4 shrink-0"
+							className="mt-0.5 size-4 shrink-0"
 							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
@@ -547,7 +547,7 @@ export const SignInForm = ({
 						{loaders.signup ? (
 							<span className="flex items-center justify-center gap-2">
 								<svg
-									className="h-5 w-5 animate-spin text-white"
+									className="size-5 animate-spin text-white"
 									xmlns="http://www.w3.org/2000/svg"
 									fill="none"
 									viewBox="0 0 24 24"

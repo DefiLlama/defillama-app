@@ -1,4 +1,5 @@
 import React, { type CSSProperties } from 'react'
+import { DownloadPdfLink } from '~/containers/Articles/landing/DownloadPdfLink'
 import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
@@ -37,7 +38,11 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 							<div className="text-[9px] tracking-[0.18em] text-[#1D1D1D]/60 uppercase dark:text-white/60">
 								Sponsored by
 							</div>
-							<img src={sponsorLogoUrl} alt="" className="h-7 w-auto max-w-[120px] object-contain" />
+							<img
+								src={sponsorLogoUrl}
+								alt={highlight.sponsorLogo.alt}
+								className="h-7 w-auto max-w-[120px] object-contain"
+							/>
 						</div>
 					) : null}
 					<h2 className="text-[24px] leading-[150%] font-medium text-[#0c2956] dark:text-white">{highlight.title}</h2>
@@ -45,7 +50,7 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 						<div className="w-full">
 							<img
 								src={coverUrl}
-								alt=""
+								alt={highlight?.coverImage?.alt}
 								className="h-full w-full rounded-[6px] object-cover"
 								loading="lazy"
 								decoding="async"
@@ -70,14 +75,12 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 
 					<div className="mt-auto flex items-center justify-end gap-4 pt-[8px]">
 						{pdfUrl ? (
-							<a
-								href={pdfUrl}
-								target="_blank"
-								rel="noopener noreferrer"
+							<DownloadPdfLink
+								article={highlight}
+								pdfUrl={pdfUrl}
+								widgetLabel="Report highlight"
 								className="text-[13px] font-medium text-[#0c2956] underline-offset-4 hover:underline dark:text-white"
-							>
-								Download PDF
-							</a>
+							/>
 						) : null}
 						<ReadMoreLink url={articleHref(highlight)} title="Read this report" />
 					</div>

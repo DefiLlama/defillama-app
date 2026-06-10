@@ -78,6 +78,7 @@ const baseMarket = {
 	category: ['RWA Perps'],
 	issuer: 'XYZ',
 	website: ['https://trade.xyz/'],
+	link: 'https://app.hyperliquid.xyz/join/DEFILLAMAS',
 	oracleProvider: 'Pyth equity feed',
 	description: 'Perpetual market',
 	accessModel: 'Permissionless',
@@ -381,7 +382,8 @@ describe('getRWAPerpsContractData', () => {
 				displayName: 'Meta',
 				venue: 'xyz',
 				baseAsset: 'Meta',
-				baseAssetGroup: 'Equities'
+				baseAssetGroup: 'Equities',
+				link: 'https://app.hyperliquid.xyz/join/DEFILLAMAS'
 			},
 			market: {
 				id: 'xyz:meta',

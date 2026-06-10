@@ -2,9 +2,13 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
+import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
+import { useMedia } from '~/hooks/useMedia'
 import { CreateProjectModal } from './CreateProjectModal'
 import { useProjectList, useProjectSessions } from './hooks'
 import { getProjectTier } from './tier'
@@ -15,15 +19,31 @@ const NESTED_SESSIONS_LIMIT = 5
 const LAST_SELECTED_PROJECT_KEY_PREFIX = 'llamaai:last-selected-project-id'
 
 interface ProjectsSidebarSectionProps {
+	sessions?: ChatSession[]
 	currentProjectId?: string | null
 	currentSessionProjectId?: string | null
 	currentSessionId?: string | null
+	restoringSessionId?: string | null
+	deletingSessionId?: string | null
+	updatingTitleSessionId?: string | null
+	onSessionSelect: (sessionId: string) => void
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string; projectId?: string | null }) => Promise<unknown>
+	onPinSession?: (sessionId: string) => Promise<unknown>
 }
 
 export function ProjectsSidebarSection({
+	sessions = [],
 	currentProjectId,
 	currentSessionProjectId,
-	currentSessionId
+	currentSessionId,
+	restoringSessionId,
+	deletingSessionId,
+	updatingTitleSessionId,
+	onSessionSelect,
+	onDelete,
+	onUpdateTitle,
+	onPinSession
 }: ProjectsSidebarSectionProps) {
 	const { user, hasActiveSubscription, isTrial } = useAuthContext()
 	const storageKey = `${LAST_SELECTED_PROJECT_KEY_PREFIX}:${user?.id ?? 'anonymous'}`
@@ -45,6 +65,7 @@ export function ProjectsSidebarSection({
 	}, [expandedProjectId, projects])
 	const hasOverflow = projects.length > VISIBLE_LIMIT
 	const activeProjectSessions = projectSessions.data
+	const sessionById = useMemo(() => new Map(sessions.map((session) => [session.sessionId, session])), [sessions])
 	const visibleProjectSessions = useMemo(() => {
 		if (!activeProjectSessions) return []
 		const next = activeProjectSessions.slice(0, NESTED_SESSIONS_LIMIT)
@@ -56,6 +77,8 @@ export function ProjectsSidebarSection({
 	}, [activeProjectSessions, currentSessionId])
 
 	const navigate = useLlamaAINavigate()
+	const { hideSidebar } = useLlamaAIChrome()
+	const isDrawer = useMedia('(max-width: 1023px)')
 
 	useEffect(() => {
 		const activeProjectId = currentProjectId ?? currentSessionProjectId
@@ -71,13 +94,26 @@ export function ProjectsSidebarSection({
 		void navigate.toProject(projectId)
 	}
 
-	const goToSession = (sessionId: string) => {
-		void navigate.toSession(sessionId)
-	}
-
 	const onCreated = (project: { id: string }) => {
 		setStorageItem(storageKey, project.id)
 		goToProject(project.id)
+	}
+
+	const toSidebarSession = (session: (typeof visibleProjectSessions)[number], projectId: string): ChatSession => {
+		const sessionListEntry = sessionById.get(session.sessionId)
+		return {
+			sessionId: session.sessionId,
+			title: session.title || 'Untitled chat',
+			createdAt: session.createdAt,
+			lastActivity: session.lastActivity ?? session.createdAt,
+			isActive: session.sessionId === currentSessionId,
+			isPinned: session.isPinned,
+			pinnedAt: session.pinnedAt ?? undefined,
+			isPublic: session.isPublic,
+			shareToken: session.shareToken ?? undefined,
+			hasUnseenCompletion: session.hasUnseenCompletion ?? sessionListEntry?.hasUnseenCompletion,
+			projectId
+		}
 	}
 
 	return (
@@ -126,7 +162,7 @@ export function ProjectsSidebarSection({
 									className="-mx-1.5 flex h-[26px] items-center gap-1.5 px-1.5 py-1"
 									style={{ opacity: 1 - i * 0.25 }}
 								>
-									<span className="h-3 w-3 shrink-0 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
+									<span className="size-3 shrink-0 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
 									<span className="h-3 flex-1 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
 								</li>
 							))}
@@ -158,20 +194,20 @@ export function ProjectsSidebarSection({
 										{isExpanded && nestedSessions.length > 0 ? (
 											<ul className="mt-0.5 mb-1 ml-0.5 flex flex-col border-l border-[#e6e6e6] pl-1.5 dark:border-[#222324]">
 												{nestedSessions.map((s) => {
-													const isCurrent = s.sessionId === currentSessionId
+													const sidebarSession = toSidebarSession(s, p.id)
 													return (
 														<li key={s.sessionId}>
-															<button
-																type="button"
-																onClick={() => goToSession(s.sessionId)}
-																className={`flex w-full items-center rounded-md px-2 py-[5px] text-left text-xs transition-colors ${
-																	isCurrent
-																		? 'bg-(--old-blue)/8 text-(--old-blue)'
-																		: 'text-[#666] hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white'
-																}`}
-															>
-																<span className="min-w-0 flex-1 truncate">{s.title || 'Untitled chat'}</span>
-															</button>
+															<AgenticSessionItem
+																session={sidebarSession}
+																isActive={sidebarSession.sessionId === currentSessionId}
+																onSessionSelect={onSessionSelect}
+																onDelete={onDelete}
+																onUpdateTitle={onUpdateTitle}
+																isRestoring={restoringSessionId === sidebarSession.sessionId}
+																isDeleting={deletingSessionId === sidebarSession.sessionId}
+																isUpdatingTitle={updatingTitleSessionId === sidebarSession.sessionId}
+																onPinSession={onPinSession}
+															/>
 														</li>
 													)
 												})}
@@ -179,7 +215,10 @@ export function ProjectsSidebarSection({
 													<li>
 														<button
 															type="button"
-															onClick={() => goToProject(p.id)}
+															onClick={() => {
+																goToProject(p.id)
+																if (isDrawer) hideSidebar()
+															}}
 															className="rounded-md px-2 py-1 text-left text-[10px] text-[#999] hover:underline dark:text-[#555]"
 														>
 															Show more

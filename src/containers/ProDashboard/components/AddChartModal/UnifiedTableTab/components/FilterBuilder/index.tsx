@@ -336,11 +336,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 			>
 				<div className="flex min-w-0 flex-col gap-0.5">
 					<div className="flex items-center gap-1.5">
-						<Icon name="check" className="h-3 w-3" />
+						<Icon name="check" className="size-3" />
 						<span className="truncate text-xs font-semibold">{config.label}</span>
 						{config.description ? (
 							<Tooltip content={config.description} placement="top">
-								<Icon name="circle-help" className="h-3 w-3 opacity-50" />
+								<Icon name="circle-help" className="size-3 opacity-50" />
 							</Tooltip>
 						) : null}
 						{categoryBadge}
@@ -352,7 +352,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					onClick={onRemove}
 					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100!"
 				>
-					<Icon name="x" className="h-3 w-3" />
+					<Icon name="x" className="size-3" />
 				</button>
 			</div>
 		)
@@ -369,7 +369,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 							<span className="truncate text-xs font-semibold">{config.label}</span>
 							{config.description ? (
 								<Tooltip content={config.description} placement="top">
-									<Icon name="circle-help" className="h-3 w-3 opacity-50" />
+									<Icon name="circle-help" className="size-3 opacity-50" />
 								</Tooltip>
 							) : null}
 							{categoryBadge}
@@ -382,7 +382,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					onClick={onRemove}
 					className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100!"
 				>
-					<Icon name="x" className="h-3 w-3" />
+					<Icon name="x" className="size-3" />
 				</button>
 			</div>
 		)
@@ -398,13 +398,13 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						<span className="truncate text-xs font-semibold">{config.label}</span>
 						{config.description ? (
 							<Tooltip content={config.description} placement="top">
-								<Icon name="circle-help" className="h-3 w-3 opacity-50" />
+								<Icon name="circle-help" className="size-3 opacity-50" />
 							</Tooltip>
 						) : null}
 						{categoryBadge}
 					</div>
 					<button type="button" onClick={onRemove} className="rounded p-0.5 opacity-60 hover:opacity-100">
-						<Icon name="x" className="h-3 w-3" />
+						<Icon name="x" className="size-3" />
 					</button>
 				</div>
 				<div className="flex items-center gap-1.5">
@@ -441,7 +441,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					{categoryBadge}
 				</div>
 				<button type="button" onClick={onRemove} className="rounded p-0.5 opacity-60 hover:opacity-100">
-					<Icon name="x" className="h-3 w-3" />
+					<Icon name="x" className="size-3" />
 				</button>
 			</div>
 			<Ariakit.SelectProvider
@@ -694,10 +694,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 					</div>
 				</div>
 				<div className="relative">
-					<Icon
-						name="search"
-						className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-(--text-tertiary)"
-					/>
+					<Icon name="search" className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-(--text-tertiary)" />
 					<input
 						type="text"
 						value={search}
@@ -710,9 +707,9 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						<button
 							type="button"
 							onClick={() => setSearch('')}
-							className="absolute top-1/2 right-2.5 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded hover:bg-(--cards-bg)"
+							className="absolute top-1/2 right-2.5 flex size-5 -translate-y-1/2 items-center justify-center rounded hover:bg-(--cards-bg)"
 						>
-							<Icon name="x" className="h-3 w-3 text-(--text-tertiary)" />
+							<Icon name="x" className="size-3 text-(--text-tertiary)" />
 						</button>
 					) : null}
 				</div>
@@ -737,7 +734,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 									</div>
 									<Icon
 										name="chevron-down"
-										className={`h-3.5 w-3.5 text-(--text-tertiary) transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+										className={`size-3.5 text-(--text-tertiary) transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
 									/>
 								</button>
 								{isExpanded && availableFilters.length > 0 ? (
@@ -753,13 +750,13 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 													<span className="truncate text-xs text-(--text-primary)">{filter.label}</span>
 													{filter.description ? (
 														<Tooltip content={filter.description} placement="right">
-															<Icon name="circle-help" className="h-3 w-3 text-(--text-tertiary) opacity-50" />
+															<Icon name="circle-help" className="size-3 text-(--text-tertiary) opacity-50" />
 														</Tooltip>
 													) : null}
 												</div>
 												<Icon
 													name="plus"
-													className="h-3 w-3 shrink-0 text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100"
+													className="size-3 shrink-0 text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100"
 												/>
 											</button>
 										))}
@@ -769,7 +766,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						)
 					})}
 					{filteredCategories.length === 0 ? (
-						<div className="flex items-center justify-between rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg2) px-3 py-3 text-[11px] text-(--text-tertiary)">
+						<div className="flex items-center justify-between rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg2) p-3 text-[11px] text-(--text-tertiary)">
 							<span>No filters match "{search}".</span>
 							<button
 								type="button"
@@ -801,7 +798,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 				<div className="grid thin-scrollbar max-h-[260px] grid-cols-[repeat(auto-fit,minmax(220px,1fr))] items-start gap-1.5 overflow-y-auto pr-1">
 					{allActiveFilters.length === 0 ? (
 						<div className="flex flex-col items-center justify-center rounded-md border border-dashed border-(--cards-border) py-6 text-center">
-							<Icon name="settings" className="mb-2 h-5 w-5 text-(--text-tertiary)" />
+							<Icon name="settings" className="mb-2 size-5 text-(--text-tertiary)" />
 							<p className="text-xs text-(--text-tertiary)">
 								No filters applied. Add from the left to start narrowing results.
 							</p>

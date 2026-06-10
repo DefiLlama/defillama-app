@@ -8,6 +8,7 @@ const TRACKED_LAUNCHER_FILES = [
 	'Dockerfile',
 	'scripts/build.sh',
 	'scripts/buildMetadata.sh',
+	'scripts/docker-entrypoint.sh',
 	'scripts/prestart.sh'
 ]
 
@@ -24,6 +25,8 @@ describe('runtime policy', () => {
 				{ content: 'bun --bun next dev', filePath: 'package.json' },
 				{ content: 'bun server.js', filePath: 'Dockerfile' },
 				{ content: 'next start', filePath: 'standalone.sh' },
+				{ content: '"start": "next start"', filePath: 'package.json' },
+				{ content: 'wrangler deploy && next start', filePath: 'scripts/deploy-cloudflare.sh' },
 				{ content: 'next dev', filePath: 'safe.json' }
 			])
 		).toEqual([

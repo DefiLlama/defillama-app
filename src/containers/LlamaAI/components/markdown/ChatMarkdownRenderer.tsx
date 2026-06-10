@@ -1,23 +1,36 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { createElement, useMemo, useRef, useState } from 'react'
+import { createElement, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { EntityPreviewLink } from '~/containers/Articles/renderer/EntityPreviewLink'
+import type { ArticleEntityType } from '~/containers/Articles/types'
+import { CitationPill } from '~/containers/LlamaAI/components/messages/CitationPill'
+import type { UnifiedCitationReference } from '~/containers/LlamaAI/types'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
+import {
+	allowLlamaAIExternalHostname,
+	getLlamaAIExternalAllowlistSnapshot,
+	isLlamaAIExternalLink,
+	parseLlamaAIExternalAllowlistSnapshot
+} from '~/containers/LlamaAI/utils/externalLinks'
 import {
 	escapeBareOrderedListMarkers,
 	extractLlamaLinks,
-	processCitationMarkers
+	normalizeSourceUrl,
+	processUnifiedCitations,
+	wrapLegacyUrlCitations
 } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { ExternalLinkInterstitial } from '~/containers/ProDashboard/components/ExternalLinkInterstitial'
+import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
+import { equityIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
 export function headingSlug(text: string): string {
 	return text
@@ -75,22 +88,24 @@ function HeadingWithId({
 const TABLE_WATERMARK_HEIGHT = 40
 const TABLE_WATERMARK_WIDTH = Math.round((389 / 133) * TABLE_WATERMARK_HEIGHT)
 
-type EntityLinkProps = ComponentPropsWithoutRef<'a'>
+type EntityLinkProps = ComponentPropsWithoutRef<'a'> & {
+	onExternalLinkClick?: (href: string) => void
+	allowedExternalHosts?: ReadonlySet<string>
+}
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
 type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
 type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
 type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
-type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
 
-function normalizeSourceUrl(url: string) {
-	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
-		if (url.startsWith(prefix)) {
-			return `https://defillama.com${url.slice(prefix.length)}`
-		}
-	}
-	return url
+const LLAMA_PREVIEW_ENTITY_TYPES: Partial<Record<string, ArticleEntityType>> = {
+	protocol: 'protocol',
+	subprotocol: 'protocol',
+	chain: 'chain',
+	category: 'category',
+	stablecoin: 'stablecoin',
+	cex: 'cex'
 }
 
 function TableWrapper({
@@ -156,7 +171,7 @@ function TableWrapper({
 					<div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#e6e6e6] dark:border-[#222324]">
 						{/* <Ariakit.DialogHeading className="text-sm font-medium text-(--text-form)">Table</Ariakit.DialogHeading> */}
 						<Ariakit.DialogDismiss
-							className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							aria-label="Close fullscreen table"
 						>
 							<Icon name="x" height={16} width={16} />
@@ -195,7 +210,7 @@ function TableWrapper({
 						disabled
 						aria-label="View table fullscreen"
 					>
-						<Icon name="expand" className="h-3 w-3 shrink-0" />
+						<Icon name="expand" className="size-3 shrink-0" />
 					</button>
 				) : (
 					<button
@@ -204,7 +219,7 @@ function TableWrapper({
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						aria-label="View table fullscreen"
 					>
-						<Icon name="expand" className="h-3 w-3 shrink-0" />
+						<Icon name="expand" className="size-3 shrink-0" />
 					</button>
 				)}
 				{isStreaming ? (
@@ -212,7 +227,7 @@ function TableWrapper({
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 						disabled
 					>
-						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+						<Icon name="download-paper" className="size-3 shrink-0" />
 						<span>.csv</span>
 					</button>
 				) : (
@@ -244,39 +259,47 @@ function TableWrapper({
 	)
 }
 
-function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
+function EntityLinkRenderer({
+	href,
+	children,
+	onClick,
+	onExternalLinkClick,
+	allowedExternalHosts,
+	...props
+}: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex', 'equity'].includes(type)) {
 			return <span>{children}</span>
 		}
 
 		const entityUrl = getEntityUrl(type, slug)
+		const articleEntityType = LLAMA_PREVIEW_ENTITY_TYPES[type]
 
-		const entityLogoUrl = (entityType: string, entitySlug: string) => {
-			switch (entityType) {
-				case 'chain':
-					return chainIconUrl(entitySlug)
-				case 'stablecoin':
-					return peggedAssetIconUrl(entitySlug)
-				case 'equity':
-					return equityIconUrl(entitySlug)
-				case 'protocol':
-					return tokenIconUrl(entitySlug)
-				default:
-					return null
-			}
+		if (articleEntityType) {
+			return (
+				<EntityPreviewLink
+					entity={{
+						entityType: articleEntityType,
+						slug,
+						label: extractText(children) || slug,
+						route: entityUrl
+					}}
+				>
+					{children}
+				</EntityPreviewLink>
+			)
 		}
 
-		const logoUrl = entityLogoUrl(type, slug)
-
+		const logoUrl = type === 'equity' ? equityIconUrl(slug) : null
 		return (
 			<a
 				href={entityUrl}
 				className="text-(--link-text) no-underline hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
+				onClick={onClick}
 				{...props}
 			>
 				{logoUrl ? (
@@ -292,12 +315,21 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 			</a>
 		)
 	}
+	const external = isLlamaAIExternalLink(href, allowedExternalHosts)
 	return (
 		<a
 			href={href}
 			target="_blank"
-			rel="noreferrer noopener"
+			rel={external ? 'noopener noreferrer nofollow ugc' : 'noreferrer noopener'}
 			className="text-(--link-text) no-underline hover:underline"
+			onClick={(event) => {
+				onClick?.(event)
+				if (event.defaultPrevented) return
+				if (external) {
+					event.preventDefault()
+					onExternalLinkClick?.(href)
+				}
+			}}
 			{...props}
 		>
 			{children}
@@ -347,7 +379,7 @@ function CodeBlock({ children, node: _node, className, ...props }: MarkdownPrePr
 				onClick={handleCopy}
 				aria-label={copied ? 'Copied' : 'Copy code'}
 				data-copied={copied || undefined}
-				className="absolute top-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
+				className="absolute top-1.5 right-1.5 z-10 flex size-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
 			>
 				<Icon name={copied ? 'check' : 'copy'} height={14} width={14} />
 			</button>
@@ -358,27 +390,13 @@ function CodeBlock({ children, node: _node, className, ...props }: MarkdownPrePr
 	)
 }
 
-function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
-	const className =
-		'mx-px inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline hover:border-[rgba(31,103,210,0.35)] hover:bg-[rgba(31,103,210,0.15)]'
-
-	if (!href) {
-		return <span className={className}>{children}</span>
-	}
-
-	return (
-		<a href={href} target="_blank" rel="noopener noreferrer" className={className}>
-			{children}
-		</a>
-	)
-}
-
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
 	const sourceEntries = useMemo(() => {
 		const seen = new Map<string, number>()
 		const unique: Array<{ normalizedUrl: string; citationNumber: number }> = []
 		for (let i = 0; i < citations.length; i++) {
 			const normalizedUrl = normalizeSourceUrl(citations[i])
+			if (!normalizedUrl) continue
 			if (!seen.has(normalizedUrl)) {
 				seen.set(normalizedUrl, i + 1)
 				unique.push({ normalizedUrl, citationNumber: i + 1 })
@@ -432,100 +450,168 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 	)
 }
 
+interface MarkdownRenderContext {
+	allowedExternalHosts: ReadonlySet<string>
+	advancedProvenance?: boolean
+	citationRefsById: Map<number, UnifiedCitationReference> | null
+	isStreaming: boolean
+	linkMap: Map<string, string>
+	messageId?: string
+	onTableFullscreenOpen?: () => void
+	resolveHeadingId: (text: string) => string
+	setPendingExternalHref: (href: string) => void
+}
+
 export function ChatMarkdownRenderer({
 	content,
 	citations,
+	legacyUrlCitations,
+	advancedProvenance,
 	isStreaming = false,
 	hackerMode = false,
 	onTableFullscreenOpen,
 	messageId
 }: {
 	content: string
-	citations?: string[]
+	citations?: UnifiedCitationReference[]
+	legacyUrlCitations?: string[]
+	advancedProvenance?: boolean
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
 	messageId?: string
 }) {
-	const processedData = useMemo(() => {
-		const linkMap = extractLlamaLinks(content)
-		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
-		return { content: processedContent, linkMap }
-	}, [content, citations])
-
-	const resolveHeadingId = createHeadingIdFactory(messageId)
-	const markdownComponents: Components = {
-		h1: ({ node: _node, children, ...props }: any) => (
-			<HeadingWithId level={1} messageId={messageId} resolveId={resolveHeadingId} {...props}>
-				{children}
-			</HeadingWithId>
-		),
-		h2: ({ node: _node, children, ...props }: any) => (
-			<HeadingWithId level={2} messageId={messageId} resolveId={resolveHeadingId} {...props}>
-				{children}
-			</HeadingWithId>
-		),
-		h3: ({ node: _node, children, ...props }: any) => (
-			<HeadingWithId level={3} messageId={messageId} resolveId={resolveHeadingId} {...props}>
-				{children}
-			</HeadingWithId>
-		),
-		a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
-			const textChild = getSingleTextChild(props.children)
-			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
-				const llamaUrl = processedData.linkMap.get(textChild)
-				return EntityLinkRenderer({ ...props, href: llamaUrl })
-			}
-			return EntityLinkRenderer(props)
-		},
-		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-			<TableWrapper
-				isStreaming={isStreaming}
-				tableProps={props}
-				onTableFullscreenOpen={onTableFullscreenOpen}
-				messageId={messageId}
-			>
-				{children}
-			</TableWrapper>
-		),
-		th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
-			<th
-				{...props}
-				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
-			>
-				{children}
-			</th>
-		),
-		td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
-			<td
-				{...props}
-				className={`border border-[#e6e6e6] bg-white px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
-			>
-				{children}
-			</td>
-		),
-		ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
-			<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
-				{children}
-			</ul>
-		),
-		ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-			<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
-				{children}
-			</ol>
-		),
-		pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
+	const [pendingExternalHref, setPendingExternalHref] = useState<string | null>(null)
+	const externalAllowlistSnapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		getLlamaAIExternalAllowlistSnapshot,
+		() => '[]'
+	)
+	const allowedExternalHosts = useMemo(
+		() => parseLlamaAIExternalAllowlistSnapshot(externalAllowlistSnapshot),
+		[externalAllowlistSnapshot]
+	)
+	const renderCitationRefs: UnifiedCitationReference[] | undefined = useMemo(() => {
+		if (citations && citations.length > 0) return citations
+		if (legacyUrlCitations && legacyUrlCitations.length > 0) return wrapLegacyUrlCitations(legacyUrlCitations)
+		if (legacyUrlCitations && legacyUrlCitations.length === 0) return []
+		return undefined
+	}, [citations, legacyUrlCitations])
+	const citationRefsById = useMemo(() => {
+		if (!renderCitationRefs || renderCitationRefs.length === 0) return null
+		const byId = new Map<number, UnifiedCitationReference>()
+		for (const ref of renderCitationRefs) byId.set(ref.id, ref)
+		return byId
+	}, [renderCitationRefs])
+	const linkMap = useMemo(() => extractLlamaLinks(content), [content])
+	const processedContent = useMemo(
+		() => escapeBareOrderedListMarkers(processUnifiedCitations(content, renderCitationRefs)),
+		[content, renderCitationRefs]
+	)
+	const renderContextRef = useRef<MarkdownRenderContext | null>(null)
+	renderContextRef.current = {
+		allowedExternalHosts,
+		advancedProvenance,
+		citationRefsById,
+		isStreaming,
+		linkMap,
+		messageId,
+		onTableFullscreenOpen,
+		resolveHeadingId: createHeadingIdFactory(messageId),
+		setPendingExternalHref: (href) => setPendingExternalHref(href)
 	}
 
-	;(markdownComponents as Record<string, any>)['citation-badge'] = ({
-		node: _node,
-		children,
-		...props
-	}: CitationBadgeProps) => (
-		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
-	)
+	const markdownComponents: Components = useMemo(() => {
+		const heading = (level: number, children: ReactNode, props: Record<string, any>) => {
+			const current = renderContextRef.current
+			if (!current) return createElement(`h${level}`, props, children)
+			return (
+				<HeadingWithId level={level} messageId={current.messageId} resolveId={current.resolveHeadingId} {...props}>
+					{children}
+				</HeadingWithId>
+			)
+		}
+		const components: Components = {
+			h1: ({ node: _node, children, ...props }: any) => heading(1, children, props),
+			h2: ({ node: _node, children, ...props }: any) => heading(2, children, props),
+			h3: ({ node: _node, children, ...props }: any) => heading(3, children, props),
+			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
+				const current = renderContextRef.current
+				const textChild = getSingleTextChild(props.children)
+				if (current && !props.href && textChild && current.linkMap.has(textChild)) {
+					const llamaUrl = current.linkMap.get(textChild)
+					return EntityLinkRenderer({
+						...props,
+						href: llamaUrl,
+						onExternalLinkClick: current.setPendingExternalHref,
+						allowedExternalHosts: current.allowedExternalHosts
+					})
+				}
+				return EntityLinkRenderer({
+					...props,
+					onExternalLinkClick: current?.setPendingExternalHref,
+					allowedExternalHosts: current?.allowedExternalHosts
+				})
+			},
+			table: ({ children, node: _node, ...props }: MarkdownTableProps) => {
+				const current = renderContextRef.current
+				return (
+					<TableWrapper
+						isStreaming={current?.isStreaming ?? false}
+						tableProps={props}
+						onTableFullscreenOpen={current?.onTableFullscreenOpen}
+						messageId={current?.messageId}
+					>
+						{children}
+					</TableWrapper>
+				)
+			},
+			th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
+				<th
+					{...props}
+					className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
+				>
+					{children}
+				</th>
+			),
+			td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
+				<td
+					{...props}
+					className={`border border-[#e6e6e6] bg-white px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
+				>
+					{children}
+				</td>
+			),
+			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
+				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
+					{children}
+				</ul>
+			),
+			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
+				<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
+					{children}
+				</ol>
+			),
+			pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
+		}
 
-	if (!processedData.content.trim()) {
+		;(components as Record<string, any>)['fact-check-pill'] = (props: Record<string, any>) => {
+			const current = renderContextRef.current
+			const refsById = current?.citationRefsById
+			if (!refsById || refsById.size === 0) return null
+			const raw = props.dataRef ?? props['data-ref']
+			if (raw == null) return null
+			const numericId = Number(raw)
+			if (!Number.isFinite(numericId)) return null
+			const ref = refsById.get(numericId)
+			if (!ref) return null
+			return <CitationPill reference={ref} advancedProvenance={current?.advancedProvenance} />
+		}
+
+		return components
+	}, [])
+
+	if (!processedContent.trim()) {
 		return null
 	}
 
@@ -538,8 +624,17 @@ export function ChatMarkdownRenderer({
 				rehypePlugins={SANITIZE_REHYPE_PLUGINS}
 				components={markdownComponents}
 			>
-				{processedData.content}
+				{processedContent}
 			</ReactMarkdown>
+			<ExternalLinkInterstitial
+				href={pendingExternalHref}
+				onClose={() => setPendingExternalHref(null)}
+				onAllowPermanently={(hostname, href) => {
+					allowLlamaAIExternalHostname(hostname)
+					setPendingExternalHref(null)
+					window.open(href, '_blank', 'noopener,noreferrer')
+				}}
+			/>
 		</div>
 	)
 }

@@ -1,16 +1,18 @@
 import type { InfiniteData } from '@tanstack/react-query'
-import type { ChatSession, ResearchUsage } from '~/containers/LlamaAI/types'
+import type { ChatSession, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 
 export const SESSIONS_QUERY_KEY = 'llamaai-sessions'
 
 export interface SessionListData {
 	sessions: ChatSession[]
 	usage: ResearchUsage | null
+	factCheckedUsage: FactCheckedUsage | null
 }
 
 export interface SessionListPage {
 	sessions: ChatSession[]
 	usage: ResearchUsage | null
+	factCheckedUsage: FactCheckedUsage | null
 	hasMore: boolean
 	nextOffset?: number
 }
@@ -21,6 +23,7 @@ export interface SessionListResponse {
 	nextOffset?: number
 	usage?: {
 		research_report?: ResearchUsage | null
+		fact_checked?: FactCheckedUsage | null
 	}
 }
 
@@ -29,15 +32,18 @@ export type SessionListInfiniteData = InfiniteData<SessionListPage, number>
 export function mapSessionListPage(responseData: SessionListResponse): SessionListPage {
 	return {
 		sessions: responseData.sessions,
-		usage: responseData.usage?.research_report || null,
+		usage: responseData.usage?.research_report ?? null,
+		factCheckedUsage: responseData.usage?.fact_checked ?? null,
 		hasMore: responseData.hasMore ?? false,
 		nextOffset: responseData.nextOffset
 	}
 }
 
 export function flattenSessionListData(data: SessionListInfiniteData | undefined): SessionListData {
-	if (!data) return { sessions: [], usage: null }
+	if (!data) return { sessions: [], usage: null, factCheckedUsage: null }
 
+	// Infinite pages can overlap after optimistic inserts, moves, or refetches.
+	// Keep the first copy because page order already encodes recency.
 	const seenSessionIds = new Set<string>()
 	const sessions: ChatSession[] = []
 
@@ -51,7 +57,8 @@ export function flattenSessionListData(data: SessionListInfiniteData | undefined
 
 	return {
 		sessions,
-		usage: data.pages[0]?.usage ?? null
+		usage: data.pages[0]?.usage ?? null,
+		factCheckedUsage: data.pages[0]?.factCheckedUsage ?? null
 	}
 }
 
@@ -76,6 +83,8 @@ export function mergeOptimisticSessions(
 	const optimisticSessions: ChatSession[] = []
 	for (const existingPage of data.pages) {
 		for (const session of existingPage.sessions) {
+			// Keep local fake sessions visible until the backend returns the real id
+			// or the create mutation removes the failed optimistic entry.
 			if (!session.isOptimistic || realSessionIds.has(session.sessionId)) continue
 			optimisticSessions.push(session)
 		}
@@ -96,6 +105,7 @@ export function prependSessionToInfiniteData(
 	const page: SessionListPage = {
 		sessions: [session],
 		usage: null,
+		factCheckedUsage: null,
 		hasMore: false
 	}
 	if (!data) return createSessionListInfiniteData(page)
@@ -206,6 +216,18 @@ export function updateSessionInInfiniteData(
 	return { ...data, pages }
 }
 
+export function replaceSessionIdInInfiniteData(
+	data: SessionListInfiniteData | undefined,
+	previousSessionId: string,
+	nextSessionId: string
+): SessionListInfiniteData | undefined {
+	return updateSessionInInfiniteData(data, previousSessionId, (session) => ({
+		...session,
+		sessionId: nextSessionId,
+		isOptimistic: false
+	}))
+}
+
 export function moveSessionToTopInInfiniteData(
 	data: SessionListInfiniteData | undefined,
 	sessionId: string,
@@ -238,7 +260,7 @@ export function moveSessionToTopInInfiniteData(
 
 	if (!movedSession) return data
 
-	const firstPage = pages[0] ?? { sessions: [], usage: null, hasMore: false }
+	const firstPage = pages[0] ?? { sessions: [], usage: null, factCheckedUsage: null, hasMore: false }
 	pages[0] = {
 		...firstPage,
 		sessions: [movedSession, ...firstPage.sessions]

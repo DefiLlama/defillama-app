@@ -48,6 +48,7 @@ export default function ScatterChart({
 	tooltipFormatter,
 	showLabels = false,
 	entityType = 'protocol',
+	logScale = false,
 	onReady
 }: IScatterChartProps) {
 	const id = useId()
@@ -253,7 +254,7 @@ export default function ScatterChart({
 			},
 			xAxis: [
 				{
-					type: 'value',
+					type: logScale ? 'log' : 'value',
 					scale: true,
 					name: xAxisLabel || '',
 					nameLocation: 'middle',
@@ -277,7 +278,7 @@ export default function ScatterChart({
 			],
 			yAxis: [
 				{
-					type: 'value',
+					type: logScale ? 'log' : 'value',
 					scale: true,
 					name: yAxisLabel || '',
 					nameLocation: 'middle',
@@ -329,6 +330,7 @@ export default function ScatterChart({
 		title,
 		showLabels,
 		entityType,
+		logScale,
 		iconRevision
 	])
 

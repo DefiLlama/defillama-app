@@ -32,6 +32,32 @@ type Tab = (typeof ALL_TABS)[number]
 
 const ALL_CATEGORY = 'All'
 
+type DownloadGroup<T extends { category: string; description: string; name: string }> = {
+	category: string
+	items: T[]
+}
+
+function filterDownloadGroups<T extends { category: string; description: string; name: string }>(
+	groups: Array<DownloadGroup<T>>,
+	search: string
+) {
+	const query = search.toLowerCase()
+	const filteredGroups: Array<DownloadGroup<T>> = []
+	for (const group of groups) {
+		if (group.category.toLowerCase().includes(query)) {
+			filteredGroups.push(group)
+			continue
+		}
+
+		const matched = matchSorter(group.items, search, {
+			keys: ['name', 'description', 'category'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+		if (matched.length > 0) filteredGroups.push({ ...group, items: matched })
+	}
+	return filteredGroups
+}
+
 export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
 	const { savedDownloads, deleteDownload, renameDownload } = useSavedDownloads()
@@ -73,16 +99,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			grouped = grouped.filter((g) => g.category === selectedCategory)
 		}
 		if (!deferredSearch) return grouped
-		return grouped
-			.map((group) => {
-				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
-				const matched = matchSorter(group.items, deferredSearch, {
-					keys: ['name', 'description', 'category'],
-					threshold: matchSorter.rankings.CONTAINS
-				})
-				return { ...group, items: matched }
-			})
-			.filter((group) => group.items.length > 0)
+		return filterDownloadGroups(grouped, deferredSearch)
 	}, [deferredSearch, selectedCategory, allDatasetsByCategory])
 
 	const filteredChartsByCategory = useMemo(() => {
@@ -91,16 +108,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			grouped = grouped.filter((g) => g.category === selectedCategory)
 		}
 		if (!deferredSearch) return grouped
-		return grouped
-			.map((group) => {
-				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
-				const matched = matchSorter(group.items, deferredSearch, {
-					keys: ['name', 'description', 'category'],
-					threshold: matchSorter.rankings.CONTAINS
-				})
-				return { ...group, items: matched }
-			})
-			.filter((group) => group.items.length > 0)
+		return filterDownloadGroups(grouped, deferredSearch)
 	}, [deferredSearch, selectedCategory, allChartsByCategory])
 
 	const totalFilteredCount = useMemo(() => {
@@ -108,13 +116,9 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 		return groups.reduce((sum, g) => sum + g.items.length, 0)
 	}, [activeTab, filteredDatasetsByCategory, filteredChartsByCategory])
 
-	const totalCount = useMemo(() => {
-		return activeTab === 'Datasets' ? datasets.length : chartDatasets.length
-	}, [activeTab])
+	const totalCount = activeTab === 'Datasets' ? datasets.length : chartDatasets.length
 
-	const currentCategories = useMemo(() => {
-		return activeTab === 'Datasets' ? datasetCategories : chartDatasetCategories
-	}, [activeTab])
+	const currentCategories = activeTab === 'Datasets' ? datasetCategories : chartDatasetCategories
 
 	const categoryCounts = useMemo(() => {
 		const groups = activeTab === 'Datasets' ? allDatasetsByCategory : allChartsByCategory
@@ -302,18 +306,18 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 										>
 											<div className="flex items-start justify-between gap-3">
 												<div className="flex items-center gap-3">
-													<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
+													<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
 														{disabled ? (
 															<LoadingSpinner size={18} />
 														) : (
-															<Icon name="file-text" className="h-5 w-5 text-(--primary)" />
+															<Icon name="file-text" className="size-5 text-(--primary)" />
 														)}
 													</div>
 													<span className="font-medium text-(--primary) group-hover:underline">{dataset.name}</span>
 												</div>
 												<Icon
 													name="arrow-up-right"
-													className="mt-0.5 h-4 w-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
+													className="mt-0.5 size-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
 												/>
 											</div>
 											<p className="text-sm text-(--text-secondary)">{dataset.description}</p>
@@ -341,8 +345,8 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 						className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-(--primary)/30 bg-gradient-to-br from-(--primary)/[0.08] to-(--primary)/[0.02] p-4 text-left transition-all hover:border-(--primary)/60 hover:from-(--primary)/[0.12] hover:to-(--primary)/[0.04]"
 					>
 						<div className="flex items-start gap-3">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/15">
-								<Icon name="layers" className="h-5 w-5 text-(--primary)" />
+							<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/15">
+								<Icon name="layers" className="size-5 text-(--primary)" />
 							</div>
 							<div className="flex flex-col gap-0.5">
 								<p className="font-medium text-(--text-primary)">Combine multiple metrics</p>
@@ -353,7 +357,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 						</div>
 						<span className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-medium text-white shadow-sm transition-transform group-hover:translate-x-0.5">
 							Open builder
-							<Icon name="arrow-up-right" className="h-3.5 w-3.5" />
+							<Icon name="arrow-up-right" className="size-3.5" />
 						</span>
 					</button>
 
@@ -373,18 +377,18 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 										>
 											<div className="flex items-start justify-between gap-3">
 												<div className="flex items-center gap-3">
-													<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
+													<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
 														{disabled ? (
 															<LoadingSpinner size={18} />
 														) : (
-															<Icon name="bar-chart-2" className="h-5 w-5 text-(--primary)" />
+															<Icon name="bar-chart-2" className="size-5 text-(--primary)" />
 														)}
 													</div>
 													<span className="font-medium text-(--primary) group-hover:underline">{dataset.name}</span>
 												</div>
 												<Icon
 													name="arrow-up-right"
-													className="mt-0.5 h-4 w-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
+													className="mt-0.5 size-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
 												/>
 											</div>
 											<p className="text-sm text-(--text-secondary)">{dataset.description}</p>
@@ -591,7 +595,7 @@ function RecentDownloadsStrip({
 		<section aria-label="Recent downloads" className="flex flex-col gap-2">
 			<header className="flex items-baseline justify-between gap-3 px-0.5">
 				<div className="flex items-baseline gap-2">
-					<Icon name="clock" className="h-3 w-3 self-center text-(--text-tertiary)" />
+					<Icon name="clock" className="size-3 self-center text-(--text-tertiary)" />
 					<h2 className="text-[11px] font-semibold tracking-[0.14em] text-(--text-tertiary) uppercase">Recent</h2>
 					<span className="text-[11px] text-(--text-tertiary)/70 tabular-nums">
 						{items.length === 1 ? '1 run' : `${items.length} runs`}
@@ -629,7 +633,7 @@ function RecentDownloadsStrip({
 										<span
 											className={`inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase ${style.fg}`}
 										>
-											<Icon name={kindIcon(preset.kind)} className="h-3 w-3" />
+											<Icon name={kindIcon(preset.kind)} className="size-3" />
 											{style.label}
 										</span>
 										{i === 0 ? (
@@ -643,7 +647,7 @@ function RecentDownloadsStrip({
 										<span className="truncate">{dayjs(preset.createdAt).fromNow()}</span>
 										<Icon
 											name="arrow-up-right"
-											className="h-3 w-3 shrink-0 -translate-x-1 text-(--text-tertiary) opacity-0 transition-all group-hover:translate-x-0 group-hover:text-(--primary) group-hover:opacity-100"
+											className="size-3 shrink-0 -translate-x-1 text-(--text-tertiary) opacity-0 transition-all group-hover:translate-x-0 group-hover:text-(--primary) group-hover:opacity-100"
 										/>
 									</span>
 								</button>
@@ -672,7 +676,11 @@ function SavedDownloadsContent({
 
 	const otherNames = useMemo(() => {
 		if (!renamingPreset) return []
-		return savedDownloads.filter((p) => p.id !== renamingPreset.id).map((p) => p.name)
+		const names: string[] = []
+		for (const preset of savedDownloads) {
+			if (preset.id !== renamingPreset.id) names.push(preset.name)
+		}
+		return names
 	}, [savedDownloads, renamingPreset])
 
 	const bucketCounts = useMemo(() => {
@@ -700,19 +708,19 @@ function SavedDownloadsContent({
 				<p className="flex items-center gap-3 text-[11px] text-(--text-tertiary) tabular-nums">
 					{bucketCounts.dataset > 0 ? (
 						<span className="flex items-center gap-1.5">
-							<span className={`h-1.5 w-1.5 rounded-full ${KIND_STYLES.dataset.accent}`} aria-hidden="true" />
+							<span className={`size-1.5 rounded-full ${KIND_STYLES.dataset.accent}`} aria-hidden="true" />
 							{bucketCounts.dataset} dataset{bucketCounts.dataset === 1 ? '' : 's'}
 						</span>
 					) : null}
 					{bucketCounts.timeseries > 0 ? (
 						<span className="flex items-center gap-1.5">
-							<span className={`h-1.5 w-1.5 rounded-full ${KIND_STYLES.timeseries.accent}`} aria-hidden="true" />
+							<span className={`size-1.5 rounded-full ${KIND_STYLES.timeseries.accent}`} aria-hidden="true" />
 							{bucketCounts.timeseries} time series
 						</span>
 					) : null}
 					{bucketCounts.query > 0 ? (
 						<span className="flex items-center gap-1.5">
-							<span className={`h-1.5 w-1.5 rounded-full ${KIND_STYLES.query.accent}`} aria-hidden="true" />
+							<span className={`size-1.5 rounded-full ${KIND_STYLES.query.accent}`} aria-hidden="true" />
 							{bucketCounts.query} SQL quer{bucketCounts.query === 1 ? 'y' : 'ies'}
 						</span>
 					) : null}
@@ -763,7 +771,7 @@ function SavedDownloadsContent({
 function SavedEmptyState() {
 	return (
 		<div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-(--divider) bg-(--bg-primary)/40 px-6 py-12 text-center">
-			<div className="flex h-14 w-14 items-center justify-center rounded-full bg-(--primary)/10 text-(--primary)">
+			<div className="flex size-14 items-center justify-center rounded-full bg-(--primary)/10 text-(--primary)">
 				<svg
 					viewBox="0 0 24 24"
 					fill="none"
@@ -771,7 +779,7 @@ function SavedEmptyState() {
 					strokeWidth="1.75"
 					strokeLinecap="round"
 					strokeLinejoin="round"
-					className="h-7 w-7"
+					className="size-7"
 					aria-hidden="true"
 				>
 					<path d="M6 3h12v18l-6-4-6 4z" />
@@ -786,7 +794,7 @@ function SavedEmptyState() {
 			<p className="text-xs text-(--text-tertiary)">
 				Open a dataset, tweak your columns and filters, then click{' '}
 				<span className="inline-flex items-center gap-1 rounded border border-(--divider) bg-(--bg-primary) px-1.5 py-0.5 text-[11px] font-medium text-(--text-primary)">
-					<Icon name="bookmark" className="h-3 w-3" />
+					<Icon name="bookmark" className="size-3" />
 					Save preset
 				</span>
 				.
@@ -875,11 +883,11 @@ function SavedDownloadRow({
 							e.stopPropagation()
 							onRenameRequest(preset)
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--bg-primary) hover:text-(--text-primary) focus-visible:bg-(--bg-primary) focus-visible:text-(--text-primary) focus-visible:outline-none"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--bg-primary) hover:text-(--text-primary) focus-visible:bg-(--bg-primary) focus-visible:text-(--text-primary) focus-visible:outline-none"
 						aria-label={`Rename ${preset.name}`}
 						title="Rename"
 					>
-						<Icon name="pencil" className="h-3.5 w-3.5" />
+						<Icon name="pencil" className="size-3.5" />
 					</button>
 					<button
 						type="button"
@@ -888,17 +896,17 @@ function SavedDownloadRow({
 							e.stopPropagation()
 							onDeleteRequest(preset.id)
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500 focus-visible:bg-red-500/10 focus-visible:text-red-500 focus-visible:outline-none"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500 focus-visible:bg-red-500/10 focus-visible:text-red-500 focus-visible:outline-none"
 						aria-label={`Delete ${preset.name}`}
 						title="Delete"
 					>
-						<Icon name="trash-2" className="h-3.5 w-3.5" />
+						<Icon name="trash-2" className="size-3.5" />
 					</button>
 					<span
 						aria-hidden="true"
 						className="ml-1 inline-flex items-center gap-1 rounded-md bg-(--primary) px-2.5 py-1 text-[11px] font-medium text-white shadow-sm"
 					>
-						<Icon name="download-cloud" className="h-3 w-3" />
+						<Icon name="download-cloud" className="size-3" />
 						Run
 					</span>
 				</div>
@@ -911,10 +919,10 @@ function SavedDownloadRow({
 							e.stopPropagation()
 							onRenameRequest(preset)
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary)"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary)"
 						aria-label={`Rename ${preset.name}`}
 					>
-						<Icon name="pencil" className="h-3.5 w-3.5" />
+						<Icon name="pencil" className="size-3.5" />
 					</button>
 					<button
 						type="button"
@@ -923,10 +931,10 @@ function SavedDownloadRow({
 							e.stopPropagation()
 							onDeleteRequest(preset.id)
 						}}
-						className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary)"
+						className="flex size-7 items-center justify-center rounded-md text-(--text-tertiary)"
 						aria-label={`Delete ${preset.name}`}
 					>
-						<Icon name="trash-2" className="h-3.5 w-3.5" />
+						<Icon name="trash-2" className="size-3.5" />
 					</button>
 				</div>
 			</div>
@@ -957,8 +965,8 @@ function DeletePresetDialog({
 				className="flex w-full max-w-sm flex-col gap-3 rounded-xl border border-(--cards-border) bg-(--cards-bg) p-5 shadow-2xl"
 			>
 				<div className="flex items-start gap-3">
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
-						<Icon name="trash-2" className="h-4 w-4 text-red-500" />
+					<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10">
+						<Icon name="trash-2" className="size-4 text-red-500" />
 					</div>
 					<div className="flex flex-col gap-1">
 						<h3 id="delete-preset-title" className="text-sm font-semibold text-(--text-primary)">

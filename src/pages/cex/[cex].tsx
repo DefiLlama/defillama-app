@@ -1,6 +1,5 @@
 import type { GetStaticPropsContext } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { fetchCexs } from '~/containers/Cexs/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
@@ -16,20 +15,21 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const exchangeName = params.cex
-		const metadataModule = await import('~/utils/metadata')
-		const metadataCache = metadataModule.default
-		const cexs = metadataCache.cexs
+		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
+			import('~/utils/metadata'),
+			import('~/server/routeCache/assets')
+		])
+		const cexRoute = resolveCexParamFromMetadata(exchangeName, metadataCache)
 
-		const exchangeData = cexs.find(
-			(cex) => cex.slug && (slug(cex.slug) === slug(exchangeName) || slug(cex.name) === slug(exchangeName))
-		)
-
-		if (!exchangeData) {
-			console.warn(`[cex/[cex]] ${exchangeName} not found in metadata cache (${cexs.length} CEX entries loaded)`)
+		if (!cexRoute) {
+			console.warn(
+				`[cex/[cex]] ${exchangeName} not found in metadata cache (${metadataCache.cexs.length} CEX entries loaded)`
+			)
 			return {
 				notFound: true
 			}
 		}
+		const exchangeData = cexRoute.metadata
 
 		const { fetchExchangeMarketsList } = await import('~/server/datasetCache/runtime/markets')
 		const exchangesList = await fetchExchangeMarketsList()
@@ -72,7 +72,8 @@ export const getStaticProps = withPerformanceLogging(
 			isCEX: true,
 			chainMetadata: metadataCache.chainMetadata,
 			tokenlist: metadataCache.tokenlist,
-			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers,
+			emissionsSupplyMetrics: metadataCache.emissionsSupplyMetrics
 		})
 
 		if (!data) {
@@ -95,14 +96,8 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { cexs } = await fetchCexs()
-
-	const paths = cexs
-		.filter((cex) => cex.slug)
-		.map((cex) => ({
-			params: { cex: slug(cex.slug) }
-		}))
-		.slice(0, 10)
+	const { getCexStaticPaths } = await import('~/server/routeCache/assets')
+	const paths = await getCexStaticPaths()
 
 	return { paths, fallback: 'blocking' }
 }
@@ -110,4 +105,3 @@ export async function getStaticPaths() {
 export default function Protocols(props: IProtocolOverviewPageData) {
 	return <ProtocolOverview {...props} />
 }
-//triggercaches

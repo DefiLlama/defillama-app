@@ -70,7 +70,7 @@ export function AssignSubscriptionModal({ isOpen, onClose, member }: AssignSubsc
 										value={sub.type}
 										checked={selectedType === sub.type}
 										onChange={(e) => setSelectedType(e.target.value)}
-										className="h-4 w-4 accent-(--sub-brand-primary)"
+										className="size-4 accent-(--sub-brand-primary)"
 									/>
 									<div className="flex flex-col">
 										<span className="text-sm font-medium text-(--sub-ink-primary) dark:text-white">

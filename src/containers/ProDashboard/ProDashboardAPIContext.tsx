@@ -9,7 +9,8 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef
+	useRef,
+	useSyncExternalStore
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -42,6 +43,29 @@ const EMPTY_PROTOCOLS: Protocol[] = []
 const EMPTY_CHAINS: Chain[] = []
 const EMPTY_CHART_DATA: ChartConfig['data'] = []
 const NOOP = () => {}
+
+function subscribeToClientReady(onStoreChange: () => void) {
+	queueMicrotask(onStoreChange)
+	return NOOP
+}
+
+function getClientReadySnapshot() {
+	return true
+}
+
+function getServerReadySnapshot() {
+	return false
+}
+
+function useClientReady() {
+	return useSyncExternalStore(subscribeToClientReady, getClientReadySnapshot, getServerReadySnapshot)
+}
+
+function getDashboardInitialUpdatedAt(dashboard?: Dashboard | null) {
+	if (!dashboard) return undefined
+	const updatedAt = Date.parse(dashboard.editedAt || dashboard.updated || dashboard.created || '')
+	return Number.isFinite(updatedAt) ? updatedAt : undefined
+}
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
@@ -95,6 +119,13 @@ interface ProDashboardCatalogContextType {
 interface ProDashboardPermissionsContextType {
 	isReadOnly: boolean
 	dashboardOwnerId: string | null
+	hideDuplicateButton: boolean
+}
+
+export type DashboardMode = 'view' | 'edit'
+
+interface ProDashboardModeContextType {
+	mode: DashboardMode
 }
 
 interface ProDashboardDashboardContextType {
@@ -105,6 +136,9 @@ interface ProDashboardDashboardContextType {
 	dashboardTags: string[]
 	dashboardDescription: string
 	isLoadingDashboard: boolean
+	streamHasResolved: boolean
+	loadError: { status: number; message: string } | null
+	reloadDashboard: () => void
 	getCurrentRatingSession: () => (AISessionData & { sessionId: string }) | null
 	autoSkipOlderSessionsForRating: () => Promise<void>
 	setDashboardName: (name: string) => void
@@ -271,6 +305,7 @@ interface ProDashboardUIContextType {
 const ProDashboardTimeContext = createContext<ProDashboardTimeContextType | undefined>(undefined)
 const ProDashboardCatalogContext = createContext<ProDashboardCatalogContextType | undefined>(undefined)
 const ProDashboardPermissionsContext = createContext<ProDashboardPermissionsContextType | undefined>(undefined)
+const ProDashboardModeContext = createContext<ProDashboardModeContextType>({ mode: 'view' })
 const ProDashboardDashboardContext = createContext<ProDashboardDashboardContextType | undefined>(undefined)
 const ProDashboardEditorActionsContext = createContext<ProDashboardEditorActionsContextType | undefined>(undefined)
 const ProDashboardItemsStateContext = createContext<ProDashboardItemsStateContextType | undefined>(undefined)
@@ -285,45 +320,78 @@ const ProDashboardServerAppMetadataContext = createContext<
 export function ProDashboardAPIProvider({
 	children,
 	initialDashboardId,
-	initialItems
+	initialDashboard,
+	initialItems,
+	hideDuplicateButton = false,
+	mode = 'view'
 }: {
 	children: ReactNode
 	initialDashboardId?: string
+	initialDashboard?: Dashboard | null
 	initialItems?: DashboardItemConfig[]
+	hideDuplicateButton?: boolean
+	mode?: DashboardMode
 }) {
-	const stream = useDashboardStream(initialDashboardId)
-	const streamDone = !initialDashboardId || stream.isDone
-	const { hasActiveSubscription } = useAuthContext()
+	const { authToken, hasActiveSubscription, loaders } = useAuthContext()
+	const hasMounted = useClientReady()
+	const hasStoredToken = typeof window !== 'undefined' && pb.authStore.isValid && !!pb.authStore.token
+	const authReady = hasMounted && !loaders.userLoading && (!hasStoredToken || !!authToken)
+	const stream = useDashboardStream(initialDashboardId, authToken, authReady)
+	const hasInitialDashboard = !!initialDashboard && initialDashboard.id === initialDashboardId
+	const streamSettled = authReady && stream.isDone
+	const streamFatal = streamSettled && !!stream.error && stream.dashboard == null
+	const dashboardReady =
+		!initialDashboardId || hasInitialDashboard || (streamSettled && !(mode === 'view' && streamFatal))
+	const streamDone = !initialDashboardId || (streamSettled && !(mode === 'view' && streamFatal))
+	const streamHasResolved = !initialDashboardId || hasInitialDashboard || streamSettled
 	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
+	const modeContextValue = useMemo(() => ({ mode }), [mode])
 
 	return (
-		<StreamDoneContext.Provider value={streamDone}>
-			<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
-				<ProDashboardAPIProviderInner
-					stream={stream}
-					streamDone={streamDone}
-					initialDashboardId={initialDashboardId}
-					initialItems={initialItems}
-				>
-					{children}
-				</ProDashboardAPIProviderInner>
-			</ProxyAuthTokenContext.Provider>
-		</StreamDoneContext.Provider>
+		<ProDashboardModeContext.Provider value={modeContextValue}>
+			<StreamDoneContext.Provider value={streamDone}>
+				<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
+					<ProDashboardAPIProviderInner
+						stream={stream}
+						dashboardReady={dashboardReady}
+						streamDone={streamDone}
+						streamHasResolved={streamHasResolved}
+						mode={mode}
+						initialDashboardId={initialDashboardId}
+						initialDashboard={hasInitialDashboard ? initialDashboard : null}
+						initialItems={initialItems}
+						hideDuplicateButton={hideDuplicateButton}
+					>
+						{children}
+					</ProDashboardAPIProviderInner>
+				</ProxyAuthTokenContext.Provider>
+			</StreamDoneContext.Provider>
+		</ProDashboardModeContext.Provider>
 	)
 }
 
 function ProDashboardAPIProviderInner({
 	children,
 	stream,
+	dashboardReady,
 	streamDone,
+	streamHasResolved,
+	mode,
 	initialDashboardId,
-	initialItems
+	initialDashboard,
+	initialItems,
+	hideDuplicateButton = false
 }: {
 	children: ReactNode
 	stream: ReturnType<typeof useDashboardStream>
+	dashboardReady: boolean
 	streamDone: boolean
+	streamHasResolved: boolean
+	mode: DashboardMode
 	initialDashboardId?: string
+	initialDashboard?: Dashboard | null
 	initialItems?: DashboardItemConfig[]
+	hideDuplicateButton?: boolean
 }) {
 	const queryClient = useQueryClient()
 
@@ -336,23 +404,30 @@ function ProDashboardAPIProviderInner({
 		[initialDashboardId, isAuthenticated, user?.id]
 	)
 	useEffect(() => {
-		if (stream.dashboard !== undefined) {
+		if (initialDashboard) {
+			queryClient.setQueryData(dashboardQueryKey, initialDashboard, { updatedAt: Date.now() })
+		}
+		if (stream.dashboard) {
 			queryClient.setQueryData(dashboardQueryKey, stream.dashboard, { updatedAt: Date.now() })
 		}
-	}, [stream.dashboard, queryClient, dashboardQueryKey])
+	}, [initialDashboard, stream.dashboard, queryClient, dashboardQueryKey])
 
 	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
 	const chains = rawChains as Chain[]
 
-	const initArg = initialItems?.length ? { dashboardId: initialDashboardId, items: initialItems } : initialDashboardId
+	const initArg = initialDashboard
+		? { dashboard: initialDashboard }
+		: initialItems?.length
+			? { dashboardId: initialDashboardId, items: initialItems }
+			: initialDashboardId
 	const [state, dispatch] = useReducer(dashboardReducer, initArg, initDashboardState)
 
 	useEffect(() => {
-		if (initialItems && initialItems.length > 0) {
+		if (!initialDashboard && initialItems && initialItems.length > 0) {
 			dispatch({ type: 'SET_ITEMS', payload: initialItems })
 		}
-	}, [initialItems])
+	}, [initialDashboard, initialItems])
 
 	const {
 		items,
@@ -372,6 +447,16 @@ function ProDashboardAPIProviderInner({
 		dispatch({ type: 'APPLY_DASHBOARD', payload: dashboard })
 	}, [])
 
+	useEffect(() => {
+		if (
+			stream.dashboard &&
+			initialDashboardId === stream.dashboard.id &&
+			currentDashboard?.id !== stream.dashboard.id
+		) {
+			applyDashboard(stream.dashboard)
+		}
+	}, [applyDashboard, currentDashboard, initialDashboardId, stream.dashboard])
+
 	const createDashboardDialogStore = Ariakit.useDialogStore()
 
 	// Use the dashboard API hook
@@ -383,7 +468,8 @@ function ProDashboardAPIProviderInner({
 	} = useDashboardAPI()
 
 	// Use the permissions hook
-	const { isReadOnly, dashboardOwnerId } = useDashboardPermissions(currentDashboard)
+	const { isReadOnly: rawIsReadOnly, dashboardOwnerId } = useDashboardPermissions(currentDashboard)
+	const isReadOnly = mode === 'view' ? true : rawIsReadOnly
 	const isReadOnlyUntilDashboardLoaded = isReadOnly || (initialDashboardId ? !currentDashboard : false)
 
 	// Use the auto-save hook
@@ -401,7 +487,8 @@ function ProDashboardAPIProviderInner({
 		userId: user?.id,
 		updateDashboard,
 		cleanItemsForSaving,
-		isFreeUser
+		isFreeUser,
+		mode
 	})
 
 	const actions = useDashboardActions(dispatch, state, autoSave, isReadOnlyUntilDashboardLoaded)
@@ -476,28 +563,30 @@ function ProDashboardAPIProviderInner({
 	}, [isAuthenticated, currentDashboard, user])
 
 	// Load initial dashboard — stream seeds this cache key, queryFn fires as fallback after stream
-	const { data: currentDashboard2 = null, isLoading: isQueryLoadingDashboard } = useQuery({
+	const {
+		data: currentDashboard2 = null,
+		isLoading: isQueryLoadingDashboard,
+		error: dashboardQueryError,
+		refetch: refetchDashboardQuery
+	} = useQuery({
 		queryKey: dashboardQueryKey,
 		queryFn: async () => {
 			if (!initialDashboardId) {
 				return null
 			}
 
-			const dashboard = await loadDashboardData(initialDashboardId)
-
-			if (!dashboard) {
-				console.log('Dashboard not found or no permission:', initialDashboardId)
-				return null
-			}
-			return dashboard
+			return await loadDashboardData(initialDashboardId)
 		},
 		staleTime: 1000 * 60 * 5,
-		refetchOnMount: false,
-		enabled: streamDone && !!initialDashboardId
+		refetchOnMount: initialDashboard ? false : 'always',
+		retry: (failureCount, err: any) => err?.status >= 500 && failureCount < 3,
+		enabled: dashboardReady && !!initialDashboardId,
+		initialData: initialDashboard?.id === initialDashboardId ? initialDashboard : undefined,
+		initialDataUpdatedAt: getDashboardInitialUpdatedAt(initialDashboard)
 	})
 	// Loading until dashboard config arrives from stream (or query fallback)
 	const isLoadingDashboard =
-		(!!initialDashboardId && stream.dashboard === undefined && !streamDone) || isQueryLoadingDashboard
+		(!!initialDashboardId && stream.dashboard === undefined && !dashboardReady) || isQueryLoadingDashboard
 
 	useEffect(() => {
 		if (
@@ -508,6 +597,26 @@ function ProDashboardAPIProviderInner({
 			applyDashboard(currentDashboard2)
 		}
 	}, [applyDashboard, currentDashboard2, currentDashboard, initialDashboardId])
+
+	const loadError = useMemo<{ status: number; message: string } | null>(() => {
+		if (!initialDashboardId || currentDashboard) return null
+		if (dashboardQueryError) {
+			const status = (dashboardQueryError as any)?.status ?? 500
+			const message = (dashboardQueryError as Error)?.message ?? 'Failed to load dashboard'
+			return { status, message }
+		}
+		if (streamHasResolved && !currentDashboard2 && stream.error) {
+			const match = stream.error.match(/Stream failed:\s*(\d+)/)
+			const status = match ? Number(match[1]) : 500
+			return { status, message: stream.error }
+		}
+		return null
+	}, [initialDashboardId, currentDashboard, dashboardQueryError, streamHasResolved, currentDashboard2, stream.error])
+
+	const reloadDashboard = useCallback(() => {
+		void queryClient.invalidateQueries({ queryKey: dashboardQueryKey })
+		void refetchDashboardQuery()
+	}, [queryClient, dashboardQueryKey, refetchDashboardQuery])
 
 	// Save dashboard
 	const saveDashboard = useCallback(
@@ -709,11 +818,11 @@ function ProDashboardAPIProviderInner({
 		}) => {
 			let aiGeneratedData = null
 			if (data.aiGenerationContext && user?.id) {
-				const { sessionId, mode, timestamp, prompt } = data.aiGenerationContext
+				const { sessionId, mode: aiMode, timestamp, prompt } = data.aiGenerationContext
 				aiGeneratedData = {
 					[sessionId]: {
 						rating: undefined,
-						mode,
+						mode: aiMode,
 						timestamp,
 						prompt,
 						userId: user.id,
@@ -746,14 +855,14 @@ function ProDashboardAPIProviderInner({
 		}) => {
 			let updatedAiGenerated = null
 			if (data.aiGenerationContext && user?.id) {
-				const { sessionId, mode, timestamp, prompt } = data.aiGenerationContext
+				const { sessionId, mode: aiMode, timestamp, prompt } = data.aiGenerationContext
 				const currentAiGenerated = currentDashboard?.aiGenerated || {}
 
 				updatedAiGenerated = {
 					...currentAiGenerated,
 					[sessionId]: {
 						rating: undefined,
-						mode,
+						mode: aiMode,
 						timestamp,
 						prompt,
 						userId: user.id,
@@ -1124,9 +1233,10 @@ function ProDashboardAPIProviderInner({
 	const permissionsContextValue = useMemo(
 		() => ({
 			isReadOnly: isReadOnlyUntilDashboardLoaded,
-			dashboardOwnerId
+			dashboardOwnerId,
+			hideDuplicateButton
 		}),
-		[isReadOnlyUntilDashboardLoaded, dashboardOwnerId]
+		[isReadOnlyUntilDashboardLoaded, dashboardOwnerId, hideDuplicateButton]
 	)
 
 	const dashboardContextValue = useMemo(
@@ -1138,6 +1248,9 @@ function ProDashboardAPIProviderInner({
 			dashboardTags,
 			dashboardDescription,
 			isLoadingDashboard,
+			streamHasResolved,
+			loadError,
+			reloadDashboard,
 			getCurrentRatingSession,
 			autoSkipOlderSessionsForRating,
 			setDashboardName,
@@ -1164,6 +1277,9 @@ function ProDashboardAPIProviderInner({
 			dashboardTags,
 			dashboardDescription,
 			isLoadingDashboard,
+			streamHasResolved,
+			loadError,
+			reloadDashboard,
 			getCurrentRatingSession,
 			autoSkipOlderSessionsForRating,
 			setDashboardName,
@@ -1370,4 +1486,8 @@ export function useProDashboardUI() {
 
 export function useProDashboardServerAppMetadata() {
 	return useContext(ProDashboardServerAppMetadataContext)
+}
+
+export function useDashboardMode() {
+	return useContext(ProDashboardModeContext).mode
 }

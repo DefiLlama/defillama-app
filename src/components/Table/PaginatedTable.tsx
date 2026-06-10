@@ -3,6 +3,7 @@
 import { flexRender, type RowData, type Table as ReactTable } from '@tanstack/react-table'
 import { createContext, startTransition, useContext, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import {
 	TokenPageTable,
 	TokenPageTableBodyCell,
@@ -26,16 +27,29 @@ const DisplayRowNumbersContext = createContext<Map<string, number> | null>(null)
 function HeaderWithTooltip({
 	children,
 	content,
-	onClick
+	onClick,
+	disabled = false
 }: {
 	children: React.ReactNode
 	content?: string
 	onClick: ((event: React.MouseEvent<HTMLElement>) => void) | null
+	disabled?: boolean
 }) {
 	if (onClick) {
+		const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+			if (disabled) {
+				event.preventDefault()
+				return
+			}
+
+			onClick(event)
+		}
+		const buttonClassName =
+			'inline-flex items-center gap-1 whitespace-nowrap aria-disabled:cursor-not-allowed aria-disabled:opacity-70'
+
 		if (!content) {
 			return (
-				<button type="button" onClick={onClick} className="inline-flex items-center gap-1 whitespace-nowrap">
+				<button type="button" onClick={handleClick} aria-disabled={disabled} className={buttonClassName}>
 					{children}
 				</button>
 			)
@@ -45,8 +59,8 @@ function HeaderWithTooltip({
 			<Tooltip
 				content={content}
 				className="underline decoration-dotted"
-				render={<button type="button" className="inline-flex items-center gap-1 whitespace-nowrap" />}
-				onClick={onClick}
+				render={<button type="button" aria-disabled={disabled} className={buttonClassName} />}
+				onClick={handleClick}
 			>
 				{children}
 			</Tooltip>
@@ -75,6 +89,7 @@ export function PaginatedTable<T extends RowData>({
 }: PaginatedTableProps<T>) {
 	const rows = table.getRowModel().rows
 	const rowCount = table.getRowCount()
+	const visibleLeafColumns = table.getVisibleLeafColumns()
 	const { pageIndex, pageSize } = table.getState().pagination
 	const pageCount = table.getPageCount()
 	const displayPageCount = Math.max(1, pageCount)
@@ -97,8 +112,16 @@ export function PaginatedTable<T extends RowData>({
 	return (
 		<DisplayRowNumbersContext.Provider value={displayRowNumbers}>
 			<div className={`flex flex-col gap-3 ${className ?? ''}`}>
-				<TokenPageTableShell>
-					<TokenPageTableScroller>
+				<TokenPageTableShell className="bg-(--cards-bg)">
+					<TokenPageTableScroller className="bg-(--cards-bg)">
+						{interactionDisabled ? (
+							<div className="absolute inset-0 z-20 flex items-center justify-center bg-(--cards-bg)/60 backdrop-blur-[1px]">
+								<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-secondary) shadow-xs">
+									<LoadingSpinner size={14} />
+									<span>Loading data...</span>
+								</div>
+							</div>
+						) : null}
 						<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 							<img
 								src="/assets/defillama-dark-neutral.webp"
@@ -115,10 +138,18 @@ export function PaginatedTable<T extends RowData>({
 								className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 							/>
 						</div>
-						<TokenPageTable className={`z-10 ${tableClassName ?? ''}`}>
+						<TokenPageTable
+							className={`z-10 bg-(--cards-bg) ${tableClassName ?? ''}`}
+							style={{ tableLayout: 'fixed', width: '100%' }}
+						>
+							<colgroup>
+								{visibleLeafColumns.map((column) => (
+									<col key={column.id} className={column.columnDef.meta?.headerClassName} />
+								))}
+							</colgroup>
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
-									<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--app-bg)">
+									<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--cards-bg)">
 										{headerGroup.headers.map((header) => {
 											const align = header.column.columnDef.meta?.align ?? 'start'
 											const headerAlignmentClass =
@@ -134,11 +165,8 @@ export function PaginatedTable<T extends RowData>({
 														<div className={headerAlignmentClass}>
 															<HeaderWithTooltip
 																content={header.column.columnDef.meta?.headerHelperText}
-																onClick={
-																	interactionDisabled || !header.column.getCanSort()
-																		? null
-																		: header.column.getToggleSortingHandler()
-																}
+																onClick={!header.column.getCanSort() ? null : header.column.getToggleSortingHandler()}
+																disabled={interactionDisabled}
 															>
 																{flexRender(header.column.columnDef.header, header.getContext())}
 																{header.column.getCanSort() ? <SortIcon dir={header.column.getIsSorted()} /> : null}
@@ -226,8 +254,11 @@ export function PaginatedTable<T extends RowData>({
 									disabled={interactionDisabled}
 									onChange={(event) =>
 										startTransition(() => {
-											table.setPageSize(Number(event.target.value))
-											table.setPageIndex(0)
+											table.setPagination((prev) => ({
+												...prev,
+												pageIndex: 0,
+												pageSize: Number(event.target.value)
+											}))
 										})
 									}
 									className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"

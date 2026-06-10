@@ -30,13 +30,6 @@ export function SessionAliasProvider({ userId, children }: PropsWithChildren<{ u
 
 	return <SessionAliasContext.Provider value={value}>{children}</SessionAliasContext.Provider>
 }
-
-export function useSessionAliases() {
-	const ctx = useContext(SessionAliasContext)
-	if (!ctx) throw new Error('useSessionAliases requires SessionAliasProvider')
-	return ctx
-}
-
 export function useOptionalSessionAliases() {
 	return useContext(SessionAliasContext)
 }

@@ -38,14 +38,3 @@ type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
 export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<string, string | number | boolean>): void {
 	trackUmamiEvent(eventName, data)
 }
-
-// Debounced version for range inputs
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
-export function trackYieldsEventDebounced(
-	eventName: YieldsEventName,
-	data?: Record<string, string | number | boolean>,
-	delay = 1000
-): void {
-	if (debounceTimer) clearTimeout(debounceTimer)
-	debounceTimer = setTimeout(() => trackYieldsEvent(eventName, data), delay)
-}

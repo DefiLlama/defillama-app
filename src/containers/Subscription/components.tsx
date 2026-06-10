@@ -117,6 +117,7 @@ function PricingCardCta({
 	canUpgradeCycle,
 	isUpgradeTier,
 	isLowerTier,
+	isManualSubscription,
 	isPageStateLoading,
 	onPrimaryCtaClick,
 	onSecondaryCtaClick,
@@ -136,11 +137,26 @@ function PricingCardCta({
 	canUpgradeCycle: boolean
 	isUpgradeTier: boolean
 	isLowerTier: boolean | '' | null | 0
+	isManualSubscription?: boolean
 	billingCycle: BillingCycle
 	isPageStateLoading?: boolean
 } & PricingCardCallbacks) {
 	/* ── Still loading auth/subscription data: hide CTAs ── */
 	if (isPageStateLoading) return null
+
+	if (isManualSubscription) {
+		if (!isCurrentPlan) return null
+		return (
+			<>
+				<p className="mt-4 text-center text-[16px] leading-5 font-medium text-(--sub-brand-primary) sm:text-sm dark:text-(--sub-brand-secondary)">
+					Current Plan
+				</p>
+				<p className="text-center text-[13px] leading-5 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
+					Your {card.title} plan was provided by the DefiLlama team. To make any changes, please contact the team.
+				</p>
+			</>
+		)
+	}
 
 	/* ── Lower tier than current subscription: no CTA ── */
 	if (isLowerTier) return null
@@ -372,6 +388,7 @@ export function PricingCard({
 	currentPlan = null,
 	billingCycle = 'monthly',
 	userBillingCycle = null,
+	isManualSubscription = false,
 	isPageStateLoading = false,
 	onPrimaryCtaClick,
 	onSecondaryCtaClick,
@@ -391,6 +408,7 @@ export function PricingCard({
 	currentPlan?: PlanKey | null
 	billingCycle?: BillingCycle
 	userBillingCycle?: BillingCycle | null
+	isManualSubscription?: boolean
 	isPageStateLoading?: boolean
 } & PricingCardCallbacks) {
 	const canUpgradeCycle = isCurrentPlan && userBillingCycle === 'monthly'
@@ -433,6 +451,7 @@ export function PricingCard({
 							canUpgradeCycle={canUpgradeCycle}
 							isUpgradeTier={isUpgradeTier}
 							isLowerTier={isLowerTier}
+							isManualSubscription={isManualSubscription}
 							billingCycle={billingCycle}
 							isPageStateLoading={isPageStateLoading}
 							onPrimaryCtaClick={onPrimaryCtaClick}

@@ -13,7 +13,7 @@ This file defines the commands and working conventions that all AI agents must f
 - Format code with `bun run format`
 - Run tests with `bun run test`
 - Run lint checks with `bun run lint`
-- Run TypeScript checks with `bun run ts`
+- Run TypeScript checks with `bun run typecheck`
 
 ## Forbidden Commands
 
@@ -28,10 +28,10 @@ After completing a task that changes source code, tests, scripts, type declarati
 
 1. `bun run format`
 2. `bun run lint`
-3. `bun run ts`
-4. `bun run test:types`
+3. `bun run typecheck`
+4. `bun run test:typecheck`
 
-`bun run format` must finish before the other checks because it writes files. After formatting completes, `bun run lint`, `bun run ts`, and `bun run test:types` may be run in parallel.
+`bun run format` must finish before the other checks because it writes files. After formatting completes, `bun run lint`, `bun run typecheck`, and `bun run test:typecheck` may be run in parallel.
 
 Do not run the full verification sequence for tasks that only inspect, explain, review, branch, commit, or run explicitly requested commands without making code changes.
 Do not run the full verification sequence for documentation-only or instruction-only edits unless the user explicitly asks.
@@ -44,6 +44,12 @@ Do not run `bun run build` as part of verification.
 Before starting any Next.js work, read the relevant documentation in `node_modules/next/dist/docs/`.
 
 Treat those local docs as the source of truth.
+
+## Metric Semantics
+
+Before changing metric routes, chart queries, metadata flags, public API validation, or adapter data types, read `docs/metrics.md`.
+
+`public/pages.json` contains product-facing page definitions. `docs/metrics.md` documents implementation semantics and overloaded terminology that can affect code paths.
 
 ## Local User Instructions
 

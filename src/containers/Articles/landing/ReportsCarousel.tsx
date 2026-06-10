@@ -2,6 +2,8 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
+import { DownloadPdfLink } from '~/containers/Articles/landing/DownloadPdfLink'
 import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
@@ -61,7 +63,6 @@ interface NavButtonProps {
 }
 
 function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, className }: NavButtonProps) {
-	const path = direction === 'prev' ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'
 	const label = direction === 'prev' ? 'Previous slide' : 'Next slide'
 
 	return (
@@ -78,9 +79,7 @@ function NavButton({ direction, disabled, onClick, onMouseEnter, onMouseLeave, c
 			)}
 			aria-label={label}
 		>
-			<svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={path} />
-			</svg>
+			<Icon name={direction === 'prev' ? 'chevron-left' : 'chevron-right'} className="size-4 text-white" />
 		</button>
 	)
 }
@@ -106,7 +105,11 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 	const imageBlock = (
 		<div className="space-y-[12px] bg-white" style={{ aspectRatio: `${IMG_ASPECT.w}/${IMG_ASPECT.h}` }}>
 			{imgUrl ? (
-				<img src={imgUrl} alt="" className="h-full w-full object-cover md:h-full md:w-full md:object-fill" />
+				<img
+					src={imgUrl}
+					alt={article.carouselImage?.alt ?? article.coverImage?.alt ?? article.title}
+					className="size-full object-cover md:size-full md:object-fill"
+				/>
 			) : (
 				<div className="flex h-full min-h-[200px] w-full items-center justify-center bg-slate-200 text-slate-500" />
 			)}
@@ -116,7 +119,7 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 	const sponsorBadge = sponsorLogoUrl ? (
 		<div className="pointer-events-none absolute top-[12px] right-[12px] flex items-center gap-2 rounded-full bg-black/55 px-2 py-1 text-white backdrop-blur-sm">
 			<span className="font-jetbrains text-[8px] tracking-[0.16em] uppercase opacity-80">Sponsored by</span>
-			<img src={sponsorLogoUrl} alt="" className="h-5 w-auto max-w-[80px] object-contain" />
+			<img src={sponsorLogoUrl} alt={article.sponsorLogo.alt} className="h-5 w-auto max-w-[80px] object-contain" />
 		</div>
 	) : null
 
@@ -137,15 +140,13 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 						Read more
 					</span>
 					{pdfUrl ? (
-						<a
-							href={pdfUrl}
-							target="_blank"
-							rel="noopener noreferrer"
-							onClick={(e) => e.stopPropagation()}
+						<DownloadPdfLink
+							article={article}
+							pdfUrl={pdfUrl}
+							widgetLabel="Reports carousel"
+							stopPropagation
 							className="w-full rounded bg-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium text-[#0D1E3B] transition-opacity hover:opacity-90"
-						>
-							Download PDF
-						</a>
+						/>
 					) : null}
 				</div>
 			) : (
@@ -162,14 +163,12 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 						Read more
 					</Link>
 					{pdfUrl ? (
-						<a
-							href={pdfUrl}
-							target="_blank"
-							rel="noopener noreferrer"
+						<DownloadPdfLink
+							article={article}
+							pdfUrl={pdfUrl}
+							widgetLabel="Reports carousel"
 							className="w-full rounded bg-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium text-[#0D1E3B] transition-opacity hover:opacity-90"
-						>
-							Download PDF
-						</a>
+						/>
 					) : null}
 				</div>
 			)}
@@ -215,7 +214,7 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 					onClick={() => {
 						void router.push(href)
 					}}
-					className="block h-full w-full cursor-pointer"
+					className="block size-full cursor-pointer"
 				>
 					{inner}
 				</div>
@@ -552,7 +551,7 @@ export const ReportsCarousel: React.FC<ReportsCarouselProps> = (props) => {
 				)}
 
 				{showButtons && isMobile && (
-					<div className="flex items-center space-x-4">
+					<div className="flex items-center gap-4">
 						<NavButton
 							direction="prev"
 							disabled={isTransitioning}

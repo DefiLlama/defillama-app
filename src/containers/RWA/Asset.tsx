@@ -1,3 +1,10 @@
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CopyHelper } from '~/components/Copy'
@@ -6,9 +13,11 @@ import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import { useYieldChartData } from '~/containers/Yields/queries/client'
+import { useYieldChartData } from '~/containers/Yields/queries.client'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
@@ -61,7 +70,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 			{isBoolean ? (
 				<Icon
 					name={positive ? 'check-circle' : 'x'}
-					className={`h-5 w-5 shrink-0 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
+					className={`size-5 shrink-0 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
 				/>
 			) : (
 				<span className="font-medium">{displayValue}</span>
@@ -98,7 +107,7 @@ const KYCItem = ({
 			</p>
 			<Icon
 				name={required ? 'alert-triangle' : 'check-circle'}
-				className={`h-5 w-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
+				className={`size-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 			/>
 		</div>
 	)
@@ -110,6 +119,72 @@ const SectionCard = ({ title, children }: { title: React.ReactNode; children: Re
 		{children}
 	</div>
 )
+
+type DefiActiveTvlBreakdownRow = {
+	protocol: string
+	tvl: number
+	share: number
+}
+
+const defiActiveTvlBreakdownColumnHelper = createColumnHelper<DefiActiveTvlBreakdownRow>()
+const DEFI_ACTIVE_TVL_BREAKDOWN_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
+
+const defiActiveTvlBreakdownColumns = [
+	defiActiveTvlBreakdownColumnHelper.accessor('protocol', {
+		header: 'Protocol',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			const protocol = getValue()
+
+			return (
+				<span className="flex items-center gap-2">
+					<TokenLogo name={protocol} kind="token" alt={`Logo of ${protocol}`} size={20} />
+					<span>{protocol}</span>
+				</span>
+			)
+		}
+	}),
+	defiActiveTvlBreakdownColumnHelper.accessor('tvl', {
+		header: 'DeFi Active TVL',
+		cell: ({ getValue }) => formattedNum(getValue(), true),
+		meta: {
+			align: 'end' as const
+		}
+	}),
+	defiActiveTvlBreakdownColumnHelper.accessor('share', {
+		header: 'Share',
+		cell: ({ getValue }) => `${getValue().toFixed(2)}%`,
+		meta: {
+			align: 'end' as const
+		}
+	})
+]
+
+function DefiActiveTvlBreakdownTable({ breakdown, total }: { breakdown: Array<[string, number]>; total: number }) {
+	const data = useMemo(() => {
+		const rows: DefiActiveTvlBreakdownRow[] = []
+		for (const [protocol, tvl] of breakdown) {
+			rows.push({ protocol, tvl, share: total > 0 ? (tvl / total) * 100 : 0 })
+		}
+		return rows
+	}, [breakdown, total])
+	const table = useReactTable({
+		data,
+		columns: defiActiveTvlBreakdownColumns,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			},
+			sorting: [{ id: 'tvl', desc: true }]
+		},
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel()
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={DEFI_ACTIVE_TVL_BREAKDOWN_PAGE_SIZE_OPTIONS} />
+}
 
 const ContractItem = ({ address, explorerUrl }: { address: string; explorerUrl?: string }) => {
 	const truncatedAddress = address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address
@@ -123,12 +198,12 @@ const ContractItem = ({ address, explorerUrl }: { address: string; explorerUrl?:
 					className="flex items-center gap-1 text-xs break-all hover:underline"
 				>
 					{truncatedAddress}
-					<Icon name="external-link" className="h-3 w-3 shrink-0" />
+					<Icon name="external-link" className="size-3 shrink-0" />
 				</a>
 			) : (
 				<p className="flex items-center gap-1 text-xs break-all">
 					<span>{truncatedAddress}</span>
-					<CopyHelper toCopy={address} className="h-3 w-3" />
+					<CopyHelper toCopy={address} className="size-3" />
 				</p>
 			)}
 		</div>
@@ -150,7 +225,7 @@ const ChainBadge = ({
 }) => {
 	return (
 		<div className="flex items-center gap-1.5 rounded-md border border-(--cards-border) p-2">
-			<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
+			<img src={chainIconUrl(chain)} alt={chain} className="size-5 rounded-full" loading="lazy" />
 			<div className="flex flex-col">
 				<div className="flex items-center gap-1.5">
 					<p className="text-sm font-medium">{chain}</p>
@@ -257,7 +332,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								rel="noopener noreferrer"
 								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							>
-								<Icon name="external-link" className="h-3 w-3" />
+								<Icon name="external-link" className="size-3" />
 								Website
 							</a>
 						)
@@ -278,7 +353,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								rel="noopener noreferrer"
 								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							>
-								<Icon name="external-link" className="h-3 w-3" />
+								<Icon name="external-link" className="size-3" />
 								Twitter
 							</a>
 						)
@@ -290,7 +365,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							LinkedIn
 						</a>
 					) : null}
@@ -301,7 +376,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							Docs
 						</a>
 					) : null}
@@ -312,7 +387,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							GitHub
 						</a>
 					) : null}
@@ -323,7 +398,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							Discord
 						</a>
 					) : null}
@@ -334,7 +409,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="external-link" className="h-3 w-3" />
+							<Icon name="external-link" className="size-3" />
 							Telegram
 						</a>
 					) : null}
@@ -649,7 +724,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 											rel="noopener noreferrer"
 											className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
 										>
-											<Icon name="external-link" className="h-4 w-4 shrink-0" />
+											<Icon name="external-link" className="size-4 shrink-0" />
 											{link}
 										</a>
 									))}
@@ -669,13 +744,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
 								>
 									<span className="flex items-center gap-2">
-										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
+										<Icon name="check-circle" className="size-4 text-(--text-label)" />
 										<span className="flex flex-col">
 											<span className="text-sm font-medium">{asset.oracleProvider ?? 'Oracle Proof'}</span>
 											<span className="text-xs text-(--text-disabled)">View oracle proof details</span>
 										</span>
 									</span>
-									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
+									<Icon name="external-link" className="size-3 text-(--text-disabled)" />
 								</a>
 							) : (
 								<p className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -715,13 +790,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
 								>
 									<span className="flex items-center gap-2">
-										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
+										<Icon name="check-circle" className="size-4 text-(--text-label)" />
 										<span className="flex flex-col">
 											<span className="text-sm font-medium">View Attestations</span>
 											<span className="text-xs text-(--text-disabled)">Third-party verification reports</span>
 										</span>
 									</span>
-									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
+									<Icon name="external-link" className="size-3 text-(--text-disabled)" />
 								</a>
 							))}
 						</SectionCard>
@@ -737,6 +812,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							<li key={`${keyBase}-note-${idx}-${note.slice(0, 50)}`}>{note}</li>
 						))}
 					</ul>
+				</SectionCard>
+			) : null}
+
+			{defiActiveTv?.breakdown != null && defiActiveTv.breakdown.length > 0 ? (
+				<SectionCard title="DeFi Active TVL by Protocol">
+					<DefiActiveTvlBreakdownTable breakdown={defiActiveTv.breakdown} total={defiActiveTv.total} />
 				</SectionCard>
 			) : null}
 

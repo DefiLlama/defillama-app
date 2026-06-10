@@ -1,4 +1,4 @@
-import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -60,30 +60,12 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 function DonationsPage({ protocols }) {
 	return (
 		<Layout
-			title="Support DefiLlama - Donations & Contributions"
-			description={`Why donate? DefiLlama is an open-source project that runs no ads and provides all data for free. We have no revenue and are supported by donations.`}
+			title="DefiLlama Affiliate Links"
+			description="DefiLlama affiliate links for protocols with referrals."
 			canonicalUrl={`/donations`}
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Why donate?</h1>
-				<hr className="border-black/20 dark:border-white/20" />
-				<p>
-					DefiLlama is an open-source project that runs no ads and provides all data for free. We have no revenue and
-					are supported by donations.
-				</p>
-			</div>
-			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h2 className="text-lg font-semibold">Direct donation</h2>
-				<hr className="border-black/20 dark:border-white/20" />
-				<div className="flex flex-col gap-2">
-					<p>You can send us any token, on any network, to the following address:</p>
-					<ul className="flex flex-col gap-1">
-						<li>0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437</li>
-					</ul>
-				</div>
-			</div>
-			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h2 className="text-lg font-semibold">Affiliate links</h2>
+				<h1 className="text-lg font-semibold">Affiliate links</h1>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-3">
 					<p>
@@ -98,22 +80,11 @@ function DonationsPage({ protocols }) {
 								rel="noopener noreferrer"
 								href={p.url}
 							>
-								<img src={p.logo} alt={`${p.name} logo`} className="h-6 w-6 shrink-0 rounded-full" />
+								<img src={p.logo} alt={`${p.name} logo`} className="size-6 shrink-0 rounded-full" />
 								<span className="truncate text-sm text-(--blue)">{p.name}</span>
 							</a>
 						))}
 					</div>
-				</div>
-			</div>
-			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h2 className="text-lg font-semibold">Use of funds</h2>
-				<hr className="border-black/20 dark:border-white/20" />
-				<div className="flex flex-col gap-2">
-					<p>Funds are only used for 2 purposes:</p>
-					<ul className="flex flex-col gap-1">
-						<li>Pay the llamas working on DefiLlama</li>
-						<li>Cover costs associated with running defillama (this is mostly server costs)</li>
-					</ul>
 				</div>
 			</div>
 		</Layout>

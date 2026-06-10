@@ -61,16 +61,18 @@ export function NameYieldPool({
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 			)}
 
-			<a
-				href={url}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover) lg:flex"
-				onClick={() => trackUmamiEvent('yields-pool-external-link', { pool: value })}
-			>
-				<Icon name="arrow-up-right" height={14} width={14} />
-				<span className="sr-only">open in new tab</span>
-			</a>
+			{url ? (
+				<a
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover) lg:flex"
+					onClick={() => trackUmamiEvent('yields-pool-external-link', { pool: value })}
+				>
+					<Icon name="arrow-up-right" height={14} width={14} />
+					<span className="sr-only">open in new tab</span>
+				</a>
+			) : null}
 
 			<LinkWrapper
 				url={withoutLink ? null : tokenUrl}

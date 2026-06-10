@@ -22,6 +22,7 @@ const baseContract: IRWAPerpsContractData = {
 		parentPlatform: 'trade[XYZ]',
 		issuer: 'XYZ',
 		website: 'https://trade.xyz/',
+		link: null,
 		oracleProvider: 'Pyth equity feed',
 		description: null,
 		categories: ['RWA Perps']

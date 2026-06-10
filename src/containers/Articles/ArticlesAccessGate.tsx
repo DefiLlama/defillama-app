@@ -24,7 +24,7 @@ export function canEditResearchArticle({
 	isAuthenticated,
 	user
 }: {
-	article: ArticleDocument
+	article: { viewerRole?: ArticleDocument['viewerRole'] }
 	isAuthenticated: boolean
 	user: AuthModel | null | undefined
 }): boolean {

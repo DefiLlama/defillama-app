@@ -1,3 +1,6 @@
+type YieldCsvPayload = { filename: string; rows: Array<Array<string | number | boolean | null | undefined>> }
+type PrepareYieldCsv = () => YieldCsvPayload | Promise<YieldCsvPayload>
+
 export interface IDropdownMenusProps {
 	pathname?: string
 	tokensList?: Array<string>
@@ -27,7 +30,7 @@ export interface IDropdownMenusProps {
 	ltvPlaceholder?: string
 	showMedianApy?: boolean
 	showStdDev?: boolean
-	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	prepareCsv?: PrepareYieldCsv
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {
@@ -39,6 +42,6 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	strategyInputsData?: Array<{ name: string; symbol: string; image?: string | null; image2?: string | null }>
 	noOfStrategies?: number
 	showSearchOnMobile?: boolean
-	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	prepareCsv?: PrepareYieldCsv
 	showPresetFilters?: boolean
 }

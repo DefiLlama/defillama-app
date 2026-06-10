@@ -1,4 +1,5 @@
-import { withOutboundTelemetry } from './telemetry'
+import { withDirectApiAuth } from './directApi'
+import { withOutboundTelemetry, type TelemetryAttributes } from './telemetry'
 
 const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
 	const requestUrl = typeof url === 'string' ? new URL(url) : url
@@ -9,6 +10,7 @@ const fetchWithConnectionPooling = async (url: string | URL, options: RequestIni
 export type FetchWithPoolingOnServerOptions = RequestInit & {
 	timeout?: number
 	telemetry?: {
+		attributes?: TelemetryAttributes
 		attempt?: number
 		maxAttempts?: number
 		singleflightRole?: 'leader'
@@ -45,10 +47,11 @@ export const fetchWithPoolingOnServer = async (
 	}
 
 	try {
-		const response = await withOutboundTelemetry(requestUrl, options, () =>
-			isServer && typeof requestUrl === 'string'
-				? fetchWithConnectionPooling(requestUrl, { ...requestOptions, signal: timeoutController.signal })
-				: fetch(requestUrl, { ...requestOptions, signal: timeoutController.signal })
+		const authenticatedRequestUrl = isServer ? withDirectApiAuth(requestUrl) : requestUrl
+		const response = await withOutboundTelemetry(authenticatedRequestUrl, options, () =>
+			isServer && typeof authenticatedRequestUrl === 'string'
+				? fetchWithConnectionPooling(authenticatedRequestUrl, { ...requestOptions, signal: timeoutController.signal })
+				: fetch(authenticatedRequestUrl, { ...requestOptions, signal: timeoutController.signal })
 		)
 		return response
 	} finally {

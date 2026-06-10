@@ -38,10 +38,75 @@ describe('settingsIntent', () => {
 		expect(readPendingSettingsIntent(storage)).toBeNull()
 	})
 
+	it('parses an authenticated Slack login intent for the integrations tab', () => {
+		expect(getSettingsIntentFromQuery({ slacklogin: 'slack-token', keep: '1', modal: 'settings', tab: 'app' })).toEqual(
+			{
+				initialState: { tab: 'integrations', tgloginToken: null, slackloginToken: 'slack-token' },
+				nextQuery: { keep: '1' }
+			}
+		)
+	})
+
+	it('stashes and consumes unauthenticated Slack login intent after login', () => {
+		const storage = new MemoryStorage()
+
+		stashSettingsIntent(storage, { tab: 'integrations', tgloginToken: null, slackloginToken: 'slack-token' })
+
+		expect(readPendingSettingsIntent(storage)).toEqual({
+			tab: 'integrations',
+			tgloginToken: null,
+			slackloginToken: 'slack-token'
+		})
+		expect(readPendingSettingsIntent(storage)).toBeNull()
+	})
+
 	it('parses the settings modal tab intent and removes consumed query params', () => {
 		expect(getSettingsIntentFromQuery({ modal: 'settings', tab: 'integrations', chain: 'Ethereum' })).toEqual({
 			initialState: { tab: 'integrations', tgloginToken: null },
 			nextQuery: { chain: 'Ethereum' }
 		})
+	})
+
+	it('parses Slack callback intent for integrations and removes callback query params', () => {
+		expect(
+			getSettingsIntentFromQuery({
+				slack: 'connected',
+				team: 'Llama Labs',
+				detail: 'ok',
+				modal: 'settings',
+				tab: 'app',
+				chain: 'Ethereum'
+			})
+		).toEqual({
+			initialState: {
+				tab: 'integrations',
+				tgloginToken: null,
+				slackResult: 'connected',
+				slackTeamName: 'Llama Labs',
+				slackErrorDetail: 'ok'
+			},
+			nextQuery: { chain: 'Ethereum' }
+		})
+	})
+
+	it('stashes and consumes unauthenticated Slack callback intent after login', () => {
+		const storage = new MemoryStorage()
+
+		stashSettingsIntent(storage, {
+			tab: 'integrations',
+			tgloginToken: null,
+			slackResult: 'slack_failed',
+			slackTeamName: 'Llama Labs',
+			slackErrorDetail: 'access_denied'
+		})
+
+		expect(readPendingSettingsIntent(storage)).toEqual({
+			tab: 'integrations',
+			tgloginToken: null,
+			slackResult: 'slack_failed',
+			slackTeamName: 'Llama Labs',
+			slackErrorDetail: 'access_denied'
+		})
+		expect(readPendingSettingsIntent(storage)).toBeNull()
 	})
 })

@@ -198,9 +198,114 @@ function hasForbiddenDashboardEmbed(node: unknown): boolean {
 	return false
 }
 
-function normalizeContentJson(value: unknown): TiptapJson {
+type NormalizedContentNode = {
+	node: TiptapJson
+	hoisted: TiptapJson[]
+}
+
+type StrippedQAAnswerNode = {
+	node: TiptapJson | null
+	hoisted: TiptapJson[]
+}
+
+const EMPTY_QA_QUESTION: TiptapJson = { type: 'qaQuestion', content: [] }
+const EMPTY_QA_ANSWER_CONTENT: TiptapJson[] = [{ type: 'paragraph' }]
+
+function normalizeQANode(node: TiptapJson): NormalizedContentNode {
+	const children = node.content ?? []
+	const question = children.find((child) => child?.type === 'qaQuestion')
+	const answer = children.find((child) => child?.type === 'qaAnswer')
+	const normalizedAnswer = normalizeQAAnswerNode(answer)
+	const hoisted = [...normalizedAnswer.hoisted]
+
+	for (const child of children) {
+		if (!child || child === question || child === answer || child.type !== 'qa') continue
+		const normalized = normalizeQANode(child)
+		hoisted.push(normalized.node, ...normalized.hoisted)
+	}
+
+	return {
+		node: {
+			...node,
+			content: [question ?? EMPTY_QA_QUESTION, normalizedAnswer.node]
+		},
+		hoisted
+	}
+}
+
+function normalizeQAAnswerNode(node: TiptapJson | undefined): { node: TiptapJson; hoisted: TiptapJson[] } {
+	const hoisted: TiptapJson[] = []
+	const content: TiptapJson[] = []
+
+	for (const child of node?.content ?? []) {
+		const stripped = stripNestedQAsFromAnswer(child)
+		if (stripped.node) content.push(stripped.node)
+		hoisted.push(...stripped.hoisted)
+	}
+
+	return {
+		node: {
+			...(node ?? { type: 'qaAnswer' }),
+			content: content.length > 0 ? content : EMPTY_QA_ANSWER_CONTENT
+		},
+		hoisted
+	}
+}
+
+function stripNestedQAsFromAnswer(node: TiptapJson): StrippedQAAnswerNode {
+	if (node.type === 'qa') {
+		const normalized = normalizeQANode(node)
+		return { node: null, hoisted: [normalized.node, ...normalized.hoisted] }
+	}
+
+	if (!node.content) return { node, hoisted: [] }
+
+	const hoisted: TiptapJson[] = []
+	const content: TiptapJson[] = []
+	for (const child of node.content) {
+		const stripped = stripNestedQAsFromAnswer(child)
+		if (stripped.node) content.push(stripped.node)
+		hoisted.push(...stripped.hoisted)
+	}
+
+	if (node.content.length > 0 && content.length === 0 && node.type !== 'paragraph') {
+		return { node: null, hoisted }
+	}
+
+	return {
+		node: {
+			...node,
+			content
+		},
+		hoisted
+	}
+}
+
+function normalizeArticleContentNode(node: TiptapJson): NormalizedContentNode {
+	if (node.type === 'qa') return normalizeQANode(node)
+	if (!node.content) return { node, hoisted: [] }
+
+	const content: TiptapJson[] = []
+	for (const child of node.content) {
+		const normalized = normalizeArticleContentNode(child)
+		content.push(normalized.node, ...normalized.hoisted)
+	}
+
+	return {
+		node: {
+			...node,
+			content
+		},
+		hoisted: []
+	}
+}
+
+export function normalizeArticleContentJson(value: unknown): TiptapJson {
 	if (!isRecord(value) || value.type !== 'doc') return EMPTY_ARTICLE_CONTENT
-	return value as TiptapJson
+	const normalized = normalizeArticleContentNode(value as TiptapJson)
+	return normalized.hoisted.length > 0
+		? { ...normalized.node, content: [...(normalized.node.content ?? []), ...normalized.hoisted] }
+		: normalized.node
 }
 
 export function normalizeLocalArticleDocument(
@@ -215,7 +320,7 @@ export function normalizeLocalArticleDocument(
 	const slugSource = optionalString(input.slug) || seoTitle || title
 	const slug = normalizeSlug(slugSource) || generateDraftSlug()
 	const status = input.status === 'published' ? 'published' : 'draft'
-	const contentJson = normalizeContentJson(input.contentJson)
+	const contentJson = normalizeArticleContentJson(input.contentJson)
 
 	if (hasForbiddenDashboardEmbed(contentJson)) {
 		return { ok: false, error: 'Dashboard embeds are not supported in articles' }
@@ -249,6 +354,12 @@ export function normalizeLocalArticleDocument(
 	const firstPublishedAt = normalizeOptionalDate(input.firstPublishedAt) ?? existing?.firstPublishedAt ?? null
 	const lastPublishedAt = normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
 	const displayDate = normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
+	const goLiveAt =
+		status === 'published'
+			? null
+			: 'goLiveAt' in input
+				? normalizeOptionalDate(input.goLiveAt)
+				: (existing?.goLiveAt ?? null)
 	const section = normalizeSection(input.section) ?? existing?.section ?? null
 	const brandByline = typeof input.brandByline === 'boolean' ? input.brandByline : (existing?.brandByline ?? false)
 	const editorialTags = Array.isArray(input.editorialTags)
@@ -302,6 +413,7 @@ export function normalizeLocalArticleDocument(
 			...(interviewees && interviewees.length > 0 ? { interviewees } : {}),
 			section,
 			displayDate,
+			goLiveAt,
 			brandByline,
 			...(typeof input.featuredRank === 'number' && Number.isInteger(input.featuredRank)
 				? { featuredRank: input.featuredRank }

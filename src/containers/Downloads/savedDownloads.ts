@@ -1,6 +1,5 @@
 import dayjs from 'dayjs'
-import { chartDatasetsBySlug, type ChartDatasetDefinition } from './chart-datasets'
-import type { DatasetDefinition } from './datasets'
+import { chartDatasetsBySlug } from './chart-datasets'
 import type { ChartConfig } from './sql/chartConfig'
 
 export type SavedDownloadKind = 'dataset' | 'chart' | 'multiMetric' | 'query'
@@ -540,22 +539,10 @@ export function describeSavedConfig(config: SavedDownload): string {
 	if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange).toLowerCase())
 	return parts.join(' · ')
 }
-
-export function lookupDatasetLabel(slug: string, datasetMap: Map<string, DatasetDefinition>): string | undefined {
-	return datasetMap.get(slug)?.name
-}
-
-export function lookupChartDatasetLabel(
-	slug: string,
-	chartDatasetMap: Map<string, ChartDatasetDefinition>
-): string | undefined {
-	return chartDatasetMap.get(slug)?.name
-}
-
 // --- Recents dedup: compare configs by their "shape" (ignoring id/name/timestamps) ---
 
 function sortedArray(arr: string[]): string[] {
-	return arr.slice().sort()
+	return arr.toSorted()
 }
 
 export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolean {

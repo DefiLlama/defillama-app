@@ -2,11 +2,30 @@ import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
-vi.mock('~/containers/LiquidationsV2/queries', () => ({
-	getLiquidationsOverviewPageDataFromNetwork: vi.fn(),
-	getLiquidationsProtocolPageDataFromNetwork: vi.fn(),
-	getLiquidationsChainPageDataFromNetwork: vi.fn(),
-	getTokenLiquidationsSectionDataFromNetwork: vi.fn()
+const { getLiquidationsProtocolsResponseFromCacheMock, getLiquidationsProtocolChainIdsFromCacheMock } = vi.hoisted(
+	() => ({
+		getLiquidationsProtocolsResponseFromCacheMock: vi.fn(),
+		getLiquidationsProtocolChainIdsFromCacheMock: vi.fn()
+	})
+)
+
+const {
+	getLiquidationsOverviewPageDataMock,
+	getLiquidationsProtocolPageDataMock,
+	getLiquidationsChainPageDataMock,
+	getTokenLiquidationsSectionDataMock
+} = vi.hoisted(() => ({
+	getLiquidationsOverviewPageDataMock: vi.fn(),
+	getLiquidationsProtocolPageDataMock: vi.fn(),
+	getLiquidationsChainPageDataMock: vi.fn(),
+	getTokenLiquidationsSectionDataMock: vi.fn()
+}))
+
+vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+	getLiquidationsOverviewPageData: getLiquidationsOverviewPageDataMock,
+	getLiquidationsProtocolPageData: getLiquidationsProtocolPageDataMock,
+	getLiquidationsChainPageData: getLiquidationsChainPageDataMock,
+	getTokenLiquidationsSectionData: getTokenLiquidationsSectionDataMock
 }))
 
 vi.mock('~/utils/apiAuth', () => ({
@@ -16,34 +35,35 @@ vi.mock('~/utils/apiAuth', () => ({
 vi.mock('~/utils/metadata', () => ({
 	__esModule: true,
 	default: {
-		chainMetadata: {},
-		protocolMetadata: {},
+		chainMetadata: { arbitrum: { name: 'Arbitrum One', id: 'arbitrum' } },
+		protocolMetadata: { sky: { displayName: 'Sky', name: 'sky' } },
 		liquidationsTokenSymbolsSet: new Set(['WSTETH'])
 	},
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))
 
-import {
-	getLiquidationsChainPageDataFromNetwork,
-	getLiquidationsOverviewPageDataFromNetwork,
-	getLiquidationsProtocolPageDataFromNetwork,
-	getTokenLiquidationsSectionDataFromNetwork
-} from '~/containers/LiquidationsV2/queries'
-import chainHandler from '~/pages/api/liquidations/[protocol]/[chain]'
-import protocolHandler from '~/pages/api/liquidations/[protocol]/index'
-import overviewHandler from '~/pages/api/liquidations/index'
-import tokenHandler from '~/pages/api/token-liquidations/[symbol]'
+vi.mock('~/server/datasetCache/liquidations', () => ({
+	getLiquidationsProtocolsResponseFromCache: getLiquidationsProtocolsResponseFromCacheMock,
+	getLiquidationsProtocolChainIdsFromCache: getLiquidationsProtocolChainIdsFromCacheMock
+}))
+
+import chainHandler from '~/pages/api/private/liquidations/[protocol]/[chain]'
+import protocolHandler from '~/pages/api/private/liquidations/[protocol]/index'
+import overviewHandler from '~/pages/api/private/liquidations/index'
+import tokenHandler from '~/pages/api/private/token-liquidations/[symbol]'
 import { validateSubscription } from '~/utils/apiAuth'
 
 const mockedValidateSubscription = vi.mocked(validateSubscription)
-const mockedGetLiquidationsOverviewPageData = vi.mocked(getLiquidationsOverviewPageDataFromNetwork)
-const mockedGetLiquidationsProtocolPageData = vi.mocked(getLiquidationsProtocolPageDataFromNetwork)
-const mockedGetLiquidationsChainPageData = vi.mocked(getLiquidationsChainPageDataFromNetwork)
-const mockedGetTokenLiquidationsSectionData = vi.mocked(getTokenLiquidationsSectionDataFromNetwork)
+const mockedGetLiquidationsOverviewPageData = vi.mocked(getLiquidationsOverviewPageDataMock)
+const mockedGetLiquidationsProtocolPageData = vi.mocked(getLiquidationsProtocolPageDataMock)
+const mockedGetLiquidationsChainPageData = vi.mocked(getLiquidationsChainPageDataMock)
+const mockedGetTokenLiquidationsSectionData = vi.mocked(getTokenLiquidationsSectionDataMock)
 
 beforeEach(() => {
 	vi.clearAllMocks()
 	mockedValidateSubscription.mockResolvedValue({ valid: true, isTrial: false })
+	getLiquidationsProtocolsResponseFromCacheMock.mockResolvedValue({ protocols: ['sky'] })
+	getLiquidationsProtocolChainIdsFromCacheMock.mockResolvedValue(['arbitrum'])
 })
 
 describe('liquidations api routes', () => {
@@ -57,6 +77,46 @@ describe('liquidations api routes', () => {
 		expect(res.setHeader).toHaveBeenCalledWith('Allow', ['GET'])
 		expect(res.status).toHaveBeenCalledWith(405)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Method Not Allowed' })
+	})
+
+	it('returns 400 for missing protocol route params before auth', async () => {
+		const req = { method: 'GET', headers: {}, query: {} } as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await protocolHandler(req, res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Missing protocol parameter' })
+		expect(mockedValidateSubscription).not.toHaveBeenCalled()
+	})
+
+	it('returns 400 for missing chain route params before auth', async () => {
+		const req = {
+			method: 'GET',
+			headers: {},
+			query: { protocol: 'sky' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await chainHandler(req, res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Missing protocol or chain parameter' })
+		expect(mockedValidateSubscription).not.toHaveBeenCalled()
+	})
+
+	it('returns 400 for missing token route params before auth', async () => {
+		const req = { method: 'GET', headers: {}, query: {} } as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await tokenHandler(req, res)
+
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Missing symbol parameter' })
+		expect(mockedValidateSubscription).not.toHaveBeenCalled()
 	})
 
 	it('returns 403 for unauthorized protocol requests', async () => {
@@ -76,6 +136,22 @@ describe('liquidations api routes', () => {
 
 		expect(res.status).toHaveBeenCalledWith(403)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Active subscription required' })
+		expect(mockedGetLiquidationsProtocolPageData).not.toHaveBeenCalled()
+	})
+
+	it('returns 404 for unknown protocol requests after auth and before data fetch', async () => {
+		const req = {
+			method: 'GET',
+			headers: { authorization: 'Bearer ok' },
+			query: { protocol: 'unknown' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await protocolHandler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Liquidations protocol not found' })
+		expect(mockedValidateSubscription).toHaveBeenCalledWith('Bearer ok')
 		expect(mockedGetLiquidationsProtocolPageData).not.toHaveBeenCalled()
 	})
 

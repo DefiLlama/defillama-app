@@ -162,6 +162,15 @@ export default function MultiSeriesChart({
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (option === 'dataZoom' && Array.isArray(chartOptions[option])) {
+				if (settings[option]) {
+					settings[option] = [
+						{ ...settings[option][0], ...(chartOptions[option][0] ?? {}) },
+						{ ...settings[option][1], ...(chartOptions[option][1] ?? {}) }
+					]
+				} else {
+					settings[option] = chartOptions[option]
+				}
 			} else if (settings[option]) {
 				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
@@ -268,6 +277,7 @@ export default function MultiSeriesChart({
 
 		globalOutCleanupRef.current?.()
 		globalOutCleanupRef.current = null
+		let globalOutCleanup: (() => void) | null = null
 
 		if (alwaysShowTooltip && seriesWithHallmarks.length > 0 && seriesWithHallmarks[0].data.length > 0) {
 			const showTip = () => {
@@ -290,11 +300,14 @@ export default function MultiSeriesChart({
 				if (instance.isDisposed()) return
 				instance.off('globalout', onGlobalOut)
 			}
+			globalOutCleanup = globalOutCleanupRef.current
 		}
 
 		return () => {
-			globalOutCleanupRef.current?.()
-			globalOutCleanupRef.current = null
+			globalOutCleanup?.()
+			if (globalOutCleanupRef.current === globalOutCleanup) {
+				globalOutCleanupRef.current = null
+			}
 		}
 	}, [
 		defaultChartSettings,

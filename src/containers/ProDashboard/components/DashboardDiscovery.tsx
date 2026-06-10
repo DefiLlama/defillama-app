@@ -6,6 +6,7 @@ import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select/Select'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
+import type { DiscoveryCategoriesInitialData } from '../hooks/useDiscoveryCategories'
 import { DashboardBrowse } from './DashboardBrowse'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
@@ -34,7 +35,11 @@ const timeFrameOptions = [
 ] as const
 type TimeFrameOption = (typeof timeFrameOptions)[number]
 
-export function DashboardDiscovery() {
+export function DashboardDiscovery({
+	initialCategories
+}: {
+	initialCategories?: DiscoveryCategoriesInitialData | null
+}) {
 	const router = useRouter()
 	const { view, tag: tagQuery, sortBy, query, page: pageQuery, limit, timeFrame } = router.query
 	const pushProQuery = (updates: Record<string, string | number | string[] | undefined>) => {
@@ -299,7 +304,7 @@ export function DashboardDiscovery() {
 			</div>
 
 			{isBrowseMode ? (
-				<DashboardBrowse onTagClick={handleTagClick} />
+				<DashboardBrowse onTagClick={handleTagClick} initialCategories={initialCategories} />
 			) : isLoading ? (
 				<>
 					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
@@ -307,7 +312,7 @@ export function DashboardDiscovery() {
 				</>
 			) : dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-(--cards-border) bg-(--cards-bg) px-6 py-16">
-					<div className="flex h-20 w-20 items-center justify-center rounded-full bg-(--bg-hover)">
+					<div className="flex size-20 items-center justify-center rounded-full bg-(--bg-hover)">
 						<Icon name="search" height={40} width={40} className="text-(--text-label)" />
 					</div>
 

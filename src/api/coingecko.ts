@@ -9,23 +9,17 @@ import type {
 	CoinGeckoCoinDetailResultForOptions,
 	CoinGeckoCoinListItem,
 	CoinGeckoCoinDetailResponseForOptions,
-	CoinGeckoCoinTickersResponseForOptions,
-	CoinGeckoCoinTickersResultForOptions,
-	CoinGeckoDerivativeExchange,
 	CoinGeckoExchange,
 	CoinGeckoSimplePriceResponse,
 	DenominationPriceHistory,
 	FetchCoinGeckoCoinByIdOptions,
 	FetchCoinGeckoCoinsListOptions,
 	FetchCoinGeckoCoinMarketChartByIdOptions,
-	FetchCoinGeckoCoinTickersByIdOptions,
-	FetchCoinGeckoDerivativesExchangesOptions,
 	FetchCoinGeckoExchangesOptions,
 	FetchCoinGeckoSimplePriceOptions,
 	GeckoIdResponse,
 	IResponseCGMarketsAPI
 } from './coingecko.types'
-import { fetchCoinPrices } from './index'
 
 const COINGECKO_API_BASE_URL = COINGECKO_KEY
 	? 'https://pro-api.coingecko.com/api/v3'
@@ -34,9 +28,8 @@ const COINGECKO_API_BASE_URL = COINGECKO_KEY
 const COINGECKO_REQUEST_HEADERS = COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECKO_KEY } : undefined
 const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const COINGECKO_EXCHANGES_MAX_PAGE_SIZE = 250
-const COINGECKO_TICKERS_PAGE_SIZE = 100
 const CG_CHART_CACHE_TTL_SECONDS = 60 * 60
-const CG_CHART_LOCAL_API_PATH = '/api/charts/protocol'
+const CG_CHART_LOCAL_API_PATH = '/api/public/charts/protocol'
 
 function createCoinGeckoUrl(pathname: string): URL {
 	return new URL(pathname.replace(/^\//, ''), `${COINGECKO_API_BASE_URL}/`)
@@ -148,32 +141,6 @@ export async function fetchCoinGeckoCoinsList({
 	setQueryParam(url, 'status', status)
 	return fetchCoinGeckoJson<CoinGeckoCoinListItem[]>(url.pathname, url)
 }
-
-/**
- * Fetch all pages from CoinGecko GET /derivatives/exchanges.
- * The docs expose `page` and `per_page`, so pagination is handled internally here.
- */
-export async function fetchCoinGeckoDerivativesExchanges({
-	order,
-	perPage = 100,
-	maxPages = 1000
-}: FetchCoinGeckoDerivativesExchangesOptions = {}): Promise<CoinGeckoDerivativeExchange[]> {
-	const pageSize = Math.max(1, perPage)
-
-	return fetchAllPaginatedCoinGeckoResults<CoinGeckoDerivativeExchange>({
-		pageSize,
-		breakOnPartialPage: false,
-		maxPages,
-		fetchPage: async (page) => {
-			const url = createCoinGeckoUrl('/derivatives/exchanges')
-			setQueryParam(url, 'order', order)
-			setQueryParam(url, 'per_page', pageSize)
-			setQueryParam(url, 'page', page)
-			return fetchCoinGeckoJson<CoinGeckoDerivativeExchange[]>(url.pathname, url)
-		}
-	})
-}
-
 /** Fetch CoinGecko simple prices by ids, names, or symbols. */
 export async function fetchCoinGeckoSimplePrice({
 	vsCurrencies,
@@ -263,44 +230,6 @@ export async function fetchCoinGeckoCoinById<TOptions extends FetchCoinGeckoCoin
 		() => ({}) as CoinGeckoCoinDetailResultForOptions<TOptions>
 	)
 }
-
-/**
- * Fetch all pages from CoinGecko GET /coins/{id}/tickers.
- * CoinGecko documents this endpoint as paginated to 100 rows, so the module combines every page.
- */
-export async function fetchCoinGeckoCoinTickersById<
-	TOptions extends FetchCoinGeckoCoinTickersByIdOptions | undefined = undefined
->(geckoId: string, options?: TOptions): Promise<CoinGeckoCoinTickersResultForOptions<TOptions>> {
-	if (!geckoId) return {} as CoinGeckoCoinTickersResultForOptions<TOptions>
-
-	try {
-		let name: string | undefined
-		const tickers = await fetchAllPaginatedCoinGeckoResults<
-			CoinGeckoCoinTickersResponseForOptions<TOptions>['tickers'] extends Array<infer T> ? T : never
-		>({
-			pageSize: COINGECKO_TICKERS_PAGE_SIZE,
-			maxPages: options?.maxPages,
-			fetchPage: async (page) => {
-				const url = createCoinGeckoUrl(`/coins/${encodeURIComponent(geckoId)}/tickers`)
-				setQueryParam(url, 'exchange_ids', options?.exchangeIds)
-				setQueryParam(url, 'include_exchange_logo', options?.includeExchangeLogo)
-				setQueryParam(url, 'page', page)
-				setQueryParam(url, 'order', options?.order)
-				setQueryParam(url, 'depth', options?.depth)
-				setQueryParam(url, 'dex_pair_format', options?.dexPairFormat)
-
-				const response = await fetchCoinGeckoJson<CoinGeckoCoinTickersResponseForOptions<TOptions>>(url.pathname, url)
-				if (!name) name = response.name
-				return response.tickers ?? []
-			}
-		})
-
-		return { name, tickers } as CoinGeckoCoinTickersResultForOptions<TOptions>
-	} catch {
-		return {} as CoinGeckoCoinTickersResultForOptions<TOptions>
-	}
-}
-
 /** Fetch CoinGecko historical market chart data from GET /coins/{id}/market_chart. */
 async function fetchCoinGeckoCoinMarketChartById(
 	geckoId: string,
@@ -390,16 +319,6 @@ export async function fetchCoinGeckoChartByIdWithCacheFallback(
 	if (fullChart) url.searchParams.set('fullChart', 'true')
 	const data = await fetchJson<CgChartResponse['data'] | null>(url.toString()).catch(() => null)
 	return data?.prices ? { data } : null
-}
-
-/**
- * Fetch the current token price for a CoinGecko id through the DefiLlama prices API.
- * This is keyed by CoinGecko id but is not a direct CoinGecko HTTP request.
- */
-export async function fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId: string) {
-	if (!geckoId) return null
-	const prices = await fetchCoinPrices([`coingecko:${geckoId}`])
-	return prices[`coingecko:${geckoId}`] ?? null
 }
 
 /**

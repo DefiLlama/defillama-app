@@ -2,56 +2,23 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { getLendBorrowData } from '~/containers/Yields/queries/index'
-import { disclaimer, exploitWarning, findOptimizerPools } from '~/containers/Yields/utils'
+import { buildBorrowRowsQueryString, type BorrowPageRow } from '~/containers/Yields/borrowSimple'
+import { disclaimer } from '~/containers/Yields/constants'
+import { useBorrowRows } from '~/containers/Yields/queries.client'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getQueryValue, pushShallowQuery } from '~/utils/routerQuery'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
-	const {
-		props: { pools, ...data }
-	} = await getLendBorrowData()
-
-	let cgList = await fetchCoinGeckoTokensListFromDataset()
-	// const cgTokens = cgList.filter((x) => x.symbol)
-	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
-	const searchData = {
-		['USD_STABLES']: {
-			name: `All USD Stablecoins`,
-			symbol: 'USD_STABLES'
-		}
-	}
-
-	const sortedSymbols = data.symbols.sort((a, b) => cgPositions[a] - cgPositions[b])
-	for (const sRaw of sortedSymbols) {
-		const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
-
-		// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
-
-		searchData[s] = {
-			name: s,
-			symbol: s
-		}
-	}
+	const { getBorrowPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const metadata = await getBorrowPageMetadata()
 
 	return {
-		props: {
-			// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
-			// setting to uppercase, we only show subset of available pools when applying `findOptimizerPools`
-			pools: pools
-				.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
-				.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
-			cdpPools: pools
-				.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
-				.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } })),
-			searchData
-		},
+		props: metadata,
 		revalidate: maxAgeForNext([23])
 	}
 })
@@ -66,6 +33,9 @@ export default function YieldBorrow(data) {
 	const borrowToken = getQueryValue(router.query, 'borrow')
 
 	const collateralToken = getQueryValue(router.query, 'collateral')
+	const rowsQueryString = React.useMemo(() => buildBorrowRowsQueryString(router.query), [router.query])
+	const { data: rowsData, isLoading, isError } = useBorrowRows(rowsQueryString)
+	const filteredPools = rowsData?.rows ?? []
 
 	const handleSwap = () => {
 		const newBorrow = collateralToken ?? ''
@@ -76,13 +46,6 @@ export default function YieldBorrow(data) {
 			collateral: newCollateral || undefined
 		})
 	}
-
-	const filteredPools = findOptimizerPools({
-		pools: data.pools,
-		tokenToLend: collateralToken,
-		tokenToBorrow: borrowToken,
-		cdpRoutes: data.cdpPools
-	})
 
 	const hasSelection = borrowToken || collateralToken
 
@@ -95,13 +58,6 @@ export default function YieldBorrow(data) {
 		>
 			<Announcement announcementId="yields-disclaimer" version="2026-03">
 				{disclaimer}
-			</Announcement>
-			<Announcement
-				announcementId="kelp-warning"
-				version="2026-04"
-				className="border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
-			>
-				{exploitWarning}
 			</Announcement>
 			<div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-start">
 				<div className="w-full shrink-0 rounded-md border border-(--cards-border) bg-(--cards-bg) lg:w-[340px]">
@@ -117,10 +73,10 @@ export default function YieldBorrow(data) {
 							<button
 								aria-label="Swap borrow and collateral"
 								onClick={handleSwap}
-								className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-(--form-control-border) bg-(--cards-bg) text-(--text-tertiary) transition-all hover:scale-105 hover:border-(--primary) hover:text-(--primary) focus-visible:border-(--primary) focus-visible:text-(--primary) active:scale-95"
+								className="inline-flex size-8 items-center justify-center rounded-full border border-(--form-control-border) bg-(--cards-bg) text-(--text-tertiary) transition-all hover:scale-105 hover:border-(--primary) hover:text-(--primary) focus-visible:border-(--primary) focus-visible:text-(--primary) active:scale-95"
 								title="Swap borrow and collateral"
 							>
-								<Icon name="repeat" className="h-4 w-4" />
+								<Icon name="repeat" className="size-4" />
 							</button>
 						</div>
 
@@ -146,7 +102,7 @@ export default function YieldBorrow(data) {
 								className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-(--form-control-border) bg-(--btn-bg) transition-colors data-[checked=true]:border-(--primary) data-[checked=true]:bg-(--primary)"
 							>
 								<span
-									className="pointer-events-none block h-3.5 w-3.5 translate-x-0.5 rounded-full bg-(--text-tertiary) shadow-sm transition-transform data-[checked=true]:translate-x-[17px] data-[checked=true]:bg-white"
+									className="pointer-events-none block size-3.5 translate-x-0.5 rounded-full bg-(--text-tertiary) shadow-sm transition-transform data-[checked=true]:translate-x-[17px] data-[checked=true]:bg-white"
 									data-checked={includeIncentives}
 								/>
 							</span>
@@ -163,7 +119,15 @@ export default function YieldBorrow(data) {
 				</div>
 
 				<div className="min-w-0 flex-1">
-					{hasSelection ? (
+					{hasSelection && isLoading && !rowsData ? (
+						<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+							Loading borrow routes...
+						</p>
+					) : hasSelection && isError ? (
+						<p className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
+							Couldn't load borrow routes.
+						</p>
+					) : hasSelection ? (
 						<PoolsList pools={filteredPools} />
 					) : (
 						<div className="flex flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) px-6 py-16 text-center">
@@ -260,7 +224,7 @@ const TokensSelect = ({
 						)}
 						<Icon
 							name="chevron-down"
-							className="ml-auto h-4 w-4 shrink-0 opacity-40 transition-transform group-aria-expanded:rotate-180"
+							className="ml-auto size-4 shrink-0 opacity-40 transition-transform group-aria-expanded:rotate-180"
 						/>
 					</Ariakit.Select>
 					<Ariakit.SelectPopover
@@ -274,7 +238,7 @@ const TokensSelect = ({
 						className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-lg border border-(--cards-border) bg-(--bg-main) shadow-lg max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height)"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-							<Icon name="x" className="h-5 w-5" />
+							<Icon name="x" className="size-5" />
 						</Ariakit.PopoverDismiss>
 
 						<div className="p-2">
@@ -297,7 +261,7 @@ const TokensSelect = ({
 											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : option.symbol}
 										</span>
 										{option.symbol === selectedValue ? (
-											<Icon name="check" className="ml-auto h-3.5 w-3.5 shrink-0 text-(--primary)" />
+											<Icon name="check" className="ml-auto size-3.5 shrink-0 text-(--primary)" />
 										) : null}
 									</Ariakit.SelectItem>
 								))}
@@ -337,24 +301,8 @@ const safeProjects = [
 	'Compound V3'
 ].map((x) => x.toLowerCase())
 
-interface IPool {
-	projectName: string
-	totalAvailableUsd: number
-	chain: string
-	pool: string | null
-	poolMeta: string | null
-	tvlUsd: number
-	borrow: any
-	apyBaseBorrow?: number | null
-	apyBase?: number | null
-	apy?: number | null
-	apyReward?: number | null
-	apyRewardBorrow?: number | null
-	ltv?: number | null
-}
-
 const getAPY = (
-	pool: IPool,
+	pool: BorrowPageRow,
 	borrow: string | string[],
 	collateral: string | string[],
 	incentives: string | string[]
@@ -377,7 +325,7 @@ const getAPY = (
 	return supplyApy ?? 0
 }
 
-const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
+const PoolsList = ({ pools }: { pools: Array<BorrowPageRow> }) => {
 	const [tab, setTab] = React.useState('safe')
 
 	const filteredPools = pools
@@ -400,7 +348,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 		}
 	}
 
-	const finalPools: Array<IPool> = Object.values(filteredPools2)
+	const finalPools: Array<BorrowPageRow> = Object.values(filteredPools2)
 
 	const apyLabel = borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'
 	const showAvailable = Boolean(borrow)

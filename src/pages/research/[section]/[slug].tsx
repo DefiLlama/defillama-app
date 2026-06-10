@@ -1,17 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
+import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { Icon } from '~/components/Icon'
 import {
 	ArticleApiError,
 	getAllArticlesBanner,
 	getArticleBanner,
 	getArticleBySlug,
-	getSectionBanner,
-	listArticlePaths,
-	type ArticlePathItem
+	getSectionBanner
 } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { canEditResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
@@ -22,13 +21,15 @@ import {
 } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { ArticleAuthor, ArticleDocument, ArticlePublicAuthorProfile } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_FROM_SLUG, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { withPerformanceLogging } from '~/utils/perf'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
+
+const ARTICLE_CACHE_CONTROL = 'public, s-maxage=60'
+const ARTICLE_NO_STORE = 'no-store'
 
 type ArticleRouteParams = {
 	section: string
@@ -36,8 +37,56 @@ type ArticleRouteParams = {
 }
 
 type SectionArticlePageProps = {
-	initialArticle: ArticleDocument
+	initialArticle: PublicArticleDocument
 	initialBanners: ArticleBannerStripInitialData
+}
+
+type PublicArticleDocument = Omit<
+	ArticleDocument,
+	'authorProfile' | 'coAuthors' | 'viewerRole' | 'pending' | 'pendingUpdatedAt' | 'pendingActorPbUserId'
+> & {
+	authorProfile?: ArticleDocument['authorProfile']
+	coAuthors?: ArticleDocument['coAuthors']
+	viewerRole?: ArticleDocument['viewerRole']
+}
+
+function toPublicAuthorProfile(profile: ArticleAuthor): ArticlePublicAuthorProfile {
+	const {
+		id: _id,
+		pbUserId: _pbUserId,
+		...publicProfile
+	} = profile as ArticleAuthor & {
+		id?: string
+		pbUserId?: string
+	}
+	return publicProfile
+}
+
+function sanitizePublicArticle(article: ArticleDocument): PublicArticleDocument {
+	const {
+		authorProfile,
+		coAuthors,
+		viewerRole: _viewerRole,
+		pending: _pending,
+		pendingUpdatedAt: _pendingUpdatedAt,
+		pendingActorPbUserId: _pendingActorPbUserId,
+		...publicArticle
+	} = article
+	const publicCoAuthors = (coAuthors ?? []).map(toPublicAuthorProfile)
+
+	if (article.brandByline === true) {
+		return {
+			...publicArticle,
+			author: 'DefiLlama Research',
+			...(publicCoAuthors.length > 0 ? { coAuthors: publicCoAuthors } : {})
+		}
+	}
+
+	return {
+		...publicArticle,
+		...(authorProfile ? { authorProfile: toPublicAuthorProfile(authorProfile) } : {}),
+		...(publicCoAuthors.length > 0 ? { coAuthors: publicCoAuthors } : {})
+	}
 }
 
 async function loadArticleBannerData(article: ArticleDocument): Promise<ArticleBannerStripInitialData> {
@@ -53,87 +102,53 @@ async function loadArticleBannerData(article: ArticleDocument): Promise<ArticleB
 	}
 }
 
-export const getStaticPaths: GetStaticPaths<ArticleRouteParams> = async () => {
-	if (SKIP_BUILD_STATIC_GENERATION) {
+const getServerSidePropsHandler: GetServerSideProps<SectionArticlePageProps, ArticleRouteParams> = async ({
+	params,
+	res
+}) => {
+	const sectionSlug = params?.section
+	const slug = params?.slug
+	if (!sectionSlug || !slug) {
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
+		return { notFound: true }
+	}
+
+	const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
+	if (!expectedSection) {
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
+		return { notFound: true }
+	}
+
+	const article = await getArticleBySlug(slug)
+	if (!article || !article.section) {
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
+		return { notFound: true }
+	}
+
+	const canonicalSectionSlug = ARTICLE_SECTION_SLUGS[article.section]
+	if (article.slug !== slug || article.section !== expectedSection) {
+		res.setHeader('Cache-Control', ARTICLE_NO_STORE)
 		return {
-			paths: [],
-			fallback: 'blocking'
+			redirect: {
+				destination: `/research/${canonicalSectionSlug}/${article.slug}`,
+				permanent: false
+			}
 		}
 	}
 
-	const { items } = await listArticlePaths()
-	const paths = articlePathsToStaticPaths(items)
+	res.setHeader('Cache-Control', ARTICLE_CACHE_CONTROL)
 
 	return {
-		paths,
-		fallback: 'blocking'
+		props: {
+			initialArticle: sanitizePublicArticle(article),
+			initialBanners: await loadArticleBannerData(article)
+		}
 	}
 }
 
-export function articlePathsToStaticPaths(items: ArticlePathItem[]) {
-	return items.flatMap((item) => {
-		const sectionSlug = ARTICLE_SECTION_SLUGS[item.section]
-		if (!sectionSlug) return []
-		return [
-			{
-				params: {
-					section: sectionSlug,
-					slug: item.slug
-				}
-			}
-		]
-	})
-}
+export const getServerSideProps = withServerSidePropsTelemetry('/research/[section]/[slug]', getServerSidePropsHandler)
 
-export const getStaticProps = withPerformanceLogging<SectionArticlePageProps, ArticleRouteParams>(
-	'research/[section]/[slug]',
-	async ({ params }: GetStaticPropsContext<ArticleRouteParams>) => {
-		const sectionSlug = params?.section
-		const slug = params?.slug
-		if (!sectionSlug || !slug) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const expectedSection = ARTICLE_SECTION_FROM_SLUG[sectionSlug]
-		if (!expectedSection) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const article = await getArticleBySlug(slug)
-		if (!article || !article.section) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const canonicalSectionSlug = ARTICLE_SECTION_SLUGS[article.section]
-		if (article.slug !== slug || article.section !== expectedSection) {
-			return {
-				redirect: {
-					destination: `/research/${canonicalSectionSlug}/${article.slug}`,
-					permanent: false
-				}
-			}
-		}
-
-		return {
-			props: {
-				initialArticle: article,
-				initialBanners: await loadArticleBannerData(article)
-			},
-			revalidate: maxAgeForNext([22])
-		}
-	}
-)
-
-function OwnerEditChip({ article }: { article: ArticleDocument }) {
+function OwnerEditChip({ article }: { article: PublicArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
 	const canEdit = canEditResearchArticle({ article, isAuthenticated, user })
 	if (!canEdit) return null
@@ -143,18 +158,7 @@ function OwnerEditChip({ article }: { article: ArticleDocument }) {
 				href={`/research/edit/${article.id}`}
 				className="pointer-events-auto flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm font-medium text-(--text-primary) shadow-lg transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
-				<svg
-					viewBox="0 0 24 24"
-					className="h-4 w-4"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="1.75"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				>
-					<path d="M12 20h9" />
-					<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z" />
-				</svg>
+				<Icon name="pencil" className="size-4" />
 				Edit research
 			</Link>
 		</div>
@@ -169,7 +173,7 @@ function SectionArticleContent({
 }: {
 	slug: string
 	sectionSlug: string
-	initialArticle?: ArticleDocument | null
+	initialArticle?: PublicArticleDocument | null
 	initialBanners?: ArticleBannerStripInitialData | null
 }) {
 	const router = useRouter()
@@ -180,10 +184,14 @@ function SectionArticleContent({
 		error
 	} = useQuery({
 		queryKey: ['research', 'article', slug],
-		queryFn: () => getArticleBySlug(slug),
+		queryFn: async () => {
+			const nextArticle = await getArticleBySlug(slug)
+			return nextArticle ? sanitizePublicArticle(nextArticle) : null
+		},
 		enabled: !!slug && !!expectedSection,
 		initialData: initialArticle?.slug === slug ? initialArticle : undefined,
-		staleTime: 60_000,
+		staleTime: 0,
+		refetchOnMount: 'always',
 		retry: false
 	})
 
@@ -259,7 +267,7 @@ function SectionArticleContent({
 export default function SectionArticlePage({
 	initialArticle,
 	initialBanners
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const router = useRouter()
 	const initialSectionSlug = initialArticle?.section ? ARTICLE_SECTION_SLUGS[initialArticle.section] : ''
 	const slug = typeof router.query.slug === 'string' ? router.query.slug : (initialArticle?.slug ?? '')
@@ -274,9 +282,19 @@ export default function SectionArticlePage({
 	const noIndex = !expectedSection
 	const title = initialArticle?.seoTitle || initialArticle?.title || 'Research - DefiLlama'
 	const description = initialArticle?.seoDescription || initialArticle?.excerpt || 'DefiLlama research.'
+	const firstPublished = initialArticle?.firstPublishedAt ?? initialArticle?.publishedAt ?? null
+	const lastPublished = initialArticle?.lastPublishedAt ?? initialArticle?.publishedAt ?? null
 
 	return (
 		<Layout title={title} description={description} canonicalUrl={canonical} noIndex={noIndex} hideDesktopSearch>
+			<Head>
+				{firstPublished ? (
+					<meta key="article:published_time" property="article:published_time" content={firstPublished} />
+				) : null}
+				{lastPublished ? (
+					<meta key="article:modified_time" property="article:modified_time" content={lastPublished} />
+				) : null}
+			</Head>
 			<ArticleProxyAuthProvider>
 				{slug && sectionSlug ? (
 					<SectionArticleContent

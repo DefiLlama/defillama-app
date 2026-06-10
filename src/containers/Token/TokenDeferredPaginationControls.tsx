@@ -4,14 +4,16 @@ import { DEFAULT_TABLE_PAGE_SIZE } from './tableUtils'
 
 export function TokenDeferredPaginationControls({
 	totalCount,
+	pageSize = DEFAULT_TABLE_PAGE_SIZE,
 	isLoading,
 	onRequestPage
 }: {
 	totalCount: number
+	pageSize?: number
 	isLoading?: boolean
 	onRequestPage: (pageIndex: number) => void
 }) {
-	const pageCount = Math.max(1, Math.ceil(totalCount / DEFAULT_TABLE_PAGE_SIZE))
+	const pageCount = Math.max(1, Math.ceil(totalCount / pageSize))
 
 	if (pageCount <= 1) return null
 

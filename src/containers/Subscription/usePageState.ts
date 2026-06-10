@@ -8,6 +8,7 @@ interface PageState {
 	currentPlan: PlanKey | null
 	isTrial: boolean
 	userBillingCycle: BillingCycle | null
+	isManualSubscription: boolean
 	isLoading?: boolean
 }
 
@@ -33,5 +34,7 @@ export function useSubscriptionPageState(): PageState {
 		}
 	}
 
-	return { isAuthenticated, currentPlan, isTrial, userBillingCycle, isLoading }
+	const isManualSubscription = subscription?.provider === 'manual'
+
+	return { isAuthenticated, currentPlan, isTrial, userBillingCycle, isManualSubscription, isLoading }
 }

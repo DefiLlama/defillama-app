@@ -1,4 +1,4 @@
-import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import type { IAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api.types'
 import { definitions } from '~/public/definitions'
 import type { IProtocolOverviewPageData } from './types'
 
@@ -6,6 +6,7 @@ type AdapterOverview = NonNullable<IProtocolOverviewPageData['fees']>
 
 const commonMethodology = {
 	dexs: definitions.dexs.common,
+	dexsNotionalVolume: definitions.dexsNotional.common,
 	dexAggregators: definitions.dexAggregators.common,
 	perps: definitions.perps.common,
 	perpsAggregators: definitions.perpsAggregators.common,
@@ -68,6 +69,7 @@ export function formatAdapterData({
 			total7d: data.total7d ?? null,
 			total30d: data.total30d ?? null,
 			total1y: data.total1y ?? null,
+			annualized1y: data.annualized1y ?? null,
 			totalAllTime: data.totalAllTime ?? null,
 			...(methodologyKey === 'HoldersRevenue'
 				? {
@@ -96,6 +98,7 @@ export function formatAdapterData({
 		total7d: data.total7d ?? null,
 		total30d: data.total30d ?? null,
 		total1y: data.total1y ?? null,
+		annualized1y: data.annualized1y ?? null,
 		totalAllTime: data.totalAllTime ?? null,
 		methodology: methodologyKey
 			? (data.methodology?.[methodologyKey] ?? commonMethodologyMap[methodologyKey] ?? null)

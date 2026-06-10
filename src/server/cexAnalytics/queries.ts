@@ -1,8 +1,7 @@
 import type {
 	CexAnalyticsMarketSharePoint,
 	CexAnalyticsSnapshotResponse,
-	CexAnalyticsTotalsPoint,
-	CexAnalyticsView
+	CexAnalyticsTotalsPoint
 } from '~/containers/ProDashboard/types'
 import { llamaDb } from '~/server/db/llama'
 import metadataCache from '~/utils/metadata'
@@ -237,7 +236,7 @@ export async function getCexAnalyticsMarketShare(
 	}
 
 	const points: CexAnalyticsMarketSharePoint[] = []
-	for (const [date, venueMap] of [...valuesByDate.entries()].sort((a, b) => a[0] - b[0])) {
+	for (const [date, venueMap] of Array.from(valuesByDate.entries()).toSorted((a, b) => a[0] - b[0])) {
 		let total = 0
 		for (const value of venueMap.values()) {
 			total += value
@@ -254,6 +253,3 @@ export async function getCexAnalyticsMarketShare(
 
 	return points
 }
-
-export const isCexAnalyticsView = (value: string | undefined): value is CexAnalyticsView =>
-	value === 'summary' || value === 'comparison' || value === 'spot-vs-derivatives' || value === 'market-share'

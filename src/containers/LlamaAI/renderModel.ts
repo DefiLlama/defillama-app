@@ -1,9 +1,11 @@
 import type {
 	AlertProposedData,
 	ChartConfiguration,
+	ChartDataByKey,
 	DashboardArtifact,
 	GeneratedImage,
-	Message
+	Message,
+	UnifiedCitationReference
 } from '~/containers/LlamaAI/types'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
@@ -11,7 +13,7 @@ export type ChartArtifactRecord = {
 	type: 'chart'
 	id: string
 	charts: ChartConfiguration[]
-	chartData: Record<string, any[]>
+	chartData: ChartDataByKey
 }
 
 export type CsvArtifactRecord = {
@@ -63,7 +65,13 @@ export type ArtifactRecord =
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
 export type MessageRenderBlock =
-	| { type: 'markdown'; key: string; content: string; citations?: string[] }
+	| {
+			type: 'markdown'
+			key: string
+			content: string
+			citations?: UnifiedCitationReference[]
+			legacyUrlCitations?: string[]
+	  }
 	| { type: 'sources'; key: string; citations: string[] }
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
@@ -185,6 +193,8 @@ export function parseMessageToRenderModel(
 			!part.content.trim() &&
 			parsed.parts.slice(index + 1).some((nextPart) => nextPart.type === 'action')
 		) {
+			// Consecutive action placeholders are rendered as one button group; blank
+			// markdown between them should not split the group into separate blocks.
 			continue
 		}
 
@@ -196,7 +206,8 @@ export function parseMessageToRenderModel(
 				type: 'markdown',
 				key: `markdown-${markdownBlockIndex++}`,
 				content: part.content,
-				citations: message.citations
+				citations: message.citations,
+				legacyUrlCitations: message.legacyUrlCitations
 			})
 			continue
 		}
@@ -270,7 +281,7 @@ export function parseMessageToRenderModel(
 
 	flushActionGroup()
 
-	const citations = message.citations ?? []
+	const citations = message.citations && message.citations.length > 0 ? [] : (message.legacyUrlCitations ?? [])
 	let lastMarkdownIndex = -1
 	for (let index = blocks.length - 1; index >= 0; index--) {
 		if (blocks[index]?.type === 'markdown') {
@@ -281,6 +292,8 @@ export function parseMessageToRenderModel(
 
 	if (citations.length > 0) {
 		if (lastMarkdownIndex >= 0) {
+			// Sources belong immediately after the final prose block, before fallback
+			// artifacts that may have arrived out-of-band.
 			blocks.splice(lastMarkdownIndex + 1, 0, {
 				type: 'sources',
 				key: `sources-${blocks.length}`,

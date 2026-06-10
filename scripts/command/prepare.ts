@@ -1,5 +1,7 @@
 import { publishDatasetCache } from '../../src/server/datasetCache/publish'
 import { runPullMetadataCommand } from '../metadata/pullCommand'
+import { runSiteNavigationCommand } from '../metadata/siteNavigationCommand'
+import { generateLlmsArtifacts } from './llms'
 import type { LogLike } from './logger'
 import { generateRobots } from './robots'
 import { CommandExitError, getErrorExitCode, timedStep } from './timedStep'
@@ -43,7 +45,7 @@ function asDatasetLogger(logger: LogLike): Pick<Console, 'error' | 'log' | 'warn
 	}
 }
 
-function createPreparationSteps({
+export function createPreparationSteps({
 	env = process.env,
 	logger = console,
 	prefix = '[dev:prepare]',
@@ -62,9 +64,21 @@ function createPreparationSteps({
 			}
 		},
 		{
+			name: 'Site navigation',
+			async run() {
+				await runSiteNavigationCommand({ env, logger: stepLogger, repoRoot })
+			}
+		},
+		{
 			name: 'Dataset cache',
 			async run() {
 				await publishDatasetCache({ logger: asDatasetLogger(stepLogger) })
+			}
+		},
+		{
+			name: 'llms.txt',
+			async run() {
+				await generateLlmsArtifacts({ env, logger: stepLogger, repoRoot })
 			}
 		},
 		{
@@ -86,13 +100,18 @@ export async function runPreparationCommand({
 }: PreparationOptions = {}): Promise<PreparationResult> {
 	logger.log(`${prefix} Preparing local data before Next.js starts`)
 
+	let exitCode = 0
 	for (const step of steps) {
 		const result = await timedStep(step.name, step.run, { logger, now, prefix })
 		if (result.status === 'failure') {
-			return { exitCode: getErrorExitCode(result.error) }
+			exitCode = exitCode || getErrorExitCode(result.error)
 		}
 	}
 
-	logger.log(`${prefix} Preparation complete; starting Next.js dev server`)
-	return { exitCode: 0 }
+	if (exitCode === 0) {
+		logger.log(`${prefix} Preparation complete; starting Next.js`)
+	} else {
+		logger.log(`${prefix} Preparation finished with errors`)
+	}
+	return { exitCode }
 }

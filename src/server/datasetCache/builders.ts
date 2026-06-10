@@ -1,7 +1,9 @@
+import { DATASET_DOMAINS, type DatasetDomain } from './artifacts'
+import type { DatasetDomainBuildResult } from './buildTypes'
 import { isDatasetCacheStrict } from './config'
-import type { DatasetDomain, DatasetManifest } from './core'
+import type { DatasetManifest } from './core'
 import { buildEmptyDatasetManifest } from './core'
-import { DATASET_DOMAINS, getDatasetDomainBuildAdapter, type DatasetDomainBuildResult } from './registry'
+import { getDatasetDomainBuildAdapter } from './registry'
 
 export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string): Promise<DatasetDomainBuildResult> {
 	return getDatasetDomainBuildAdapter(domain)(rootDir)

@@ -1,24 +1,15 @@
-import {
-	getCoreRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	type PaginationState,
-	type SortingState,
-	useReactTable,
-	createColumnHelper
-} from '@tanstack/react-table'
-import { startTransition, useEffect, useMemo, useState } from 'react'
+import { createColumnHelper } from '@tanstack/react-table'
 import { PercentChange, formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
+import { usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, lockupsRewards } from '~/containers/Yields/constants'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import type { YieldsTableConfig } from './config'
 import { FRStrategyRoute, NameYieldPool } from './Name'
-import { YieldsTableWrapper } from './shared'
-import type { IYieldsStrategyTableRow } from './types'
+import { PaginatedYieldsTableWrapper } from './shared'
+import type { IYieldsTableProps, YieldLongShortStrategyTableRow } from './types'
 
 const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d: number; afr30d: number }) => {
 	return (
@@ -30,7 +21,7 @@ const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d:
 	)
 }
 
-const columnHelper = createColumnHelper<IYieldsStrategyTableRow>()
+const columnHelper = createColumnHelper<YieldLongShortStrategyTableRow>()
 const STRATEGY_FR_COLUMN_IDS = [
 	'strategy',
 	'strategyAPY',
@@ -43,7 +34,7 @@ const STRATEGY_FR_COLUMN_IDS = [
 ] as const
 type StrategyFrColumnId = (typeof STRATEGY_FR_COLUMN_IDS)[number]
 
-function StrategyFrNameCell({ row }: { row: { id: string; index: number; original: IYieldsStrategyTableRow } }) {
+function StrategyFrNameCell({ row }: { row: { id: string; index: number; original: YieldLongShortStrategyTableRow } }) {
 	const name = `Long ${row.original.symbol} | Short ${row.original.symbolPerp}`
 	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
 
@@ -249,65 +240,13 @@ const columnOrders: Record<number, readonly StrategyFrColumnId[]> = {
 	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
-export const STRATEGY_FR_TABLE_CONFIG: YieldsTableConfig<IYieldsStrategyTableRow, StrategyFrColumnId> = {
+export const STRATEGY_FR_TABLE_CONFIG: YieldsTableConfig<YieldLongShortStrategyTableRow, StrategyFrColumnId> = {
 	kind: 'strategyFr',
 	columnIds: STRATEGY_FR_COLUMN_IDS,
 	columns,
 	columnOrders,
 	rowSize: 80
 }
-
-export function YieldsStrategyTableFR({ data }) {
-	const resolvedConfig = resolveVirtualYieldsTableConfig(STRATEGY_FR_TABLE_CONFIG, undefined)
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={resolvedConfig.columns}
-			columnOrders={resolvedConfig.columnOrders}
-			rowSize={resolvedConfig.rowSize}
-		/>
-	)
-}
-
-export function PaginatedYieldsStrategyTableFR({
-	data,
-	initialPageSize = 10
-}: {
-	data: IYieldsStrategyTableRow[]
-	initialPageSize?: number
-}) {
-	const [sorting, setSorting] = useState<SortingState>([])
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: initialPageSize
-	})
-
-	useEffect(() => {
-		setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-	}, [data.length])
-
-	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(STRATEGY_FR_TABLE_CONFIG, undefined), [])
-
-	const table = useReactTable({
-		data,
-		columns: paginatedColumns,
-		state: {
-			sorting,
-			pagination
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		enableSortingRemoval: false,
-		onSortingChange: (updater) =>
-			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
-		onPaginationChange: (updater) =>
-			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		autoResetPageIndex: false
-	})
-
-	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
+export function PaginatedYieldsStrategyTableFR(props: IYieldsTableProps<YieldLongShortStrategyTableRow>) {
+	return <PaginatedYieldsTableWrapper {...props} config={STRATEGY_FR_TABLE_CONFIG} />
 }

@@ -3,6 +3,8 @@
  */
 
 import DOMPurify from 'dompurify'
+import type { UnifiedCitationReference } from '~/containers/LlamaAI/types'
+import { stripBeforeReportStart } from '~/containers/LlamaAI/utils/reportMarkers'
 
 /**
  * Only allow secure external links in user-generated citations and artifacts.
@@ -47,6 +49,21 @@ export function sanitizeUrl(url: string): string | null {
 	}
 }
 
+const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+/**
+ * Normalize a citation source URL (rewriting internal preview hosts to defillama.com)
+ * and sanitize it. Returns null when the URL is unsafe (e.g. a `javascript:` href).
+ */
+export function normalizeSourceUrl(url: string): string | null {
+	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
+		if (url.startsWith(prefix)) {
+			return sanitizeUrl(`https://defillama.com${url.slice(prefix.length)}`)
+		}
+	}
+	return sanitizeUrl(url)
+}
+
 interface ActionPlaceholderData {
 	label: string
 	message: string
@@ -75,10 +92,7 @@ interface ParsedContent {
  * Placeholders follow the format [CHART:id], [CSV:id], and [ALERT:id].
  */
 export function parseArtifactPlaceholders(content: string): ParsedContent {
-	const reportStartIdx = content.indexOf('[REPORT_START]')
-	if (reportStartIdx !== -1) {
-		content = content.slice(reportStartIdx + '[REPORT_START]'.length).trimStart()
-	}
+	content = stripBeforeReportStart(content)
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
 	const mdPlaceholderPattern = /\[MD:([^\]]+)\]/g
@@ -120,6 +134,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		})
 	}
 
+	// Each placeholder type is scanned independently, then sorted back into source
+	// order so mixed artifacts keep their authored placement.
 	allMatches.sort((a, b) => a.index - b.index)
 
 	let lastIndex = 0
@@ -156,59 +172,70 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	return { parts }
 }
 
-/**
- * Process citation markers in text and convert to citation-badge tags.
- * Supports ranges like [1-3], footnotes like [^1], and model-style markers like \u30101\u2020source\u3011.
- */
-export function processCitationMarkers(text: string, citations?: string[]): string {
+export function wrapLegacyUrlCitations(citations: string[]): UnifiedCitationReference[] {
+	return citations.map((url, i) => {
+		const safe = sanitizeUrl(url)
+		let hostname = ''
+		if (safe) {
+			try {
+				hostname = new URL(safe).hostname
+			} catch {
+				hostname = ''
+			}
+		}
+		const isX = /(^|\.)(x|twitter)\.com$/i.test(hostname)
+		return {
+			id: i + 1,
+			sourceType: isX ? 'x' : 'web',
+			label: hostname ? hostname.replace(/^www\./, '') : 'Web',
+			url: safe ?? undefined
+		}
+	})
+}
+
+function normalizeCitationMarkerWhitespace(text: string): string {
+	return text.replace(/[ \t]+([.,;:!?])/g, '$1').replace(/[ \t]{2,}/g, ' ')
+}
+
+export function processUnifiedCitations(text: string, refsOrUrls?: UnifiedCitationReference[] | string[]): string {
 	const citationSequencePattern = String.raw`\d+(?:(?:\s*-\s*\d+)|(?:\s*,\s*\d+))*`
-	const citationMarkerRegex = new RegExp(
+	const markerRegex = new RegExp(
 		String.raw`(?:\[(?:\^\s*)?(${citationSequencePattern})\s*\]|【\s*(${citationSequencePattern})(?:\s*†[^】]*)?\s*】)`,
 		'g'
 	)
 
-	if (!citations || citations.length === 0) {
-		// Remove citation markers if no citations available
-		return text.replace(citationMarkerRegex, '')
+	if (refsOrUrls === undefined || refsOrUrls.length === 0) {
+		return normalizeCitationMarkerWhitespace(text.replace(markerRegex, ''))
 	}
 
-	return text.replace(citationMarkerRegex, (_match, bracketNums?: string, modelNums?: string) => {
-		const nums = bracketNums ?? modelNums ?? ''
-		const parts = nums.split(',').map((p: string) => p.trim())
-		const expandedNums: number[] = []
+	const refs: UnifiedCitationReference[] =
+		typeof refsOrUrls[0] === 'string'
+			? wrapLegacyUrlCitations(refsOrUrls as string[])
+			: (refsOrUrls as UnifiedCitationReference[])
 
-		for (const part of parts) {
-			if (part.includes('-')) {
-				const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
-				if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
-					for (let i = start; i <= end; i++) expandedNums.push(i)
+	const idsAvailable = new Set<number>()
+	for (const r of refs) if (typeof r.id === 'number') idsAvailable.add(r.id)
+
+	return normalizeCitationMarkerWhitespace(
+		text.replace(markerRegex, (full: string, bracketNums?: string, modelNums?: string) => {
+			const nums = bracketNums ?? modelNums ?? ''
+			const expanded: number[] = []
+			for (const part of nums.split(',').map((p) => p.trim())) {
+				if (part.includes('-')) {
+					const [start, end] = part.split('-').map((n) => parseInt(n.trim(), 10))
+					if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
+						for (let i = start; i <= end; i++) expanded.push(i)
+					}
+				} else {
+					const n = parseInt(part.trim(), 10)
+					if (!Number.isNaN(n)) expanded.push(n)
 				}
-			} else {
-				const num = parseInt(part.trim())
-				if (!Number.isNaN(num)) expandedNums.push(num)
 			}
-		}
-
-		return expandedNums
-			.map((num) => {
-				const idx = num - 1
-				const rawUrl = citations[idx]
-
-				if (!rawUrl) {
-					return `<citation-badge>${num}</citation-badge>`
-				}
-
-				// Validate and sanitize the URL to prevent XSS
-				const safeUrl = sanitizeUrl(rawUrl)
-				if (safeUrl) {
-					return `<citation-badge href="${safeUrl}">${num}</citation-badge>`
-				}
-
-				// URL is unsafe or malformed - render as non-clickable span
-				return `<citation-badge>${num}</citation-badge>`
-			})
-			.join('')
-	})
+			const valid = expanded.filter((id) => idsAvailable.has(id))
+			if (valid.length === 0) return ''
+			return valid.map((id) => `<fact-check-pill data-ref="${id}"></fact-check-pill>`).join('')
+		})
+	)
 }
 
 /**

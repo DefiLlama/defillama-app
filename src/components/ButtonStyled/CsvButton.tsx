@@ -24,9 +24,11 @@ interface CSVDownloadButtonProps {
 	free?: boolean
 }
 
+type CsvPayload = { filename: string; rows: Array<Array<string | number | boolean | null | undefined>> }
+
 // Option 1: With prepareCsv
 interface CSVDownloadButtonWithPrepareCsv extends CSVDownloadButtonProps {
-	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	prepareCsv: () => CsvPayload | Promise<CsvPayload>
 	onClick?: never
 	isLoading?: never
 }
@@ -118,7 +120,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 				}
 
 				if (prepareCsv) {
-					const { filename, rows } = prepareCsv()
+					const { filename, rows } = await Promise.resolve(prepareCsv())
 					const normalizedFilename = normalizeCsvFilename(filename)
 
 					downloadCSV(normalizedFilename, rows, { addTimestamp: false })
@@ -181,7 +183,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 				disabled={isClient ? isLoading : true}
 			>
 				{!isLoading || !isClient ? (
-					<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+					<Icon name="download-paper" className="size-3 shrink-0" />
 				) : (
 					<LoadingSpinner size={12} />
 				)}

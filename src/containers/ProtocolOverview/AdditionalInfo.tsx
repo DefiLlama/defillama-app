@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink, ButtonLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { MetricRow } from '~/components/MetricPrimitives'
+import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute } from '~/constants'
@@ -31,9 +32,9 @@ const SectionHeader = ({ id, children }: SectionHeaderProps) => (
 			aria-hidden="true"
 			tabIndex={-1}
 			href={`#${id}`}
-			className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+			className="absolute top-0 right-0 z-10 flex size-full items-center"
 		/>
-		<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+		<Icon name="link" className="invisible size-3.5 group-hover:visible group-focus-visible:visible" />
 	</h2>
 )
 
@@ -55,6 +56,7 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 				<Methodology {...props} />
 				<Hacks {...props} />
 				<Competitors {...props} />
+				<NewsletterSignup layout="strip" className="col-span-full" />
 			</div>
 		)
 	}
@@ -64,6 +66,7 @@ export const AdditionalInfo = (props: IProtocolOverviewPageData) => {
 			<ProtocolInfo {...props} />
 			{/* <Articles {...props} /> */}
 			<Methodology {...props} />
+			<NewsletterSignup layout="strip" className="col-span-full" />
 			<Yields {...props} />
 			<Users {...props} />
 			<Hacks {...props} />
@@ -198,8 +201,11 @@ export const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
+						data-umami-event="protocol-website-click"
+						data-umami-event-protocol={props.name}
+						data-umami-event-referral={props.isWebsiteReferral ? 'true' : 'false'}
 					>
-						<Icon name="earth" className="h-3 w-3" />
+						<Icon name="earth" className="size-3" />
 						<span>Website</span>
 					</a>
 				) : null}
@@ -212,7 +218,7 @@ export const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 								rel="noopener noreferrer"
 								key={`${props.name}-github-${github}`}
 							>
-								<Icon name="github" className="h-3 w-3" />
+								<Icon name="github" className="size-3" />
 								<span>{props.github?.length === 1 ? 'GitHub' : github}</span>
 							</a>
 						))
@@ -224,7 +230,7 @@ export const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 						target="_blank"
 						rel="noopener noreferrer"
 					>
-						<Icon name="twitter" className="h-3 w-3" />
+						<Icon name="twitter" className="size-3" />
 						<span>Twitter</span>
 					</a>
 				) : null}
@@ -252,7 +258,7 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
 					<span>{props.tvlMethodology ?? ''}</span>
 					<span className="relative top-0.5 left-1 inline-block">
-						<Icon name="external-link" className="h-3.5 w-3.5" />
+						<Icon name="external-link" className="size-3.5" />
 						<span className="sr-only">View code on GitHub</span>
 					</span>
 				</a>
@@ -267,7 +273,7 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					<span className="font-medium">TVS:</span>{' '}
 					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
 					<span className="relative top-0.5 left-1 inline-block">
-						<Icon name="external-link" className="h-3.5 w-3.5" />
+						<Icon name="external-link" className="size-3.5" />
 						<span className="sr-only">View code on GitHub</span>
 					</span>
 				</a>
@@ -283,6 +289,7 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 			<MethodologyByAdapter adapter={props.bribeRevenue} title="Bribe Revenue" />
 			<MethodologyByAdapter adapter={props.tokenTax} title="Token Tax" />
 			<MethodologyByAdapter adapter={props.dexVolume} title="DEX Volume" />
+			<MethodologyByAdapter adapter={props.dexNotionalVolume} title="Notional Volume" />
 			<MethodologyByAdapter adapter={props.dexAggregatorVolume} title="DEX Aggregator Volume" />
 			<MethodologyByAdapter adapter={props.perpVolume} title="Perp Volume" />
 			<MethodologyByAdapter adapter={props.perpAggregatorVolume} title="Perp Aggregator Volume" />
@@ -336,7 +343,7 @@ const MethodologyByAdapter = ({
 									<span>{child[0]} - </span> <span>{child[1]}</span>
 									{child[2] ? (
 										<span className="relative top-0.5 left-1 inline-block">
-											<Icon name="external-link" className="h-3.5 w-3.5" />
+											<Icon name="external-link" className="size-3.5" />
 											<span className="sr-only">View code on GitHub</span>
 										</span>
 									) : null}
@@ -362,7 +369,7 @@ const MethodologyByAdapter = ({
 						{adapter.methodology ? <span>{adapter.methodology}</span> : null}
 						{adapter.methodologyURL ? (
 							<span className="relative top-0.5 left-1 inline-block">
-								<Icon name="external-link" className="h-3.5 w-3.5" />
+								<Icon name="external-link" className="size-3.5" />
 								<span className="sr-only">View code on GitHub</span>
 							</span>
 						) : null}
@@ -393,7 +400,7 @@ function Yields(props: IProtocolOverviewPageData) {
 				className="mr-auto flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 			>
 				<span>View all Yields</span>
-				<Icon name="arrow-right" className="h-4 w-4" />
+				<Icon name="arrow-right" className="size-4" />
 			</ButtonLink>
 		</div>
 	)
@@ -458,7 +465,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 								className="flex items-center gap-1 underline"
 							>
 								<span>Source</span>
-								<Icon name="external-link" className="h-3.5 w-3.5" />
+								<Icon name="external-link" className="size-3.5" />
 							</a>
 						) : null}
 					</div>

@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
-import { pushShallowQuery } from '~/utils/routerQuery'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const EMPTY_ARRAY: string[] = []
 
@@ -29,7 +29,10 @@ function tokenQueryUpdates(
 	}
 
 	const validSet = new Set(allKeys)
-	const selected = values.filter((v) => validSet.has(v))
+	const selected: string[] = []
+	for (const value of values) {
+		if (validSet.has(value)) selected.push(value)
+	}
 
 	// All selected = default, clear params
 	if (selected.length === allKeys.length) {
@@ -37,7 +40,10 @@ function tokenQueryUpdates(
 	}
 
 	const selectedSet = new Set(selected)
-	const excluded = allKeys.filter((k) => !selectedSet.has(k))
+	const excluded: string[] = []
+	for (const key of allKeys) {
+		if (!selectedSet.has(key)) excluded.push(key)
+	}
 	const useExclude = excluded.length > 0 && excluded.length < selected.length
 
 	if (useExclude) {
@@ -70,10 +76,17 @@ export function FilterByToken({
 			? [excludeToken]
 			: [...excludeToken]
 		: EMPTY_ARRAY
-	const displaySelectedTokens =
-		excludedTokens.length > 0 ? tokensList.filter((tokenValue) => !excludedTokens.includes(tokenValue)) : selectedTokens
+	let displaySelectedTokens = selectedTokens
+	if (excludedTokens.length > 0) {
+		const excludedTokensSet = new Set(excludedTokens)
+		displaySelectedTokens = []
+		for (const tokenValue of tokensList) {
+			if (!excludedTokensSet.has(tokenValue)) displaySelectedTokens.push(tokenValue)
+		}
+	}
 
 	const currentAttributes = attribute ? (typeof attribute === 'string' ? [attribute] : [...attribute]) : []
+	const pushFilterQuery = (updates: Record<string, string | string[] | undefined>) => pushYieldsQuery(router, updates)
 
 	const handleSetSelectedValues = (values: string[]) => {
 		const prevSet = new Set(displaySelectedTokens)
@@ -104,17 +117,24 @@ export function FilterByToken({
 				values.length === tokensList.length &&
 				(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
 			) {
-				const filtered = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+				const filtered: string[] = []
+				for (const currentAttribute of currentAttributes) {
+					if (currentAttribute !== 'no_il' && currentAttribute !== 'single_exposure') filtered.push(currentAttribute)
+				}
 				updates.attribute = filtered.length > 0 ? filtered : undefined
 			} else if (
 				values.length === 0 &&
 				(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
 			) {
-				updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+				const filtered: string[] = []
+				for (const currentAttribute of currentAttributes) {
+					if (currentAttribute !== 'no_il' && currentAttribute !== 'single_exposure') filtered.push(currentAttribute)
+				}
+				updates.attribute = filtered
 			}
 		}
 
-		void pushShallowQuery(router, updates)
+		void pushFilterQuery(updates)
 	}
 
 	return (

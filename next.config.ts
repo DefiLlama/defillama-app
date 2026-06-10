@@ -2,10 +2,26 @@ import type { NextConfig } from 'next'
 import { getDatasetCacheTraceIncludes, type DatasetDomain } from './src/server/datasetCache/registry'
 
 const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTraceIncludes(...domains)
+const buildIdEnvKeys = [
+	'SOURCE_COMMIT',
+	'VERCEL_GIT_COMMIT_SHA',
+	'NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA',
+	'GITHUB_SHA'
+] as const
+
+function resolveBuildIdFromEnv(): string | null {
+	for (const key of buildIdEnvKeys) {
+		const value = process.env[key]?.trim()
+		if (value) return value
+	}
+	return null
+}
 
 const nextConfig: NextConfig = {
 	output: 'standalone',
+	generateBuildId: resolveBuildIdFromEnv,
 	outputFileTracingIncludes: {
+		'/*': ['./.cache/app-metadata/**/*'],
 		'/cex/*': datasetCacheIncludes('markets'),
 		'/cex/markets/*': datasetCacheIncludes('markets'),
 		'/token/*': datasetCacheIncludes(
@@ -22,12 +38,15 @@ const nextConfig: NextConfig = {
 		'/protocol/token-rights/*': datasetCacheIncludes('token-rights'),
 		'/protocol/yields/*': datasetCacheIncludes('yields'),
 		'/yields/pool/*': datasetCacheIncludes('yields'),
-		'/api/datasets/yields': datasetCacheIncludes('yields'),
-		'/api/datasets/yields-token-borrow-routes': datasetCacheIncludes('yields'),
-		'/api/token-liquidations/*': datasetCacheIncludes('liquidations'),
-		'/api/liquidations': datasetCacheIncludes('liquidations'),
-		'/api/liquidations/*': datasetCacheIncludes('liquidations'),
-		'/api/liquidations/*/*': datasetCacheIncludes('liquidations')
+		'/api/public/datasets/borrow': datasetCacheIncludes('yields'),
+		'/api/public/datasets/borrow-advanced': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields/pools': datasetCacheIncludes('yields'),
+		'/api/public/datasets/yields-token-borrow-routes': datasetCacheIncludes('yields'),
+		'/api/private/token-liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/private/liquidations/*/*': datasetCacheIncludes('liquidations')
 	},
 	reactStrictMode: true,
 	reactCompiler: true,

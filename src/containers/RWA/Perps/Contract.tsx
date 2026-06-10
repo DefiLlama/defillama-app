@@ -90,9 +90,26 @@ function RWAPerpsContractHeader({
 	contract: IRWAPerpsContractData
 	headingAs?: 'h1' | 'div'
 }) {
+	const link = contract.contract.link
+
 	return (
-		<Tag className="flex items-center gap-2 text-xl">
-			<span className="font-bold">{contract.contract.contract}</span>
+		<Tag className="flex min-w-0 items-center justify-between gap-2 text-xl">
+			<span className="min-w-0 overflow-hidden font-bold text-ellipsis whitespace-nowrap">
+				{contract.contract.contract}
+			</span>
+			{link ? (
+				<Tooltip content="Open market website" placement="top">
+					<a
+						href={link}
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label={`Open ${contract.contract.contract} website`}
+						className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-md text-(--text-label) hover:bg-(--link-hover-bg) hover:text-(--link-text) focus-visible:bg-(--link-hover-bg) focus-visible:text-(--link-text)"
+					>
+						<Icon name="external-link" className="size-4" />
+					</a>
+				</Tooltip>
+			) : null}
 		</Tag>
 	)
 }
@@ -253,13 +270,13 @@ function RWAPerpsContractChartPanel({ contract }: { contract: IRWAPerpsContractD
 				<Ariakit.DialogProvider store={metricsDialogStore}>
 					<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 						<span>Add Metrics</span>
-						<Icon name="plus" className="h-3.5 w-3.5" />
+						<Icon name="plus" className="size-3.5" />
 					</Ariakit.DialogDisclosure>
 					<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 						<span className="flex items-center justify-between gap-1">
 							<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 							<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
-								<Icon name="x" className="h-5 w-5" />
+								<Icon name="x" className="size-5" />
 							</Ariakit.DialogDismiss>
 						</span>
 
@@ -280,11 +297,7 @@ function RWAPerpsContractChartPanel({ contract }: { contract: IRWAPerpsContractD
 										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
 										<span>{metric.label}</span>
-										{isActive ? (
-											<Icon name="x" className="h-3.5 w-3.5" />
-										) : (
-											<Icon name="plus" className="h-3.5 w-3.5" />
-										)}
+										{isActive ? <Icon name="x" className="size-3.5" /> : <Icon name="plus" className="size-3.5" />}
 									</button>
 								)
 							})}
@@ -308,14 +321,14 @@ function RWAPerpsContractChartPanel({ contract }: { contract: IRWAPerpsContractD
 								onChange={() => {
 									void pushShallowQuery(router, getRWAPerpsContractMetricQueryPatch({ metric, isActive: true }))
 								}}
-								className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+								className="peer absolute size-[1em] opacity-[0.00001]"
 							/>
 							<span
 								className="flex items-center gap-1 rounded-full border-2 px-2 py-1 text-xs"
 								style={{ borderColor: metric.color }}
 							>
 								<span>{metric.label}</span>
-								<Icon name="x" className="h-3.5 w-3.5" />
+								<Icon name="x" className="size-3.5" />
 							</span>
 						</label>
 					)

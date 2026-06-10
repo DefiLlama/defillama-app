@@ -586,26 +586,16 @@ export function useDashboardActions(
 
 	const setTimePeriod = useCallback(
 		(period: TimePeriod) => {
-			if (isReadOnlyUntilDashboardLoaded) return
-
-			const newCustomTimePeriod = period !== 'custom' ? null : state.customTimePeriod
-
 			dispatch({ type: 'SET_TIME_PERIOD', payload: period })
-			autoSave(itemsRef.current, { timePeriod: period, customTimePeriod: newCustomTimePeriod })
 		},
-		[dispatch, autoSave, isReadOnlyUntilDashboardLoaded, state.customTimePeriod]
+		[dispatch]
 	)
 
 	const setCustomTimePeriod = useCallback(
 		(period: CustomTimePeriod | null) => {
-			if (isReadOnlyUntilDashboardLoaded) return
-
-			const newTimePeriod = period ? 'custom' : state.timePeriod
-
 			dispatch({ type: 'SET_CUSTOM_TIME_PERIOD', payload: period })
-			autoSave(itemsRef.current, { timePeriod: newTimePeriod, customTimePeriod: period })
 		},
-		[dispatch, autoSave, isReadOnlyUntilDashboardLoaded, state.timePeriod]
+		[dispatch]
 	)
 
 	const handleChartsReordered = useCallback(

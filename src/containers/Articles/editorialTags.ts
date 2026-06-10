@@ -13,7 +13,7 @@ export const EDITORIAL_TAGS: Record<EditorialTagSlug, EditorialTagDefinition> = 
 	spotlight: {
 		slug: 'spotlight',
 		label: 'Spotlight',
-		description: 'Curated articles featured at the top of /research.',
+		description: 'Curated articles (4–6) featured at the top of /research. Layout adapts to how many are tagged.',
 		cardinality: 'multi'
 	},
 	latest: {
@@ -46,4 +46,8 @@ export const EDITORIAL_TAG_LIST: EditorialTagDefinition[] = Object.values(EDITOR
 
 export function isEditorialTagSlug(value: unknown): value is EditorialTagSlug {
 	return typeof value === 'string' && Object.prototype.hasOwnProperty.call(EDITORIAL_TAGS, value)
+}
+
+export function isEditorialTagReorderable(slug: EditorialTagSlug): boolean {
+	return EDITORIAL_TAGS[slug].cardinality === 'multi'
 }

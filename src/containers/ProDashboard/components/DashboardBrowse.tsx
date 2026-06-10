@@ -1,5 +1,5 @@
 import { Icon, type IIcon } from '~/components/Icon'
-import { useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
+import { type DiscoveryCategoriesInitialData, useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
 import type { Dashboard } from '../services/DashboardAPI'
 import { DiscoverySection } from './DiscoverySection'
 
@@ -57,16 +57,17 @@ const SECTIONS: SectionConfig[] = [
 
 interface DashboardBrowseProps {
 	onTagClick: (tag: string) => void
+	initialCategories?: DiscoveryCategoriesInitialData | null
 }
 
-export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
-	const { categories } = useDiscoveryCategories()
+export function DashboardBrowse({ onTagClick, initialCategories }: DashboardBrowseProps) {
+	const { categories } = useDiscoveryCategories(initialCategories)
 
 	return (
 		<div className="flex flex-col gap-6">
 			<div>
 				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-(--text-primary)">
-					<span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-500/15">
+					<span className="flex size-6 items-center justify-center rounded-md bg-blue-500/15">
 						<Icon name="tag" height={14} width={14} className="text-blue-500" />
 					</span>
 					Trending Tags

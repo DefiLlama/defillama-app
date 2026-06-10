@@ -27,6 +27,7 @@ import { SignInModal } from '~/containers/Subscription/SignInModal'
 import type { BillingCycle, PlanKey } from '~/containers/Subscription/types'
 import { useSubscriptionPageState } from '~/containers/Subscription/usePageState'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
+import { applySlackAcquisitionFromQuery } from '~/containers/Subscription/utils/slackAcquisition'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { safeInternalPath } from '~/utils/routerQuery'
 
@@ -44,9 +45,10 @@ function SubscriptionContent() {
 		currentPlan,
 		isTrial,
 		userBillingCycle,
+		isManualSubscription,
 		isLoading: isPageStateLoading
 	} = useSubscriptionPageState()
-	const { user, loaders } = useAuthContext()
+	const { user, loaders, promptVerifyEmail } = useAuthContext()
 	const {
 		handleSubscribe,
 		loading,
@@ -82,6 +84,12 @@ function SubscriptionContent() {
 			console.error('Failed to end trial:', error)
 		}
 	}
+
+	/* ── Slack acquisition source capture ─────────────────────────────── */
+	useEffect(() => {
+		if (typeof window === 'undefined' || !router.isReady) return
+		applySlackAcquisitionFromQuery(router.query, window.sessionStorage)
+	}, [router.isReady, router.query])
 
 	/* ── Return modal (redirect after sign-in) ────────────────────────── */
 	const [showReturnModal, setShowReturnModal] = useState(false)
@@ -137,7 +145,7 @@ function SubscriptionContent() {
 
 	const requireVerified = (action: () => void) => {
 		if (!user?.verified && !user?.walletAddress) {
-			toast.error('Please verify your email first to subscribe')
+			promptVerifyEmail(user?.email)
 			return
 		}
 		action()
@@ -194,6 +202,9 @@ function SubscriptionContent() {
 	const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise: 3 }
 
 	const handleComparisonPlanAction = (plan: PlanKey) => {
+		// Team-provided (manual) subscriptions can't be changed via self-serve checkout.
+		if (isManualSubscription) return
+
 		if (plan === 'enterprise') {
 			window.location.href = 'mailto:sales@defillama.com'
 			return
@@ -231,6 +242,7 @@ function SubscriptionContent() {
 					isTrial={isTrial}
 					isCancelPending={isCancelPending}
 					userBillingCycle={userBillingCycle}
+					isManualSubscription={isManualSubscription}
 					onPrimaryCtaClick={handlePrimaryCtaClick}
 					onSecondaryCtaClick={handleSecondaryCtaClick}
 					onUpgradeToYearly={handleUpgradeToYearly}

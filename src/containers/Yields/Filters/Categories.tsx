@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushYieldsQuery } from '../queryUpdates.client'
 
 const EMPTY_ARRAY: string[] = []
 
@@ -31,6 +32,9 @@ export function FiltersByCategory({
 			labelType={labelType ? labelType : !category || category === 'All' ? 'none' : 'regular'}
 			includeQueryKey="category"
 			excludeQueryKey="excludeCategory"
+			pushQueryUpdates={(updates) => {
+				void pushYieldsQuery(router, updates)
+			}}
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
 				for (const categoryValue of values) {

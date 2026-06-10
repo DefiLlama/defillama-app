@@ -391,16 +391,27 @@ function createColumns(includeRwaPerps: boolean) {
 			header: definitions.category.label,
 			cell: (info) => {
 				const value = getAssetCategoryLabels(info.row.original)
-				const tooltipContent = value
-					.map((category) => {
-						const description = definitions.category.values?.[category]
-						return `${category}:\n${description || '-'}`
-					})
-					.join('\n\n')
-				if (tooltipContent) {
+				if (value.length > 0) {
 					return (
 						<Tooltip
-							content={tooltipContent}
+							content={
+								<span className="flex flex-col gap-2">
+									{value.map((category) => {
+										const description = definitions.category.values?.[category]
+										return (
+											<span key={category}>
+												<strong>{category}</strong>
+												{description ? (
+													<>
+														<br />
+														{description}
+													</>
+												) : null}
+											</span>
+										)
+									})}
+								</span>
+							}
 							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 						>
 							{value.join(', ')}

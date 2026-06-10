@@ -82,7 +82,7 @@ export function BrowserContent({
 			{!hideDragHandle ? (
 				<div className="flex items-center justify-between px-3 pt-3 pb-1 sm:hidden">
 					<span className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">Explore</span>
-					<Ariakit.PopoverDismiss className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e0e0e0] dark:bg-white/10 dark:text-[#aaa] dark:hover:bg-white/15">
+					<Ariakit.PopoverDismiss className="flex size-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e0e0e0] dark:bg-white/10 dark:text-[#aaa] dark:hover:bg-white/15">
 						<Icon name="x" height={14} width={14} />
 					</Ariakit.PopoverDismiss>
 				</div>

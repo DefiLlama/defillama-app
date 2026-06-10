@@ -8,6 +8,8 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useYieldFilters } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { shouldResetYieldsPoolPage } from '../queryState'
+import { pushYieldsQuery } from '../queryUpdates.client'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
@@ -29,14 +31,15 @@ function SavedFilters({ currentFilters }) {
 		const filters = savedFilters[name]
 		if (filters) {
 			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
-			void router.push(
-				{
-					pathname: router.pathname,
-					query: filters
-				},
-				undefined,
-				{ shallow: true }
-			)
+			const updates: Record<string, string | number | boolean | Array<string | number | boolean> | undefined> = {
+				...filters
+			}
+			for (const key of Object.keys(router.query)) {
+				if (!(key in filters)) {
+					updates[key] = undefined
+				}
+			}
+			void pushYieldsQuery(router, updates)
 		}
 	}
 
@@ -44,7 +47,7 @@ function SavedFilters({ currentFilters }) {
 		<div className="ml-auto flex items-center gap-2">
 			<button
 				onClick={() => setDialogOpen(true)}
-				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
+				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) p-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Save Current Filters
 			</button>
@@ -81,7 +84,7 @@ function SavedFilters({ currentFilters }) {
 					className="z-10 flex thin-scrollbar max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:drawer max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
-						<Icon name="x" className="h-5 w-5" />
+						<Icon name="x" className="size-5" />
 					</Ariakit.PopoverDismiss>
 
 					{savedFiltersEntries.map(([name]) => (
@@ -135,7 +138,12 @@ export function YieldFiltersV2({
 
 	const isSmall = useMedia(`(max-width: 639px)`)
 
-	const { query } = useRouter()
+	const { pathname, query } = useRouter()
+	const currentFilters = React.useMemo(() => {
+		if (!shouldResetYieldsPoolPage(pathname)) return query
+		const { page: _page, ...filters } = query
+		return filters
+	}, [pathname, query])
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
@@ -145,7 +153,7 @@ export function YieldFiltersV2({
 			<div className="flex flex-wrap items-center gap-2 p-3">
 				<h1 className="font-semibold">{header}</h1>
 				{trackingStats ? <p>{trackingStats}</p> : null}
-				<SavedFilters currentFilters={query} />
+				<SavedFilters currentFilters={currentFilters} />
 			</div>
 			<div className="flex flex-col gap-3 rounded-b-md p-3">
 				{showPresetFilters ? (

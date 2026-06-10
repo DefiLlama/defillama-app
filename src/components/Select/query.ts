@@ -15,12 +15,24 @@ export const updateQueryFromSelected = (
 	allKeys: string[],
 	// 'None' is a sentinel meaning "nothing selected" — keep it explicit in the type
 	values: string[] | string | 'None' | null,
-	defaultSelectedValues?: string[]
+	defaultSelectedValues?: string[],
+	options?: {
+		resetPage?: boolean
+		pushQueryUpdates?: (updates: Record<string, string | string[] | undefined>) => void
+	}
 ) => {
 	const updates: Record<string, string | string[] | undefined> = {}
 
 	const setOrDelete = (key: string, value: string | string[] | null) => {
 		updates[key] = value === null ? undefined : value
+	}
+	const pushUpdates = () => {
+		const payload = options?.resetPage ? { ...updates, page: undefined } : updates
+		if (options?.pushQueryUpdates) {
+			options.pushQueryUpdates(payload)
+			return
+		}
+		void pushShallowQuery(router, payload)
 	}
 
 	const validSet = new Set(allKeys)
@@ -34,7 +46,7 @@ export const updateQueryFromSelected = (
 		if (defaultIsAll) {
 			setOrDelete(includeKey, null)
 			setOrDelete(excludeKey, null)
-			void pushShallowQuery(router, updates)
+			pushUpdates()
 			return
 		}
 		nextValues = allKeys
@@ -44,7 +56,7 @@ export const updateQueryFromSelected = (
 	if (nextValues === 'None' || (Array.isArray(nextValues) && nextValues.length === 0)) {
 		setOrDelete(includeKey, 'None')
 		setOrDelete(excludeKey, null)
-		void pushShallowQuery(router, updates)
+		pushUpdates()
 		return
 	}
 
@@ -53,12 +65,12 @@ export const updateQueryFromSelected = (
 		if (defaultSelected?.length === 1 && defaultSelected[0] === nextValues) {
 			setOrDelete(includeKey, null)
 			setOrDelete(excludeKey, null)
-			void pushShallowQuery(router, updates)
+			pushUpdates()
 			return
 		}
 		setOrDelete(includeKey, nextValues)
 		setOrDelete(excludeKey, null)
-		void pushShallowQuery(router, updates)
+		pushUpdates()
 		return
 	}
 
@@ -73,7 +85,7 @@ export const updateQueryFromSelected = (
 	if (isDefaultSelection) {
 		setOrDelete(includeKey, null)
 		setOrDelete(excludeKey, null)
-		void pushShallowQuery(router, updates)
+		pushUpdates()
 		return
 	}
 
@@ -90,5 +102,5 @@ export const updateQueryFromSelected = (
 		setOrDelete(includeKey, selected.length === 1 ? selected[0] : selected)
 	}
 
-	void pushShallowQuery(router, updates)
+	pushUpdates()
 }

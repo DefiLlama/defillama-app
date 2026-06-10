@@ -53,7 +53,7 @@ type ChartColors = ReturnType<typeof resolveChartColors>
 
 function useChartData(usageStats: any, colors: ChartColors) {
 	const sortedStats = useMemo(
-		() => [...(usageStats?.stats ?? [])].sort((a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)),
+		() => (usageStats?.stats ?? []).toSorted((a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)),
 		[usageStats?.stats]
 	)
 
@@ -82,7 +82,7 @@ function useChartData(usageStats: any, colors: ChartColors) {
 			}
 		}
 
-		const sortedRoutes = [...routeTotals.entries()].sort((a, b) => b[1] - a[1])
+		const sortedRoutes = Array.from(routeTotals.entries()).toSorted((a, b) => b[1] - a[1])
 		const topRoutes = sortedRoutes.slice(0, TOP_ROUTES).map(([route]) => route)
 		const topRoutesSet = new Set(topRoutes)
 		const hasOthers = sortedRoutes.length > TOP_ROUTES
@@ -248,7 +248,7 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 				<div className="flex flex-wrap gap-x-4 gap-y-1">
 					{charts.map((series) => (
 						<div key={series.name} className="flex items-center gap-1.5">
-							<span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: series.color }} />
+							<span className="inline-block size-2 rounded-full" style={{ backgroundColor: series.color }} />
 							<span className="text-[10px] text-(--sub-text-muted)">{series.name}</span>
 						</div>
 					))}

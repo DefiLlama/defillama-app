@@ -1,16 +1,23 @@
 import { Announcement } from '~/components/Announcement'
-import YieldPage from '~/containers/Yields'
-import { getYieldPageData } from '~/containers/Yields/queries/index'
-import { disclaimer, exploitWarning } from '~/containers/Yields/utils'
+import { disclaimer } from '~/containers/Yields/constants'
+import { getYieldPageData } from '~/containers/Yields/queries.server'
+import YieldPage from '~/containers/Yields/views/PoolsView'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/stablecoins', async () => {
 	const data = await getYieldPageData()
+	const {
+		pools: _pools,
+		stablecoinInfoBySymbol: _stablecoinInfoBySymbol,
+		tokenCategories: _tokenCategories,
+		usdPeggedSymbols: _usdPeggedSymbols,
+		...metadata
+	} = data.props
 
 	return {
-		props: { ...data.props },
+		props: { ...metadata, serverPagination: true },
 		revalidate: maxAgeForNext([23])
 	}
 })
@@ -27,13 +34,6 @@ export default function YieldPlots(data) {
 		>
 			<Announcement announcementId="yields-disclaimer" version="2026-03">
 				{disclaimer}
-			</Announcement>
-			<Announcement
-				announcementId="kelp-warning"
-				version="2026-04"
-				className="border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
-			>
-				{exploitWarning}
 			</Announcement>
 			<YieldPage {...data} header="Stablecoin Yield Rankings" />
 		</Layout>

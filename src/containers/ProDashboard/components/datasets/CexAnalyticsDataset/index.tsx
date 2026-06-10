@@ -11,10 +11,10 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { lazy, Suspense, useEffect, useMemo, useState, type FC, type ReactNode } from 'react'
+import { lazy, Suspense, useContext, useEffect, useMemo, useState, type FC, type ReactNode } from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { useProDashboardTime } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import type {
 	CexAnalyticsMarketSharePoint,
 	CexAnalyticsMetric,
@@ -375,17 +375,18 @@ function VenueMarketShareChart({
 }
 
 export function CexAnalyticsDataset({ config }: CexAnalyticsDatasetProps) {
+	const streamDone = useContext(StreamDoneContext)
 	const rawView = config.cexAnalyticsView as string | undefined
 	const view = rawView === 'efficiency' ? 'comparison' : config.cexAnalyticsView || 'comparison'
 	const needsSnapshot = view === 'summary' || view === 'comparison'
 	const needsTotals = view === 'spot-vs-derivatives'
 	const needsShare = view === 'market-share'
-	const snapshotQuery = useCexAnalyticsSnapshot(needsSnapshot)
-	const totalsQuery = useCexAnalyticsTotals(needsTotals)
+	const snapshotQuery = useCexAnalyticsSnapshot(needsSnapshot && streamDone)
+	const totalsQuery = useCexAnalyticsTotals(needsTotals && streamDone)
 	const shareQuery = useCexAnalyticsMarketShare(
 		config.cexAnalyticsMetric || 'derivatives',
 		config.cexAnalyticsTopN || 8,
-		needsShare
+		needsShare && streamDone
 	)
 
 	if (view === 'summary') {

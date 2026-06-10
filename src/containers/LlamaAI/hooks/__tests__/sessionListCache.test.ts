@@ -5,6 +5,7 @@ import {
 	mapSessionListPage,
 	mergeOptimisticSessions,
 	moveSessionToTopInInfiniteData,
+	removeSessionFromInfiniteData,
 	prependSessionToInfiniteData,
 	removeSessionsFromInfiniteData,
 	updateSessionInInfiniteData,
@@ -33,6 +34,7 @@ function page(sessions: ChatSession[], nextOffset?: number): SessionListPage {
 	return {
 		sessions,
 		usage,
+		factCheckedUsage: null,
 		hasMore: nextOffset !== undefined,
 		nextOffset
 	}
@@ -60,6 +62,7 @@ describe('sessionListCache', () => {
 		expect(result).toEqual({
 			sessions: [first],
 			usage,
+			factCheckedUsage: null,
 			hasMore: true,
 			nextOffset: 200
 		})
@@ -107,6 +110,16 @@ describe('sessionListCache', () => {
 		)
 
 		expect(flattenSessionListData(result).sessions).toEqual([first])
+	})
+
+	it('removes a failed optimistic session across loaded pages', () => {
+		const first = session('first')
+		const fake = { ...session('fake'), isOptimistic: true }
+		const second = session('second')
+
+		const result = removeSessionFromInfiniteData(data([page([first, fake]), page([second])]), 'fake')
+
+		expect(flattenSessionListData(result).sessions).toEqual([first, second])
 	})
 
 	it('updates matching sessions across loaded pages', () => {

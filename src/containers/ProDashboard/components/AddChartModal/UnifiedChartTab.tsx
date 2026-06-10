@@ -824,7 +824,7 @@ export function UnifiedChartTab({
 										type="color"
 										value={item.color || '#3e61cc'}
 										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
-										className="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
+										className="size-4 cursor-pointer rounded border-0 bg-transparent p-0"
 									/>
 									<span className="whitespace-nowrap pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}

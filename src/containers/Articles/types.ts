@@ -42,7 +42,7 @@ export const ARTICLE_SECTION_FROM_SLUG: Record<string, ArticleSection> = {
 
 export type ArticleEntityType = 'protocol' | 'chain' | 'stablecoin' | 'metric' | 'hack' | 'category' | 'cex' | 'bridge'
 export type ArticleChartEntityType = 'protocol' | 'chain'
-export type ArticleCalloutTone = 'note' | 'warning' | 'data' | 'pullquote'
+export type ArticleCalloutTone = 'note' | 'warning' | 'data' | 'pullquote' | 'bio'
 export type ArticleEmbedProvider = 'twitter' | 'youtube' | 'medium' | 'mirror' | 'substack' | 'github' | 'iframe'
 export type ArticleEmbedAspectRatio = '16/9' | '4/3' | '1/1' | 'auto'
 
@@ -157,6 +157,10 @@ export type ArticleAuthorProfile = {
 	updatedAt: string
 }
 
+export type ArticlePublicAuthorProfile = Omit<ArticleAuthorProfile, 'id' | 'pbUserId'>
+
+export type ArticleAuthor = ArticleAuthorProfile | ArticlePublicAuthorProfile
+
 export type ArticleInterviewee = {
 	name: string
 	avatarUrl?: string | null
@@ -188,8 +192,8 @@ export type LocalArticleDocument = {
 	slug: string
 	status: ArticleStatus
 	author?: string
-	authorProfile?: ArticleAuthorProfile
-	coAuthors?: ArticleAuthorProfile[]
+	authorProfile?: ArticleAuthor
+	coAuthors?: ArticleAuthor[]
 	viewerRole?: ArticleViewerRole
 
 	seoTitle?: string
@@ -213,6 +217,7 @@ export type LocalArticleDocument = {
 	interviewees?: ArticleInterviewee[]
 	section?: ArticleSection | null
 	displayDate?: string | null
+	goLiveAt?: string | null
 	brandByline?: boolean
 	featuredRank?: number | null
 	featuredUntil?: string | null
@@ -230,7 +235,7 @@ export type LocalArticleDocument = {
 
 export type ArticleDocument = LocalArticleDocument & {
 	id: string
-	authorProfile: ArticleAuthorProfile
+	authorProfile: ArticleAuthor
 }
 
 export type ArticleSnapshotPayload = Omit<
@@ -256,6 +261,7 @@ export type ArticleRevisionEventType =
 	| 'pending_save'
 	| 'discard_pending'
 	| 'restore_pending'
+	| 'schedule'
 
 export type ArticleRevisionSummary = {
 	id: string

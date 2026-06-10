@@ -55,7 +55,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		handleTreemapChange,
 		handleDuplicateMultiChart
 	} = useProDashboardEditorActions()
-	const { isReadOnly } = useProDashboardPermissions()
+	const { isReadOnly, hideDuplicateButton } = useProDashboardPermissions()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false)
@@ -618,7 +618,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						variant="pro"
 					/>
 				) : null}
-				{!isReadOnly ? (
+				{!isReadOnly && !hideDuplicateButton ? (
 					<button
 						type="button"
 						onClick={() => setShowDuplicateConfirm(true)}
@@ -647,7 +647,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			{loadingItems.length > 0 && failedItems.length < multi.items.length ? (
 				<div className="flex items-center gap-1.5 px-1 text-xs text-(--text-form) md:px-3">
-					<div className="h-3 w-3 animate-spin rounded-full border-2 border-(--text-form) border-t-transparent" />
+					<div className="size-3 animate-spin rounded-full border-2 border-(--text-form) border-t-transparent" />
 					<span>
 						{validItems.length}/{multi.items.length - failedItems.length}
 					</span>
@@ -656,7 +656,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			{!hasAnyData && isAllLoading ? (
 				<div className="flex flex-1 flex-col items-center justify-center">
-					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
+					<div className="mx-auto mb-2 size-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
 					<p className="text-sm text-(--text-form)">Loading charts...</p>
 				</div>
 			) : !hasAnyData ? (
