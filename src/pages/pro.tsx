@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { FEATURES_SERVER } from '~/constants'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
+import { AuthorProfileStrip } from '~/containers/ProDashboard/components/AuthorProfileStrip'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
@@ -414,6 +415,8 @@ function ProContent({
 					aria-hidden={activeTab !== 'my-dashboards'}
 					className={activeTab === 'my-dashboards' ? 'flex flex-col gap-4' : 'hidden'}
 				>
+					<AuthorProfileStrip />
+
 					{!isLoadingMyDashboards ? (
 						<p className="text-xs text-(--text-label)">
 							Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards

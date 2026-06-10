@@ -7,6 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
 import { getMyDashboardAuthorProfile } from '~/containers/Authors/api'
 import { avatarColorStyle } from '~/containers/Authors/avatarColor'
+import { hasCustomizedAuthorProfile } from '~/containers/Authors/profileDefaults'
 import type { PublicDashboardAuthor } from '~/containers/Authors/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
@@ -51,19 +52,9 @@ const AIGenerationHistory = lazy(() =>
 const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: m.Rating })))
 
 const COUNT_FORMATTER = new Intl.NumberFormat('en-US')
-const DEFAULT_AUTHOR_SLUG_RE = /^llama-[a-f0-9]{12}$/i
-const DEFAULT_AUTHOR_NAME_RE = /^Llama [a-f0-9]{6}$/i
 
 function formatCount(value: number | undefined): string {
 	return COUNT_FORMATTER.format(value ?? 0)
-}
-
-function hasCustomizedAuthorProfile(author: PublicDashboardAuthor): boolean {
-	if (!DEFAULT_AUTHOR_SLUG_RE.test(author.slug)) return true
-	if (!DEFAULT_AUTHOR_NAME_RE.test(author.displayName)) return true
-	if (author.bio?.trim()) return true
-	if (author.avatarUrl?.trim()) return true
-	return Object.values(author.socials || {}).some((value) => typeof value === 'string' && value.trim())
 }
 
 function DashboardAuthorByline({ author }: { author?: PublicDashboardAuthor }) {
@@ -188,7 +179,7 @@ function ProDashboardContent() {
 	const { data: authorProfile, isSuccess: authorProfileLoaded } = useQuery({
 		queryKey: ['dashboard-author-profile', user?.id],
 		queryFn: () => getMyDashboardAuthorProfile(authorizedFetch),
-		enabled: isDashboardOwner && hasActiveSubscription && !!user?.id,
+		enabled: isDashboardOwner && !!user?.id,
 		retry: false,
 		refetchOnWindowFocus: false
 	})
@@ -220,11 +211,7 @@ function ProDashboardContent() {
 
 	const currentRatingSession = getCurrentRatingSession()
 	const shouldShowAuthorProfileSetup =
-		isDashboardOwner &&
-		hasActiveSubscription &&
-		authorProfileLoaded &&
-		!!authorProfile &&
-		!hasCustomizedAuthorProfile(authorProfile)
+		isDashboardOwner && authorProfileLoaded && !!authorProfile && !hasCustomizedAuthorProfile(authorProfile)
 
 	const openAddModal = () => {
 		setShowAddModal(true)

@@ -7,6 +7,7 @@ import { ImageUploadButton } from '~/containers/Articles/upload/ImageUploadButto
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { getMyDashboardAuthorProfile, updateMyDashboardAuthorProfile } from './api'
 import { avatarColorStyle } from './avatarColor'
+import { DEFAULT_AUTHOR_NAME_RE, DEFAULT_AUTHOR_SLUG_RE } from './profileDefaults'
 import type { AuthorProfileUpdate, PublicDashboardAuthor } from './types'
 
 const DISPLAY_NAME_MAX = 120
@@ -14,8 +15,6 @@ const SLUG_MAX = 60
 const BIO_MAX = 2000
 const SOCIAL_VALUE_MAX = 300
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-const DEFAULT_SLUG_REGEX = /^llama-[0-9a-f]{12}$/
-const DEFAULT_NAME_REGEX = /^Llama [0-9a-f]{6}$/
 
 const SOCIALS = [
 	{ id: 'twitter', label: 'Twitter / X', placeholder: 'https://x.com/yourhandle' },
@@ -103,8 +102,11 @@ type CompletenessCheck = { label: string; done: boolean }
 
 function profileCompleteness(state: FormState): { percent: number; missing: string[] } {
 	const checks: CompletenessCheck[] = [
-		{ label: 'Add your name', done: !!state.displayName.trim() && !DEFAULT_NAME_REGEX.test(state.displayName.trim()) },
-		{ label: 'Pick a custom handle', done: !!state.slug.trim() && !DEFAULT_SLUG_REGEX.test(state.slug.trim()) },
+		{
+			label: 'Add your name',
+			done: !!state.displayName.trim() && !DEFAULT_AUTHOR_NAME_RE.test(state.displayName.trim())
+		},
+		{ label: 'Pick a custom handle', done: !!state.slug.trim() && !DEFAULT_AUTHOR_SLUG_RE.test(state.slug.trim()) },
 		{ label: 'Write a short bio', done: !!state.bio.trim() },
 		{ label: 'Upload an avatar', done: !!state.avatarUrl.trim() },
 		{ label: 'Link a social account', done: Object.values(state.socials).some((value) => value.trim()) }
