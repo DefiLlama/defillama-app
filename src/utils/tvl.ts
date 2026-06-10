@@ -23,10 +23,6 @@ export function applyTvlOverlapBaseAdjustment(
 	)
 }
 
-export function hasTvlOverlapParents(enabledKeys: readonly string[]): boolean {
-	return enabledKeys.includes('doublecounted') && enabledKeys.includes('liquidstaking')
-}
-
 export const processAdjustedTvl = (data: TvlChartData | null | undefined): [number, number][] => {
 	const { tvl = [], liquidstaking = [], doublecounted = [], dcAndLsOverlap = [] } = data ?? {}
 

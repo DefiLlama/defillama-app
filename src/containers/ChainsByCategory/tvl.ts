@@ -1,5 +1,6 @@
 import type { TvlSettingsKey } from '~/contexts/LocalStorage'
-import { applyTvlOverlapBaseAdjustment, hasTvlOverlapParents } from '~/utils/tvl'
+import { applyTvlOverlapBaseAdjustment } from '~/utils/tvl'
+import { shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 
 type ChainTvlValue = number | null | undefined
 type ChainTvlExtraValues = Partial<Record<TvlSettingsKey | 'dcAndLsOverlap', ChainTvlValue>>
@@ -38,14 +39,16 @@ export function applyChainsTvlSettings(
 	let hasAnyValue = baseValue != null
 	let value = baseValue ?? 0
 	for (const key of enabledSettings) {
-		if (extraValues[key] != null) {
-			value += extraValues[key]
+		const extraValue = extraValues[key]
+		if (extraValue != null) {
+			value += extraValue
 			hasAnyValue = true
 		}
 	}
 
-	if (hasTvlOverlapParents(enabledSettings) && extraValues.dcAndLsOverlap != null) {
-		value -= extraValues.dcAndLsOverlap
+	const overlapValue = extraValues.dcAndLsOverlap
+	if (shouldSubtractTvlOverlapSeries(enabledSettings) && overlapValue != null) {
+		value -= overlapValue
 		hasAnyValue = true
 	}
 

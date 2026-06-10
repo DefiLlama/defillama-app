@@ -1,6 +1,6 @@
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
-import { hasTvlOverlapParents } from '~/utils/tvl'
+import { shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 
 export interface ChainTvlChartSummary {
 	totalValueUSD: number | null
@@ -35,7 +35,7 @@ export function applyChainTvlChartSettings({
 		store[date] = sum
 	}
 
-	if (hasTvlOverlapParents(toggledTvlSettings)) {
+	if (shouldSubtractTvlOverlapSeries(toggledTvlSettings)) {
 		for (const date in store) {
 			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 		}

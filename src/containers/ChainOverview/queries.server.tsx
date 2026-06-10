@@ -35,6 +35,7 @@ import type {
 	ProtocolLlamaswapMetadata
 } from '~/utils/metadata/types'
 import type { RoutePhaseTimer } from '~/utils/perf'
+import { applyTvlOverlapBaseAdjustment } from '~/utils/tvl'
 import type { ChainChartLabels } from './constants'
 import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
 import type { IChainOverviewData, ILiteChart } from './types'
@@ -418,17 +419,13 @@ export async function getChainOverviewData({
 
 		// by default we should not include liquidstaking and doublecounted in the tvl chart, but include overlapping tvl so you don't subtract twice
 		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => {
-			let sum = Math.trunc(totalLiquidityUSD)
-			if (extraTvlCharts['liquidstaking']?.[+date * 1e3]) {
-				sum -= Math.trunc(extraTvlCharts['liquidstaking'][+date * 1e3])
-			}
-			if (extraTvlCharts['doublecounted']?.[+date * 1e3]) {
-				sum -= Math.trunc(extraTvlCharts['doublecounted'][+date * 1e3])
-			}
-			if (extraTvlCharts['dcAndLsOverlap']?.[+date * 1e3]) {
-				sum += Math.trunc(extraTvlCharts['dcAndLsOverlap'][+date * 1e3])
-			}
-			return [+date * 1e3, sum]
+			const timestamp = +date * 1e3
+			const sum = applyTvlOverlapBaseAdjustment(Math.trunc(totalLiquidityUSD), {
+				liquidstaking: extraTvlCharts.liquidstaking[timestamp],
+				doublecounted: extraTvlCharts.doublecounted[timestamp],
+				dcAndLsOverlap: extraTvlCharts.dcAndLsOverlap[timestamp]
+			})
+			return [timestamp, sum]
 		}) as Array<[number, number]>
 
 		// Pre-compute TVL summary to avoid client-side iteration

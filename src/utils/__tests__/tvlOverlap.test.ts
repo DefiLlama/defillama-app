@@ -71,6 +71,11 @@ describe('Oracle and Fork TVL overlap helpers', () => {
 		expect(getExtraTvlSeriesSign({ apiKey: 'staking', shouldSubtractOverlapSeries })).toBe(1)
 	})
 
+	it('detects overlap parents from a set of enabled keys', () => {
+		expect(shouldSubtractTvlOverlapSeries(new Set(['tvl', 'doublecounted', 'liquidstaking']))).toBe(true)
+		expect(shouldSubtractTvlOverlapSeries(new Set(['tvl', 'doublecounted']))).toBe(false)
+	})
+
 	it('keeps overlap series positive when only one overlap parent is enabled', () => {
 		const shouldSubtractOverlapSeries = shouldSubtractTvlOverlapSeries(['dcAndLsOverlap', 'doublecounted'])
 

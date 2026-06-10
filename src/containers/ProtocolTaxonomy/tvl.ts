@@ -1,12 +1,7 @@
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange } from '~/utils'
 import { categoriesPageExcludedExtraTvls } from './constants'
-import type {
-	IProtocolTaxonomyPageData,
-	IProtocolsCategoriesExtraTvlPoint,
-	IProtocolsCategoriesPageData,
-	IProtocolsCategoriesTableRow
-} from './types'
+import type { IProtocolTaxonomyPageData, IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
 type ProtocolTaxonomyProtocol = IProtocolTaxonomyPageData['protocols'][number]
 type ProtocolsCategoriesChartState = {
@@ -38,36 +33,37 @@ function getEnabledExtraTvlValueSum(
 	return { sum: extraSum, hasValue }
 }
 
-function sumEnabledExtraTvlChartValues({
-	extraTvlCharts,
-	enabledTvls,
-	timestamp
-}: {
-	extraTvlCharts: Record<string, Record<string | number, number | null | undefined> | undefined>
-	enabledTvls: Array<string>
+function sumEnabledExtraTvlChartValues(
+	extraTvlCharts: Record<string, Record<string | number, number | null | undefined> | undefined> | undefined,
+	enabledTvls: Array<string>,
 	timestamp: string | number
-}): number {
+): number {
 	let extraSum = 0
 	for (const extraTvlKey of enabledTvls) {
-		extraSum += extraTvlCharts[extraTvlKey]?.[timestamp] ?? 0
+		extraSum += extraTvlCharts?.[extraTvlKey]?.[timestamp] ?? 0
 	}
 	return extraSum
 }
 
-function sumEnabledExtraTvlField({
-	extraTvls,
-	enabledTvls,
-	field
-}: {
-	extraTvls: IProtocolsCategoriesTableRow['extraTvls']
+function addEnabledCategoryRowExtraTvls(
+	row: IProtocolsCategoriesTableRow,
 	enabledTvls: Array<string>
-	field: keyof IProtocolsCategoriesExtraTvlPoint
-}): number {
-	let extraSum = 0
+): Pick<IProtocolsCategoriesTableRow, 'tvl' | 'tvlPrevDay' | 'tvlPrevWeek' | 'tvlPrevMonth'> {
+	let tvl = row.tvl
+	let tvlPrevDay = row.tvlPrevDay
+	let tvlPrevWeek = row.tvlPrevWeek
+	let tvlPrevMonth = row.tvlPrevMonth
+
 	for (const extraTvlKey of enabledTvls) {
-		extraSum += extraTvls[extraTvlKey]?.[field] ?? 0
+		const extraTvl = row.extraTvls[extraTvlKey]
+		if (extraTvl == null) continue
+		tvl += extraTvl.tvl
+		tvlPrevDay += extraTvl.tvlPrevDay
+		tvlPrevWeek += extraTvl.tvlPrevWeek
+		tvlPrevMonth += extraTvl.tvlPrevMonth
 	}
-	return extraSum
+
+	return { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth }
 }
 
 export function getEnabledProtocolTaxonomyTvls(tvlSettings: Record<string, boolean>) {
@@ -102,8 +98,7 @@ export function applyProtocolTaxonomyTvlSettings({
 	const shouldMirrorBorrowedChart = effectiveCategory === 'Lending' && enabledTvls.includes('borrowed')
 	const finalSource: IProtocolTaxonomyPageData['charts']['dataset']['source'] = charts.dataset.source.map((row) => {
 		const timestampKey = row.timestamp
-		const extraSum =
-			timestampKey == null ? 0 : sumEnabledExtraTvlChartValues({ extraTvlCharts, enabledTvls, timestamp: timestampKey })
+		const extraSum = timestampKey == null ? 0 : sumEnabledExtraTvlChartValues(extraTvlCharts, enabledTvls, timestampKey)
 
 		const currentTvlValue = typeof row.TVL === 'number' ? row.TVL : Number(row.TVL ?? 0)
 		const safeCurrentTvlValue = Number.isFinite(currentTvlValue) ? currentTvlValue : 0
@@ -168,11 +163,7 @@ export function buildProtocolsCategoriesTvlCharts({
 		for (const categoryName of filteredCategories) {
 			const baseValue = row[categoryName]
 			const safeBaseValue = typeof baseValue === 'number' ? baseValue : 0
-			const extraTvlValue = sumEnabledExtraTvlChartValues({
-				extraTvlCharts: extraTvlCharts[categoryName] ?? {},
-				enabledTvls,
-				timestamp: row.timestamp
-			})
+			const extraTvlValue = sumEnabledExtraTvlChartValues(extraTvlCharts[categoryName], enabledTvls, row.timestamp)
 
 			adjustedRow[categoryName] = safeBaseValue + extraTvlValue
 		}
@@ -208,13 +199,7 @@ function applyProtocolsCategoriesRowTvlSettings(
 	row: IProtocolsCategoriesTableRow,
 	enabledTvls: Array<string>
 ): IProtocolsCategoriesTableRow {
-	const tvl = row.tvl + sumEnabledExtraTvlField({ extraTvls: row.extraTvls, enabledTvls, field: 'tvl' })
-	const tvlPrevDay =
-		row.tvlPrevDay + sumEnabledExtraTvlField({ extraTvls: row.extraTvls, enabledTvls, field: 'tvlPrevDay' })
-	const tvlPrevWeek =
-		row.tvlPrevWeek + sumEnabledExtraTvlField({ extraTvls: row.extraTvls, enabledTvls, field: 'tvlPrevWeek' })
-	const tvlPrevMonth =
-		row.tvlPrevMonth + sumEnabledExtraTvlField({ extraTvls: row.extraTvls, enabledTvls, field: 'tvlPrevMonth' })
+	const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = addEnabledCategoryRowExtraTvls(row, enabledTvls)
 
 	const updatedRow: IProtocolsCategoriesTableRow = {
 		...row,
