@@ -4,7 +4,7 @@ import {
 	getEnabledExtraTvlApiKeys,
 	getExtraTvlSeriesSign,
 	shouldSubtractTvlOverlapSeries
-} from './tvlOverlap'
+} from '../tvlOverlap'
 
 const TVL_VALUES = {
 	tvl: 100,

@@ -171,7 +171,7 @@ Important files:
 - `src/containers/ProtocolOverview/useFetchProtocolChartData.ts`: protocol overview TVL chart composition.
 - `src/containers/ProtocolLists/utils.ts`: protocol list/table TVL toggle behavior.
 - `src/containers/ProtocolRankings/`: shared protocol ranking rows and TVL display behavior.
-- `src/containers/tvlOverlap.ts`: shared Oracle/Fork extra-TVL overlap helpers.
+- `src/utils/tvlOverlap.ts`: shared Oracle/Fork extra-TVL overlap helpers.
 - `src/containers/Forks/tvl.ts`: fork-specific TVL/original percentage helper.
 - `src/contexts/LocalStorage.tsx`: TVL setting keys.
 
