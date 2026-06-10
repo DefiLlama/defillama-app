@@ -9,6 +9,19 @@ interface SubmitButtonProps {
 }
 
 export function SubmitButton({ isStreaming, isPending, hasValue, onStop }: SubmitButtonProps) {
+	if (isStreaming && hasValue) {
+		return (
+			<Tooltip
+				content="Queue message"
+				render={<button type="submit" data-umami-event="llamaai-prompt-queue" />}
+				className="flex size-7 items-center justify-center gap-2 rounded-lg bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80"
+			>
+				<Icon name="arrow-up" height={14} width={14} className="sm:size-4" />
+				<span className="sr-only">Queue message</span>
+			</Tooltip>
+		)
+	}
+
 	if (isStreaming) {
 		return (
 			<Tooltip

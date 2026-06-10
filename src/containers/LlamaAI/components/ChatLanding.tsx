@@ -4,10 +4,11 @@ import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
-import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { PromptInput, QueuedPromptStack } from '~/containers/LlamaAI/components/PromptInput'
 import { useTipActions } from '~/containers/LlamaAI/components/TipActionContext'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import { useActiveTip } from '~/containers/LlamaAI/hooks/useLlamaAITip'
+import type { QueuedPromptRequest } from '~/containers/LlamaAI/streamState'
 import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { isSettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -30,7 +31,11 @@ export interface ChatLandingProps {
 		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
 		isSuggestedQuestion?: boolean
-	) => void | Promise<void>
+	) => boolean | Promise<boolean>
+	draftValue: string
+	setDraftValue: (value: string) => void
+	queuedPrompts: QueuedPromptRequest[]
+	enqueuePrompt: (request: QueuedPromptRequest) => void
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	handleStopRequest: () => void
 	isStreaming: boolean
@@ -50,6 +55,10 @@ export function ChatLanding({
 	isSharedView = false,
 	title,
 	handleSubmit,
+	draftValue,
+	setDraftValue,
+	queuedPrompts,
+	enqueuePrompt,
 	promptInputRef,
 	handleStopRequest,
 	isStreaming,
@@ -149,8 +158,16 @@ export function ChatLanding({
 			{!readOnly ? (
 				<>
 					<div className="relative w-full">
+						{queuedPrompts.length > 0 ? (
+							<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-30">
+								<QueuedPromptStack queuedPrompts={queuedPrompts} />
+							</div>
+						) : null}
 						<PromptInput
 							handleSubmit={handleSubmit}
+							draftValue={draftValue}
+							setDraftValue={setDraftValue}
+							enqueuePrompt={enqueuePrompt}
 							promptInputRef={promptInputRef}
 							isPending={isStreaming}
 							handleStopRequest={handleStopRequest}

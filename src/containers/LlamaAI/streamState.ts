@@ -28,6 +28,10 @@ export interface FailedRequest {
 	pageContext?: ChatPageContext
 }
 
+export interface QueuedPromptRequest extends FailedRequest {
+	isSuggestedQuestion?: boolean
+}
+
 export interface RateLimitDetails {
 	period: string
 	limit: number

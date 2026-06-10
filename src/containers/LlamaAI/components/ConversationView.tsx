@@ -5,7 +5,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWarningBanner'
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
-import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { PromptInput, QueuedPromptStack } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
 import {
 	SpawnProgressCard,
@@ -14,7 +14,7 @@ import {
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
-import type { RecoveryState } from '~/containers/LlamaAI/streamState'
+import type { QueuedPromptRequest, RecoveryState } from '~/containers/LlamaAI/streamState'
 import type {
 	AgenticAnswerMode,
 	ChartSet,
@@ -67,7 +67,11 @@ export interface ConversationViewModel {
 		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
 		isSuggestedQuestion?: boolean
-	) => void
+	) => boolean
+	draftValue: string
+	setDraftValue: (value: string) => void
+	queuedPrompts: QueuedPromptRequest[]
+	enqueuePrompt: (request: QueuedPromptRequest) => void
 	handleStopRequest: () => void
 	handleActionClick: (message: string) => void
 	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
@@ -377,6 +381,10 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 		showScrollToBottom,
 		scrollToBottom,
 		handleSubmit,
+		draftValue,
+		setDraftValue,
+		queuedPrompts,
+		enqueuePrompt,
 		handleStopRequest,
 		handleActionClick,
 		onEditMessage,
@@ -806,13 +814,17 @@ export function ConversationView({ viewModel, animateActiveExchange }: Conversat
 							onDismiss={onDismissContextWarning}
 						/>
 					) : null}
-					{!isSharedView && !contextWarning ? (
-						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
-							<TipOrNotifyBanner />
+					{(!isSharedView && !contextWarning) || queuedPrompts.length > 0 ? (
+						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-30 flex flex-col gap-2">
+							{!isSharedView && !contextWarning ? <TipOrNotifyBanner /> : null}
+							<QueuedPromptStack queuedPrompts={queuedPrompts} />
 						</div>
 					) : null}
 					<PromptInput
 						handleSubmit={handleSubmit}
+						draftValue={draftValue}
+						setDraftValue={setDraftValue}
+						enqueuePrompt={enqueuePrompt}
 						promptInputRef={promptInputRef}
 						isPending={isStreaming}
 						handleStopRequest={handleStopRequest}
