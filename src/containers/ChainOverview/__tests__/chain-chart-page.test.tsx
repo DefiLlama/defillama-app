@@ -111,4 +111,18 @@ describe('chart/chain/[chain]', () => {
 
 		expect(mocks.useFetchChainChartData.mock.calls[0][0].extraTvlCharts).toBe(extraTvlCharts)
 	})
+
+	it('passes fee include query params through to the chart data hook', () => {
+		mocks.routerState.query = {
+			include_bribes_in_fees: 'true',
+			include_tokentax_in_fees: 'false'
+		}
+
+		renderToStaticMarkup(<ChainChartPage {...createProps(makeExtraTvlCharts())} />)
+
+		expect(mocks.useFetchChainChartData.mock.calls[0][0].feesSettings).toEqual({
+			bribes: true,
+			tokentax: false
+		})
+	})
 })

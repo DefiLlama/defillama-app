@@ -22,6 +22,12 @@ import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapter
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import {
+	FEE_EXTRA_METRIC_LABEL as FEES_EXTRA_METRIC_LABEL,
+	getEnabledFeeExtraDataTypes,
+	isFeeExtraEligibleAdapterMetric,
+	type FeeExtraMetric as FeesExtraMetric
+} from '~/metrics/feeExtras'
 import { slug } from '~/utils'
 import { getErrorMessage, normalizeError } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
@@ -79,13 +85,6 @@ const CHART_VIEW_MODE_OPTIONS = [
 	{ key: 'Breakdown', name: 'Breakdown' }
 ] as const
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
-const FEES_CHART_NAMES = new Set(['Fees', 'Revenue', 'Holders Revenue'])
-const FEES_EXTRA_METRIC_LABEL = {
-	dailyBribesRevenue: 'Bribes Revenue',
-	dailyTokenTaxes: 'Token Tax'
-} as const
-
-type FeesExtraMetric = keyof typeof FEES_EXTRA_METRIC_LABEL
 type FeesChartMode = { kind: 'plain' } | { kind: 'fees'; extras: FeesExtraMetric[] }
 type BreakdownChartDataState =
 	| { kind: 'loading' }
@@ -103,22 +102,20 @@ function assertNever(value: never): never {
 
 function getFeesChartMode({
 	adapterType,
-	chartName,
+	dataType,
 	bribes,
 	tokentax
 }: {
 	adapterType: `${ADAPTER_TYPES}`
-	chartName: string
+	dataType: IAdapterByChainPageData['dataType']
 	bribes: boolean
 	tokentax: boolean
 }): FeesChartMode {
-	if (adapterType !== 'fees' || !FEES_CHART_NAMES.has(chartName)) {
+	if (!isFeeExtraEligibleAdapterMetric({ adapterType, dataType })) {
 		return { kind: 'plain' }
 	}
 
-	const extras: FeesExtraMetric[] = []
-	if (bribes) extras.push('dailyBribesRevenue')
-	if (tokentax) extras.push('dailyTokenTaxes')
+	const extras = getEnabledFeeExtraDataTypes({ bribes, tokentax })
 	if (extras.length === 0) {
 		return { kind: 'plain' }
 	}
@@ -213,11 +210,11 @@ export const AdapterByChainChart = ({
 		() =>
 			getFeesChartMode({
 				adapterType,
-				chartName,
+				dataType,
 				bribes: feesSettings.bribes,
 				tokentax: feesSettings.tokentax
 			}),
-		[adapterType, chartName, feesSettings.bribes, feesSettings.tokentax]
+		[adapterType, dataType, feesSettings.bribes, feesSettings.tokentax]
 	)
 
 	const combinedChartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
@@ -295,7 +292,10 @@ export const AdapterByChainChart = ({
 			case 'fees':
 				return mergeSingleDimensionChartDataset({
 					chartData,
-					extraCharts: [combinedBribesChart ?? [], combinedTokenTaxChart ?? []]
+					extraCharts: [
+						feesChartMode.extras.includes('dailyBribesRevenue') ? (combinedBribesChart ?? []) : [],
+						feesChartMode.extras.includes('dailyTokenTaxes') ? (combinedTokenTaxChart ?? []) : []
+					]
 				})
 			default:
 				return assertNever(feesChartMode)
@@ -924,11 +924,11 @@ export const ChainsByAdapterChart = ({
 		() =>
 			getFeesChartMode({
 				adapterType,
-				chartName,
+				dataType,
 				bribes: feesSettings.bribes,
 				tokentax: feesSettings.tokentax
 			}),
-		[adapterType, chartName, feesSettings.bribes, feesSettings.tokentax]
+		[adapterType, dataType, feesSettings.bribes, feesSettings.tokentax]
 	)
 	const chartState = React.useMemo(
 		() =>
@@ -997,7 +997,10 @@ export const ChainsByAdapterChart = ({
 			case 'fees':
 				return mergeNamedDimensionChartDataset({
 					chartData: currentChartData,
-					extraCharts: [bribesChartData ?? [], tokenTaxChartData ?? []]
+					extraCharts: [
+						feesChartMode.extras.includes('dailyBribesRevenue') ? (bribesChartData ?? []) : [],
+						feesChartMode.extras.includes('dailyTokenTaxes') ? (tokenTaxChartData ?? []) : []
+					]
 				})
 			default:
 				return assertNever(feesChartMode)

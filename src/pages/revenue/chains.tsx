@@ -1,3 +1,4 @@
+import { feesOptions } from '~/components/Filters/options'
 import { ChainsByAdapter } from '~/containers/AdapterMetrics/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import { getChainsByFeesAdapterPageData } from '~/containers/AdapterMetrics/queries'
@@ -32,6 +33,8 @@ const RevenueByChain = (props: IChainsByAdapterPageData) => {
 			title="DeFi Revenue by Chain - All Blockchains - DefiLlama"
 			description="Compare DeFi protocol revenue across all blockchains. Track actual revenue (fees retained) on Ethereum, Solana, Base, Arbitrum, and 150+ chains. Real-time blockchain revenue analytics by chain."
 			canonicalUrl={`/revenue/chains`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Revenue"
 			pageName={pageName}
 		>
 			<ChainsByAdapter {...props} type={type} />

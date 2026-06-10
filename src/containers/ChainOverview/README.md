@@ -69,6 +69,7 @@ Important rules:
 - Chain-native fee/revenue chart requests intentionally use the adapter protocol chart path with `entity=chain`.
 - Do not replace Chain Revenue with app revenue aggregation or vice versa.
 - REV is not currently a ChainOverview chart metric.
+- Bribes and token taxes are optional display add-ons for Chain Fees, Chain Revenue, App Fees, and App Revenue when the corresponding filter toggles are exposed. Chain-native labels use adapter protocol chain extras; app labels use adapter chain extras. `totalREV24h` is not adjusted by those toggles.
 
 ## TVL Notes
 

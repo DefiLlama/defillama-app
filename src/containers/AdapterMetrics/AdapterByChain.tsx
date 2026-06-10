@@ -30,6 +30,7 @@ import { chainCharts } from '~/containers/ChainOverview/constants'
 import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
+import { addFeeExtrasToRowTotals, hasEnabledFeeExtras, isFeeExtraEligibleAdapterMetric } from '~/metrics/feeExtras'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, getAnnualizedRatio } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
@@ -133,93 +134,37 @@ export function AdapterByChain(props: IProps) {
 						? getProtocolsByCategory(props.protocols, categoriesToFilter)
 						: props.protocols
 
-		// Helper to safely add values, preserving null when no extras
-		const addValues = (base: number | null, extra: number): number | null =>
-			base != null ? base + extra : extra !== 0 ? extra : null
+		const finalProtocols = isFeeExtraEligibleAdapterMetric({ adapterType: props.adapterType, dataType: props.dataType })
+			? protocols.map((p) => {
+					const adjustedProtocol = addFeeExtrasToRowTotals(p, enabledSettings)
+					const pfOrPs =
+						adjustedProtocol.mcap != null && adjustedProtocol.total30d != null
+							? getAnnualizedRatio(adjustedProtocol.mcap, adjustedProtocol.total30d)
+							: null
 
-		const finalProtocols =
-			props.adapterType === 'fees'
-				? protocols.map((p) => {
-						// Always calculate pfOrPs for fees pages (P/F, P/S)
-						// Use null-safe math: if base is null and no extras, result stays null
-						const baseTotal30d = p.total30d
-						const extra30d =
-							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
-							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
-						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d !== 0 ? extra30d : null
+					const childProtocols: IProtocol['childProtocols'] =
+						p.childProtocols && hasEnabledFeeExtras(enabledSettings)
+							? p.childProtocols.map((cp) => {
+									const adjustedChildProtocol = addFeeExtrasToRowTotals(cp, enabledSettings)
+									const cpPfOrPs =
+										adjustedChildProtocol.mcap != null && adjustedChildProtocol.total30d != null
+											? getAnnualizedRatio(adjustedChildProtocol.mcap, adjustedChildProtocol.total30d)
+											: null
 
-						const pfOrPs = p.mcap != null && total30d != null ? getAnnualizedRatio(p.mcap, total30d) : null
+									return {
+										...adjustedChildProtocol,
+										pfOrPs: cpPfOrPs
+									}
+								})
+							: p.childProtocols
 
-						// Only aggregate child protocols when bribes/tokentax is enabled
-						const childProtocols: IProtocol['childProtocols'] =
-							p.childProtocols && (enabledSettings.bribes || enabledSettings.tokentax)
-								? p.childProtocols.map((cp) => {
-										const cpBaseTotal30d = cp.total30d
-										const cpExtra30d =
-											(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
-										const cpTotal30d =
-											cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
-
-										const cpPfOrPs =
-											cp.mcap != null && cpTotal30d != null ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
-
-										return {
-											...cp,
-											total24h: addValues(
-												cp.total24h,
-												(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
-													(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0)
-											),
-											total7d: addValues(
-												cp.total7d,
-												(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
-													(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0)
-											),
-											total30d: cpTotal30d,
-											total1y: addValues(
-												cp.total1y,
-												(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
-													(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0)
-											),
-											totalAllTime: addValues(
-												cp.totalAllTime,
-												(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
-													(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0)
-											),
-											pfOrPs: cpPfOrPs
-										}
-									})
-								: p.childProtocols
-
-						return {
-							...p,
-							total24h: addValues(
-								p.total24h,
-								(enabledSettings.bribes ? (p.bribes?.total24h ?? 0) : 0) +
-									(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0)
-							),
-							total7d: addValues(
-								p.total7d,
-								(enabledSettings.bribes ? (p.bribes?.total7d ?? 0) : 0) +
-									(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0)
-							),
-							total30d,
-							total1y: addValues(
-								p.total1y,
-								(enabledSettings.bribes ? (p.bribes?.total1y ?? 0) : 0) +
-									(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0)
-							),
-							totalAllTime: addValues(
-								p.totalAllTime,
-								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
-									(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0)
-							),
-							pfOrPs,
-							...(childProtocols ? { childProtocols } : {})
-						}
-					})
-				: protocols
+					return {
+						...adjustedProtocol,
+						pfOrPs,
+						...(childProtocols ? { childProtocols } : {})
+					}
+				})
+			: protocols
 
 		return {
 			selectedCategories,
@@ -232,8 +177,8 @@ export function AdapterByChain(props: IProps) {
 		props.categories,
 		props.protocols,
 		props.adapterType,
-		enabledSettings.bribes,
-		enabledSettings.tokentax
+		props.dataType,
+		enabledSettings
 	])
 
 	const [sorting, setSorting] = useState<SortingState>(defaultSortingByType[props.type] ?? defaultSortingByType.default)

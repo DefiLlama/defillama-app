@@ -13,6 +13,7 @@ import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { isTrueQueryParam } from '~/utils/routerQuery'
 
 const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
 
@@ -116,7 +117,7 @@ export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 
 		const feesSettings = {}
 		for (const setting in FEES_SETTINGS) {
-			feesSettings[FEES_SETTINGS[setting]] = queryParams[`include_${FEES_SETTINGS[setting]}_in_fees`]
+			feesSettings[FEES_SETTINGS[setting]] = isTrueQueryParam(queryParams[`include_${FEES_SETTINGS[setting]}_in_fees`])
 		}
 
 		return {

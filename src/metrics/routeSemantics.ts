@@ -1,6 +1,8 @@
 import type { ChainNativeFeeRevenueMetric, ChainOverviewFeeRevenueMetric } from './definitions'
 import { feeRevenueMetrics } from './feesRevenue'
 
+const CHAIN_NATIVE_FEE_EXTRA_DATA_TYPES = new Set(['dailyBribesRevenue', 'dailyTokenTaxes'])
+
 export function getFeeRevenueChainChartApiParams({
 	metric,
 	chain
@@ -42,4 +44,14 @@ export function getChainNativeFeeRevenueMetricForAdapterProtocol({
 	if (!dataType || dataType === 'dailyFees') return feeRevenueMetrics.chainFees
 	if (dataType === 'dailyRevenue') return feeRevenueMetrics.chainRevenue
 	return null
+}
+
+export function isChainNativeFeeExtraForAdapterProtocol({
+	adapterType,
+	dataType
+}: {
+	adapterType: string
+	dataType: string | undefined
+}): boolean {
+	return adapterType === 'fees' && dataType != null && CHAIN_NATIVE_FEE_EXTRA_DATA_TYPES.has(dataType)
 }

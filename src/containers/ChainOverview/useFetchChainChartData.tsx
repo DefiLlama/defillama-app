@@ -5,6 +5,7 @@ import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
+import { FEE_EXTRA_DATA_TYPES_BY_SETTING, mergeFeeExtraSeries, type FeeExtraSettings } from '~/metrics/feeExtras'
 import { feeRevenueMetrics } from '~/metrics/feesRevenue'
 import { getFeeRevenueChainChartApiParams } from '~/metrics/routeSemantics'
 import { fetchJson } from '~/utils/async'
@@ -30,6 +31,7 @@ const chainFeesMetric = feeRevenueMetrics.chainFees
 const chainRevenueMetric = feeRevenueMetrics.chainRevenue
 const appFeesMetric = feeRevenueMetrics.appFees
 const appRevenueMetric = feeRevenueMetrics.appRevenue
+const EMPTY_FEE_EXTRA_CHART: Array<[number, number]> = []
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -38,6 +40,7 @@ export const useFetchChainChartData = ({
 	tvlChartSummary,
 	extraTvlCharts,
 	tvlSettings,
+	feesSettings,
 	chainGeckoId,
 	toggledCharts,
 	groupBy
@@ -53,6 +56,7 @@ export const useFetchChainChartData = ({
 	}
 	extraTvlCharts: Record<string, Record<string, number>>
 	tvlSettings: Record<string, boolean>
+	feesSettings: FeeExtraSettings
 	chainGeckoId?: string
 	toggledCharts: Array<ChainChartLabels>
 	groupBy: ChartTimeGroupingWithCumulative
@@ -195,6 +199,86 @@ export const useFetchChainChartData = ({
 		enabled: isChainAppRevenueEnabled
 	})
 
+	const isChainNativeFeeChartEnabled = isChainFeesEnabled || isChainRevenueEnabled
+	const isAppFeeChartEnabled = isChainAppFeesEnabled || isChainAppRevenueEnabled
+
+	const { data: chainNativeBribesDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingChainNativeBribes } = useQuery<
+		Array<[number, number]>
+	>({
+		queryKey: ['chain-overview', 'chain-native-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes, selectedChain],
+		queryFn: () =>
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: selectedChain,
+					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
+				})
+			).catch(() => []),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: !!feesSettings.bribes && isChainNativeFeeChartEnabled
+	})
+
+	const { data: chainNativeTokenTaxDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingChainNativeTokenTax } =
+		useQuery<Array<[number, number]>>({
+			queryKey: ['chain-overview', 'chain-native-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax, selectedChain],
+			queryFn: () =>
+				fetchJson<Array<[number, number]>>(
+					buildChainChartApiUrl({
+						kind: 'adapter-protocol',
+						entity: 'chain',
+						adapterType: 'fees',
+						protocol: selectedChain,
+						dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
+					})
+				).catch(() => []),
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0,
+			enabled: !!feesSettings.tokentax && isChainNativeFeeChartEnabled
+		})
+
+	const { data: appBribesDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingAppBribes } = useQuery<
+		Array<[number, number]>
+	>({
+		queryKey: ['chain-overview', 'app-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes, selectedChain],
+		queryFn: () =>
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'fees',
+					chain: selectedChain,
+					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
+				})
+			).catch(() => []),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: !!feesSettings.bribes && isAppFeeChartEnabled
+	})
+
+	const { data: appTokenTaxDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingAppTokenTax } = useQuery<
+		Array<[number, number]>
+	>({
+		queryKey: ['chain-overview', 'app-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax, selectedChain],
+		queryFn: () =>
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'fees',
+					chain: selectedChain,
+					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
+				})
+			).catch(() => []),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: !!feesSettings.tokentax && isAppFeeChartEnabled
+	})
+
 	const { data: stablecoinsChartData = null, isLoading: fetchingStablecoinsChartDataByChain } =
 		useGetStabelcoinsChartDataByChain(toggledChartsSet.has('Stablecoins Mcap') ? selectedChain : null)
 
@@ -316,6 +400,13 @@ export const useFetchChainChartData = ({
 		return buildChainTvlChartState({ tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs })
 	}, [tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs])
 
+	const enabledChainNativeBribesDataChart = feesSettings.bribes ? chainNativeBribesDataChart : EMPTY_FEE_EXTRA_CHART
+	const enabledChainNativeTokenTaxDataChart = feesSettings.tokentax
+		? chainNativeTokenTaxDataChart
+		: EMPTY_FEE_EXTRA_CHART
+	const enabledAppBribesDataChart = feesSettings.bribes ? appBribesDataChart : EMPTY_FEE_EXTRA_CHART
+	const enabledAppTokenTaxDataChart = feesSettings.tokentax ? appTokenTaxDataChart : EMPTY_FEE_EXTRA_CHART
+
 	const chartData = useMemo(() => {
 		const charts: { [key in ChainChartLabels]?: Array<[number, number]> } = {}
 
@@ -346,6 +437,10 @@ export const useFetchChainChartData = ({
 
 		if (fetchingChainAppRevenue) {
 			loadingCharts.push(appRevenueMetric.label)
+		}
+
+		if (fetchingChainNativeBribes || fetchingChainNativeTokenTax || fetchingAppBribes || fetchingAppTokenTax) {
+			loadingCharts.push('fee extras')
 		}
 
 		if (fetchingInflowsChartData) {
@@ -405,8 +500,12 @@ export const useFetchChainChartData = ({
 
 		if (isChainFeesEnabled && chainFeesDataChart) {
 			const chartName: ChainChartLabels = chainFeesMetric.label
+			const data = mergeFeeExtraSeries({
+				base: chainFeesDataChart,
+				extraCharts: [enabledChainNativeBribesDataChart, enabledChainNativeTokenTaxDataChart]
+			})
 			charts[chartName] = formatBarChart({
-				data: chainFeesDataChart,
+				data,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
@@ -414,8 +513,12 @@ export const useFetchChainChartData = ({
 
 		if (isChainRevenueEnabled && chainRevenueDataChart) {
 			const chartName: ChainChartLabels = chainRevenueMetric.label
+			const data = mergeFeeExtraSeries({
+				base: chainRevenueDataChart,
+				extraCharts: [enabledChainNativeBribesDataChart, enabledChainNativeTokenTaxDataChart]
+			})
 			charts[chartName] = formatBarChart({
-				data: chainRevenueDataChart,
+				data,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
@@ -441,8 +544,12 @@ export const useFetchChainChartData = ({
 
 		if (isChainAppFeesEnabled && chainAppFeesDataChart) {
 			const chartName: ChainChartLabels = appFeesMetric.label
+			const data = mergeFeeExtraSeries({
+				base: chainAppFeesDataChart,
+				extraCharts: [enabledAppBribesDataChart, enabledAppTokenTaxDataChart]
+			})
 			charts[chartName] = formatBarChart({
-				data: chainAppFeesDataChart,
+				data,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
@@ -450,8 +557,12 @@ export const useFetchChainChartData = ({
 
 		if (isChainAppRevenueEnabled && chainAppRevenueDataChart) {
 			const chartName: ChainChartLabels = appRevenueMetric.label
+			const data = mergeFeeExtraSeries({
+				base: chainAppRevenueDataChart,
+				extraCharts: [enabledAppBribesDataChart, enabledAppTokenTaxDataChart]
+			})
 			charts[chartName] = formatBarChart({
-				data: chainAppRevenueDataChart,
+				data,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
@@ -633,6 +744,14 @@ export const useFetchChainChartData = ({
 		fetchingChainAppRevenue,
 		isChainAppRevenueEnabled,
 		chainAppRevenueDataChart,
+		fetchingChainNativeBribes,
+		fetchingChainNativeTokenTax,
+		fetchingAppBribes,
+		fetchingAppTokenTax,
+		enabledChainNativeBribesDataChart,
+		enabledChainNativeTokenTaxDataChart,
+		enabledAppBribesDataChart,
+		enabledAppTokenTaxDataChart,
 		isTokenPriceEnabled,
 		isTokenMcapEnabled,
 		isTokenVolumeEnabled,

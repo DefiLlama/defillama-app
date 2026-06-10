@@ -6,7 +6,10 @@ import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import type { ChainNativeFeeRevenueMetric } from '~/metrics/definitions'
-import { getChainNativeFeeRevenueMetricForAdapterProtocol } from '~/metrics/routeSemantics'
+import {
+	getChainNativeFeeRevenueMetricForAdapterProtocol,
+	isChainNativeFeeExtraForAdapterProtocol
+} from '~/metrics/routeSemantics'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -49,6 +52,13 @@ async function resolveCanonicalChainNativeFeeRevenueProtocolParam(
 	return chainRoute?.metadata[metric.metadataFlag] ? chainRoute.canonicalName : null
 }
 
+async function resolveCanonicalChainNativeFeeExtraProtocolParam(chain: string): Promise<string | null> {
+	if (chain.toLowerCase() === 'all') return null
+	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const chainRoute = await resolveChainParam(chain)
+	return chainRoute?.metadata.chainFees || chainRoute?.metadata.chainRevenue ? chainRoute.canonicalName : null
+}
+
 async function resolveCanonicalAdapterProtocolParam(
 	protocol: string,
 	adapterType: string,
@@ -56,10 +66,16 @@ async function resolveCanonicalAdapterProtocolParam(
 	entity: string | undefined
 ): Promise<string | null> {
 	const chainNativeFeeRevenueMetric = getChainNativeFeeRevenueMetricForAdapterProtocol({ adapterType, dataType })
+	const isChainNativeFeeExtra = isChainNativeFeeExtraForAdapterProtocol({ adapterType, dataType })
 
 	if (entity === 'chain') {
-		if (!chainNativeFeeRevenueMetric) return null
-		return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+		if (chainNativeFeeRevenueMetric) {
+			return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+		}
+		if (isChainNativeFeeExtra) {
+			return resolveCanonicalChainNativeFeeExtraProtocolParam(protocol)
+		}
+		return null
 	}
 
 	const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
@@ -67,8 +83,13 @@ async function resolveCanonicalAdapterProtocolParam(
 	if (entity === 'protocol') return null
 	// Stale clients may omit entity; keep the fallback narrow so app metrics and
 	// unknown values still fail route-cache validation before reaching upstream.
-	if (!chainNativeFeeRevenueMetric) return null
-	return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+	if (chainNativeFeeRevenueMetric) {
+		return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+	}
+	if (isChainNativeFeeExtra) {
+		return resolveCanonicalChainNativeFeeExtraProtocolParam(protocol)
+	}
+	return null
 }
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {

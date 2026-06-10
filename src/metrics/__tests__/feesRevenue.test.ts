@@ -3,7 +3,8 @@ import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/c
 import { feeRevenueMetrics, shouldFetchChainOverviewFeeRevenueMetric } from '~/metrics/feesRevenue'
 import {
 	getChainNativeFeeRevenueMetricForAdapterProtocol,
-	getFeeRevenueChainChartApiParams
+	getFeeRevenueChainChartApiParams,
+	isChainNativeFeeExtraForAdapterProtocol
 } from '~/metrics/routeSemantics'
 
 describe('fee/revenue metric semantics', () => {
@@ -182,5 +183,32 @@ describe('fee/revenue metric semantics', () => {
 				dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME
 			})
 		).toBeNull()
+	})
+
+	it('allows only fee extras as chain-native adapter protocol overlays', () => {
+		expect(
+			isChainNativeFeeExtraForAdapterProtocol({
+				adapterType: ADAPTER_TYPES.FEES,
+				dataType: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE
+			})
+		).toBe(true)
+		expect(
+			isChainNativeFeeExtraForAdapterProtocol({
+				adapterType: ADAPTER_TYPES.FEES,
+				dataType: ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES
+			})
+		).toBe(true)
+		expect(
+			isChainNativeFeeExtraForAdapterProtocol({
+				adapterType: ADAPTER_TYPES.FEES,
+				dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES
+			})
+		).toBe(false)
+		expect(
+			isChainNativeFeeExtraForAdapterProtocol({
+				adapterType: ADAPTER_TYPES.DEXS,
+				dataType: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE
+			})
+		).toBe(false)
 	})
 })

@@ -358,6 +358,7 @@ export function mergeSingleDimensionChartDataset({
 }): MultiSeriesChart2Dataset {
 	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 	assert(chartData.dimensions.length === 2, 'Expected a single chart dimension')
+	if (extraCharts.every((chart) => chart.length === 0)) return chartData
 
 	const dimension = chartData.dimensions[1]
 	const rows = new Map<number, number | null>()
@@ -526,6 +527,7 @@ export function mergeNamedDimensionChartDataset({
 	extraCharts: Array<Array<[number, Record<string, number>]>>
 }): MultiSeriesChart2Dataset {
 	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
+	if (extraCharts.every((chart) => chart.length === 0)) return chartData
 
 	const dimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
 	const rows = new Map<number, Record<string, number | null>>()
