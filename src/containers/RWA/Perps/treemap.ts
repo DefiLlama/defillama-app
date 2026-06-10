@@ -59,7 +59,7 @@ function blendColor(hex: string, ratio: number): string {
 	const { r, g, b } = hexToRgb(hex)
 	const target = 255
 	const mix = (channel: number) => Math.round(channel + (target - channel) * ratio)
-	return `rgb(${mix(r)} ${mix(g)} ${mix(b)})`
+	return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`
 }
 
 function deriveChildColors(parentColor: string, count: number): string[] {
