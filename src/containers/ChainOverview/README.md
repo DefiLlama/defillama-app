@@ -76,7 +76,8 @@ ChainOverview receives base and extra TVL chart data from the chain chart API an
 
 Be careful with:
 
-- `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `doublecounted`, `liquidstaking`, and `dcAndLsOverlap`
+- TVL chart keys such as `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `doublecounted`, and `liquidstaking`
+- `dcAndLsOverlap` is not a toggle key. It is overlap adjustment data used when both `doublecounted` and `liquidstaking` are included so the shared TVL is not added twice.
 - local storage namespace differences such as `tvl` and `tvl_chains`
 - chain chart behavior versus protocol table TVL behavior
 
