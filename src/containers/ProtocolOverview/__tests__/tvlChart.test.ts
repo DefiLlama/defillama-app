@@ -19,8 +19,6 @@ describe('ProtocolOverview TVL chart helpers', () => {
 					staking: 1,
 					borrowed: 1,
 					pool2: 1,
-					doublecounted: 1,
-					liquidstaking: 1,
 					vesting: 1,
 					govtokens: 1
 				},
@@ -56,8 +54,6 @@ describe('ProtocolOverview TVL chart helpers', () => {
 					staking: 1,
 					borrowed: 1,
 					pool2: 1,
-					doublecounted: 1,
-					liquidstaking: 1,
 					vesting: 1
 				},
 				tvlSettings: {
@@ -77,8 +73,8 @@ describe('ProtocolOverview TVL chart helpers', () => {
 			staking: true,
 			borrowed: true,
 			pool2: true,
-			doublecounted: true,
-			liquidstaking: true,
+			doublecounted: false,
+			liquidstaking: false,
 			vesting: true,
 			govtokens: false
 		})
@@ -116,25 +112,6 @@ describe('ProtocolOverview TVL chart helpers', () => {
 			[toMs(DAY), 160],
 			[toMs(DAY * 2), 280]
 		])
-	})
-
-	it('adds double counted and liquid staking extras without subtracting overlap', () => {
-		const extraTvlCharts = buildExtraTvlCharts({
-			doublecounted: [[DAY, 30]],
-			liquidstaking: [[DAY, 40]],
-			dcAndLsOverlap: [[DAY, 10]]
-		})
-
-		expect(
-			buildTvlChart({
-				tvlChartData: [[DAY, 100]],
-				extraTvlCharts,
-				tvlSettings: { doublecounted: true, liquidstaking: true },
-				currentTvlByChain: { doublecounted: 1, liquidstaking: 1, dcAndLsOverlap: 1 },
-				groupBy: 'cumulative',
-				denominationPriceHistory: null
-			})
-		).toEqual([[toMs(DAY), 170]])
 	})
 
 	it('aligns the latest base TVL timestamp to a nearby latest extra TVL timestamp', () => {

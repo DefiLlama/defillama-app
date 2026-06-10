@@ -159,10 +159,8 @@ TVL is not currently a single global metric implementation. The app has multiple
 Common terms:
 
 - base TVL
-- extra TVL: staking, borrowed, pool2, vesting, govtokens
-- double counted TVL
-- liquid staking TVL
-- `dcAndLsOverlap`, the overlap between double counted and liquid staking TVL
+- extra TVL setting keys: staking, borrowed, pool2, vesting, govtokens, doublecounted, and liquidstaking
+- `dcAndLsOverlap`: not a setting key; this is overlap adjustment data for the shared portion of double counted and liquid staking TVL
 
 Important files:
 

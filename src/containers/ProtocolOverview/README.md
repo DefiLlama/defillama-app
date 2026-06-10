@@ -93,6 +93,10 @@ Current behavior to preserve before refactoring:
 - Latest base TVL and extra TVL timestamps can be aligned when they are close.
 - Denominated charts drop points when the selected denomination price is missing for the retained timestamp.
 
+`useFinalTVL` reads the `tvl_fees` local storage namespace. That namespace uses the same TVL setting keys as `tvl` and additionally carries fee options such as `bribes` and `tokentax` for adapter-metric totals. `bribes` and `tokentax` should expose fee controls without changing TVL aggregation.
+
+Do not model chain overlap adjustment as a ProtocolOverview setting. `dcAndLsOverlap` is chain TVL overlap data, not a toggle key, and ProtocolOverview summary tests should not fabricate `*-doublecounted`, `*-liquidstaking`, or `*-dcAndLsOverlap` chain entries unless the upstream protocol page payload changes.
+
 Prefer a local `ProtocolOverview` helper if this code needs extraction. Do not start with a global TVL registry.
 
 ## Chart Notes
