@@ -194,7 +194,12 @@ describe('formatMetricValue', () => {
 
 	it('scales decimal pct_change columns to percent', () => {
 		expect(formatMetricValue('tvl_30d_pct_change', -0.1322)).toBe('-13.22%')
-		expect(formatMetricValue('mcap_7d_pct', 0.05)).toBe('5%')
+	})
+
+	it('treats windowed _pct aliases as already ×100 in SQL, without re-scaling', () => {
+		expect(formatMetricValue('tvl_30d_pct', 34.28)).toBe('34.28%')
+		expect(formatMetricValue('tvl_7d_pct', -1.91)).toBe('-1.91%')
+		expect(formatMetricValue('mcap_7d_pct', 5)).toBe('5%')
 	})
 
 	it('scales top-10 holder concentration from a 0–1 decimal to percent', () => {
