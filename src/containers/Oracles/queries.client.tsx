@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import * as React from 'react'
-import { getExtraTvlSeriesSign, shouldSubtractTvlOverlapSeries } from '~/containers/tvlOverlap'
+import { getExtraTvlSeriesSign, shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 import {
 	fetchOracleChainProtocolBreakdownChart,
 	fetchOracleProtocolBreakdownChart,
