@@ -1,5 +1,6 @@
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
+import { hasTvlOverlapParents } from '~/utils/tvl'
 
 export interface ChainTvlChartSummary {
 	totalValueUSD: number | null
@@ -25,7 +26,6 @@ export function applyChainTvlChartSettings({
 		return null
 	}
 
-	const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 	const store: Record<string, number> = {}
 	for (const [date, tvl] of tvlChart) {
 		let sum = tvl
@@ -35,7 +35,7 @@ export function applyChainTvlChartSettings({
 		store[date] = sum
 	}
 
-	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
+	if (hasTvlOverlapParents(toggledTvlSettings)) {
 		for (const date in store) {
 			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 		}

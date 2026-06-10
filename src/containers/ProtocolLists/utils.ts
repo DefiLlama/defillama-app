@@ -9,6 +9,50 @@ interface TvlEntry {
 	tvlPrevMonth: number
 }
 
+type TvlEntryKey = keyof TvlEntry
+type MutableTvlEntry = Record<TvlEntryKey, number | null>
+
+const TVL_ENTRY_KEYS: Array<TvlEntryKey> = ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth']
+const NON_ADDITIVE_TVL_KEYS = new Set(['doublecounted', 'liquidstaking'])
+
+function addTvlValue(
+	currentValue: number | null,
+	extraValue: number | null | undefined,
+	missingBaseMode: 'null' | 'zero'
+) {
+	if (extraValue == null) return currentValue
+	if (currentValue == null) return missingBaseMode === 'zero' ? extraValue : null
+	return currentValue + extraValue
+}
+
+function addEnabledProtocolExtraTvls({
+	base,
+	tvlRecord,
+	extraTvlsEnabled,
+	normalizeSettingKey,
+	missingBaseMode
+}: {
+	base: MutableTvlEntry
+	tvlRecord: Record<string, TvlEntry | undefined>
+	extraTvlsEnabled: Record<string, boolean>
+	normalizeSettingKey: boolean
+	missingBaseMode: 'null' | 'zero'
+}) {
+	for (const tvlKey in tvlRecord) {
+		const settingKey = normalizeSettingKey ? tvlKey.toLowerCase() : tvlKey
+		if (!extraTvlsEnabled[settingKey] || NON_ADDITIVE_TVL_KEYS.has(tvlKey)) continue
+
+		const entry = tvlRecord[tvlKey]
+		if (!entry) continue
+
+		for (const field of TVL_ENTRY_KEYS) {
+			base[field] = addTvlValue(base[field], entry[field], missingBaseMode)
+		}
+	}
+
+	return base
+}
+
 /**
  * Apply extraTvl toggles (staking, pool2, borrowed, etc.) to protocol TVL values.
  * `extraTvlsEnabled` comes from `useLocalStorageSettingsManager('tvl')`.
@@ -25,36 +69,23 @@ export function applyExtraTvl(
 	}
 > {
 	return protocols.map((protocol) => {
-		let finalTvl: number | null = protocol.tvl
-		let finalTvlPrevDay: number | null = protocol.tvlPrevDay ?? null
-		let finalTvlPrevWeek: number | null = protocol.tvlPrevWeek ?? null
-		let finalTvlPrevMonth: number | null = protocol.tvlPrevMonth ?? null
+		const tvlEntry = addEnabledProtocolExtraTvls({
+			base: {
+				tvl: protocol.tvl,
+				tvlPrevDay: protocol.tvlPrevDay ?? null,
+				tvlPrevWeek: protocol.tvlPrevWeek ?? null,
+				tvlPrevMonth: protocol.tvlPrevMonth ?? null
+			},
+			tvlRecord: protocol.extraTvl,
+			extraTvlsEnabled,
+			normalizeSettingKey: true,
+			missingBaseMode: 'zero'
+		})
 
-		for (const prop in protocol.extraTvl) {
-			const entry: TvlEntry | undefined = protocol.extraTvl[prop]
-			if (!entry) continue
-
-			const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = entry
-
-			// doublecounted/liquidstaking subtraction logic (applyLqAndDc=false for recent protocols)
-			// Not applied here since RecentProtocols doesn't use applyLqAndDc
-
-			// Add extra TVL if the toggle is enabled (convert key to lowercase for consistency)
-			if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
-				if (tvl != null) {
-					finalTvl = (finalTvl ?? 0) + tvl
-				}
-				if (tvlPrevDay != null) {
-					finalTvlPrevDay = (finalTvlPrevDay ?? 0) + tvlPrevDay
-				}
-				if (tvlPrevWeek != null) {
-					finalTvlPrevWeek = (finalTvlPrevWeek ?? 0) + tvlPrevWeek
-				}
-				if (tvlPrevMonth != null) {
-					finalTvlPrevMonth = (finalTvlPrevMonth ?? 0) + tvlPrevMonth
-				}
-			}
-		}
+		let finalTvl = tvlEntry.tvl
+		let finalTvlPrevDay = tvlEntry.tvlPrevDay
+		let finalTvlPrevWeek = tvlEntry.tvlPrevWeek
+		let finalTvlPrevMonth = tvlEntry.tvlPrevMonth
 
 		// Clamp negative values to 0
 		if (finalTvl != null && finalTvl < 0) finalTvl = 0
@@ -92,12 +123,7 @@ export const applyProtocolTvlSettings = ({
 	maxTvl: number | null
 }): IProtocol[] => {
 	type ProtocolTvlEntry = { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-	type MutableProtocolTvlEntry = {
-		tvl: number | null
-		tvlPrevDay: number | null
-		tvlPrevWeek: number | null
-		tvlPrevMonth: number | null
-	}
+	type MutableProtocolTvlEntry = MutableTvlEntry
 	const nullTvlEntry: MutableProtocolTvlEntry = { tvl: null, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: null }
 	const coerceTvlDefaults = (entry: MutableProtocolTvlEntry): ProtocolTvlEntry => ({
 		tvl: entry.tvl ?? 0,
@@ -119,31 +145,17 @@ export const applyProtocolTvlSettings = ({
 
 	if (!shouldModifyTvl) return protocols
 
-	const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
-		if (acc == null || value == null) return null
-		return acc + value
-	}
-
-	const getTvlEntry = (tvlRecord: Record<string, ProtocolTvlEntry>, key: string): ProtocolTvlEntry | undefined =>
-		tvlRecord[key]
-
 	const processTvl = (
 		tvlRecord: Record<string, ProtocolTvlEntry>,
 		base: MutableProtocolTvlEntry
-	): MutableProtocolTvlEntry => {
-		for (const tvlKey in tvlRecord) {
-			if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
-				const entry = getTvlEntry(tvlRecord, tvlKey)
-				if (entry) {
-					base.tvl = addOrNull(base.tvl, entry.tvl)
-					base.tvlPrevDay = addOrNull(base.tvlPrevDay, entry.tvlPrevDay)
-					base.tvlPrevWeek = addOrNull(base.tvlPrevWeek, entry.tvlPrevWeek)
-					base.tvlPrevMonth = addOrNull(base.tvlPrevMonth, entry.tvlPrevMonth)
-				}
-			}
-		}
-		return base
-	}
+	): MutableProtocolTvlEntry =>
+		addEnabledProtocolExtraTvls({
+			base,
+			tvlRecord,
+			extraTvlsEnabled,
+			normalizeSettingKey: false,
+			missingBaseMode: 'null'
+		})
 
 	const final: IProtocol[] = []
 	for (const protocol of protocols) {
