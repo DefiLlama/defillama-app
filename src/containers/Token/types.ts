@@ -33,6 +33,11 @@ export type TokenBorrowRoutesHydration = {
 	pageSize: number
 }
 
+export type TokenIssuer = {
+	name: string
+	slug: string
+}
+
 export type TokenPageSection =
 	| {
 			id: 'token-overview'
@@ -40,6 +45,7 @@ export type TokenPageSection =
 			overview: TokenOverviewData
 			geckoId: string | null
 			logo: string | null
+			issuer: TokenIssuer | null
 	  }
 	| {
 			id: 'token-markets'

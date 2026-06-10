@@ -26,6 +26,7 @@ import type { RiskTimelineResponse } from './tokenRiskTimeline.types'
 import type {
 	TokenBorrowRoutesHydration,
 	TokenIncomeStatementData,
+	TokenIssuer,
 	TokenPageSection,
 	TokenYieldsHydration
 } from './types'
@@ -111,6 +112,7 @@ export function getTokenPageSections({
 	resolvedUnlocksSlug,
 	yieldsSnapshot,
 	borrowRoutesSnapshot,
+	issuer,
 	overview
 }: {
 	record: TokenDirectoryRecord
@@ -128,6 +130,7 @@ export function getTokenPageSections({
 	resolvedUnlocksSlug: string | null
 	yieldsSnapshot: ReturnType<typeof buildInitialYieldsSnapshot>
 	borrowRoutesSnapshot: ReturnType<typeof buildInitialBorrowRoutesSnapshot>
+	issuer: TokenIssuer | null
 	overview: TokenOverviewData
 }): TokenPageSection[] {
 	const sections: TokenPageSection[] = [
@@ -136,7 +139,8 @@ export function getTokenPageSections({
 			label: 'Overview',
 			overview,
 			geckoId,
-			logo: record.logo ?? null
+			logo: record.logo ?? null,
+			issuer
 		}
 	]
 

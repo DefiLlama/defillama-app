@@ -244,6 +244,9 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				: null
 		const yieldsSnapshot = buildInitialYieldsSnapshot(yieldsRows)
 		const borrowRoutesSnapshot = buildInitialBorrowRoutesSnapshot(tokenBorrowRoutesData)
+		const issuerDisplayName = protocolMetadata?.displayName ?? protocolMetadata?.name ?? null
+		const issuer =
+			record.protocolId && issuerDisplayName ? { name: issuerDisplayName, slug: slug(issuerDisplayName) } : null
 		const sections = getTokenPageSections({
 			record,
 			geckoId,
@@ -256,12 +259,9 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			resolvedUnlocksSlug,
 			yieldsSnapshot,
 			borrowRoutesSnapshot,
+			issuer,
 			overview
 		})
-
-		const issuerDisplayName = protocolMetadata?.displayName ?? protocolMetadata?.name ?? null
-		const issuer: TokenIssuer | null =
-			record.protocolId && issuerDisplayName ? { name: issuerDisplayName, slug: slug(issuerDisplayName) } : null
 
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply, Trading Volume & Token Rights`
@@ -313,7 +313,12 @@ export const getStaticPaths = async () => {
 
 const TOKEN_SECTION_RENDERERS = {
 	'token-overview': ({ section }) => (
-		<TokenOverviewSection overview={section.overview} geckoId={section.geckoId} logo={section.logo} />
+		<TokenOverviewSection
+			overview={section.overview}
+			geckoId={section.geckoId}
+			logo={section.logo}
+			issuer={section.issuer}
+		/>
 	),
 	'token-markets': ({ section }) => <TokenMarketsSection tokenSymbol={section.tokenSymbol} />,
 	'token-income-statement': ({ section }) => (
