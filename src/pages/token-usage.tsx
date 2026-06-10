@@ -8,9 +8,10 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, Suspense, useMemo, useRef, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { ITreemapChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -22,10 +23,13 @@ import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
+import { buildTokenUsageTreemapTreeData } from '~/containers/TokenUsage/treemap'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
+
+const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 const pageName = ['Token', 'usage in', 'Protocols']
 
@@ -72,6 +76,15 @@ export default function Tokens() {
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
+	const treemapTreeData = useMemo(
+		() =>
+			buildTokenUsageTreemapTreeData(
+				filteredProtocols,
+				tokenSymbol ? `${tokenSymbol.toUpperCase()} usage` : 'Token usage'
+			),
+		[filteredProtocols, tokenSymbol]
+	)
+
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
 	const tableInstance = useReactTable({
 		data: filteredProtocols,
@@ -163,6 +176,18 @@ export default function Tokens() {
 								/>
 							</div>
 						</div>
+
+						{treemapTreeData.length > 0 ? (
+							<Suspense fallback={<div style={{ height: '480px' }} />}>
+								<TreemapChart
+									treeData={treemapTreeData}
+									variant="rwa"
+									height="480px"
+									valueLabel="Amount"
+									valueSymbol="$"
+								/>
+							</Suspense>
+						) : null}
 
 						<Suspense
 							fallback={
