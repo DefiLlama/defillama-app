@@ -14,7 +14,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { definitions } from '~/public/definitions'
 import { formatNum, formattedNum } from '~/utils'
@@ -24,6 +24,7 @@ import {
 	getProtocolCategoryDefaultSort,
 	getProtocolCategoryPresentation
 } from './constants'
+import { applyProtocolTaxonomyTvlSettings } from './tvl'
 import type { IProtocolTaxonomyPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -48,56 +49,17 @@ export function ProtocolTaxonomyPage(props: IProtocolTaxonomyPageData) {
 	const { finalProtocols, charts } = useMemo<{
 		finalProtocols: IProtocolTaxonomyPageData['protocols']
 		charts: IProtocolTaxonomyPageData['charts']
-	}>(() => {
-		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
-
-		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
-
-		const applyTvlSettings = (protocol: IProtocolTaxonomyPageData['protocols'][0]) => {
-			let tvl = protocol.tvl
-			for (const setting of toggledSettings) {
-				if (protocol.extraTvls[setting] == null) continue
-				tvl = (tvl ?? 0) + (protocol.extraTvls[setting] ?? 0)
-			}
-			const updated = { ...protocol, tvl }
-			if (updated.subRows?.length > 0) {
-				updated.subRows = updated.subRows.map(applyTvlSettings)
-			}
-			return updated
-		}
-
-		const finalProtocols = props.protocols.map(applyTvlSettings)
-
-		const shouldMirrorBorrowedChart = props.effectiveCategory === 'Lending' && toggledSettings.includes('borrowed')
-
-		const finalSource: IProtocolTaxonomyPageData['charts']['dataset']['source'] = props.charts.dataset.source.map(
-			(row) => {
-				const timestampKey = row.timestamp
-				const extraSum =
-					timestampKey == null
-						? 0
-						: toggledSettings.reduce((sum, e) => sum + (props.extraTvlCharts[e]?.[timestampKey] ?? 0), 0)
-				const currentTvlValue = typeof row.TVL === 'number' ? row.TVL : Number(row.TVL ?? 0)
-				const safeCurrentTvlValue = Number.isFinite(currentTvlValue) ? currentTvlValue : 0
-				const nextTvlValue = safeCurrentTvlValue + extraSum
-				const timestamp = row.timestamp
-
-				if (shouldMirrorBorrowedChart) {
-					return { ...row, timestamp, TVL: nextTvlValue, 'Active Loans': nextTvlValue }
-				}
-
-				return { ...row, timestamp, TVL: nextTvlValue }
-			}
-		)
-
-		return {
-			finalProtocols,
-			charts: {
-				...props.charts,
-				dataset: { ...props.charts.dataset, source: finalSource }
-			}
-		}
-	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts, props.effectiveCategory])
+	}>(
+		() =>
+			applyProtocolTaxonomyTvlSettings({
+				protocols: props.protocols,
+				charts: props.charts,
+				extraTvlCharts: props.extraTvlCharts,
+				tvlSettings,
+				effectiveCategory: props.effectiveCategory
+			}),
+		[tvlSettings, props.protocols, props.charts, props.extraTvlCharts, props.effectiveCategory]
+	)
 
 	const chartSeries = useMemo(() => charts.charts ?? [], [charts.charts])
 
