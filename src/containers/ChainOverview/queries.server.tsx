@@ -26,7 +26,10 @@ import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import {
 	FEE_EXTRA_DATA_TYPES_BY_SETTING,
+	FEE_EXTRA_TOTAL_FIELD_BY_SETTING,
+	FEE_EXTRA_TOTAL_KEYS,
 	hasAnyFeeExtraTotals,
+	type FeeExtraSetting,
 	type FeeExtraMetric,
 	type FeeExtraTotals
 } from '~/metrics/feeExtras'
@@ -113,13 +116,11 @@ export function hasRwaActiveMcapChain(rwaChains: string[] | null | undefined, ch
 
 function toFeeExtraTotals(data: FeeExtraTotals | null | undefined): FeeExtraTotals | null {
 	if (!data || !hasAnyFeeExtraTotals(data)) return null
-	return {
-		total24h: data.total24h ?? null,
-		total7d: data.total7d ?? null,
-		total30d: data.total30d ?? null,
-		total1y: data.total1y ?? null,
-		totalAllTime: data.totalAllTime ?? null
+	const totals: FeeExtraTotals = {}
+	for (const key of FEE_EXTRA_TOTAL_KEYS) {
+		totals[key] = data[key] ?? null
 	}
+	return totals
 }
 
 function getAdapterMetricFeeExtraTotals(
@@ -143,21 +144,13 @@ async function fetchChainNativeFeeExtraTotals({
 
 	return fetchAdapterChainMetrics({ adapterType: 'fees', chain: 'All', dataType })
 		.then((data) => {
-			const totals: FeeExtraTotals = {
-				total24h: null,
-				total7d: null,
-				total30d: null,
-				total1y: null,
-				totalAllTime: null
-			}
+			const totals: FeeExtraTotals = {}
 
 			for (const protocol of data.protocols) {
 				if (protocol.protocolType !== 'chain') continue
-				totals.total24h = (totals.total24h ?? 0) + (protocol.total24h ?? 0)
-				totals.total7d = (totals.total7d ?? 0) + (protocol.total7d ?? 0)
-				totals.total30d = (totals.total30d ?? 0) + (protocol.total30d ?? 0)
-				totals.total1y = (totals.total1y ?? 0) + (protocol.total1y ?? 0)
-				totals.totalAllTime = (totals.totalAllTime ?? 0) + (protocol.totalAllTime ?? 0)
+				for (const key of FEE_EXTRA_TOTAL_KEYS) {
+					totals[key] = (totals[key] ?? 0) + (protocol[key] ?? 0)
+				}
 			}
 
 			return toFeeExtraTotals(totals)
@@ -182,18 +175,17 @@ export function getChainOverviewMetricFilterOptions({
 }) {
 	const hasVisibleChainNativeFeeMetric = chainFees?.total24h != null || chainRevenue?.total24h != null
 	const hasVisibleAppFeeMetric = appRevenue?.total24h != null || appFees?.total24h != null
-	const hasBribes =
-		(hasVisibleChainNativeFeeMetric && hasAnyFeeExtraTotals(feeExtras.chainNative.bribes)) ||
-		(hasVisibleAppFeeMetric && hasAnyFeeExtraTotals(feeExtras.app.bribes))
-	const hasTokenTax =
-		(hasVisibleChainNativeFeeMetric && hasAnyFeeExtraTotals(feeExtras.chainNative.tokenTax)) ||
-		(hasVisibleAppFeeMetric && hasAnyFeeExtraTotals(feeExtras.app.tokenTax))
+	const hasFeeExtraOption = (setting: FeeExtraSetting) => {
+		const totalsKey = FEE_EXTRA_TOTAL_FIELD_BY_SETTING[setting]
+		return (
+			(hasVisibleChainNativeFeeMetric && hasAnyFeeExtraTotals(feeExtras.chainNative[totalsKey])) ||
+			(hasVisibleAppFeeMetric && hasAnyFeeExtraTotals(feeExtras.app[totalsKey]))
+		)
+	}
 
 	return [
 		...tvlOptions.filter((o) => chartData?.[o.key]?.length),
-		...feesOptions.filter((option) =>
-			option.key === 'bribes' ? hasBribes : option.key === 'tokentax' ? hasTokenTax : false
-		)
+		...feesOptions.filter((option) => hasFeeExtraOption(option.key))
 	]
 }
 

@@ -1,7 +1,8 @@
 import type { ChainNativeFeeRevenueMetric, ChainOverviewFeeRevenueMetric } from './definitions'
+import { FEE_EXTRA_DATA_TYPES_BY_SETTING } from './feeExtras'
 import { feeRevenueMetrics } from './feesRevenue'
 
-const CHAIN_NATIVE_FEE_EXTRA_DATA_TYPES = new Set(['dailyBribesRevenue', 'dailyTokenTaxes'])
+const CHAIN_NATIVE_FEE_EXTRA_DATA_TYPES = new Set<string>(Object.values(FEE_EXTRA_DATA_TYPES_BY_SETTING))
 
 export function getFeeRevenueChainChartApiParams({
 	metric,

@@ -8,6 +8,11 @@ export const FEE_EXTRA_METRIC_LABEL = {
 	dailyTokenTaxes: 'Token Tax'
 } as const
 
+export const FEE_EXTRA_TOTAL_FIELD_BY_SETTING = {
+	bribes: 'bribes',
+	tokentax: 'tokenTax'
+} as const
+
 const FEE_EXTRA_ELIGIBLE_DATA_TYPES = new Set<string>([
 	'dailyFees',
 	'dailyRevenue',
@@ -17,11 +22,12 @@ const FEE_EXTRA_ELIGIBLE_DATA_TYPES = new Set<string>([
 	'dailyEarnings'
 ])
 
-const FEE_TOTAL_KEYS = ['total24h', 'total7d', 'total30d', 'total1y', 'totalAllTime'] as const
+export const FEE_EXTRA_TOTAL_KEYS = ['total24h', 'total7d', 'total30d', 'total1y', 'totalAllTime'] as const
 
+export type FeeExtraSetting = keyof typeof FEE_EXTRA_DATA_TYPES_BY_SETTING
 export type FeeExtraMetric = keyof typeof FEE_EXTRA_METRIC_LABEL
-export type FeeExtraSettings = Partial<Record<keyof typeof FEE_EXTRA_DATA_TYPES_BY_SETTING, boolean>>
-export type FeeExtraTotals = Partial<Record<(typeof FEE_TOTAL_KEYS)[number], number | null>>
+export type FeeExtraSettings = Partial<Record<FeeExtraSetting, boolean>>
+export type FeeExtraTotals = Partial<Record<(typeof FEE_EXTRA_TOTAL_KEYS)[number], number | null>>
 export type RowWithFeeExtras = FeeExtraTotals & {
 	bribes?: FeeExtraTotals | null
 	tokenTax?: FeeExtraTotals | null
@@ -33,7 +39,7 @@ export function hasEnabledFeeExtras(settings: FeeExtraSettings) {
 
 export function hasAnyFeeExtraTotals(totals: FeeExtraTotals | null | undefined) {
 	if (!totals) return false
-	for (const key of FEE_TOTAL_KEYS) {
+	for (const key of FEE_EXTRA_TOTAL_KEYS) {
 		const value = totals[key]
 		if (value != null && value !== 0) return true
 	}
@@ -70,7 +76,7 @@ export function addFeeExtrasToRowTotals<T extends RowWithFeeExtras>(row: T, sett
 	if (!hasEnabledFeeExtras(settings)) return row
 
 	const next = { ...row }
-	for (const key of FEE_TOTAL_KEYS) {
+	for (const key of FEE_EXTRA_TOTAL_KEYS) {
 		next[key] = addOptionalFeeExtraTotal(row[key], getFeeExtraTotal(row, key, settings))
 	}
 
