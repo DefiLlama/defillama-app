@@ -1,16 +1,20 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useFinalTVL, getAdjustedTotals } from '../helpers'
 import type { IProtocolOverviewPageData } from '../types'
 
 let tvlFeesSettings: Record<string, boolean> = {}
+let localStorageSettingKeys: string[] = []
 
 vi.mock('~/contexts/LocalStorage', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('~/contexts/LocalStorage')>()
 	return {
 		...actual,
-		useLocalStorageSettingsManager: () => [tvlFeesSettings]
+		useLocalStorageSettingsManager: (settingsKey: string) => {
+			localStorageSettingKeys.push(settingsKey)
+			return [tvlFeesSettings]
+		}
 	}
 })
 
@@ -47,6 +51,11 @@ function getFinalTvlResult(props: IProtocolOverviewPageData) {
 	if (result == null) throw new Error('Final TVL probe did not render')
 	return result
 }
+
+beforeEach(() => {
+	tvlFeesSettings = {}
+	localStorageSettingKeys = []
+})
 
 describe('getAdjustedTotals', () => {
 	it('includes enabled trailing 12-month extra revenue when base trailing 12-month revenue is missing', () => {
@@ -95,36 +104,29 @@ describe('getAdjustedTotals', () => {
 })
 
 describe('useFinalTVL', () => {
-	it('adds enabled protocol overview TVL suffix extras while preserving non-setting suffixes', () => {
-		tvlFeesSettings = { staking: true, doublecounted: true, liquidstaking: true }
+	it('adds enabled protocol overview TVL suffix extras while preserving chain hyphen suffixes', () => {
+		tvlFeesSettings = { staking: true, pool2: true, borrowed: false }
 
 		const result = getFinalTvlResult({
 			...baseProtocolOverviewData,
 			currentTvlByChain: {
 				Ethereum: 100,
 				'Arbitrum-staking': 20,
-				'Base-doublecounted': 30,
-				'Base-liquidstaking': 40,
-				'Base-dcAndLsOverlap': 25,
+				'Base-pool2': 30,
 				'OP-Mainnet': 7,
 				borrowed: 9
 			}
 		})
 
-		expect(result.tvl).toBe(222)
+		expect(localStorageSettingKeys).toEqual(['tvl_fees'])
+		expect(result.tvl).toBe(157)
 		expect(result.tvlByChain).toEqual([
 			['Ethereum', 100],
-			['Base', 70],
-			['Base-dcAndLsOverlap', 25],
+			['Base', 30],
 			['Arbitrum', 20],
 			['OP-Mainnet', 7]
 		])
-		expect(result.toggleOptions.map((option) => option.key)).toEqual([
-			'staking',
-			'doublecounted',
-			'liquidstaking',
-			'borrowed'
-		])
+		expect(result.toggleOptions.map((option) => option.key)).toEqual(['staking', 'pool2', 'borrowed'])
 	})
 
 	it('keeps disabled protocol overview TVL extras out of totals but exposes their toggle options', () => {
@@ -139,6 +141,7 @@ describe('useFinalTVL', () => {
 			}
 		})
 
+		expect(localStorageSettingKeys).toEqual(['tvl_fees'])
 		expect(result.tvl).toBe(100)
 		expect(result.tvlByChain).toEqual([['Ethereum', 100]])
 		expect(result.toggleOptions.map((option) => option.key)).toEqual(['staking', 'borrowed'])
@@ -156,25 +159,27 @@ describe('useFinalTVL', () => {
 			tokenTax: { total7d: 2 } as IProtocolOverviewPageData['tokenTax']
 		})
 
+		expect(localStorageSettingKeys).toEqual(['tvl_fees'])
 		expect(result.tvl).toBe(100)
 		expect(result.tvlByChain).toEqual([['Ethereum', 100]])
 		expect(result.toggleOptions.map((option) => option.key)).toEqual(['bribes', 'tokentax'])
 	})
 
 	it('applies tvl_fees TVL toggles to oracle TVS aggregation', () => {
-		tvlFeesSettings = { staking: true, liquidstaking: false }
+		tvlFeesSettings = { staking: true, pool2: false }
 
 		const result = getFinalTvlResult({
 			...baseProtocolOverviewData,
 			oracleTvs: {
 				Ethereum: 200,
 				'Ethereum-staking': 30,
-				'Ethereum-liquidstaking': 40
+				'Ethereum-pool2': 40
 			}
 		})
 
+		expect(localStorageSettingKeys).toEqual(['tvl_fees'])
 		expect(result.oracleTvs).toBe(230)
 		expect(result.oracleTvsByChain).toEqual([['Ethereum', 230]])
-		expect(result.toggleOptions.map((option) => option.key)).toEqual(['staking', 'liquidstaking'])
+		expect(result.toggleOptions.map((option) => option.key)).toEqual(['staking', 'pool2'])
 	})
 })

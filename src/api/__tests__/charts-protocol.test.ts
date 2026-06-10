@@ -80,9 +80,13 @@ vi.mock('~/server/routeCache/protocols', () => ({
 	resolveProtocolParam: resolveProtocolParamMock
 }))
 
-vi.mock('~/utils/async', () => ({
-	fetchJson: fetchJsonMock
-}))
+vi.mock('~/utils/async', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('~/utils/async')>()
+	return {
+		...actual,
+		fetchJson: fetchJsonMock
+	}
+})
 
 vi.mock('~/utils/telemetry', () => ({
 	recordRouteRuntimeError: vi.fn(),
@@ -180,5 +184,28 @@ describe('/api/public/charts/protocol', () => {
 		expect(fetchProtocolTreasuryChartMock).not.toHaveBeenCalled()
 		expect(res.status).toHaveBeenCalledWith(404)
 		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+	})
+
+	it('falls back to CEX route cache entries for protocol chart requests', async () => {
+		resolveProtocolParamMock.mockResolvedValue(null)
+		resolveCexParamMock.mockResolvedValue({
+			canonicalSlug: 'binance',
+			id: 'cex-1',
+			metadata: { displayName: 'Binance' }
+		})
+		const req = {
+			method: 'GET',
+			query: { kind: 'tvl', protocol: 'Binance' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(resolveProtocolParamMock).toHaveBeenCalledWith('Binance')
+		expect(resolveCexParamMock).toHaveBeenCalledWith('Binance')
+		expect(fetchProtocolTvlChartMock).toHaveBeenCalledWith({ protocol: 'binance' })
+		expect(fetchProtocolTreasuryChartMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith([])
 	})
 })
