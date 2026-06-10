@@ -9,12 +9,16 @@ import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getCategoryRoute } from '~/constants'
-import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, getPercentChange, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
-import { categoriesPageExcludedExtraTvls } from './constants'
+import {
+	applyProtocolsCategoriesTvlSettings,
+	buildProtocolsCategoriesTvlCharts,
+	getEnabledProtocolsCategoriesTvls
+} from './tvl'
 import type { IProtocolsCategoriesChartData, IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
@@ -132,10 +136,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledTvls = React.useMemo(
-		() => TVL_SETTINGS_KEYS.filter((key) => extraTvlsEnabled[key] && !categoriesPageExcludedExtraTvls.has(key)),
-		[extraTvlsEnabled]
-	)
+	const enabledTvls = React.useMemo(() => getEnabledProtocolsCategoriesTvls(extraTvlsEnabled), [extraTvlsEnabled])
 	const enabledTvlsKey = enabledTvls.join(',')
 	const shouldFetchChartData = chartSource.length === 0
 	const chartDataQuery = useQuery({
@@ -159,80 +160,20 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	const categoriesExtraTvlCharts = chartDataQuery.data?.extraTvlCharts ?? extraTvlCharts
 
 	const finalCharts = React.useMemo(() => {
-		const selectedCategoriesSet = new Set(selectedCategories)
-		const filteredCategories = categories.filter((categoryName) => selectedCategoriesSet.has(categoryName))
-
-		const source: IProtocolsCategoriesPageData['chartSource'] = categoriesChartSource.map((row) => {
-			if (enabledTvls.length === 0) return row
-
-			const adjustedRow: IProtocolsCategoriesPageData['chartSource'][number] = {
-				timestamp: row.timestamp
-			}
-
-			for (const categoryName of filteredCategories) {
-				const baseValue = row[categoryName]
-				const safeBaseValue = typeof baseValue === 'number' ? baseValue : 0
-				const extraTvlValue = enabledTvls.reduce((sum, key) => {
-					return sum + (categoriesExtraTvlCharts[categoryName]?.[key]?.[row.timestamp] ?? 0)
-				}, 0)
-
-				adjustedRow[categoryName] = safeBaseValue + extraTvlValue
-			}
-
-			return adjustedRow
+		return buildProtocolsCategoriesTvlCharts({
+			categories,
+			categoryColors,
+			chartSource: categoriesChartSource,
+			extraTvlCharts: categoriesExtraTvlCharts,
+			selectedCategories,
+			enabledTvls
 		})
-
-		const dimensions = ['timestamp', ...filteredCategories]
-		const charts = filteredCategories.map((categoryName) => ({
-			type: 'line' as const,
-			name: categoryName,
-			encode: { x: 'timestamp', y: categoryName },
-			stack: 'stackA',
-			color: categoryColors[categoryName]
-		}))
-
-		return { dataset: { source, dimensions }, charts }
 	}, [categories, categoryColors, categoriesChartSource, enabledTvls, categoriesExtraTvlCharts, selectedCategories])
 	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 	const chartErrorMessage = chartDataQuery.error ? getErrorMessage(chartDataQuery.error) : null
 
 	const finalCategoriesList = React.useMemo(() => {
-		if (enabledTvls.length === 0) return tableData
-
-		const applyEnabledExtraTvls = (row: IProtocolsCategoriesTableRow): IProtocolsCategoriesTableRow => {
-			let tvl = row.tvl
-			let tvlPrevDay = row.tvlPrevDay
-			let tvlPrevWeek = row.tvlPrevWeek
-			let tvlPrevMonth = row.tvlPrevMonth
-
-			for (const extraTvlKey of enabledTvls) {
-				const extraTvl = row.extraTvls[extraTvlKey]
-				if (extraTvl == null) continue
-				tvl += extraTvl.tvl
-				tvlPrevDay += extraTvl.tvlPrevDay
-				tvlPrevWeek += extraTvl.tvlPrevWeek
-				tvlPrevMonth += extraTvl.tvlPrevMonth
-			}
-
-			const updatedRow: IProtocolsCategoriesTableRow = {
-				...row,
-				tvl,
-				tvlPrevDay,
-				tvlPrevWeek,
-				tvlPrevMonth,
-				change_1d: getPercentChange(tvl, tvlPrevDay),
-				change_7d: getPercentChange(tvl, tvlPrevWeek),
-				change_1m: getPercentChange(tvl, tvlPrevMonth)
-			}
-
-			if (row.subRows != null && row.subRows.length > 0) {
-				updatedRow.subRows = row.subRows.map(applyEnabledExtraTvls)
-			}
-
-			return updatedRow
-		}
-
-		return tableData.map(applyEnabledExtraTvls)
+		return applyProtocolsCategoriesTvlSettings({ tableData, enabledTvls })
 	}, [enabledTvls, tableData])
 
 	return (
