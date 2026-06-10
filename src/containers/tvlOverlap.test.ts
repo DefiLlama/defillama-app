@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
-	calculateTvlWithExtraToggles as calculateForkTvlWithExtraToggles,
-	getEnabledExtraApiKeys as getEnabledForkExtraApiKeys
-} from './Forks/tvl'
-import {
-	calculateTvsWithExtraToggles as calculateOracleTvsWithExtraToggles,
-	getEnabledExtraApiKeys as getEnabledOracleExtraApiKeys
-} from './Oracles/tvl'
+	calculateTotalWithExtraToggles,
+	getEnabledExtraTvlApiKeys,
+	getExtraTvlSeriesSign,
+	shouldSubtractTvlOverlapSeries
+} from './tvlOverlap'
 
 const TVL_VALUES = {
 	tvl: 100,
@@ -16,21 +14,10 @@ const TVL_VALUES = {
 	dcAndLsOverlap: 10
 }
 
-describe.each([
-	{
-		name: 'Forks',
-		getEnabledExtraApiKeys: getEnabledForkExtraApiKeys,
-		calculateTvlWithExtraToggles: calculateForkTvlWithExtraToggles
-	},
-	{
-		name: 'Oracles',
-		getEnabledExtraApiKeys: getEnabledOracleExtraApiKeys,
-		calculateTvlWithExtraToggles: calculateOracleTvsWithExtraToggles
-	}
-])('$name TVL helpers', ({ getEnabledExtraApiKeys, calculateTvlWithExtraToggles }) => {
+describe('Oracle and Fork TVL overlap helpers', () => {
 	it('requests overlap data only when both overlap parents are enabled', () => {
 		expect(
-			getEnabledExtraApiKeys({
+			getEnabledExtraTvlApiKeys({
 				tvl: true,
 				staking: true,
 				doublecounted: true,
@@ -39,7 +26,7 @@ describe.each([
 		).toEqual(['doublecounted', 'staking'])
 
 		expect(
-			getEnabledExtraApiKeys({
+			getEnabledExtraTvlApiKeys({
 				tvl: true,
 				doublecounted: true,
 				liquidstaking: true
@@ -49,7 +36,7 @@ describe.each([
 
 	it('adds enabled extras and subtracts overlap when both overlap parents are enabled', () => {
 		expect(
-			calculateTvlWithExtraToggles({
+			calculateTotalWithExtraToggles({
 				values: TVL_VALUES,
 				extraTvlsEnabled: {
 					staking: true,
@@ -62,7 +49,7 @@ describe.each([
 
 	it('does not subtract overlap when only one overlap parent is enabled', () => {
 		expect(
-			calculateTvlWithExtraToggles({
+			calculateTotalWithExtraToggles({
 				values: TVL_VALUES,
 				extraTvlsEnabled: {
 					doublecounted: true,
@@ -70,5 +57,24 @@ describe.each([
 				}
 			})
 		).toBe(130)
+	})
+
+	it('marks only overlap series negative when both overlap parents are enabled', () => {
+		const shouldSubtractOverlapSeries = shouldSubtractTvlOverlapSeries([
+			'dcAndLsOverlap',
+			'doublecounted',
+			'liquidstaking'
+		])
+
+		expect(shouldSubtractOverlapSeries).toBe(true)
+		expect(getExtraTvlSeriesSign({ apiKey: 'dcAndLsOverlap', shouldSubtractOverlapSeries })).toBe(-1)
+		expect(getExtraTvlSeriesSign({ apiKey: 'staking', shouldSubtractOverlapSeries })).toBe(1)
+	})
+
+	it('keeps overlap series positive when only one overlap parent is enabled', () => {
+		const shouldSubtractOverlapSeries = shouldSubtractTvlOverlapSeries(['dcAndLsOverlap', 'doublecounted'])
+
+		expect(shouldSubtractOverlapSeries).toBe(false)
+		expect(getExtraTvlSeriesSign({ apiKey: 'dcAndLsOverlap', shouldSubtractOverlapSeries })).toBe(1)
 	})
 })

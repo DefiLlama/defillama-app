@@ -7,10 +7,10 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
+import { calculateTotalWithExtraToggles, getEnabledExtraTvlApiKeys } from '~/containers/tvlOverlap'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance, slug } from '~/utils'
 import { useOracleOverviewExtraSeries } from './queries.client'
-import { calculateTvsWithExtraToggles, getEnabledExtraApiKeys } from './tvl'
 import type { OracleOverviewPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -105,7 +105,7 @@ export const OracleOverview = ({
 		],
 		[extraTvlsEnabled]
 	)
-	const enabledExtraApiKeys = useMemo(() => getEnabledExtraApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
 
 	const { isFetchingExtraSeries, extraTvsByTimestamp } = useOracleOverviewExtraSeries({
 		enabledExtraApiKeys,
@@ -117,7 +117,7 @@ export const OracleOverview = ({
 		const totalValue =
 			enabledExtraApiKeys.length === 0
 				? tvl
-				: calculateTvsWithExtraToggles({
+				: calculateTotalWithExtraToggles({
 						values: { tvl, ...extraTvl },
 						extraTvlsEnabled
 					})
@@ -127,7 +127,7 @@ export const OracleOverview = ({
 				? protocolTableData
 				: protocolTableData
 						.map((protocol) => {
-							const protocolTvl = calculateTvsWithExtraToggles({
+							const protocolTvl = calculateTotalWithExtraToggles({
 								values: { tvl: protocol.tvl, ...(protocol.extraTvl ?? {}) },
 								extraTvlsEnabled
 							})

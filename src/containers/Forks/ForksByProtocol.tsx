@@ -4,17 +4,17 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
+import { getEnabledExtraTvlApiKeys } from '~/containers/tvlOverlap'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance } from '~/utils'
 import { useForkByProtocolExtraSeries } from './queries.client'
-import { getEnabledExtraApiKeys } from './tvl'
 import type { ForkByProtocolPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const ForksByProtocol = ({ fork, forkLinks, protocolTableData, chartData }: ForkByProtocolPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledExtraApiKeys = useMemo(() => getEnabledExtraApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
 	const { isFetchingExtraSeries, extraTvsByTimestamp } = useForkByProtocolExtraSeries({
 		enabledExtraApiKeys,
 		protocol: fork

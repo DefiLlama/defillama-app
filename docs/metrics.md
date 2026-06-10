@@ -171,8 +171,8 @@ Important files:
 - `src/containers/ProtocolOverview/useFetchProtocolChartData.ts`: protocol overview TVL chart composition.
 - `src/containers/ProtocolLists/utils.ts`: protocol list/table TVL toggle behavior.
 - `src/containers/ProtocolRankings/`: shared protocol ranking rows and TVL display behavior.
-- `src/containers/Oracles/tvl.ts`: oracle route TVL toggle behavior.
-- `src/containers/Forks/tvl.ts`: fork route TVL toggle behavior.
+- `src/containers/tvlOverlap.ts`: shared Oracle/Fork extra-TVL overlap helpers.
+- `src/containers/Forks/tvl.ts`: fork-specific TVL/original percentage helper.
 - `src/contexts/LocalStorage.tsx`: TVL setting keys.
 
 Do not assume two routes use the same TVL model just because they share the same toggle names. Some pages start from an adjusted base TVL, while others start from raw TVL and add selected extras. Some table paths use double counted or liquid staking toggles for display/strike behavior rather than normal extra addition.

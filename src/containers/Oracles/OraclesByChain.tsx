@@ -7,10 +7,10 @@ import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { calculateTotalWithExtraToggles, getEnabledExtraTvlApiKeys } from '~/containers/tvlOverlap'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
 import { useOraclesByChainExtraBreakdowns } from './queries.client'
-import { calculateTvsWithExtraToggles, getEnabledExtraApiKeys } from './tvl'
 import type { OracleBreakdownItem, OraclesByChainPageData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
@@ -58,7 +58,7 @@ export const OraclesByChain = ({
 }: OraclesByChainPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
 	const hasEnabledExtras = enabledExtraApiKeys.length > 0
 
 	const { extraBreakdownsByApiKey, isFetchingExtraBreakdowns } = useOraclesByChainExtraBreakdowns({
@@ -84,7 +84,7 @@ export const OraclesByChain = ({
 		const tableDataWithAdjustedTvl = tableData
 			.map((row) => ({
 				...row,
-				tvl: calculateTvsWithExtraToggles({
+				tvl: calculateTotalWithExtraToggles({
 					values: { tvl: row.tvl, ...row.extraTvl },
 					extraTvlsEnabled
 				})
@@ -117,7 +117,7 @@ export const OraclesByChain = ({
 			const perOracleValues: Array<[string, number]> = []
 			for (const oracleName of oracles) {
 				const oracleTvs = shouldApplyExtraTvlFormatting
-					? calculateTvsWithExtraToggles({
+					? calculateTotalWithExtraToggles({
 							values: {
 								tvl: baseDayData[oracleName] ?? 0,
 								...(extraValuesForTimestamp[oracleName] ?? {})
