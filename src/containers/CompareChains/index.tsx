@@ -207,12 +207,14 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 
 	const tvlCharts = React.useMemo(() => {
 		const charts: Record<string, CompareChainsTvlChartState> = {}
+		const nowMs = Date.now()
 		for (const chainData of data) {
 			if (!chainData?.chainOverviewData?.tvlChart?.length) continue
 			charts[chainData.chain] = buildCompareChainsTvlChartState({
 				tvlChart: chainData.chainOverviewData.tvlChart,
 				tvlSettings,
-				extraTvlCharts: chainData.chainOverviewData.extraTvlCharts
+				extraTvlCharts: chainData.chainOverviewData.extraTvlCharts,
+				nowMs
 			})
 		}
 		return charts

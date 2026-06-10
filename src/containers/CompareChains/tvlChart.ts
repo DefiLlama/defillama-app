@@ -13,11 +13,13 @@ export interface CompareChainsTvlChartState {
 export function buildCompareChainsTvlChartState({
 	tvlChart,
 	tvlSettings,
-	extraTvlCharts
+	extraTvlCharts,
+	nowMs
 }: {
 	tvlChart: IChainOverviewData['tvlChart']
 	tvlSettings: Record<string, boolean>
 	extraTvlCharts: IChainOverviewData['extraTvlCharts']
+	nowMs: number
 }): CompareChainsTvlChartState {
 	const chartWithSettings = applyChainTvlChartSettings({
 		tvlChart,
@@ -26,8 +28,8 @@ export function buildCompareChainsTvlChartState({
 	})
 
 	if (!chartWithSettings) {
-		const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)
-		const tvlPrevDay = getPrevTvlFromChart(tvlChart, 1)
+		const totalValueUSD = getPrevTvlFromChart(tvlChart, 0, nowMs)
+		const tvlPrevDay = getPrevTvlFromChart(tvlChart, 1, nowMs)
 		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
 		const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 		return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
@@ -35,8 +37,8 @@ export function buildCompareChainsTvlChartState({
 
 	const { finalTvlChart, isGovTokensEnabled } = chartWithSettings
 
-	const totalValueUSD = getPrevTvlFromChart(finalTvlChart, 0)
-	const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1)
+	const totalValueUSD = getPrevTvlFromChart(finalTvlChart, 0, nowMs)
+	const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1, nowMs)
 	const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
 	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 

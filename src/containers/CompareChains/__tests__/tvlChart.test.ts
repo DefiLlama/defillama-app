@@ -3,13 +3,9 @@ import type { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { buildCompareChainsTvlChartState } from '../tvlChart'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const getTodayTimestamp = () => {
-	const now = new Date()
-	return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 5)
-}
-
-const LATEST_TIMESTAMP = getTodayTimestamp()
+const LATEST_TIMESTAMP = Date.UTC(2026, 2, 27, 0, 5)
 const PREVIOUS_TIMESTAMP = LATEST_TIMESTAMP - DAY_MS
+const NOW_MS = Date.UTC(2026, 2, 27, 12)
 
 const TVL_CHART: Array<[number, number]> = [
 	[PREVIOUS_TIMESTAMP, 100],
@@ -37,7 +33,8 @@ describe('CompareChains TVL chart helper', () => {
 			tvlSettings: {},
 			extraTvlCharts: makeExtraTvlCharts({
 				staking: { [String(LATEST_TIMESTAMP)]: 50 }
-			})
+			}),
+			nowMs: NOW_MS
 		})
 
 		expect(result.finalTvlChart).toBe(TVL_CHART)
@@ -72,7 +69,8 @@ describe('CompareChains TVL chart helper', () => {
 						[String(PREVIOUS_TIMESTAMP)]: 500,
 						[String(LATEST_TIMESTAMP)]: 500
 					}
-				})
+				}),
+				nowMs: NOW_MS
 			})
 		).toEqual({
 			finalTvlChart: [
@@ -103,7 +101,8 @@ describe('CompareChains TVL chart helper', () => {
 						[String(PREVIOUS_TIMESTAMP)]: 30,
 						[String(LATEST_TIMESTAMP)]: 40
 					}
-				})
+				}),
+				nowMs: NOW_MS
 			}).finalTvlChart
 		).toEqual([
 			[PREVIOUS_TIMESTAMP, 140],
@@ -127,7 +126,8 @@ describe('CompareChains TVL chart helper', () => {
 						[String(PREVIOUS_TIMESTAMP)]: 5,
 						[String(LATEST_TIMESTAMP)]: 10
 					}
-				})
+				}),
+				nowMs: NOW_MS
 			}).finalTvlChart
 		).toEqual([
 			[PREVIOUS_TIMESTAMP, 110],
@@ -142,7 +142,8 @@ describe('CompareChains TVL chart helper', () => {
 				tvlSettings: {
 					govtokens: true
 				},
-				extraTvlCharts: makeExtraTvlCharts()
+				extraTvlCharts: makeExtraTvlCharts(),
+				nowMs: NOW_MS
 			})
 		).toMatchObject({
 			finalTvlChart: [
