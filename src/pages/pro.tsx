@@ -12,6 +12,7 @@ import { DashboardList } from '~/containers/ProDashboard/components/DashboardLis
 import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 import { FollowingShelves } from '~/containers/ProDashboard/components/FollowingShelves'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
+import { MyProfileTab } from '~/containers/ProDashboard/components/MyProfileTab'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import {
@@ -194,7 +195,7 @@ function ProPageContent({ initialDiscoveryCategories }: ProPageProps) {
 	)
 }
 
-const tabs = ['my-dashboards', 'discover', 'favorites', 'following'] as const
+const tabs = ['my-dashboards', 'discover', 'favorites', 'following', 'profile'] as const
 type ProTab = (typeof tabs)[number]
 
 const tabClassName =
@@ -363,6 +364,19 @@ function ProContent({
 							Following
 						</button>
 					) : null}
+					{isAuthenticated ? (
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'profile'}
+							onClick={() => switchTab('profile')}
+							data-active={activeTab === 'profile'}
+							data-umami-event="dashboard-open-my-profile"
+							className={tabClassName}
+						>
+							My Profile
+						</button>
+					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
@@ -505,6 +519,12 @@ function ProContent({
 					className={activeTab === 'following' ? 'flex flex-col gap-4' : 'hidden'}
 				>
 					<FollowingShelves />
+				</div>
+			) : null}
+
+			{isAuthenticated && activeTab === 'profile' ? (
+				<div role="tabpanel" className="flex flex-col gap-6">
+					<MyProfileTab />
 				</div>
 			) : null}
 
