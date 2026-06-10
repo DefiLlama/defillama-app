@@ -197,6 +197,8 @@ export function DashboardAuthorProfileCard() {
 		mutationFn: (payload: AuthorProfileUpdate) => updateMyDashboardAuthorProfile(payload, authorizedFetch),
 		onSuccess: (nextProfile) => {
 			queryClient.setQueryData(['dashboard-author-profile'], nextProfile)
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'top-authors'] })
+			queryClient.invalidateQueries({ queryKey: ['author-page', nextProfile.slug] })
 		}
 	})
 
