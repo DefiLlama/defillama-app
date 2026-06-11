@@ -1,7 +1,7 @@
 import type { IProtocolChartV2Params } from './api.types'
 
 export type ProtocolValueChartSource = 'tvl' | 'treasury'
-export type ProtocolValueChartQueryKind = 'tvl-chart' | 'treasury-chart'
+type ProtocolValueChartQueryKind = 'tvl-chart' | 'treasury-chart'
 export type ProtocolValueChartQueryKey = [
 	'protocol-overview',
 	ProtocolValueChartQueryKind,

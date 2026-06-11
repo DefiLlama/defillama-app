@@ -28,7 +28,7 @@ interface IUseProtocolBreakdownChartsParams {
 
 type FailedQueryCategory = 'tvl' | 'chain-breakdown' | 'token-breakdown-usd' | 'token-breakdown-raw'
 
-export interface IFailedChartQuery {
+interface IFailedChartQuery {
 	category: FailedQueryCategory
 	/** The key parameter for this query (`undefined` = base/aggregate) */
 	key: string | undefined
