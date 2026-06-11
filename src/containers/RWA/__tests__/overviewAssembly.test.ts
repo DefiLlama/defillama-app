@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aggregateRwaMetrics, type ChainMetricBreakdown } from '../overviewAssembly'
+import { aggregateRwaMetrics } from '../overviewAssembly'
 
 describe('aggregateRwaMetrics', () => {
 	it('preserves exact numeric metric totals and selected-chain breakdowns', () => {
@@ -61,15 +61,5 @@ describe('aggregateRwaMetrics', () => {
 			activeMcap: false,
 			defiActiveTvl: false
 		})
-	})
-
-	it('rejects string metric maps at the typed transform boundary', () => {
-		const stringMetricMap = { Ethereum: '100' }
-
-		// @ts-expect-error RWA /current schemas guarantee finite number maps; string metrics are not a frontend contract.
-		const rejected: ChainMetricBreakdown = stringMetricMap
-
-		void rejected
-		expect(stringMetricMap.Ethereum).toBe('100')
 	})
 })

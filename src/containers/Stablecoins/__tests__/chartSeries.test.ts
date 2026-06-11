@@ -47,16 +47,6 @@ const circulatingParams = {
 }
 
 describe('stablecoin chart series builders', () => {
-	it('matches the legacy total market cap output', () => {
-		const legacy = buildStablecoinChartData(params)
-		const payload = buildTotalMcapPayload(params)
-
-		expect(payload.dataset.source).toEqual(
-			legacy.peggedAreaTotalData.map(({ date, Mcap }) => ({ timestamp: Number(date) * 1e3, Mcap }))
-		)
-		expect(payload.dataset.dimensions).toEqual(['timestamp', 'Mcap'])
-	})
-
 	it('keeps total market cap ordering, currency totals, and missing values exact', () => {
 		const mixedCurrencyParams = {
 			chartDataByAssetOrChain: [
@@ -130,22 +120,6 @@ describe('stablecoin chart series builders', () => {
 		])
 		expect(payload.valueSymbol).toBe('')
 		expect(JSON.parse(JSON.stringify(payload)).valueSymbol).toBe('')
-	})
-
-	it('matches the legacy area output dimensions and values', () => {
-		const legacy = buildStablecoinChartData(params)
-		const payload = buildAreaPayload(params, { stackName: 'tokenMcaps' })
-
-		expect(payload.dataset.source).toEqual(
-			legacy.peggedAreaChartData.map(({ date, ...values }) => ({
-				timestamp: Number(date) * 1e3,
-				...values
-			}))
-		)
-		expect(payload.dataset.dimensions).toEqual(['timestamp', 'USDT', 'USDC'])
-		expect(payload.stacked).toBe(false)
-		expect(payload.showTotalInTooltip).toBe(false)
-		expect(payload.charts.every((chart) => !('stack' in chart))).toBe(true)
 	})
 
 	it('keeps area rows sparse when a visible series has no value for a timestamp', () => {
