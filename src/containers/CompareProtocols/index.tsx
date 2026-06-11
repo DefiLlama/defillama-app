@@ -2,23 +2,21 @@ import { useQueries } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { applyProtocolTvlSettings } from '~/containers/ProtocolLists/utils'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { getNDistinctColors, slug } from '~/utils'
+import { slug } from '~/utils'
 import { parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { RawProtocolResponse } from './api.types'
+import { buildCompareProtocolsChartData } from './chartData'
 import type { CompareProtocolsProps } from './types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
-
-type ProtocolChainTvls = Record<string, { tvl?: Array<{ date: number; totalLiquidityUSD: number }> }>
 
 export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsProps) {
 	const router = useRouter()
@@ -50,66 +48,13 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const { dataset, charts } = React.useMemo(() => {
-		const formattedData = results
-			.filter((r) => r.data != null)
-			.map((res) => ({
-				protocolChartData: (res.data?.protocolData.chainTvls ?? {}) as ProtocolChainTvls,
-				protocolName: res.data!.protocolData.name
-			}))
-
-		let totalProtocols = 0
-		const chartsByProtocol: Record<string, Record<number, number>> = {}
-
-		for (const protocol of formattedData) {
-			if (!chartsByProtocol[protocol.protocolName]) {
-				chartsByProtocol[protocol.protocolName] = {}
-			}
-
-			for (const chain in protocol.protocolChartData) {
-				if (chain.includes('-') || chain === 'offers') continue
-				if (chain in extraTvlEnabled && !extraTvlEnabled[chain]) continue
-
-				const chainTvl = protocol.protocolChartData[chain]?.tvl
-				if (!Array.isArray(chainTvl)) continue
-
-				for (const { date, totalLiquidityUSD } of chainTvl) {
-					chartsByProtocol[protocol.protocolName][date] =
-						(chartsByProtocol[protocol.protocolName][date] ?? 0) + totalLiquidityUSD
-				}
-			}
-			totalProtocols++
-		}
-
-		const distinctColors = getNDistinctColors(totalProtocols)
-		const seriesNames: string[] = []
-		for (const protocolName in chartsByProtocol) {
-			seriesNames.push(protocolName)
-		}
-
-		const rowMap = new Map<number, Record<string, number>>()
-		for (const protocolName of seriesNames) {
-			const protocolChart = chartsByProtocol[protocolName]
-			for (const date in protocolChart) {
-				const ts = +date * 1e3
-				const row = rowMap.get(ts) ?? { timestamp: ts }
-				row[protocolName] = protocolChart[+date]
-				rowMap.set(ts, row)
+		const protocolResponses: RawProtocolResponse[] = []
+		for (const result of results) {
+			if (result.data?.protocolData) {
+				protocolResponses.push(result.data.protocolData)
 			}
 		}
-
-		const source = ensureChronologicalRows(Array.from(rowMap.values()))
-		const chartsConfig = seriesNames.map((protocolName, i) => ({
-			type: 'line' as const,
-			name: protocolName,
-			encode: { x: 'timestamp', y: protocolName },
-			stack: protocolName,
-			color: distinctColors[i]
-		}))
-
-		return {
-			dataset: { source, dimensions: ['timestamp', ...seriesNames] },
-			charts: chartsConfig
-		}
+		return buildCompareProtocolsChartData({ protocolResponses, extraTvlEnabled })
 	}, [results, extraTvlEnabled])
 
 	const { selectedProtocolsData, selectedProtocolsNames } = React.useMemo(() => {
