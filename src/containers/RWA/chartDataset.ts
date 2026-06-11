@@ -22,7 +22,6 @@ export function appendRwaChartDatasetTotal(dataset: RWAChartDataset): RWAChartDa
 	for (const row of dataset.source) {
 		const nextRow: RWAChartRow = { timestamp: row.timestamp }
 		for (const key in row) {
-			if (!Object.prototype.hasOwnProperty.call(row, key)) continue
 			nextRow[key] = row[key]
 		}
 

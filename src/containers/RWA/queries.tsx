@@ -76,7 +76,6 @@ function assert(condition: unknown, message: string): asserts condition {
 function getSortedBreakdownEntries(breakdown: Record<string, number>, selectedChain?: string): Array<[string, number]> {
 	const entries: Array<[string, number]> = []
 	for (const key in breakdown) {
-		if (!Object.prototype.hasOwnProperty.call(breakdown, key)) continue
 		if (selectedChain && rwaSlug(key) !== selectedChain) continue
 		entries.push([key, breakdown[key]])
 	}

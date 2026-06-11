@@ -58,7 +58,6 @@ export function appendOverviewBreakdownTotalSeries(
 		let total = 0
 		const nextRow: MultiSeriesChart2Dataset['source'][number] = { timestamp: row.timestamp }
 		for (const key in row) {
-			if (!Object.prototype.hasOwnProperty.call(row, key)) continue
 			nextRow[key] = row[key]
 		}
 
