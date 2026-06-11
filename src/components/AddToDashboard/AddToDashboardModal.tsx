@@ -184,6 +184,7 @@ interface SubmitAddToDashboardParams {
 	llamaAIChart?: LlamaAIChartInput | null
 	configName: string
 	dashboardNameById: Map<string, string>
+	dashboardSlugById: Map<string, string | undefined>
 	variables: AddToDashboardMutationVariables
 }
 
@@ -193,6 +194,7 @@ async function submitAddToDashboard({
 	llamaAIChart,
 	configName,
 	dashboardNameById,
+	dashboardSlugById,
 	variables
 }: SubmitAddToDashboardParams): Promise<AddToDashboardMutationResult> {
 	const chartToAdd = await buildChartToAdd({
@@ -222,7 +224,7 @@ async function submitAddToDashboard({
 		return {
 			type: 'new-dashboard',
 			message: 'Dashboard created!',
-			href: `/pro/${dashboard.id}`
+			href: `/pro/${dashboard.slug || dashboard.id}`
 		}
 	}
 
@@ -237,7 +239,7 @@ async function submitAddToDashboard({
 	return {
 		type: 'existing-dashboard',
 		message: `Added to ${selectedName}!`,
-		href: `/pro/${selectedDashboardId}`
+		href: `/pro/${dashboardSlugById.get(selectedDashboardId) || selectedDashboardId}`
 	}
 }
 
@@ -274,6 +276,10 @@ export function AddToDashboardModal({
 		return new Map<string, string>(dashboards.map((dashboard) => [dashboard.id, dashboard.name]))
 	}, [dashboards])
 
+	const dashboardSlugById = useMemo(() => {
+		return new Map<string, string | undefined>(dashboards.map((dashboard) => [dashboard.id, dashboard.slug]))
+	}, [dashboards])
+
 	const handleSelectDashboard = useCallback((id: string) => {
 		startTransition(() => {
 			setSelectedDashboardId(id)
@@ -301,6 +307,7 @@ export function AddToDashboardModal({
 				llamaAIChart,
 				configName,
 				dashboardNameById,
+				dashboardSlugById,
 				variables
 			})
 		},

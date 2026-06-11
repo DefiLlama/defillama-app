@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { TimePeriod } from '../ProDashboardAPIContext'
-import { type Dashboard, DashboardError, dashboardAPI } from '../services/DashboardAPI'
+import { type Dashboard, DashboardError, dashboardAPI, dashboardUrlKey } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
@@ -85,7 +85,7 @@ export function useDashboardAPI() {
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
-			void router.push(`/pro/${dashboard.id}`)
+			void router.push(`/pro/${dashboardUrlKey(dashboard)}`)
 		},
 		onError: (err: unknown) => {
 			toast.error(err instanceof Error ? err.message : 'Failed to create dashboard')
@@ -110,8 +110,11 @@ export function useDashboardAPI() {
 		}) => {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
-		onSuccess: (dashboard: Dashboard, variables) => {
-			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard', variables.id], exact: false }, dashboard)
+		onSuccess: (dashboard: Dashboard) => {
+			queryClient.setQueriesData(
+				{ queryKey: ['pro-dashboard', 'dashboard'], exact: false },
+				(oldData: Dashboard | undefined) => (oldData?.id === dashboard.id ? dashboard : oldData)
+			)
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
@@ -123,17 +126,17 @@ export function useDashboardAPI() {
 
 	// Mutation to delete dashboard
 	const deleteDashboardMutation = useMutation({
-		mutationFn: async (id: string) => {
+		mutationFn: async ({ id }: { id: string; slug?: string }) => {
 			return await dashboardAPI.deleteDashboard(id, authorizedFetch)
 		},
-		onSuccess: (_, deletedId) => {
+		onSuccess: (_, deleted) => {
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
 			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
-			const currentDashboardId = router.query.dashboardId
-			if (currentDashboardId === deletedId) {
+			const routeKey = router.query.dashboardId
+			if (routeKey === deleted.id || (deleted.slug && routeKey === deleted.slug)) {
 				void router.push('/pro')
 			}
 		},
@@ -164,8 +167,8 @@ export function useDashboardAPI() {
 
 	// Delete dashboard (confirmation handled in UI)
 	const deleteDashboardWithConfirmation = useCallback(
-		async (id: string) => {
-			await deleteDashboardMutation.mutateAsync(id)
+		async (id: string, slug?: string) => {
+			await deleteDashboardMutation.mutateAsync({ id, slug })
 		},
 		[deleteDashboardMutation]
 	)

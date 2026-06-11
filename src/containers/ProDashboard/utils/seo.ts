@@ -29,6 +29,7 @@ export interface DashboardSeo {
 
 export interface DashboardSeoPublicDashboard {
 	id: string
+	slug?: string
 	data: {
 		dashboardName: string
 	}
@@ -46,6 +47,7 @@ export interface DashboardSeoPublicDashboard {
 export function toDashboardSeoPublicDashboard(dashboard: Dashboard): DashboardSeoPublicDashboard {
 	return {
 		id: dashboard.id,
+		slug: dashboard.slug,
 		data: {
 			dashboardName: dashboard.data?.dashboardName || DEFAULT_DASHBOARD_NAME
 		},
@@ -257,7 +259,7 @@ export function buildDashboardSeo(dashboard: Dashboard): DashboardSeo {
 	const itemSummaries = summarizeDashboardItems(dashboard.data?.items)
 	const explicitDescription = truncateText(markdownToPlainText(dashboard.description), MAX_DESCRIPTION_LENGTH)
 	const description = explicitDescription || buildFallbackDescription(name, itemSummaries, itemCount)
-	const canonicalPath = `/pro/${dashboard.id}`
+	const canonicalPath = `/pro/${dashboard.slug || dashboard.id}`
 	const updated = getDashboardUpdated(dashboard)
 	const tags = Array.isArray(dashboard.tags)
 		? dashboard.tags.filter((tag) => typeof tag === 'string' && tag.trim())

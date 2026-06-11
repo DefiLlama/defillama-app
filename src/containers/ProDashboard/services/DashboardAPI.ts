@@ -5,6 +5,7 @@ import type { DashboardItemConfig } from '../types'
 
 export interface Dashboard {
 	id: string
+	slug?: string
 	user: string
 	data: {
 		items: DashboardItemConfig[]
@@ -54,6 +55,18 @@ export interface FollowingShelf {
 interface LiteDashboard {
 	id: string
 	name: string
+	slug?: string
+}
+
+export function dashboardUrlKey(dashboard: { id: string; slug?: string }): string {
+	return dashboard.slug || dashboard.id
+}
+
+export function matchesDashboardKey(
+	dashboard: { id: string; slug?: string } | null | undefined,
+	key: string | null | undefined
+): boolean {
+	return !!dashboard && !!key && (dashboard.id === key || dashboard.slug === key)
 }
 
 export class DashboardError extends Error {

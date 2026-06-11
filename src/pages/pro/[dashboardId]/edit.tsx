@@ -29,6 +29,14 @@ const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 		if (!dashboard) {
 			return { notFound: true }
 		}
+		if (dashboard.slug && dashboard.slug !== dashboardId) {
+			return {
+				redirect: {
+					destination: `/pro/${encodeURIComponent(dashboard.slug)}/edit`,
+					permanent: true
+				}
+			}
+		}
 	} catch {
 		// Fall through; client will surface error
 	}
@@ -78,9 +86,17 @@ function DashboardEditPageContent({ dashboardId }: { dashboardId: string }) {
 		}
 		if (currentDashboard && user?.id && currentDashboard.user !== user.id && !hasRedirectedRef.current) {
 			hasRedirectedRef.current = true
-			void router.replace(`/pro/${dashboardId}`)
+			void router.replace(`/pro/${currentDashboard.slug ?? dashboardId}`)
 		}
 	}, [isAuthenticated, loaders.userLoading, currentDashboard, user?.id, dashboardId, router])
+
+	useEffect(() => {
+		if (hasRedirectedRef.current || !currentDashboard?.slug) return
+		const routeKey = router.query.dashboardId
+		if (typeof routeKey === 'string' && routeKey !== currentDashboard.slug) {
+			void router.replace(`/pro/${currentDashboard.slug}/edit`, undefined, { shallow: true })
+		}
+	}, [currentDashboard?.slug, router.query.dashboardId, router])
 
 	const isLoading = loaders.userLoading || isValidating || isLoadingDashboard
 
