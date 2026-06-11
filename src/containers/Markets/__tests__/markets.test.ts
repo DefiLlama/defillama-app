@@ -6,6 +6,8 @@ import {
 	normalizeExchangeSeries,
 	normalizeExchangesList,
 	normalizeTokensList,
+	type RawCategoriesList,
+	type RawCategoryPage,
 	type SymbolStat
 } from '../types'
 import {
@@ -258,7 +260,7 @@ describe('normalizeCategoriesList', () => {
 		const result = normalizeCategoriesList({
 			spot: [{ category: 'rwa', volume_24h: 5, token_count: 2 }],
 			linear_perp: [{ tag: 'ai', volume_24h_usd: 8, token_count: 3 }]
-		})
+		} as unknown as RawCategoriesList)
 		expect(result.spot![0].tag).toBe('rwa')
 		expect(result.linear_perp![0]).toMatchObject({ tag: 'ai', volume_24h_usd: 8 })
 	})
@@ -363,7 +365,7 @@ describe('normalizeCategoryPage', () => {
 				series_by_exchange: [
 					{ day: 1_700_000_000, exchange: 'binance', exchange_type: 'cex', segment: 'spot', volume_24h: 4 }
 				]
-			},
+			} as unknown as RawCategoryPage,
 			'rwa'
 		)
 		expect(page.tag).toBe('rwa')
