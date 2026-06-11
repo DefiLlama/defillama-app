@@ -8,7 +8,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
-import { getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import { getEnabledExtraTvlApiKeys, getEnabledForkOracleExtraTvlChartApiKeys } from '~/utils/tvlOverlap'
 import { buildOraclesByChainDominanceData, buildOraclesByChainTableAndPieData } from './byChainData'
 import { useOraclesByChainExtraBreakdowns } from './queries.client'
 import type { OraclesByChainPageData } from './types'
@@ -29,14 +29,18 @@ export const OraclesByChain = ({
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraChartApiKeys = React.useMemo(
+		() => getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled),
+		[extraTvlsEnabled]
+	)
 	const hasEnabledExtras = enabledExtraApiKeys.length > 0
 
 	const { extraBreakdownsByApiKey, isFetchingExtraBreakdowns } = useOraclesByChainExtraBreakdowns({
-		enabledExtraApiKeys,
+		enabledExtraApiKeys: enabledExtraChartApiKeys,
 		chain
 	})
 
-	const shouldApplyExtraTvlFormatting = hasEnabledExtras && !isFetchingExtraBreakdowns
+	const shouldApplyExtraTvlFormatting = enabledExtraChartApiKeys.length > 0 && !isFetchingExtraBreakdowns
 
 	const tableAndPieData = React.useMemo(() => {
 		return buildOraclesByChainTableAndPieData({ tableData, extraTvlsEnabled, hasEnabledExtras })

@@ -70,7 +70,6 @@ export function useOracleOverviewExtraSeries({
 					const series: Array<[number, number]> = []
 					for (const row of chainBreakdown) {
 						const chainValue = row[chain]
-						if (!Number.isFinite(row.timestamp) || !Number.isFinite(chainValue)) continue
 						series.push([row.timestamp, chainValue])
 					}
 					return series
@@ -100,7 +99,6 @@ export function useOracleOverviewExtraSeries({
 			const sign = getExtraTvlSeriesSign({ apiKey, shouldSubtractOverlapSeries })
 
 			for (const [timestampInSeconds, value] of data) {
-				if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue
 				const currentByApiKey = result.get(timestampInSeconds) ?? 0
 				result.set(timestampInSeconds, currentByApiKey + value * sign)
 			}

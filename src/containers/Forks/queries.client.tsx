@@ -28,13 +28,11 @@ export function useForksOverviewExtraSeries({ enabledExtraApiKeys }: { enabledEx
 			const sign = getExtraTvlSeriesSign({ apiKey, shouldSubtractOverlapSeries })
 
 			for (const row of data) {
-				if (!Number.isFinite(row.timestamp)) continue
 				const current = result.get(row.timestamp) ?? {}
 
 				for (const key in row) {
 					if (key === 'timestamp') continue
 					const value = row[key]
-					if (!Number.isFinite(value)) continue
 					current[key] = (current[key] ?? 0) + value * sign
 				}
 
@@ -86,7 +84,6 @@ export function useForkByProtocolExtraSeries({
 			const sign = getExtraTvlSeriesSign({ apiKey, shouldSubtractOverlapSeries })
 
 			for (const [timestampInSeconds, value] of data) {
-				if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue
 				const current = result.get(timestampInSeconds) ?? 0
 				result.set(timestampInSeconds, current + value * sign)
 			}

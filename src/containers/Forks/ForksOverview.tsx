@@ -7,7 +7,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
-import { getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import { getEnabledForkOracleExtraTvlChartApiKeys } from '~/utils/tvlOverlap'
 import { buildForksOverviewDisplayData, mergeForkOverviewChartData } from './overviewData'
 import { useForksOverviewExtraSeries } from './queries.client'
 import type { ForkOverviewPageData } from './types'
@@ -76,7 +76,10 @@ export const ForksOverview = ({
 	chartData
 }: ForkOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = React.useMemo(
+		() => getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled),
+		[extraTvlsEnabled]
+	)
 	const { isFetchingExtraSeries, extraBreakdownByTimestamp } = useForksOverviewExtraSeries({
 		enabledExtraApiKeys
 	})
