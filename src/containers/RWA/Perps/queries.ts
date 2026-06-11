@@ -62,11 +62,13 @@ function shouldPreloadInitialChartDataset(activeView: RWAPerpsChartView) {
 }
 
 function safeNumber(value: unknown): number {
+	// Funding history comes from a raw DB DECIMAL endpoint; Sequelize can serialize DECIMAL fields as strings.
 	const parsed = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(parsed) ? parsed : 0
 }
 
 function safeRatio(value: number, total: number): number {
+	// Stats are served from a passthrough API schema, and empty/invalid totals should not leak NaN shares into UI rows.
 	if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return 0
 	return value / total
 }
@@ -263,6 +265,7 @@ function derivePreviousValueFromPercentChange(
 	currentValue: number,
 	percentChange: number | null | undefined
 ): number | null {
+	// Aggregate change math combines optional per-market changes; malformed or degenerate rows are not comparable.
 	if (!Number.isFinite(currentValue) || currentValue < 0 || percentChange == null || !Number.isFinite(percentChange)) {
 		return null
 	}

@@ -81,6 +81,7 @@ function toUnixMsTimestamp(timestamp: number): number {
 	return timestamp > 1e12 ? timestamp : timestamp * 1e3
 }
 
+// Contract detail metrics are display fallbacks; null or malformed values should render as "-" instead of NaN.
 function formatFractionPercent(value: number | null | undefined): string {
 	if (value == null || !Number.isFinite(value)) return '-'
 	return `${(value * 100).toFixed(Math.abs(value * 100) >= 1 ? 2 : 4)}%`

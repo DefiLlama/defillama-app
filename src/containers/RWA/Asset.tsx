@@ -284,6 +284,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			if (item.apyBase == null || !item.timestamp) continue
 			const ts =
 				typeof item.timestamp === 'number' ? item.timestamp : new Date(String(item.timestamp).split('T')[0]).getTime()
+			// Yield chart timestamps can be ISO strings from a separate API; skip invalid date parses before charting.
 			if (!Number.isFinite(ts)) continue
 			source.push({ timestamp: Math.floor(ts), 'Native Yield': Math.round(item.apyBase * 100) / 100 })
 		}
