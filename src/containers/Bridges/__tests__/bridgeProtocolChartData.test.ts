@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import {
 	buildBridgeProtocolAllChainsVolumeData,
+	buildBridgeProtocolAllChainsVolumePairs,
 	buildBridgeProtocolInflowsData,
 	getBridgeProtocolPrevDayVolumeValue
 } from '../bridgeProtocolChartData'
@@ -12,16 +13,19 @@ describe('bridge protocol chart data helpers', () => {
 		const day2 = 1_704_153_600
 		const bucket = getBucketTimestampSec(day1, 'weekly')
 
-		const result = buildBridgeProtocolAllChainsVolumeData({
+		const allChainsVolumePairs = buildBridgeProtocolAllChainsVolumePairs({
 			isAllChains: true,
-			groupBy: 'weekly',
 			volumeChartDataByChain: [
 				{ date: day2, Deposited: 20, Withdrawn: -6 },
 				{ date: day1, Deposited: 10, Withdrawn: -4 }
 			]
 		})
+		const result = buildBridgeProtocolAllChainsVolumeData({
+			groupBy: 'weekly',
+			allChainsVolumePairs
+		})
 
-		expect(result.allChainsVolumePairs).toEqual([
+		expect(allChainsVolumePairs).toEqual([
 			[day2, 13],
 			[day1, 7]
 		])

@@ -20,6 +20,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPercentChange, slug } from '~/utils'
 import {
 	buildBridgeProtocolAllChainsVolumeData,
+	buildBridgeProtocolAllChainsVolumePairs,
 	buildBridgeProtocolInflowsData,
 	getBridgeProtocolPrevDayVolumeValue
 } from './bridgeProtocolChartData'
@@ -76,9 +77,14 @@ export const BridgeInfo = ({
 		return { name: chain, route: '' }
 	})
 
-	const { allChainsVolumePairs, groupedAllChainsVolumePairs, volumeDataset } = React.useMemo(
-		() => buildBridgeProtocolAllChainsVolumeData({ isAllChains, groupBy, volumeChartDataByChain }),
-		[isAllChains, groupBy, volumeChartDataByChain]
+	const allChainsVolumePairs = React.useMemo(
+		() => buildBridgeProtocolAllChainsVolumePairs({ isAllChains, volumeChartDataByChain }),
+		[isAllChains, volumeChartDataByChain]
+	)
+
+	const { groupedAllChainsVolumePairs, volumeDataset } = React.useMemo(
+		() => buildBridgeProtocolAllChainsVolumeData({ groupBy, allChainsVolumePairs }),
+		[groupBy, allChainsVolumePairs]
 	)
 
 	const prevDayVolumeValue = React.useMemo(() => {

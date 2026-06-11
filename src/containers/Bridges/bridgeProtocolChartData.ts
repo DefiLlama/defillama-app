@@ -2,33 +2,33 @@ import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import type { BridgeVolumeChartPoint } from './types'
 
-export function buildBridgeProtocolAllChainsVolumeData({
+export function buildBridgeProtocolAllChainsVolumePairs({
 	isAllChains,
-	groupBy,
 	volumeChartDataByChain
 }: {
 	isAllChains: boolean
-	groupBy: ChartTimeGrouping
 	volumeChartDataByChain: BridgeVolumeChartPoint[] | null | undefined
-}) {
+}): Array<[number, number]> {
 	const allChainsVolumePairs: Array<[number, number]> = []
-	const groupedAllChainsVolumePairs: Array<[number, number]> = []
-	const source: Array<{ timestamp: number; Volume: number }> = []
 
-	if (!isAllChains || !volumeChartDataByChain) {
-		return {
-			allChainsVolumePairs,
-			groupedAllChainsVolumePairs,
-			volumeDataset: {
-				source,
-				dimensions: ['timestamp', 'Volume']
-			}
-		}
-	}
+	if (!isAllChains || !volumeChartDataByChain) return allChainsVolumePairs
 
 	for (const point of volumeChartDataByChain) {
 		allChainsVolumePairs.push([point.date, (point.Deposited + Math.abs(point.Withdrawn)) / 2])
 	}
+
+	return allChainsVolumePairs
+}
+
+export function buildBridgeProtocolAllChainsVolumeData({
+	groupBy,
+	allChainsVolumePairs
+}: {
+	groupBy: ChartTimeGrouping
+	allChainsVolumePairs: Array<[number, number]>
+}) {
+	const groupedAllChainsVolumePairs: Array<[number, number]> = []
+	const source: Array<{ timestamp: number; Volume: number }> = []
 
 	if (groupBy === 'daily' || allChainsVolumePairs.length === 0) {
 		for (const pair of allChainsVolumePairs) {
@@ -52,7 +52,6 @@ export function buildBridgeProtocolAllChainsVolumeData({
 	}
 
 	return {
-		allChainsVolumePairs,
 		groupedAllChainsVolumePairs,
 		volumeDataset: {
 			source,

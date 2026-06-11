@@ -55,6 +55,25 @@ describe('buildBridgeVolumeChartData', () => {
 		expect(result.charts).toBe(BRIDGE_VOLUME_COMBINED_CHARTS)
 	})
 
+	it('treats omitted raw bridge metric sides as zero', () => {
+		const result = buildBridgeVolumeChartData({
+			data: [
+				// @ts-expect-error raw bridge rows can omit a side-specific metric key
+				{ date: '1', depositUSD: 10, depositTxs: 2 },
+				// @ts-expect-error raw bridge rows can omit a side-specific metric key
+				{ date: '2', withdrawUSD: 5, withdrawTxs: 1 }
+			],
+			timePeriod: 'daily',
+			metricType: 'Volume',
+			viewType: 'Combined'
+		})
+
+		expect(result.dataset.source).toEqual([
+			{ timestamp: 1_000, Total: 10 },
+			{ timestamp: 2_000, Total: 5 }
+		])
+	})
+
 	it('keeps empty combined datasets dimensioned for the active view', () => {
 		const result = buildBridgeVolumeChartData({
 			data: [],

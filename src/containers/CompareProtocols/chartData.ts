@@ -27,7 +27,8 @@ export function buildCompareProtocolsChartData({
 			if (chain in extraTvlEnabled && !extraTvlEnabled[chain]) continue
 
 			const chainTvl = protocolData.chainTvls?.[chain]?.tvl
-			if (!chainTvl) continue
+			// Protocol detail payloads are raw API responses; malformed chain sections are skipped like the legacy page.
+			if (!Array.isArray(chainTvl)) continue
 
 			for (const { date, totalLiquidityUSD } of chainTvl) {
 				protocolChart.set(date, (protocolChart.get(date) ?? 0) + totalLiquidityUSD)

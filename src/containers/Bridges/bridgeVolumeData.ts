@@ -32,9 +32,10 @@ export const BRIDGE_VOLUME_COMBINED_CHARTS = [
 ]
 
 function getBridgeMetricValues(item: BridgeVolumeInputPoint, metricType: BridgeVolumeMetricType) {
+	// Raw bridge volume rows can omit one side of a metric; missing side contributes zero to the bucket.
 	return {
-		deposits: metricType === 'Volume' ? item.depositUSD : item.depositTxs,
-		withdrawals: metricType === 'Volume' ? item.withdrawUSD : item.withdrawTxs
+		deposits: metricType === 'Volume' ? (item.depositUSD ?? 0) : (item.depositTxs ?? 0),
+		withdrawals: metricType === 'Volume' ? (item.withdrawUSD ?? 0) : (item.withdrawTxs ?? 0)
 	}
 }
 

@@ -15,12 +15,15 @@ export function buildLstInflowsData({
 
 	for (const date in inflowsChartData) {
 		const dateEntry = inflowsChartData[date]
+		const dateKey = isCumulative ? +date : getBucketTimestampSec(+date, groupBy)
+		let dateStore = store.get(dateKey)
 		for (const token in dateEntry) {
 			const value = dateEntry[token]
-			const dateKey = isCumulative ? +date : getBucketTimestampSec(+date, groupBy)
-			const dateStore = store.get(dateKey) ?? {}
+			if (!dateStore) {
+				dateStore = {}
+				store.set(dateKey, dateStore)
+			}
 			dateStore[token] = (dateStore[token] ?? 0) + value + (totalByToken[token] ?? 0)
-			store.set(dateKey, dateStore)
 
 			if (isCumulative) {
 				totalByToken[token] = (totalByToken[token] ?? 0) + value

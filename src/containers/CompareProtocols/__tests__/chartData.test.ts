@@ -68,4 +68,26 @@ describe('buildCompareProtocolsChartData', () => {
 
 		expect(result.dataset.source).toEqual([{ timestamp: 1_000, Aave: 125 }])
 	})
+
+	it('skips malformed raw chain tvl sections', () => {
+		const result = buildCompareProtocolsChartData({
+			protocolResponses: [
+				{
+					name: 'Aave',
+					chainTvls: {
+						Ethereum: {
+							// @ts-expect-error raw protocol payload regressions can return non-array tvl sections
+							tvl: { 1: { totalLiquidityUSD: 999 } }
+						},
+						Polygon: {
+							tvl: [{ date: 1, totalLiquidityUSD: 25 }]
+						}
+					}
+				}
+			],
+			extraTvlEnabled: {}
+		})
+
+		expect(result.dataset.source).toEqual([{ timestamp: 1_000, Aave: 25 }])
+	})
 })

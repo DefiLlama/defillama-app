@@ -36,7 +36,7 @@ describe('mergeForkOverviewChartData', () => {
 		const merged = mergeForkOverviewChartData({
 			chartData: basePageData.chartData,
 			extraBreakdownByTimestamp: new Map([
-				[20, { Uniswap: 5, Curve: 10 }],
+				[20, { Uniswap: 5, Curve: 10, BadFork: Number.NaN }],
 				[15, { ExtraOnly: 7 }]
 			]),
 			shouldApplyExtraSeries: true
@@ -88,6 +88,20 @@ describe('buildForksOverviewDisplayData', () => {
 			NewFork: (30 / 230) * 100
 		})
 		expect(display.dominanceCharts.map((chart) => chart.name)).toEqual(['Curve', 'Uniswap', 'NewFork', 'EmptyFork'])
+	})
+
+	it('drops non-finite fork values from table, pie, and dominance calculations', () => {
+		const display = buildForksOverviewDisplayData({
+			...basePageData,
+			chartData: [{ timestamp: 10, Uniswap: 100, Curve: Number.NaN }]
+		})
+
+		expect(display.tableData).toEqual([
+			{ name: 'Uniswap', forkedProtocols: 3, parentTvl: 1_000, tvl: 100, ftot: 10 },
+			{ name: 'Curve', forkedProtocols: 2, parentTvl: 400, tvl: 0, ftot: 0 }
+		])
+		expect(display.tokenTvls).toEqual([{ name: 'Uniswap', value: 100 }])
+		expect(display.dominanceDataset.source).toEqual([{ timestamp: 10_000, Uniswap: 100 }])
 	})
 
 	it('keeps fork rows with zero tvl when base chart data is empty', () => {
