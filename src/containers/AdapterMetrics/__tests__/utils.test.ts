@@ -679,6 +679,21 @@ describe('mergeSingleDimensionChartDataset', () => {
 			{ timestamp: toMs(2024, 1, 2), Fees: 26 }
 		])
 	})
+
+	it('keeps extra-only timestamps when fee extras are enabled', () => {
+		expect(
+			mergeSingleDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Fees'],
+					source: [{ timestamp: toMs(2024, 1, 1), Fees: 10 }]
+				},
+				extraCharts: [[[Math.floor(toMs(2024, 1, 2) / 1e3), 2]], [[Math.floor(toMs(2024, 1, 2) / 1e3), 4]]]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Fees: 10 },
+			{ timestamp: toMs(2024, 1, 2), Fees: 6 }
+		])
+	})
 })
 
 describe('mergeBreakdownCharts', () => {
@@ -700,6 +715,18 @@ describe('mergeBreakdownCharts', () => {
 		).toEqual([
 			[1, { A: 11, B: 20, C: 2 }],
 			[2, { A: 34, B: 3 }]
+		])
+	})
+
+	it('keeps extra-only timestamps when merging breakdown charts', () => {
+		expect(
+			mergeBreakdownCharts({
+				chart: [[1, { A: 10 }]],
+				extraCharts: [[[2, { A: 1 }]], [[2, { A: 3, B: 4 }]]]
+			})
+		).toEqual([
+			[1, { A: 10 }],
+			[2, { A: 4, B: 4 }]
 		])
 	})
 })
@@ -726,6 +753,24 @@ describe('mergeNamedDimensionChartDataset', () => {
 		).toEqual([
 			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
 			{ timestamp: toMs(2024, 1, 2), Ethereum: 33, Solana: 44 }
+		])
+	})
+
+	it('keeps extra-only timestamps for known named dimensions', () => {
+		expect(
+			mergeNamedDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Ethereum', 'Solana'],
+					source: [{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 }]
+				},
+				extraCharts: [
+					[[Math.floor(toMs(2024, 1, 2) / 1e3), { Ethereum: 2 }]],
+					[[Math.floor(toMs(2024, 1, 2) / 1e3), { Solana: 4, Base: 99 }]]
+				]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 2, Solana: 4 }
 		])
 	})
 })

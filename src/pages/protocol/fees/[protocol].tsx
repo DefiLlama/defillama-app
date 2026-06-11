@@ -20,6 +20,7 @@ import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { formatAdapterData } from '~/containers/ProtocolOverview/formatAdapterData'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { mergeProtocolFeeExtraChartSeries } from '~/containers/ProtocolOverview/protocolFeeCharts'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
@@ -136,11 +137,11 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const bribesCharts = {}
+		const bribesCharts: Record<string, number> = {}
 		for (const [date, value] of bribeRevenueData?.totalDataChart ?? []) {
 			bribesCharts[date] = value
 		}
-		const tokenTaxCharts = {}
+		const tokenTaxCharts: Record<string, number> = {}
 		for (const [date, value] of tokenTaxData?.totalDataChart ?? []) {
 			tokenTaxCharts[date] = value
 		}
@@ -249,41 +250,20 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = useMemo(() => {
-		let feesChart = props.charts.fees
-		let revenueChart = props.charts.revenue
-		let holdersRevenueChart = props.charts.holdersRevenue
-
-		if (feesSettings.bribes && props.bribeRevenue?.totalAllTime) {
-			if (charts.includes('Fees')) {
-				feesChart = props.charts.fees.map(([date, value]) => [date, value + (props.charts.bribeRevenue?.[date] ?? 0)])
-			}
-			if (charts.includes('Revenue')) {
-				revenueChart = props.charts.revenue.map(([date, value]) => [
-					date,
-					value + (props.charts.bribeRevenue?.[date] ?? 0)
-				])
-			}
-			if (charts.includes('Holders Revenue')) {
-				holdersRevenueChart = props.charts.holdersRevenue.map(([date, value]) => [
-					date,
-					value + (props.charts.bribeRevenue?.[date] ?? 0)
-				])
-			}
+		const includeBribes = !!(feesSettings.bribes && props.bribeRevenue?.totalAllTime)
+		const includeTokenTax = !!(feesSettings.tokentax && props.tokenTax?.totalAllTime)
+		const chartExtraOptions = {
+			bribeRevenue: props.charts.bribeRevenue,
+			tokenTax: props.charts.tokenTax,
+			includeBribes,
+			includeTokenTax
 		}
-		if (feesSettings.tokentax && props.tokenTax?.totalAllTime) {
-			if (charts.includes('Fees')) {
-				feesChart = props.charts.fees.map(([date, value]) => [date, value + (props.charts.tokenTax?.[date] ?? 0)])
-			}
-			if (charts.includes('Revenue')) {
-				revenueChart = props.charts.revenue.map(([date, value]) => [date, value + (props.charts.tokenTax?.[date] ?? 0)])
-			}
-			if (charts.includes('Holders Revenue')) {
-				holdersRevenueChart = props.charts.holdersRevenue.map(([date, value]) => [
-					date,
-					value + (props.charts.tokenTax?.[date] ?? 0)
-				])
-			}
-		}
+		const feesChart = mergeProtocolFeeExtraChartSeries({ base: props.charts.fees, ...chartExtraOptions })
+		const revenueChart = mergeProtocolFeeExtraChartSeries({ base: props.charts.revenue, ...chartExtraOptions })
+		const holdersRevenueChart = mergeProtocolFeeExtraChartSeries({
+			base: props.charts.holdersRevenue,
+			...chartExtraOptions
+		})
 
 		const seriesType = (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar'
 		const seriesData: Record<string, Array<[number, number]>> = {}
