@@ -161,6 +161,44 @@ describe('KeyMetrics', () => {
 		expect(markup).toContain('$1220')
 	})
 
+	it('does not render zero fee rows for disabled extra-only periods', async () => {
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			fees: {
+				total24h: null,
+				total7d: 70,
+				total30d: null,
+				total1y: null,
+				annualized1y: null,
+				totalAllTime: null,
+				chainBreakdown: null
+			},
+			bribeRevenue: {
+				total24h: 10,
+				total7d: null,
+				total30d: 300,
+				total1y: null,
+				annualized1y: null,
+				totalAllTime: 1000
+			},
+			tokenTax: {
+				total24h: 5,
+				total7d: null,
+				total30d: 30,
+				total1y: null,
+				annualized1y: null,
+				totalAllTime: null
+			}
+		})
+
+		expect(markup).toContain('Fees 7d')
+		expect(markup).toContain('$70')
+		expect(markup).not.toContain('Fees 24h')
+		expect(markup).not.toContain('Fees 30d')
+		expect(markup).not.toContain('Cumulative Fees')
+		expect(markup).not.toContain('$0')
+	})
+
 	it('uses annualized1y revenue and trailing 12-month incentives for annualized earnings when both are available', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
