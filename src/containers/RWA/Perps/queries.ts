@@ -154,44 +154,77 @@ function assertHasAssetGroupBuckets(stats: IRWAPerpsStatsResponse | null): asser
 
 export function hasEnoughTimeSeriesHistory(dataset: MultiSeriesChart2Dataset) {
 	if ((dataset.source?.length ?? 0) === 0) return false
-	const uniqueTimestamps = new Set(
-		dataset.source.map((row) => Number(row.timestamp)).filter((timestamp) => Number.isFinite(timestamp))
-	)
-	return uniqueTimestamps.size >= 2 && dataset.dimensions.some((dimension) => dimension !== 'timestamp')
+	let hasSeriesDimension = false
+	for (const dimension of dataset.dimensions) {
+		if (dimension !== 'timestamp') {
+			hasSeriesDimension = true
+			break
+		}
+	}
+	if (!hasSeriesDimension) return false
+
+	const uniqueTimestamps = new Set<number>()
+	for (const row of dataset.source) {
+		const timestamp = Number(row.timestamp)
+		if (!Number.isFinite(timestamp)) continue
+		uniqueTimestamps.add(timestamp)
+		if (uniqueTimestamps.size >= 2) return true
+	}
+	return false
 }
 
 export function groupRWAPerpsTimeSeriesDataset(dataset: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset {
-	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp')
+	const seriesDimensions: string[] = []
+	for (const dimension of dataset.dimensions) {
+		if (dimension !== 'timestamp') seriesDimensions.push(dimension)
+	}
 	if (dataset.source.length === 0 || seriesDimensions.length === 0) return EMPTY_CHART_DATASET
 
-	return {
-		source: dataset.source.map((row) => ({
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const row of dataset.source) {
+		let total = 0
+		for (const dimension of seriesDimensions) {
+			const value = row[dimension]
+			const numericValue = typeof value === 'number' ? value : Number(value)
+			if (Number.isFinite(numericValue)) total += numericValue
+		}
+		source.push({
 			timestamp: row.timestamp,
-			Total: seriesDimensions.reduce((sum, dimension) => {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				return Number.isFinite(numericValue) ? sum + numericValue : sum
-			}, 0)
-		})),
+			Total: total
+		})
+	}
+
+	return {
+		source,
 		dimensions: ['timestamp', 'Total']
 	}
 }
 
 export function appendRWAPerpsTimeSeriesDatasetTotal(dataset: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset {
-	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
+	const seriesDimensions: string[] = []
+	for (const dimension of dataset.dimensions) {
+		if (dimension !== 'timestamp' && dimension !== 'Total') seriesDimensions.push(dimension)
+	}
 	if (dataset.source.length === 0) return EMPTY_CHART_DATASET
 	if (seriesDimensions.length === 0) return dataset
 
-	return {
-		source: dataset.source.map((row) => ({
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const row of dataset.source) {
+		let total = 0
+		for (const dimension of seriesDimensions) {
+			const value = row[dimension]
+			const numericValue = typeof value === 'number' ? value : Number(value)
+			if (Number.isFinite(numericValue)) total += numericValue
+		}
+		source.push({
 			...row,
 			timestamp: row.timestamp,
-			Total: seriesDimensions.reduce((sum, dimension) => {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				return Number.isFinite(numericValue) ? sum + numericValue : sum
-			}, 0)
-		})),
+			Total: total
+		})
+	}
+
+	return {
+		source,
 		dimensions: ['timestamp', 'Total', ...seriesDimensions]
 	}
 }
