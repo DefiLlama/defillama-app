@@ -433,9 +433,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const deferredSelectedPieChartData = useDeferredValue(selectedPieChartData)
 	const valueSortedPieChartStackColors = useMemo(() => {
 		const stackColors = { ...pieChartStackColors }
-		const sortedData = [...deferredSelectedPieChartData]
-			.filter((item) => Number.isFinite(item.value) && item.value > 0)
-			.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+		const sortedData: Array<{ name: string; value: number }> = []
+		for (const item of deferredSelectedPieChartData) {
+			if (item.value > 0) sortedData.push(item)
+		}
+		sortedData.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
 
 		for (const [index, item] of sortedData.entries()) {
 			stackColors[item.name] = CHART_COLORS[index % CHART_COLORS.length]
@@ -448,7 +450,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		const sorted: Array<{ name: string; value: number }> = []
 
 		for (const item of deferredSelectedPieChartData) {
-			if (!Number.isFinite(item.value) || item.value <= 0) continue
+			if (item.value <= 0) continue
 
 			if (item.name === 'Others') {
 				othersValue += item.value
@@ -465,7 +467,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 
 		const limitedData = sorted.slice(0, MAX_HORIZONTAL_BARS - 1)
-		const overflowValue = sorted.slice(MAX_HORIZONTAL_BARS - 1).reduce((sum, item) => sum + item.value, 0) + othersValue
+		let overflowValue = othersValue
+		for (let index = MAX_HORIZONTAL_BARS - 1; index < sorted.length; index++) {
+			overflowValue += sorted[index].value
+		}
 		if (overflowValue > 0) {
 			limitedData.push({ name: 'Others', value: overflowValue })
 		}

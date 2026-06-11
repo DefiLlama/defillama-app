@@ -1237,21 +1237,26 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 
 	const barChartData = useMemo(() => {
 		let othersValue = 0
-		const sorted = [...deferredPieChartData].filter((item) => Number.isFinite(item.value) && item.value > 0)
-		for (const item of sorted) {
+		const withoutOthers: Array<{ name: string; value: number }> = []
+		for (const item of deferredPieChartData) {
+			if (item.value <= 0) continue
+
 			if (item.name === 'Others') {
 				othersValue += item.value
+				continue
 			}
+			withoutOthers.push(item)
 		}
 
-		const withoutOthers = sorted.filter((item) => item.name !== 'Others')
 		if (withoutOthers.length <= MAX_HORIZONTAL_BARS - (othersValue > 0 ? 1 : 0)) {
 			return othersValue > 0 ? [...withoutOthers, { name: 'Others', value: othersValue }] : withoutOthers
 		}
 
 		const limited = withoutOthers.slice(0, MAX_HORIZONTAL_BARS - 1)
-		const overflowValue =
-			withoutOthers.slice(MAX_HORIZONTAL_BARS - 1).reduce((sum, item) => sum + item.value, 0) + othersValue
+		let overflowValue = othersValue
+		for (let index = MAX_HORIZONTAL_BARS - 1; index < withoutOthers.length; index++) {
+			overflowValue += withoutOthers[index].value
+		}
 		return overflowValue > 0 ? [...limited, { name: 'Others', value: overflowValue }] : limited
 	}, [deferredPieChartData])
 

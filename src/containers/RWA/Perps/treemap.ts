@@ -20,21 +20,16 @@ export type RWAPerpsTreemapNode = {
 type ParentGrouping = RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
 type ChildGrouping = Exclude<RWAPerpsTreemapNestedBy, 'none'>
 
-function safeNumber(value: unknown): number {
-	const parsed = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(parsed) ? parsed : 0
-}
-
 function getGroupLabel(market: IRWAPerpsMarket, grouping: ParentGrouping | ChildGrouping): string {
 	return getRWAPerpsSharedBreakdownLabel(market, grouping)
 }
 
 function getMetricValue(market: IRWAPerpsMarket, metric: RWAPerpsChartMetricKey): number {
-	return metric === 'markets' ? 1 : safeNumber(market[metric])
+	return metric === 'markets' ? 1 : market[metric]
 }
 
 function toShare(value: number, total: number): number {
-	if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return 0
+	if (total <= 0) return 0
 	return Number(((value / total) * 100).toFixed(2))
 }
 
@@ -70,60 +65,86 @@ function deriveChildColors(parentColor: string, count: number): string[] {
 	})
 }
 
-function sortEntries(entries: Array<[string, number]>) {
-	return entries
-		.filter(([, value]) => Number.isFinite(value) && value > 0)
-		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+function sortEntries(entries: Iterable<[string, number]>) {
+	const sortedEntries: Array<[string, number]> = []
+	for (const entry of entries) {
+		if (entry[1] > 0) sortedEntries.push(entry)
+	}
+	sortedEntries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+	return sortedEntries
 }
 
-function buildFlatNodes(entries: Array<[string, number]>, rootLabel: string): RWAPerpsTreemapNode[] {
+function buildFlatNodes(entries: Iterable<[string, number]>, rootLabel: string): RWAPerpsTreemapNode[] {
 	const sortedEntries = sortEntries(entries)
-	const total = sortedEntries.reduce((sum, [, value]) => sum + value, 0)
+	let total = 0
+	for (const [, value] of sortedEntries) {
+		total += value
+	}
 
-	return sortedEntries.map(([name, value], index) => ({
-		name,
-		path: `${rootLabel}/${name}`,
-		value: [value, toShare(value, total), toShare(value, total)],
-		itemStyle: { color: CHART_COLORS[index % CHART_COLORS.length] }
-	}))
+	const nodes: RWAPerpsTreemapNode[] = []
+	for (let index = 0; index < sortedEntries.length; index++) {
+		const [name, value] = sortedEntries[index]
+		const share = toShare(value, total)
+		nodes.push({
+			name,
+			path: `${rootLabel}/${name}`,
+			value: [value, share, share],
+			itemStyle: { color: CHART_COLORS[index % CHART_COLORS.length] }
+		})
+	}
+	return nodes
 }
 
 function buildNestedNodes(
 	parentToChildTotals: Map<string, Map<string, number>>,
 	rootLabel: string
 ): RWAPerpsTreemapNode[] {
-	const parentRows = [...parentToChildTotals.entries()]
-		.map(([parentLabel, childTotals]) => ({
-			parentLabel,
-			childRows: sortEntries([...childTotals.entries()])
-		}))
-		.map((row) => ({
-			...row,
-			parentTotal: row.childRows.reduce((sum, [, value]) => sum + value, 0)
-		}))
-		.filter((row) => row.parentTotal > 0)
-		.sort((a, b) => b.parentTotal - a.parentTotal || a.parentLabel.localeCompare(b.parentLabel))
+	const parentRows: Array<{ parentLabel: string; childRows: Array<[string, number]>; parentTotal: number }> = []
+	for (const [parentLabel, childTotals] of parentToChildTotals.entries()) {
+		const childRows = sortEntries(childTotals.entries())
+		let parentTotal = 0
+		for (const [, value] of childRows) {
+			parentTotal += value
+		}
+		if (parentTotal > 0) {
+			parentRows.push({ parentLabel, childRows, parentTotal })
+		}
+	}
+	parentRows.sort((a, b) => b.parentTotal - a.parentTotal || a.parentLabel.localeCompare(b.parentLabel))
 
-	const total = parentRows.reduce((sum, row) => sum + row.parentTotal, 0)
+	let total = 0
+	for (const row of parentRows) {
+		total += row.parentTotal
+	}
 
-	return parentRows.map((row, parentIndex) => {
+	const nodes: RWAPerpsTreemapNode[] = []
+	for (let parentIndex = 0; parentIndex < parentRows.length; parentIndex++) {
+		const row = parentRows[parentIndex]
 		const parentColor = CHART_COLORS[parentIndex % CHART_COLORS.length]
 		const childColors = deriveChildColors(parentColor, row.childRows.length)
 		const parentPath = `${rootLabel}/${row.parentLabel}`
+		const parentShare = toShare(row.parentTotal, total)
+		const children: RWAPerpsTreemapNode[] = []
 
-		return {
-			name: row.parentLabel,
-			path: parentPath,
-			value: [row.parentTotal, toShare(row.parentTotal, total), toShare(row.parentTotal, total)],
-			itemStyle: { color: parentColor },
-			children: row.childRows.map(([childLabel, childValue], childIndex) => ({
+		for (let childIndex = 0; childIndex < row.childRows.length; childIndex++) {
+			const [childLabel, childValue] = row.childRows[childIndex]
+			children.push({
 				name: childLabel,
 				path: `${parentPath}/${childLabel}`,
 				value: [childValue, toShare(childValue, row.parentTotal), toShare(childValue, total)],
 				itemStyle: { color: childColors[childIndex] }
-			}))
+			})
 		}
-	})
+
+		nodes.push({
+			name: row.parentLabel,
+			path: parentPath,
+			value: [row.parentTotal, parentShare, parentShare],
+			itemStyle: { color: parentColor },
+			children
+		})
+	}
+	return nodes
 }
 
 function buildNestedTreeData({
@@ -202,7 +223,7 @@ export function buildRWAPerpsTreemapTreeData({
 			totalsByParent.set(label, (totalsByParent.get(label) ?? 0) + value)
 		}
 
-		return buildFlatNodes([...totalsByParent.entries()], rootLabel)
+		return buildFlatNodes(totalsByParent.entries(), rootLabel)
 	}
 
 	return buildNestedTreeData({

@@ -1012,7 +1012,7 @@ export function useRwaChainBreakdownPieChartData({
 			valueRaw: number | null | undefined
 		) => {
 			const value = valueRaw ?? 0
-			if (!Number.isFinite(value) || value <= 0) return
+			if (value <= 0) return
 
 			const chain = (chainRaw ?? '').trim() || UNKNOWN
 			const key = rwaSlug(chain)
