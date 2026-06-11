@@ -69,11 +69,8 @@ export function buildBridgedTvlChart(
 	const chart: Array<[number, number]> = []
 	for (const item of bridgedTvlData) {
 		if (!item) continue
-		const timestampSec = Math.floor(item.timestamp / 86_400) * 86_400
-		if (isGovTokensEnabled && item.data.ownTokens) {
-			chart.push([timestampSec, +item.data.total + +item.data.ownTokens])
-		}
-		chart.push([timestampSec * 1e3, +item.data.total])
+		const timestampMs = Math.floor(item.timestamp / 86_400) * 86_400 * 1e3
+		chart.push([timestampMs, +item.data.total + (isGovTokensEnabled ? +(item.data.ownTokens ?? 0) : 0)])
 	}
 	return chart
 }
