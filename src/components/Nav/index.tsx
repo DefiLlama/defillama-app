@@ -108,9 +108,9 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 
 	const userDashboards = useMemo(
 		() =>
-			liteDashboards?.map((dashboard: { id: string; name: string }) => ({
+			liteDashboards?.map((dashboard: { id: string; name: string; slug?: string }) => ({
 				name: dashboard.name,
-				route: `/pro/${dashboard.id}`
+				route: `/pro/${dashboard.slug || dashboard.id}`
 			})) ?? [],
 		[liteDashboards]
 	)

@@ -105,7 +105,7 @@ function DashboardPanelInner({
 			)
 		},
 		onSuccess: (dashboard) => {
-			void Router.push(`/pro/${dashboard.id}`)
+			void Router.push(`/pro/${dashboard.slug || dashboard.id}`)
 		},
 		onError: (err) => {
 			toast.error(err instanceof Error ? err.message : 'Failed to create dashboard')

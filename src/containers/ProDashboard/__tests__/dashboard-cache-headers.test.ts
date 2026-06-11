@@ -222,6 +222,65 @@ describe('pro dashboard cache headers', () => {
 		expect((result as any).props.initialDashboard).not.toHaveProperty('metrics')
 	})
 
+	it('redirects anonymous id requests to the canonical slug url', async () => {
+		fetchDashboardConfigWithStatusMock.mockResolvedValue({
+			dashboard: { ...publicDashboard, slug: 'public-fees-dashboard' },
+			status: 200
+		})
+		const context = createSsrContext('dashboard-1')
+
+		const result = await getServerSideProps(context)
+
+		expect(result).toEqual({
+			redirect: {
+				destination: '/pro/public-fees-dashboard',
+				permanent: true
+			}
+		})
+	})
+
+	it('redirects anonymous old-slug requests to the canonical slug url', async () => {
+		fetchDashboardConfigWithStatusMock.mockResolvedValue({
+			dashboard: { ...publicDashboard, slug: 'public-fees-dashboard' },
+			status: 200
+		})
+		const context = createSsrContext('old-fees-dashboard')
+
+		const result = await getServerSideProps(context)
+
+		expect(result).toEqual({
+			redirect: {
+				destination: '/pro/public-fees-dashboard',
+				permanent: true
+			}
+		})
+	})
+
+	it('renders canonical slug requests with a slug-based canonical path', async () => {
+		fetchDashboardConfigWithStatusMock.mockResolvedValue({
+			dashboard: { ...publicDashboard, slug: 'public-fees-dashboard' },
+			status: 200
+		})
+		const context = createSsrContext('public-fees-dashboard')
+
+		const result = await getServerSideProps(context)
+
+		expect(context.res.setHeader).toHaveBeenCalledWith('Cache-Control', PUBLIC_DASHBOARD_CACHE_CONTROL)
+		expect(result).toEqual({
+			props: expect.objectContaining({
+				dashboardId: 'public-fees-dashboard',
+				initialDashboard: expect.objectContaining({
+					id: 'dashboard-1',
+					slug: 'public-fees-dashboard'
+				}),
+				noIndex: false,
+				seo: expect.objectContaining({
+					canonicalPath: '/pro/public-fees-dashboard'
+				})
+			})
+		})
+	})
+
 	it('uses private no-store cache headers for authenticated dashboard pages without fetching', async () => {
 		const context = createSsrContext('dashboard-1', 'auth-token')
 
