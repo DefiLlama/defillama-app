@@ -554,15 +554,15 @@ function Earnings(props: IKeyMetricsProps) {
 	const adjustedRevenue = getAdjustedTotals(revenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 
 	const earnings24h =
-		adjustedRevenue && revenue?.total24h != null && incentivesData?.emissions24h != null
+		adjustedRevenue?.total24h != null && incentivesData?.emissions24h != null
 			? adjustedRevenue.total24h - incentivesData.emissions24h
 			: null
 	const earnings7d =
-		adjustedRevenue && revenue?.total7d != null && incentivesData?.emissions7d != null
+		adjustedRevenue?.total7d != null && incentivesData?.emissions7d != null
 			? adjustedRevenue.total7d - incentivesData.emissions7d
 			: null
 	const earnings30d =
-		adjustedRevenue && revenue?.total30d != null && incentivesData?.emissions30d != null
+		adjustedRevenue?.total30d != null && incentivesData?.emissions30d != null
 			? adjustedRevenue.total30d - incentivesData.emissions30d
 			: null
 	const earningsAnnualized1y =
@@ -570,7 +570,7 @@ function Earnings(props: IKeyMetricsProps) {
 			? adjustedRevenue.annualized1y - incentivesData.emissions1y
 			: null
 	const earningsAllTime =
-		adjustedRevenue && revenue?.totalAllTime != null && incentivesData?.emissionsAllTime != null
+		adjustedRevenue?.totalAllTime != null && incentivesData?.emissionsAllTime != null
 			? adjustedRevenue.totalAllTime - incentivesData.emissionsAllTime
 			: null
 

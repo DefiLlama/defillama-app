@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
 import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { addOptionalFeeExtraTotal } from '~/metrics/feeExtras'
 import type { IProtocolOverviewPageData } from './types'
 
 type ToggleOption = { name: string; key: string }
@@ -136,6 +137,7 @@ const hasAnyPeriodTotals = (totals: TotalsByPeriod | null | undefined) =>
 	totals?.total7d != null ||
 	totals?.total30d != null ||
 	totals?.total1y != null ||
+	totals?.annualized1y != null ||
 	totals?.totalAllTime != null
 
 export const getAdjustedTotals = (
@@ -144,32 +146,25 @@ export const getAdjustedTotals = (
 	tokenTax: TotalsByPeriod | null | undefined,
 	extraTvlsEnabled: Record<string, boolean>
 ) => {
-	const exists = hasAnyPeriodTotals(base) || hasAnyPeriodTotals(bribeRevenue) || hasAnyPeriodTotals(tokenTax)
+	const enabledBribeRevenue = extraTvlsEnabled.bribes ? bribeRevenue : null
+	const enabledTokenTax = extraTvlsEnabled.tokentax ? tokenTax : null
+	const exists =
+		hasAnyPeriodTotals(base) || hasAnyPeriodTotals(enabledBribeRevenue) || hasAnyPeriodTotals(enabledTokenTax)
 	if (!exists) return null
 
-	const b24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
-	const b7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
-	const b30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
-	const bAll = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
-	const t24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
-	const t7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
-	const t30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
-	const tAll = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
-
-	const b1y = extraTvlsEnabled.bribes ? bribeRevenue?.total1y : null
-	const t1y = extraTvlsEnabled.tokentax ? tokenTax?.total1y : null
-	const hasTotal1y = base?.total1y != null || b1y != null || t1y != null
-
-	const bAnnualized = extraTvlsEnabled.bribes ? bribeRevenue?.annualized1y : null
-	const tAnnualized = extraTvlsEnabled.tokentax ? tokenTax?.annualized1y : null
-	const hasAnnualized1y = base?.annualized1y != null || bAnnualized != null || tAnnualized != null
+	const sumPeriod = (key: keyof TotalsByPeriod) => {
+		const baseValue = base?.[key]
+		const bribesValue = enabledBribeRevenue?.[key]
+		const tokenTaxValue = enabledTokenTax?.[key]
+		return addOptionalFeeExtraTotal(baseValue, (bribesValue ?? 0) + (tokenTaxValue ?? 0))
+	}
 
 	return {
-		total24h: (base?.total24h ?? 0) + (b24h ?? 0) + (t24h ?? 0),
-		total7d: (base?.total7d ?? 0) + (b7d ?? 0) + (t7d ?? 0),
-		total30d: (base?.total30d ?? 0) + (b30d ?? 0) + (t30d ?? 0),
-		total1y: hasTotal1y ? (base?.total1y ?? 0) + (b1y ?? 0) + (t1y ?? 0) : null,
-		annualized1y: hasAnnualized1y ? (base?.annualized1y ?? 0) + (bAnnualized ?? 0) + (tAnnualized ?? 0) : null,
-		totalAllTime: (base?.totalAllTime ?? 0) + (bAll ?? 0) + (tAll ?? 0)
+		total24h: sumPeriod('total24h'),
+		total7d: sumPeriod('total7d'),
+		total30d: sumPeriod('total30d'),
+		total1y: sumPeriod('total1y'),
+		annualized1y: sumPeriod('annualized1y'),
+		totalAllTime: sumPeriod('totalAllTime')
 	}
 }

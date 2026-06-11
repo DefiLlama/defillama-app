@@ -58,6 +58,49 @@ beforeEach(() => {
 })
 
 describe('getAdjustedTotals', () => {
+	it('keeps disabled extra-only periods null while preserving base periods', () => {
+		const result = getAdjustedTotals(
+			{ total24h: null, total7d: 700, total30d: null, totalAllTime: null },
+			{ total24h: 10, total30d: 300, totalAllTime: 1000 },
+			{ total24h: 5, total30d: 30 },
+			{ bribes: false, tokentax: false }
+		)
+
+		expect(result).toMatchObject({
+			total24h: null,
+			total7d: 700,
+			total30d: null,
+			totalAllTime: null
+		})
+	})
+
+	it('returns null when only disabled extras have totals', () => {
+		const result = getAdjustedTotals(
+			null,
+			{ total24h: 10, total7d: 70 },
+			{ total24h: 5, total30d: 30 },
+			{ bribes: false, tokentax: false }
+		)
+
+		expect(result).toBeNull()
+	})
+
+	it('uses enabled extras as period values when base periods are missing', () => {
+		const result = getAdjustedTotals(
+			{ total24h: null, total7d: null, total30d: 300, totalAllTime: null },
+			{ total24h: 10, totalAllTime: 1000 },
+			{ total24h: 5, total7d: 70 },
+			{ bribes: true, tokentax: true }
+		)
+
+		expect(result).toMatchObject({
+			total24h: 15,
+			total7d: 70,
+			total30d: 300,
+			totalAllTime: 1000
+		})
+	})
+
 	it('includes enabled trailing 12-month extra revenue when base trailing 12-month revenue is missing', () => {
 		const result = getAdjustedTotals(
 			{ total30d: 300, total1y: null },
@@ -100,6 +143,25 @@ describe('getAdjustedTotals', () => {
 		)
 
 		expect(result?.annualized1y).toBeNull()
+	})
+
+	it('returns annualized1y when it is the only selected period', () => {
+		const result = getAdjustedTotals(null, { annualized1y: 700 }, null, { bribes: true, tokentax: false })
+
+		expect(result).toMatchObject({
+			total24h: null,
+			total7d: null,
+			total30d: null,
+			total1y: null,
+			annualized1y: 700,
+			totalAllTime: null
+		})
+	})
+
+	it('keeps enabled zero-only extra periods null when the base period is missing', () => {
+		const result = getAdjustedTotals(null, { total24h: 0 }, null, { bribes: true, tokentax: false })
+
+		expect(result?.total24h).toBeNull()
 	})
 })
 

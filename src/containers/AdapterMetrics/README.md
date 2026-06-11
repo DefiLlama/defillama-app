@@ -99,16 +99,17 @@ Do not substitute one ranking builder for another just because the route labels 
 
 ## Fee Extras
 
-Fees pages can include bribes and token taxes through the `fees` local storage settings.
+Fees pages can include bribes and token taxes through the `fees` local storage settings. When a fee-family AdapterMetrics page exposes those controls, displayed table totals and supported charts add the enabled extras.
 
 Current behavior is split across:
 
 - `queries.tsx`: fetches bribes/token tax data for relevant fee paths.
-- `AdapterByChain.tsx`: optionally adds extras into protocol table totals and P/F or P/S calculations.
-- `ChainsByAdapter.tsx`: optionally adds extras into chain ranking totals.
-- `ChainChart.tsx`: optionally merges extra fee series into chart modes for supported fee charts.
+- `src/metrics/feeExtras.ts`: shared setting-to-data-type mapping, eligibility, totals, and series helpers.
+- `AdapterByChain.tsx`: adds extras into protocol table totals and P/F or P/S calculations.
+- `ChainsByAdapter.tsx`: adds extras into fee-family chain ranking totals.
+- `ChainChart.tsx`: merges extra fee series into supported fee-family charts.
 
-Before changing this behavior, add or update focused tests. Opposite-edge cases matter: enabling bribes or token taxes should not affect unrelated adapter pages.
+Chain-native fee/revenue ranking pages expose controls but intentionally keep chart panels hidden. App Fees, App Revenue, and Holders Revenue chain ranking charts merge enabled extras. Before changing this behavior, add or update focused tests. Opposite-edge cases matter: enabling bribes or token taxes should not affect unrelated adapter pages.
 
 ## Chart Notes
 

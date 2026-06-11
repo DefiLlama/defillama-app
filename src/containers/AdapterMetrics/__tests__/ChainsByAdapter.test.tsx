@@ -108,21 +108,27 @@ describe('ChainsByAdapter fee extras', () => {
 		})
 	})
 
-	it('adds enabled bribes and token tax into app fee chain table totals', () => {
+	it.each([
+		['Fees', ADAPTER_DATA_TYPES.DAILY_FEES],
+		['Revenue', ADAPTER_DATA_TYPES.DAILY_REVENUE],
+		['Holders Revenue', ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE],
+		['App Fees', ADAPTER_DATA_TYPES.DAILY_APP_FEES],
+		['App Revenue', ADAPTER_DATA_TYPES.DAILY_APP_REVENUE]
+	] as const)('adds enabled bribes and token tax into %s chain table totals', (type, dataType) => {
 		mocks.feesSettings.bribes = true
 		mocks.feesSettings.tokentax = true
 
 		const rows = renderRows({
-			type: 'App Fees',
+			type,
 			adapterType: ADAPTER_TYPES.FEES,
-			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			dataType,
 			chains: [feeExtrasChain]
 		})
 
 		expect(rows[0]).toMatchObject({
 			name: 'Base',
 			total24h: 123,
-			total7d: 700,
+			total7d: 861,
 			total30d: 3630
 		})
 	})

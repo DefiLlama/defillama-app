@@ -9,11 +9,12 @@ import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/Cha
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import type { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
-import { TVL_SETTINGS } from '~/contexts/LocalStorage'
+import { FEES_SETTINGS, TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+import { isTruthyQueryParam } from '~/utils/routerQuery'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
@@ -82,7 +83,7 @@ export default function ChainChartPage(props: IChainOverviewData) {
 		)
 	}, [router.query, props.metadata.id])
 
-	const { toggledCharts, chainGeckoId, gasUsedSymbol, groupBy, denomination, tvlSettings, isThemeDark } =
+	const { toggledCharts, chainGeckoId, gasUsedSymbol, groupBy, denomination, tvlSettings, feesSettings, isThemeDark } =
 		useMemo(() => {
 			const queryParams = JSON.parse(queryParamsString)
 
@@ -100,7 +101,15 @@ export default function ChainChartPage(props: IChainOverviewData) {
 			const tvlSettings = {}
 
 			for (const setting in TVL_SETTINGS) {
-				tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
+				tvlSettings[TVL_SETTINGS[setting]] = isTruthyQueryParam(queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`])
+			}
+
+			const feesSettings = {}
+
+			for (const setting in FEES_SETTINGS) {
+				feesSettings[FEES_SETTINGS[setting]] = isTruthyQueryParam(
+					queryParams[`include_${FEES_SETTINGS[setting]}_in_fees`]
+				)
 			}
 
 			const toggledCharts = props.charts.filter((tchart, index) =>
@@ -125,6 +134,7 @@ export default function ChainChartPage(props: IChainOverviewData) {
 				groupBy,
 				denomination,
 				tvlSettings,
+				feesSettings,
 				isThemeDark
 			}
 		}, [
@@ -142,6 +152,7 @@ export default function ChainChartPage(props: IChainOverviewData) {
 		tvlChartSummary: props.tvlChartSummary,
 		extraTvlCharts: props.extraTvlCharts,
 		tvlSettings,
+		feesSettings,
 		chainGeckoId,
 		toggledCharts,
 		groupBy

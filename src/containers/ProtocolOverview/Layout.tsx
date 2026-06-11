@@ -2,11 +2,11 @@ import * as Ariakit from '@ariakit/react'
 import { useMemo } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
+import { getMetricFiltersLabel } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink, ButtonLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import type { IProtocolPageMetrics } from './types'
@@ -89,24 +89,7 @@ export function ProtocolOverviewLayout({
 }) {
 	const { user } = useAuthContext()
 
-	const metricFiltersLabel = useMemo(() => {
-		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
-		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS_SET.has(option.key))
-
-		if (hasTvl && hasFees) {
-			return 'Include TVL & Fees'
-		}
-
-		if (hasTvl) {
-			return 'Include in TVL'
-		}
-
-		if (hasFees) {
-			return 'Include in Fees'
-		}
-
-		return null
-	}, [toggleOptions])
+	const metricFiltersLabel = useMemo(() => getMetricFiltersLabel(toggleOptions), [toggleOptions])
 
 	const protocolTabs = useMemo(() => {
 		const final = []

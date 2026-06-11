@@ -1,7 +1,7 @@
 import { fetchLlamaConfig } from '~/api'
 import { fetchCoinGeckoCoinById } from '~/api/coingecko'
 import type { CoinGeckoCoinDetailResult } from '~/api/coingecko.types'
-import { tvlOptions } from '~/components/Filters/options'
+import { feesOptions, tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchCexVolume } from '~/containers/AdapterMetrics/api'
 import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/AdapterMetrics/api'
@@ -24,6 +24,15 @@ import type { StablecoinsListResponse } from '~/containers/Stablecoins/api.types
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
+import {
+	FEE_EXTRA_DATA_TYPES_BY_SETTING,
+	FEE_EXTRA_TOTAL_FIELD_BY_SETTING,
+	FEE_EXTRA_TOTAL_KEYS,
+	hasAnyFeeExtraTotals,
+	type FeeExtraSetting,
+	type FeeExtraMetric,
+	type FeeExtraTotals
+} from '~/metrics/feeExtras'
 import { feeRevenueMetrics, shouldFetchChainOverviewFeeRevenueMetric } from '~/metrics/feesRevenue'
 import { getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -106,6 +115,68 @@ export function hasRwaActiveMcapChain(rwaChains: string[] | null | undefined, ch
 	return false
 }
 
+function toFeeExtraTotals(data: FeeExtraTotals | null | undefined): FeeExtraTotals | null {
+	if (!data || !hasAnyFeeExtraTotals(data)) return null
+	const totals: FeeExtraTotals = {}
+	for (const key of FEE_EXTRA_TOTAL_KEYS) {
+		totals[key] = data[key] ?? null
+	}
+	return totals
+}
+
+async function fetchChainNativeFeeExtraTotals({
+	chain,
+	dataType
+}: {
+	chain: string
+	dataType: FeeExtraMetric
+}): Promise<FeeExtraTotals | null> {
+	if (chain === 'All') return null
+
+	return fetchAdapterProtocolMetrics({ adapterType: 'fees', protocol: chain, dataType })
+		.then(toFeeExtraTotals)
+		.catch(() => null)
+}
+
+export function getChainOverviewMetricFilterOptions({
+	chartData,
+	chainFees,
+	chainRevenue,
+	appRevenue,
+	appFees,
+	feeExtras
+}: {
+	chartData: ILiteChart | null | undefined
+	chainFees: { total24h: number | null } | null | undefined
+	chainRevenue: { total24h: number | null } | null | undefined
+	appRevenue: { total24h: number | null } | null | undefined
+	appFees: { total24h: number | null } | null | undefined
+	feeExtras: IChainOverviewData['feeExtras']
+}) {
+	const hasVisibleChainNativeFeeMetric =
+		chainFees?.total24h != null ||
+		chainRevenue?.total24h != null ||
+		hasAnyFeeExtraTotals(feeExtras.chainNative.bribes) ||
+		hasAnyFeeExtraTotals(feeExtras.chainNative.tokenTax)
+	const hasVisibleAppFeeMetric =
+		appRevenue?.total24h != null ||
+		appFees?.total24h != null ||
+		hasAnyFeeExtraTotals(feeExtras.app.bribes) ||
+		hasAnyFeeExtraTotals(feeExtras.app.tokenTax)
+	const hasFeeExtraOption = (setting: FeeExtraSetting) => {
+		const totalsKey = FEE_EXTRA_TOTAL_FIELD_BY_SETTING[setting]
+		return (
+			(hasVisibleChainNativeFeeMetric && hasAnyFeeExtraTotals(feeExtras.chainNative[totalsKey])) ||
+			(hasVisibleAppFeeMetric && hasAnyFeeExtraTotals(feeExtras.app[totalsKey]))
+		)
+	}
+
+	return [
+		...tvlOptions.filter((o) => chartData?.[o.key]?.length),
+		...feesOptions.filter((option) => hasFeeExtraOption(option.key))
+	]
+}
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
@@ -142,6 +213,28 @@ export async function getChainOverviewData({
 	const chainRevenueMetric = feeRevenueMetrics.chainRevenue
 	const appFeesMetric = feeRevenueMetrics.appFees
 	const appRevenueMetric = feeRevenueMetrics.appRevenue
+	const shouldFetchChainFeesMetric = shouldFetchChainOverviewFeeRevenueMetric({
+		metric: chainFeesMetric,
+		metadata: currentChainMetadata,
+		chain
+	})
+	const shouldFetchChainRevenueMetric = shouldFetchChainOverviewFeeRevenueMetric({
+		metric: chainRevenueMetric,
+		metadata: currentChainMetadata,
+		chain
+	})
+	const shouldFetchAppFeesMetric = shouldFetchChainOverviewFeeRevenueMetric({
+		metric: appFeesMetric,
+		metadata: currentChainMetadata,
+		chain
+	})
+	const shouldFetchAppRevenueMetric = shouldFetchChainOverviewFeeRevenueMetric({
+		metric: appRevenueMetric,
+		metadata: currentChainMetadata,
+		chain
+	})
+	const shouldFetchChainNativeFeeExtras = shouldFetchChainFeesMetric || shouldFetchChainRevenueMetric
+	const shouldFetchAppFeeExtras = shouldFetchAppFeesMetric || shouldFetchAppRevenueMetric
 
 	try {
 		const [
@@ -161,6 +254,10 @@ export async function getChainOverviewData({
 			appFees,
 			chainFees,
 			chainRevenue,
+			chainNativeBribes,
+			chainNativeTokenTax,
+			appBribes,
+			appTokenTax,
 			perps,
 			cexVolume,
 			etfData,
@@ -187,6 +284,10 @@ export async function getChainOverviewData({
 			IAdapterChainMetrics | null,
 			IAdapterProtocolMetrics | null,
 			IAdapterProtocolMetrics | null,
+			FeeExtraTotals | null,
+			FeeExtraTotals | null,
+			FeeExtraTotals | null,
+			FeeExtraTotals | null,
 			IAdapterChainMetrics | null,
 			number | null,
 			Array<[number, number]> | null,
@@ -267,11 +368,7 @@ export async function getChainOverviewData({
 					.catch(() => null)
 			),
 			timePhase(appRevenueMetric.chainOverview.phase, () =>
-				shouldFetchChainOverviewFeeRevenueMetric({
-					metric: appRevenueMetric,
-					metadata: currentChainMetadata,
-					chain
-				})
+				shouldFetchAppRevenueMetric
 					? fetchAdapterChainMetrics({
 							adapterType: appRevenueMetric.chainOverview.source.adapterType,
 							chain: currentChainMetadata.name,
@@ -280,11 +377,7 @@ export async function getChainOverviewData({
 					: Promise.resolve(null)
 			),
 			timePhase(appFeesMetric.chainOverview.phase, () =>
-				shouldFetchChainOverviewFeeRevenueMetric({
-					metric: appFeesMetric,
-					metadata: currentChainMetadata,
-					chain
-				})
+				shouldFetchAppFeesMetric
 					? fetchAdapterChainMetrics({
 							adapterType: appFeesMetric.chainOverview.source.adapterType,
 							chain: currentChainMetadata.name,
@@ -293,11 +386,7 @@ export async function getChainOverviewData({
 					: Promise.resolve(null)
 			),
 			timePhase(chainFeesMetric.chainOverview.phase, () =>
-				shouldFetchChainOverviewFeeRevenueMetric({
-					metric: chainFeesMetric,
-					metadata: currentChainMetadata,
-					chain
-				})
+				shouldFetchChainFeesMetric
 					? fetchAdapterProtocolMetrics({
 							adapterType: chainFeesMetric.chainOverview.source.adapterType,
 							protocol: currentChainMetadata.name
@@ -305,16 +394,50 @@ export async function getChainOverviewData({
 					: Promise.resolve(null)
 			),
 			timePhase(chainRevenueMetric.chainOverview.phase, () =>
-				shouldFetchChainOverviewFeeRevenueMetric({
-					metric: chainRevenueMetric,
-					metadata: currentChainMetadata,
-					chain
-				})
+				shouldFetchChainRevenueMetric
 					? fetchAdapterProtocolMetrics({
 							adapterType: chainRevenueMetric.chainOverview.source.adapterType,
 							protocol: currentChainMetadata.name,
 							dataType: chainRevenueMetric.chainOverview.source.dataType
 						})
+					: Promise.resolve(null)
+			),
+			timePhase('chain_native_bribes', () =>
+				shouldFetchChainNativeFeeExtras
+					? fetchChainNativeFeeExtraTotals({
+							chain: currentChainMetadata.name,
+							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('chain_native_token_tax', () =>
+				shouldFetchChainNativeFeeExtras
+					? fetchChainNativeFeeExtraTotals({
+							chain: currentChainMetadata.name,
+							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
+						})
+					: Promise.resolve(null)
+			),
+			timePhase('app_bribes', () =>
+				shouldFetchAppFeeExtras
+					? fetchAdapterChainMetrics({
+							adapterType: 'fees',
+							chain: currentChainMetadata.name,
+							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
+						})
+							.then(toFeeExtraTotals)
+							.catch(() => null)
+					: Promise.resolve(null)
+			),
+			timePhase('app_token_tax', () =>
+				shouldFetchAppFeeExtras
+					? fetchAdapterChainMetrics({
+							adapterType: 'fees',
+							chain: currentChainMetadata.name,
+							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
+						})
+							.then(toFeeExtraTotals)
+							.catch(() => null)
 					: Promise.resolve(null)
 			),
 			timePhase('perps', () =>
@@ -381,7 +504,24 @@ export async function getChainOverviewData({
 			dcAndLsOverlap = []
 		} = chartData || {}
 
-		const tvlAndFeesOptions = tvlOptions.filter((o) => chartData?.[o.key]?.length)
+		const feeExtras = {
+			chainNative: {
+				bribes: chainNativeBribes,
+				tokenTax: chainNativeTokenTax
+			},
+			app: {
+				bribes: appBribes,
+				tokenTax: appTokenTax
+			}
+		}
+		const tvlAndFeesOptions = getChainOverviewMetricFilterOptions({
+			chartData,
+			chainFees,
+			chainRevenue,
+			appRevenue,
+			appFees,
+			feeExtras
+		})
 		const extraTvlCharts = {
 			staking: {},
 			borrowed: {},
@@ -475,10 +615,13 @@ export async function getChainOverviewData({
 		if (stablecoins?.mcap != null) {
 			charts.push('Stablecoins Mcap')
 		}
-		if (chainFees?.total24h != null) {
+		const hasChainNativeFeeExtras = hasAnyFeeExtraTotals(chainNativeBribes) || hasAnyFeeExtraTotals(chainNativeTokenTax)
+		const hasAppFeeExtras = hasAnyFeeExtraTotals(appBribes) || hasAnyFeeExtraTotals(appTokenTax)
+
+		if (chainFees?.total24h != null || hasChainNativeFeeExtras) {
 			charts.push(chainFeesMetric.label)
 		}
-		if (chainRevenue?.total24h != null) {
+		if (chainRevenue?.total24h != null || hasChainNativeFeeExtras) {
 			charts.push(chainRevenueMetric.label)
 		}
 		if (shouldFetchDexs && dexs?.total24h != null) {
@@ -490,10 +633,10 @@ export async function getChainOverviewData({
 		if (chainIncentives?.emissions24h != null) {
 			charts.push('Token Incentives')
 		}
-		if (appRevenue?.total24h != null) {
+		if (appRevenue?.total24h != null || hasAppFeeExtras) {
 			charts.push(appRevenueMetric.label)
 		}
-		if (appFees?.total24h != null) {
+		if (appFees?.total24h != null || hasAppFeeExtras) {
 			charts.push(appFeesMetric.label)
 		}
 
@@ -568,6 +711,7 @@ export async function getChainOverviewData({
 				totalREV24h: chainREV
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
+			feeExtras,
 			appRevenue: { total24h: appRevenue?.total24h ?? null },
 			appFees: { total24h: appFees?.total24h ?? null },
 			dexs: {
