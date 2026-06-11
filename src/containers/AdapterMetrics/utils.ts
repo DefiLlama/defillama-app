@@ -1028,7 +1028,7 @@ function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesName
 		let total = 0
 		for (const seriesName of seriesNames) {
 			const value = row[seriesName] as number | null | undefined
-			if (value != null && value > 0) total += value
+			if (value != null) total += value > 0 ? value : 0
 		}
 		for (const seriesName of seriesNames) {
 			const value = row[seriesName] as number | null | undefined
@@ -1036,7 +1036,8 @@ function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesName
 				nextRow[seriesName] = null
 				continue
 			}
-			nextRow[seriesName] = total > 0 ? (value / total) * 100 : 0
+			const clampedValue = value > 0 ? value : 0
+			nextRow[seriesName] = total > 0 ? (clampedValue / total) * 100 : 0
 		}
 		source.push(nextRow)
 	}

@@ -199,6 +199,37 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(day3.Solana).toBe(0)
 	})
 
+	it('clamps negative values to zero when normalizing relative shares', () => {
+		const state: ChainsByAdapterChartState = {
+			chartKind: 'bar',
+			valueMode: 'relative',
+			barLayout: 'separate',
+			groupBy: 'daily'
+		}
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum', 'Solana', 'Base'],
+				source: [
+					{ timestamp: toMs(2024, 1, 1), Ethereum: -10, Solana: 20, Base: null },
+					{ timestamp: toMs(2024, 1, 2), Ethereum: 0, Solana: 0, Base: 5 }
+				]
+			},
+			selectedChains: ['Ethereum', 'Solana', 'Base'],
+			state
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		const [day1, day2] = presentation.dataset.source
+		expect(day1.Ethereum).toBe(0)
+		expect(day1.Solana).toBe(100)
+		expect(day1.Base).toBeNull()
+		expect(day2.Ethereum).toBe(0)
+		expect(day2.Solana).toBe(0)
+		expect(day2.Base).toBe(100)
+	})
+
 	it('keeps missing chain values null so tooltips do not show fake zeroes', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: sparseChartData,
