@@ -10,19 +10,11 @@ import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import type { TimeSeriesEntry } from './api.types'
+import { buildNarrativeTreemapTreeData, type NarrativeTreemapTreeData } from './chartData'
 import type { CategoryPerformanceProps, IPctChangeRow } from './types'
 
 interface ITreemapChartProps {
-	treeData: Array<{
-		value: [number, number | null, number | null]
-		name: string
-		path: string
-		children: Array<{
-			value: [number, number, number]
-			name: string
-			path: string
-		}>
-	}>
+	treeData: NarrativeTreemapTreeData
 	variant?: 'yields' | 'narrative'
 	height?: string
 }
@@ -271,34 +263,7 @@ export const CategoryPerformanceContainer = ({
 	const chartDataBundle = React.useMemo(() => ({ dataset, barCharts, lineCharts }), [dataset, barCharts, lineCharts])
 	const deferredChartData = React.useDeferredValue(chartDataBundle)
 
-	const treemapTreeData = React.useMemo(() => {
-		const safeReturn = (v: number | null | undefined): number => {
-			return typeof v === 'number' && Number.isFinite(v) ? parseFloat(v.toFixed(2)) : 0
-		}
-
-		const treeData: ITreemapChartProps['treeData'] = []
-		const cData = treemapChart
-
-		// structure into hierarchy
-		const categoryNames = [...new Set(cData.map((p) => p.categoryName ?? ''))]
-		for (const cat of categoryNames) {
-			const catData = cData.filter((p) => (p.categoryName ?? '') === cat)
-			const catMcap = catData.reduce((sum, p) => sum + p.mcap, 0)
-
-			treeData.push({
-				value: [catMcap, null, null],
-				name: cat,
-				path: cat,
-				children: catData.map((p) => ({
-					value: [p.mcap, safeReturn(p.returnField), safeReturn(p.returnField)],
-					name: p.name,
-					path: `${p.categoryName ?? ''}/${p.name}`
-				}))
-			})
-		}
-
-		return treeData
-	}, [treemapChart])
+	const treemapTreeData = React.useMemo(() => buildNarrativeTreemapTreeData(treemapChart), [treemapChart])
 
 	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
 
