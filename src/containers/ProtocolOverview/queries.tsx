@@ -18,6 +18,7 @@ import type { ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { FEE_EXTRA_CONFIG_BY_SETTING, type FeeExtraConfig } from '~/metrics/feeExtras'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson, getFastJsonTimeoutMs, getSlowJsonTimeoutMs } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
@@ -132,6 +133,21 @@ export const getProtocolOverviewPageData = async ({
 	const currentProtocolSlug = slug(displayName)
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
 	const isOracleProtocol = Boolean(oracleProtocolName)
+	const feeExtraMetricPromise = (extra: FeeExtraConfig) =>
+		currentProtocolMetadata[extra.protocolMetadataField]
+			? fetchAdapterProtocolMetrics({
+					adapterType: 'fees',
+					dataType: extra.dataType,
+					protocol: displayName
+				}).then((data) =>
+					formatAdapterData({
+						data,
+						methodologyKey: extra.methodologyKey
+					})
+				)
+			: Promise.resolve(null)
+	const bribesDataPromise = feeExtraMetricPromise(FEE_EXTRA_CONFIG_BY_SETTING.bribes)
+	const tokenTaxDataPromise = feeExtraMetricPromise(FEE_EXTRA_CONFIG_BY_SETTING.tokentax)
 
 	const [
 		protocolData,
@@ -252,20 +268,8 @@ export const getProtocolOverviewPageData = async ({
 					protocol: currentProtocolMetadata.displayName ?? ''
 				}).then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
 			: Promise.resolve(null),
-		currentProtocolMetadata.bribeRevenue
-			? fetchAdapterProtocolMetrics({
-					adapterType: 'fees',
-					dataType: 'dailyBribesRevenue',
-					protocol: currentProtocolMetadata.displayName ?? ''
-				}).then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
-			: Promise.resolve(null),
-		currentProtocolMetadata.tokenTax
-			? fetchAdapterProtocolMetrics({
-					adapterType: 'fees',
-					dataType: 'dailyTokenTaxes',
-					protocol: currentProtocolMetadata.displayName ?? ''
-				}).then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
-			: Promise.resolve(null),
+		bribesDataPromise,
+		tokenTaxDataPromise,
 		currentProtocolMetadata.dexs
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'dexs',

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { FEE_EXTRA_CONFIGS } from '~/metrics/feeExtras'
 import { CopyHelper } from './Copy'
 
 export function EmbedChart() {
@@ -33,10 +34,9 @@ export function EmbedChart() {
 			}
 		}
 
-		for (const option in feesSettings) {
-			if (!Object.prototype.hasOwnProperty.call(feesSettings, option)) continue
-			if (feesSettings[option]) {
-				extras.push(`include_${option}_in_fees=true`)
+		for (const extra of FEE_EXTRA_CONFIGS) {
+			if (feesSettings[extra.setting]) {
+				extras.push(`${extra.queryParam}=true`)
 			}
 		}
 

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { addFeeExtrasToRowTotals, addOptionalFeeExtraTotal, mergeFeeExtraSeries } from '../feeExtras'
+import {
+	FEE_EXTRA_CONFIG_BY_SETTING,
+	FEE_EXTRA_QUERY_PARAMS_BY_SETTING,
+	addFeeExtrasToRowTotals,
+	addOptionalFeeExtraTotal,
+	getEnabledFeeExtraConfigs,
+	mergeFeeExtraSeries
+} from '../feeExtras'
 
 describe('fee extra helpers', () => {
 	it('uses enabled extras as the total when the base period is missing', () => {
@@ -44,5 +51,35 @@ describe('fee extra helpers', () => {
 			[2, 220],
 			[3, 30]
 		])
+	})
+
+	it('exposes fee extra query param metadata', () => {
+		expect(FEE_EXTRA_QUERY_PARAMS_BY_SETTING).toEqual({
+			bribes: 'include_bribes_in_fees',
+			tokentax: 'include_tokentax_in_fees'
+		})
+		expect(FEE_EXTRA_CONFIG_BY_SETTING.bribes).toMatchObject({
+			protocolMetadataField: 'bribeRevenue',
+			protocolMetricField: 'bribes',
+			methodologyKey: 'BribesRevenue',
+			clientQueryKey: 'bribes'
+		})
+		expect(FEE_EXTRA_CONFIG_BY_SETTING.tokentax).toMatchObject({
+			protocolMetadataField: 'tokenTax',
+			protocolMetricField: 'tokenTax',
+			methodologyKey: 'TokenTaxes',
+			clientQueryKey: 'token-taxes'
+		})
+	})
+
+	it('iterates enabled fee extras in registry order', () => {
+		expect(getEnabledFeeExtraConfigs({ tokentax: true, bribes: true }).map((extra) => extra.dataType)).toEqual([
+			'dailyBribesRevenue',
+			'dailyTokenTaxes'
+		])
+		expect(getEnabledFeeExtraConfigs({ bribes: true }).map((extra) => extra.queryParam)).toEqual([
+			'include_bribes_in_fees'
+		])
+		expect(getEnabledFeeExtraConfigs({})).toEqual([])
 	})
 })
