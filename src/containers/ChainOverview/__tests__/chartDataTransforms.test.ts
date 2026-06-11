@@ -31,17 +31,16 @@ describe('ChainOverview chart data transforms', () => {
 		])
 	})
 
-	it('preserves the existing gov-token bridged TVL point shape', () => {
+	it('adds own tokens to bridged TVL on the millisecond timestamp when govtokens are enabled', () => {
 		const timestampSec = Date.UTC(2026, 0, 3, 12) / 1e3
 		const dayStartSec = Date.UTC(2026, 0, 3) / 1e3
 
 		expect(buildBridgedTvlChart([{ timestamp: timestampSec, data: { total: '100', ownTokens: '10' } }], true)).toEqual([
-			[dayStartSec, 110],
-			[dayStartSec * 1e3, 100]
+			[dayStartSec * 1e3, 110]
 		])
 	})
 
-	it('keeps denomination conversion for normal bridged TVL points', () => {
+	it('keeps denomination conversion for bridged TVL points without govtokens', () => {
 		const timestampSec = Date.UTC(2026, 0, 3, 12) / 1e3
 		const dayStartSec = Date.UTC(2026, 0, 3) / 1e3
 
@@ -55,5 +54,21 @@ describe('ChainOverview chart data transforms', () => {
 				dateInMs: true
 			})
 		).toEqual([[dayStartSec * 1e3, 50]])
+	})
+
+	it('uses the millisecond timestamp price lookup for bridged TVL points with govtokens', () => {
+		const timestampSec = Date.UTC(2026, 0, 3, 12) / 1e3
+		const dayStartSec = Date.UTC(2026, 0, 3) / 1e3
+
+		expect(
+			formatLineChart({
+				data: buildBridgedTvlChart([{ timestamp: timestampSec, data: { total: '100', ownTokens: '10' } }], true),
+				groupBy: 'daily',
+				denominationPriceHistory: {
+					[String(dayStartSec * 1e3)]: 2
+				},
+				dateInMs: true
+			})
+		).toEqual([[dayStartSec * 1e3, 55]])
 	})
 })
