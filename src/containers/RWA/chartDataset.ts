@@ -78,6 +78,8 @@ export function limitRwaHorizontalBarData(
 	items: readonly RwaNamedValue[],
 	{ maxBars = RWA_MAX_HORIZONTAL_BARS, sort = false }: { maxBars?: number; sort?: boolean } = {}
 ): RwaNamedValue[] {
+	const normalizedMaxBars = Number.isFinite(maxBars) ? Math.floor(maxBars) : RWA_MAX_HORIZONTAL_BARS
+	const effectiveMaxBars = Math.max(1, normalizedMaxBars)
 	let othersValue = 0
 	const withoutOthers: RwaNamedValue[] = []
 	for (const item of items) {
@@ -94,13 +96,13 @@ export function limitRwaHorizontalBarData(
 		withoutOthers.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
 	}
 
-	if (withoutOthers.length <= maxBars - (othersValue > 0 ? 1 : 0)) {
+	if (withoutOthers.length <= effectiveMaxBars - (othersValue > 0 ? 1 : 0)) {
 		return othersValue > 0 ? [...withoutOthers, { name: 'Others', value: othersValue }] : withoutOthers
 	}
 
-	const limited = withoutOthers.slice(0, maxBars - 1)
+	const limited = withoutOthers.slice(0, effectiveMaxBars - 1)
 	let overflowValue = othersValue
-	for (let index = maxBars - 1; index < withoutOthers.length; index++) {
+	for (let index = effectiveMaxBars - 1; index < withoutOthers.length; index++) {
 		overflowValue += withoutOthers[index].value
 	}
 	return overflowValue > 0 ? [...limited, { name: 'Others', value: overflowValue }] : limited

@@ -24,6 +24,21 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 	res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
 }
 
+function isNotFoundError(error: unknown): boolean {
+	return error instanceof Error && error.message.includes('[404]')
+}
+
+async function fetchTokenTotalSupply(geckoId: string): Promise<number | null> {
+	try {
+		const data = await fetchJson<{ data?: { total_supply?: number | null } }>(`${CACHE_SERVER}/supply/${geckoId}`)
+		const rawSupply = data?.data?.total_supply ?? null
+		return rawSupply != null && Number.isFinite(rawSupply) ? rawSupply : null
+	} catch (error) {
+		if (isNotFoundError(error)) return null
+		throw error
+	}
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
@@ -43,11 +58,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		if (kind === 'supply') {
 			// Supply is not part of the CoinGecko chart payload; it comes from the
 			// cache-server supply snapshot while price charts use the CG cache path.
-			const data = await fetchJson<{ data?: { total_supply?: number | null } }>(
-				`${CACHE_SERVER}/supply/${geckoId}`
-			).catch(() => null)
-			const rawSupply = data?.data?.total_supply ?? null
-			const totalSupply = rawSupply != null && Number.isFinite(rawSupply) ? rawSupply : null
+			const totalSupply = await fetchTokenTotalSupply(geckoId)
 			if (totalSupply === null) {
 				setNoStoreHeaders(res)
 			} else {
