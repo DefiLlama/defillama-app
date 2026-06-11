@@ -1,4 +1,6 @@
 import type { TvlSettingsKey } from '~/contexts/LocalStorage'
+import { applyTvlOverlapBaseAdjustment } from '~/utils/tvl'
+import { shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 
 type ChainTvlValue = number | null | undefined
 type ChainTvlExtraValues = Partial<Record<TvlSettingsKey | 'dcAndLsOverlap', ChainTvlValue>>
@@ -26,12 +28,7 @@ const getLatestChartTimestamp = (chart: Record<number, number> | undefined): num
 }
 
 export function normalizeChainsBaseTvlValue(baseValue: ChainTvlValue, extraValues: ChainTvlExtraValues = {}): number {
-	return (
-		(baseValue ?? 0) -
-		(extraValues.doublecounted ?? 0) -
-		(extraValues.liquidstaking ?? 0) +
-		(extraValues.dcAndLsOverlap ?? 0)
-	)
+	return applyTvlOverlapBaseAdjustment(baseValue, extraValues)
 }
 
 export function applyChainsTvlSettings(
@@ -42,18 +39,16 @@ export function applyChainsTvlSettings(
 	let hasAnyValue = baseValue != null
 	let value = baseValue ?? 0
 	for (const key of enabledSettings) {
-		if (extraValues[key] != null) {
-			value += extraValues[key]
+		const extraValue = extraValues[key]
+		if (extraValue != null) {
+			value += extraValue
 			hasAnyValue = true
 		}
 	}
 
-	if (
-		enabledSettings.includes('doublecounted') &&
-		enabledSettings.includes('liquidstaking') &&
-		extraValues.dcAndLsOverlap != null
-	) {
-		value -= extraValues.dcAndLsOverlap
+	const overlapValue = extraValues.dcAndLsOverlap
+	if (shouldSubtractTvlOverlapSeries(enabledSettings) && overlapValue != null) {
+		value -= overlapValue
 		hasAnyValue = true
 	}
 

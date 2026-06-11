@@ -130,6 +130,58 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.mcaptvl).toBe(8.33)
 	})
 
+	it('treats missing additive extra fields as zero when protocol table base fields exist', () => {
+		const staking = {
+			tvl: 20,
+			tvlPrevDay: null,
+			tvlPrevWeek: 10,
+			tvlPrevMonth: null
+		} as unknown as ProtocolTvlEntry
+
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					tvl: makeProtocolTvl({
+						default: makeTvlEntry(100, 80, 50, 25),
+						staking
+					})
+				})
+			],
+			extraTvlsEnabled: { staking: true },
+			minTvl: null,
+			maxTvl: null
+		})
+
+		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, 80, 60, 25))
+	})
+
+	it('keeps unknown protocol table base fields unknown even when additive extras exist', () => {
+		const defaultTvl = {
+			tvl: 100,
+			tvlPrevDay: null,
+			tvlPrevWeek: 50,
+			tvlPrevMonth: null
+		} as unknown as ProtocolTvlEntry
+
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					tvl: makeProtocolTvl({
+						default: defaultTvl,
+						staking: makeTvlEntry(20)
+					})
+				})
+			],
+			extraTvlsEnabled: { staking: true },
+			minTvl: null,
+			maxTvl: null
+		})
+
+		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, 0, 70, 0))
+		expect(protocol.tvlChange?.change1d).toBeNull()
+		expect(protocol.tvlChange?.change1m).toBeNull()
+	})
+
 	it('filters child protocol rows after enabled extras are applied', () => {
 		const [protocol] = applyProtocolTvlSettings({
 			protocols: [

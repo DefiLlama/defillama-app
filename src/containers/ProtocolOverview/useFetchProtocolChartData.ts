@@ -14,7 +14,7 @@ import {
 import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL } from './chartDescriptors'
+import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL, type AdapterChartDescriptorLabel } from './chartDescriptors'
 import { normalizeSeriesToMilliseconds, normalizeSeriesToSeconds } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import {
@@ -301,18 +301,17 @@ export const useFetchProtocolChartData = ({
 		[resolvedBaseTvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain]
 	)
 
-	const feesDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Fees']
-	const revenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Revenue']
-	const holdersRevenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Holders Revenue']
-	const dexVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Volume']
-	const dexNotionalVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Notional Volume']
-	const perpVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Volume']
-	const openInterestDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Open Interest']
-	const optionsPremiumDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Premium Volume']
-	const optionsNotionalDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Notional Volume']
-	const dexAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Aggregator Volume']
-	const perpsAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Aggregator Volume']
-	const bridgeAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Bridge Aggregator Volume']
+	const fetchProtocolAdapterChart = (label: AdapterChartDescriptorLabel) => {
+		const descriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL[label]
+		return fetchJson(
+			buildProtocolChartApiUrl({
+				kind: 'adapter',
+				adapterType: descriptor.chartRequest.adapterType,
+				protocol: name,
+				dataType: descriptor.chartRequest.dataType
+			})
+		)
+	}
 
 	const isFeesEnabled = !!(toggledMetrics.fees === 'true' && metrics.fees && isRouterReady)
 	const { data: feesDataChart, isLoading: fetchingFees } = usePrefetchedProtocolChartQuery({
@@ -320,15 +319,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'fees'],
 		enabled: isFeesEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: feesDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: feesDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Fees')
 	})
 
 	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
@@ -337,15 +328,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'revenue'],
 		enabled: isRevenueEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: revenueDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: revenueDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Revenue')
 	})
 
 	const isHoldersRevenueEnabled = !!(
@@ -358,15 +341,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
 		enabled: isHoldersRevenueEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: holdersRevenueDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: holdersRevenueDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Holders Revenue')
 	})
 
 	const isBribesEnabled = !!(
@@ -425,15 +400,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
 		enabled: isDexVolumeEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: dexVolumeDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: dexVolumeDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('DEX Volume')
 	})
 
 	const isDexNotionalVolumeEnabled = !!(
@@ -446,15 +413,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-notional-volume'],
 		enabled: isDexNotionalVolumeEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: dexNotionalVolumeDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: dexNotionalVolumeDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('DEX Notional Volume')
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
@@ -463,15 +422,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
 		enabled: isPerpsVolumeEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: perpVolumeDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: perpVolumeDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Perp Volume')
 	})
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
@@ -480,15 +431,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
 		enabled: isOpenInterestEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: openInterestDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: openInterestDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Open Interest')
 	})
 
 	const isOptionsPremiumVolumeEnabled = !!(
@@ -502,15 +445,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
 			enabled: isOptionsPremiumVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: optionsPremiumDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: optionsPremiumDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Options Premium Volume')
 		})
 
 	const isOptionsNotionalVolumeEnabled = !!(
@@ -524,15 +459,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 			enabled: isOptionsNotionalVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: optionsNotionalDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: optionsNotionalDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Options Notional Volume')
 		})
 
 	const isDexAggregatorsVolumeEnabled = !!(
@@ -546,15 +473,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
 			enabled: isDexAggregatorsVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: dexAggregatorsDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: dexAggregatorsDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('DEX Aggregator Volume')
 		})
 
 	const isPerpsAggregatorsVolumeEnabled = !!(
@@ -568,15 +487,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
 			enabled: isPerpsAggregatorsVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: perpsAggregatorsDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: perpsAggregatorsDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Perp Aggregator Volume')
 		})
 
 	const isBridgeAggregatorsVolumeEnabled = !!(
@@ -590,15 +501,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
 			enabled: isBridgeAggregatorsVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: bridgeAggregatorsDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: bridgeAggregatorsDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Bridge Aggregator Volume')
 		})
 
 	const isUnlocksEnabled = !!(

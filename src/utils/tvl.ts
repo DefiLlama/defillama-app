@@ -5,6 +5,24 @@ export interface TvlChartData {
 	dcAndLsOverlap?: [number, number][]
 }
 
+export interface TvlOverlapValues {
+	doublecounted?: number | null
+	liquidstaking?: number | null
+	dcAndLsOverlap?: number | null
+}
+
+export function applyTvlOverlapBaseAdjustment(
+	baseValue: number | null | undefined,
+	extraValues: TvlOverlapValues = {}
+): number {
+	return (
+		(baseValue ?? 0) -
+		(extraValues.doublecounted ?? 0) -
+		(extraValues.liquidstaking ?? 0) +
+		(extraValues.dcAndLsOverlap ?? 0)
+	)
+}
+
 export const processAdjustedTvl = (data: TvlChartData | null | undefined): [number, number][] => {
 	const { tvl = [], liquidstaking = [], doublecounted = [], dcAndLsOverlap = [] } = data ?? {}
 
@@ -26,16 +44,11 @@ export const processAdjustedTvl = (data: TvlChartData | null | undefined): [numb
 
 	const adjustedTvl: [number, number][] = tvl.map(([date, totalLiquidityUSD]) => {
 		const timestamp = Number(date)
-		let sum = Math.trunc(totalLiquidityUSD)
-		if (extraTvlCharts['liquidstaking']?.[timestamp]) {
-			sum -= Math.trunc(extraTvlCharts['liquidstaking'][timestamp])
-		}
-		if (extraTvlCharts['doublecounted']?.[timestamp]) {
-			sum -= Math.trunc(extraTvlCharts['doublecounted'][timestamp])
-		}
-		if (extraTvlCharts['dcAndLsOverlap']?.[timestamp]) {
-			sum += Math.trunc(extraTvlCharts['dcAndLsOverlap'][timestamp])
-		}
+		const sum = applyTvlOverlapBaseAdjustment(Math.trunc(totalLiquidityUSD), {
+			liquidstaking: extraTvlCharts.liquidstaking[timestamp],
+			doublecounted: extraTvlCharts.doublecounted[timestamp],
+			dcAndLsOverlap: extraTvlCharts.dcAndLsOverlap[timestamp]
+		})
 		return [timestamp, sum] as [number, number]
 	})
 
@@ -199,7 +212,11 @@ export const processAdjustedProtocolTvl = (
 
 	const adjusted: [number, number][] = allTs.map((ts) => [
 		ts,
-		(base.get(ts) || 0) - (dc.get(ts) || 0) - (ls.get(ts) || 0) + (overlap.get(ts) || 0)
+		applyTvlOverlapBaseAdjustment(base.get(ts) || 0, {
+			doublecounted: dc.get(ts),
+			liquidstaking: ls.get(ts),
+			dcAndLsOverlap: overlap.get(ts)
+		})
 	])
 
 	return filterOutToday(adjusted)

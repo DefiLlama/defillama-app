@@ -1,5 +1,6 @@
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
+import { shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 
 export interface ChainTvlChartSummary {
 	totalValueUSD: number | null
@@ -25,27 +26,20 @@ export function applyChainTvlChartSettings({
 		return null
 	}
 
-	const toggledTvlSettingsSet = new Set(toggledTvlSettings)
-	const store: Record<string, number> = {}
+	const finalTvlChart: Array<[number, number]> = []
+	const shouldSubtractOverlap = shouldSubtractTvlOverlapSeries(toggledTvlSettings)
+
+	// Chain chart API series are chronological, so keep this hot path one-pass.
 	for (const [date, tvl] of tvlChart) {
 		let sum = tvl
 		for (const toggledTvlSetting of toggledTvlSettings) {
 			sum += extraTvlCharts[toggledTvlSetting]?.[date] ?? 0
 		}
-		store[date] = sum
-	}
-
-	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
-		for (const date in store) {
-			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
+		if (shouldSubtractOverlap) {
+			sum -= extraTvlCharts.dcAndLsOverlap?.[date] ?? 0
 		}
+		finalTvlChart.push([date, sum])
 	}
-
-	const finalTvlChart: Array<[number, number]> = []
-	for (const date in store) {
-		finalTvlChart.push([+date, store[date]])
-	}
-	finalTvlChart.sort((a, b) => a[0] - b[0])
 
 	return { finalTvlChart, isGovTokensEnabled: !!tvlSettings.govtokens }
 }
