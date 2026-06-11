@@ -8,20 +8,40 @@ export function emptyChartDataset(): RWAChartDataset {
 }
 
 export function appendRwaChartDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
-	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
 	if (dataset.source.length === 0) return emptyChartDataset()
+
+	const seriesDimensions: string[] = []
+	for (const dimension of dataset.dimensions) {
+		if (dimension !== 'timestamp' && dimension !== 'Total') {
+			seriesDimensions.push(dimension)
+		}
+	}
 	if (seriesDimensions.length === 0) return dataset
 
+	const source: RWAChartDataset['source'] = []
+	for (const row of dataset.source) {
+		const nextRow: RWAChartRow = { timestamp: row.timestamp }
+		for (const key in row) {
+			if (!Object.prototype.hasOwnProperty.call(row, key)) continue
+			nextRow[key] = row[key]
+		}
+
+		let total = 0
+		for (const dimension of seriesDimensions) {
+			total += row[dimension] ?? 0
+		}
+		nextRow.Total = total
+		source.push(nextRow)
+	}
+
+	const dimensions = ['timestamp', 'Total']
+	for (const dimension of seriesDimensions) {
+		dimensions.push(dimension)
+	}
+
 	return {
-		source: dataset.source.map((row) => ({
-			...row,
-			Total: seriesDimensions.reduce((sum, dimension) => {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				return Number.isFinite(numericValue) ? sum + numericValue : sum
-			}, 0)
-		})),
-		dimensions: ['timestamp', 'Total', ...seriesDimensions]
+		source,
+		dimensions
 	}
 }
 

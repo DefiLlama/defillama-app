@@ -45,26 +45,40 @@ export function appendOverviewBreakdownTotalSeries(
 	const totalLabel = getRwaChartTotalLabel(chartType)
 	if (dataset.dimensions.includes(totalLabel)) return dataset
 
-	const seriesDimensions = dataset.dimensions.filter(
-		(dimension) => dimension !== 'timestamp' && dimension !== 'Total' && !isRwaTotalSeriesLabel(dimension)
-	)
+	const seriesDimensions: string[] = []
+	for (const dimension of dataset.dimensions) {
+		if (dimension !== 'timestamp' && dimension !== 'Total' && !isRwaTotalSeriesLabel(dimension)) {
+			seriesDimensions.push(dimension)
+		}
+	}
 	if (dataset.source.length === 0 || seriesDimensions.length === 0) return dataset
 
-	return {
-		source: dataset.source.map((row) => {
-			let total = 0
-			for (const dimension of seriesDimensions) {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				if (Number.isFinite(numericValue)) total += numericValue
-			}
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const row of dataset.source) {
+		let total = 0
+		const nextRow: MultiSeriesChart2Dataset['source'][number] = { timestamp: row.timestamp }
+		for (const key in row) {
+			if (!Object.prototype.hasOwnProperty.call(row, key)) continue
+			nextRow[key] = row[key]
+		}
 
-			return {
-				...row,
-				[totalLabel]: total
-			}
-		}),
-		dimensions: ['timestamp', totalLabel, ...seriesDimensions]
+		for (const dimension of seriesDimensions) {
+			const value = row[dimension]
+			const numericValue = typeof value === 'number' ? value : Number(value)
+			if (Number.isFinite(numericValue)) total += numericValue
+		}
+		nextRow[totalLabel] = total
+		source.push(nextRow)
+	}
+
+	const dimensions = ['timestamp', totalLabel]
+	for (const dimension of seriesDimensions) {
+		dimensions.push(dimension)
+	}
+
+	return {
+		source,
+		dimensions
 	}
 }
 
