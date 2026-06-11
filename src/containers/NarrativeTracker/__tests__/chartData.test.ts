@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildNarrativeTreemapTreeData } from '../chartData'
+import { buildNarrativeTreemapTreeData, calculateDenominatedTimeSeries } from '../chartData'
 import type { IPctChangeRow } from '../types'
 
 function row(overrides: Partial<IPctChangeRow>): IPctChangeRow {
@@ -52,5 +52,53 @@ describe('buildNarrativeTreemapTreeData', () => {
 				children: [{ value: [500, 0, 0], name: 'Bitcoin', path: '/Bitcoin' }]
 			}
 		])
+	})
+})
+
+describe('calculateDenominatedTimeSeries', () => {
+	it('sorts rows and converts category returns relative to the selected denomination', () => {
+		const result = calculateDenominatedTimeSeries(
+			[
+				{ date: 2, Bitcoin: 10, DeFi: 21, Gaming: -1 },
+				{ date: 1, Bitcoin: 0, DeFi: 10, Gaming: 5 }
+			],
+			'Bitcoin'
+		)
+
+		expect(result.map((entry) => entry.date)).toEqual([1, 2])
+		expect(result[0].DeFi).toBeCloseTo(10)
+		expect(result[0].Gaming).toBeCloseTo(5)
+		expect(result[0].Bitcoin).toBeUndefined()
+		expect(result[1].DeFi).toBeCloseTo(10)
+		expect(result[1].Gaming).toBeCloseTo(-10)
+		expect(result[1].Bitcoin).toBeUndefined()
+	})
+
+	it('keeps sorted source rows when the first row lacks the selected denomination', () => {
+		const rows = [
+			{ date: 2, DeFi: 20, Bitcoin: 1 },
+			{ date: 1, DeFi: 10 }
+		]
+
+		expect(calculateDenominatedTimeSeries(rows, 'Bitcoin')).toEqual([
+			{ date: 1, DeFi: 10 },
+			{ date: 2, DeFi: 20, Bitcoin: 1 }
+		])
+	})
+
+	it('returns date-only rows when denomination performance is zero or missing for a day', () => {
+		const result = calculateDenominatedTimeSeries(
+			[
+				{ date: 1, Bitcoin: 0, DeFi: 10 },
+				{ date: 2, Bitcoin: -100, DeFi: 20 },
+				{ date: 3, DeFi: 30 }
+			],
+			'Bitcoin'
+		)
+
+		expect(result[0].date).toBe(1)
+		expect(result[0].DeFi).toBeCloseTo(10)
+		expect(result[1]).toEqual({ date: 2 })
+		expect(result[2]).toEqual({ date: 3 })
 	})
 })

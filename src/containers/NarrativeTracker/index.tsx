@@ -9,8 +9,12 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
-import type { TimeSeriesEntry } from './api.types'
-import { buildNarrativeTreemapTreeData, type NarrativeTreemapTreeData } from './chartData'
+import {
+	asFiniteNumber,
+	buildNarrativeTreemapTreeData,
+	calculateDenominatedTimeSeries,
+	type NarrativeTreemapTreeData
+} from './chartData'
 import type { CategoryPerformanceProps, IPctChangeRow } from './types'
 
 interface ITreemapChartProps {
@@ -26,46 +30,6 @@ const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart'
 
 const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
 const columnHelper = createColumnHelper<IPctChangeRow>()
-
-// for linechart
-function calculateDenominatedChange(data: TimeSeriesEntry[] | undefined, denominatedCoin: string): TimeSeriesEntry[] {
-	// Avoid mutating upstream arrays (performanceTimeSeries is reused across views).
-	const sortedData = (data ?? []).toSorted((a, b) => a.date - b.date)
-	if (sortedData.length === 0) return sortedData
-
-	const denominatedCoinDay0 = asFiniteNumber(sortedData[0]?.[denominatedCoin])
-	if (denominatedCoinDay0 == null) return sortedData
-
-	const denominatedReturns: TimeSeriesEntry[] = []
-
-	for (const dayData of sortedData) {
-		const newDayData: TimeSeriesEntry = { date: dayData.date }
-		const denominatedCoinValue = asFiniteNumber(dayData[denominatedCoin])
-		const denominatedCoinPerformance = denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
-		if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) {
-			denominatedReturns.push(newDayData)
-			continue
-		}
-
-		for (const [category, value] of Object.entries(dayData)) {
-			if (category !== 'date' && category !== denominatedCoin) {
-				// calculate relative performance
-				const categoryValue = asFiniteNumber(value)
-				if (categoryValue == null) continue
-				const categoryPerformance = 1 + categoryValue / 100
-				const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
-
-				if (Number.isFinite(relativePerformance)) {
-					newDayData[category] = relativePerformance
-				}
-			}
-		}
-
-		denominatedReturns.push(newDayData)
-	}
-
-	return denominatedReturns
-}
 
 // for bar + heatmap
 function calculateDenominatedChange2(
@@ -116,10 +80,6 @@ const DENOM_COIN_MAP: Record<Denom, string> = {
 	BTC: 'Bitcoin',
 	ETH: 'Ethereum',
 	SOL: 'Solana'
-}
-
-function asFiniteNumber(value: unknown): number | null {
-	return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
 export const CategoryPerformanceContainer = ({
@@ -212,7 +172,7 @@ export const CategoryPerformanceContainer = ({
 		const treemapData = sorted.map((i) => ({ ...i, returnField: asFiniteNumber(i[field]) }))
 
 		let chart = performanceTimeSeries?.[seriesKey]
-		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
+		chart = denomCoin === '$' ? chart : calculateDenominatedTimeSeries(chart, denomCoin)
 
 		return { sortedPctChanges: sorted, timeSeries: chart, treemapChart: treemapData }
 	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
