@@ -70,10 +70,11 @@ export function ProtocolTaxonomyPage(props: IProtocolTaxonomyPageData) {
 		return [{ id: sortId, desc: true }]
 	}, [props.effectiveCategory])
 
-	const groupedCharts = useMemo(() => {
+	const groupedChartResult = useMemo(() => {
 		return buildProtocolTaxonomyGroupedCharts({ charts, groupBy })
 	}, [charts, groupBy])
-	const hasBarCharts = groupedCharts !== charts
+	const hasBarCharts = groupedChartResult.hasBarCharts
+	const groupedCharts = groupedChartResult.charts
 	const deferredGroupedCharts = useDeferredValue(groupedCharts)
 
 	const chartGroupBy = groupBy

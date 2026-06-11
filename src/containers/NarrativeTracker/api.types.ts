@@ -20,5 +20,5 @@ export interface ICoinInfoApiItem {
 /** Raw price entry: [coinId, timestamp, price] */
 export type PriceEntry = [string, string, number]
 
-/** Time series entry: { date: number; [name]: number } */
-export type TimeSeriesEntry = Record<string, number>
+/** Time series entry: { date: number; [name]: number | null } */
+export type TimeSeriesEntry = { date: number } & Record<string, number | null>

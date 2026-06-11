@@ -12,9 +12,10 @@ import { formattedNum } from '~/utils'
 import {
 	buildNarrativeTreemapTreeData,
 	calculateDenominatedTimeSeries,
+	normalizeNarrativeTimeSeries,
 	type NarrativeTreemapTreeData
 } from './chartData'
-import type { CategoryPerformanceProps, IPctChangeRow } from './types'
+import type { CategoryPerformanceProps, IPctChangeRow, PerformanceTimeSeries } from './types'
 
 interface ITreemapChartProps {
 	treeData: NarrativeTreemapTreeData
@@ -143,6 +144,14 @@ export const CategoryPerformanceContainer = ({
 		if (disabledDenoms.includes(groupByDenom)) setGroupByDenom('$')
 	}, [disabledDenoms, groupByDenom])
 
+	const orderedPerformanceTimeSeries = React.useMemo<Partial<PerformanceTimeSeries>>(() => {
+		const ordered: Partial<PerformanceTimeSeries> = {}
+		for (const period in performanceTimeSeries ?? {}) {
+			ordered[period] = normalizeNarrativeTimeSeries(performanceTimeSeries[period])
+		}
+		return ordered
+	}, [performanceTimeSeries])
+
 	// All values here are returns / relative returns expressed in percent.
 	const chartValueSymbol = '%'
 
@@ -170,11 +179,11 @@ export const CategoryPerformanceContainer = ({
 
 		const treemapData = sorted.map((i) => ({ ...i, returnField: i[field] ?? null }))
 
-		let chart = performanceTimeSeries?.[seriesKey]
+		let chart = orderedPerformanceTimeSeries[seriesKey]
 		chart = denomCoin === '$' ? chart : calculateDenominatedTimeSeries(chart, denomCoin)
 
 		return { sortedPctChanges: sorted, timeSeries: chart, treemapChart: treemapData }
-	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
+	}, [pctChanges, groupBy, orderedPerformanceTimeSeries, groupByDenom, isCoinPage])
 
 	const selectedCharts = React.useMemo(() => {
 		// Passing `undefined` shows all series; otherwise MultiSeriesChart2 filters to the set.
@@ -186,9 +195,8 @@ export const CategoryPerformanceContainer = ({
 		const seriesKeys = areaChartLegend ?? []
 		const dimensions = ['timestamp', ...seriesKeys]
 
-		const sortedRows = [...(timeSeries ?? [])].sort((a, b) => a.date - b.date)
 		const source: Array<Record<string, string | number | null | undefined>> = []
-		for (const row of sortedRows) {
+		for (const row of timeSeries ?? []) {
 			const out: Record<string, string | number | null | undefined> = { timestamp: row.date * 1e3 }
 			for (const key of seriesKeys) out[key] = row[key] ?? null
 			source.push(out)

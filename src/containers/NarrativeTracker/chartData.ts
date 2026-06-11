@@ -12,11 +12,25 @@ export type NarrativeTreemapTreeData = Array<{
 	}>
 }>
 
+export function normalizeNarrativeTimeSeries(data: TimeSeriesEntry[] | undefined): TimeSeriesEntry[] {
+	const rows = data ?? []
+	if (rows.length < 2) return rows
+
+	let prevDate = rows[0].date
+	for (let i = 1; i < rows.length; i++) {
+		const date = rows[i].date
+		if (date < prevDate) return rows.toSorted((a, b) => a.date - b.date)
+		prevDate = date
+	}
+
+	return rows
+}
+
 export function calculateDenominatedTimeSeries(
 	data: TimeSeriesEntry[] | undefined,
 	denominatedCoin: string
 ): TimeSeriesEntry[] {
-	const sortedData = (data ?? []).toSorted((a, b) => a.date - b.date)
+	const sortedData = normalizeNarrativeTimeSeries(data)
 	if (sortedData.length === 0) return sortedData
 
 	let hasDenominatedCoin = false
