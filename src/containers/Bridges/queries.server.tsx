@@ -383,7 +383,7 @@ function buildTableDataByChain({
 
 export const getBridges = () => fetchBridges(true).then(({ bridges, chains }) => ({ bridges, chains }))
 
-const getChainVolumeData = async (chain: string, chainCoingeckoIds: Record<string, unknown>) => {
+const getChainVolumeData = async (chain: string, chainCoingeckoIds: LlamaConfigResponse['chainCoingeckoIds']) => {
 	if (chain) {
 		if (chainCoingeckoIds[chain]) {
 			const chart: RawBridgeVolumePoint[] = await retryAsync(() => fetchBridgeVolumeByChain(chain), {
