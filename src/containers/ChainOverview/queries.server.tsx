@@ -127,6 +127,16 @@ export function hasRwaActiveMcapChain(rwaChains: string[] | null | undefined, ch
 	return false
 }
 
+export function shouldShowChainOverviewBridgedTvlChart({
+	chain,
+	currentChainMetadata
+}: {
+	chain: string
+	currentChainMetadata: Pick<IChainMetadata, 'chainAssets'>
+}): boolean {
+	return chain !== 'All' && !!currentChainMetadata.chainAssets
+}
+
 function toFeeExtraTotals(data: FeeExtraTotals | null | undefined): FeeExtraTotals | null {
 	if (!data || !hasAnyFeeExtraTotals(data)) return null
 	const totals: FeeExtraTotals = {}
@@ -643,7 +653,7 @@ export async function getChainOverviewData({
 			charts.push(appFeesMetric.label)
 		}
 
-		if (chain !== 'All' && chainAssets != null) {
+		if (shouldShowChainOverviewBridgedTvlChart({ chain, currentChainMetadata })) {
 			charts.push('Bridged TVL')
 		}
 

@@ -6,6 +6,7 @@ import {
 	getChainOverviewMetricFilterOptions,
 	getRwaActiveMcapForChain,
 	hasRwaActiveMcapChain,
+	shouldShowChainOverviewBridgedTvlChart,
 	shouldFetchChainDexs,
 	shouldFetchChainPerps
 } from '../queries.server'
@@ -215,6 +216,23 @@ describe('getChainOverviewMetricFilterOptions', () => {
 		})
 
 		expect(options.map((option) => option.key)).toEqual(['bribes'])
+	})
+})
+
+describe('shouldShowChainOverviewBridgedTvlChart', () => {
+	const chainAssetsMetadata = { chainAssets: true }
+
+	it('shows the historical chart for non-All chain pages with chainAssets metadata', () => {
+		expect(shouldShowChainOverviewBridgedTvlChart({ chain: 'Base', currentChainMetadata: chainAssetsMetadata })).toBe(
+			true
+		)
+	})
+
+	it('does not show the historical chart for All chains or missing chainAssets metadata', () => {
+		expect(shouldShowChainOverviewBridgedTvlChart({ chain: 'All', currentChainMetadata: chainAssetsMetadata })).toBe(
+			false
+		)
+		expect(shouldShowChainOverviewBridgedTvlChart({ chain: 'Base', currentChainMetadata: {} })).toBe(false)
 	})
 })
 

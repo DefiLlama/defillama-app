@@ -195,6 +195,26 @@ Before refactoring TVL:
 - Preserve displayed numbers unless a product/API migration explicitly asks for a change.
 - Prefer local container modules for route-specific behavior. Use `src/metrics` only if a stable cross-container semantic invariant is proven.
 
+## Bridged TVL
+
+Bridged TVL is the value of tokens held on a chain, sourced from chain-assets data. Do not treat it as DeFi protocol TVL.
+
+Current data surfaces:
+
+- Current bridged asset totals come from `/chain-assets/chains`.
+- ChainOverview uses those current totals for the Bridged TVL key metric card when chain asset data exists.
+- Historical Bridged TVL charts come from the precomputed backend `/chain-assets/chart/:chain-slug` route.
+- ChainOverview exposes the historical Bridged TVL chart from chain metadata `chainAssets`; a missing or failed current totals fetch must not hide the chart.
+- Public chain chart API requests for `kind=bridged-tvl` must validate the chain through chain metadata, require the `chainAssets` flag, and query the backend with the validated chain slug.
+- Direct frontend callers, including Pro Dashboard chain charts, must query historical Bridged TVL with `slug(chain)`.
+
+Historical chart semantics:
+
+- `govtokens=false`: emit one millisecond timestamp point per day with `total`.
+- `govtokens=true`: emit one millisecond timestamp point per day with `total + ownTokens`.
+- Non-USD denomination must divide the combined value using the millisecond timestamp price lookup.
+- The Bridged TVL key metric card and chart should agree on `govtokens` semantics.
+
 ## RWA
 
 RWA metrics have their own definitions and breakdown files:

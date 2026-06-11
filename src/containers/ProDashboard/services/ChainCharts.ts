@@ -9,6 +9,7 @@ import {
 	ONCHAIN_TXS_API
 } from '~/containers/OnchainUsersAndTxs/api'
 import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
+import { slug } from '~/utils'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRuntimeError } from '~/utils/telemetry'
@@ -182,17 +183,17 @@ export default class ChainCharts {
 	private static async chainAssetsData(chain: string): Promise<[number, number][]> {
 		if (!chain) return []
 
-		const chainNames = this.getChainNames(chain)
+		const chainSlugs = Array.from(new Set(this.getChainNames(chain).map(slug).filter(Boolean)))
 
-		if (chainNames.length === 1) {
-			const data = await fetchChainAssetsChart(chain).catch(() => null)
+		if (chainSlugs.length === 1) {
+			const data = await fetchChainAssetsChart(chainSlugs[0]).catch(() => null)
 			if (!Array.isArray(data)) return []
 			return data.map((item) => [Number(item.timestamp), Number(item.data?.total) || 0])
 		}
 
 		try {
 			const responses = await Promise.all(
-				chainNames.map((chainName) => fetchChainAssetsChart(chainName).catch(() => null))
+				chainSlugs.map((chainSlug) => fetchChainAssetsChart(chainSlug).catch(() => null))
 			)
 			const mergedMap = new Map<number, number>()
 			for (const data of responses) {
