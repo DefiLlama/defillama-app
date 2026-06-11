@@ -33,6 +33,17 @@ const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): n
 	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
 }
 
+const buildChartRowsFromTimestampRecord = (
+	valuesByTimestamp: Record<string, number>,
+	timestampMultiplier = 1
+): Array<[number, number]> => {
+	const rows: Array<[number, number]> = []
+	for (const timestamp in valuesByTimestamp) {
+		rows.push([+timestamp * timestampMultiplier, valuesByTimestamp[timestamp]])
+	}
+	return rows
+}
+
 const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
 	const searchParams = new URLSearchParams()
 	for (const key in params) {
@@ -923,7 +934,7 @@ export const useFetchProtocolChartData = ({
 				}
 				store[dateKey] = (store[dateKey] ?? 0) + total
 			}
-			charts['Unlocks'] = Object.entries(store).map(([date, value]) => [+date * 1e3, value] as [number, number])
+			charts['Unlocks'] = buildChartRowsFromTimestampRecord(store, 1e3)
 		}
 
 		if (isIncentivesToggled && unlocksAndIncentivesData?.unlockUsdChart) {
@@ -937,9 +948,7 @@ export const useFetchProtocolChartData = ({
 		}
 
 		if (extraTvlCharts.charts.staking && isStakingTvlToggled) {
-			const stakingChartData = Object.entries(extraTvlCharts.charts.staking).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
+			const stakingChartData = buildChartRowsFromTimestampRecord(extraTvlCharts.charts.staking, 1e3)
 			charts['Staking'] = formatLineChart({
 				data: stakingChartData,
 				groupBy,
@@ -948,9 +957,7 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 		if (extraTvlCharts.charts.borrowed && isBorrowedTvlToggled) {
-			const borrowedChartData = Object.entries(extraTvlCharts.charts.borrowed).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
+			const borrowedChartData = buildChartRowsFromTimestampRecord(extraTvlCharts.charts.borrowed, 1e3)
 			charts['Active Loans'] = formatLineChart({
 				data: borrowedChartData,
 				groupBy,
@@ -959,13 +966,18 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 
-		if (medianAPYData)
+		if (medianAPYData) {
+			const medianAPYChartData: Array<[number, number]> = []
+			for (const item of medianAPYData) {
+				medianAPYChartData.push([+item.date * 1e3, Number(item.medianAPY) || 0])
+			}
 			charts['Median APY'] = formatLineChart({
-				data: medianAPYData.map((item): [number, number] => [+item.date * 1e3, Number(item.medianAPY) || 0]),
+				data: medianAPYChartData,
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
 			})
+		}
 
 		if (governanceData) {
 			const totalProposals: Record<string, number> = {}
@@ -983,17 +995,17 @@ export const useFetchProtocolChartData = ({
 				}
 			}
 			charts['Total Proposals'] = formatBarChart({
-				data: Object.entries(totalProposals).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(totalProposals),
 				groupBy,
 				denominationPriceHistory: null
 			})
 			charts['Successful Proposals'] = formatBarChart({
-				data: Object.entries(successfulProposals).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(successfulProposals),
 				groupBy,
 				denominationPriceHistory: null
 			})
 			charts['Max Votes'] = formatLineChart({
-				data: Object.entries(maxVotes).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(maxVotes),
 				groupBy,
 				denominationPriceHistory: null
 			})
@@ -1008,28 +1020,28 @@ export const useFetchProtocolChartData = ({
 			})
 		if (activeAddressesData && isActiveAddressesToggled)
 			charts['Active Addresses'] = formatBarChart({
-				data: activeAddressesData.map((item): [number, number] => [item[0], item[1]]),
+				data: activeAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (newAddressesData && isNewAddressesToggled)
 			charts['New Addresses'] = formatBarChart({
-				data: newAddressesData.map((item): [number, number] => [item[0], item[1]]),
+				data: newAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (transactionsData && isTransactionsToggled)
 			charts['Transactions'] = formatBarChart({
-				data: transactionsData.map((item): [number, number] => [item[0], item[1]]),
+				data: transactionsData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (gasUsedData && isGasUsedToggled)
 			charts['Gas Used'] = formatBarChart({
-				data: gasUsedData.map((item): [number, number] => [item[0], item[1]]),
+				data: gasUsedData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
