@@ -64,14 +64,10 @@ export const KeyMetrics = memo(function KeyMetrics(props: KeyMetricsProps) {
 	const feeExtras = props.feeExtras ?? EMPTY_FEE_EXTRAS
 	const chainFeeExtra24h = getFeeExtraTotal(feeExtras.chainNative, 'total24h', feesSettings)
 	const appFeeExtra24h = getFeeExtraTotal(feeExtras.app, 'total24h', feesSettings)
-	const chainFees24h =
-		props.chainFees.total24h == null ? null : addOptionalFeeExtraTotal(props.chainFees.total24h, chainFeeExtra24h)
-	const chainRevenue24h =
-		props.chainRevenue.total24h == null ? null : addOptionalFeeExtraTotal(props.chainRevenue.total24h, chainFeeExtra24h)
-	const appRevenue24h =
-		props.appRevenue.total24h == null ? null : addOptionalFeeExtraTotal(props.appRevenue.total24h, appFeeExtra24h)
-	const appFees24h =
-		props.appFees.total24h == null ? null : addOptionalFeeExtraTotal(props.appFees.total24h, appFeeExtra24h)
+	const chainFees24h = addOptionalFeeExtraTotal(props.chainFees.total24h, chainFeeExtra24h)
+	const chainRevenue24h = addOptionalFeeExtraTotal(props.chainRevenue.total24h, chainFeeExtra24h)
+	const appRevenue24h = addOptionalFeeExtraTotal(props.appRevenue.total24h, appFeeExtra24h)
+	const appFees24h = addOptionalFeeExtraTotal(props.appFees.total24h, appFeeExtra24h)
 
 	return (
 		<div className="flex flex-1 flex-col gap-2">

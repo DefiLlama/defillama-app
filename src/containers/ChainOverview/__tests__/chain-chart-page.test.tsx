@@ -114,12 +114,18 @@ describe('chart/chain/[chain]', () => {
 
 	it('passes fee include query params through to the chart data hook', () => {
 		mocks.routerState.query = {
+			include_staking_in_tvl: 'true',
+			include_pool2_in_tvl: 'false',
 			include_bribes_in_fees: 'true',
 			include_tokentax_in_fees: 'false'
 		}
 
 		renderToStaticMarkup(<ChainChartPage {...createProps(makeExtraTvlCharts())} />)
 
+		expect(mocks.useFetchChainChartData.mock.calls[0][0].tvlSettings).toMatchObject({
+			staking: true,
+			pool2: false
+		})
 		expect(mocks.useFetchChainChartData.mock.calls[0][0].feesSettings).toEqual({
 			bribes: true,
 			tokentax: false

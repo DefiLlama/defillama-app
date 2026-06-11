@@ -123,12 +123,6 @@ function toFeeExtraTotals(data: FeeExtraTotals | null | undefined): FeeExtraTota
 	return totals
 }
 
-function getAdapterMetricFeeExtraTotals(
-	data: IAdapterChainMetrics | IAdapterProtocolMetrics | null
-): FeeExtraTotals | null {
-	return toFeeExtraTotals(data)
-}
-
 async function fetchChainNativeFeeExtraTotals({
 	chain,
 	dataType
@@ -138,7 +132,7 @@ async function fetchChainNativeFeeExtraTotals({
 }): Promise<FeeExtraTotals | null> {
 	if (chain !== 'All') {
 		return fetchAdapterProtocolMetrics({ adapterType: 'fees', protocol: chain, dataType })
-			.then(getAdapterMetricFeeExtraTotals)
+			.then(toFeeExtraTotals)
 			.catch(() => null)
 	}
 
@@ -437,7 +431,7 @@ export async function getChainOverviewData({
 							chain: currentChainMetadata.name,
 							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
 						})
-							.then(getAdapterMetricFeeExtraTotals)
+							.then(toFeeExtraTotals)
 							.catch(() => null)
 					: Promise.resolve(null)
 			),
@@ -448,7 +442,7 @@ export async function getChainOverviewData({
 							chain: currentChainMetadata.name,
 							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
 						})
-							.then(getAdapterMetricFeeExtraTotals)
+							.then(toFeeExtraTotals)
 							.catch(() => null)
 					: Promise.resolve(null)
 			),

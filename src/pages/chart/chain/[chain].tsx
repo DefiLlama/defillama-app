@@ -101,7 +101,7 @@ export default function ChainChartPage(props: IChainOverviewData) {
 			const tvlSettings = {}
 
 			for (const setting in TVL_SETTINGS) {
-				tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
+				tvlSettings[TVL_SETTINGS[setting]] = isTrueQueryParam(queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`])
 			}
 
 			const feesSettings = {}

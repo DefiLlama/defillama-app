@@ -150,7 +150,7 @@ describe('ChainOverview KeyMetrics', () => {
 		expect(text).not.toContain('$523')
 	})
 
-	it('does not fabricate fee-family cards from extras when base totals are missing', () => {
+	it('uses enabled fee extras as the displayed value when base totals are missing', () => {
 		mocks.feesSettings.bribes = true
 		mocks.feesSettings.tokentax = true
 
@@ -171,10 +171,10 @@ describe('ChainOverview KeyMetrics', () => {
 		)
 		const text = textFromMarkup(markup)
 
-		expect(text).not.toContain('Chain Fees (24h)')
-		expect(text).not.toContain('Chain Revenue (24h)')
-		expect(text).not.toContain('App Revenue (24h)')
-		expect(text).not.toContain('App Fees (24h)')
+		expect(text).toContain('Chain Fees (24h)$23')
+		expect(text).toContain('Chain Revenue (24h)$23')
+		expect(text).toContain('App Revenue (24h)$2,300')
+		expect(text).toContain('App Fees (24h)$2,300')
 	})
 
 	it('renders cached chain overview data that predates feeExtras', () => {
