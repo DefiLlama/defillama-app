@@ -151,7 +151,6 @@ export const buildTotalMcapPayload = (
 		const source: MultiSeriesChart2Dataset['source'] = []
 		for (const [date, values] of stackedDataset) {
 			const timestamp = Number(date) * 1e3
-			if (!Number.isFinite(timestamp)) continue
 			let total = 0
 			for (const name in values) {
 				const value = values[name]
@@ -175,7 +174,6 @@ export const buildTotalMcapPayload = (
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of peggedAreaTotalData) {
 		const timestamp = Number(point.date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const value = Number(point[totalName] ?? point.Mcap ?? 0)
 		source.push({ timestamp, [totalName]: Number.isFinite(value) ? value : 0 })
 	}
@@ -211,7 +209,6 @@ export const buildAreaPayload = (
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of peggedAreaChartData) {
 		const timestamp = Number(point.date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const row: MultiSeriesChart2Dataset['source'][number] = { timestamp }
 		for (const name of chartNames) {
 			const value = point[name]
@@ -255,7 +252,6 @@ export const buildDominancePayload = (
 
 	for (const [date, values] of stackedDataset) {
 		const timestamp = Number(date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const dayValues: Record<string, number> = {}
 		let total = 0
 		for (const name of chartNames) {
@@ -294,7 +290,6 @@ export const buildUsdInflowsPayload = (params: IBuildStablecoinChartDataParams):
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const [date, value] of usdInflows) {
 		const timestamp = Number(date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		source.push({ timestamp, Inflows: value })
 	}
 	return {
@@ -310,7 +305,6 @@ export const buildTokenInflowsPayload = (params: IBuildStablecoinChartDataParams
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of tokenInflows) {
 		const timestamp = Number(point.date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const row: MultiSeriesChart2Dataset['source'][number] = { timestamp }
 		for (const name of tokenInflowNames) {
 			const value = point[name]
