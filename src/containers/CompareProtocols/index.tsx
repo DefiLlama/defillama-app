@@ -58,22 +58,34 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 	}, [results, extraTvlEnabled])
 
 	const { selectedProtocolsData, selectedProtocolsNames } = React.useMemo(() => {
-		const selectedProtocolsData = selectedProtocols.reduce<typeof protocols>((acc, protocolName) => {
-			const data = protocols.find(
-				(p) => p.name === protocolName || p.childProtocols?.find((cp) => cp.name === protocolName)
-			)
-			if (!data) return acc
-			if (data.name === protocolName) {
-				acc.push(data)
-			} else {
-				const child = data.childProtocols?.find((cp) => cp.name === protocolName)
-				if (child) {
-					acc.push(child)
+		if (selectedProtocols.length === 0) {
+			return { selectedProtocolsData: [], selectedProtocolsNames: [] }
+		}
+
+		const selectedProtocolSet = new Set(selectedProtocols)
+		const selectedProtocolByName = new Map<string, (typeof protocols)[number]>()
+		for (const protocol of protocols) {
+			if (selectedProtocolSet.has(protocol.name) && !selectedProtocolByName.has(protocol.name)) {
+				selectedProtocolByName.set(protocol.name, protocol)
+			}
+
+			for (const child of protocol.childProtocols ?? []) {
+				if (selectedProtocolSet.has(child.name) && !selectedProtocolByName.has(child.name)) {
+					selectedProtocolByName.set(child.name, child)
 				}
 			}
-			return acc
-		}, [])
-		return { selectedProtocolsData, selectedProtocolsNames: selectedProtocolsData.map((p) => p.name) }
+		}
+
+		const selectedProtocolsData: typeof protocols = []
+		const selectedProtocolsNames: string[] = []
+		for (const protocolName of selectedProtocols) {
+			const protocol = selectedProtocolByName.get(protocolName)
+			if (!protocol) continue
+			selectedProtocolsData.push(protocol)
+			selectedProtocolsNames.push(protocol.name)
+		}
+
+		return { selectedProtocolsData, selectedProtocolsNames }
 	}, [selectedProtocols, protocols])
 
 	const protocolsTableData = React.useMemo(() => {
