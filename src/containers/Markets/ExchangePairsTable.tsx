@@ -9,8 +9,6 @@ import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<ExchangeMarketPair>()
 
-const numericMeta = { headerClassName: 'w-[120px]', align: 'end' as const }
-
 function renderFee(value: number | null | undefined): string {
 	if (value == null) return '–'
 	return `${(value * 100).toFixed(3)}%`
@@ -50,7 +48,7 @@ function buildColumns(segment: Segment): ColumnDef<ExchangeMarketPair, any>[] {
 			id: 'price',
 			header: 'Price',
 			cell: ({ row }) => renderPrice(row.original.price),
-			meta: numericMeta
+			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
 		columnHelper.accessor((row) => row.price_change_24h ?? undefined, {
 			id: 'price_change_24h',
@@ -62,7 +60,7 @@ function buildColumns(segment: Segment): ColumnDef<ExchangeMarketPair, any>[] {
 			id: 'volume_24h',
 			header: '24h Volume',
 			cell: ({ row }) => renderUsd(row.original.volume_24h),
-			meta: numericMeta
+			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
 		columnHelper.accessor((row) => pctChange(row.volume_24h, row.volume_prev_24h) ?? undefined, {
 			id: 'volume_change_24h',
@@ -78,7 +76,7 @@ function buildColumns(segment: Segment): ColumnDef<ExchangeMarketPair, any>[] {
 				id: 'oi_usd',
 				header: 'Open Interest',
 				cell: ({ row }) => renderUsd(row.original.oi_usd),
-				meta: numericMeta
+				meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 			}),
 			columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
 				id: 'oi_change_24h',

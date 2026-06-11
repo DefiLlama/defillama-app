@@ -8,8 +8,6 @@ import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<ExchangeListRow>()
 
-const numericMeta = { headerClassName: 'w-[120px]', align: 'end' as const }
-
 function renderShare(value: number, total: number): string {
 	return total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '–'
 }
@@ -35,7 +33,7 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Exchange
 			id: 'volume_24h_usd',
 			header: '24h Volume',
 			cell: ({ getValue }) => renderUsd(getValue()),
-			meta: numericMeta
+			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
 		columnHelper.accessor((row) => pctChange(row.volume_24h_usd, row.volume_prev_24h_usd) ?? undefined, {
 			id: 'volume_change_24h',
@@ -63,7 +61,7 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Exchange
 				id: 'oi_usd',
 				header: 'OI',
 				cell: ({ row }) => renderUsd(row.original.oi_usd),
-				meta: numericMeta
+				meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 			}),
 			columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
 				id: 'oi_change_24h',

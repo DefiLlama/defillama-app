@@ -17,8 +17,6 @@ import { pctChange, sentiment, topSymbols } from './utils'
 
 const columnHelper = createColumnHelper<SymbolStat>()
 
-const numericMeta = { headerClassName: 'w-[120px]', align: 'end' as const }
-
 function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
 	const hasOi = segmentHasOi(segment)
 
@@ -34,7 +32,7 @@ function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
 			id: 'price',
 			header: 'Price',
 			cell: ({ row }) => renderPrice(row.original.price),
-			meta: numericMeta
+			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
 		columnHelper.accessor((row) => row.price_change_24h ?? undefined, {
 			id: 'price_change_24h',
@@ -46,7 +44,7 @@ function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
 			id: 'volume_24h_usd',
 			header: '24h Volume',
 			cell: ({ getValue }) => renderUsd(getValue()),
-			meta: numericMeta
+			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
 		columnHelper.accessor((row) => pctChange(row.volume_24h_usd, row.volume_prev_24h_usd) ?? undefined, {
 			id: 'volume_change_24h',
@@ -64,7 +62,7 @@ function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
 				id: 'oi_usd',
 				header: 'Open Interest',
 				cell: ({ row }) => renderUsd(row.original.oi_usd),
-				meta: numericMeta
+				meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 			}),
 			columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
 				id: 'oi_change_24h',
