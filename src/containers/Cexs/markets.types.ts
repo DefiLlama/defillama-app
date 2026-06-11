@@ -11,13 +11,17 @@ export interface ExchangeMarketsListEntry {
 	supports_funding?: boolean
 	supports_oi?: boolean
 	total_oi_usd?: number | null
+	total_oi_prev_usd?: number | null
 	total_volume_24h: number | null
+	total_volume_prev_24h?: number | null
 }
 
 export interface ExchangeMarketsListCategoryTotals {
 	exchange_count: number
 	total_oi_usd: number | null
+	total_oi_prev_usd?: number | null
 	total_volume_24h: number | null
+	total_volume_prev_24h?: number | null
 }
 
 export type ExchangeMarketsListByCategory = Record<ExchangeMarketCategory, ExchangeMarketsListEntry[]>
@@ -34,7 +38,9 @@ export interface ExchangeMarketCategoryData {
 	market_count: number
 	pairs: ExchangeMarketPair[]
 	total_oi_usd: number | null
+	total_oi_prev_usd?: number | null
 	total_volume_24h: number | null
+	total_volume_prev_24h?: number | null
 }
 
 export interface ExchangeMarketsResponse {
@@ -48,5 +54,7 @@ export interface ExchangeMarketsResponse {
 	supports_funding: boolean
 	supports_oi: boolean
 	total_oi_usd: number | null
+	total_oi_prev_usd?: number | null
 	total_volume_24h: number | null
+	total_volume_prev_24h?: number | null
 }

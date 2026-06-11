@@ -1,0 +1,161 @@
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import * as React from 'react'
+import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import {
+	ChangeCell,
+	renderFunding8h,
+	renderLeverage,
+	renderPrice,
+	renderUsd,
+	SentimentBadge,
+	TagPills,
+	TokenName
+} from './shared'
+import type { Segment, SymbolStat } from './types'
+import { segmentHasOi } from './types'
+import { pctChange, sentiment, topSymbols } from './utils'
+
+const columnHelper = createColumnHelper<SymbolStat>()
+
+const numericMeta = { headerClassName: 'w-[120px]', align: 'end' as const }
+
+function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
+	const hasOi = segmentHasOi(segment)
+
+	const columns: ColumnDef<SymbolStat, any>[] = [
+		columnHelper.accessor('base', {
+			id: 'base',
+			header: 'Asset',
+			enableSorting: false,
+			cell: ({ getValue }) => <TokenName base={getValue()} />,
+			meta: { headerClassName: 'min-w-[140px]' }
+		}),
+		columnHelper.accessor((row) => row.price ?? undefined, {
+			id: 'price',
+			header: 'Price',
+			cell: ({ row }) => renderPrice(row.original.price),
+			meta: numericMeta
+		}),
+		columnHelper.accessor((row) => row.price_change_24h ?? undefined, {
+			id: 'price_change_24h',
+			header: '24h',
+			cell: ({ row }) => <ChangeCell fraction={row.original.price_change_24h} />,
+			meta: { headerClassName: 'w-[100px]', align: 'end' }
+		}),
+		columnHelper.accessor('volume_24h_usd', {
+			id: 'volume_24h_usd',
+			header: '24h Volume',
+			cell: ({ getValue }) => renderUsd(getValue()),
+			meta: numericMeta
+		}),
+		columnHelper.accessor((row) => pctChange(row.volume_24h_usd, row.volume_prev_24h_usd) ?? undefined, {
+			id: 'volume_change_24h',
+			header: 'Vol Δ',
+			cell: ({ row }) => (
+				<ChangeCell fraction={pctChange(row.original.volume_24h_usd, row.original.volume_prev_24h_usd)} />
+			),
+			meta: { headerClassName: 'w-[100px]', align: 'end' }
+		})
+	]
+
+	if (hasOi) {
+		columns.push(
+			columnHelper.accessor((row) => row.oi_usd ?? undefined, {
+				id: 'oi_usd',
+				header: 'Open Interest',
+				cell: ({ row }) => renderUsd(row.original.oi_usd),
+				meta: numericMeta
+			}),
+			columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
+				id: 'oi_change_24h',
+				header: 'OI Δ',
+				cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
+				meta: { headerClassName: 'w-[100px]', align: 'end' }
+			}),
+			columnHelper.accessor((row) => row.funding_avg_8h ?? undefined, {
+				id: 'funding_avg_8h',
+				header: 'Funding 8h',
+				cell: ({ row }) => renderFunding8h(row.original.funding_avg_8h),
+				meta: { headerClassName: 'w-[110px]', align: 'end' }
+			})
+		)
+	}
+
+	columns.push(
+		columnHelper.accessor((row) => row.leverage_max ?? undefined, {
+			id: 'leverage',
+			header: 'Lev',
+			cell: ({ row }) => renderLeverage(row.original.leverage_min, row.original.leverage_max),
+			meta: { headerClassName: 'w-[90px]', align: 'end' }
+		}),
+		columnHelper.accessor('market_count', {
+			id: 'market_count',
+			header: 'Mkts',
+			cell: ({ getValue }) => getValue() ?? '–',
+			meta: { headerClassName: 'w-[80px]', align: 'end' }
+		}),
+		columnHelper.accessor('exchange_count', {
+			id: 'exchange_count',
+			header: 'Venues',
+			cell: ({ getValue }) => getValue() ?? '–',
+			meta: { headerClassName: 'w-[90px]', align: 'end' }
+		}),
+		columnHelper.display({
+			id: 'sentiment',
+			header: 'Sentiment',
+			cell: ({ row }) => <SentimentBadge sentiment={sentiment(row.original, segment)} />,
+			meta: { headerClassName: 'w-[110px]' }
+		}),
+		columnHelper.display({
+			id: 'tags',
+			header: 'Tags',
+			cell: ({ row }) => <TagPills tags={row.original.tags} />,
+			meta: { headerClassName: 'w-[180px]' }
+		})
+	)
+
+	return columns
+}
+
+const SORT_OPTIONS: ReadonlyArray<{ id: 'volume' | 'oi'; label: string }> = [
+	{ id: 'volume', label: 'by 24h volume' },
+	{ id: 'oi', label: 'by open interest' }
+]
+
+export function TokensTable({ rows, segment }: { rows: SymbolStat[]; segment: Segment }) {
+	const hasOi = segmentHasOi(segment)
+	const [sortBy, setSortBy] = React.useState<'volume' | 'oi'>('volume')
+	const effectiveSort = hasOi ? sortBy : 'volume'
+
+	const columns = React.useMemo(() => buildColumns(segment), [segment])
+	const data = React.useMemo(() => topSymbols(rows, effectiveSort, 100), [rows, effectiveSort])
+	const sortColumn = effectiveSort === 'oi' ? 'oi_usd' : 'volume_24h_usd'
+
+	const leadingControls = hasOi ? (
+		<select
+			value={sortBy}
+			onChange={(e) => setSortBy(e.target.value as 'volume' | 'oi')}
+			className="rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-xs"
+		>
+			{SORT_OPTIONS.map((option) => (
+				<option key={option.id} value={option.id}>
+					{option.label}
+				</option>
+			))}
+		</select>
+	) : null
+
+	return (
+		<TableWithSearch
+			key={`${segment}-${effectiveSort}`}
+			data={data}
+			columns={columns}
+			columnToSearch="base"
+			placeholder="Search assets..."
+			header="Top 100 assets"
+			leadingControls={leadingControls}
+			csvFileName={`markets-tokens-${segment}`}
+			sortingState={[{ id: sortColumn, desc: true }]}
+		/>
+	)
+}

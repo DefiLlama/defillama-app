@@ -13,9 +13,12 @@ export interface TokenMarketPair {
 	pair_url: string | null
 	symbol: string
 	price: number | null
+	price_change_24h?: number | null
 	volume_24h: number | null
+	volume_prev_24h?: number | null
 	oi: number | null
 	oi_usd: number | null
+	oi_prev_usd?: number | null
 	funding_rate_8h: number | null
 	max_leverage?: number | null
 	maker_fee?: number | null

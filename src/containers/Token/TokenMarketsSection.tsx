@@ -17,6 +17,8 @@ import { LocalLoader } from '~/components/Loaders'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import { ChangeCell, FundingCell, MetricStat, renderUsd } from '~/containers/Markets/shared'
+import { pctChange } from '~/containers/Markets/utils'
 import { formattedNum } from '~/utils'
 import { fetchTokenMarkets } from './api'
 import { DEFAULT_TABLE_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
@@ -55,14 +57,37 @@ function renderNullableNum(value: number | null | undefined, isUsd = false): str
 	return formattedNum(value, isUsd)
 }
 
-function NullableNum({ value, isUsd = false }: { value: number | null | undefined; isUsd?: boolean }) {
-	return <>{value == null ? '–' : formattedNum(value, isUsd)}</>
-}
+function sumPairMetrics(rows: TokenMarketPair[]) {
+	let volume = 0
+	let volumePrev = 0
+	let hasVolumePrev = false
+	let oi = 0
+	let oiPrev = 0
+	let hasOi = false
+	let hasOiPrev = false
 
-function renderFundingRate(value: number | null | undefined): string {
-	if (value == null) return '–'
-	const pct = value * 100
-	return `${pct.toFixed(4)}%`
+	for (const row of rows) {
+		if (row.volume_24h != null) volume += row.volume_24h
+		if (row.volume_prev_24h != null) {
+			volumePrev += row.volume_prev_24h
+			hasVolumePrev = true
+		}
+		if (row.oi_usd != null) {
+			oi += row.oi_usd
+			hasOi = true
+		}
+		if (row.oi_prev_usd != null) {
+			oiPrev += row.oi_prev_usd
+			hasOiPrev = true
+		}
+	}
+
+	return {
+		volume,
+		volumePrev: hasVolumePrev ? volumePrev : null,
+		oi: hasOi ? oi : null,
+		oiPrev: hasOiPrev ? oiPrev : null
+	}
 }
 
 function renderFeeRate(value: number | null | undefined): string {
@@ -121,12 +146,32 @@ const priceColumn = columnHelper.accessor((row) => row.price ?? undefined, {
 	}
 })
 
+const priceChangeColumn = columnHelper.accessor((row) => row.price_change_24h ?? undefined, {
+	id: 'price_change_24h',
+	header: '24h',
+	cell: ({ row }) => <ChangeCell fraction={row.original.price_change_24h} />,
+	meta: {
+		headerClassName: 'w-[100px]',
+		align: 'end'
+	}
+})
+
 const volumeColumn = columnHelper.accessor((row) => row.volume_24h ?? undefined, {
 	id: 'volume_24h',
 	header: '24h Volume',
 	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
 	meta: {
 		headerClassName: 'w-[120px]',
+		align: 'end'
+	}
+})
+
+const volumeChangeColumn = columnHelper.accessor((row) => pctChange(row.volume_24h, row.volume_prev_24h) ?? undefined, {
+	id: 'volume_change_24h',
+	header: 'Vol Δ',
+	cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.volume_24h, row.original.volume_prev_24h)} />,
+	meta: {
+		headerClassName: 'w-[100px]',
 		align: 'end'
 	}
 })
@@ -141,10 +186,20 @@ const oiColumn = columnHelper.accessor((row) => row.oi_usd ?? undefined, {
 	}
 })
 
+const oiChangeColumn = columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
+	id: 'oi_change_24h',
+	header: 'OI Δ',
+	cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
+	meta: {
+		headerClassName: 'w-[100px]',
+		align: 'end'
+	}
+})
+
 const fundingColumn = columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
 	id: 'funding_rate_8h',
 	header: 'Funding (8h)',
-	cell: ({ row }) => renderFundingRate(row.original.funding_rate_8h),
+	cell: ({ row }) => <FundingCell rate={row.original.funding_rate_8h} />,
 	meta: {
 		headerClassName: 'w-[130px]',
 		align: 'end'
@@ -185,7 +240,9 @@ const SPOT_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
 	venueColumn,
 	pairColumn,
 	priceColumn,
+	priceChangeColumn,
 	volumeColumn,
+	volumeChangeColumn,
 	makerFeeColumn,
 	takerFeeColumn
 ]
@@ -193,8 +250,11 @@ const PERP_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
 	venueColumn,
 	pairColumn,
 	priceColumn,
+	priceChangeColumn,
 	volumeColumn,
+	volumeChangeColumn,
 	oiColumn,
+	oiChangeColumn,
 	fundingColumn,
 	maxLeverageColumn,
 	makerFeeColumn,
@@ -239,26 +299,31 @@ function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): 
 	return categories
 }
 
-function HeaderStrip({ totals, showOi }: { totals: TokenMarketCategoryTotals; showOi: boolean }) {
+function HeaderStrip({
+	rows,
+	totals,
+	showOi
+}: {
+	rows: TokenMarketPair[]
+	totals: TokenMarketCategoryTotals
+	showOi: boolean
+}) {
+	const metrics = sumPairMetrics(rows)
+
 	return (
-		<div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3.5 py-2.5">
-			<div className="flex items-baseline gap-1.5">
-				<span className="text-sm text-(--text-label)">Pairs</span>
-				<span className="text-sm font-medium">{formattedNum(totals.pair_count)}</span>
-			</div>
-			<div className="flex items-baseline gap-1.5">
-				<span className="text-sm text-(--text-label)">24h Volume</span>
-				<span className="text-sm font-medium">
-					<NullableNum value={totals.total_volume_24h} isUsd />
-				</span>
-			</div>
+		<div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+			<MetricStat label="Pairs" value={formattedNum(totals.pair_count)} />
+			<MetricStat
+				label="24h Volume"
+				value={renderUsd(totals.total_volume_24h)}
+				sub={<ChangeCell fraction={pctChange(metrics.volume, metrics.volumePrev)} />}
+			/>
 			{showOi ? (
-				<div className="flex items-baseline gap-1.5">
-					<span className="text-sm text-(--text-label)">Open Interest</span>
-					<span className="text-sm font-medium">
-						<NullableNum value={totals.total_oi_usd} isUsd />
-					</span>
-				</div>
+				<MetricStat
+					label="Open Interest"
+					value={renderUsd(totals.total_oi_usd)}
+					sub={<ChangeCell fraction={pctChange(metrics.oi, metrics.oiPrev)} />}
+				/>
 			) : null}
 		</div>
 	)
@@ -466,7 +531,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 					ariaLabel="Market venue"
 				/>
 
-				<HeaderStrip totals={totals} showOi={isPerpCategory} />
+				<HeaderStrip rows={rows} totals={totals} showOi={isPerpCategory} />
 
 				<div className="flex w-full flex-wrap items-center justify-end gap-3">
 					<div className="mr-auto flex items-center overflow-x-auto">
