@@ -3,12 +3,8 @@ import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import type { IProtocolTaxonomyPageData } from './types'
 
 type ProtocolTaxonomyCharts = IProtocolTaxonomyPageData['charts']
-
-function getNumericChartValue(value: string | number | null | undefined): number | null {
-	if (value == null) return null
-	const numericValue = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(numericValue) ? numericValue : null
-}
+type ProtocolTaxonomyChartSeries = ProtocolTaxonomyCharts['charts'][number] & { encode: { x: string; y: string } }
+type ProtocolTaxonomyChartRow = { timestamp: number } & Record<string, number | null>
 
 export function buildProtocolTaxonomyGroupedCharts({
 	charts,
@@ -17,14 +13,13 @@ export function buildProtocolTaxonomyGroupedCharts({
 	charts: ProtocolTaxonomyCharts
 	groupBy: ChartTimeGroupingWithCumulative
 }): ProtocolTaxonomyCharts {
-	const chartSeries = charts.charts ?? []
+	const chartSeries = (charts.charts ?? []) as ProtocolTaxonomyChartSeries[]
 	const dataByDimension = new Map<string, Array<[number, number]>>()
 	const barDimensions = new Set<string>()
 	const dimensionOrder: string[] = []
 
 	for (const series of chartSeries) {
-		const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
-		if (!yDimension) continue
+		const yDimension = series.encode.y
 
 		dimensionOrder.push(yDimension)
 		if (!dataByDimension.has(yDimension)) {
@@ -38,13 +33,14 @@ export function buildProtocolTaxonomyGroupedCharts({
 	if (barDimensions.size === 0) return charts
 
 	let hasBarCharts = false
-	for (const row of charts.dataset.source) {
-		const timestamp = getNumericChartValue(row.timestamp)
+	const sourceRows = charts.dataset.source as ProtocolTaxonomyChartRow[]
+	for (const row of sourceRows) {
+		const timestamp = row.timestamp
 		for (const [dimension, rawData] of dataByDimension) {
-			const value = getNumericChartValue(row[dimension])
+			const value = row[dimension]
 			if (value == null) continue
 			if (barDimensions.has(dimension)) hasBarCharts = true
-			if (timestamp != null) rawData.push([timestamp, value])
+			rawData.push([timestamp, value])
 		}
 	}
 
@@ -54,12 +50,7 @@ export function buildProtocolTaxonomyGroupedCharts({
 	const groupedSeries: ProtocolTaxonomyCharts['charts'] = []
 
 	for (const series of chartSeries) {
-		const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
-
-		if (!yDimension) {
-			groupedSeries.push(series)
-			continue
-		}
+		const yDimension = series.encode.y
 
 		const groupedData =
 			series.type === 'bar'

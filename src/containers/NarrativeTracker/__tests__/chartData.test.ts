@@ -44,7 +44,7 @@ describe('buildNarrativeTreemapTreeData', () => {
 	})
 
 	it('keeps the previous blank category path for rows without a category name', () => {
-		expect(buildNarrativeTreemapTreeData([row({ name: 'Bitcoin', mcap: 500, returnField: Number.NaN })])).toEqual([
+		expect(buildNarrativeTreemapTreeData([row({ name: 'Bitcoin', mcap: 500, returnField: null })])).toEqual([
 			{
 				value: [500, null, null],
 				name: '',

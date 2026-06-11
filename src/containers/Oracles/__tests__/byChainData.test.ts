@@ -86,7 +86,7 @@ describe('buildOraclesByChainDominanceData', () => {
 			oracles: ['Chainlink', 'Pyth'],
 			oraclesColors: { Chainlink: '#111', Pyth: '#222' },
 			extraBreakdownsByApiKey: {
-				doublecounted: [{ timestamp: 1, Chainlink: 30, Pyth: Number.NaN }],
+				doublecounted: [{ timestamp: 1, Chainlink: 30 }],
 				liquidstaking: [{ timestamp: 1, Chainlink: 20, Pyth: 10 }],
 				dcAndLsOverlap: [{ timestamp: 1, Chainlink: 10 }]
 			},

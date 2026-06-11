@@ -10,7 +10,6 @@ import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import {
-	asFiniteNumber,
 	buildNarrativeTreemapTreeData,
 	calculateDenominatedTimeSeries,
 	type NarrativeTreemapTreeData
@@ -35,22 +34,20 @@ const columnHelper = createColumnHelper<IPctChangeRow>()
 function calculateDenominatedChange2(
 	data: IPctChangeRow[],
 	denominatedCoin: string,
-	field: keyof IPctChangeRow
+	field: PeriodConfig['field']
 ): IPctChangeRow[] {
 	const denomRow = data.find((i) => i.name === denominatedCoin)
-	const denomChangeRaw = denomRow?.[field]
-	const denomChange = typeof denomChangeRaw === 'number' ? denomChangeRaw : Number(denomChangeRaw)
-	if (!Number.isFinite(denomChange)) return data
+	const denomChange = denomRow?.[field]
+	if (denomChange == null) return data
 
 	const denominatedCoinPerformance = 1 + denomChange / 100
-	if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) return data
+	if (denominatedCoinPerformance === 0) return data
 
 	const denominatedReturns: IPctChangeRow[] = []
 	for (const i of data) {
-		const raw = i[field]
-		const change = typeof raw === 'number' ? raw : Number(raw)
-		if (!Number.isFinite(change)) {
-			denominatedReturns.push({ ...i, [field]: raw })
+		const change = i[field]
+		if (change == null) {
+			denominatedReturns.push(i)
 			continue
 		}
 		const categoryPerformance = 1 + change / 100
@@ -66,9 +63,11 @@ const DENOMS = ['$', 'BTC', 'ETH', 'SOL'] as const
 
 type Period = (typeof PERIODS)[number]
 type Denom = (typeof DENOMS)[number]
+type PeriodField = 'change1W' | 'change1M' | 'changeYtd' | 'change1Y'
+type PeriodConfig = { field: PeriodField; seriesKey: string }
 
 // Unified period configuration to avoid redundant lookups
-const PERIOD_CONFIG: Record<Period, { field: keyof IPctChangeRow; seriesKey: string }> = {
+const PERIOD_CONFIG: Record<Period, PeriodConfig> = {
 	'7D': { field: 'change1W', seriesKey: '7' },
 	'30D': { field: 'change1M', seriesKey: '30' },
 	YTD: { field: 'changeYtd', seriesKey: 'ytd' },
@@ -113,21 +112,16 @@ export const CategoryPerformanceContainer = ({
 		const series = performanceTimeSeries?.[seriesKey] ?? []
 
 		const hasTimeSeriesDenom = (coinName: string): boolean => {
-			if (!Array.isArray(series) || series.length === 0) return false
+			if (series.length === 0) return false
 			for (const row of series) {
-				if (!row || typeof row !== 'object') continue
-				const v = row[coinName]
-				const n = typeof v === 'number' ? v : Number(v)
-				if (Number.isFinite(n)) return true
+				if (row[coinName] != null) return true
 			}
 			return false
 		}
 
 		const hasPctDenom = (coinName: string): boolean => {
 			const row = pctChanges.find((i) => i.name === coinName)
-			const v = row?.[field]
-			const n = typeof v === 'number' ? v : Number(v)
-			return Number.isFinite(n)
+			return row?.[field] != null
 		}
 
 		const disabled: Denom[] = []
@@ -163,13 +157,13 @@ export const CategoryPerformanceContainer = ({
 
 		const sorted = pctChangesDenom
 			.toSorted((a, b) => {
-				const bValue = asFiniteNumber(b[field]) ?? Number.NEGATIVE_INFINITY
-				const aValue = asFiniteNumber(a[field]) ?? Number.NEGATIVE_INFINITY
+				const bValue = b[field] ?? Number.NEGATIVE_INFINITY
+				const aValue = a[field] ?? Number.NEGATIVE_INFINITY
 				return bValue - aValue
 			})
-			.map((i) => ({ ...i, change: asFiniteNumber(i[field]) }))
+			.map((i) => ({ ...i, change: i[field] ?? null }))
 
-		const treemapData = sorted.map((i) => ({ ...i, returnField: asFiniteNumber(i[field]) }))
+		const treemapData = sorted.map((i) => ({ ...i, returnField: i[field] ?? null }))
 
 		let chart = performanceTimeSeries?.[seriesKey]
 		chart = denomCoin === '$' ? chart : calculateDenominatedTimeSeries(chart, denomCoin)

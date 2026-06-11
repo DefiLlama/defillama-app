@@ -32,11 +32,11 @@ describe('mergeForkOverviewChartData', () => {
 		).toBe(basePageData.chartData)
 	})
 
-	it('merges finite extra values by timestamp and keeps extra-only timestamps sorted', () => {
+	it('merges extra values by timestamp and keeps extra-only timestamps sorted', () => {
 		const merged = mergeForkOverviewChartData({
 			chartData: basePageData.chartData,
 			extraBreakdownByTimestamp: new Map([
-				[20, { Uniswap: 5, Curve: Number.NaN }],
+				[20, { Uniswap: 5, Curve: 10 }],
 				[15, { ExtraOnly: 7 }]
 			]),
 			shouldApplyExtraSeries: true
@@ -45,7 +45,7 @@ describe('mergeForkOverviewChartData', () => {
 		expect(merged).toEqual([
 			{ timestamp: 10, Uniswap: 100, Curve: 50, EmptyFork: 0 },
 			{ timestamp: 15, ExtraOnly: 7 },
-			{ timestamp: 20, Uniswap: 85, Curve: 120, NewFork: 30 }
+			{ timestamp: 20, Uniswap: 85, Curve: 130, NewFork: 30 }
 		])
 		expect(basePageData.chartData[1].Uniswap).toBe(80)
 	})

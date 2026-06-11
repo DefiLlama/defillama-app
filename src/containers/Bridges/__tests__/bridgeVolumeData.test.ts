@@ -10,8 +10,8 @@ describe('buildBridgeVolumeChartData', () => {
 	it('builds daily split volume rows in chronological order', () => {
 		const result = buildBridgeVolumeChartData({
 			data: [
-				{ date: 2, depositUSD: 20, withdrawUSD: 5 },
-				{ date: 1, depositUSD: 10, withdrawUSD: 3 }
+				{ date: '2', depositUSD: 20, withdrawUSD: 5, depositTxs: 2, withdrawTxs: 1 },
+				{ date: '1', depositUSD: 10, withdrawUSD: 3, depositTxs: 1, withdrawTxs: 1 }
 			],
 			timePeriod: 'daily',
 			metricType: 'Volume',
@@ -34,8 +34,8 @@ describe('buildBridgeVolumeChartData', () => {
 		const bucket = getBucketTimestampSec(day1, 'weekly')
 		const result = buildBridgeVolumeChartData({
 			data: [
-				{ date: day2, depositTxs: 7, withdrawTxs: 2 },
-				{ date: day1, depositTxs: 3, withdrawTxs: 1 }
+				{ date: String(day2), depositUSD: 70, withdrawUSD: 20, depositTxs: 7, withdrawTxs: 2 },
+				{ date: String(day1), depositUSD: 30, withdrawUSD: 10, depositTxs: 3, withdrawTxs: 1 }
 			],
 			timePeriod: 'weekly',
 			metricType: 'Transactions',

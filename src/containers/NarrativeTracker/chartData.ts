@@ -12,10 +12,6 @@ export type NarrativeTreemapTreeData = Array<{
 	}>
 }>
 
-export function asFiniteNumber(value: unknown): number | null {
-	return typeof value === 'number' && Number.isFinite(value) ? value : null
-}
-
 export function calculateDenominatedTimeSeries(
 	data: TimeSeriesEntry[] | undefined,
 	denominatedCoin: string
@@ -23,16 +19,16 @@ export function calculateDenominatedTimeSeries(
 	const sortedData = (data ?? []).toSorted((a, b) => a.date - b.date)
 	if (sortedData.length === 0) return sortedData
 
-	const denominatedCoinDay0 = asFiniteNumber(sortedData[0]?.[denominatedCoin])
+	const denominatedCoinDay0 = sortedData[0]?.[denominatedCoin] ?? null
 	if (denominatedCoinDay0 == null) return sortedData
 
 	const denominatedReturns: TimeSeriesEntry[] = []
 
 	for (const dayData of sortedData) {
 		const newDayData: TimeSeriesEntry = { date: dayData.date }
-		const denominatedCoinValue = asFiniteNumber(dayData[denominatedCoin])
+		const denominatedCoinValue = dayData[denominatedCoin] ?? null
 		const denominatedCoinPerformance = denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
-		if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) {
+		if (denominatedCoinPerformance === null || denominatedCoinPerformance === 0) {
 			denominatedReturns.push(newDayData)
 			continue
 		}
@@ -40,14 +36,12 @@ export function calculateDenominatedTimeSeries(
 		for (const category in dayData) {
 			if (category === 'date' || category === denominatedCoin) continue
 
-			const categoryValue = asFiniteNumber(dayData[category])
+			const categoryValue = dayData[category] ?? null
 			if (categoryValue == null) continue
 			const categoryPerformance = 1 + categoryValue / 100
 			const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
 
-			if (Number.isFinite(relativePerformance)) {
-				newDayData[category] = relativePerformance
-			}
+			newDayData[category] = relativePerformance
 		}
 
 		denominatedReturns.push(newDayData)
@@ -57,7 +51,7 @@ export function calculateDenominatedTimeSeries(
 }
 
 function safeTreemapReturn(value: number | null | undefined): number {
-	return typeof value === 'number' && Number.isFinite(value) ? parseFloat(value.toFixed(2)) : 0
+	return value == null ? 0 : Math.round(value * 100) / 100
 }
 
 export function buildNarrativeTreemapTreeData(rows: IPctChangeRow[]): NarrativeTreemapTreeData {

@@ -1,5 +1,6 @@
 import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { getBucketTimestampSec } from '~/components/ECharts/utils'
+import type { RawBridgeVolumePoint } from './api.types'
 
 export const BRIDGE_VOLUME_VIEW_TYPES = ['Split', 'Combined'] as const
 export type BridgeVolumeViewType = (typeof BRIDGE_VOLUME_VIEW_TYPES)[number]
@@ -7,13 +8,7 @@ export type BridgeVolumeViewType = (typeof BRIDGE_VOLUME_VIEW_TYPES)[number]
 export const BRIDGE_VOLUME_METRIC_TYPES = ['Volume', 'Transactions'] as const
 export type BridgeVolumeMetricType = (typeof BRIDGE_VOLUME_METRIC_TYPES)[number]
 
-export interface BridgeVolumeInputPoint {
-	date: number | string
-	depositUSD?: number
-	withdrawUSD?: number
-	depositTxs?: number
-	withdrawTxs?: number
-}
+export type BridgeVolumeInputPoint = RawBridgeVolumePoint
 
 export const BRIDGE_VOLUME_SPLIT_CHARTS = [
 	{
@@ -38,8 +33,8 @@ export const BRIDGE_VOLUME_COMBINED_CHARTS = [
 
 function getBridgeMetricValues(item: BridgeVolumeInputPoint, metricType: BridgeVolumeMetricType) {
 	return {
-		deposits: metricType === 'Volume' ? item.depositUSD || 0 : item.depositTxs || 0,
-		withdrawals: metricType === 'Volume' ? item.withdrawUSD || 0 : item.withdrawTxs || 0
+		deposits: metricType === 'Volume' ? item.depositUSD : item.depositTxs,
+		withdrawals: metricType === 'Volume' ? item.withdrawUSD : item.withdrawTxs
 	}
 }
 
@@ -93,6 +88,7 @@ export function buildBridgeVolumeChartData({
 		}
 	}
 
+	// Bridge volume API returns unix seconds as strings; chart rows use milliseconds.
 	const sortedData = data.toSorted((a, b) => Number(a.date) - Number(b.date))
 
 	if (timePeriod === 'daily') {

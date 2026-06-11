@@ -27,7 +27,7 @@ export function buildCompareProtocolsChartData({
 			if (chain in extraTvlEnabled && !extraTvlEnabled[chain]) continue
 
 			const chainTvl = protocolData.chainTvls?.[chain]?.tvl
-			if (!Array.isArray(chainTvl)) continue
+			if (!chainTvl) continue
 
 			for (const { date, totalLiquidityUSD } of chainTvl) {
 				protocolChart.set(date, (protocolChart.get(date) ?? 0) + totalLiquidityUSD)

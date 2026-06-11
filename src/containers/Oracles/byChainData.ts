@@ -21,7 +21,6 @@ function indexExtraChartDataByTimestamp(extraBreakdownsByApiKey: Record<string, 
 			for (const oracleName in dayData) {
 				if (oracleName === 'timestamp') continue
 				const value = dayData[oracleName]
-				if (!Number.isFinite(value)) continue
 				const currentValues = valuesByOracle[oracleName] ?? {}
 				currentValues[apiKey] = value
 				valuesByOracle[oracleName] = currentValues
@@ -121,7 +120,6 @@ export function buildOraclesByChainDominanceData({
 
 	for (const baseDayData of chartData) {
 		const timestampInSeconds = baseDayData.timestamp
-		if (!Number.isFinite(timestampInSeconds)) continue
 		const extraValuesForTimestamp = extraValuesByTimestamp?.get(timestampInSeconds)
 
 		const point: Record<string, number> = { timestamp: timestampInSeconds * 1e3 }

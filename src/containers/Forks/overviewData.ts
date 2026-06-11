@@ -33,7 +33,6 @@ export function mergeForkOverviewChartData({
 
 		for (const key in extraRow) {
 			const value = extraRow[key]
-			if (!Number.isFinite(value)) continue
 			mergedRow[key] = (mergedRow[key] ?? 0) + value
 		}
 
@@ -61,9 +60,7 @@ export function buildForksOverviewDisplayData({
 			if (key !== 'timestamp') chartForkKeys.add(key)
 		}
 	}
-	const sortedChartForks = Array.from(chartForkKeys).sort(
-		(a, b) => Number(latestData?.[b] ?? 0) - Number(latestData?.[a] ?? 0)
-	)
+	const sortedChartForks = Array.from(chartForkKeys).sort((a, b) => (latestData?.[b] ?? 0) - (latestData?.[a] ?? 0))
 
 	const tableDataByName = new Map<string, ForkOverviewPageData['tableData'][number]>()
 	for (const row of baseTableData) {
@@ -73,7 +70,7 @@ export function buildForksOverviewDisplayData({
 	const tableData: ForksOverviewDisplayRow[] = []
 	for (const name of sortedChartForks) {
 		const baseRow = tableDataByName.get(name)
-		const tvl = Number(latestData?.[name] ?? 0)
+		const tvl = latestData?.[name] ?? 0
 		const parentTvl = baseRow?.parentTvl ?? null
 
 		tableData.push({
@@ -90,9 +87,7 @@ export function buildForksOverviewDisplayData({
 		for (const name in latestData) {
 			if (name === 'timestamp') continue
 			const value = latestData[name]
-			if (typeof value === 'number' && Number.isFinite(value)) {
-				tvls.push({ name, value })
-			}
+			tvls.push({ name, value })
 		}
 		tvls.sort((a, b) => b.value - a.value)
 	}
@@ -113,8 +108,8 @@ export function buildForksOverviewDisplayData({
 		let totalTvl = 0
 
 		for (const forkName of sortedChartForks) {
-			const value = entry[forkName]
-			if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) continue
+			const value = entry[forkName] ?? 0
+			if (value <= 0) continue
 			row[forkName] = value
 			totalTvl += value
 		}

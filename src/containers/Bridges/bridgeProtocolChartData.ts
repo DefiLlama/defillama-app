@@ -15,7 +15,7 @@ export function buildBridgeProtocolAllChainsVolumeData({
 	const groupedAllChainsVolumePairs: Array<[number, number]> = []
 	const source: Array<{ timestamp: number; Volume: number }> = []
 
-	if (!isAllChains || !Array.isArray(volumeChartDataByChain)) {
+	if (!isAllChains || !volumeChartDataByChain) {
 		return {
 			allChainsVolumePairs,
 			groupedAllChainsVolumePairs,
@@ -27,10 +27,7 @@ export function buildBridgeProtocolAllChainsVolumeData({
 	}
 
 	for (const point of volumeChartDataByChain) {
-		allChainsVolumePairs.push([
-			point.date,
-			(Number(point?.Deposited ?? 0) + Math.abs(Number(point?.Withdrawn ?? 0))) / 2
-		])
+		allChainsVolumePairs.push([point.date, (point.Deposited + Math.abs(point.Withdrawn)) / 2])
 	}
 
 	if (groupBy === 'daily' || allChainsVolumePairs.length === 0) {
@@ -41,7 +38,7 @@ export function buildBridgeProtocolAllChainsVolumeData({
 		const groupedValues = new Map<number, number>()
 		for (const [date, value] of allChainsVolumePairs) {
 			const key = getBucketTimestampSec(date, groupBy)
-			groupedValues.set(key, (groupedValues.get(key) ?? 0) + (value ?? 0))
+			groupedValues.set(key, (groupedValues.get(key) ?? 0) + value)
 		}
 
 		const groupedEntries = Array.from(groupedValues.entries()).sort((a, b) => a[0] - b[0])
@@ -76,8 +73,9 @@ export function getBridgeProtocolPrevDayVolumeValue({
 	totalWithdrawnUSD: number | undefined
 }) {
 	if (!isAllChains) return 0
-	if (Number.isFinite(totalDepositedUSD) || Number.isFinite(totalWithdrawnUSD)) {
-		return (Number(totalDepositedUSD ?? 0) + Number(totalWithdrawnUSD ?? 0)) / 2
+	// Current-day bridge stats expose these totals independently; preserve the historical zero-side fallback.
+	if (totalDepositedUSD != null || totalWithdrawnUSD != null) {
+		return ((totalDepositedUSD ?? 0) + (totalWithdrawnUSD ?? 0)) / 2
 	}
 	if (allChainsVolumePairs.length > 1) return allChainsVolumePairs[allChainsVolumePairs.length - 2][1]
 	if (allChainsVolumePairs.length === 1) return allChainsVolumePairs[0][1]
@@ -96,7 +94,7 @@ export function buildBridgeProtocolInflowsData({
 	const groupedInflowsData: BridgeVolumeChartPoint[] = []
 	const source: Array<{ timestamp: number; Deposited: number; Withdrawn: number }> = []
 
-	if (isAllChains || !Array.isArray(volumeChartDataByChain) || volumeChartDataByChain.length === 0) {
+	if (isAllChains || !volumeChartDataByChain || volumeChartDataByChain.length === 0) {
 		return {
 			groupedInflowsData,
 			inflowsDataset: {
@@ -116,12 +114,12 @@ export function buildBridgeProtocolInflowsData({
 			const key = getBucketTimestampSec(point.date, groupBy)
 			const existing = groupedValues.get(key)
 			if (existing) {
-				existing.Deposited += Number(point.Deposited ?? 0)
-				existing.Withdrawn += Number(point.Withdrawn ?? 0)
+				existing.Deposited += point.Deposited
+				existing.Withdrawn += point.Withdrawn
 			} else {
 				groupedValues.set(key, {
-					Deposited: Number(point.Deposited ?? 0),
-					Withdrawn: Number(point.Withdrawn ?? 0)
+					Deposited: point.Deposited,
+					Withdrawn: point.Withdrawn
 				})
 			}
 		}
@@ -135,8 +133,8 @@ export function buildBridgeProtocolInflowsData({
 	for (const { date, Deposited, Withdrawn } of groupedInflowsData) {
 		source.push({
 			timestamp: date * 1e3,
-			Deposited: Deposited ?? 0,
-			Withdrawn: -(Withdrawn ?? 0)
+			Deposited,
+			Withdrawn: -Withdrawn
 		})
 	}
 

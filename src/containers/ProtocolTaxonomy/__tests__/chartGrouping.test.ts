@@ -9,9 +9,9 @@ function makeCharts(): IProtocolTaxonomyPageData['charts'] {
 		dataset: {
 			dimensions: ['timestamp', 'Volume', 'TVL'],
 			source: [
-				{ timestamp: toMs(2024, 1, 1), Volume: '10', TVL: 100 },
+				{ timestamp: toMs(2024, 1, 1), Volume: 10, TVL: 100 },
 				{ timestamp: toMs(2024, 1, 2), Volume: null, TVL: 120 },
-				{ timestamp: toMs(2024, 1, 3), Volume: '30', TVL: null }
+				{ timestamp: toMs(2024, 1, 3), Volume: 30, TVL: null }
 			]
 		},
 		charts: [
@@ -47,7 +47,7 @@ describe('buildProtocolTaxonomyGroupedCharts', () => {
 		const charts = makeCharts()
 		charts.dataset.source = [
 			{ timestamp: toMs(2024, 1, 1), Volume: null, TVL: 100 },
-			{ timestamp: toMs(2024, 1, 2), Volume: undefined, TVL: 120 }
+			{ timestamp: toMs(2024, 1, 2), Volume: null, TVL: 120 }
 		]
 
 		expect(buildProtocolTaxonomyGroupedCharts({ charts, groupBy: 'daily' })).toBe(charts)
