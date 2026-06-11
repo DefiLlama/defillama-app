@@ -63,7 +63,7 @@ Examples of ambiguous pairings:
 
 - `dailyVolume` is used by DEXs, perps, DEX aggregators, and perp aggregators. The metadata flag depends on `adapterType`.
 - `dailyNotionalVolume` is used by DEX notional volume and options notional volume. The metadata flag depends on `adapterType`.
-- Fee subtypes such as bribes and token taxes gate on fee metadata but are not the same product concept as Chain Fees or App Fees.
+- Fee subtypes such as bribes and token taxes gate on fee metadata but are not the same product concept as Chain Fees or App Fees. Product fee-family pages may add them to displayed totals when their toggles are enabled.
 
 Keep route flow visible from the page file. If repeated adapter metadata rules need centralization, prefer a small AdapterMetrics-local descriptor unless another container or public API endpoint consumes the same invariant.
 
@@ -75,6 +75,19 @@ Fees and revenue have two different chain concepts:
 - App-on-chain aggregation: what apps/protocols on that chain collect, excluding chain-native gas economics.
 
 Do not replace chain-level fees/revenue with app aggregation unless the product definition explicitly says `App Fees` or `App Revenue`.
+
+### Fee Extras
+
+Bribes and token taxes are tracked upstream as separate fees adapter data types: `dailyBribesRevenue` and `dailyTokenTaxes`.
+
+Display behavior:
+
+- Fee-family product surfaces that expose `bribes` and `tokentax` toggles add enabled extras into displayed totals and charts.
+- Chain Fees and Chain Revenue use chain-native fee extra records from the adapter protocol chain path.
+- App Fees and App Revenue use app-on-chain fee extra records from the adapter chain path.
+- REV, Pro Dashboard, public raw datasets, raw dimension endpoints, and non-fee adapter pages keep bribes/token taxes separate.
+
+Do not use app-on-chain extras to adjust Chain Fees/Revenue or chain-native extras to adjust App Fees/App Revenue.
 
 ### Chain Fees
 
@@ -159,10 +172,8 @@ TVL is not currently a single global metric implementation. The app has multiple
 Common terms:
 
 - base TVL
-- extra TVL: staking, borrowed, pool2, vesting, govtokens
-- double counted TVL
-- liquid staking TVL
-- `dcAndLsOverlap`, the overlap between double counted and liquid staking TVL
+- extra TVL setting keys: staking, borrowed, pool2, vesting, govtokens, doublecounted, and liquidstaking
+- `dcAndLsOverlap`: not a setting key; this is overlap adjustment data for the shared portion of double counted and liquid staking TVL
 
 Important files:
 
@@ -183,6 +194,26 @@ Before refactoring TVL:
 - Pin current behavior with characterization tests.
 - Preserve displayed numbers unless a product/API migration explicitly asks for a change.
 - Prefer local container modules for route-specific behavior. Use `src/metrics` only if a stable cross-container semantic invariant is proven.
+
+## Bridged TVL
+
+Bridged TVL is the value of tokens held on a chain, sourced from chain-assets data. Do not treat it as DeFi protocol TVL.
+
+Current data surfaces:
+
+- Current bridged asset totals come from `/chain-assets/chains`.
+- ChainOverview uses those current totals for the Bridged TVL key metric card when chain asset data exists.
+- Historical Bridged TVL charts come from the precomputed backend `/chain-assets/chart/:chain-slug` route.
+- ChainOverview exposes the historical Bridged TVL chart from chain metadata `chainAssets`; a missing or failed current totals fetch must not hide the chart.
+- Public chain chart API requests for `kind=bridged-tvl` must validate the chain through chain metadata, require the `chainAssets` flag, and query the backend with the validated chain slug.
+- Direct frontend callers, including Pro Dashboard chain charts, must query historical Bridged TVL with `slug(chain)`.
+
+Historical chart semantics:
+
+- `govtokens=false`: emit one millisecond timestamp point per day with `total`.
+- `govtokens=true`: emit one millisecond timestamp point per day with `total + ownTokens`.
+- Non-USD denomination must divide the combined value using the millisecond timestamp price lookup.
+- The Bridged TVL key metric card and chart should agree on `govtokens` semantics.
 
 ## RWA
 

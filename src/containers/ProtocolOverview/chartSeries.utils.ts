@@ -22,21 +22,21 @@ export function normalizeChartPointsToMs(points: unknown): IProtocolNumericSerie
 }
 
 export function normalizeSeriesToSeconds(series: ReadonlyArray<[number, number]>): IProtocolNumericSeries {
-	return series
-		.map(([timestamp, value]): [number, number] => [
-			timestamp >= 1e12 ? Math.floor(timestamp / 1e3) : Math.floor(timestamp),
-			value
-		])
-		.sort((a, b) => a[0] - b[0])
+	const normalized: IProtocolNumericSeries = []
+	for (const [timestamp, value] of series) {
+		normalized.push([timestamp >= 1e12 ? Math.floor(timestamp / 1e3) : Math.floor(timestamp), value])
+	}
+	normalized.sort((a, b) => a[0] - b[0])
+	return normalized
 }
 
 export function normalizeSeriesToMilliseconds(series: ReadonlyArray<[number, number]>): IProtocolNumericSeries {
-	return series
-		.map(([timestamp, value]): [number, number] => [
-			timestamp >= 1e12 ? Math.floor(timestamp) : Math.floor(timestamp * 1e3),
-			value
-		])
-		.sort((a, b) => a[0] - b[0])
+	const normalized: IProtocolNumericSeries = []
+	for (const [timestamp, value] of series) {
+		normalized.push([timestamp >= 1e12 ? Math.floor(timestamp) : Math.floor(timestamp * 1e3), value])
+	}
+	normalized.sort((a, b) => a[0] - b[0])
+	return normalized
 }
 
 export function normalizeBridgeVolumeToChartMs(

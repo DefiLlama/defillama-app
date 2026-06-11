@@ -1,8 +1,8 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type {} from '~/components/Table/utils'
+import type { RWAChartDataset } from '~/containers/RWA/chartDataset'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { formattedNum } from '~/utils'
 import { perpsDefinitions as d } from './definitions'
@@ -88,7 +88,7 @@ export function RWAPerpsAssetGroupsOverview({
 	initialChartDataset
 }: {
 	assetGroups: IRWAPerpsAssetGroupsOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }) {
 	return (
 		<div className="flex flex-col gap-2">

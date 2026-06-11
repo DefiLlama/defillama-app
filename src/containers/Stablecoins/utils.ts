@@ -751,7 +751,9 @@ export const formatPeggedChainsData = ({
 	chainDominances = {},
 	chainsTVLData = []
 }: IFormatPeggedChainsDataParams): IFormattedStablecoinChainRow[] => {
-	let formattedStablecoinChains: IFormattedStablecoinChainRow[] = peggedChartDataByChain.map((chart, i) => {
+	const formattedStablecoinChains: IFormattedStablecoinChainRow[] = []
+	for (let i = 0; i < peggedChartDataByChain.length; i++) {
+		const chart = peggedChartDataByChain[i]
 		const chainName = chainList[i]
 		const chainDominance = chainDominances[chainName] ?? null
 
@@ -777,7 +779,7 @@ export const formatPeggedChainsData = ({
 			mcaptvl = null
 		}
 
-		return {
+		formattedStablecoinChains.push({
 			name: chainName,
 			circulating,
 			mcap,
@@ -792,10 +794,10 @@ export const formatPeggedChainsData = ({
 			change_1m: getPercentChange(mcap, mcapPrevMonth),
 			dominance,
 			mcaptvl
-		}
-	})
+		})
+	}
 
-	formattedStablecoinChains = formattedStablecoinChains.toSorted((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+	formattedStablecoinChains.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 
 	return formattedStablecoinChains
 }

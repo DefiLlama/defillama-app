@@ -3,11 +3,14 @@ import type { ICategoriesAndTags, IChainMetadata } from '~/utils/metadata/types'
 import { createRoutePhaseTimer } from '~/utils/perf'
 import {
 	getChainOverviewData,
+	getChainOverviewMetricFilterOptions,
 	getRwaActiveMcapForChain,
 	hasRwaActiveMcapChain,
+	shouldShowChainOverviewBridgedTvlChart,
 	shouldFetchChainDexs,
 	shouldFetchChainPerps
 } from '../queries.server'
+import type { ILiteChart } from '../types'
 
 const categoriesAndTagsMetadata = {
 	categories: ['Dexs', 'Derivatives', 'OTC Marketplace'],
@@ -147,6 +150,89 @@ describe('shouldFetchChainPerps', () => {
 				categoriesAndTagsMetadata
 			})
 		).toBe(true)
+	})
+})
+
+describe('getChainOverviewMetricFilterOptions', () => {
+	const emptyFeeExtras = {
+		chainNative: { bribes: null, tokenTax: null },
+		app: { bribes: null, tokenTax: null }
+	}
+	const makeChartData = (staking: ILiteChart['staking']): ILiteChart => ({
+		tvl: [],
+		staking,
+		borrowed: [],
+		pool2: [],
+		vesting: [],
+		offers: [],
+		doublecounted: [],
+		liquidstaking: [],
+		dcAndLsOverlap: []
+	})
+
+	it('exposes fee toggles only when visible fee metrics have matching extras', () => {
+		const options = getChainOverviewMetricFilterOptions({
+			chartData: makeChartData([['1', 1]]),
+			chainFees: { total24h: 100 },
+			chainRevenue: { total24h: null },
+			appRevenue: { total24h: null },
+			appFees: { total24h: null },
+			feeExtras: {
+				...emptyFeeExtras,
+				chainNative: { bribes: { total24h: 20 }, tokenTax: null }
+			}
+		})
+
+		expect(options.map((option) => option.key)).toEqual(['staking', 'bribes'])
+	})
+
+	it('exposes fee toggles when extras are the only visible fee metric value', () => {
+		const options = getChainOverviewMetricFilterOptions({
+			chartData: makeChartData([]),
+			chainFees: { total24h: null },
+			chainRevenue: { total24h: null },
+			appRevenue: { total24h: null },
+			appFees: { total24h: null },
+			feeExtras: {
+				...emptyFeeExtras,
+				app: { bribes: null, tokenTax: { total24h: 30 } }
+			}
+		})
+
+		expect(options.map((option) => option.key)).toEqual(['tokentax'])
+	})
+
+	it('exposes app-only extras even when chain-native base fee metrics are the only base fee values', () => {
+		const options = getChainOverviewMetricFilterOptions({
+			chartData: makeChartData([]),
+			chainFees: { total24h: 100 },
+			chainRevenue: { total24h: null },
+			appRevenue: { total24h: null },
+			appFees: { total24h: null },
+			feeExtras: {
+				...emptyFeeExtras,
+				app: { bribes: { total24h: 30 }, tokenTax: null }
+			}
+		})
+
+		expect(options.map((option) => option.key)).toEqual(['bribes'])
+	})
+})
+
+describe('shouldShowChainOverviewBridgedTvlChart', () => {
+	const chainAssetsMetadata = { chainAssets: true }
+
+	it('shows the historical chart for non-All chain pages with chainAssets metadata', () => {
+		expect(shouldShowChainOverviewBridgedTvlChart({ chain: 'Base', currentChainMetadata: chainAssetsMetadata })).toBe(
+			true
+		)
+	})
+
+	it('does not show the historical chart for All chains or missing chainAssets metadata', () => {
+		expect(shouldShowChainOverviewBridgedTvlChart({ chain: 'All', currentChainMetadata: chainAssetsMetadata })).toBe(
+			false
+		)
+		expect(shouldShowChainOverviewBridgedTvlChart({ chain: 'Base', currentChainMetadata: {} })).toBe(false)
 	})
 })
 

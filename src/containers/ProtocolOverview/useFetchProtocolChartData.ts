@@ -12,9 +12,10 @@ import {
 	useFetchProtocolTVLChart
 } from '~/containers/ProtocolOverview/queries.client'
 import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
+import { FEE_EXTRA_CONFIG_BY_SETTING, type FeeExtraConfig } from '~/metrics/feeExtras'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL } from './chartDescriptors'
+import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL, type AdapterChartDescriptorLabel } from './chartDescriptors'
 import { normalizeSeriesToMilliseconds, normalizeSeriesToSeconds } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import {
@@ -32,9 +33,21 @@ const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): n
 	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
 }
 
+const buildChartRowsFromTimestampRecord = (
+	valuesByTimestamp: Record<string, number>,
+	timestampMultiplier = 1
+): Array<[number, number]> => {
+	const rows: Array<[number, number]> = []
+	for (const timestamp in valuesByTimestamp) {
+		rows.push([+timestamp * timestampMultiplier, valuesByTimestamp[timestamp]])
+	}
+	return rows
+}
+
 const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
 	const searchParams = new URLSearchParams()
-	for (const [key, value] of Object.entries(params)) {
+	for (const key in params) {
+		const value = params[key]
 		if (value != null) {
 			searchParams.set(key, value)
 		}
@@ -111,7 +124,7 @@ export const useFetchProtocolChartData = ({
 					const store: Record<string, number> = {}
 					for (const [date, value] of res.data.prices) {
 						store[String(date)] = value
-						store[String(Math.floor(Number(date) / 1e3))] = value
+						store[String(Math.floor(date / 1e3))] = value
 					}
 					return store
 				}
@@ -147,7 +160,10 @@ export const useFetchProtocolChartData = ({
 		queryFn: () =>
 			fetchJson<{ totalSupply: number | null }>(
 				`/api/public/charts/coingecko/${encodeURIComponent(geckoId!)}?kind=supply`
-			).then((res) => res.totalSupply ?? null),
+			).then((res) => {
+				const totalSupply = res.totalSupply
+				return typeof totalSupply === 'number' && Number.isFinite(totalSupply) ? totalSupply : null
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -301,18 +317,17 @@ export const useFetchProtocolChartData = ({
 		[resolvedBaseTvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain]
 	)
 
-	const feesDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Fees']
-	const revenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Revenue']
-	const holdersRevenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Holders Revenue']
-	const dexVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Volume']
-	const dexNotionalVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Notional Volume']
-	const perpVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Volume']
-	const openInterestDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Open Interest']
-	const optionsPremiumDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Premium Volume']
-	const optionsNotionalDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Notional Volume']
-	const dexAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Aggregator Volume']
-	const perpsAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Aggregator Volume']
-	const bridgeAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Bridge Aggregator Volume']
+	const fetchProtocolAdapterChart = (label: AdapterChartDescriptorLabel) => {
+		const descriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL[label]
+		return fetchJson(
+			buildProtocolChartApiUrl({
+				kind: 'adapter',
+				adapterType: descriptor.chartRequest.adapterType,
+				protocol: name,
+				dataType: descriptor.chartRequest.dataType
+			})
+		)
+	}
 
 	const isFeesEnabled = !!(toggledMetrics.fees === 'true' && metrics.fees && isRouterReady)
 	const { data: feesDataChart, isLoading: fetchingFees } = usePrefetchedProtocolChartQuery({
@@ -320,15 +335,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'fees'],
 		enabled: isFeesEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: feesDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: feesDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Fees')
 	})
 
 	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
@@ -337,15 +344,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'revenue'],
 		enabled: isRevenueEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: revenueDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: revenueDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Revenue')
 	})
 
 	const isHoldersRevenueEnabled = !!(
@@ -358,66 +357,60 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
 		enabled: isHoldersRevenueEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: holdersRevenueDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: holdersRevenueDescriptor!.chartRequest.dataType
-				})
+		queryFn: () => fetchProtocolAdapterChart('Holders Revenue')
+	})
+
+	const isFeeFamilyChartEnabled =
+		toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true'
+	const feeExtraQueryConfigs = useMemo(() => {
+		const buildConfig = (extra: FeeExtraConfig) => {
+			const enabled = !!(
+				isFeeFamilyChartEnabled &&
+				feesSettings?.[extra.setting] &&
+				metrics[extra.protocolMetricField] &&
+				isRouterReady
 			)
-	})
 
-	const isBribesEnabled = !!(
-		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
-		feesSettings?.bribes &&
-		metrics.bribes &&
-		isRouterReady
-	)
-	const { data: bribesDataChart = null, isLoading: fetchingBribes } = useQuery<Array<[number, number]> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'bribes'],
-		queryFn: () =>
-			isBribesEnabled
-				? fetchJson(
+			return {
+				queryKey: ['protocol-overview', protocolSlug, extra.clientQueryKey],
+				queryFn: () =>
+					fetchJson<Array<[number, number]> | null>(
 						buildProtocolChartApiUrl({
 							kind: 'adapter',
 							adapterType: 'fees',
-							dataType: 'dailyBribesRevenue',
+							dataType: extra.dataType,
 							protocol: name
 						})
-					)
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isBribesEnabled
-	})
+					),
+				staleTime: 60 * 60 * 1000,
+				refetchOnWindowFocus: false,
+				retry: 0,
+				enabled
+			}
+		}
 
-	const isTokenTaxesEnabled = !!(
-		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
-		feesSettings?.tokentax &&
-		metrics.tokenTax &&
-		isRouterReady
-	)
-	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'token-taxes'],
-		queryFn: () =>
-			isTokenTaxesEnabled
-				? fetchJson(
-						buildProtocolChartApiUrl({
-							kind: 'adapter',
-							adapterType: 'fees',
-							dataType: 'dailyTokenTaxes',
-							protocol: name
-						})
-					)
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isTokenTaxesEnabled
-	})
+		return {
+			bribes: buildConfig(FEE_EXTRA_CONFIG_BY_SETTING.bribes),
+			tokentax: buildConfig(FEE_EXTRA_CONFIG_BY_SETTING.tokentax)
+		}
+	}, [isFeeFamilyChartEnabled, feesSettings, metrics, isRouterReady, protocolSlug, name])
+	const isBribesEnabled = feeExtraQueryConfigs.bribes.enabled
+	const {
+		data: bribesDataChart = null,
+		isLoading: fetchingBribes,
+		error: bribesChartError
+	} = useQuery<Array<[number, number]> | null>(feeExtraQueryConfigs.bribes)
+
+	const isTokenTaxesEnabled = feeExtraQueryConfigs.tokentax.enabled
+	const {
+		data: tokenTaxesDataChart = null,
+		isLoading: fetchingTokenTaxes,
+		error: tokenTaxesChartError
+	} = useQuery<Array<[number, number]> | null>(feeExtraQueryConfigs.tokentax)
+	const enabledBribesDataChart = isBribesEnabled ? bribesDataChart : null
+	const enabledTokenTaxesDataChart = isTokenTaxesEnabled ? tokenTaxesDataChart : null
+	const enabledBribesChartError = isBribesEnabled ? bribesChartError : null
+	const enabledTokenTaxesChartError = isTokenTaxesEnabled ? tokenTaxesChartError : null
 
 	const isDexVolumeEnabled = !!(toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady)
 	const { data: dexVolumeDataChart, isLoading: fetchingDexVolume } = usePrefetchedProtocolChartQuery({
@@ -425,15 +418,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
 		enabled: isDexVolumeEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: dexVolumeDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: dexVolumeDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('DEX Volume')
 	})
 
 	const isDexNotionalVolumeEnabled = !!(
@@ -446,15 +431,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-notional-volume'],
 		enabled: isDexNotionalVolumeEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: dexNotionalVolumeDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: dexNotionalVolumeDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('DEX Notional Volume')
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
@@ -463,15 +440,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
 		enabled: isPerpsVolumeEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: perpVolumeDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: perpVolumeDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Perp Volume')
 	})
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
@@ -480,15 +449,7 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
 		enabled: isOpenInterestEnabled,
-		queryFn: () =>
-			fetchJson(
-				buildProtocolChartApiUrl({
-					kind: 'adapter',
-					adapterType: openInterestDescriptor!.chartRequest.adapterType,
-					protocol: name,
-					dataType: openInterestDescriptor!.chartRequest.dataType
-				})
-			)
+		queryFn: () => fetchProtocolAdapterChart('Open Interest')
 	})
 
 	const isOptionsPremiumVolumeEnabled = !!(
@@ -502,15 +463,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
 			enabled: isOptionsPremiumVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: optionsPremiumDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: optionsPremiumDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Options Premium Volume')
 		})
 
 	const isOptionsNotionalVolumeEnabled = !!(
@@ -524,15 +477,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 			enabled: isOptionsNotionalVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: optionsNotionalDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: optionsNotionalDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Options Notional Volume')
 		})
 
 	const isDexAggregatorsVolumeEnabled = !!(
@@ -546,15 +491,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
 			enabled: isDexAggregatorsVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: dexAggregatorsDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: dexAggregatorsDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('DEX Aggregator Volume')
 		})
 
 	const isPerpsAggregatorsVolumeEnabled = !!(
@@ -568,15 +505,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
 			enabled: isPerpsAggregatorsVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: perpsAggregatorsDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: perpsAggregatorsDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Perp Aggregator Volume')
 		})
 
 	const isBridgeAggregatorsVolumeEnabled = !!(
@@ -590,15 +519,7 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
 			enabled: isBridgeAggregatorsVolumeEnabled,
-			queryFn: () =>
-				fetchJson(
-					buildProtocolChartApiUrl({
-						kind: 'adapter',
-						adapterType: bridgeAggregatorsDescriptor!.chartRequest.adapterType,
-						protocol: name,
-						dataType: bridgeAggregatorsDescriptor!.chartRequest.dataType
-					})
-				)
+			queryFn: () => fetchProtocolAdapterChart('Bridge Aggregator Volume')
 		})
 
 	const isUnlocksEnabled = !!(
@@ -796,10 +717,13 @@ export const useFetchProtocolChartData = ({
 			{ isLoading: isGasUsedToggled && fetchingGasUsed, label: 'Gas Used' },
 			{ isLoading: isBridgeVolumeToggled && fetchingBridgeVolume, label: 'Bridge Volume' }
 		]
-		const loadingCharts = Array.from(
-			new Set(loadingStates.filter((state) => state.isLoading).map((state) => state.label))
-		)
+		const loadingCharts: string[] = []
 		const loadingChartSet = new Set(loadingCharts)
+		for (const state of loadingStates) {
+			if (!state.isLoading || loadingChartSet.has(state.label)) continue
+			loadingCharts.push(state.label)
+			loadingChartSet.add(state.label)
+		}
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number | null]> } = {}
 
@@ -832,13 +756,18 @@ export const useFetchProtocolChartData = ({
 					dateInMs: true,
 					denominationPriceHistory
 				})
-			if (isFdvToggled && tokenTotalSupply != null && Number.isFinite(tokenTotalSupply))
+			if (isFdvToggled && tokenTotalSupply != null) {
+				const fdvData: Array<[number, number]> = []
+				for (const [date, price] of protocolTokenData.prices) {
+					fdvData.push([date, price * tokenTotalSupply])
+				}
 				charts['FDV'] = formatLineChart({
-					data: protocolTokenData.prices.map(([date, price]): [number, number] => [date, price * tokenTotalSupply]),
+					data: fdvData,
 					groupBy,
 					dateInMs: true,
 					denominationPriceHistory
 				})
+			}
 		}
 		if (tokenLiquidityData)
 			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
@@ -849,77 +778,33 @@ export const useFetchProtocolChartData = ({
 		const isCumulative = groupBy === 'cumulative'
 		const applyValue = (date: number, value: number) => {
 			if (!denominationPriceHistory) return value
-			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(+date * 1e3)]
+			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(date * 1e3)]
 			return price ? value / price : null
 		}
-
-		if (feesDataChart) {
+		const applyBaseFeeFamilyChart = (
+			chart: Array<[number, number]> | null | undefined,
+			store: Record<string, number | null>
+		) => {
+			if (!chart) return
 			let total = 0
-			for (const [date, value] of feesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
+			for (const [date, value] of chart) {
+				const dateKey = getGroupedTimestampSec(date, groupBy)
+				const finalValue = applyValue(date, value)
 				if (finalValue == null) {
-					feesStore[dateKey] = null
+					store[dateKey] = null
 					continue
 				}
-				if (feesStore[dateKey] === null) continue
-				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				if (store[dateKey] === null) continue
+				store[dateKey] = (store[dateKey] ?? 0) + finalValue + total
 				if (isCumulative) total += finalValue
 			}
 		}
-		if (revenueDataChart) {
+		const applyExtraFeeFamilyChart = (chart: Array<[number, number]> | null | undefined) => {
+			if (!chart) return
 			let total = 0
-			for (const [date, value] of revenueDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					revenueStore[dateKey] = null
-					continue
-				}
-				if (revenueStore[dateKey] === null) continue
-				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (holdersRevenueDataChart) {
-			let total = 0
-			for (const [date, value] of holdersRevenueDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (holdersRevenueStore[dateKey] === null) continue
-				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (bribesDataChart) {
-			let total = 0
-			for (const [date, value] of bribesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					if (feesDataChart) feesStore[dateKey] = null
-					if (revenueDataChart) revenueStore[dateKey] = null
-					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (feesDataChart && feesStore[dateKey] !== null)
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart && revenueStore[dateKey] !== null)
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (tokenTaxesDataChart) {
-			let total = 0
-			for (const [date, value] of tokenTaxesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
+			for (const [date, value] of chart) {
+				const dateKey = getGroupedTimestampSec(date, groupBy)
+				const finalValue = applyValue(date, value)
 				if (finalValue == null) {
 					if (feesDataChart) feesStore[dateKey] = null
 					if (revenueDataChart) revenueStore[dateKey] = null
@@ -936,15 +821,24 @@ export const useFetchProtocolChartData = ({
 			}
 		}
 
-		const finalFeesChart = Object.entries(feesStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number | null]
-		)
-		const finalRevenueChart = Object.entries(revenueStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number | null]
-		)
-		const finalHoldersRevenueChart = Object.entries(holdersRevenueStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number | null]
-		)
+		applyBaseFeeFamilyChart(feesDataChart, feesStore)
+		applyBaseFeeFamilyChart(revenueDataChart, revenueStore)
+		applyBaseFeeFamilyChart(holdersRevenueDataChart, holdersRevenueStore)
+		applyExtraFeeFamilyChart(enabledBribesDataChart)
+		applyExtraFeeFamilyChart(enabledTokenTaxesDataChart)
+
+		const finalFeesChart: Array<[number, number | null]> = []
+		for (const date in feesStore) {
+			finalFeesChart.push([+date * 1e3, feesStore[date]])
+		}
+		const finalRevenueChart: Array<[number, number | null]> = []
+		for (const date in revenueStore) {
+			finalRevenueChart.push([+date * 1e3, revenueStore[date]])
+		}
+		const finalHoldersRevenueChart: Array<[number, number | null]> = []
+		for (const date in holdersRevenueStore) {
+			finalHoldersRevenueChart.push([+date * 1e3, holdersRevenueStore[date]])
+		}
 		if (finalFeesChart.length > 0) charts['Fees'] = finalFeesChart
 		if (finalRevenueChart.length > 0) charts['Revenue'] = finalRevenueChart
 		if (finalHoldersRevenueChart.length > 0) charts['Holders Revenue'] = finalHoldersRevenueChart
@@ -1008,7 +902,7 @@ export const useFetchProtocolChartData = ({
 				}
 				store[dateKey] = (store[dateKey] ?? 0) + total
 			}
-			charts['Unlocks'] = Object.entries(store).map(([date, value]) => [+date * 1e3, value] as [number, number])
+			charts['Unlocks'] = buildChartRowsFromTimestampRecord(store, 1e3)
 		}
 
 		if (isIncentivesToggled && unlocksAndIncentivesData?.unlockUsdChart) {
@@ -1022,9 +916,7 @@ export const useFetchProtocolChartData = ({
 		}
 
 		if (extraTvlCharts.charts.staking && isStakingTvlToggled) {
-			const stakingChartData = Object.entries(extraTvlCharts.charts.staking).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
+			const stakingChartData = buildChartRowsFromTimestampRecord(extraTvlCharts.charts.staking, 1e3)
 			charts['Staking'] = formatLineChart({
 				data: stakingChartData,
 				groupBy,
@@ -1033,9 +925,7 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 		if (extraTvlCharts.charts.borrowed && isBorrowedTvlToggled) {
-			const borrowedChartData = Object.entries(extraTvlCharts.charts.borrowed).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
+			const borrowedChartData = buildChartRowsFromTimestampRecord(extraTvlCharts.charts.borrowed, 1e3)
 			charts['Active Loans'] = formatLineChart({
 				data: borrowedChartData,
 				groupBy,
@@ -1044,13 +934,18 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 
-		if (medianAPYData)
+		if (medianAPYData) {
+			const medianAPYChartData: Array<[number, number]> = []
+			for (const item of medianAPYData) {
+				medianAPYChartData.push([+item.date * 1e3, Number(item.medianAPY) || 0])
+			}
 			charts['Median APY'] = formatLineChart({
-				data: medianAPYData.map((item): [number, number] => [+item.date * 1e3, Number(item.medianAPY) || 0]),
+				data: medianAPYChartData,
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
 			})
+		}
 
 		if (governanceData) {
 			const totalProposals: Record<string, number> = {}
@@ -1068,17 +963,17 @@ export const useFetchProtocolChartData = ({
 				}
 			}
 			charts['Total Proposals'] = formatBarChart({
-				data: Object.entries(totalProposals).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(totalProposals),
 				groupBy,
 				denominationPriceHistory: null
 			})
 			charts['Successful Proposals'] = formatBarChart({
-				data: Object.entries(successfulProposals).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(successfulProposals),
 				groupBy,
 				denominationPriceHistory: null
 			})
 			charts['Max Votes'] = formatLineChart({
-				data: Object.entries(maxVotes).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(maxVotes),
 				groupBy,
 				denominationPriceHistory: null
 			})
@@ -1093,28 +988,28 @@ export const useFetchProtocolChartData = ({
 			})
 		if (activeAddressesData && isActiveAddressesToggled)
 			charts['Active Addresses'] = formatBarChart({
-				data: activeAddressesData.map((item): [number, number] => [item[0], item[1]]),
+				data: activeAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (newAddressesData && isNewAddressesToggled)
 			charts['New Addresses'] = formatBarChart({
-				data: newAddressesData.map((item): [number, number] => [item[0], item[1]]),
+				data: newAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (transactionsData && isTransactionsToggled)
 			charts['Transactions'] = formatBarChart({
-				data: transactionsData.map((item): [number, number] => [item[0], item[1]]),
+				data: transactionsData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (gasUsedData && isGasUsedToggled)
 			charts['Gas Used'] = formatBarChart({
-				data: gasUsedData.map((item): [number, number] => [item[0], item[1]]),
+				data: gasUsedData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
@@ -1131,12 +1026,13 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory
 			})
 
-		const filteredCharts = Object.fromEntries(
-			Object.entries(charts).filter(([chartLabel]) => {
-				const queryParamKey = protocolCharts[chartLabel as ProtocolChartsLabels]
-				return queryParamKey ? toggledMetrics[queryParamKey] === 'true' : true
-			})
-		) as Record<string, Array<[number, number | null]>>
+		const filteredCharts: Record<string, Array<[number, number | null]>> = {}
+		for (const chartLabel in charts) {
+			const queryParamKey = protocolCharts[chartLabel as ProtocolChartsLabels]
+			if (!queryParamKey || toggledMetrics[queryParamKey] === 'true') {
+				filteredCharts[chartLabel] = charts[chartLabel]
+			}
+		}
 
 		const failedMetrics = availableCharts.filter((chartLabel) => {
 			const queryParamKey = protocolCharts[chartLabel]
@@ -1144,6 +1040,17 @@ export const useFetchProtocolChartData = ({
 			if (loadingChartSet.has(chartLabel)) return false
 			return !Object.prototype.hasOwnProperty.call(filteredCharts, chartLabel)
 		})
+		if (enabledBribesChartError || enabledTokenTaxesChartError) {
+			if (isFeesEnabled && !failedMetrics.includes('Fees')) {
+				failedMetrics.push('Fees')
+			}
+			if (isRevenueEnabled && !failedMetrics.includes('Revenue')) {
+				failedMetrics.push('Revenue')
+			}
+			if (isHoldersRevenueEnabled && !failedMetrics.includes('Holders Revenue')) {
+				failedMetrics.push('Holders Revenue')
+			}
+		}
 
 		return { finalCharts: filteredCharts, valueSymbol, loadingCharts, failedMetrics }
 	}, [
@@ -1192,9 +1099,11 @@ export const useFetchProtocolChartData = ({
 		fetchingHoldersRevenue,
 		holdersRevenueDataChart,
 		fetchingBribes,
-		bribesDataChart,
+		enabledBribesDataChart,
+		enabledBribesChartError,
 		fetchingTokenTaxes,
-		tokenTaxesDataChart,
+		enabledTokenTaxesDataChart,
+		enabledTokenTaxesChartError,
 		fetchingDexVolume,
 		dexVolumeDataChart,
 		fetchingDexNotionalVolume,

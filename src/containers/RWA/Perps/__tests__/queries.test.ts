@@ -14,7 +14,8 @@ import {
 	getRWAPerpsContractData,
 	getRWAPerpsOverview,
 	getRWAPerpsVenuePage,
-	getRWAPerpsVenuesOverview
+	getRWAPerpsVenuesOverview,
+	sumProtocolFees24h
 } from '../queries'
 import { buildRWAPerpsTreemapTreeData } from '../treemap'
 
@@ -408,6 +409,53 @@ describe('getRWAPerpsContractData', () => {
 		})
 	})
 
+	it('normalizes funding history numeric strings, malformed values, and chronological ordering', async () => {
+		fetchRWAPerpsMarketsByContract.mockResolvedValue([{ ...baseMarket, id: 'xyz:meta', venue: 'xyz' }])
+		fetchRWAPerpsFundingHistory.mockResolvedValueOnce([
+			{
+				timestamp: 1774569600000,
+				id: 'xyz:meta',
+				contract: 'xyz:META',
+				venue: 'xyz',
+				funding_rate: '0.00001250',
+				premium: '0.00030000',
+				open_interest: '7000.5',
+				funding_payment: '0.08750625',
+				created_at: '2026-03-27T00:00:00.000Z'
+			},
+			{
+				timestamp: 1774454400,
+				id: 'xyz:meta',
+				contract: 'xyz:META',
+				venue: 'xyz',
+				funding_rate: 'NaN',
+				premium: 'Infinity',
+				open_interest: 'not-a-number',
+				funding_payment: '',
+				created_at: '2026-03-26T16:00:00.000Z'
+			}
+		])
+
+		const result = await getRWAPerpsContractData({ contract: 'xyz:META' })
+
+		expect(result?.fundingHistory).toEqual([
+			{
+				timestamp: 1774454400000,
+				fundingRate: 0,
+				premium: 0,
+				openInterest: 0,
+				fundingPayment: 0
+			},
+			{
+				timestamp: 1774569600000,
+				fundingRate: 0.0000125,
+				premium: 0.0003,
+				openInterest: 7000.5,
+				fundingPayment: 0.08750625
+			}
+		])
+	})
+
 	it('returns null when the contract has no markets', async () => {
 		fetchRWAPerpsMarketsByContract.mockResolvedValue([])
 
@@ -441,6 +489,16 @@ describe('getRWAPerpsContractData', () => {
 })
 
 describe('perps overview queries', () => {
+	it('ignores malformed protocol fee values when summing current markets', () => {
+		expect(
+			sumProtocolFees24h([
+				{ ...baseMarket, id: 'missing-fees', estimatedProtocolFees24h: undefined as any },
+				{ ...baseMarket, id: 'nan-fees', estimatedProtocolFees24h: Number.NaN },
+				{ ...baseMarket, id: 'string-fees', estimatedProtocolFees24h: '7' as any }
+			])
+		).toBe(7)
+	})
+
 	it('builds the overview page model with totals, sorted markets, and a preloaded chart for the default time-series view', async () => {
 		const result = await getRWAPerpsOverview()
 
@@ -1052,8 +1110,8 @@ describe('perps overview helpers', () => {
 		expect(
 			groupRWAPerpsTimeSeriesDataset({
 				source: [
-					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
-					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, Gold: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: 5 }
 				],
 				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
 			})
@@ -1070,15 +1128,15 @@ describe('perps overview helpers', () => {
 		expect(
 			appendRWAPerpsTimeSeriesDatasetTotal({
 				source: [
-					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
-					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, Gold: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: 5 }
 				],
 				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
 			})
 		).toEqual({
 			source: [
-				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null, Total: 100 },
-				{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined, Total: 105 }
+				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, Gold: null, Total: 100 },
+				{ timestamp: 1774483200000, Meta: 100, NVIDIA: 5, Total: 105 }
 			],
 			dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA', 'Gold']
 		})

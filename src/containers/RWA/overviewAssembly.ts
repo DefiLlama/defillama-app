@@ -1,7 +1,7 @@
 import { rwaSlug } from './rwaSlug'
 
-export type ChainMetricBreakdown = Record<string, number | string> | null
-export type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
+export type ChainMetricBreakdown = Record<string, number> | null
+export type DefiMetricBreakdown = Record<string, Record<string, number>> | null
 
 export type AggregatedRwaMetrics = {
 	totals: {
@@ -59,7 +59,7 @@ export function aggregateRwaMetrics({
 
 	if (onChainMcapBreakdown) {
 		for (const chain in onChainMcapBreakdown) {
-			const value = safeNumber(onChainMcapBreakdown[chain])
+			const value = onChainMcapBreakdown[chain]
 			onChainMcapByChain[chain] = (onChainMcapByChain[chain] || 0) + value
 			totalOnChainMcap += value
 			if (selectedChain && rwaSlug(chain) === selectedChain) {
@@ -71,7 +71,7 @@ export function aggregateRwaMetrics({
 
 	if (activeMcapBreakdown) {
 		for (const chain in activeMcapBreakdown) {
-			const value = safeNumber(activeMcapBreakdown[chain])
+			const value = activeMcapBreakdown[chain]
 			activeMcapByChain[chain] = (activeMcapByChain[chain] || 0) + value
 			totalActiveMcap += value
 			if (selectedChain && rwaSlug(chain) === selectedChain) {
@@ -90,7 +90,7 @@ export function aggregateRwaMetrics({
 
 			let chainTotal = 0
 			for (const protocolName in defiActiveTvlBreakdown[chain]) {
-				const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
+				const value = defiActiveTvlBreakdown[chain][protocolName]
 				chainTotal += value
 				defiActiveTvlByProtocol[protocolName] = (defiActiveTvlByProtocol[protocolName] || 0) + value
 				totalDeFiActiveTvl += value
@@ -135,11 +135,6 @@ export function aggregateRwaMetrics({
 			defiActiveTvlByChainFiltered
 		}
 	}
-}
-
-export function safeNumber(value: unknown): number {
-	const n = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(n) ? n : 0
 }
 
 export function isEmptyObject(value: unknown): boolean {

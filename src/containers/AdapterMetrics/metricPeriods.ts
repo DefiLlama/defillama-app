@@ -44,8 +44,7 @@ function sumNullable(left: NullableNumber, right: NullableNumber) {
 function getPercentChange(valueNow: NullableNumber, valuePrevious: NullableNumber) {
 	if (valueNow == null || valuePrevious == null || valuePrevious === 0) return null
 
-	const percent = ((valueNow - valuePrevious) / valuePrevious) * 100
-	return Number.isFinite(percent) ? percent : null
+	return ((valueNow - valuePrevious) / valuePrevious) * 100
 }
 
 export function deriveMetricChanges<T extends MetricPeriodFields>(protocol: T): T & MetricPeriodChanges {

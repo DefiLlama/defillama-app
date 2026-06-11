@@ -14,6 +14,24 @@ function formatCount(value: number | undefined): string {
 	return COUNT_FORMATTER.format(value ?? 0)
 }
 
+function AuthorAvatar({
+	author,
+	className = 'size-6'
+}: {
+	author: NonNullable<DashboardSeoPublicDashboard['author']>
+	className?: string
+}) {
+	if (author.avatarUrl) {
+		return (
+			// eslint-disable-next-line @next/next/no-img-element
+			<img src={author.avatarUrl} alt="" className={`${className} rounded-full object-cover`} />
+		)
+	}
+	return (
+		<span className={`${className} flex items-center justify-center rounded-full bg-(--link-button) text-sm`}>🦙</span>
+	)
+}
+
 export function DashboardSeoSummary({ dashboard, seo }: { dashboard: DashboardSeoPublicDashboard; seo: DashboardSeo }) {
 	const updatedDate = formatDate(seo.updated)
 	const visibleSummaries = seo.itemSummaries.slice(0, 12)
@@ -47,6 +65,17 @@ export function DashboardSeoSummary({ dashboard, seo }: { dashboard: DashboardSe
 							Public
 						</p>
 					</div>
+					{dashboard.author ? (
+						<BasicLink
+							href={`/authors/${dashboard.author.slug}`}
+							className="mt-3 inline-flex items-center gap-2 text-sm text-(--text-secondary) hover:text-(--link-text)"
+						>
+							<AuthorAvatar author={dashboard.author} />
+							<span>
+								By <span className="font-medium">{dashboard.author.displayName}</span>
+							</span>
+						</BasicLink>
+					) : null}
 					<p className="mt-2 max-w-3xl text-sm leading-6 text-(--text-form)">{seo.description}</p>
 
 					{seo.tags.length ? (

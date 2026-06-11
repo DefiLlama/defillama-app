@@ -20,6 +20,7 @@ import type {} from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { addFeeExtrasToRowTotals, hasEnabledFeeExtras, isFeeExtraEligibleAdapterMetric } from '~/metrics/feeExtras'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
@@ -54,27 +55,19 @@ export function ChainsByAdapter(props: IProps) {
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
 	const chains = useMemo(() => {
-		if (props.adapterType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)) {
-			return props.chains.map((chain) => {
-				const total24h =
-					(chain.total24h ?? 0) +
-					(enabledSettings.bribes ? (chain.bribes?.total24h ?? 0) : 0) +
-					(enabledSettings.tokentax ? (chain.tokenTax?.total24h ?? 0) : 0)
-				const total30d =
-					(chain.total30d ?? 0) +
-					(enabledSettings.bribes ? (chain.bribes?.total30d ?? 0) : 0) +
-					(enabledSettings.tokentax ? (chain.tokenTax?.total30d ?? 0) : 0)
-
-				return {
-					...chain,
-					total24h,
-					total30d
-				}
-			})
+		if (
+			hasEnabledFeeExtras(enabledSettings) &&
+			isFeeExtraEligibleAdapterMetric({ adapterType: props.adapterType, dataType: props.dataType })
+		) {
+			const adjustedChains: IChainsByAdapterPageData['chains'] = []
+			for (const chain of props.chains) {
+				adjustedChains.push(addFeeExtrasToRowTotals(chain, enabledSettings))
+			}
+			return adjustedChains
 		}
 
 		return props.chains
-	}, [props.adapterType, props.chains, enabledSettings.bribes, enabledSettings.tokentax])
+	}, [props.adapterType, props.dataType, props.chains, enabledSettings])
 
 	const instance = useReactTable({
 		data: chains,

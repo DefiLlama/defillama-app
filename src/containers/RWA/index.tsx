@@ -28,6 +28,7 @@ import {
 	sortRwaChartSeriesLabels,
 	type RWAChartAggregationMode
 } from './chartAggregation'
+import { limitRwaHorizontalBarData } from './chartDataset'
 import {
 	createRwaChartModeState,
 	getBreakdownLabel,
@@ -433,9 +434,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const deferredSelectedPieChartData = useDeferredValue(selectedPieChartData)
 	const valueSortedPieChartStackColors = useMemo(() => {
 		const stackColors = { ...pieChartStackColors }
-		const sortedData = [...deferredSelectedPieChartData]
-			.filter((item) => Number.isFinite(item.value) && item.value > 0)
-			.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+		const sortedData: Array<{ name: string; value: number }> = []
+		for (const item of deferredSelectedPieChartData) {
+			if (item.value > 0) sortedData.push(item)
+		}
+		sortedData.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
 
 		for (const [index, item] of sortedData.entries()) {
 			stackColors[item.name] = CHART_COLORS[index % CHART_COLORS.length]
@@ -443,34 +446,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 		return stackColors
 	}, [pieChartStackColors, deferredSelectedPieChartData])
-	const selectedBarChartData = useMemo(() => {
-		let othersValue = 0
-		const sorted: Array<{ name: string; value: number }> = []
-
-		for (const item of deferredSelectedPieChartData) {
-			if (!Number.isFinite(item.value) || item.value <= 0) continue
-
-			if (item.name === 'Others') {
-				othersValue += item.value
-				continue
-			}
-
-			sorted.push({ name: item.name, value: item.value })
-		}
-
-		sorted.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
-
-		if (sorted.length <= MAX_HORIZONTAL_BARS - (othersValue > 0 ? 1 : 0)) {
-			return othersValue > 0 ? [...sorted, { name: 'Others', value: othersValue }] : sorted
-		}
-
-		const limitedData = sorted.slice(0, MAX_HORIZONTAL_BARS - 1)
-		const overflowValue = sorted.slice(MAX_HORIZONTAL_BARS - 1).reduce((sum, item) => sum + item.value, 0) + othersValue
-		if (overflowValue > 0) {
-			limitedData.push({ name: 'Others', value: overflowValue })
-		}
-		return limitedData
-	}, [deferredSelectedPieChartData])
+	const selectedBarChartData = useMemo(
+		() => limitRwaHorizontalBarData(deferredSelectedPieChartData, { sort: true }),
+		[deferredSelectedPieChartData]
+	)
 	const selectedBarChartCategories = useMemo(
 		() => selectedBarChartData.map((item) => item.name),
 		[selectedBarChartData]
@@ -929,4 +908,3 @@ const pieChartLegendPosition = {
 	}
 } as const
 const pieChartLegendTextStyle = { fontSize: 14 }
-const MAX_HORIZONTAL_BARS = 9

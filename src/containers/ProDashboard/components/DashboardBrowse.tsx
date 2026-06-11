@@ -1,7 +1,9 @@
+import * as React from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { type DiscoveryCategoriesInitialData, useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
 import type { Dashboard } from '../services/DashboardAPI'
 import { DiscoverySection } from './DiscoverySection'
+import { TopAuthorsRail } from './TopAuthorsRail'
 
 interface SectionConfig {
 	key: string
@@ -85,21 +87,23 @@ export function DashboardBrowse({ onTagClick, initialCategories }: DashboardBrow
 				</div>
 			</div>
 
-			{SECTIONS.map((section) => {
+			{SECTIONS.map((section, index) => {
 				const categoryData = categories[section.key]
 				return (
-					<DiscoverySection
-						key={section.key}
-						title={section.title}
-						subtitle={section.subtitle}
-						icon={section.icon}
-						iconBg={section.iconBg}
-						iconColor={section.iconColor}
-						dashboards={categoryData?.dashboards ?? EMPTY_DASHBOARDS}
-						isLoading={categoryData?.isLoading ?? true}
-						seeAllHref={section.seeAllHref}
-						onTagClick={onTagClick}
-					/>
+					<React.Fragment key={section.key}>
+						<DiscoverySection
+							title={section.title}
+							subtitle={section.subtitle}
+							icon={section.icon}
+							iconBg={section.iconBg}
+							iconColor={section.iconColor}
+							dashboards={categoryData?.dashboards ?? EMPTY_DASHBOARDS}
+							isLoading={categoryData?.isLoading ?? true}
+							seeAllHref={section.seeAllHref}
+							onTagClick={onTagClick}
+						/>
+						{index === 0 ? <TopAuthorsRail /> : null}
+					</React.Fragment>
 				)
 			})}
 		</div>

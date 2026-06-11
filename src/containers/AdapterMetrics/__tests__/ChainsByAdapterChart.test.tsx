@@ -15,7 +15,8 @@ const mocks = vi.hoisted(() => ({
 		chartData: MultiSeriesChart2Dataset
 		selectedChains: string[]
 	}>,
-	queryCalls: [] as Array<{ queryKey: unknown[]; enabled?: boolean }>
+	queryCalls: [] as Array<{ queryKey: unknown[]; enabled?: boolean }>,
+	cachedDisabledMetrics: new Set<unknown>()
 }))
 
 vi.mock('next/router', () => ({
@@ -30,14 +31,20 @@ vi.mock('@tanstack/react-query', () => ({
 		mocks.queryCalls.push({ queryKey: options.queryKey, enabled: options.enabled })
 
 		const metric = options.queryKey.at(-1)
-		if (options.enabled && metric === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE) {
+		if (
+			(options.enabled || mocks.cachedDisabledMetrics.has(metric)) &&
+			metric === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE
+		) {
 			return {
 				data: [[timestampSeconds, { Base: 20, Ethereum: 5 }]],
 				error: null,
 				isLoading: false
 			}
 		}
-		if (options.enabled && metric === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+		if (
+			(options.enabled || mocks.cachedDisabledMetrics.has(metric)) &&
+			metric === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES
+		) {
 			return {
 				data: [[timestampSeconds, { Base: 3, Ignored: 100 }]],
 				error: null,
@@ -134,18 +141,22 @@ const baseChartData: MultiSeriesChart2Dataset = {
 function renderChart({
 	adapterType,
 	dataType,
-	chartName
+	chartName,
+	chartData = baseChartData,
+	allChains = ['Base', 'Ethereum']
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
 	chartName: string
+	chartData?: MultiSeriesChart2Dataset
+	allChains?: string[]
 }) {
 	renderToStaticMarkup(
 		<ChainsByAdapterChart
 			adapterType={adapterType}
 			dataType={dataType}
-			chartData={baseChartData}
-			allChains={['Base', 'Ethereum']}
+			chartData={chartData}
+			allChains={allChains}
 			chartName={chartName}
 		/>
 	)
@@ -160,6 +171,7 @@ describe('ChainsByAdapterChart fee extras', () => {
 		mocks.feesSettings.tokentax = false
 		mocks.presentationInputs = []
 		mocks.queryCalls = []
+		mocks.cachedDisabledMetrics = new Set()
 	})
 
 	it('merges enabled bribes and token tax into holders revenue chain chart data', () => {
@@ -186,7 +198,7 @@ describe('ChainsByAdapterChart fee extras', () => {
 		])
 	})
 
-	it('does not merge fee extras into app fee chain chart data', () => {
+	it('merges enabled bribes and token tax into app fee chain chart data', () => {
 		mocks.feesSettings.bribes = true
 		mocks.feesSettings.tokentax = true
 
@@ -196,15 +208,62 @@ describe('ChainsByAdapterChart fee extras', () => {
 			chartName: 'App Fees'
 		})
 
-		expect(chartData).toBe(baseChartData)
+		expect(chartData).toEqual({
+			dimensions: ['timestamp', 'Base', 'Ethereum'],
+			source: [{ timestamp: timestampMs, Base: 123, Ethereum: 55 }]
+		})
 		expect(
 			mocks.queryCalls
 				.filter((call) => call.queryKey[0] === 'adapter-chain-breakdown-chart')
 				.map((call) => ({ metric: call.queryKey.at(-1), enabled: call.enabled }))
 		).toEqual([
-			{ metric: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE, enabled: false },
-			{ metric: ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES, enabled: false }
+			{ metric: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE, enabled: true },
+			{ metric: ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES, enabled: true }
 		])
+	})
+
+	it('merges enabled bribes and token tax into app revenue chain chart data', () => {
+		mocks.feesSettings.bribes = true
+		mocks.feesSettings.tokentax = true
+
+		const chartData = renderChart({
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_REVENUE,
+			chartName: 'App Revenue'
+		})
+
+		expect(chartData).toEqual({
+			dimensions: ['timestamp', 'Base', 'Ethereum'],
+			source: [{ timestamp: timestampMs, Base: 123, Ethereum: 55 }]
+		})
+		expect(
+			mocks.queryCalls
+				.filter((call) => call.queryKey[0] === 'adapter-chain-breakdown-chart')
+				.map((call) => ({ metric: call.queryKey.at(-1), enabled: call.enabled }))
+		).toEqual([
+			{ metric: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE, enabled: true },
+			{ metric: ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES, enabled: true }
+		])
+	})
+
+	it('keeps enabled extra-only chain dimensions when they are selectable', () => {
+		mocks.feesSettings.bribes = true
+
+		const chartData = renderChart({
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chartName: 'App Fees',
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum'],
+				source: [{ timestamp: timestampMs, Ethereum: 50 }]
+			},
+			allChains: ['Base', 'Ethereum']
+		})
+
+		expect(chartData).toEqual({
+			dimensions: ['timestamp', 'Ethereum', 'Base'],
+			source: [{ timestamp: timestampMs, Ethereum: 55, Base: 20 }]
+		})
 	})
 
 	it('does not merge fee extras into non-fee adapter chain chart data', () => {
@@ -226,5 +285,22 @@ describe('ChainsByAdapterChart fee extras', () => {
 			{ metric: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE, enabled: false },
 			{ metric: ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES, enabled: false }
 		])
+	})
+
+	it('does not merge cached disabled fee extras into chain chart data', () => {
+		mocks.feesSettings.bribes = false
+		mocks.feesSettings.tokentax = true
+		mocks.cachedDisabledMetrics = new Set([ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE])
+
+		const chartData = renderChart({
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chartName: 'App Fees'
+		})
+
+		expect(chartData).toEqual({
+			dimensions: ['timestamp', 'Base', 'Ethereum'],
+			source: [{ timestamp: timestampMs, Base: 103, Ethereum: 50 }]
+		})
 	})
 })

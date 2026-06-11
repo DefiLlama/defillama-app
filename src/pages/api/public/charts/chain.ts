@@ -6,7 +6,11 @@ import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import type { ChainNativeFeeRevenueMetric } from '~/metrics/definitions'
-import { getChainNativeFeeRevenueMetricForAdapterProtocol } from '~/metrics/routeSemantics'
+import {
+	getChainNativeFeeRevenueMetricForAdapterProtocol,
+	isChainNativeFeeExtraForAdapterProtocol
+} from '~/metrics/routeSemantics'
+import { slug } from '~/utils'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -26,10 +30,14 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 	res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
 }
 
-async function resolveCanonicalChainParam(chain: string): Promise<string | null> {
-	if (chain.toLowerCase() === 'all') return 'All'
+async function resolveCanonicalChainParam(
+	chain: string,
+	options: { allowAll?: boolean; requiredFlag?: 'chainAssets' } = {}
+): Promise<string | null> {
+	if (chain.toLowerCase() === 'all') return options.allowAll === false ? null : 'All'
 	const { resolveChainParam } = await import('~/server/routeCache/chains')
 	const chainRoute = await resolveChainParam(chain)
+	if (options.requiredFlag && !chainRoute?.metadata[options.requiredFlag]) return null
 	return chainRoute?.canonicalName ?? null
 }
 
@@ -49,6 +57,13 @@ async function resolveCanonicalChainNativeFeeRevenueProtocolParam(
 	return chainRoute?.metadata[metric.metadataFlag] ? chainRoute.canonicalName : null
 }
 
+async function resolveCanonicalChainNativeFeeExtraProtocolParam(chain: string): Promise<string | null> {
+	if (chain.toLowerCase() === 'all') return null
+	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const chainRoute = await resolveChainParam(chain)
+	return chainRoute?.metadata.chainFees || chainRoute?.metadata.chainRevenue ? chainRoute.canonicalName : null
+}
+
 async function resolveCanonicalAdapterProtocolParam(
 	protocol: string,
 	adapterType: string,
@@ -56,10 +71,16 @@ async function resolveCanonicalAdapterProtocolParam(
 	entity: string | undefined
 ): Promise<string | null> {
 	const chainNativeFeeRevenueMetric = getChainNativeFeeRevenueMetricForAdapterProtocol({ adapterType, dataType })
+	const isChainNativeFeeExtra = isChainNativeFeeExtraForAdapterProtocol({ adapterType, dataType })
 
 	if (entity === 'chain') {
-		if (!chainNativeFeeRevenueMetric) return null
-		return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+		if (chainNativeFeeRevenueMetric) {
+			return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+		}
+		if (isChainNativeFeeExtra) {
+			return resolveCanonicalChainNativeFeeExtraProtocolParam(protocol)
+		}
+		return null
 	}
 
 	const canonicalProtocol = await resolveCanonicalProtocolParam(protocol)
@@ -67,8 +88,13 @@ async function resolveCanonicalAdapterProtocolParam(
 	if (entity === 'protocol') return null
 	// Stale clients may omit entity; keep the fallback narrow so app metrics and
 	// unknown values still fail route-cache validation before reaching upstream.
-	if (!chainNativeFeeRevenueMetric) return null
-	return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+	if (chainNativeFeeRevenueMetric) {
+		return resolveCanonicalChainNativeFeeRevenueProtocolParam(protocol, chainNativeFeeRevenueMetric)
+	}
+	if (isChainNativeFeeExtra) {
+		return resolveCanonicalChainNativeFeeExtraProtocolParam(protocol)
+	}
+	return null
 }
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {
@@ -163,13 +189,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				setNoStoreHeaders(res)
 				return res.status(400).json({ error: 'chain parameter is required' })
 			}
-			const canonicalChain = await resolveCanonicalChainParam(chain)
+			const canonicalChain = await resolveCanonicalChainParam(chain, { allowAll: false, requiredFlag: 'chainAssets' })
 			if (!canonicalChain) {
 				setNoStoreHeaders(res)
 				return res.status(404).json({ error: 'chain not found' })
 			}
 
-			const data = await fetchChainAssetsChart(canonicalChain)
+			const data = await fetchChainAssetsChart(slug(canonicalChain)).catch((error) => {
+				recordRouteRuntimeError(error, 'apiRoute')
+				return null
+			})
+			if (data === null) {
+				setNoStoreHeaders(res)
+				return res.status(200).json(null)
+			}
+
 			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}

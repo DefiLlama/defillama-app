@@ -1,4 +1,4 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { RWAChartDataset, RWAChartRow } from '../chartDataset'
 import type { IRWAPerpsBreakdownChartResponse } from './api.types'
 
 function toUnixMsTimestamp(timestamp: number): number {
@@ -12,28 +12,26 @@ function getUtcStartOfDay(timestamp: number): number {
 	return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
 }
 
-function sumChartRow(row: MultiSeriesChart2Dataset['source'][number] | null): number | null {
+function sumChartRow(row: RWAChartRow | null): number | null {
 	if (!row) return null
 
 	let total = 0
 	for (const key in row) {
 		if (key === 'timestamp') continue
-		const numericValue = Number(row[key])
-		if (Number.isFinite(numericValue)) total += numericValue
+		total += row[key] ?? 0
 	}
 
 	return total > 0 ? total : null
 }
 
 function getLatestRowInWindow(
-	rows: MultiSeriesChart2Dataset['source'],
+	rows: RWAChartDataset['source'],
 	windowStart: number,
 	windowEnd: number
-): MultiSeriesChart2Dataset['source'][number] | null {
+): RWAChartRow | null {
 	for (let index = rows.length - 1; index >= 0; index--) {
 		const row = rows[index]
-		const timestamp = Number(row.timestamp)
-		if (timestamp >= windowStart && timestamp < windowEnd) return row
+		if (row.timestamp >= windowStart && row.timestamp < windowEnd) return row
 	}
 
 	return null
@@ -41,12 +39,12 @@ function getLatestRowInWindow(
 
 export function normalizeRWAPerpsBreakdownChartRows(
 	rows: IRWAPerpsBreakdownChartResponse | null
-): MultiSeriesChart2Dataset['source'] {
-	const normalizedRows: MultiSeriesChart2Dataset['source'] = []
+): RWAChartDataset['source'] {
+	const normalizedRows: RWAChartDataset['source'] = []
 
 	for (const row of rows ?? []) {
-		const normalizedRow: MultiSeriesChart2Dataset['source'][number] = {
-			timestamp: toUnixMsTimestamp(Number(row.timestamp))
+		const normalizedRow: RWAChartRow = {
+			timestamp: toUnixMsTimestamp(row.timestamp)
 		}
 
 		for (const key in row) {
@@ -60,9 +58,7 @@ export function normalizeRWAPerpsBreakdownChartRows(
 	return normalizedRows
 }
 
-export function toRWAPerpsBreakdownChartDataset(
-	rows: IRWAPerpsBreakdownChartResponse | null
-): MultiSeriesChart2Dataset {
+export function toRWAPerpsBreakdownChartDataset(rows: IRWAPerpsBreakdownChartResponse | null): RWAChartDataset {
 	if (!rows || rows.length === 0) return { source: [], dimensions: ['timestamp'] }
 
 	const source = normalizeRWAPerpsBreakdownChartRows(rows)
@@ -72,18 +68,20 @@ export function toRWAPerpsBreakdownChartDataset(
 		const row = source[rowIndex]
 		for (const series in row) {
 			if (series === 'timestamp' || latestValueBySeries.has(series)) continue
-			const numericValue = Number(row[series])
-			latestValueBySeries.set(series, Number.isFinite(numericValue) ? numericValue : 0)
+			latestValueBySeries.set(series, row[series] ?? 0)
 		}
 	}
 
-	const sortedSeries = [...latestValueBySeries.entries()]
-		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-		.map(([series]) => series)
+	const sortedSeries = Array.from(latestValueBySeries.entries())
+	sortedSeries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+	const dimensions = ['timestamp']
+	for (const [series] of sortedSeries) {
+		dimensions.push(series)
+	}
 
 	return {
 		source,
-		dimensions: ['timestamp', ...sortedSeries]
+		dimensions
 	}
 }
 

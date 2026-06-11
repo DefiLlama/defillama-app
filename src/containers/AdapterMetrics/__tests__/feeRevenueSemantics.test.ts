@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { feeRevenueMetrics } from '~/metrics/feesRevenue'
 import defillamaPages from '~/public/pages.json'
-import { ADAPTER_TYPES } from '../constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../constants'
 
 type CapturedLayoutProps = {
 	canonicalUrl?: string
@@ -179,6 +179,8 @@ describe('fees and revenue page semantics', () => {
 
 	it('pins which chain ranking pages expose fee extra controls', async () => {
 		const metricFilterLabelsByRoute = new Map<string, string>([
+			[feeRevenueMetrics.chainFees.ranking.route, 'Include in Fees'],
+			[feeRevenueMetrics.chainRevenue.ranking.route, 'Include in Revenue'],
 			[feeRevenueMetrics.appFees.ranking.route, 'Include in App Fees'],
 			[feeRevenueMetrics.appRevenue.ranking.route, 'Include in App Revenue']
 		])
@@ -214,5 +216,24 @@ describe('fees and revenue page semantics', () => {
 				expect(mocks.layoutProps[0].metricFiltersLabel).toBeUndefined()
 			}
 		}
+	})
+
+	it('exposes fee extra controls on holders revenue chain rankings', async () => {
+		const page = await import('~/pages/holders-revenue/chains')
+		const Page = page.default as unknown as ComponentType<Record<string, unknown>>
+
+		renderToStaticMarkup(
+			createElement(Page, {
+				...chainRankingPageProps,
+				dataType: ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+			})
+		)
+
+		expect(mocks.layoutProps).toHaveLength(1)
+		expect(mocks.layoutProps[0]).toMatchObject({
+			canonicalUrl: '/holders-revenue/chains',
+			metricFilters: mocks.feesOptions,
+			metricFiltersLabel: 'Include in Revenue'
+		})
 	})
 })

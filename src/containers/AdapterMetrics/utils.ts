@@ -33,17 +33,21 @@ type AggregatedProtocol = Omit<
 }
 
 export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics['protocols']): AggregatedProtocol {
-	const aggregatedRevenue = {
-		total24h: protocolVersions.reduce((sum, p) => sum + (p.total24h ?? 0), 0),
-		total7d: protocolVersions.reduce((sum, p) => sum + (p.total7d ?? 0), 0),
-		total30d: protocolVersions.reduce((sum, p) => sum + (p.total30d ?? 0), 0),
-		total1y: protocolVersions.reduce((sum, p) => sum + (p.total1y ?? 0), 0),
-		totalAllTime: protocolVersions.reduce((sum, p) => sum + (p.totalAllTime ?? 0), 0)
-	}
-
 	const breakdowns24h: Record<string, Record<string, number>>[] = []
 	const breakdowns30d: Record<string, Record<string, number>>[] = []
+	const aggregatedRevenue = {
+		total24h: 0,
+		total7d: 0,
+		total30d: 0,
+		total1y: 0,
+		totalAllTime: 0
+	}
 	for (const p of protocolVersions) {
+		aggregatedRevenue.total24h += p.total24h ?? 0
+		aggregatedRevenue.total7d += p.total7d ?? 0
+		aggregatedRevenue.total30d += p.total30d ?? 0
+		aggregatedRevenue.total1y += p.total1y ?? 0
+		aggregatedRevenue.totalAllTime += p.totalAllTime ?? 0
 		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)
 		if (p.breakdown30d) breakdowns30d.push(p.breakdown30d)
 	}
@@ -51,13 +55,20 @@ export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics
 	const mergedBreakdown30d = mergeBreakdowns(breakdowns30d)
 
 	const parentProtocol = protocolVersions[0]
+	const chains = new Set<string>()
+	for (const protocol of protocolVersions) {
+		for (const chain of protocol.chains) {
+			chains.add(chain)
+		}
+	}
+
 	return {
 		...parentProtocol,
 		name: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.name,
 		displayName: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.displayName,
 		slug: slug(parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.name),
 		...aggregatedRevenue,
-		chains: [...new Set(protocolVersions.flatMap((p) => p.chains))],
+		chains: Array.from(chains),
 		breakdown24h: mergedBreakdown24h,
 		breakdown30d: mergedBreakdown30d
 	}
@@ -114,12 +125,16 @@ export function getProtocolsByCategory(
 	categoriesToFilter: Array<string>
 ): IProtocol[] {
 	const final: IProtocol[] = []
+	const categorySet = new Set(categoriesToFilter)
 
 	for (const protocol of protocols) {
 		if (protocol.childProtocols) {
-			const childProtocols = protocol.childProtocols.filter(
-				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
-			)
+			const childProtocols: IProtocol[] = []
+			for (const childProtocol of protocol.childProtocols) {
+				if (childProtocol.category && categorySet.has(childProtocol.category)) {
+					childProtocols.push(childProtocol)
+				}
+			}
 
 			if (childProtocols.length === protocol.childProtocols.length) {
 				final.push(protocol)
@@ -132,7 +147,7 @@ export function getProtocolsByCategory(
 			continue
 		}
 
-		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
+		if (protocol.category && categorySet.has(protocol.category)) {
 			final.push(protocol)
 			continue
 		}
@@ -143,12 +158,27 @@ export function getProtocolsByCategory(
 
 /** Leaf `name`s for breakdown filter: parents with children are omitted; children are included recursively. */
 export function leafProtocolNamesFromTableRows(protocols: IProtocol[]): string[] {
-	const walk = (p: IProtocol): IProtocol[] =>
-		p.childProtocols && p.childProtocols.length > 0 ? p.childProtocols.flatMap(walk) : [p]
-	return protocols
-		.flatMap(walk)
-		.toSorted((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
-		.map((p) => p.name)
+	const leafProtocols: IProtocol[] = []
+	const walk = (protocol: IProtocol) => {
+		if (protocol.childProtocols && protocol.childProtocols.length > 0) {
+			for (const childProtocol of protocol.childProtocols) {
+				walk(childProtocol)
+			}
+			return
+		}
+		leafProtocols.push(protocol)
+	}
+
+	for (const protocol of protocols) {
+		walk(protocol)
+	}
+	leafProtocols.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+
+	const names: string[] = []
+	for (const protocol of leafProtocols) {
+		names.push(protocol.name)
+	}
+	return names
 }
 
 export type CategoryProtocolNameFilter =
@@ -183,9 +213,21 @@ export function getCategoryProtocolNameFilterForChart({
 					: categoryParam
 				: categories
 
-	selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+	if (excludeSet.size > 0) {
+		const filteredCategories: string[] = []
+		for (const category of selectedCategories) {
+			if (!excludeSet.has(category)) filteredCategories.push(category)
+		}
+		selectedCategories = filteredCategories
+	}
 
-	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+	const categoriesToFilter: string[] = []
+	for (const category of selectedCategories) {
+		const normalizedCategory = category.toLowerCase()
+		if (normalizedCategory !== 'all' && normalizedCategory !== 'none') {
+			categoriesToFilter.push(category)
+		}
+	}
 
 	if (categories.length === 0) {
 		return { kind: 'unrestricted' }
@@ -313,23 +355,31 @@ export function buildAdapterByChainChartDataset({
 	const secondaryDataMap = toChartPointMap(secondarySourceData)
 	const hasSecondarySeries = secondaryDataMap.size > 0
 
-	const allTimestamps = new Set<number>([...primaryDataMap.keys(), ...secondaryDataMap.keys()])
+	const allTimestamps = new Set<number>()
+	for (const timestamp of primaryDataMap.keys()) {
+		allTimestamps.add(timestamp)
+	}
+	for (const timestamp of secondaryDataMap.keys()) {
+		allTimestamps.add(timestamp)
+	}
 	const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
-	const source = sortedTimestamps.map((timestamp) => {
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const timestamp of sortedTimestamps) {
 		if (hasSecondarySeries && secondaryDimensionLabel) {
-			return {
+			source.push({
 				timestamp,
 				[primaryDimensionLabel]: primaryDataMap.get(timestamp) ?? null,
 				[secondaryDimensionLabel]: secondaryDataMap.get(timestamp) ?? null
-			}
+			})
+			continue
 		}
 
-		return {
+		source.push({
 			timestamp,
 			[primaryDimensionLabel]: primaryDataMap.get(timestamp) ?? null
-		}
-	})
+		})
+	}
 
 	return {
 		source,
@@ -358,13 +408,14 @@ export function mergeSingleDimensionChartDataset({
 }): MultiSeriesChart2Dataset {
 	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 	assert(chartData.dimensions.length === 2, 'Expected a single chart dimension')
+	if (extraCharts.every((chart) => chart.length === 0)) return chartData
 
 	const dimension = chartData.dimensions[1]
 	const rows = new Map<number, number | null>()
 
 	for (const row of chartData.source) {
-		const value = row[dimension]
-		rows.set(Number(row.timestamp), typeof value === 'number' ? value : null)
+		const value = row[dimension] as number | null | undefined
+		rows.set(Number(row.timestamp), value ?? null)
 	}
 
 	for (const extraChart of extraCharts) {
@@ -374,14 +425,18 @@ export function mergeSingleDimensionChartDataset({
 		}
 	}
 
+	const source: MultiSeriesChart2Dataset['source'] = []
+	const sortedRows = Array.from(rows.entries()).sort((a, b) => a[0] - b[0])
+	for (const [timestamp, value] of sortedRows) {
+		source.push({
+			timestamp,
+			[dimension]: value
+		})
+	}
+
 	return {
 		dimensions: ['timestamp', dimension],
-		source: Array.from(rows.entries())
-			.sort((a, b) => a[0] - b[0])
-			.map(([timestamp, value]) => ({
-				timestamp,
-				[dimension]: value
-			}))
+		source
 	}
 }
 
@@ -443,14 +498,19 @@ export function buildProtocolBreakdownNormalization(protocols: IProtocol[]): Pro
 		walk(protocol)
 	}
 
-	const canonicalRecord = Object.fromEntries(
-		Array.from(canonicalBySeriesName.entries()).toSorted((a, b) => a[0].localeCompare(b[0]))
-	)
-	const aliasesRecord = Object.fromEntries(
-		Array.from(aliasesByCanonicalName.entries())
-			.toSorted((a, b) => a[0].localeCompare(b[0]))
-			.map(([canonicalName, aliases]) => [canonicalName, Array.from(aliases).toSorted((a, b) => a.localeCompare(b))])
-	)
+	const canonicalRecord: Record<string, string> = {}
+	for (const [seriesName, canonicalName] of Array.from(canonicalBySeriesName.entries()).toSorted((a, b) =>
+		a[0].localeCompare(b[0])
+	)) {
+		canonicalRecord[seriesName] = canonicalName
+	}
+
+	const aliasesRecord: Record<string, string[]> = {}
+	for (const [canonicalName, aliases] of Array.from(aliasesByCanonicalName.entries()).toSorted((a, b) =>
+		a[0].localeCompare(b[0])
+	)) {
+		aliasesRecord[canonicalName] = Array.from(aliases).toSorted((a, b) => a.localeCompare(b))
+	}
 
 	return {
 		canonicalBySeriesName: canonicalRecord,
@@ -475,22 +535,26 @@ export function normalizeProtocolBreakdownChartData({
 	for (const [timestamp, protocolValues] of chart) {
 		const valuesAtTimestamp: Record<string, number> = {}
 
-		for (const [protocolName, value] of Object.entries(protocolValues)) {
+		let hasValues = false
+		for (const protocolName in protocolValues) {
+			const value = protocolValues[protocolName]
 			const canonicalName = normalization.canonicalBySeriesName[protocolName]
 			if (!canonicalName) continue
 
 			valuesAtTimestamp[canonicalName] = (valuesAtTimestamp[canonicalName] ?? 0) + value
 			protocolTotals.set(canonicalName, (protocolTotals.get(canonicalName) ?? 0) + value)
+			hasValues = true
 		}
 
-		if (Object.keys(valuesAtTimestamp).length > 0) {
+		if (hasValues) {
 			protocolValuesByTimestamp.set(timestamp * 1e3, valuesAtTimestamp)
 		}
 	}
 
-	const protocolDimensions = Array.from(protocolTotals.entries())
-		.toSorted((a, b) => b[1] - a[1])
-		.map(([name]) => name)
+	const protocolDimensions: string[] = []
+	for (const [name] of Array.from(protocolTotals.entries()).toSorted((a, b) => b[1] - a[1])) {
+		protocolDimensions.push(name)
+	}
 
 	if (protocolDimensions.length === 0) {
 		return {
@@ -500,14 +564,15 @@ export function normalizeProtocolBreakdownChartData({
 	}
 
 	const sortedTimestamps = Array.from(protocolValuesByTimestamp.keys()).sort((a, b) => a - b)
-	const source = sortedTimestamps.map((timestamp) => {
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const timestamp of sortedTimestamps) {
 		const row: Record<string, number | null> = { timestamp }
 		const valuesAtTimestamp = protocolValuesByTimestamp.get(timestamp)
 		for (const protocolName of protocolDimensions) {
 			row[protocolName] = valuesAtTimestamp?.[protocolName] ?? null
 		}
-		return row
-	})
+		source.push(row)
+	}
 
 	return {
 		chartData: {
@@ -520,23 +585,48 @@ export function normalizeProtocolBreakdownChartData({
 
 export function mergeNamedDimensionChartDataset({
 	chartData,
-	extraCharts
+	extraCharts,
+	allowedDimensions
 }: {
 	chartData: MultiSeriesChart2Dataset
 	extraCharts: Array<Array<[number, Record<string, number>]>>
+	allowedDimensions?: string[]
 }): MultiSeriesChart2Dataset {
 	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
+	if (extraCharts.every((chart) => chart.length === 0)) return chartData
 
-	const dimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
+	const dimensions: string[] = []
+	for (const dimension of chartData.dimensions) {
+		if (dimension !== 'timestamp') dimensions.push(dimension)
+	}
+	const allowedDimensionSet = allowedDimensions ? new Set(allowedDimensions) : null
+	const dimensionByLowercase = new Map<string, string>()
+	for (const dimension of dimensions) {
+		dimensionByLowercase.set(dimension.toLowerCase(), dimension)
+	}
 	const rows = new Map<number, Record<string, number | null>>()
 
 	for (const row of chartData.source) {
 		const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
 		for (const dimension of dimensions) {
-			const value = row[dimension]
-			nextRow[dimension] = typeof value === 'number' ? value : null
+			const value = row[dimension] as number | null | undefined
+			nextRow[dimension] = value ?? null
 		}
 		rows.set(Number(row.timestamp), nextRow)
+	}
+
+	const getExtraDimension = (key: string) => {
+		const existingDimension = dimensionByLowercase.get(key.toLowerCase())
+		if (existingDimension != null) {
+			return existingDimension === key ? existingDimension : null
+		}
+		if (allowedDimensionSet && !allowedDimensionSet.has(key)) {
+			return null
+		}
+
+		dimensions.push(key)
+		dimensionByLowercase.set(key.toLowerCase(), key)
+		return key
 	}
 
 	for (const extraChart of extraCharts) {
@@ -544,24 +634,28 @@ export function mergeNamedDimensionChartDataset({
 			const chartTimestamp = toChartTimestamp(timestamp)
 			const row = rows.get(chartTimestamp) ?? { timestamp: chartTimestamp }
 
-			for (const dimension of dimensions) {
-				if (!(dimension in row)) {
-					row[dimension] = null
-				}
-			}
-
 			for (const key in values) {
-				if (!(key in row)) continue
-				row[key] = (row[key] ?? 0) + values[key]
+				const dimension = getExtraDimension(key)
+				if (!dimension) continue
+				row[dimension] = (row[dimension] ?? 0) + values[key]
 			}
 
 			rows.set(chartTimestamp, row)
 		}
 	}
 
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const row of Array.from(rows.values()).sort((a, b) => Number(a.timestamp) - Number(b.timestamp))) {
+		const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+		for (const dimension of dimensions) {
+			nextRow[dimension] = row[dimension] ?? null
+		}
+		source.push(nextRow)
+	}
+
 	return {
-		dimensions: chartData.dimensions,
-		source: Array.from(rows.values()).sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+		dimensions: ['timestamp', ...dimensions],
+		source
 	}
 }
 
@@ -667,12 +761,12 @@ function getRollingWindowMsForTreemapGrouping(groupBy: 'weekly' | 'monthly' | 'q
 }
 
 function getLatestTimestampMsInDataset(chartData: MultiSeriesChart2Dataset): number | null {
-	let max = -Infinity
+	let max: number | null = null
 	for (const row of chartData.source) {
 		const ts = Number(row.timestamp)
-		if (Number.isFinite(ts) && ts > max) max = ts
+		if (max == null || ts > max) max = ts
 	}
-	return Number.isFinite(max) && max > -Infinity ? max : null
+	return max
 }
 
 function assertNever(value: never): never {
@@ -747,8 +841,8 @@ function createSeriesUniverse({
 	for (const row of chartData.source) {
 		const timestamp = Number(row.timestamp)
 		for (const entity of selectedNames) {
-			const value = row[entity]
-			if (typeof value === 'number') {
+			const value = row[entity] as number | null | undefined
+			if (value != null) {
 				entityTotals.set(entity, (entityTotals.get(entity) ?? 0) + value)
 				let series = entitySeries.get(entity)
 				if (!series) {
@@ -769,8 +863,16 @@ function createSeriesUniverse({
 		}
 		return b[1] - a[1]
 	})
-	const topEntityNames = ranked.slice(0, MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
-	const otherEntityNames = ranked.slice(MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
+	const topEntityNames: string[] = []
+	const otherEntityNames: string[] = []
+	for (let i = 0; i < ranked.length; i++) {
+		const entity = ranked[i][0]
+		if (i < MAX_BREAKDOWN_SERIES) {
+			topEntityNames.push(entity)
+		} else {
+			otherEntityNames.push(entity)
+		}
+	}
 	const topSeries = new Map<string, Array<[number, number]>>()
 
 	for (const entity of topEntityNames) {
@@ -795,7 +897,10 @@ function createSeriesUniverse({
 
 	const topSeriesNames = Array.from(topSeries.keys())
 	const topColors = getNDistinctColors(topSeriesNames.length || 1)
-	const topColorBySeriesName = Object.fromEntries(topSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
+	const topColorBySeriesName: Record<string, string> = {}
+	for (let i = 0; i < topSeriesNames.length; i++) {
+		topColorBySeriesName[topSeriesNames[i]] = topColors[i]
+	}
 
 	return {
 		topSeries,
@@ -812,7 +917,13 @@ function getOrderedSelectedSeriesNames({
 	selectedNames: string[]
 }) {
 	const selectedSet = new Set(selectedNames)
-	return chartData.dimensions.filter((dimension) => dimension !== 'timestamp' && selectedSet.has(dimension))
+	const selectedSeriesNames: string[] = []
+	for (const dimension of chartData.dimensions) {
+		if (dimension !== 'timestamp' && selectedSet.has(dimension)) {
+			selectedSeriesNames.push(dimension)
+		}
+	}
+	return selectedSeriesNames
 }
 
 function orderSelectedNamesByRankingScores({
@@ -825,13 +936,12 @@ function orderSelectedNamesByRankingScores({
 	rankingScores?: Map<string, number>
 }) {
 	const selectedSeriesNames = getOrderedSelectedSeriesNames({ chartData, selectedNames })
-	const selectedSet = new Set(selectedSeriesNames)
 	const totals = new Map<string, number>()
 
 	for (const row of chartData.source) {
 		for (const seriesName of selectedSeriesNames) {
-			const value = row[seriesName]
-			if (typeof value === 'number' && Number.isFinite(value)) {
+			const value = row[seriesName] as number | null | undefined
+			if (value != null) {
 				totals.set(seriesName, (totals.get(seriesName) ?? 0) + value)
 			}
 		}
@@ -839,17 +949,15 @@ function orderSelectedNamesByRankingScores({
 
 	const getRankingScore = (seriesName: string) => rankingScores?.get(seriesName) ?? Number.NEGATIVE_INFINITY
 
-	return selectedSeriesNames
-		.toSorted((a, b) => {
-			const aScore = getRankingScore(a)
-			const bScore = getRankingScore(b)
-			if (aScore !== bScore) {
-				return bScore > aScore ? 1 : -1
-			}
+	return selectedSeriesNames.toSorted((a, b) => {
+		const aScore = getRankingScore(a)
+		const bScore = getRankingScore(b)
+		if (aScore !== bScore) {
+			return bScore > aScore ? 1 : -1
+		}
 
-			return (totals.get(b) ?? 0) - (totals.get(a) ?? 0)
-		})
-		.filter((seriesName) => selectedSet.has(seriesName))
+		return (totals.get(b) ?? 0) - (totals.get(a) ?? 0)
+	})
 }
 
 function buildSeriesMapForNames({
@@ -862,16 +970,23 @@ function buildSeriesMapForNames({
 	const seriesMap = new Map<string, Array<[number, number]>>()
 
 	for (const seriesName of seriesNames) {
-		const rawSeries = chartData.source
-			.map((row) => {
-				const timestamp = Number(row.timestamp)
-				const value = row[seriesName]
-				return typeof value === 'number' && Number.isFinite(timestamp) ? ([timestamp, value] as [number, number]) : null
-			})
-			.filter((point): point is [number, number] => point != null)
+		seriesMap.set(seriesName, [])
+	}
 
-		if (rawSeries.length > 0) {
-			seriesMap.set(seriesName, rawSeries)
+	for (const row of chartData.source) {
+		const timestamp = Number(row.timestamp)
+
+		for (const seriesName of seriesNames) {
+			const value = row[seriesName] as number | null | undefined
+			if (value != null) {
+				seriesMap.get(seriesName)!.push([timestamp, value])
+			}
+		}
+	}
+
+	for (const seriesName of seriesNames) {
+		if (seriesMap.get(seriesName)!.length === 0) {
+			seriesMap.delete(seriesName)
 		}
 	}
 
@@ -906,25 +1021,30 @@ function buildDenseRowsFromGroupedSeries(
 }
 
 function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesNames: string[]): MultiSeriesChart2Dataset {
+	const source: MultiSeriesChart2Dataset['source'] = []
+
+	for (const row of dataset.source) {
+		const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+		let total = 0
+		for (const seriesName of seriesNames) {
+			const value = row[seriesName] as number | null | undefined
+			if (value != null) total += value > 0 ? value : 0
+		}
+		for (const seriesName of seriesNames) {
+			const value = row[seriesName] as number | null | undefined
+			if (value == null) {
+				nextRow[seriesName] = null
+				continue
+			}
+			const clampedValue = value > 0 ? value : 0
+			nextRow[seriesName] = total > 0 ? (clampedValue / total) * 100 : 0
+		}
+		source.push(nextRow)
+	}
+
 	return {
 		dimensions: dataset.dimensions,
-		source: dataset.source.map((row) => {
-			const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
-			let total = 0
-			for (const seriesName of seriesNames) {
-				const value = row[seriesName]
-				if (typeof value === 'number' && Number.isFinite(value) && value > 0) total += value
-			}
-			for (const seriesName of seriesNames) {
-				const value = row[seriesName]
-				if (typeof value !== 'number' || !Number.isFinite(value)) {
-					nextRow[seriesName] = null
-					continue
-				}
-				nextRow[seriesName] = total > 0 ? (value / total) * 100 : 0
-			}
-			return nextRow
-		})
+		source
 	}
 }
 
@@ -1026,33 +1146,44 @@ function buildTreemapPresentation({
 	const latestValuesByName = new Map<string, number>()
 	for (const row of latestRows) {
 		const value = row.total24h
-		if (typeof value === 'number' && Number.isFinite(value)) {
+		if (value != null) {
 			latestValuesByName.set(row.name, value)
 		}
 	}
 
-	const values = selectedNames
-		.map((name) => {
-			const rawValue = latestValuesByName.get(name) ?? 0
-			const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
-			return {
-				name,
-				value: Number.isFinite(value) ? value : 0
-			}
-		})
-		.filter((item) => item.value > 0)
-		.toSorted((a, b) => b.value - a.value)
+	const values: Array<{ name: string; value: number }> = []
+	let total = 0
+	for (const name of selectedNames) {
+		const rawValue = latestValuesByName.get(name) ?? 0
+		if (rawValue <= 0) continue
+		values.push({ name, value: rawValue })
+		total += rawValue
+	}
+	values.sort((a, b) => b.value - a.value)
 
-	const total = values.reduce((sum, item) => sum + item.value, 0)
 	const colors = getNDistinctColors(values.length || 1)
 
-	return values.map((item, index) => ({
-		...item,
-		share: total > 0 ? (item.value / total) * 100 : 0,
-		itemStyle: {
-			color: colors[index]
-		}
-	}))
+	const data: ChainsByAdapterLatestValueDatum[] = []
+	for (let index = 0; index < values.length; index++) {
+		const item = values[index]
+		data.push({
+			...item,
+			share: total > 0 ? (item.value / total) * 100 : 0,
+			itemStyle: {
+				color: colors[index]
+			}
+		})
+	}
+
+	return data
+}
+
+function buildNullLatestRows(selectedNames: string[]): BreakdownLatestValueRow[] {
+	const rows: BreakdownLatestValueRow[] = []
+	for (const name of selectedNames) {
+		rows.push({ name, total24h: null })
+	}
+	return rows
 }
 
 function buildLatestValueRowsFromChartData({
@@ -1068,97 +1199,97 @@ function buildLatestValueRowsFromChartData({
 	if (groupBy === 'daily') {
 		const effectiveTimestamp = getEffectiveDailyLatestTimestamp(chartData)
 		if (effectiveTimestamp == null) {
-			return selectedNames.map((name) => ({ name, total24h: null }))
+			return buildNullLatestRows(selectedNames)
 		}
 
-		const sourceRow = chartData.source.find((row) => Number(row.timestamp) === effectiveTimestamp)
-		return selectedNames.map((name) => {
-			const value = sourceRow?.[name]
-			return {
-				name,
-				total24h: typeof value === 'number' && Number.isFinite(value) ? value : null
+		let sourceRow: MultiSeriesChart2Dataset['source'][0] | undefined
+		for (const row of chartData.source) {
+			if (Number(row.timestamp) === effectiveTimestamp) {
+				sourceRow = row
+				break
 			}
-		})
+		}
+
+		const rows: BreakdownLatestValueRow[] = []
+		for (const name of selectedNames) {
+			const value = sourceRow?.[name] as number | null | undefined
+			rows.push({
+				name,
+				total24h: value ?? null
+			})
+		}
+		return rows
 	}
 
 	if (groupBy === 'cumulative') {
-		return selectedNames.map((name) => {
-			const rawData = chartData.source
-				.map((row) => {
-					const timestamp = Number(row.timestamp)
-					const value = row[name]
-					return typeof value === 'number' && Number.isFinite(timestamp)
-						? ([timestamp, value] as [number, number])
-						: null
-				})
-				.filter((point): point is [number, number] => point != null)
-
+		const seriesMap = buildSeriesMapForNames({ chartData, seriesNames: selectedNames })
+		const rows: BreakdownLatestValueRow[] = []
+		for (const name of selectedNames) {
 			// Cumulative rankings should always use running totals, even for line renderers.
 			const groupedData = formatBarChart({
-				data: rawData,
+				data: seriesMap.get(name) ?? [],
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
 			})
 
-			return {
+			rows.push({
 				name,
 				total24h: groupedData.at(-1)?.[1] ?? null
-			}
-		})
+			})
+		}
+		return rows
 	}
 
 	const latestTsMs = getLatestTimestampMsInDataset(chartData)
 	if (latestTsMs == null) {
-		return selectedNames.map((name) => ({ name, total24h: null }))
+		return buildNullLatestRows(selectedNames)
 	}
 
 	const windowMs = getRollingWindowMsForTreemapGrouping(groupBy)
 	const cutoffMs = latestTsMs - windowMs
+	const sums = new Map<string, number>()
+	const pointCounts = new Map<string, number>()
 
-	return selectedNames.map((name) => {
-		const rawData = chartData.source
-			.map((row) => {
-				const timestamp = Number(row.timestamp)
-				const value = row[name]
-				return typeof value === 'number' && Number.isFinite(timestamp) ? ([timestamp, value] as [number, number]) : null
-			})
-			.filter((point): point is [number, number] => point != null)
-
-		const sorted = rawData.toSorted((a, b) => a[0] - b[0])
-
-		let sum = 0
-		let pointsInWindow = 0
-		let i = sorted.length - 1
-		if (i >= 0) {
-			do {
-				const point = sorted[i]!
-				const [tsMs, value] = point
-				if (tsMs < cutoffMs) break
-				sum += value
-				pointsInWindow++
-				i--
-			} while (i >= 0)
+	for (const row of chartData.source) {
+		const timestamp = Number(row.timestamp)
+		if (timestamp < cutoffMs) continue
+		for (const name of selectedNames) {
+			const value = row[name] as number | null | undefined
+			if (value == null) continue
+			sums.set(name, (sums.get(name) ?? 0) + value)
+			pointCounts.set(name, (pointCounts.get(name) ?? 0) + 1)
 		}
+	}
 
-		return {
+	const rows: BreakdownLatestValueRow[] = []
+	for (const name of selectedNames) {
+		rows.push({
 			name,
-			total24h: pointsInWindow === 0 ? null : sum
-		}
-	})
+			total24h: (pointCounts.get(name) ?? 0) === 0 ? null : (sums.get(name) ?? 0)
+		})
+	}
+	return rows
 }
 
 function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): number | null {
-	const timestamps = chartData.source
-		.map((row) => Number(row.timestamp))
-		.filter((timestamp) => Number.isFinite(timestamp))
-		.toSorted((a, b) => a - b)
+	let lastTimestamp = Number.NEGATIVE_INFINITY
+	let previousTimestamp = Number.NEGATIVE_INFINITY
+	let count = 0
+	for (const row of chartData.source) {
+		const timestamp = Number(row.timestamp)
+		count++
+		if (timestamp >= lastTimestamp) {
+			previousTimestamp = lastTimestamp
+			lastTimestamp = timestamp
+		} else if (timestamp > previousTimestamp) {
+			previousTimestamp = timestamp
+		}
+	}
 
-	if (timestamps.length === 0) return null
-	if (timestamps.length === 1) return timestamps[0]
+	if (count === 0) return null
+	if (count === 1) return lastTimestamp
 
-	const lastTimestamp = timestamps[timestamps.length - 1]
-	const previousTimestamp = timestamps[timestamps.length - 2]
 	const lastDate = new Date(lastTimestamp)
 	const isUtcMidnight =
 		lastDate.getUTCHours() === 0 &&
@@ -1184,23 +1315,35 @@ function buildHBarPresentation({
 	}
 
 	const topValues = rankedValues.slice(0, MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS)
-	const othersValue = rankedValues.slice(MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS).reduce((sum, item) => sum + item.value, 0)
+	let othersValue = 0
+	for (let i = MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS; i < rankedValues.length; i++) {
+		othersValue += rankedValues[i].value
+	}
 
 	if (othersValue <= 0) {
 		return topValues
 	}
 
 	const limitedValues = [...topValues, { name: 'Others', value: othersValue }]
-	const total = limitedValues.reduce((sum, item) => sum + item.value, 0)
+	let total = 0
+	for (const item of limitedValues) {
+		total += item.value
+	}
 	const colors = getNDistinctColors(limitedValues.length)
 
-	return limitedValues.map((item, index) => ({
-		...item,
-		share: total > 0 ? (item.value / total) * 100 : 0,
-		itemStyle: {
-			color: colors[index]
-		}
-	}))
+	const data: ChainsByAdapterLatestValueDatum[] = []
+	for (let index = 0; index < limitedValues.length; index++) {
+		const item = limitedValues[index]
+		data.push({
+			...item,
+			share: total > 0 ? (item.value / total) * 100 : 0,
+			itemStyle: {
+				color: colors[index]
+			}
+		})
+	}
+
+	return data
 }
 
 export function buildChainsByAdapterChartPresentation({
@@ -1275,7 +1418,7 @@ export function buildAdapterByChainBreakdownPresentation({
 	})
 	const rankingScores = new Map<string, number>()
 	for (const row of latestRows) {
-		if (typeof row.total24h === 'number' && Number.isFinite(row.total24h)) {
+		if (row.total24h != null) {
 			rankingScores.set(row.name, row.total24h)
 		}
 	}
@@ -1287,7 +1430,10 @@ export function buildAdapterByChainBreakdownPresentation({
 	})
 	const topSeries = buildSeriesMapForNames({ chartData, seriesNames: orderedSeriesNames })
 	const topColors = getNDistinctColors(orderedSeriesNames.length || 1)
-	const topColorBySeriesName = Object.fromEntries(orderedSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
+	const topColorBySeriesName: Record<string, string> = {}
+	for (let i = 0; i < orderedSeriesNames.length; i++) {
+		topColorBySeriesName[orderedSeriesNames[i]] = topColors[i]
+	}
 
 	switch (state.chartKind) {
 		case 'dominance':

@@ -1,3 +1,4 @@
+import type { PublicDashboardAuthor } from '~/containers/Authors/types'
 import { FEATURES_SERVER } from '../../../constants'
 import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
 import type { DashboardItemConfig } from '../types'
@@ -22,6 +23,7 @@ export interface Dashboard {
 	viewCount?: number
 	likeCount?: number
 	liked?: boolean
+	author?: PublicDashboardAuthor
 	created: string
 	updated: string
 	editedAt?: string
@@ -40,6 +42,13 @@ export interface Dashboard {
 			userId: string
 		}
 	> | null
+}
+
+export interface FollowingShelf {
+	author: PublicDashboardAuthor
+	dashboardCount: number
+	lastUpdated: string | null
+	dashboards: Dashboard[]
 }
 
 interface LiteDashboard {
@@ -279,6 +288,27 @@ class DashboardAPIService {
 		if (params.limit) searchParams.append('limit', params.limit.toString())
 
 		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/liked?${searchParams}`)
+		return this.handleResponse(response)
+	}
+
+	async getFollowingAuthors(
+		params: {
+			page?: number
+			limit?: number
+		},
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<{
+		items: FollowingShelf[]
+		page: number
+		perPage: number
+		totalItems: number
+		totalPages: number
+	}> {
+		const searchParams = new URLSearchParams()
+		if (params.page) searchParams.append('page', params.page.toString())
+		if (params.limit) searchParams.append('limit', params.limit.toString())
+
+		const response = await authorizedFetch(`${FEATURES_SERVER}/authors/following?${searchParams}`)
 		return this.handleResponse(response)
 	}
 }

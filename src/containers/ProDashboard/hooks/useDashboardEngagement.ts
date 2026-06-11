@@ -49,6 +49,7 @@ export function useDashboardEngagement(dashboardId: string | null) {
 					}
 				}
 			)
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'liked-dashboards'] })
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
 		onError: (error: unknown) => {

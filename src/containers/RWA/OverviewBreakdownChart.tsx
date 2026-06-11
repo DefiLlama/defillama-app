@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
+import type { MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/Select/types'
@@ -19,6 +19,7 @@ import {
 	isRwaTotalSeriesLabel,
 	sortRwaChartSeriesLabels
 } from './chartAggregation'
+import type { RWAChartDataset } from './chartDataset'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -30,7 +31,7 @@ const CHART_TYPE_OPTIONS: Array<{ key: RWAChartMetricKey; label: string }> = [
 
 const VALID_CHART_TYPES = new Set<RWAChartMetricKey>(CHART_TYPE_OPTIONS.map(({ key }) => key))
 const DEFAULT_CHART_TYPE: RWAChartMetricKey = 'activeMcap'
-const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+const EMPTY_DATASET: RWAChartDataset = { source: [], dimensions: ['timestamp'] }
 const STACKS_QUERY_KEY = 'stacks'
 const EXCLUDE_STACKS_QUERY_KEY: ExcludeQueryKey = 'excludeStacks'
 
@@ -96,7 +97,7 @@ export function getOverviewBreakdownRequestState(
 	}
 }
 
-function fetchOverviewBreakdownDataset(request: RWAOverviewBreakdownRequest): Promise<MultiSeriesChart2Dataset> {
+function fetchOverviewBreakdownDataset(request: RWAOverviewBreakdownRequest): Promise<RWAChartDataset> {
 	const searchParams = new URLSearchParams({
 		breakdown: request.breakdown,
 		key: request.key
@@ -105,7 +106,7 @@ function fetchOverviewBreakdownDataset(request: RWAOverviewBreakdownRequest): Pr
 	if (request.includeStablecoin) searchParams.set('includeStablecoin', 'true')
 	if (request.includeGovernance) searchParams.set('includeGovernance', 'true')
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/overview-breakdown?${searchParams.toString()}`)
+	return fetchJson<RWAChartDataset>(`/api/public/rwa/overview-breakdown?${searchParams.toString()}`)
 }
 
 export function buildOverviewBreakdownChartSeries(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
@@ -132,10 +133,10 @@ export function buildOverviewBreakdownChartSeries(dimensions: string[]): Array<M
 }
 
 export function getOverviewBreakdownChartDatasetForSelectedStacks(
-	dataset: MultiSeriesChart2Dataset,
+	dataset: RWAChartDataset,
 	selectedStacks: string[],
 	stackOptions: string[]
-): MultiSeriesChart2Dataset {
+): RWAChartDataset {
 	if (selectedStacks.length === 0 || selectedStacks.length === stackOptions.length) return dataset
 
 	for (let i = 0; i < dataset.source.length; i++) {
@@ -159,7 +160,7 @@ export function RWAOverviewBreakdownChart({
 	stackLabel
 }: {
 	page: RWAOverviewPage
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 	stackLabel: string
 }) {
 	const router = useRouter()

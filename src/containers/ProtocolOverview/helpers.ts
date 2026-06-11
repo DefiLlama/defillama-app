@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
 import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { addOptionalFeeExtraTotal } from '~/metrics/feeExtras'
 import type { IProtocolOverviewPageData } from './types'
 
 type ToggleOption = { name: string; key: string }
@@ -21,7 +22,8 @@ const aggregateTvlByChain = ({
 	destination: Record<string, number>
 	extraTvlsEnabled: Record<string, boolean>
 	toggleOptions: ToggleOption[]
-}) => {
+}): number => {
+	let total = 0
 	for (const chain in source) {
 		if (isTvlSettingsKey(chain)) {
 			const option = tvlOptionsMap.get(chain)
@@ -38,7 +40,9 @@ const aggregateTvlByChain = ({
 
 		// Preserve chain names that contain hyphens unless the suffix is a known extra-TVL key.
 		if (!hasRecognizedExtraTvl) {
-			destination[chain] = (destination[chain] ?? 0) + source[chain]
+			const value = source[chain]
+			destination[chain] = (destination[chain] ?? 0) + value
+			total += value
 			continue
 		}
 
@@ -48,44 +52,46 @@ const aggregateTvlByChain = ({
 			pushToggleOption(toggleOptions, extraOption)
 		}
 		if (extraTvlsEnabled[normalizedExtraKey]) {
-			destination[chainName] = (destination[chainName] ?? 0) + source[chain]
+			const value = source[chain]
+			destination[chainName] = (destination[chainName] ?? 0) + value
+			total += value
 		}
 	}
+	return total
+}
+
+const getSortedChainValues = (valuesByChain: Record<string, number>): Array<[string, number]> => {
+	const values: Array<[string, number]> = []
+	for (const chain in valuesByChain) {
+		values.push([chain, valuesByChain[chain]])
+	}
+	values.sort((a, b) => b[1] - a[1])
+	return values
 }
 
 export const useFinalTVL = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	return useMemo(() => {
-		let tvl = 0
 		const tvlByChainMap: Record<string, number> = {}
 		const toggleOptions: ToggleOption[] = []
-		let oracleTvs = 0
 		const oracleTvsByChainMap: Record<string, number> = {}
 
 		const currentTvlByChain = props.currentTvlByChain ?? {}
-		aggregateTvlByChain({
+		const tvl = aggregateTvlByChain({
 			source: currentTvlByChain,
 			destination: tvlByChainMap,
 			extraTvlsEnabled,
 			toggleOptions
 		})
 
-		for (const chain in tvlByChainMap) {
-			tvl += tvlByChainMap[chain]
-		}
-
 		const oracleTvsData = props.oracleTvs ?? {}
-		aggregateTvlByChain({
+		const oracleTvs = aggregateTvlByChain({
 			source: oracleTvsData,
 			destination: oracleTvsByChainMap,
 			extraTvlsEnabled,
 			toggleOptions
 		})
-
-		for (const chain in oracleTvsByChainMap) {
-			oracleTvs += oracleTvsByChainMap[chain]
-		}
 
 		if (hasAnyPeriodTotals(props.bribeRevenue)) {
 			const option = feesOptionsMap.get(FEES_SETTINGS.BRIBES)
@@ -103,9 +109,9 @@ export const useFinalTVL = (props: IProtocolOverviewPageData) => {
 
 		return {
 			tvl,
-			tvlByChain: Object.entries(tvlByChainMap).sort((a, b) => b[1] - a[1]),
+			tvlByChain: getSortedChainValues(tvlByChainMap),
 			oracleTvs,
-			oracleTvsByChain: Object.entries(oracleTvsByChainMap).sort((a, b) => b[1] - a[1]),
+			oracleTvsByChain: getSortedChainValues(oracleTvsByChainMap),
 			toggleOptions
 		}
 	}, [extraTvlsEnabled, props.currentTvlByChain, props.oracleTvs, props.bribeRevenue, props.tokenTax])
@@ -136,6 +142,7 @@ const hasAnyPeriodTotals = (totals: TotalsByPeriod | null | undefined) =>
 	totals?.total7d != null ||
 	totals?.total30d != null ||
 	totals?.total1y != null ||
+	totals?.annualized1y != null ||
 	totals?.totalAllTime != null
 
 export const getAdjustedTotals = (
@@ -144,32 +151,25 @@ export const getAdjustedTotals = (
 	tokenTax: TotalsByPeriod | null | undefined,
 	extraTvlsEnabled: Record<string, boolean>
 ) => {
-	const exists = hasAnyPeriodTotals(base) || hasAnyPeriodTotals(bribeRevenue) || hasAnyPeriodTotals(tokenTax)
+	const enabledBribeRevenue = extraTvlsEnabled.bribes ? bribeRevenue : null
+	const enabledTokenTax = extraTvlsEnabled.tokentax ? tokenTax : null
+	const exists =
+		hasAnyPeriodTotals(base) || hasAnyPeriodTotals(enabledBribeRevenue) || hasAnyPeriodTotals(enabledTokenTax)
 	if (!exists) return null
 
-	const b24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0
-	const b7d = extraTvlsEnabled.bribes ? bribeRevenue?.total7d : 0
-	const b30d = extraTvlsEnabled.bribes ? bribeRevenue?.total30d : 0
-	const bAll = extraTvlsEnabled.bribes ? bribeRevenue?.totalAllTime : 0
-	const t24h = extraTvlsEnabled.tokentax ? tokenTax?.total24h : 0
-	const t7d = extraTvlsEnabled.tokentax ? tokenTax?.total7d : 0
-	const t30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
-	const tAll = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
-
-	const b1y = extraTvlsEnabled.bribes ? bribeRevenue?.total1y : null
-	const t1y = extraTvlsEnabled.tokentax ? tokenTax?.total1y : null
-	const hasTotal1y = base?.total1y != null || b1y != null || t1y != null
-
-	const bAnnualized = extraTvlsEnabled.bribes ? bribeRevenue?.annualized1y : null
-	const tAnnualized = extraTvlsEnabled.tokentax ? tokenTax?.annualized1y : null
-	const hasAnnualized1y = base?.annualized1y != null || bAnnualized != null || tAnnualized != null
+	const sumPeriod = (key: keyof TotalsByPeriod) => {
+		const baseValue = base?.[key]
+		const bribesValue = enabledBribeRevenue?.[key]
+		const tokenTaxValue = enabledTokenTax?.[key]
+		return addOptionalFeeExtraTotal(baseValue, (bribesValue ?? 0) + (tokenTaxValue ?? 0))
+	}
 
 	return {
-		total24h: (base?.total24h ?? 0) + (b24h ?? 0) + (t24h ?? 0),
-		total7d: (base?.total7d ?? 0) + (b7d ?? 0) + (t7d ?? 0),
-		total30d: (base?.total30d ?? 0) + (b30d ?? 0) + (t30d ?? 0),
-		total1y: hasTotal1y ? (base?.total1y ?? 0) + (b1y ?? 0) + (t1y ?? 0) : null,
-		annualized1y: hasAnnualized1y ? (base?.annualized1y ?? 0) + (bAnnualized ?? 0) + (tAnnualized ?? 0) : null,
-		totalAllTime: (base?.totalAllTime ?? 0) + (bAll ?? 0) + (tAll ?? 0)
+		total24h: sumPeriod('total24h'),
+		total7d: sumPeriod('total7d'),
+		total30d: sumPeriod('total30d'),
+		total1y: sumPeriod('total1y'),
+		annualized1y: sumPeriod('annualized1y'),
+		totalAllTime: sumPeriod('totalAllTime')
 	}
 }

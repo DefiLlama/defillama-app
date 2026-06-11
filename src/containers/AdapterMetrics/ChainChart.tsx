@@ -10,7 +10,7 @@ import {
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -22,6 +22,12 @@ import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapter
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import {
+	FEE_EXTRA_METRIC_LABEL as FEES_EXTRA_METRIC_LABEL,
+	getEnabledFeeExtraDataTypes,
+	isFeeExtraEligibleAdapterMetric,
+	type FeeExtraMetric as FeesExtraMetric
+} from '~/metrics/feeExtras'
 import { slug } from '~/utils'
 import { getErrorMessage, normalizeError } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
@@ -43,6 +49,7 @@ import {
 	mergeBreakdownCharts,
 	normalizeProtocolBreakdownChartData,
 	normalizeChainsByAdapterChartState,
+	type ChainsByAdapterChartPresentation,
 	type ChainsByAdapterChartState
 } from './utils'
 
@@ -79,13 +86,11 @@ const CHART_VIEW_MODE_OPTIONS = [
 	{ key: 'Breakdown', name: 'Breakdown' }
 ] as const
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
-const FEES_CHART_NAMES = new Set(['Fees', 'Revenue', 'Holders Revenue'])
-const FEES_EXTRA_METRIC_LABEL = {
-	dailyBribesRevenue: 'Bribes Revenue',
-	dailyTokenTaxes: 'Token Tax'
-} as const
-
-type FeesExtraMetric = keyof typeof FEES_EXTRA_METRIC_LABEL
+type CombinedChartPresentation = {
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesChart2SeriesConfig[]
+}
+const EMPTY_COMBINED_CHART_PRESENTATION: CombinedChartPresentation = { dataset: EMPTY_DATASET, charts: [] }
 type FeesChartMode = { kind: 'plain' } | { kind: 'fees'; extras: FeesExtraMetric[] }
 type BreakdownChartDataState =
 	| { kind: 'loading' }
@@ -103,22 +108,20 @@ function assertNever(value: never): never {
 
 function getFeesChartMode({
 	adapterType,
-	chartName,
+	dataType,
 	bribes,
 	tokentax
 }: {
 	adapterType: `${ADAPTER_TYPES}`
-	chartName: string
+	dataType: IAdapterByChainPageData['dataType']
 	bribes: boolean
 	tokentax: boolean
 }): FeesChartMode {
-	if (adapterType !== 'fees' || !FEES_CHART_NAMES.has(chartName)) {
+	if (!isFeeExtraEligibleAdapterMetric({ adapterType, dataType })) {
 		return { kind: 'plain' }
 	}
 
-	const extras: FeesExtraMetric[] = []
-	if (bribes) extras.push('dailyBribesRevenue')
-	if (tokentax) extras.push('dailyTokenTaxes')
+	const extras = getEnabledFeeExtraDataTypes({ bribes, tokentax })
 	if (extras.length === 0) {
 		return { kind: 'plain' }
 	}
@@ -184,6 +187,160 @@ function getChartHeight(chartState: ChainsByAdapterChartState): string {
 	}
 }
 
+function getCombinedChartSeriesConfig({
+	seriesName,
+	type,
+	color,
+	index
+}: {
+	seriesName: string
+	type: 'line' | 'bar'
+	color: string
+	index: number
+}): MultiSeriesChart2SeriesConfig {
+	return {
+		type,
+		name: seriesName,
+		encode: { x: 'timestamp', y: seriesName },
+		color,
+		...(index > 0 && type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
+	}
+}
+
+function buildAdapterByChainCombinedChartPresentation({
+	chartData,
+	chartName,
+	groupBy
+}: {
+	chartData: MultiSeriesChart2Dataset
+	chartName: string
+	groupBy: LowercaseDwmcGrouping
+}): CombinedChartPresentation {
+	const isDaily = groupBy === 'daily'
+	const isCumulative = groupBy === 'cumulative'
+	const dimensions: string[] = []
+	for (const dimension of chartData.dimensions) {
+		if (dimension !== 'timestamp') {
+			dimensions.push(dimension)
+		}
+	}
+
+	const seriesDefinitions: Array<{
+		dimension: string
+		seriesName: string
+		type: 'line' | 'bar'
+		data: Array<[number, number | null]>
+		color: string
+	}> = []
+
+	if (isDaily) {
+		for (let index = 0; index < dimensions.length; index++) {
+			const dimension = dimensions[index]
+			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
+			const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
+			seriesDefinitions.push({
+				dimension,
+				seriesName: dimension,
+				type: isSnapshotMetric || isCumulative ? 'line' : 'bar',
+				data: [],
+				color: CHART_COLORS[index % CHART_COLORS.length]
+			})
+		}
+
+		return {
+			dataset: chartData,
+			charts: seriesDefinitions.map((series, index) =>
+				getCombinedChartSeriesConfig({
+					seriesName: series.seriesName,
+					type: series.type,
+					color: series.color,
+					index
+				})
+			)
+		}
+	}
+
+	const rawSeriesByDimension = new Map<string, Array<[number, number]>>()
+	for (const dimension of dimensions) {
+		rawSeriesByDimension.set(dimension, [])
+	}
+
+	for (const row of chartData.source) {
+		const timestamp = Number(row.timestamp)
+		for (const dimension of dimensions) {
+			const value = row[dimension]
+			if (value == null) continue
+			rawSeriesByDimension.get(dimension)!.push([timestamp, value as number])
+		}
+	}
+
+	for (let index = 0; index < dimensions.length; index++) {
+		const dimension = dimensions[index]
+		const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
+		const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
+		const type = isSnapshotMetric || isCumulative ? 'line' : 'bar'
+		const rawData = rawSeriesByDimension.get(dimension) ?? []
+		const data = isSnapshotMetric
+			? formatLineChart({
+					data: rawData,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory: null
+				})
+			: formatBarChart({
+					data: rawData,
+					groupBy,
+					dateInMs: true,
+					denominationPriceHistory: null
+				})
+
+		seriesDefinitions.push({
+			dimension,
+			seriesName: dimension,
+			type,
+			data,
+			color: CHART_COLORS[index % CHART_COLORS.length]
+		})
+	}
+
+	const sourceDataByTimestamp = new Map<number, Record<string, number | null>>()
+	for (const series of seriesDefinitions) {
+		for (const [timestamp, value] of series.data) {
+			const row = sourceDataByTimestamp.get(timestamp) ?? { timestamp }
+			row[series.seriesName] = value
+			sourceDataByTimestamp.set(timestamp, row)
+		}
+	}
+
+	const sourceData: MultiSeriesChart2Dataset['source'] = []
+	for (const row of ensureChronologicalRows(Array.from(sourceDataByTimestamp.values()))) {
+		const normalizedRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+		for (const series of seriesDefinitions) {
+			normalizedRow[series.seriesName] = row[series.seriesName] ?? null
+		}
+		sourceData.push(normalizedRow)
+	}
+	const seriesNames: string[] = []
+	for (const series of seriesDefinitions) {
+		seriesNames.push(series.seriesName)
+	}
+
+	return {
+		dataset: {
+			source: sourceData,
+			dimensions: ['timestamp', ...seriesNames]
+		},
+		charts: seriesDefinitions.map((series, index) =>
+			getCombinedChartSeriesConfig({
+				seriesName: series.seriesName,
+				type: series.type,
+				color: series.color,
+				index
+			})
+		)
+	}
+}
+
 function getAdapterByChainChartKindQueryUpdate({
 	nextChartKind,
 	currentGroupByParam
@@ -192,6 +349,35 @@ function getAdapterByChainChartKindQueryUpdate({
 	currentGroupByParam: string | undefined
 }): Record<string, string | string[] | undefined> {
 	return getChartKindQueryUpdate(nextChartKind, currentGroupByParam)
+}
+
+function applyBarLayoutToPresentation(
+	presentation: ChainsByAdapterChartPresentation,
+	chartState: ChainsByAdapterChartState
+): ChainsByAdapterChartPresentation {
+	if (
+		presentation.kind !== 'bar' ||
+		chartState.chartKind !== 'bar' ||
+		presentation.barLayout === chartState.barLayout
+	) {
+		return presentation
+	}
+
+	const charts = presentation.charts.map((chart) => {
+		if (chartState.barLayout === 'stacked') {
+			return { ...chart, stack: 'chain' as const }
+		}
+
+		const { stack: _stack, ...rest } = chart
+		return rest
+	})
+
+	return {
+		...presentation,
+		charts,
+		barLayout: chartState.barLayout,
+		showTotalInTooltip: chartState.valueMode === 'absolute' && chartState.barLayout === 'stacked'
+	}
 }
 
 export const AdapterByChainChart = ({
@@ -213,11 +399,11 @@ export const AdapterByChainChart = ({
 		() =>
 			getFeesChartMode({
 				adapterType,
-				chartName,
+				dataType,
 				bribes: feesSettings.bribes,
 				tokentax: feesSettings.tokentax
 			}),
-		[adapterType, chartName, feesSettings.bribes, feesSettings.tokentax]
+		[adapterType, dataType, feesSettings.bribes, feesSettings.tokentax]
 	)
 
 	const combinedChartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
@@ -289,18 +475,25 @@ export const AdapterByChainChart = ({
 	})
 
 	const combinedChartData = React.useMemo(() => {
+		if (chartViewMode !== 'Combined') {
+			return chartData
+		}
+
 		switch (feesChartMode.kind) {
 			case 'plain':
 				return chartData
 			case 'fees':
 				return mergeSingleDimensionChartDataset({
 					chartData,
-					extraCharts: [combinedBribesChart ?? [], combinedTokenTaxChart ?? []]
+					extraCharts: [
+						feesChartMode.extras.includes('dailyBribesRevenue') ? (combinedBribesChart ?? []) : [],
+						feesChartMode.extras.includes('dailyTokenTaxes') ? (combinedTokenTaxChart ?? []) : []
+					]
 				})
 			default:
 				return assertNever(feesChartMode)
 		}
-	}, [chartData, combinedBribesChart, combinedTokenTaxChart, feesChartMode])
+	}, [chartData, chartViewMode, combinedBribesChart, combinedTokenTaxChart, feesChartMode])
 
 	const failedMetrics = React.useMemo(() => {
 		if (chartViewMode === 'Breakdown') {
@@ -336,9 +529,13 @@ export const AdapterByChainChart = ({
 		const baseSelectedProtocols =
 			protocolsQuery != null ? parseArrayParam(protocolsQuery, protocolOptions) : protocolOptions
 
-		return excludedProtocolsSet.size > 0
-			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
-			: baseSelectedProtocols
+		if (excludedProtocolsSet.size === 0) return baseSelectedProtocols
+
+		const selectedProtocols: string[] = []
+		for (const protocolName of baseSelectedProtocols) {
+			if (!excludedProtocolsSet.has(protocolName)) selectedProtocols.push(protocolName)
+		}
+		return selectedProtocols
 	}, [chartViewMode, protocolOptions, router.query.protocol, router.query.excludeProtocol])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
@@ -386,102 +583,51 @@ export const AdapterByChainChart = ({
 		})
 	}
 
-	const combinedMetricDimensions = combinedChartData.dimensions.filter((d) => d !== 'timestamp')
 	const combinedFinalCharts = React.useMemo(() => {
-		const isDaily = combinedChartInterval === 'daily'
-		const isCumulative = combinedChartInterval === 'cumulative'
-		const seriesDefinitions = combinedMetricDimensions.map((dimension, index) => {
-			const seriesName = dimension
-			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
-			const type = isSnapshotMetric || isCumulative ? ('line' as const) : ('bar' as const)
+		if (chartViewMode !== 'Combined') {
+			return EMPTY_COMBINED_CHART_PRESENTATION
+		}
 
-			if (isDaily) {
-				return { dimension, seriesName, type, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
-			}
-
-			const rawData = combinedChartData.source
-				.map((row) => {
-					const timestamp = Number(row.timestamp)
-					const value = row[dimension] as number | null
-					return value == null ? null : ([timestamp, value] as [number, number])
-				})
-				.filter((item): item is [number, number] => item != null)
-
-			const data = isSnapshotMetric
-				? formatLineChart({
-						data: rawData,
-						groupBy: combinedChartInterval,
-						dateInMs: true,
-						denominationPriceHistory: null
-					})
-				: formatBarChart({
-						data: rawData,
-						groupBy: combinedChartInterval,
-						dateInMs: true,
-						denominationPriceHistory: null
-					})
-
-			return { dimension, seriesName, type, data, color: CHART_COLORS[index % CHART_COLORS.length] }
+		return buildAdapterByChainCombinedChartPresentation({
+			chartData: combinedChartData,
+			chartName,
+			groupBy: combinedChartInterval
 		})
-
-		if (isDaily) {
-			return {
-				dataset: combinedChartData,
-				charts: seriesDefinitions.map((series, index) => ({
-					type: series.type,
-					name: series.seriesName,
-					encode: { x: 'timestamp', y: series.seriesName },
-					color: series.color,
-					...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
-				}))
-			}
-		}
-
-		const sourceDataByTimestamp = new Map<number, Record<string, number | null>>()
-		for (const series of seriesDefinitions) {
-			for (const [timestamp, value] of series.data) {
-				const row = sourceDataByTimestamp.get(timestamp) ?? { timestamp }
-				row[series.seriesName] = value
-				sourceDataByTimestamp.set(timestamp, row)
-			}
-		}
-
-		const sourceData = ensureChronologicalRows(Array.from(sourceDataByTimestamp.values())).map((row) => {
-			const normalizedRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
-			for (const series of seriesDefinitions) {
-				normalizedRow[series.seriesName] = row[series.seriesName] ?? null
-			}
-			return normalizedRow
-		})
-		const seriesNames = seriesDefinitions.map((series) => series.seriesName)
-
-		return {
-			dataset: {
-				source: sourceData,
-				dimensions: ['timestamp', ...seriesNames]
-			},
-			charts: seriesDefinitions.map((series, index) => ({
-				type: series.type,
-				name: series.seriesName,
-				encode: { x: 'timestamp', y: series.seriesName },
-				color: series.color,
-				...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
-			}))
-		}
-	}, [combinedChartData, chartName, combinedChartInterval, combinedMetricDimensions])
+	}, [chartViewMode, combinedChartData, chartName, combinedChartInterval])
 	const deferredCombinedFinalCharts = React.useDeferredValue(combinedFinalCharts)
 
 	const breakdownChartData =
 		breakdownChartDataState.kind === 'ready' ? breakdownChartDataState.chartData : EMPTY_DATASET
-	const breakdownPresentation = React.useMemo(() => {
-		switch (breakdownChartState.chartKind) {
+	const breakdownChartKind = breakdownChartState.chartKind
+	const breakdownGroupBy = breakdownChartState.groupBy
+	const breakdownBarValueMode = breakdownChartState.chartKind === 'bar' ? breakdownChartState.valueMode : 'absolute'
+	const breakdownChartDataBuildState = React.useMemo<ChainsByAdapterChartState>(() => {
+		switch (breakdownChartKind) {
+			case 'bar':
+				return {
+					chartKind: 'bar',
+					valueMode: breakdownBarValueMode,
+					barLayout: 'stacked',
+					groupBy: breakdownGroupBy
+				}
+			case 'dominance':
+				return { chartKind: 'dominance', groupBy: breakdownGroupBy }
+			case 'treemap':
+				return { chartKind: 'treemap', groupBy: breakdownGroupBy }
+			case 'hbar':
+				return { chartKind: 'hbar', groupBy: breakdownGroupBy }
+			default:
+				return assertNever(breakdownChartKind)
+		}
+	}, [breakdownChartKind, breakdownGroupBy, breakdownBarValueMode])
+	const baseBreakdownPresentation = React.useMemo(() => {
+		switch (breakdownChartDataBuildState.chartKind) {
 			case 'treemap':
 			case 'hbar':
 				return buildAdapterByChainLatestValuePresentation({
-					chartKind: breakdownChartState.chartKind,
+					chartKind: breakdownChartDataBuildState.chartKind,
 					selectedProtocols,
-					groupBy: breakdownChartState.groupBy,
+					groupBy: breakdownChartDataBuildState.groupBy,
 					chartData: breakdownChartData,
 					seriesType: 'bar'
 				})
@@ -489,13 +635,17 @@ export const AdapterByChainChart = ({
 			case 'bar':
 				return buildAdapterByChainBreakdownPresentation({
 					chartData: breakdownChartData,
-					state: breakdownChartState,
+					state: breakdownChartDataBuildState,
 					selectedProtocols
 				})
 			default:
-				return assertNever(breakdownChartState)
+				return assertNever(breakdownChartDataBuildState)
 		}
-	}, [breakdownChartData, breakdownChartState, selectedProtocols])
+	}, [breakdownChartData, breakdownChartDataBuildState, selectedProtocols])
+	const breakdownPresentation = React.useMemo(
+		() => applyBarLayoutToPresentation(baseBreakdownPresentation, breakdownChartState),
+		[baseBreakdownPresentation, breakdownChartState]
+	)
 	const deferredBreakdownPresentation = React.useDeferredValue(breakdownPresentation)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
@@ -924,11 +1074,11 @@ export const ChainsByAdapterChart = ({
 		() =>
 			getFeesChartMode({
 				adapterType,
-				chartName,
+				dataType,
 				bribes: feesSettings.bribes,
 				tokentax: feesSettings.tokentax
 			}),
-		[adapterType, chartName, feesSettings.bribes, feesSettings.tokentax]
+		[adapterType, dataType, feesSettings.bribes, feesSettings.tokentax]
 	)
 	const chartState = React.useMemo(
 		() =>
@@ -953,9 +1103,13 @@ export const ChainsByAdapterChart = ({
 		const excludedChainsSet = parseExcludeParam(excludeChainsQuery)
 		const baseSelectedChains = chainsQuery != null ? parseArrayParam(chainsQuery, allChains) : allChains
 
-		return excludedChainsSet.size > 0
-			? baseSelectedChains.filter((chain) => !excludedChainsSet.has(chain))
-			: baseSelectedChains
+		if (excludedChainsSet.size === 0) return baseSelectedChains
+
+		const selectedChains: string[] = []
+		for (const chain of baseSelectedChains) {
+			if (!excludedChainsSet.has(chain)) selectedChains.push(chain)
+		}
+		return selectedChains
 	}, [allChains, router.query.chain, router.query.excludeChain])
 	const shouldFetchBaseChartData = chartData.source.length === 0 && dataType != null
 	const {
@@ -997,12 +1151,16 @@ export const ChainsByAdapterChart = ({
 			case 'fees':
 				return mergeNamedDimensionChartDataset({
 					chartData: currentChartData,
-					extraCharts: [bribesChartData ?? [], tokenTaxChartData ?? []]
+					allowedDimensions: allChains,
+					extraCharts: [
+						feesChartMode.extras.includes('dailyBribesRevenue') ? (bribesChartData ?? []) : [],
+						feesChartMode.extras.includes('dailyTokenTaxes') ? (tokenTaxChartData ?? []) : []
+					]
 				})
 			default:
 				return assertNever(feesChartMode)
 		}
-	}, [bribesChartData, currentChartData, feesChartMode, tokenTaxChartData])
+	}, [allChains, bribesChartData, currentChartData, feesChartMode, tokenTaxChartData])
 
 	const failedMetrics = React.useMemo(() => {
 		if (feesChartMode.kind === 'plain') {
@@ -1020,15 +1178,41 @@ export const ChainsByAdapterChart = ({
 		return nextFailedMetrics
 	}, [bribesChartError, feesChartMode, tokenTaxChartError])
 
-	const chartPresentation = React.useMemo(
+	const chartKind = chartState.chartKind
+	const chartGroupBy = chartState.groupBy
+	const chartBarValueMode = chartState.chartKind === 'bar' ? chartState.valueMode : 'absolute'
+	const chartDataBuildState = React.useMemo<ChainsByAdapterChartState>(() => {
+		switch (chartKind) {
+			case 'bar':
+				return {
+					chartKind: 'bar',
+					valueMode: chartBarValueMode,
+					barLayout: 'stacked',
+					groupBy: chartGroupBy
+				}
+			case 'dominance':
+				return { chartKind: 'dominance', groupBy: chartGroupBy }
+			case 'treemap':
+				return { chartKind: 'treemap', groupBy: chartGroupBy }
+			case 'hbar':
+				return { chartKind: 'hbar', groupBy: chartGroupBy }
+			default:
+				return assertNever(chartKind)
+		}
+	}, [chartKind, chartGroupBy, chartBarValueMode])
+	const baseChartPresentation = React.useMemo(
 		() =>
 			buildChainsByAdapterChartPresentation({
 				chartData: mergedChartData,
 				selectedChains,
-				state: chartState,
+				state: chartDataBuildState,
 				latestValueSeriesType: 'bar'
 			}),
-		[mergedChartData, selectedChains, chartState]
+		[mergedChartData, selectedChains, chartDataBuildState]
+	)
+	const chartPresentation = React.useMemo(
+		() => applyBarLayoutToPresentation(baseChartPresentation, chartState),
+		[baseChartPresentation, chartState]
 	)
 	const deferredChartPresentation = React.useDeferredValue(chartPresentation)
 
