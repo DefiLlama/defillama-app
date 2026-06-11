@@ -99,8 +99,7 @@ const sumRecordValues = (record: Record<string, number> | undefined): number => 
 	if (!record) return 0
 	let total = 0
 	for (const key in record) {
-		const value = record[key]
-		if (Number.isFinite(value)) total += value
+		total += record[key]
 	}
 	return total
 }
@@ -133,7 +132,6 @@ const toStablecoinSeriesPoint = (chart: StablecoinChartPoint): StablecoinSeriesP
 	const mcap = chart.totalCirculatingUSD
 	if (!mcap || typeof mcap !== 'object') return null
 	const date = Number(chart.date)
-	if (!Number.isFinite(date)) return null
 	return { date, mcap }
 }
 
@@ -170,11 +168,10 @@ const readStablecoinNumericFromChart = (
 	issuanceType: string,
 	pegType?: string
 ): number | null => {
-	const raw = getPrevStablecoinTotalFromChart(chart, daysBefore, issuanceType, pegType)
-	return typeof raw === 'number' && Number.isFinite(raw) ? raw : null
+	return getPrevStablecoinTotalFromChart(chart, daysBefore, issuanceType, pegType)
 }
 
-const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
+export const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
 	if (value == null || typeof value !== 'object' || Array.isArray(value)) return null
 
 	const normalized: NonNullable<StablecoinBridges> = {}
@@ -192,6 +189,7 @@ const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
 			const sourceValue = sourcesRecord[sourceChain]
 			if (sourceValue == null || typeof sourceValue !== 'object' || Array.isArray(sourceValue)) continue
 			const amountRaw = (sourceValue as Record<string, unknown>).amount
+			// Backend adapter bridge payloads still allow string-number amounts before storage merges normalize them.
 			const amount = typeof amountRaw === 'number' ? amountRaw : Number(amountRaw)
 			if (!Number.isFinite(amount)) continue
 			normalizedSources[sourceChain] = { amount }
@@ -274,7 +272,7 @@ const resolveStablecoinOverviewFilteredIndexes = (
 	if (!filterState.hasActiveFilters) {
 		for (const asset of source.filteredPeggedAssets) {
 			const maybeIndex = source.peggedNameToChartDataIndex[asset.name]
-			if (typeof maybeIndex !== 'number' || !Number.isFinite(maybeIndex) || seen.has(maybeIndex)) continue
+			if (maybeIndex == null || seen.has(maybeIndex)) continue
 			seen.add(maybeIndex)
 			indexes.push(maybeIndex)
 		}
@@ -285,7 +283,7 @@ const resolveStablecoinOverviewFilteredIndexes = (
 		if (!matchesStablecoinFilters(asset, filterState)) continue
 
 		const maybeIndex = source.peggedNameToChartDataIndex[asset.name]
-		if (typeof maybeIndex !== 'number' || !Number.isFinite(maybeIndex) || seen.has(maybeIndex)) continue
+		if (maybeIndex == null || seen.has(maybeIndex)) continue
 		seen.add(maybeIndex)
 		indexes.push(maybeIndex)
 	}
@@ -519,30 +517,33 @@ const getStablecoinChainsSource = async (): Promise<StablecoinChainsSource> => {
 			chainsTVLData
 		})
 
-		const formattedPeggedChartDataByChain = peggedChartDataByChain.map((charts) => {
-			if (!charts) return null
-			return charts.flatMap((chart): Array<{ date: number; mcap: number | null }> => {
+		const formattedPeggedChartDataByChain: StablecoinChainsSource['peggedChartDataByChain'] = []
+		for (const charts of peggedChartDataByChain) {
+			if (!charts) {
+				formattedPeggedChartDataByChain.push(null)
+				continue
+			}
+
+			const formattedCharts: Array<{ date: number; mcap: number | null }> = []
+			for (const chart of charts) {
 				const date = Number(chart.date)
-				if (!Number.isFinite(date)) return []
 
 				const rawMcap = chart.totalCirculatingUSD
 				let mcap: number | null = null
 				if (rawMcap && typeof rawMcap === 'object') {
 					let total = 0
-					let hasFinite = false
+					let hasValue = false
 					for (const key in rawMcap) {
-						const value = rawMcap[key]
-						const numeric = Number(value)
-						if (!Number.isFinite(numeric)) continue
-						total += numeric
-						hasFinite = true
+						total += rawMcap[key]
+						hasValue = true
 					}
-					mcap = hasFinite ? total : null
+					mcap = hasValue ? total : null
 				}
 
-				return [{ date, mcap }]
-			})
-		})
+				formattedCharts.push({ date, mcap })
+			}
+			formattedPeggedChartDataByChain.push(formattedCharts)
+		}
 
 		return {
 			chainCirculatings,

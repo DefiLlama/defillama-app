@@ -33,6 +33,17 @@ const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): n
 	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
 }
 
+const buildChartRowsFromTimestampRecord = (
+	valuesByTimestamp: Record<string, number>,
+	timestampMultiplier = 1
+): Array<[number, number]> => {
+	const rows: Array<[number, number]> = []
+	for (const timestamp in valuesByTimestamp) {
+		rows.push([+timestamp * timestampMultiplier, valuesByTimestamp[timestamp]])
+	}
+	return rows
+}
+
 const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
 	const searchParams = new URLSearchParams()
 	for (const key in params) {
@@ -113,7 +124,7 @@ export const useFetchProtocolChartData = ({
 					const store: Record<string, number> = {}
 					for (const [date, value] of res.data.prices) {
 						store[String(date)] = value
-						store[String(Math.floor(Number(date) / 1e3))] = value
+						store[String(Math.floor(date / 1e3))] = value
 					}
 					return store
 				}
@@ -149,7 +160,10 @@ export const useFetchProtocolChartData = ({
 		queryFn: () =>
 			fetchJson<{ totalSupply: number | null }>(
 				`/api/public/charts/coingecko/${encodeURIComponent(geckoId!)}?kind=supply`
-			).then((res) => res.totalSupply ?? null),
+			).then((res) => {
+				const totalSupply = res.totalSupply
+				return typeof totalSupply === 'number' && Number.isFinite(totalSupply) ? totalSupply : null
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -703,10 +717,13 @@ export const useFetchProtocolChartData = ({
 			{ isLoading: isGasUsedToggled && fetchingGasUsed, label: 'Gas Used' },
 			{ isLoading: isBridgeVolumeToggled && fetchingBridgeVolume, label: 'Bridge Volume' }
 		]
-		const loadingCharts = Array.from(
-			new Set(loadingStates.filter((state) => state.isLoading).map((state) => state.label))
-		)
+		const loadingCharts: string[] = []
 		const loadingChartSet = new Set(loadingCharts)
+		for (const state of loadingStates) {
+			if (!state.isLoading || loadingChartSet.has(state.label)) continue
+			loadingCharts.push(state.label)
+			loadingChartSet.add(state.label)
+		}
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number | null]> } = {}
 
@@ -739,13 +756,18 @@ export const useFetchProtocolChartData = ({
 					dateInMs: true,
 					denominationPriceHistory
 				})
-			if (isFdvToggled && tokenTotalSupply != null && Number.isFinite(tokenTotalSupply))
+			if (isFdvToggled && tokenTotalSupply != null) {
+				const fdvData: Array<[number, number]> = []
+				for (const [date, price] of protocolTokenData.prices) {
+					fdvData.push([date, price * tokenTotalSupply])
+				}
 				charts['FDV'] = formatLineChart({
-					data: protocolTokenData.prices.map(([date, price]): [number, number] => [date, price * tokenTotalSupply]),
+					data: fdvData,
 					groupBy,
 					dateInMs: true,
 					denominationPriceHistory
 				})
+			}
 		}
 		if (tokenLiquidityData)
 			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
@@ -756,92 +778,54 @@ export const useFetchProtocolChartData = ({
 		const isCumulative = groupBy === 'cumulative'
 		const applyValue = (date: number, value: number) => {
 			if (!denominationPriceHistory) return value
-			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(+date * 1e3)]
+			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(date * 1e3)]
 			return price ? value / price : null
 		}
+		const applyBaseFeeFamilyChart = (
+			chart: Array<[number, number]> | null | undefined,
+			store: Record<string, number | null>
+		) => {
+			if (!chart) return
+			let total = 0
+			for (const [date, value] of chart) {
+				const dateKey = getGroupedTimestampSec(date, groupBy)
+				const finalValue = applyValue(date, value)
+				if (finalValue == null) {
+					store[dateKey] = null
+					continue
+				}
+				if (store[dateKey] === null) continue
+				store[dateKey] = (store[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) total += finalValue
+			}
+		}
+		const applyExtraFeeFamilyChart = (chart: Array<[number, number]> | null | undefined) => {
+			if (!chart) return
+			let total = 0
+			for (const [date, value] of chart) {
+				const dateKey = getGroupedTimestampSec(date, groupBy)
+				const finalValue = applyValue(date, value)
+				if (finalValue == null) {
+					if (feesDataChart) feesStore[dateKey] = null
+					if (revenueDataChart) revenueStore[dateKey] = null
+					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
+					continue
+				}
+				if (feesDataChart && feesStore[dateKey] !== null)
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				if (revenueDataChart && revenueStore[dateKey] !== null)
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) total += finalValue
+			}
+		}
 
-		if (feesDataChart) {
-			let total = 0
-			for (const [date, value] of feesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					feesStore[dateKey] = null
-					continue
-				}
-				if (feesStore[dateKey] === null) continue
-				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (revenueDataChart) {
-			let total = 0
-			for (const [date, value] of revenueDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					revenueStore[dateKey] = null
-					continue
-				}
-				if (revenueStore[dateKey] === null) continue
-				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (holdersRevenueDataChart) {
-			let total = 0
-			for (const [date, value] of holdersRevenueDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (holdersRevenueStore[dateKey] === null) continue
-				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (enabledBribesDataChart) {
-			let total = 0
-			for (const [date, value] of enabledBribesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					if (feesDataChart) feesStore[dateKey] = null
-					if (revenueDataChart) revenueStore[dateKey] = null
-					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (feesDataChart && feesStore[dateKey] !== null)
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart && revenueStore[dateKey] !== null)
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (enabledTokenTaxesDataChart) {
-			let total = 0
-			for (const [date, value] of enabledTokenTaxesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					if (feesDataChart) feesStore[dateKey] = null
-					if (revenueDataChart) revenueStore[dateKey] = null
-					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (feesDataChart && feesStore[dateKey] !== null)
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart && revenueStore[dateKey] !== null)
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
+		applyBaseFeeFamilyChart(feesDataChart, feesStore)
+		applyBaseFeeFamilyChart(revenueDataChart, revenueStore)
+		applyBaseFeeFamilyChart(holdersRevenueDataChart, holdersRevenueStore)
+		applyExtraFeeFamilyChart(enabledBribesDataChart)
+		applyExtraFeeFamilyChart(enabledTokenTaxesDataChart)
 
 		const finalFeesChart: Array<[number, number | null]> = []
 		for (const date in feesStore) {
@@ -918,7 +902,7 @@ export const useFetchProtocolChartData = ({
 				}
 				store[dateKey] = (store[dateKey] ?? 0) + total
 			}
-			charts['Unlocks'] = Object.entries(store).map(([date, value]) => [+date * 1e3, value] as [number, number])
+			charts['Unlocks'] = buildChartRowsFromTimestampRecord(store, 1e3)
 		}
 
 		if (isIncentivesToggled && unlocksAndIncentivesData?.unlockUsdChart) {
@@ -932,9 +916,7 @@ export const useFetchProtocolChartData = ({
 		}
 
 		if (extraTvlCharts.charts.staking && isStakingTvlToggled) {
-			const stakingChartData = Object.entries(extraTvlCharts.charts.staking).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
+			const stakingChartData = buildChartRowsFromTimestampRecord(extraTvlCharts.charts.staking, 1e3)
 			charts['Staking'] = formatLineChart({
 				data: stakingChartData,
 				groupBy,
@@ -943,9 +925,7 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 		if (extraTvlCharts.charts.borrowed && isBorrowedTvlToggled) {
-			const borrowedChartData = Object.entries(extraTvlCharts.charts.borrowed).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
+			const borrowedChartData = buildChartRowsFromTimestampRecord(extraTvlCharts.charts.borrowed, 1e3)
 			charts['Active Loans'] = formatLineChart({
 				data: borrowedChartData,
 				groupBy,
@@ -954,13 +934,18 @@ export const useFetchProtocolChartData = ({
 			})
 		}
 
-		if (medianAPYData)
+		if (medianAPYData) {
+			const medianAPYChartData: Array<[number, number]> = []
+			for (const item of medianAPYData) {
+				medianAPYChartData.push([+item.date * 1e3, Number(item.medianAPY) || 0])
+			}
 			charts['Median APY'] = formatLineChart({
-				data: medianAPYData.map((item): [number, number] => [+item.date * 1e3, Number(item.medianAPY) || 0]),
+				data: medianAPYChartData,
 				groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
 			})
+		}
 
 		if (governanceData) {
 			const totalProposals: Record<string, number> = {}
@@ -978,17 +963,17 @@ export const useFetchProtocolChartData = ({
 				}
 			}
 			charts['Total Proposals'] = formatBarChart({
-				data: Object.entries(totalProposals).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(totalProposals),
 				groupBy,
 				denominationPriceHistory: null
 			})
 			charts['Successful Proposals'] = formatBarChart({
-				data: Object.entries(successfulProposals).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(successfulProposals),
 				groupBy,
 				denominationPriceHistory: null
 			})
 			charts['Max Votes'] = formatLineChart({
-				data: Object.entries(maxVotes).map(([date, value]) => [+date, value] as [number, number]),
+				data: buildChartRowsFromTimestampRecord(maxVotes),
 				groupBy,
 				denominationPriceHistory: null
 			})
@@ -1003,28 +988,28 @@ export const useFetchProtocolChartData = ({
 			})
 		if (activeAddressesData && isActiveAddressesToggled)
 			charts['Active Addresses'] = formatBarChart({
-				data: activeAddressesData.map((item): [number, number] => [item[0], item[1]]),
+				data: activeAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (newAddressesData && isNewAddressesToggled)
 			charts['New Addresses'] = formatBarChart({
-				data: newAddressesData.map((item): [number, number] => [item[0], item[1]]),
+				data: newAddressesData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (transactionsData && isTransactionsToggled)
 			charts['Transactions'] = formatBarChart({
-				data: transactionsData.map((item): [number, number] => [item[0], item[1]]),
+				data: transactionsData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
 		if (gasUsedData && isGasUsedToggled)
 			charts['Gas Used'] = formatBarChart({
-				data: gasUsedData.map((item): [number, number] => [item[0], item[1]]),
+				data: gasUsedData,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true

@@ -1,17 +1,17 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { toUnixMsTimestamp } from './api'
 import type { IRWABreakdownChartResponse, RWAOverviewBreakdownRequest, RWAChartMetricKey } from './api.types'
 import { getRwaChartTotalLabel, isRwaTotalSeriesLabel } from './chartAggregation'
+import { buildRwaChartDatasetTotal, type RWAChartDataset, type RWAChartRow } from './chartDataset'
 
-export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null): MultiSeriesChart2Dataset {
+export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null): RWAChartDataset {
 	if (!rows || rows.length === 0) return { source: [], dimensions: ['timestamp'] }
 
 	const seenSeries = new Set<string>()
-	const source: MultiSeriesChart2Dataset['source'] = []
+	const source: RWAChartDataset['source'] = []
 
 	for (const row of rows) {
-		const normalizedRow: MultiSeriesChart2Dataset['source'][number] = {
-			timestamp: toUnixMsTimestamp(Number(row.timestamp))
+		const normalizedRow: RWAChartRow = {
+			timestamp: toUnixMsTimestamp(row.timestamp)
 		}
 
 		for (const series in row) {
@@ -39,39 +39,24 @@ export function shouldAppendOverviewBreakdownTotalSeries(breakdown: RWAOverviewB
 }
 
 export function appendOverviewBreakdownTotalSeries(
-	dataset: MultiSeriesChart2Dataset,
+	dataset: RWAChartDataset,
 	chartType: RWAChartMetricKey
-): MultiSeriesChart2Dataset {
+): RWAChartDataset {
 	const totalLabel = getRwaChartTotalLabel(chartType)
 	if (dataset.dimensions.includes(totalLabel)) return dataset
 
-	const seriesDimensions = dataset.dimensions.filter(
-		(dimension) => dimension !== 'timestamp' && dimension !== 'Total' && !isRwaTotalSeriesLabel(dimension)
-	)
-	if (dataset.source.length === 0 || seriesDimensions.length === 0) return dataset
-
-	return {
-		source: dataset.source.map((row) => {
-			let total = 0
-			for (const dimension of seriesDimensions) {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				if (Number.isFinite(numericValue)) total += numericValue
-			}
-
-			return {
-				...row,
-				[totalLabel]: total
-			}
-		}),
-		dimensions: ['timestamp', totalLabel, ...seriesDimensions]
-	}
+	return buildRwaChartDatasetTotal({
+		dataset,
+		totalLabel,
+		isSeriesDimension: (dimension) =>
+			dimension !== 'timestamp' && dimension !== 'Total' && !isRwaTotalSeriesLabel(dimension)
+	})
 }
 
 export function toOverviewBreakdownChartDataset(
 	rows: IRWABreakdownChartResponse | null,
 	request: RWAOverviewBreakdownRequest
-): MultiSeriesChart2Dataset {
+): RWAChartDataset {
 	const dataset = toBreakdownChartDataset(rows)
 	return shouldAppendOverviewBreakdownTotalSeries(request.breakdown)
 		? appendOverviewBreakdownTotalSeries(dataset, request.key)

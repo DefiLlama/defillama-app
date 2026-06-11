@@ -73,6 +73,16 @@ function assert(condition: unknown, message: string): asserts condition {
 	}
 }
 
+function getSortedBreakdownEntries(breakdown: Record<string, number>, selectedChain?: string): Array<[string, number]> {
+	const entries: Array<[string, number]> = []
+	for (const key in breakdown) {
+		if (selectedChain && rwaSlug(key) !== selectedChain) continue
+		entries.push([key, breakdown[key]])
+	}
+	entries.sort((a, b) => b[1] - a[1])
+	return entries
+}
+
 export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
 		const selectedChain = params.chain ? rwaSlug(params.chain) : undefined
@@ -328,27 +338,23 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				onChainMcap: onChainMcapBreakdown
 					? {
 							total: effectiveOnChainMcap,
-							breakdown: Object.entries(aggregatedMetrics.breakdowns.onChainMcapByChain)
-								.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
-								.sort((a, b) => b[1] - a[1])
+							breakdown: getSortedBreakdownEntries(aggregatedMetrics.breakdowns.onChainMcapByChain, selectedChain)
 						}
 					: null,
 				activeMcap: activeMcapBreakdown
 					? {
 							total: effectiveActiveMcap,
-							breakdown: Object.entries(aggregatedMetrics.breakdowns.activeMcapByChain)
-								.filter(([chain]) => !selectedChain || rwaSlug(chain) === selectedChain)
-								.sort((a, b) => b[1] - a[1])
+							breakdown: getSortedBreakdownEntries(aggregatedMetrics.breakdowns.activeMcapByChain, selectedChain)
 						}
 					: null,
 				defiActiveTvl: defiActiveTvlBreakdown
 					? {
 							total: effectiveDeFiActiveTvl,
-							breakdown: Object.entries(
+							breakdown: getSortedBreakdownEntries(
 								isChainFiltered
 									? aggregatedMetrics.breakdowns.defiActiveTvlByProtocolFiltered
 									: aggregatedMetrics.breakdowns.defiActiveTvlByProtocol
-							).sort((a, b) => b[1] - a[1])
+							)
 						}
 					: {
 							total: 0,
@@ -357,11 +363,11 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				defiActiveTvlByChain: defiActiveTvlBreakdown
 					? {
 							total: effectiveDeFiActiveTvl,
-							breakdown: Object.entries(
+							breakdown: getSortedBreakdownEntries(
 								isChainFiltered
 									? aggregatedMetrics.breakdowns.defiActiveTvlByChainFiltered
 									: aggregatedMetrics.breakdowns.defiActiveTvlByChain
-							).sort((a, b) => b[1] - a[1])
+							)
 						}
 					: null
 			}
@@ -873,19 +879,19 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			onChainMcap: onChainMcapBreakdown
 				? {
 						total: aggregatedMetrics.totals.onChainMcap,
-						breakdown: Object.entries(aggregatedMetrics.breakdowns.onChainMcapByChain).sort((a, b) => b[1] - a[1])
+						breakdown: getSortedBreakdownEntries(aggregatedMetrics.breakdowns.onChainMcapByChain)
 					}
 				: null,
 			activeMcap: activeMcapBreakdown
 				? {
 						total: aggregatedMetrics.totals.activeMcap,
-						breakdown: Object.entries(aggregatedMetrics.breakdowns.activeMcapByChain).sort((a, b) => b[1] - a[1])
+						breakdown: getSortedBreakdownEntries(aggregatedMetrics.breakdowns.activeMcapByChain)
 					}
 				: null,
 			defiActiveTvl: defiActiveTvlBreakdown
 				? {
 						total: aggregatedMetrics.totals.defiActiveTvl,
-						breakdown: Object.entries(aggregatedMetrics.breakdowns.defiActiveTvlByProtocol).sort((a, b) => b[1] - a[1])
+						breakdown: getSortedBreakdownEntries(aggregatedMetrics.breakdowns.defiActiveTvlByProtocol)
 					}
 				: null,
 			chartDataset,

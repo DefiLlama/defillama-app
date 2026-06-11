@@ -6,6 +6,7 @@ import type {
 	IRWAStatsResponse,
 	IRWAChartDataByAsset,
 	IRWAAssetData,
+	IRWAAssetChartApiRow,
 	IRWABreakdownChartParams,
 	IRWABreakdownChartResponse,
 	IRWABreakdownChartRow,
@@ -189,9 +190,7 @@ export async function fetchRWAAssetGroupBreakdownChartData(
  */
 export async function fetchRWAAssetChartData(assetId: string): Promise<IRWAAssetData['chartDataset']> {
 	const encodedAssetId = encodeURIComponent(assetId)
-	return fetchJson<Array<{ timestamp: number; onChainMcap: number; activeMcap: number; defiActiveTvl: number }>>(
-		`${RWA_SERVER_URL}/chart/asset/${encodedAssetId}`
-	)
+	return fetchJson<IRWAAssetChartApiRow[]>(`${RWA_SERVER_URL}/chart/asset/${encodedAssetId}`)
 		.then((data) => {
 			const source: RWAAssetChartRow[] = (data ?? []).map((item) => ({
 				timestamp: toUnixMsTimestamp(item.timestamp),

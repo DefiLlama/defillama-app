@@ -1,6 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useFetchProtocolChartsByKeys, useFetchProtocolTVLChart } from '../queries.client'
+import {
+	useFetchProtocolActivityChart,
+	useFetchProtocolChartsByKeys,
+	useFetchProtocolTVLChart
+} from '../queries.client'
 
 type CapturedQueryOptions = {
 	queryKey: unknown[]
@@ -91,6 +95,16 @@ function ChartBatchProbe({
 		source,
 		inflows,
 		chainBreakdown
+	})
+
+	return null
+}
+
+function ActivityChartProbe({ protocol }: { protocol: string | null }) {
+	useFetchProtocolActivityChart({
+		queryKey: 'active-users',
+		protocol,
+		adapterType: 'active-users'
 	})
 
 	return null
@@ -191,5 +205,20 @@ describe('ProtocolOverview client chart queries', () => {
 		expect(mocks.queryOptions).toHaveLength(1)
 		expect(mocks.queryOptions[0].enabled).toBe(false)
 		expect(mocks.fetchJson).not.toHaveBeenCalled()
+	})
+
+	it('normalizes protocol activity chart rows to sorted millisecond timestamps', async () => {
+		mocks.fetchJson.mockResolvedValue([
+			[1_700_000_100, 2],
+			[1_700_000_000, 1]
+		])
+
+		renderToStaticMarkup(<ActivityChartProbe protocol="curve-dex" />)
+
+		expect(mocks.queryOptions[0].queryKey).toEqual(['protocol-overview', 'active-users', 'curve-dex'])
+		await expect(mocks.queryOptions[0].queryFn()).resolves.toEqual([
+			[1_700_000_000_000, 1],
+			[1_700_000_100_000, 2]
+		])
 	})
 })

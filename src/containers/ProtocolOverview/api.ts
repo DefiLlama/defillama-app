@@ -2,11 +2,12 @@ import { SERVER_URL, V2_SERVER_URL } from '~/constants'
 import { fetchJson, getSlowJsonTimeoutMs } from '~/utils/async'
 import type {
 	IProtocolChainBreakdownChart,
-	IProtocolChainBreakdownValue,
+	IProtocolChainBreakdownChartRaw,
 	IProtocolMiniResponse,
 	IProtocolTokenBreakdownChart,
-	IProtocolTokenBreakdownValue,
+	IProtocolTokenBreakdownChartRaw,
 	IProtocolValueChart,
+	IProtocolValueChartRaw,
 	IProtocolChartV2Params,
 	IProtocolMetricsV2
 } from './api.types'
@@ -25,51 +26,35 @@ const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Par
 		: `${parsedUrl.pathname}${parsedUrl.search}`
 }
 
-const normalizeProtocolValueChart = (values: unknown): IProtocolValueChart | null => {
-	if (!Array.isArray(values)) return null
-
+const normalizeProtocolValueChart = (values: IProtocolValueChartRaw | null | undefined): IProtocolValueChart | null => {
+	if (values == null) return null
 	const points: IProtocolValueChart = []
-	for (const item of values) {
-		if (!Array.isArray(item) || item.length < 2) continue
-
-		const [timestamp, value] = item
-		const numericTimestamp = Number(timestamp)
-		const numericValue = Number(value)
-		if (!Number.isFinite(numericTimestamp) || !Number.isFinite(numericValue)) continue
-
-		points.push([numericTimestamp * 1e3, numericValue])
+	for (const [timestamp, value] of values) {
+		points.push([Number(timestamp) * 1e3, value])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
 }
 
-const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBreakdownChart | null => {
-	if (!Array.isArray(values)) return null
-
+const normalizeProtocolChainBreakdownChart = (
+	values: IProtocolChainBreakdownChartRaw | null | undefined
+): IProtocolChainBreakdownChart | null => {
+	if (values == null) return null
 	const points: IProtocolChainBreakdownChart = []
-	for (const item of values) {
-		if (!Array.isArray(item) || item.length < 2) continue
-
-		const [timestamp, value] = item
-		const numericTimestamp = Number(timestamp)
-		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
-		points.push([numericTimestamp * 1e3, value as IProtocolChainBreakdownValue])
+	for (const [timestamp, value] of values) {
+		points.push([Number(timestamp) * 1e3, value])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
 }
 
-const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBreakdownChart | null => {
-	if (!Array.isArray(values)) return null
-
+const normalizeProtocolTokenBreakdownChart = (
+	values: IProtocolTokenBreakdownChartRaw | null | undefined
+): IProtocolTokenBreakdownChart | null => {
+	if (values == null) return null
 	const points: IProtocolTokenBreakdownChart = []
-	for (const item of values) {
-		if (!Array.isArray(item) || item.length < 2) continue
-
-		const [timestamp, value] = item
-		const numericTimestamp = Number(timestamp)
-		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
-		points.push([numericTimestamp * 1e3, value as IProtocolTokenBreakdownValue])
+	for (const [timestamp, value] of values) {
+		points.push([Number(timestamp) * 1e3, value])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
@@ -97,7 +82,7 @@ const fetchProtocolValueChart = async ({
 	timeout?: number
 }): Promise<IProtocolValueChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson<unknown>(finalUrl, timeout != null ? { timeout } : undefined)
+	const values = await fetchJson<IProtocolValueChartRaw>(finalUrl, timeout != null ? { timeout } : undefined)
 	return normalizeProtocolValueChart(values)
 }
 
@@ -116,7 +101,7 @@ const fetchProtocolChainBreakdownChart = async ({
 	timeout?: number
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson<unknown>(finalUrl, timeout != null ? { timeout } : undefined)
+	const values = await fetchJson<IProtocolChainBreakdownChartRaw>(finalUrl, timeout != null ? { timeout } : undefined)
 	return normalizeProtocolChainBreakdownChart(values)
 }
 
@@ -135,7 +120,7 @@ const fetchProtocolTokenBreakdownChart = async ({
 	timeout?: number
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson<unknown>(finalUrl, timeout != null ? { timeout } : undefined)
+	const values = await fetchJson<IProtocolTokenBreakdownChartRaw>(finalUrl, timeout != null ? { timeout } : undefined)
 	return normalizeProtocolTokenBreakdownChart(values)
 }
 

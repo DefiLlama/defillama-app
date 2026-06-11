@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { RWAPerpsContractSummaryMetrics } from '../Contract'
 import {
 	buildRWAPerpsContractChartSpec,
+	buildRWAPerpsContractMetricSections,
 	buildRWAPerpsContractInfoRows,
 	DEFAULT_ENABLED_RWA_PERPS_CONTRACT_CHART_METRICS,
 	type RWAPerpsContractChartMetricKey
@@ -167,6 +168,36 @@ describe('buildRWAPerpsContractInfoRows', () => {
 			tooltip: 'Reference asset, fund, index, or benchmark the perpetual contract tracks.',
 			value: 'Meta Platforms'
 		})
+	})
+})
+
+describe('buildRWAPerpsContractMetricSections', () => {
+	it('keeps UI display fallbacks at "-" for malformed numeric values', () => {
+		const sections = buildRWAPerpsContractMetricSections({
+			...baseContract,
+			market: {
+				...baseContract.market,
+				openInterest: Number.NaN,
+				volume30d: Number.POSITIVE_INFINITY,
+				makerFeeRate: Number.NaN,
+				deployerFeeShare: Number.NaN,
+				oraclePx: Number.NaN,
+				maxLeverage: Number.NaN,
+				szDecimals: Number.NaN
+			}
+		})
+
+		expect(sections.openInterest.value).toBe('-')
+		expect(sections.volume.value).toBe('-')
+		expect(sections.tradingParameters.children).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ label: 'Max Leverage', value: '-' }),
+				expect.objectContaining({ label: 'Maker Fee', value: '-' }),
+				expect.objectContaining({ label: 'Size Decimals', value: '-' })
+			])
+		)
+		expect(sections.tradingParameters.children.some((row) => row.label === 'Deployer Fee Share')).toBe(false)
+		expect(sections.marketReference.value).toBe('-')
 	})
 })
 

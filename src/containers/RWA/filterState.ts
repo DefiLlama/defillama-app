@@ -296,6 +296,7 @@ function meetsRatioPercent(
 	maxPercent: number | null
 ) {
 	if (minPercent == null && maxPercent == null) return true
+	// Ratio filters are query-driven; rows without a valid positive denominator must not pass a bounded ratio.
 	if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) return false
 	const percent = (numerator / denominator) * 100
 	if (minPercent != null && percent < minPercent) return false

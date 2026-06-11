@@ -14,6 +14,7 @@ import {
 	useRWAChainsList
 } from '~/containers/ProDashboard/components/datasets/RWADataset/useRWAChartData'
 import { isRwaTotalSeriesLabel } from '~/containers/RWA/chartAggregation'
+import { toFiniteRwaChartValue } from '~/containers/RWA/chartDataset'
 import { getChartMetricOptions, getChartViewOptions, getChartMetricLabel } from '~/containers/RWA/chartState'
 import { buildRwaTreemapTreeData } from '~/containers/RWA/treemap'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -293,11 +294,14 @@ function OverviewPreview({
 		if (!chartDataset || chartView !== 'pie') return []
 		const lastRow = chartDataset.source[chartDataset.source.length - 1]
 		if (!lastRow) return []
-		return chartDataset.dimensions
-			.filter((d) => d !== 'timestamp')
-			.map((d) => ({ name: d, value: (lastRow as any)[d] || 0 }))
-			.filter((d) => d.value > 0)
-			.sort((a, b) => b.value - a.value)
+		const items: Array<{ name: string; value: number }> = []
+		for (const dimension of chartDataset.dimensions) {
+			if (dimension === 'timestamp') continue
+			const value = toFiniteRwaChartValue(lastRow[dimension])
+			if (value > 0) items.push({ name: dimension, value })
+		}
+		items.sort((a, b) => b.value - a.value)
+		return items
 	}, [chartDataset, chartView])
 
 	const pieColors = useMemo(() => {
@@ -312,12 +316,14 @@ function OverviewPreview({
 		if (!chartDataset || chartView !== 'hbar') return { categories: [] as string[], values: [] as number[] }
 		const lastRow = chartDataset.source[chartDataset.source.length - 1]
 		if (!lastRow) return { categories: [] as string[], values: [] as number[] }
-		const items = chartDataset.dimensions
-			.filter((d) => d !== 'timestamp')
-			.map((d) => ({ name: d, value: (lastRow as any)[d] || 0 }))
-			.filter((d) => d.value > 0)
-			.sort((a, b) => b.value - a.value)
-			.slice(0, 20)
+		const items: Array<{ name: string; value: number }> = []
+		for (const dimension of chartDataset.dimensions) {
+			if (dimension === 'timestamp') continue
+			const value = toFiniteRwaChartValue(lastRow[dimension])
+			if (value > 0) items.push({ name: dimension, value })
+		}
+		items.sort((a, b) => b.value - a.value)
+		if (items.length > 20) items.length = 20
 		return { categories: items.map((i) => i.name), values: items.map((i) => i.value) }
 	}, [chartDataset, chartView])
 
@@ -325,10 +331,12 @@ function OverviewPreview({
 		if (!chartDataset || chartView !== 'treemap') return []
 		const lastRow = chartDataset.source[chartDataset.source.length - 1]
 		if (!lastRow) return []
-		const pieItems = chartDataset.dimensions
-			.filter((d) => d !== 'timestamp')
-			.map((d) => ({ name: d, value: (lastRow as any)[d] || 0 }))
-			.filter((d) => d.value > 0)
+		const pieItems: Array<{ name: string; value: number }> = []
+		for (const dimension of chartDataset.dimensions) {
+			if (dimension === 'timestamp') continue
+			const value = toFiniteRwaChartValue(lastRow[dimension])
+			if (value > 0) pieItems.push({ name: dimension, value })
+		}
 		return buildRwaTreemapTreeData(pieItems, breakdown)
 	}, [chartDataset, chartView, breakdown])
 

@@ -1,4 +1,4 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { RWAChartDataset } from '../chartDataset'
 import type { IRWAPerpsMarket, IRWAPerpsMarketChartPoint } from './api.types'
 
 export interface IRWAPerpsNavLink {
@@ -92,7 +92,7 @@ export interface IRWAPerpsContractBreakdownRequest {
 
 export interface IRWAPerpsOverviewPageData {
 	markets: IRWAPerpsMarket[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 	totals: {
 		openInterest: number
 		openInterestChange24h: number | null
@@ -107,7 +107,7 @@ export interface IRWAPerpsOverviewPageData {
 export interface IRWAPerpsVenuePageData {
 	venue: string
 	markets: IRWAPerpsMarket[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 	venueLinks: IRWAPerpsNavLink[]
 	totals: {
 		openInterest: number
@@ -122,7 +122,7 @@ export interface IRWAPerpsVenuePageData {
 export interface IRWAPerpsAssetGroupPageData {
 	assetGroup: string
 	markets: IRWAPerpsMarket[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 	assetGroupLinks: IRWAPerpsNavLink[]
 	totals: {
 		openInterest: number
@@ -145,7 +145,7 @@ export interface IRWAPerpsVenuesOverviewRow {
 
 export interface IRWAPerpsVenuesOverview {
 	rows: IRWAPerpsVenuesOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }
 
 export interface IRWAPerpsAssetGroupsOverviewRow {
@@ -159,5 +159,5 @@ export interface IRWAPerpsAssetGroupsOverviewRow {
 
 export interface IRWAPerpsAssetGroupsOverview {
 	rows: IRWAPerpsAssetGroupsOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }
