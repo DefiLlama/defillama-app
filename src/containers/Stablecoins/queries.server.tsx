@@ -519,11 +519,17 @@ const getStablecoinChainsSource = async (): Promise<StablecoinChainsSource> => {
 			chainsTVLData
 		})
 
-		const formattedPeggedChartDataByChain = peggedChartDataByChain.map((charts) => {
-			if (!charts) return null
-			return charts.flatMap((chart): Array<{ date: number; mcap: number | null }> => {
+		const formattedPeggedChartDataByChain: StablecoinChainsSource['peggedChartDataByChain'] = []
+		for (const charts of peggedChartDataByChain) {
+			if (!charts) {
+				formattedPeggedChartDataByChain.push(null)
+				continue
+			}
+
+			const formattedCharts: Array<{ date: number; mcap: number | null }> = []
+			for (const chart of charts) {
 				const date = Number(chart.date)
-				if (!Number.isFinite(date)) return []
+				if (!Number.isFinite(date)) continue
 
 				const rawMcap = chart.totalCirculatingUSD
 				let mcap: number | null = null
@@ -540,9 +546,10 @@ const getStablecoinChainsSource = async (): Promise<StablecoinChainsSource> => {
 					mcap = hasFinite ? total : null
 				}
 
-				return [{ date, mcap }]
-			})
-		})
+				formattedCharts.push({ date, mcap })
+			}
+			formattedPeggedChartDataByChain.push(formattedCharts)
+		}
 
 		return {
 			chainCirculatings,

@@ -6,7 +6,7 @@ import {
 	buildTotalMcapPayload,
 	buildUsdInflowsPayload
 } from '../chartSeries'
-import { buildStablecoinChartData } from '../utils'
+import { buildStablecoinChartData, formatPeggedChainsData } from '../utils'
 
 const chartDataByAssetOrChain = [
 	[
@@ -125,5 +125,107 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.stacked).toBe(true)
 		expect(payload.showTotalInTooltip).toBe(true)
 		expect(payload.charts.every((chart) => chart.type === 'bar' && chart.stack === 'tokenInflows')).toBe(true)
+	})
+})
+
+describe('stablecoin table data formatters', () => {
+	it('keeps chain rows sorted with exact null and dominance values', () => {
+		const result = formatPeggedChainsData({
+			chainList: ['Small', 'Big', 'Empty'],
+			peggedChartDataByChain: [
+				[
+					{
+						date: '1609459200',
+						totalCirculatingUSD: { peggedUSD: 100 },
+						totalCirculating: { peggedUSD: 80 },
+						totalUnreleased: { peggedUSD: 20 },
+						totalBridgedToUSD: { peggedUSD: 5 },
+						totalMintedUSD: { peggedUSD: 95 }
+					},
+					{
+						date: '1609545600',
+						totalCirculatingUSD: { peggedUSD: 110 },
+						totalCirculating: { peggedUSD: 90 },
+						totalUnreleased: { peggedUSD: 20 },
+						totalBridgedToUSD: { peggedUSD: 6 },
+						totalMintedUSD: { peggedUSD: 104 }
+					}
+				],
+				[
+					{
+						date: '1609459200',
+						totalCirculatingUSD: { peggedUSD: 200 },
+						totalCirculating: { peggedUSD: 160 },
+						totalUnreleased: { peggedUSD: 40 },
+						totalBridgedToUSD: { peggedUSD: 7 },
+						totalMintedUSD: { peggedUSD: 193 }
+					},
+					{
+						date: '1609545600',
+						totalCirculatingUSD: { peggedUSD: 220 },
+						totalCirculating: { peggedUSD: 180 },
+						totalUnreleased: { peggedUSD: 40 },
+						totalBridgedToUSD: { peggedUSD: 8 },
+						totalMintedUSD: { peggedUSD: 212 }
+					}
+				],
+				null
+			],
+			chainDominances: {
+				Small: { symbol: 'USDC', mcap: 55 },
+				Big: { symbol: 'USDT', mcap: 200 }
+			}
+		})
+
+		expect(result).toEqual([
+			{
+				name: 'Big',
+				circulating: 180,
+				mcap: 220,
+				unreleased: 40,
+				bridgedTo: 8,
+				minted: 212,
+				mcapPrevDay: 200,
+				mcapPrevWeek: null,
+				mcapPrevMonth: null,
+				change_1d: 10,
+				change_7d: null,
+				change_1m: null,
+				dominance: { name: 'USDT', value: '90.91' },
+				mcaptvl: null
+			},
+			{
+				name: 'Small',
+				circulating: 90,
+				mcap: 110,
+				unreleased: 20,
+				bridgedTo: 6,
+				minted: 104,
+				mcapPrevDay: 100,
+				mcapPrevWeek: null,
+				mcapPrevMonth: null,
+				change_1d: 10,
+				change_7d: null,
+				change_1m: null,
+				dominance: { name: 'USDC', value: '50.00' },
+				mcaptvl: null
+			},
+			{
+				name: 'Empty',
+				circulating: null,
+				mcap: null,
+				unreleased: null,
+				bridgedTo: null,
+				minted: null,
+				mcapPrevDay: null,
+				mcapPrevWeek: null,
+				mcapPrevMonth: null,
+				change_1d: null,
+				change_7d: null,
+				change_1m: null,
+				dominance: null,
+				mcaptvl: null
+			}
+		])
 	})
 })
