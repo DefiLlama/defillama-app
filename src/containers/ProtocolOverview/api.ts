@@ -52,7 +52,7 @@ const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBr
 
 		const [timestamp, value] = item
 		const numericTimestamp = Number(timestamp)
-		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
+		if (!Number.isFinite(numericTimestamp) || value == null) continue
 		points.push([numericTimestamp * 1e3, value as IProtocolChainBreakdownValue])
 	}
 
@@ -68,7 +68,7 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 
 		const [timestamp, value] = item
 		const numericTimestamp = Number(timestamp)
-		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
+		if (!Number.isFinite(numericTimestamp) || value == null) continue
 		points.push([numericTimestamp * 1e3, value as IProtocolTokenBreakdownValue])
 	}
 
