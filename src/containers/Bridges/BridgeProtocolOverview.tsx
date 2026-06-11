@@ -6,7 +6,6 @@ import {
 	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TagGroup } from '~/components/TagGroup'
@@ -19,6 +18,11 @@ import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPercentChange, slug } from '~/utils'
+import {
+	buildBridgeProtocolAllChainsVolumeData,
+	buildBridgeProtocolInflowsData,
+	getBridgeProtocolPrevDayVolumeValue
+} from './bridgeProtocolChartData'
 import type { BridgePageData } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -72,76 +76,27 @@ export const BridgeInfo = ({
 		return { name: chain, route: '' }
 	})
 
-	const allChainsVolumePairs = React.useMemo(() => {
-		if (!isAllChains || !Array.isArray(volumeChartDataByChain)) return [] as Array<[number, number]>
-		return volumeChartDataByChain.map((d: any) => [
-			d.date,
-			(Number(d?.Deposited ?? 0) + Math.abs(Number(d?.Withdrawn ?? 0))) / 2
-		])
-	}, [isAllChains, volumeChartDataByChain])
-
-	const groupedAllChainsVolumePairs = React.useMemo(() => {
-		if (!isAllChains) return [] as Array<[number, number]>
-		if (groupBy === 'daily' || allChainsVolumePairs.length === 0) return allChainsVolumePairs
-		const store: Record<number, number> = {}
-		for (const [date, value] of allChainsVolumePairs) {
-			const key = getBucketTimestampSec(date, groupBy)
-			store[key] = (store[key] ?? 0) + (value ?? 0)
-		}
-		return Object.entries(store)
-			.map(([k, v]) => [Number(k), v] as [number, number])
-			.sort((a, b) => a[0] - b[0])
-	}, [isAllChains, groupBy, allChainsVolumePairs])
+	const { allChainsVolumePairs, groupedAllChainsVolumePairs, volumeDataset } = React.useMemo(
+		() => buildBridgeProtocolAllChainsVolumeData({ isAllChains, groupBy, volumeChartDataByChain }),
+		[isAllChains, groupBy, volumeChartDataByChain]
+	)
 
 	const prevDayVolumeValue = React.useMemo(() => {
-		if (!isAllChains) return 0
-		if (Number.isFinite(totalDepositedUSD) || Number.isFinite(totalWithdrawnUSD)) {
-			return (Number(totalDepositedUSD ?? 0) + Number(totalWithdrawnUSD ?? 0)) / 2
-		}
-		const arr = allChainsVolumePairs as Array<[number, number]>
-		if (arr.length > 1) return arr[arr.length - 2][1]
-		if (arr.length === 1) return arr[0][1]
-		return 0
+		return getBridgeProtocolPrevDayVolumeValue({
+			isAllChains,
+			allChainsVolumePairs,
+			totalDepositedUSD,
+			totalWithdrawnUSD
+		})
 	}, [isAllChains, allChainsVolumePairs, totalDepositedUSD, totalWithdrawnUSD])
 
 	const chartTypes = (
 		isAllChains ? (['Volume', 'Tokens To', 'Tokens From'] as const) : (['Inflows', 'Tokens To', 'Tokens From'] as const)
 	) as readonly ChartType[]
 
-	const groupedInflowsData = React.useMemo(() => {
-		if (isAllChains) return [] as any[]
-		if (!Array.isArray(volumeChartDataByChain) || volumeChartDataByChain.length === 0) return []
-		if (groupBy === 'daily') return volumeChartDataByChain
-		const store: Record<number, { Deposited: number; Withdrawn: number }> = {}
-		for (const point of volumeChartDataByChain as Array<any>) {
-			const key = getBucketTimestampSec(point.date, groupBy)
-			store[key] = store[key] || { Deposited: 0, Withdrawn: 0 }
-			store[key].Deposited += Number(point.Deposited ?? 0)
-			store[key].Withdrawn += Number(point.Withdrawn ?? 0)
-		}
-		return Object.entries(store)
-			.map(([k, v]) => ({ date: Number(k), ...v }))
-			.sort((a, b) => a.date - b.date)
-	}, [isAllChains, groupBy, volumeChartDataByChain])
-
-	const volumeDataset = React.useMemo(
-		() => ({
-			source: groupedAllChainsVolumePairs.map(([d, v]) => ({ timestamp: +d * 1e3, Volume: v })),
-			dimensions: ['timestamp', 'Volume']
-		}),
-		[groupedAllChainsVolumePairs]
-	)
-
-	const inflowsDataset = React.useMemo(
-		() => ({
-			source: groupedInflowsData.map(({ date, Deposited, Withdrawn }) => ({
-				timestamp: +date * 1e3,
-				Deposited: Deposited ?? 0,
-				Withdrawn: -(Withdrawn ?? 0)
-			})),
-			dimensions: ['timestamp', 'Deposited', 'Withdrawn']
-		}),
-		[groupedInflowsData]
+	const { groupedInflowsData, inflowsDataset } = React.useMemo(
+		() => buildBridgeProtocolInflowsData({ isAllChains, groupBy, volumeChartDataByChain }),
+		[isAllChains, groupBy, volumeChartDataByChain]
 	)
 	const deferredVolumeDataset = React.useDeferredValue(volumeDataset)
 	const deferredInflowsDataset = React.useDeferredValue(inflowsDataset)
