@@ -3,10 +3,9 @@ import {
 	buildAreaPayload,
 	buildDominancePayload,
 	buildTokenInflowsPayload,
-	buildTotalMcapPayload,
-	buildUsdInflowsPayload
+	buildTotalMcapPayload
 } from '../chartSeries'
-import { buildStablecoinChartData, formatPeggedChainsData } from '../utils'
+import { formatPeggedChainsData } from '../utils'
 
 const chartDataByAssetOrChain = [
 	[
@@ -143,23 +142,6 @@ describe('stablecoin chart series builders', () => {
 			{ timestamp: 1609545600000, USDT: 20, USDC: 5 }
 		])
 		expect(payload.dataset.dimensions).toEqual(['timestamp', 'USDT', 'USDC'])
-	})
-
-	it('matches the legacy inflow outputs', () => {
-		const legacy = buildStablecoinChartData(params)
-		const usdPayload = buildUsdInflowsPayload(params)
-		const tokenPayload = buildTokenInflowsPayload(params)
-
-		expect(usdPayload.dataset.source).toEqual(
-			legacy.usdInflows.map(([date, Inflows]) => ({ timestamp: Number(date) * 1e3, Inflows }))
-		)
-		expect(tokenPayload.dataset.source).toEqual(
-			legacy.tokenInflows.map(({ date, ...values }) => ({
-				timestamp: Number(date) * 1e3,
-				...values
-			}))
-		)
-		expect(tokenPayload.dataset.dimensions).toEqual(['timestamp', ...legacy.tokenInflowNames])
 	})
 
 	it('builds dominance rows as a 100 percent stacked payload', () => {
