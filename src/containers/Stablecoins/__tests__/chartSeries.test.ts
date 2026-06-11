@@ -86,16 +86,16 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.dataset.dimensions).toEqual(['timestamp', 'Mcap'])
 	})
 
-	it('skips malformed dates before shaping mcap chart rows', () => {
-		const malformedDateParams = {
+	it('parses string epoch dates before shaping mcap chart rows', () => {
+		const stringDateParams = {
 			chartDataByAssetOrChain: [
 				[
-					{ date: 'bad-date', mcap: { peggedUSD: 999 } },
-					{ date: 1609459200, mcap: { peggedUSD: 10 } }
+					{ date: '1609459200', mcap: { peggedUSD: 10 } },
+					{ date: '1609545600', mcap: { peggedUSD: 20 } }
 				],
 				[
-					{ date: 1609459200, mcap: { peggedUSD: 5 } },
-					{ date: 'not-a-timestamp', mcap: { peggedUSD: 999 } }
+					{ date: '1609459200', mcap: { peggedUSD: 5 } },
+					{ date: '1609545600', mcap: { peggedUSD: 10 } }
 				]
 			],
 			assetsOrChainsList: ['USDT', 'USDC'],
@@ -104,12 +104,17 @@ describe('stablecoin chart series builders', () => {
 			selectedChain: 'All'
 		}
 
-		expect(buildTotalMcapPayload(malformedDateParams).dataset.source).toEqual([{ timestamp: 1609459200000, Mcap: 15 }])
-		expect(buildAreaPayload(malformedDateParams, { stackName: 'tokenMcaps' }).dataset.source).toEqual([
-			{ timestamp: 1609459200000, USDT: 10, USDC: 5 }
+		expect(buildTotalMcapPayload(stringDateParams).dataset.source).toEqual([
+			{ timestamp: 1609459200000, Mcap: 15 },
+			{ timestamp: 1609545600000, Mcap: 30 }
 		])
-		expect(buildDominancePayload(malformedDateParams).dataset.source).toEqual([
-			{ timestamp: 1609459200000, USDT: 66.67, USDC: 33.33 }
+		expect(buildAreaPayload(stringDateParams, { stackName: 'tokenMcaps' }).dataset.source).toEqual([
+			{ timestamp: 1609459200000, USDT: 10, USDC: 5 },
+			{ timestamp: 1609545600000, USDT: 20, USDC: 10 }
+		])
+		expect(buildDominancePayload(stringDateParams).dataset.source).toEqual([
+			{ timestamp: 1609459200000, USDT: 66.67, USDC: 33.33 },
+			{ timestamp: 1609545600000, USDT: 66.67, USDC: 33.33 }
 		])
 	})
 

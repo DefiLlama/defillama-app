@@ -62,7 +62,7 @@ function shouldPreloadInitialChartDataset(activeView: RWAPerpsChartView) {
 }
 
 function safeNumber(value: unknown): number {
-	// Funding history comes from a raw DB DECIMAL endpoint; Sequelize can serialize DECIMAL fields as strings.
+	// Funding history DB DECIMAL fields and current estimated fees are passthrough values at their API boundaries.
 	const parsed = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(parsed) ? parsed : 0
 }
