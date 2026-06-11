@@ -80,6 +80,27 @@ describe('buildRwaTreemapTreeData', () => {
 			}
 		])
 	})
+
+	it('normalizes malformed runtime values before aggregating flat treemap totals', () => {
+		const tree = buildRwaTreemapTreeData(
+			[
+				{ name: 'Alpha', value: '100' as any },
+				{ name: 'Beta', value: Number.NaN },
+				{ name: 'Gamma', value: 'nope' as any },
+				{ name: 'Alpha', value: 25 }
+			],
+			'Asset Group'
+		)
+
+		expect(tree).toEqual([
+			{
+				name: 'Alpha',
+				path: 'Asset Group/Alpha',
+				value: [125, 100, 100],
+				itemStyle: { color: CHART_COLORS[0] }
+			}
+		])
+	})
 })
 
 describe('buildRwaNestedTreemapTreeData', () => {
@@ -143,6 +164,45 @@ describe('buildRwaNestedTreemapTreeData', () => {
 						path: 'Chain/Ethereum/Beta',
 						value: [50, 33.33, 33.33],
 						itemStyle: { color: '#6ca5e0' }
+					}
+				]
+			}
+		])
+	})
+
+	it('normalizes malformed runtime values before aggregating nested chain totals', () => {
+		const tree = buildRwaNestedTreemapTreeData({
+			assets: [
+				{
+					...baseAsset,
+					onChainMcap: {
+						total: Number.NaN,
+						breakdown: [
+							['Ethereum', '100' as any],
+							['Base', Number.NaN],
+							['Polygon', 'nope' as any]
+						]
+					}
+				}
+			],
+			metric: 'onChainMcap',
+			rootLabel: 'Chain',
+			parentGrouping: 'chain',
+			childGrouping: 'assetName'
+		})
+
+		expect(tree).toEqual([
+			{
+				name: 'Ethereum',
+				path: 'Chain/Ethereum',
+				value: [100, 100, 100],
+				itemStyle: { color: '#2b7aca' },
+				children: [
+					{
+						name: 'Alpha',
+						path: 'Chain/Ethereum/Alpha',
+						value: [100, 100, 100],
+						itemStyle: { color: '#2b7aca' }
 					}
 				]
 			}

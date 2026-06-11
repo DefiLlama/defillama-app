@@ -35,8 +35,8 @@ describe('ProtocolOverview API chart fetchers', () => {
 
 	it('fetches and normalizes TVL chain breakdown charts from the TVL namespace', async () => {
 		fetchJsonMock.mockResolvedValue([
-			[2, { Ethereum: 20 }],
-			[1, { Ethereum: 10 }]
+			[2, { Ethereum: 20, Bad: 'nope', Nullish: null }],
+			[1, { Ethereum: '10', Base: 0 }]
 		])
 
 		const result = await fetchProtocolTvlChart({ protocol: 'aave', breakdownType: 'chain-breakdown' })
@@ -45,15 +45,15 @@ describe('ProtocolOverview API chart fetchers', () => {
 		expect(url).toContain('/chart/tvl/protocol/aave/chain-breakdown')
 		expect(url).not.toContain('/chart/treasury/')
 		expect(result).toEqual([
-			[1000, { Ethereum: 10 }],
+			[1000, { Base: 0, Ethereum: 10 }],
 			[2000, { Ethereum: 20 }]
 		])
 	})
 
 	it('fetches and normalizes treasury token breakdown charts from the treasury namespace', async () => {
 		fetchJsonMock.mockResolvedValue([
-			[2, { MKR: 20 }],
-			[1, { MKR: 10 }]
+			[2, { MKR: 20, Bad: 'nope' }],
+			[1, { MKR: '10', Zero: 0 }]
 		])
 
 		const result = await fetchProtocolTreasuryChart({
@@ -67,7 +67,7 @@ describe('ProtocolOverview API chart fetchers', () => {
 		expect(url).toContain('/chart/treasury/protocol/makerdao/token-breakdown?key=ownTokens&currency=token')
 		expect(url).not.toContain('/chart/tvl/')
 		expect(result).toEqual([
-			[1000, { MKR: 10 }],
+			[1000, { MKR: 10, Zero: 0 }],
 			[2000, { MKR: 20 }]
 		])
 	})

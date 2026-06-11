@@ -405,6 +405,7 @@ const buildStablecoinChartDataInternal = (
 				const assetOrChain = assetsOrChainsList[i]
 				const date = String(chart.date)
 				const dateNumber = Number(date)
+				if (!Number.isFinite(dateNumber)) continue
 				const hasMcapValue = typeof mcap === 'number' && Number.isFinite(mcap)
 				if (hasMcapValue) {
 					if ((selectedChain && BACKFILLED_CHAINS.has(selectedChain)) || dateNumber > 1652241600) {

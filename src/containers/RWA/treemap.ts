@@ -1,6 +1,7 @@
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
+import { toFiniteRwaChartValue } from './chartDataset'
 import type { RWAChartMetric, RwaTreemapNestedBy, RwaTreemapParentGrouping } from './chartState'
 import { computeWeightedGroups } from './grouping'
 import { rwaSlug } from './rwaSlug'
@@ -20,10 +21,11 @@ type RWAAsset = IRWAAssetsOverview['assets'][number]
 export const buildRwaTreemapTreeData = (pieData: RwaPieChartDatum[], breakdownLabel: string): RwaTreemapNode[] => {
 	const totalsByLabel = new Map<string, number>()
 	for (const item of pieData) {
-		if (item.value <= 0) continue
+		const value = toFiniteRwaChartValue(item.value)
+		if (value <= 0) continue
 		const label = sanitizeTreemapLabel(item.name)
 		if (!label) continue
-		totalsByLabel.set(label, (totalsByLabel.get(label) ?? 0) + item.value)
+		totalsByLabel.set(label, (totalsByLabel.get(label) ?? 0) + value)
 	}
 
 	const data: RwaPieChartDatum[] = []
@@ -88,7 +90,8 @@ const getRwaMetricBreakdownByChain = (asset: RWAAsset, metric: RWAChartMetric): 
 	const UNKNOWN = 'Unknown'
 	const totalsBySlug = new Map<string, RwaMetricByChainRow>()
 
-	for (const [chainRaw, value] of breakdown) {
+	for (const [chainRaw, valueRaw] of breakdown) {
+		const value = toFiniteRwaChartValue(valueRaw)
 		if (value <= 0) continue
 
 		const label = sanitizeTreemapLabel((chainRaw ?? '').trim()) || UNKNOWN
@@ -324,7 +327,7 @@ export const buildRwaNestedTreemapTreeData = ({
 			continue
 		}
 
-		const metricValue = getRwaMetricValue(asset, metric)
+		const metricValue = toFiniteRwaChartValue(getRwaMetricValue(asset, metric))
 		if (metricValue <= 0) continue
 
 		const parentGroups = getWeightedAssetGroupsByGrouping(asset, parentGrouping)
@@ -345,7 +348,8 @@ export const buildRwaNestedTreemapTreeData = ({
 	for (const [parentLabel, childTotals] of nestedTotals.entries()) {
 		const childRows: Array<[string, number]> = []
 		let parentTotal = 0
-		for (const [childLabel, value] of childTotals.entries()) {
+		for (const [childLabel, valueRaw] of childTotals.entries()) {
+			const value = toFiniteRwaChartValue(valueRaw)
 			if (value <= 0) continue
 			childRows.push([childLabel, value])
 			parentTotal += value

@@ -160,7 +160,10 @@ export const useFetchProtocolChartData = ({
 		queryFn: () =>
 			fetchJson<{ totalSupply: number | null }>(
 				`/api/public/charts/coingecko/${encodeURIComponent(geckoId!)}?kind=supply`
-			).then((res) => res.totalSupply ?? null),
+			).then((res) => {
+				const totalSupply = res.totalSupply
+				return typeof totalSupply === 'number' && Number.isFinite(totalSupply) ? totalSupply : null
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

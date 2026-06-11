@@ -22,7 +22,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import type { RWAChartDataset, RWAChartRow } from '~/containers/RWA/chartDataset'
+import { limitRwaHorizontalBarData, type RWAChartDataset, type RWAChartRow } from '~/containers/RWA/chartDataset'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
@@ -99,7 +99,6 @@ const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as 
 
 const EMPTY_DATASET: RWAChartDataset = { source: [], dimensions: ['timestamp'] }
 const PIE_CHART_RADIUS = ['50%', '70%'] as [string, string]
-const MAX_HORIZONTAL_BARS = 9
 const FOREX_ASSET_CLASS = 'Forex Perps'
 const BASE_ASSET_QUERY_KEY = 'baseAssets'
 const EXCLUDE_BASE_ASSET_QUERY_KEY = 'excludeBaseAssets'
@@ -1235,30 +1234,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		return colorMap
 	}, [deferredPieChartData])
 
-	const barChartData = useMemo(() => {
-		let othersValue = 0
-		const withoutOthers: Array<{ name: string; value: number }> = []
-		for (const item of deferredPieChartData) {
-			if (item.value <= 0) continue
-
-			if (item.name === 'Others') {
-				othersValue += item.value
-				continue
-			}
-			withoutOthers.push(item)
-		}
-
-		if (withoutOthers.length <= MAX_HORIZONTAL_BARS - (othersValue > 0 ? 1 : 0)) {
-			return othersValue > 0 ? [...withoutOthers, { name: 'Others', value: othersValue }] : withoutOthers
-		}
-
-		const limited = withoutOthers.slice(0, MAX_HORIZONTAL_BARS - 1)
-		let overflowValue = othersValue
-		for (let index = MAX_HORIZONTAL_BARS - 1; index < withoutOthers.length; index++) {
-			overflowValue += withoutOthers[index].value
-		}
-		return overflowValue > 0 ? [...limited, { name: 'Others', value: overflowValue }] : limited
-	}, [deferredPieChartData])
+	const barChartData = useMemo(() => limitRwaHorizontalBarData(deferredPieChartData), [deferredPieChartData])
 
 	const treemapTreeData = useMemo(
 		() =>

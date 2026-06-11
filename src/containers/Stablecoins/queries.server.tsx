@@ -132,6 +132,7 @@ const toStablecoinSeriesPoint = (chart: StablecoinChartPoint): StablecoinSeriesP
 	const mcap = chart.totalCirculatingUSD
 	if (!mcap || typeof mcap !== 'object') return null
 	const date = Number(chart.date)
+	if (!Number.isFinite(date)) return null
 	return { date, mcap }
 }
 
@@ -527,6 +528,7 @@ const getStablecoinChainsSource = async (): Promise<StablecoinChainsSource> => {
 			const formattedCharts: Array<{ date: number; mcap: number | null }> = []
 			for (const chart of charts) {
 				const date = Number(chart.date)
+				if (!Number.isFinite(date)) continue
 
 				const rawMcap = chart.totalCirculatingUSD
 				let mcap: number | null = null

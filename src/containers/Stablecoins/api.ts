@@ -10,9 +10,11 @@ import type {
 	StablecoinPricesResponse,
 	StablecoinRatesResponse,
 	StablecoinRecentCoinsDataResponse,
+	StablecoinVolumeBreakdownChartPoint,
 	StablecoinVolumeChainChartKind,
 	StablecoinVolumeChartResponse,
 	StablecoinVolumeGlobalChartKind,
+	StablecoinVolumeTotalChartPoint,
 	StablecoinVolumeTokenChartKind,
 	StablecoinsListResponse
 } from './api.types'
@@ -28,6 +30,52 @@ const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
 const STABLECOIN_VOLUME_CHART_API = `${STABLECOINS_SERVER_URL}/chart/volume`
 
 export type StablecoinVolumeChainMetadata = Record<string, { id: string; name: string }>
+
+const toFiniteNumberOrNull = (value: unknown): number | null => {
+	if (value == null) return null
+	const numeric = typeof value === 'number' ? value : Number(value)
+	return Number.isFinite(numeric) ? numeric : null
+}
+
+const normalizeStablecoinVolumeBreakdown = (value: unknown): Record<string, number> | null => {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+
+	const normalized: Record<string, number> = {}
+	for (const key in value as Record<string, unknown>) {
+		const numericValue = toFiniteNumberOrNull((value as Record<string, unknown>)[key])
+		if (numericValue != null) normalized[key] = numericValue
+	}
+	return normalized
+}
+
+const normalizeStablecoinVolumeChartResponse = (
+	values: unknown,
+	chart: StablecoinVolumeGlobalChartKind | StablecoinVolumeChainChartKind | StablecoinVolumeTokenChartKind
+): StablecoinVolumeChartResponse => {
+	if (!Array.isArray(values)) return []
+
+	if (chart === 'total') {
+		const rows: StablecoinVolumeTotalChartPoint[] = []
+		for (const item of values) {
+			if (!Array.isArray(item) || item.length < 2) continue
+			const timestamp = toFiniteNumberOrNull(item[0])
+			const volume = toFiniteNumberOrNull(item[1])
+			if (timestamp == null || volume == null) continue
+			rows.push([timestamp, volume])
+		}
+		return rows
+	}
+
+	const rows: StablecoinVolumeBreakdownChartPoint[] = []
+	for (const item of values) {
+		if (!Array.isArray(item) || item.length < 2) continue
+		const timestamp = toFiniteNumberOrNull(item[0])
+		const breakdown = normalizeStablecoinVolumeBreakdown(item[1])
+		if (timestamp == null || !breakdown) continue
+		rows.push([timestamp, breakdown])
+	}
+	return rows
+}
 
 export const getStablecoinVolumeChainId = (
 	chain: string,
@@ -110,7 +158,8 @@ export const fetchStablecoinVolumeChartApi = async (
 		currency: '/currency-breakdown'
 	}
 
-	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+	const values = await fetchJson<unknown>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+	return normalizeStablecoinVolumeChartResponse(values, chart)
 }
 
 export const fetchStablecoinChainVolumeChartApi = async (
@@ -126,7 +175,8 @@ export const fetchStablecoinChainVolumeChartApi = async (
 		currency: `/chain/${encodeURIComponent(chainId)}/currency-breakdown`
 	}
 
-	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+	const values = await fetchJson<unknown>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+	return normalizeStablecoinVolumeChartResponse(values, chart)
 }
 
 export const fetchStablecoinTokenVolumeChartApi = async (
@@ -139,7 +189,8 @@ export const fetchStablecoinTokenVolumeChartApi = async (
 		chain: `/token/${encodedToken}/chain-breakdown`
 	}
 
-	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+	const values = await fetchJson<unknown>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+	return normalizeStablecoinVolumeChartResponse(values, chart)
 }
 
 /**

@@ -86,6 +86,33 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.dataset.dimensions).toEqual(['timestamp', 'Mcap'])
 	})
 
+	it('skips malformed dates before shaping mcap chart rows', () => {
+		const malformedDateParams = {
+			chartDataByAssetOrChain: [
+				[
+					{ date: 'bad-date', mcap: { peggedUSD: 999 } },
+					{ date: 1609459200, mcap: { peggedUSD: 10 } }
+				],
+				[
+					{ date: 1609459200, mcap: { peggedUSD: 5 } },
+					{ date: 'not-a-timestamp', mcap: { peggedUSD: 999 } }
+				]
+			],
+			assetsOrChainsList: ['USDT', 'USDC'],
+			filteredIndexes: [0, 1],
+			issuanceType: 'mcap',
+			selectedChain: 'All'
+		}
+
+		expect(buildTotalMcapPayload(malformedDateParams).dataset.source).toEqual([{ timestamp: 1609459200000, Mcap: 15 }])
+		expect(buildAreaPayload(malformedDateParams, { stackName: 'tokenMcaps' }).dataset.source).toEqual([
+			{ timestamp: 1609459200000, USDT: 10, USDC: 5 }
+		])
+		expect(buildDominancePayload(malformedDateParams).dataset.source).toEqual([
+			{ timestamp: 1609459200000, USDT: 66.67, USDC: 33.33 }
+		])
+	})
+
 	it('adds unreleased values to total circulating payloads when requested', () => {
 		const payload = buildTotalMcapPayload(circulatingParams, {
 			totalName: 'Circulating',

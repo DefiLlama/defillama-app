@@ -1,7 +1,7 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { getPercentChange } from '~/utils'
-import type { RWAChartDataset } from '../chartDataset'
+import { buildRwaChartDatasetTotal, type RWAChartDataset } from '../chartDataset'
 import {
 	fetchRWAPerpsContractBreakdownChartData,
 	fetchRWAPerpsCurrent,
@@ -174,55 +174,11 @@ export function hasEnoughTimeSeriesHistory(dataset: RWAChartDataset) {
 }
 
 export function groupRWAPerpsTimeSeriesDataset(dataset: RWAChartDataset): RWAChartDataset {
-	const seriesDimensions: string[] = []
-	for (const dimension of dataset.dimensions) {
-		if (dimension !== 'timestamp') seriesDimensions.push(dimension)
-	}
-	if (dataset.source.length === 0 || seriesDimensions.length === 0) return EMPTY_CHART_DATASET
-
-	const source: RWAChartDataset['source'] = []
-	for (const row of dataset.source) {
-		let total = 0
-		for (const dimension of seriesDimensions) {
-			total += row[dimension] ?? 0
-		}
-		source.push({
-			timestamp: row.timestamp,
-			Total: total
-		})
-	}
-
-	return {
-		source,
-		dimensions: ['timestamp', 'Total']
-	}
+	return buildRwaChartDatasetTotal({ dataset, onlyTotal: true })
 }
 
 export function appendRWAPerpsTimeSeriesDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
-	const seriesDimensions: string[] = []
-	for (const dimension of dataset.dimensions) {
-		if (dimension !== 'timestamp' && dimension !== 'Total') seriesDimensions.push(dimension)
-	}
-	if (dataset.source.length === 0) return EMPTY_CHART_DATASET
-	if (seriesDimensions.length === 0) return dataset
-
-	const source: RWAChartDataset['source'] = []
-	for (const row of dataset.source) {
-		let total = 0
-		for (const dimension of seriesDimensions) {
-			total += row[dimension] ?? 0
-		}
-		source.push({
-			...row,
-			timestamp: row.timestamp,
-			Total: total
-		})
-	}
-
-	return {
-		source,
-		dimensions: ['timestamp', 'Total', ...seriesDimensions]
-	}
+	return buildRwaChartDatasetTotal({ dataset })
 }
 
 function assertHasVenueBuckets(stats: IRWAPerpsStatsResponse | null): asserts stats is IRWAPerpsStatsResponse {
@@ -242,17 +198,16 @@ function toVenueDetailLink(venue: string) {
 }
 
 export function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
-	let total = 0
-	for (const market of markets) {
-		total += market.estimatedProtocolFees24h
-	}
-	return total
+	return sumMarketMetric(markets, 'estimatedProtocolFees24h')
 }
 
-export function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' | 'volume24h') {
+export function sumMarketMetric(
+	markets: IRWAPerpsMarket[],
+	key: 'openInterest' | 'volume24h' | 'estimatedProtocolFees24h'
+) {
 	let total = 0
 	for (const market of markets) {
-		total += market[key]
+		total += key === 'estimatedProtocolFees24h' ? safeNumber(market[key]) : market[key]
 	}
 	return total
 }

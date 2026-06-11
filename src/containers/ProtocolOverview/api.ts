@@ -43,6 +43,21 @@ const normalizeProtocolValueChart = (values: unknown): IProtocolValueChart | nul
 	return points.sort((a, b) => a[0] - b[0])
 }
 
+const normalizeProtocolBreakdownValue = (
+	value: unknown
+): IProtocolChainBreakdownValue | IProtocolTokenBreakdownValue | null => {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+
+	const normalized: Record<string, number> = {}
+	for (const key in value as Record<string, unknown>) {
+		const rawValue = (value as Record<string, unknown>)[key]
+		if (rawValue == null) continue
+		const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue)
+		if (Number.isFinite(numericValue)) normalized[key] = numericValue
+	}
+	return normalized
+}
+
 const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBreakdownChart | null => {
 	if (!Array.isArray(values)) return null
 
@@ -52,8 +67,9 @@ const normalizeProtocolChainBreakdownChart = (values: unknown): IProtocolChainBr
 
 		const [timestamp, value] = item
 		const numericTimestamp = Number(timestamp)
-		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
-		points.push([numericTimestamp * 1e3, value as IProtocolChainBreakdownValue])
+		const normalizedValue = normalizeProtocolBreakdownValue(value)
+		if (!Number.isFinite(numericTimestamp) || !normalizedValue) continue
+		points.push([numericTimestamp * 1e3, normalizedValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])
@@ -68,8 +84,9 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 
 		const [timestamp, value] = item
 		const numericTimestamp = Number(timestamp)
-		if (!Number.isFinite(numericTimestamp) || !value || typeof value !== 'object' || Array.isArray(value)) continue
-		points.push([numericTimestamp * 1e3, value as IProtocolTokenBreakdownValue])
+		const normalizedValue = normalizeProtocolBreakdownValue(value)
+		if (!Number.isFinite(numericTimestamp) || !normalizedValue) continue
+		points.push([numericTimestamp * 1e3, normalizedValue])
 	}
 
 	return points.sort((a, b) => a[0] - b[0])

@@ -14,7 +14,8 @@ import {
 	getRWAPerpsContractData,
 	getRWAPerpsOverview,
 	getRWAPerpsVenuePage,
-	getRWAPerpsVenuesOverview
+	getRWAPerpsVenuesOverview,
+	sumProtocolFees24h
 } from '../queries'
 import { buildRWAPerpsTreemapTreeData } from '../treemap'
 
@@ -488,6 +489,16 @@ describe('getRWAPerpsContractData', () => {
 })
 
 describe('perps overview queries', () => {
+	it('ignores malformed protocol fee values when summing current markets', () => {
+		expect(
+			sumProtocolFees24h([
+				{ ...baseMarket, id: 'missing-fees', estimatedProtocolFees24h: undefined as any },
+				{ ...baseMarket, id: 'nan-fees', estimatedProtocolFees24h: Number.NaN },
+				{ ...baseMarket, id: 'string-fees', estimatedProtocolFees24h: '7' as any }
+			])
+		).toBe(7)
+	})
+
 	it('builds the overview page model with totals, sorted markets, and a preloaded chart for the default time-series view', async () => {
 		const result = await getRWAPerpsOverview()
 
