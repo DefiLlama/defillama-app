@@ -279,11 +279,7 @@ export const getProtocolsByChain = async ({
 
 		const childProtocolTvl = tvls?.default?.tvl
 		const childMcapTvl =
-			protocol.mcap != null &&
-			protocol.category !== 'Bridge' &&
-			childProtocolTvl != null &&
-			childProtocolTvl !== 0 &&
-			Number.isFinite(childProtocolTvl)
+			protocol.mcap != null && protocol.category !== 'Bridge' && childProtocolTvl != null && childProtocolTvl !== 0
 				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
 				: null
 
@@ -527,10 +523,7 @@ export const getProtocolsByChain = async ({
 
 			const parentProtocolTvl = parentTvl?.default?.tvl
 			const parentMcapTvl =
-				parentProtocol.mcap != null &&
-				parentProtocolTvl != null &&
-				parentProtocolTvl !== 0 &&
-				Number.isFinite(parentProtocolTvl)
+				parentProtocol.mcap != null && parentProtocolTvl != null && parentProtocolTvl !== 0
 					? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentProtocolTvl.toFixed(2))
 					: null
 
