@@ -3,7 +3,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { getForkToOriginalTvlPercent } from './tvl'
 import type { ForkBreakdownChartData, ForkOverviewPageData } from './types'
 
-export interface ForksOverviewDisplayRow {
+interface ForksOverviewDisplayRow {
 	name: string
 	forkedProtocols: number
 	parentTvl: number | null
