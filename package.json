@@ -60,7 +60,7 @@
 		"clsx": "2.1.1",
 		"dayjs": "1.11.20",
 		"dompurify": "3.4.2",
-		"echarts": "6.0.0",
+		"echarts": "6.1.0",
 		"echarts-simple-transform": "1.0.0",
 		"expr-eval": "2.0.2",
 		"ioredis": "5.10.1",

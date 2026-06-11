@@ -6,7 +6,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { ChainProtocolsTable } from '~/containers/ProtocolRankings/Table'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance } from '~/utils'
-import { getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import { getEnabledForkOracleExtraTvlChartApiKeys } from '~/utils/tvlOverlap'
 import { useForkByProtocolExtraSeries } from './queries.client'
 import type { ForkByProtocolPageData } from './types'
 
@@ -14,7 +14,10 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 
 export const ForksByProtocol = ({ fork, forkLinks, protocolTableData, chartData }: ForkByProtocolPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledExtraApiKeys = useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = useMemo(
+		() => getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled),
+		[extraTvlsEnabled]
+	)
 	const { isFetchingExtraSeries, extraTvsByTimestamp } = useForkByProtocolExtraSeries({
 		enabledExtraApiKeys,
 		protocol: fork

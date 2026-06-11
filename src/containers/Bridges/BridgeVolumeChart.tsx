@@ -4,120 +4,34 @@ import {
 	DWM_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
-import type { ChartTimeGrouping } from '~/components/ECharts/types'
-import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { TagGroup } from '~/components/TagGroup'
+import {
+	BRIDGE_VOLUME_METRIC_TYPES,
+	BRIDGE_VOLUME_VIEW_TYPES,
+	buildBridgeVolumeChartData,
+	type BridgeVolumeInputPoint,
+	type BridgeVolumeMetricType,
+	type BridgeVolumeViewType
+} from './bridgeVolumeData'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface BridgeVolumeChartProps {
-	data: any[]
+	data: BridgeVolumeInputPoint[] | null | undefined
 	height?: string
 	onReady?: (instance: any | null) => void
 	headerStart?: ReactNode
 	headerEnd?: ReactNode
 }
 
-const VIEW_TYPES = ['Split', 'Combined'] as const
-type ViewType = (typeof VIEW_TYPES)[number]
-const METRIC_TYPES = ['Volume', 'Transactions'] as const
-type MetricType = (typeof METRIC_TYPES)[number]
-
-const SPLIT_CHARTS = [
-	{
-		type: 'bar' as const,
-		name: 'Deposits',
-		encode: { x: 'timestamp', y: 'Deposits' },
-		color: '#3b82f6',
-		stack: 'metric'
-	},
-	{
-		type: 'bar' as const,
-		name: 'Withdrawals',
-		encode: { x: 'timestamp', y: 'Withdrawals' },
-		color: '#ef4444',
-		stack: 'metric'
-	}
-]
-const COMBINED_CHARTS = [
-	{ type: 'bar' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: '#22c55e' }
-]
-
 export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEnd }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<LowercaseDwmGrouping>('weekly')
-	const [metricType, setMetricType] = useState<MetricType>('Volume')
-	const [viewType, setViewType] = useState<ViewType>('Split')
-
-	const chartData = useMemo(() => {
-		if (!data?.length) return []
-
-		const sortedData = data.toSorted((a, b) => Number(a.date) - Number(b.date))
-
-		const rawData = sortedData.map((item) => ({
-			timestamp: Number(item.date),
-			deposits: metricType === 'Volume' ? item.depositUSD || 0 : item.depositTxs || 0,
-			withdrawals: metricType === 'Volume' ? item.withdrawUSD || 0 : item.withdrawTxs || 0
-		}))
-
-		if (timePeriod === 'daily') {
-			return rawData.map((item) => ({
-				date: item.timestamp,
-				...(viewType === 'Split'
-					? {
-							Deposits: item.deposits,
-							Withdrawals: -1 * item.withdrawals
-						}
-					: {
-							Total: item.deposits + item.withdrawals
-						})
-			}))
-		}
-
-		const groupedData = new Map<
-			number,
-			{
-				deposits: number
-				withdrawals: number
-			}
-		>()
-
-		for (const item of rawData) {
-			const key = getBucketTimestampSec(item.timestamp, timePeriod as Exclude<ChartTimeGrouping, 'daily'>)
-
-			const existing = groupedData.get(key) || { deposits: 0, withdrawals: 0 }
-			groupedData.set(key, {
-				deposits: existing.deposits + item.deposits,
-				withdrawals: existing.withdrawals + item.withdrawals
-			})
-		}
-
-		return Array.from(groupedData.entries())
-			.map(([date, values]) => ({
-				date,
-				...(viewType === 'Split'
-					? {
-							Deposits: values.deposits,
-							Withdrawals: -1 * values.withdrawals
-						}
-					: {
-							Total: values.deposits + values.withdrawals
-						})
-			}))
-			.sort((a, b) => a.date - b.date)
-	}, [data, timePeriod, metricType, viewType])
+	const [metricType, setMetricType] = useState<BridgeVolumeMetricType>('Volume')
+	const [viewType, setViewType] = useState<BridgeVolumeViewType>('Split')
 
 	const volumeChartData = useMemo(() => {
-		const isSplit = viewType === 'Split'
-		const dims = isSplit ? ['timestamp', 'Deposits', 'Withdrawals'] : ['timestamp', 'Total']
-		return {
-			metricType,
-			dataset: {
-				source: chartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: dims
-			},
-			charts: isSplit ? SPLIT_CHARTS : COMBINED_CHARTS
-		}
-	}, [chartData, metricType, viewType])
+		return buildBridgeVolumeChartData({ data, timePeriod, metricType, viewType })
+	}, [data, metricType, timePeriod, viewType])
 	const deferredChartData = useDeferredValue(volumeChartData)
 
 	return (
@@ -133,12 +47,12 @@ export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEn
 				<TagGroup
 					selectedValue={viewType}
 					setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
-					values={VIEW_TYPES}
+					values={BRIDGE_VOLUME_VIEW_TYPES}
 				/>
 				<TagGroup
 					selectedValue={metricType}
 					setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
-					values={METRIC_TYPES}
+					values={BRIDGE_VOLUME_METRIC_TYPES}
 				/>
 				{headerEnd}
 			</div>

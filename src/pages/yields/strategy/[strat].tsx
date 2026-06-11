@@ -23,8 +23,22 @@ const APY_LINE_CHARTS: MultiSeriesChart2SeriesConfig[] = [
 ]
 
 const BAR_APY_CHARTS: MultiSeriesChart2SeriesConfig[] = [
-	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
-	{ type: 'bar', name: 'Reward', encode: { x: 'timestamp', y: 'Reward' }, stack: 'a', color: CHART_COLORS[1] }
+	{
+		type: 'bar',
+		name: 'Base',
+		encode: { x: 'timestamp', y: 'Base' },
+		stack: 'a',
+		color: CHART_COLORS[0],
+		large: false
+	},
+	{
+		type: 'bar',
+		name: 'Reward',
+		encode: { x: 'timestamp', y: 'Reward' },
+		stack: 'a',
+		color: CHART_COLORS[1],
+		large: false
+	}
 ]
 
 interface StrategyConfigPool {

@@ -145,7 +145,8 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 			name,
 			encode: { x: 'timestamp', y: name },
 			stack: 'stackA',
-			color: stackColors?.[name]
+			color: stackColors?.[name],
+			large: false
 		}))
 
 		const relativeAreaCharts: IMultiSeriesChart2Props['charts'] = seriesNames.map((name) => ({

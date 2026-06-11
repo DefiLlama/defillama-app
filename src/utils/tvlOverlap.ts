@@ -1,6 +1,7 @@
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 
 export const DC_AND_LS_OVERLAP_API_KEY = 'dcAndLsOverlap'
+const FORK_ORACLE_EXTRA_TVL_CHART_API_KEYS = new Set(['staking', 'borrowed', 'pool2', 'vesting', 'all', 'OwnTokens'])
 
 type EnabledTvlKeys = readonly string[] | ReadonlySet<string>
 
@@ -21,6 +22,18 @@ export function getEnabledExtraTvlApiKeys(extraTvlsEnabled: Record<string, boole
 
 	if (hasEnabledTvlOverlap(extraTvlsEnabled)) {
 		apiKeys.push(DC_AND_LS_OVERLAP_API_KEY)
+	}
+
+	return apiKeys.toSorted((a, b) => a.localeCompare(b))
+}
+
+export function getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled: Record<string, boolean>): string[] {
+	const apiKeys: string[] = []
+	for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
+		if (!enabled || settingKey.toLowerCase() === 'tvl' || !FORK_ORACLE_EXTRA_TVL_CHART_API_KEYS.has(settingKey)) {
+			continue
+		}
+		apiKeys.push(settingKey)
 	}
 
 	return apiKeys.toSorted((a, b) => a.localeCompare(b))

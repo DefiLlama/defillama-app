@@ -1,9 +1,11 @@
+import type { IProtocolChainTvlEntry } from '~/containers/ProtocolOverview/api.types'
+
 export type RawProtocolResponse = {
 	name: string
-	chainTvls?: Record<
+	chainTvls: Record<
 		string,
 		{
-			tvl?: Array<{ date: number; totalLiquidityUSD: number }>
+			tvl?: IProtocolChainTvlEntry['tvl']
 		}
 	>
 }

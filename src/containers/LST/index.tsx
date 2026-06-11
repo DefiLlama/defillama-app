@@ -8,7 +8,6 @@ import {
 } from '~/components/ECharts/ChartGroupingSelector'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -18,6 +17,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
+import { buildLstBreakdownChartData, buildLstInflowsData, buildLstInflowsSeriesData } from './chartData'
 import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -221,70 +221,16 @@ export const LSTOverview = ({
 	const inflowsExportTitle = 'LST Inflows'
 
 	const inflowsData = React.useMemo(() => {
-		const store: Record<string | number, Record<string, number>> = {}
-
-		const isCumulative = groupBy === 'cumulative'
-		const totalByToken: Record<string, number> = {}
-
-		for (const [date, dateEntry] of Object.entries(inflowsChartData)) {
-			for (const [token, value] of Object.entries(dateEntry)) {
-				const dateKey = groupBy === 'cumulative' ? +date : getBucketTimestampSec(+date, groupBy)
-				if (!store[dateKey]) {
-					store[dateKey] = {}
-				}
-				store[dateKey][token] = (store[dateKey][token] ?? 0) + value + (totalByToken[token] ?? 0)
-
-				if (isCumulative) {
-					totalByToken[token] = (totalByToken[token] ?? 0) + value
-				}
-			}
-		}
-
-		const finalData: Array<Record<string, number>> = []
-		for (const [date, dateStore] of Object.entries(store)) {
-			finalData.push({ ...dateStore, date: +date })
-		}
-
-		return finalData
+		return buildLstInflowsData({ inflowsChartData, groupBy })
 	}, [inflowsChartData, groupBy])
 
 	const breakdownData = React.useMemo(
-		() => ({
-			dataset: {
-				source: areaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokens]
-			},
-			charts: tokens.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: lsdColors[name],
-				stack: 'breakdown'
-			}))
-		}),
+		() => buildLstBreakdownChartData({ areaChartData, tokens, lsdColors }),
 		[areaChartData, tokens, lsdColors]
 	)
 
 	const inflowsSeriesData = React.useMemo(
-		() => ({
-			dataset: {
-				source: inflowsData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...tokens]
-			},
-			cumulativeCharts: tokens.map((name) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: lsdColors[name]
-			})),
-			barCharts: tokens.map((name) => ({
-				type: 'bar' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: lsdColors[name],
-				stack: barChartStacks[name]
-			}))
-		}),
+		() => buildLstInflowsSeriesData({ inflowsData, tokens, lsdColors, barChartStacks }),
 		[inflowsData, tokens, lsdColors, barChartStacks]
 	)
 	const deferredPieChartData = React.useDeferredValue(pieChartData)

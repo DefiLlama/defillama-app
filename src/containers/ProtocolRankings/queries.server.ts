@@ -278,14 +278,12 @@ export const getProtocolsByChain = async ({
 		}
 
 		const childProtocolTvl = tvls?.default?.tvl
-		const childMcapTvl =
-			protocol.mcap != null &&
-			protocol.category !== 'Bridge' &&
-			childProtocolTvl != null &&
-			childProtocolTvl !== 0 &&
-			Number.isFinite(childProtocolTvl)
-				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
-				: null
+		let childMcapTvl: number | null = null
+		if (protocol.mcap != null && protocol.category !== 'Bridge' && childProtocolTvl != null && childProtocolTvl !== 0) {
+			// Derived display math can be non-finite even when upstream fields are numeric.
+			const childMcapTvlRatio = +protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2)
+			childMcapTvl = Number.isFinite(childMcapTvlRatio) ? +formatNum(childMcapTvlRatio) : null
+		}
 
 		const llamaswapChains = protocol.geckoId ? (protocolLlamaswapDataset?.[protocol.geckoId] ?? null) : null
 		const childStore: IChildProtocol & { defillamaId: string } = {
@@ -527,10 +525,7 @@ export const getProtocolsByChain = async ({
 
 			const parentProtocolTvl = parentTvl?.default?.tvl
 			const parentMcapTvl =
-				parentProtocol.mcap != null &&
-				parentProtocolTvl != null &&
-				parentProtocolTvl !== 0 &&
-				Number.isFinite(parentProtocolTvl)
+				parentProtocol.mcap != null && parentProtocolTvl != null && parentProtocolTvl !== 0
 					? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentProtocolTvl.toFixed(2))
 					: null
 

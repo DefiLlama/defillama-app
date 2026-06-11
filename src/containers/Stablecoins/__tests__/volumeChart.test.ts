@@ -41,6 +41,7 @@ describe('buildStablecoinVolumeChartPayload', () => {
 		})
 		expect(payload.showTotalInTooltip).toBe(true)
 		expect(payload.stacked).toBe(true)
+		expect(payload.charts.every((chart) => chart.large === false)).toBe(true)
 	})
 
 	it('keeps zero and missing breakdown values exact while preserving input order', () => {
@@ -59,6 +60,7 @@ describe('buildStablecoinVolumeChartPayload', () => {
 		])
 		expect(payload.showTotalInTooltip).toBe(true)
 		expect(payload.stacked).toBe(true)
+		expect(payload.charts.every((chart) => chart.large === false)).toBe(true)
 	})
 
 	it('returns one compact chain series when a selected dimension is requested', () => {

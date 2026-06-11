@@ -161,6 +161,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.barLayout).toBe('stacked')
 		expect(presentation.groupBy).toBe('daily')
 		expect(presentation.charts.every((chart) => chart.stack === 'chain')).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large === false)).toBe(true)
 		expect(presentation.dataset.source).toEqual([
 			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 0 },
 			{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 },
@@ -189,6 +190,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.valueMode).toBe('relative')
 		expect(presentation.barLayout).toBe('separate')
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large == null)).toBe(true)
 
 		const [day1, day2, day3] = presentation.dataset.source
 		expect(day1.Ethereum).toBe(100)
@@ -331,6 +333,33 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[1].value).toBe(30)
 	})
 
+	it('keeps first-row selection for duplicate latest daily timestamps', () => {
+		const timestamp = toMs(2024, 1, 2)
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum'],
+				source: [
+					{ timestamp, Ethereum: 10 },
+					{ timestamp, Ethereum: 20 }
+				]
+			},
+			selectedChains: ['Ethereum'],
+			state: { chartKind: 'treemap', groupBy: 'daily' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data).toEqual([
+			{
+				name: 'Ethereum',
+				value: 10,
+				share: 100,
+				itemStyle: { color: expect.any(String) }
+			}
+		])
+	})
+
 	it('builds hbar data from the latest-value ranking and groups overflow into Others', () => {
 		const extendedChainChartData = {
 			dimensions: ['timestamp', ...Array.from({ length: 11 }, (_, index) => `Chain ${index + 1}`)],
@@ -408,6 +437,29 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[0].value).toBe(30)
 		expect(presentation.data[1].value).toBe(30)
 		expect(presentation.data[2].value).toBe(20)
+	})
+
+	it('keeps zero cumulative totals distinct from missing selected series for ranking', () => {
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Positive', 'Missing', 'Zero'],
+				source: [
+					{ timestamp: toMs(2024, 1, 1), Positive: 5, Zero: 0 },
+					{ timestamp: toMs(2024, 1, 2), Positive: 10, Zero: 0 }
+				]
+			},
+			selectedProtocols: ['Positive', 'Missing', 'Zero'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'absolute',
+				barLayout: 'stacked',
+				groupBy: 'cumulative'
+			}
+		})
+
+		expect(presentation.kind).toBe('bar')
+		expect(presentation.charts.map((chart) => chart.name)).toEqual(['Positive', 'Zero', 'Missing'])
+		expect(presentation.dataset.source.at(-1)).toMatchObject({ Positive: 15, Zero: 0, Missing: null })
 	})
 
 	it('sums rolling-window values for dominance-backed latest-value charts (weekly = last 7 days)', () => {
@@ -510,6 +562,7 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 		if (presentation.kind !== 'bar') return
 
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large == null)).toBe(true)
 		expect(presentation.dataset.source).toEqual([
 			{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 33.33333333333333, dYdX: 66.66666666666666 },
 			{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 66.66666666666666, dYdX: 33.33333333333333 },
