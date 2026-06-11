@@ -1,5 +1,5 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import type { RWAChartDataset } from './chartDataset'
 import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
@@ -225,11 +225,8 @@ export interface IRWAAssetsOverview {
 	assetGroupSlug: string | null
 }
 
-export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
-export type IRWAInitialTimeSeriesDataset = {
-	source: IRWAInitialChartDatasetRow[]
-	dimensions: string[]
-}
+export type IRWAInitialChartDatasetRow = RWAChartDataset['source'][number]
+export type IRWAInitialTimeSeriesDataset = RWAChartDataset
 export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
 export type RWAAssetChartTarget =
@@ -280,22 +277,22 @@ export type IRWAAssetGroupsOverviewRow = NonNullable<IRWAStatsResponse['byAssetG
 
 export type IRWAChainsOverview = {
 	rows: IRWAChainsOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }
 
 export type IRWACategoriesOverview = {
 	rows: IRWACategoriesOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }
 
 export type IRWAPlatformsOverview = {
 	rows: IRWAPlatformsOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }
 
 export type IRWAAssetGroupsOverview = {
 	rows: IRWAAssetGroupsOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }
 
 export interface IRWAAssetData extends IRWAProject {

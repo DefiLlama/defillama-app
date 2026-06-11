@@ -1052,8 +1052,8 @@ describe('perps overview helpers', () => {
 		expect(
 			groupRWAPerpsTimeSeriesDataset({
 				source: [
-					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
-					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, Gold: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: 5 }
 				],
 				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
 			})
@@ -1070,15 +1070,15 @@ describe('perps overview helpers', () => {
 		expect(
 			appendRWAPerpsTimeSeriesDatasetTotal({
 				source: [
-					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
-					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, Gold: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: 5 }
 				],
 				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
 			})
 		).toEqual({
 			source: [
-				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null, Total: 100 },
-				{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined, Total: 105 }
+				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, Gold: null, Total: 100 },
+				{ timestamp: 1774483200000, Meta: 100, NVIDIA: 5, Total: 105 }
 			],
 			dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA', 'Gold']
 		})

@@ -1,17 +1,17 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { toUnixMsTimestamp } from './api'
 import type { IRWABreakdownChartResponse, RWAOverviewBreakdownRequest, RWAChartMetricKey } from './api.types'
 import { getRwaChartTotalLabel, isRwaTotalSeriesLabel } from './chartAggregation'
+import type { RWAChartDataset, RWAChartRow } from './chartDataset'
 
-export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null): MultiSeriesChart2Dataset {
+export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null): RWAChartDataset {
 	if (!rows || rows.length === 0) return { source: [], dimensions: ['timestamp'] }
 
 	const seenSeries = new Set<string>()
-	const source: MultiSeriesChart2Dataset['source'] = []
+	const source: RWAChartDataset['source'] = []
 
 	for (const row of rows) {
-		const normalizedRow: MultiSeriesChart2Dataset['source'][number] = {
-			timestamp: toUnixMsTimestamp(Number(row.timestamp))
+		const normalizedRow: RWAChartRow = {
+			timestamp: toUnixMsTimestamp(row.timestamp)
 		}
 
 		for (const series in row) {
@@ -39,9 +39,9 @@ export function shouldAppendOverviewBreakdownTotalSeries(breakdown: RWAOverviewB
 }
 
 export function appendOverviewBreakdownTotalSeries(
-	dataset: MultiSeriesChart2Dataset,
+	dataset: RWAChartDataset,
 	chartType: RWAChartMetricKey
-): MultiSeriesChart2Dataset {
+): RWAChartDataset {
 	const totalLabel = getRwaChartTotalLabel(chartType)
 	if (dataset.dimensions.includes(totalLabel)) return dataset
 
@@ -53,18 +53,16 @@ export function appendOverviewBreakdownTotalSeries(
 	}
 	if (dataset.source.length === 0 || seriesDimensions.length === 0) return dataset
 
-	const source: MultiSeriesChart2Dataset['source'] = []
+	const source: RWAChartDataset['source'] = []
 	for (const row of dataset.source) {
 		let total = 0
-		const nextRow: MultiSeriesChart2Dataset['source'][number] = { timestamp: row.timestamp }
+		const nextRow: RWAChartRow = { timestamp: row.timestamp }
 		for (const key in row) {
 			nextRow[key] = row[key]
 		}
 
 		for (const dimension of seriesDimensions) {
-			const value = row[dimension]
-			const numericValue = typeof value === 'number' ? value : Number(value)
-			if (Number.isFinite(numericValue)) total += numericValue
+			total += row[dimension] ?? 0
 		}
 		nextRow[totalLabel] = total
 		source.push(nextRow)
@@ -84,7 +82,7 @@ export function appendOverviewBreakdownTotalSeries(
 export function toOverviewBreakdownChartDataset(
 	rows: IRWABreakdownChartResponse | null,
 	request: RWAOverviewBreakdownRequest
-): MultiSeriesChart2Dataset {
+): RWAChartDataset {
 	const dataset = toBreakdownChartDataset(rows)
 	return shouldAppendOverviewBreakdownTotalSeries(request.breakdown)
 		? appendOverviewBreakdownTotalSeries(dataset, request.key)

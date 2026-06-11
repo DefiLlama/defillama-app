@@ -1,6 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -8,6 +7,7 @@ import type {} from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAPlatformsOverviewRow } from './api.types'
+import type { RWAChartDataset } from './chartDataset'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { getRWAOverviewCsvFileName, getRWAOverviewInclusion, getRWAOverviewTableData } from './overviewTableData'
@@ -92,7 +92,7 @@ export function RWAPlatforms({
 	initialChartDataset
 }: {
 	platforms: IRWAPlatformsOverviewRow[]
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 }) {
 	const router = useRouter()
 	const includeStablecoins = isTrueQueryParam(router.query.includeStablecoins)

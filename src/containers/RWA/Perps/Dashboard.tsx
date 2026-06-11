@@ -10,7 +10,6 @@ import type {
 	IMultiSeriesChart2Props,
 	IPieChartProps,
 	ITreemapChartProps,
-	MultiSeriesChart2Dataset,
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { preparePieChartData } from '~/components/ECharts/utils'
@@ -23,6 +22,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import type { RWAChartDataset, RWAChartRow } from '~/containers/RWA/chartDataset'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
@@ -97,7 +97,7 @@ const MultiSeriesChart2 = lazy(
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
-const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+const EMPTY_DATASET: RWAChartDataset = { source: [], dimensions: ['timestamp'] }
 const PIE_CHART_RADIUS = ['50%', '70%'] as [string, string]
 const MAX_HORIZONTAL_BARS = 9
 const FOREX_ASSET_CLASS = 'Forex Perps'
@@ -800,17 +800,12 @@ function getLegendSeriesNames(seriesNames: string[]) {
 	return ['Total', ...seriesNames.filter((name) => name !== 'Total')]
 }
 
-function getFiniteNumber(value: unknown): number {
-	const parsed = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(parsed) ? parsed : 0
-}
-
 function getRWAPerpsBaseAssetOptions(markets: IRWAPerpsMarket[]) {
 	const openInterestByBaseAsset = new Map<string, number>()
 
 	for (const market of markets) {
 		const label = getRWAPerpsBaseAssetBreakdownLabel(market)
-		openInterestByBaseAsset.set(label, (openInterestByBaseAsset.get(label) ?? 0) + getFiniteNumber(market.openInterest))
+		openInterestByBaseAsset.set(label, (openInterestByBaseAsset.get(label) ?? 0) + market.openInterest)
 	}
 
 	return [...openInterestByBaseAsset.entries()]
@@ -857,7 +852,7 @@ function getTimeSeriesBreakdownLabel({
 	return getRWAPerpsOverviewBreakdownLabel(row, breakdown as RWAPerpsOverviewBreakdown)
 }
 
-function getRWAPerpsTimeSeriesDatasetDimensions(source: MultiSeriesChart2Dataset['source']) {
+function getRWAPerpsTimeSeriesDatasetDimensions(source: RWAChartDataset['source']) {
 	const latestValueBySeries = new Map<string, number>()
 
 	for (let rowIndex = source.length - 1; rowIndex >= 0; rowIndex--) {
@@ -865,7 +860,7 @@ function getRWAPerpsTimeSeriesDatasetDimensions(source: MultiSeriesChart2Dataset
 
 		for (const series in row) {
 			if (series === 'timestamp' || latestValueBySeries.has(series)) continue
-			latestValueBySeries.set(series, getFiniteNumber(row[series]))
+			latestValueBySeries.set(series, row[series] ?? 0)
 		}
 	}
 
@@ -883,11 +878,11 @@ export function buildRWAPerpsTimeSeriesDatasetForRows({
 	mode,
 	breakdown
 }: {
-	dataset: MultiSeriesChart2Dataset
+	dataset: RWAChartDataset
 	rows: IRWAPerpsMarket[]
 	mode: RWAPerpsChartMode
 	breakdown: RWAPerpsTimeSeriesBreakdownForMode
-}): MultiSeriesChart2Dataset {
+}): RWAChartDataset {
 	if (dataset.source.length === 0 || rows.length === 0) return EMPTY_DATASET
 
 	const labelByContract = new Map<string, string>()
@@ -906,16 +901,13 @@ export function buildRWAPerpsTimeSeriesDatasetForRows({
 	if (labelByContract.size === 0) return EMPTY_DATASET
 
 	const source = dataset.source.map((row) => {
-		const nextRow: MultiSeriesChart2Dataset['source'][number] = { timestamp: row.timestamp }
+		const nextRow: RWAChartRow = { timestamp: row.timestamp }
 
 		for (const [contract, label] of labelByContract) {
 			const value = row[contract]
 			if (value == null) continue
 
-			const numericValue = typeof value === 'number' ? value : Number(value)
-			if (!Number.isFinite(numericValue)) continue
-
-			nextRow[label] = getFiniteNumber(nextRow[label]) + numericValue
+			nextRow[label] = (nextRow[label] ?? 0) + value
 		}
 
 		return nextRow
@@ -1012,7 +1004,7 @@ const StatCard = ({
 
 function fetchOverviewTimeSeriesDataset(
 	request: IRWAPerpsOverviewBreakdownRequest & { venue?: string; assetGroup?: string }
-) {
+): Promise<RWAChartDataset> {
 	const searchParams = new URLSearchParams({
 		breakdown: request.breakdown,
 		key: request.key
@@ -1022,10 +1014,10 @@ function fetchOverviewTimeSeriesDataset(
 	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
 	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`)
+	return fetchJson<RWAChartDataset>(`/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`)
 }
 
-function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownRequest) {
+function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownRequest): Promise<RWAChartDataset> {
 	const searchParams = new URLSearchParams({
 		key: request.key
 	})
@@ -1034,7 +1026,7 @@ function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownReque
 	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
 	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/perps/contract-breakdown?${searchParams.toString()}`)
+	return fetchJson<RWAChartDataset>(`/api/public/rwa/perps/contract-breakdown?${searchParams.toString()}`)
 }
 
 export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {

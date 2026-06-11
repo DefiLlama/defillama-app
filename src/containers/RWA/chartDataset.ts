@@ -1,6 +1,7 @@
 export const RWA_OPEN_INTEREST_SERIES_LABEL = 'RWA Perps OI'
 
-export type RWAChartRow = { timestamp: number } & Record<string, number>
+export type RWAChartSeriesValue = number | null | undefined
+export type RWAChartRow = { timestamp: number } & Record<string, RWAChartSeriesValue>
 export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
 export function emptyChartDataset(): RWAChartDataset {

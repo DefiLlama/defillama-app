@@ -16,7 +16,6 @@ import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups, getPrimaryRwaCategory, getRwaPlatforms } from './grouping'
 
 export type RWAChartMetric = RWAChartMetricKey
-type RWAOpenInterestSourceRow = Record<string, number | string>
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
@@ -86,7 +85,7 @@ export function selectRwaChartDatasetSeries(dataset: RWAChartDataset, seriesDime
 
 export function buildRwaOpenInterestDataset(
 	assets: IRWAAssetsOverview['assets'],
-	dataset: { source: RWAOpenInterestSourceRow[]; dimensions: string[] }
+	dataset: RWAChartDataset
 ): RWAChartDataset {
 	const contracts = new Set<string>()
 	for (const asset of assets) {
@@ -103,15 +102,14 @@ export function buildRwaOpenInterestDataset(
 
 		for (const contract of contracts) {
 			const value = row[contract]
-			const numericValue = typeof value === 'number' ? value : Number(value)
-			if (Number.isFinite(numericValue)) {
+			if (value != null) {
 				hasOpenInterestData = true
-				totalOpenInterest += numericValue
+				totalOpenInterest += value
 			}
 		}
 
 		source.push({
-			timestamp: Number(row.timestamp),
+			timestamp: row.timestamp,
 			[RWA_OPEN_INTEREST_SERIES_LABEL]: totalOpenInterest
 		})
 	}
@@ -194,7 +192,7 @@ function aggregateMetricRows(
 			if (!Object.prototype.hasOwnProperty.call(row, assetKey)) continue
 			if (assetKey === 'timestamp') continue
 			const value = row[assetKey]
-			if (value === 0) continue
+			if (value == null || value === 0) continue
 
 			const groups = assetToGroups.get(assetKey)
 			if (!groups || groups.size === 0) continue
