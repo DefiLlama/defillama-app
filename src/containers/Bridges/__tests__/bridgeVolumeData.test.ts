@@ -28,6 +28,27 @@ describe('buildBridgeVolumeChartData', () => {
 		expect(result.charts).toBe(BRIDGE_VOLUME_SPLIT_CHARTS)
 	})
 
+	it('keeps signed split bars out of ECharts large mode', () => {
+		expect(BRIDGE_VOLUME_SPLIT_CHARTS).toEqual([
+			{
+				type: 'bar',
+				name: 'Deposits',
+				encode: { x: 'timestamp', y: 'Deposits' },
+				color: '#3b82f6',
+				stack: 'metric',
+				large: false
+			},
+			{
+				type: 'bar',
+				name: 'Withdrawals',
+				encode: { x: 'timestamp', y: 'Withdrawals' },
+				color: '#ef4444',
+				stack: 'metric',
+				large: false
+			}
+		])
+	})
+
 	it('groups combined transaction rows by selected period', () => {
 		const day1 = 1_704_067_200
 		const day2 = 1_704_153_600

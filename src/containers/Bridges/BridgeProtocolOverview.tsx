@@ -268,6 +268,12 @@ export function BridgeProtocolOverview(props: BridgePageData) {
 const VOLUME_CHARTS = [{ type: 'bar' as const, name: 'Volume', encode: { x: 'timestamp', y: 'Volume' } }]
 
 const INFLOW_CHARTS = [
-	{ type: 'bar' as const, name: 'Deposited', encode: { x: 'timestamp', y: 'Deposited' }, stack: 'stackA' },
-	{ type: 'bar' as const, name: 'Withdrawn', encode: { x: 'timestamp', y: 'Withdrawn' }, stack: 'stackA' }
+	{
+		type: 'bar' as const,
+		name: 'Deposited',
+		encode: { x: 'timestamp', y: 'Deposited' },
+		stack: 'stackA',
+		large: false
+	},
+	{ type: 'bar' as const, name: 'Withdrawn', encode: { x: 'timestamp', y: 'Withdrawn' }, stack: 'stackA', large: false }
 ]

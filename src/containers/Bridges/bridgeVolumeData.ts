@@ -16,14 +16,16 @@ export const BRIDGE_VOLUME_SPLIT_CHARTS = [
 		name: 'Deposits',
 		encode: { x: 'timestamp', y: 'Deposits' },
 		color: '#3b82f6',
-		stack: 'metric'
+		stack: 'metric',
+		large: false
 	},
 	{
 		type: 'bar' as const,
 		name: 'Withdrawals',
 		encode: { x: 'timestamp', y: 'Withdrawals' },
 		color: '#ef4444',
-		stack: 'metric'
+		stack: 'metric',
+		large: false
 	}
 ]
 
