@@ -820,6 +820,12 @@
       "oldName": "Narrative Tracker"
     },
     {
+      "name": "Llama Health",
+      "route": "/llama-health",
+      "category": "Others",
+      "description": "Protocol sustainability scores based on fee generation, TVL stability, chain diversification, and audit status. Category-relative scoring across DeFi protocols."
+    },
+    {
       "name": "Staked ETH by Protocol",
       "route": "/lst",
       "category": "Others",
