@@ -15,7 +15,7 @@ import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeState
 import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
 import { TokenMarketsSection } from '~/containers/Token/TokenMarketsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
-import { TokenOverviewSection, type TokenIssuer } from '~/containers/Token/TokenOverviewSection'
+import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import { TokenPageSectionNav } from '~/containers/Token/TokenPageSectionNav'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
 import { getTokenRiskTimelineData } from '~/containers/Token/tokenRiskTimeline.server'
