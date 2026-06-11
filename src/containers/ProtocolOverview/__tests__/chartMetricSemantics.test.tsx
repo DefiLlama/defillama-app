@@ -169,4 +169,75 @@ describe('ProtocolOverview chart metric semantics', () => {
 			[timestampMs + 86_400_000, 300]
 		])
 	})
+
+	it('keeps cumulative fee-family charts in selected denomination units', () => {
+		const secondTimestamp = timestamp + 86_400
+		const secondTimestampMs = timestampMs + 86_400_000
+		probeProps = {
+			...feeProps,
+			groupBy: 'cumulative',
+			chartDenominations: [{ symbol: 'ETH', geckoId: 'ethereum' }],
+			toggledMetrics: {
+				...toggledMetrics,
+				denomination: 'ETH'
+			},
+			feesSettings: {}
+		} as unknown as typeof feeProps
+
+		mocks.useQuery.mockImplementation((options: { queryKey: unknown[] }) => {
+			if (options.queryKey[2] === 'denomination-price-history') {
+				return {
+					data: {
+						[String(timestamp)]: 10,
+						[String(secondTimestamp)]: 20
+					},
+					isLoading: false
+				}
+			}
+			if (options.queryKey[2] === 'fees') {
+				return {
+					data: [
+						[timestamp, 100],
+						[secondTimestamp, 200]
+					],
+					isLoading: false
+				}
+			}
+			if (options.queryKey[2] === 'revenue') {
+				return {
+					data: [
+						[timestamp, 50],
+						[secondTimestamp, 100]
+					],
+					isLoading: false
+				}
+			}
+			if (options.queryKey[2] === 'holders-revenue') {
+				return {
+					data: [
+						[timestamp, 30],
+						[secondTimestamp, 40]
+					],
+					isLoading: false
+				}
+			}
+			return { data: null, isLoading: false }
+		})
+
+		renderToStaticMarkup(<Probe />)
+
+		expect(mocks.lastResult?.valueSymbol).toBe('ETH')
+		expect(mocks.lastResult?.finalCharts.Fees).toEqual([
+			[timestampMs, 10],
+			[secondTimestampMs, 20]
+		])
+		expect(mocks.lastResult?.finalCharts.Revenue).toEqual([
+			[timestampMs, 5],
+			[secondTimestampMs, 10]
+		])
+		expect(mocks.lastResult?.finalCharts['Holders Revenue']).toEqual([
+			[timestampMs, 3],
+			[secondTimestampMs, 5]
+		])
+	})
 })
