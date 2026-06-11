@@ -23,10 +23,13 @@ export function buildLstInflowsData({
 				dateStore = {}
 				store.set(dateKey, dateStore)
 			}
-			dateStore[token] = (dateStore[token] ?? 0) + value + (totalByToken[token] ?? 0)
 
 			if (isCumulative) {
+				const carry = totalByToken[token] ?? 0
+				dateStore[token] = (dateStore[token] ?? 0) + value + carry
 				totalByToken[token] = (totalByToken[token] ?? 0) + value
+			} else {
+				dateStore[token] = (dateStore[token] ?? 0) + value
 			}
 		}
 	}

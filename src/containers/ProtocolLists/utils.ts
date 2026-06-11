@@ -15,6 +15,14 @@ type MutableTvlEntry = Record<TvlEntryKey, number | null>
 const TVL_ENTRY_KEYS: Array<TvlEntryKey> = ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth']
 const NON_ADDITIVE_TVL_KEYS = new Set(['doublecounted', 'liquidstaking'])
 
+function getMcapTvl(mcap: number | null, tvl: number | null | undefined): number | null {
+	if (mcap == null || !tvl) return null
+
+	// This is derived arithmetic: numeric API fields can still produce non-finite ratios.
+	const ratio = mcap / tvl
+	return Number.isFinite(ratio) ? +ratio.toFixed(2) : null
+}
+
 function isAdditiveTvlKey(tvlKey: string, extraTvlsEnabled: Record<string, boolean>, normalizeSettingKey: boolean) {
 	const settingKey = normalizeSettingKey ? tvlKey.toLowerCase() : tvlKey
 	return !!extraTvlsEnabled[settingKey] && !NON_ADDITIVE_TVL_KEYS.has(tvlKey)
@@ -109,9 +117,7 @@ export function applyExtraTvl(
 		if (finalTvlPrevWeek != null && finalTvlPrevWeek < 0) finalTvlPrevWeek = 0
 		if (finalTvlPrevMonth != null && finalTvlPrevMonth < 0) finalTvlPrevMonth = 0
 
-		const mcapNum = protocol.mcap ?? null
-		const tvlNum = finalTvl ?? 0
-		const mcaptvl = mcapNum != null && tvlNum !== 0 ? +(mcapNum / tvlNum).toFixed(2) : null
+		const mcaptvl = getMcapTvl(protocol.mcap ?? null, finalTvl)
 
 		return {
 			...protocol,
@@ -189,7 +195,7 @@ export const applyProtocolTvlSettings = ({
 				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 			}
 
-			const mcaptvl = protocol.mcap != null && defaultTvl.tvl ? +(protocol.mcap / defaultTvl.tvl).toFixed(2) : null
+			const mcaptvl = getMcapTvl(protocol.mcap, defaultTvl.tvl)
 
 			if (protocol.childProtocols) {
 				const childProtocols: IProtocol['childProtocols'] = []
@@ -211,8 +217,7 @@ export const applyProtocolTvlSettings = ({
 						change1m: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevMonth)
 					}
 
-					const childMcapTvl =
-						child.mcap != null && childDefaultTvl.tvl ? +(child.mcap / childDefaultTvl.tvl).toFixed(2) : null
+					const childMcapTvl = getMcapTvl(child.mcap, childDefaultTvl.tvl)
 
 					if (
 						(minTvl != null ? (childDefaultTvl.tvl ?? 0) >= minTvl : true) &&

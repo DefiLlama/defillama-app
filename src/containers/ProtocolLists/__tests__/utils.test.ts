@@ -106,6 +106,20 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.mcaptvl).toBeNull()
 	})
 
+	it('returns null for non-finite recent protocol market-cap-to-tvl ratios', () => {
+		const [protocol] = applyExtraTvl(
+			[
+				makeRecentProtocol({
+					tvl: Number.MIN_VALUE,
+					mcap: Number.MAX_VALUE
+				})
+			],
+			{}
+		)
+
+		expect(protocol.mcaptvl).toBeNull()
+	})
+
 	it('adds normal protocol table extras while keeping doublecounted and liquid staking non-additive', () => {
 		const [protocol] = applyProtocolTvlSettings({
 			protocols: [
@@ -128,6 +142,24 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, 100, 70, 45))
 		expect(protocol.tvlChange?.change1d).toBe(20)
 		expect(protocol.mcaptvl).toBe(8.33)
+	})
+
+	it('returns null for non-finite protocol table market-cap-to-tvl ratios', () => {
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					mcap: Number.MAX_VALUE,
+					tvl: makeProtocolTvl({
+						default: makeTvlEntry(Number.MIN_VALUE)
+					})
+				})
+			],
+			extraTvlsEnabled: {},
+			minTvl: null,
+			maxTvl: null
+		})
+
+		expect(protocol.mcaptvl).toBeNull()
 	})
 
 	it('treats missing additive extra fields as zero when protocol table base fields exist', () => {

@@ -68,4 +68,29 @@ describe('buildCompareProtocolsChartData', () => {
 
 		expect(result.dataset.source).toEqual([{ timestamp: 1_000, Aave: 125 }])
 	})
+
+	it('skips protocol detail chain sections without tvl chart rows', () => {
+		const result = buildCompareProtocolsChartData({
+			protocolResponses: [
+				{
+					name: 'Aave',
+					chainTvls: {
+						Ethereum: {},
+						Base: {
+							tvl: null
+						},
+						Arbitrum: {
+							tvl: [{ date: 1, totalLiquidityUSD: 75 }]
+						}
+					}
+				}
+			],
+			extraTvlEnabled: {}
+		})
+
+		expect(result.dataset).toEqual({
+			dimensions: ['timestamp', 'Aave'],
+			source: [{ timestamp: 1_000, Aave: 75 }]
+		})
+	})
 })

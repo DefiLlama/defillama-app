@@ -19,8 +19,14 @@ export function calculateDenominatedTimeSeries(
 	const sortedData = (data ?? []).toSorted((a, b) => a.date - b.date)
 	if (sortedData.length === 0) return sortedData
 
-	const denominatedCoinDay0 = sortedData[0]?.[denominatedCoin] ?? null
-	if (denominatedCoinDay0 == null) return sortedData
+	let hasDenominatedCoin = false
+	for (const row of sortedData) {
+		if (row[denominatedCoin] != null) {
+			hasDenominatedCoin = true
+			break
+		}
+	}
+	if (!hasDenominatedCoin) return sortedData
 
 	const denominatedReturns: TimeSeriesEntry[] = []
 
@@ -29,6 +35,7 @@ export function calculateDenominatedTimeSeries(
 		const denominatedCoinValue = dayData[denominatedCoin] ?? null
 		const denominatedCoinPerformance = denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
 		if (denominatedCoinPerformance === null || denominatedCoinPerformance === 0) {
+			// Relative performance is undefined without a valid denominator for that day.
 			denominatedReturns.push(newDayData)
 			continue
 		}

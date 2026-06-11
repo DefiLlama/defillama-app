@@ -1233,7 +1233,7 @@ function buildLatestValueRowsFromChartData({
 
 		const rows: BreakdownLatestValueRow[] = []
 		for (const name of selectedNames) {
-			const value = sourceRow?.[name] as number | null | undefined
+			const value = sourceRow[name] as number | null | undefined
 			rows.push({
 				name,
 				total24h: value ?? null

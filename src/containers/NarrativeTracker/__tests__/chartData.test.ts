@@ -85,15 +85,29 @@ describe('calculateDenominatedTimeSeries', () => {
 		expect(result[1].Bitcoin).toBeUndefined()
 	})
 
-	it('keeps sorted source rows when the first row lacks the selected denomination', () => {
+	it('converts later rows when the first row lacks the selected denomination', () => {
 		const rows = [
 			{ date: 2, DeFi: 20, Bitcoin: 1 },
 			{ date: 1, DeFi: 10 }
 		]
 
+		const result = calculateDenominatedTimeSeries(rows, 'Bitcoin')
+
+		expect(result[0]).toEqual({ date: 1 })
+		expect(result[1].date).toBe(2)
+		expect(result[1].DeFi).toBeCloseTo(18.811881)
+		expect(result[1].Bitcoin).toBeUndefined()
+	})
+
+	it('keeps sorted source rows when no row has the selected denomination', () => {
+		const rows = [
+			{ date: 2, DeFi: 20 },
+			{ date: 1, DeFi: 10 }
+		]
+
 		expect(calculateDenominatedTimeSeries(rows, 'Bitcoin')).toEqual([
 			{ date: 1, DeFi: 10 },
-			{ date: 2, DeFi: 20, Bitcoin: 1 }
+			{ date: 2, DeFi: 20 }
 		])
 	})
 
