@@ -1,6 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/utils'
 import { IconsRow } from '~/components/IconsRow'
 import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
@@ -9,44 +8,15 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
-import { calculateTotalWithExtraToggles, getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import { getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import { buildOraclesByChainDominanceData, buildOraclesByChainTableAndPieData } from './byChainData'
 import { useOraclesByChainExtraBreakdowns } from './queries.client'
-import type { OracleBreakdownItem, OraclesByChainPageData } from './types'
+import type { OraclesByChainPageData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
-
-interface IOracleDominanceChart {
-	type: 'line'
-	name: string
-	encode: { x: string; y: string }
-	color: string
-	stack: string
-}
-
-function indexExtraChartDataByTimestamp(extraBreakdownsByApiKey: Record<string, Array<OracleBreakdownItem>>) {
-	const indexedByTimestamp = new Map<number, Record<string, Record<string, number>>>()
-	for (const [apiKey, chart] of Object.entries(extraBreakdownsByApiKey)) {
-		for (const dayData of chart) {
-			const timestamp = dayData.timestamp
-			const valuesByOracle = indexedByTimestamp.get(timestamp) ?? {}
-
-			for (const [oracleName, value] of Object.entries(dayData)) {
-				if (oracleName === 'timestamp') continue
-				if (!Number.isFinite(value)) continue
-				const currentValues = valuesByOracle[oracleName] ?? {}
-				currentValues[apiKey] = value
-				valuesByOracle[oracleName] = currentValues
-			}
-
-			indexedByTimestamp.set(timestamp, valuesByOracle)
-		}
-	}
-
-	return indexedByTimestamp
-}
 
 export const OraclesByChain = ({
 	chartData,
@@ -69,87 +39,18 @@ export const OraclesByChain = ({
 	const shouldApplyExtraTvlFormatting = hasEnabledExtras && !isFetchingExtraBreakdowns
 
 	const tableAndPieData = React.useMemo(() => {
-		if (!hasEnabledExtras) {
-			const pieData = preparePieChartData({
-				data: tableData.map((row) => ({ name: row.name, value: row.tvl })),
-				limit: 5
-			})
-
-			return {
-				tableData,
-				pieData
-			}
-		}
-
-		const tableDataWithAdjustedTvl = tableData
-			.map((row) => ({
-				...row,
-				tvl: calculateTotalWithExtraToggles({
-					values: { tvl: row.tvl, ...row.extraTvl },
-					extraTvlsEnabled
-				})
-			}))
-			.toSorted((a, b) => b.tvl - a.tvl)
-		const pieData = preparePieChartData({
-			data: tableDataWithAdjustedTvl.map((row) => ({ name: row.name, value: row.tvl })),
-			limit: 5
-		})
-
-		return {
-			tableData: tableDataWithAdjustedTvl,
-			pieData
-		}
+		return buildOraclesByChainTableAndPieData({ tableData, extraTvlsEnabled, hasEnabledExtras })
 	}, [extraTvlsEnabled, hasEnabledExtras, tableData])
 
 	const dominanceData = React.useMemo(() => {
-		const extraValuesByTimestamp = shouldApplyExtraTvlFormatting
-			? indexExtraChartDataByTimestamp(extraBreakdownsByApiKey)
-			: null
-		const dimensions = ['timestamp', ...oracles]
-		const source: Array<Record<string, number>> = []
-
-		for (const baseDayData of chartData) {
-			const timestampInSeconds = baseDayData.timestamp
-			if (!Number.isFinite(timestampInSeconds)) continue
-			const extraValuesForTimestamp = extraValuesByTimestamp?.get(timestampInSeconds) ?? {}
-
-			let dayTotal = 0
-			const perOracleValues: Array<[string, number]> = []
-			for (const oracleName of oracles) {
-				const oracleTvs = shouldApplyExtraTvlFormatting
-					? calculateTotalWithExtraToggles({
-							values: {
-								tvl: baseDayData[oracleName] ?? 0,
-								...(extraValuesForTimestamp[oracleName] ?? {})
-							},
-							extraTvlsEnabled
-						})
-					: (baseDayData[oracleName] ?? 0)
-				perOracleValues.push([oracleName, oracleTvs])
-				dayTotal += oracleTvs
-			}
-
-			if (dayTotal === 0) continue
-
-			const point: Record<string, number> = { timestamp: timestampInSeconds * 1e3 }
-			for (const [oracleName, oracleTvs] of perOracleValues) {
-				point[oracleName] = (oracleTvs / dayTotal) * 100
-			}
-			source.push(point)
-		}
-
-		const dominanceCharts: Array<IOracleDominanceChart> = oracles.map((name) => ({
-			type: 'line',
-			name,
-			encode: { x: 'timestamp', y: name },
-			color: oraclesColors[name] ?? '#ccc',
-			stack: 'dominance'
-		}))
-
-		return {
-			dominanceCharts,
-			dominanceDataset: { source, dimensions }
-		}
+		return buildOraclesByChainDominanceData({
+			chartData,
+			oracles,
+			oraclesColors,
+			extraBreakdownsByApiKey,
+			extraTvlsEnabled,
+			shouldApplyExtraTvlFormatting
+		})
 	}, [chartData, extraBreakdownsByApiKey, extraTvlsEnabled, oracles, shouldApplyExtraTvlFormatting, oraclesColors])
 
 	const activeLink = chain ?? 'All'
