@@ -88,17 +88,17 @@ export function buildRwaOpenInterestDataset(
 	assets: IRWAAssetsOverview['assets'],
 	dataset: { source: RWAOpenInterestSourceRow[]; dimensions: string[] }
 ): RWAChartDataset {
-	const contracts = new Set(
-		assets
-			.filter((asset) => asset.kind === 'perps')
-			.map((asset) => asset.contract)
-			.filter(Boolean)
-	)
+	const contracts = new Set<string>()
+	for (const asset of assets) {
+		if (asset.kind !== 'perps') continue
+		if (asset.contract) contracts.add(asset.contract)
+	}
 
 	if (contracts.size === 0 || dataset.source.length === 0) return emptyChartDataset()
 
 	let hasOpenInterestData = false
-	const source = dataset.source.map((row) => {
+	const source: RWAChartDataset['source'] = []
+	for (const row of dataset.source) {
 		let totalOpenInterest = 0
 
 		for (const contract of contracts) {
@@ -110,11 +110,11 @@ export function buildRwaOpenInterestDataset(
 			}
 		}
 
-		return {
+		source.push({
 			timestamp: Number(row.timestamp),
 			[RWA_OPEN_INTEREST_SERIES_LABEL]: totalOpenInterest
-		}
-	})
+		})
+	}
 
 	if (!hasOpenInterestData) {
 		return emptyChartDataset()
