@@ -1197,17 +1197,9 @@ function buildLatestValueRowsFromChartData({
 	seriesType: LatestValueSeriesType
 }): BreakdownLatestValueRow[] {
 	if (groupBy === 'daily') {
-		const effectiveTimestamp = getEffectiveDailyLatestTimestamp(chartData)
-		if (effectiveTimestamp == null) {
+		const sourceRow = getEffectiveDailyLatestRow(chartData)
+		if (!sourceRow) {
 			return buildNullLatestRows(selectedNames)
-		}
-
-		let sourceRow: MultiSeriesChart2Dataset['source'][0] | undefined
-		for (const row of chartData.source) {
-			if (Number(row.timestamp) === effectiveTimestamp) {
-				sourceRow = row
-				break
-			}
 		}
 
 		const rows: BreakdownLatestValueRow[] = []
@@ -1272,23 +1264,31 @@ function buildLatestValueRowsFromChartData({
 	return rows
 }
 
-function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): number | null {
+function getEffectiveDailyLatestRow(chartData: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset['source'][0] | null {
 	let lastTimestamp = Number.NEGATIVE_INFINITY
 	let previousTimestamp = Number.NEGATIVE_INFINITY
+	let lastTimestampRow: MultiSeriesChart2Dataset['source'][0] | null = null
+	let previousTimestampRow: MultiSeriesChart2Dataset['source'][0] | null = null
 	let count = 0
 	for (const row of chartData.source) {
 		const timestamp = Number(row.timestamp)
 		count++
-		if (timestamp >= lastTimestamp) {
+		if (timestamp > lastTimestamp) {
 			previousTimestamp = lastTimestamp
+			previousTimestampRow = lastTimestampRow
 			lastTimestamp = timestamp
+			lastTimestampRow = row
+		} else if (timestamp === lastTimestamp) {
+			previousTimestamp = lastTimestamp
+			previousTimestampRow = lastTimestampRow
 		} else if (timestamp > previousTimestamp) {
 			previousTimestamp = timestamp
+			previousTimestampRow = row
 		}
 	}
 
 	if (count === 0) return null
-	if (count === 1) return lastTimestamp
+	if (count === 1) return lastTimestampRow
 
 	const lastDate = new Date(lastTimestamp)
 	const isUtcMidnight =
@@ -1298,7 +1298,7 @@ function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): 
 		lastDate.getUTCMilliseconds() === 0
 	const gapMs = lastTimestamp - previousTimestamp
 
-	return !isUtcMidnight || gapMs < MIN_COMPLETE_DAILY_GAP_MS ? previousTimestamp : lastTimestamp
+	return !isUtcMidnight || gapMs < MIN_COMPLETE_DAILY_GAP_MS ? previousTimestampRow : lastTimestampRow
 }
 
 function buildHBarPresentation({

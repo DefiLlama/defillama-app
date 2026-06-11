@@ -331,6 +331,33 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[1].value).toBe(30)
 	})
 
+	it('keeps first-row selection for duplicate latest daily timestamps', () => {
+		const timestamp = toMs(2024, 1, 2)
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum'],
+				source: [
+					{ timestamp, Ethereum: 10 },
+					{ timestamp, Ethereum: 20 }
+				]
+			},
+			selectedChains: ['Ethereum'],
+			state: { chartKind: 'treemap', groupBy: 'daily' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data).toEqual([
+			{
+				name: 'Ethereum',
+				value: 10,
+				share: 100,
+				itemStyle: { color: expect.any(String) }
+			}
+		])
+	})
+
 	it('builds hbar data from the latest-value ranking and groups overflow into Others', () => {
 		const extendedChainChartData = {
 			dimensions: ['timestamp', ...Array.from({ length: 11 }, (_, index) => `Chain ${index + 1}`)],
