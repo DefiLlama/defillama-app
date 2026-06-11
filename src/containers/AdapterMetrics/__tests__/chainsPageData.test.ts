@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { addFeeExtrasToRowTotals } from '~/metrics/feeExtras'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../constants'
 
 const { fetchJsonMock, fetchProtocolsMock } = vi.hoisted(() => ({
@@ -536,9 +537,14 @@ describe('chains by adapter page data', () => {
 									category: 'Lending',
 									methodology: undefined,
 									linkedProtocols: undefined,
-									total24h: 0,
+									total24h: 10,
+									total48hto24h: 5,
 									total7d: null,
+									total14dto7d: 20,
 									total30d: 30,
+									total60dto30d: 10,
+									total7DaysAgo: 8,
+									total30DaysAgo: null,
 									total1y: 0,
 									totalAllTime: null
 								})
@@ -560,8 +566,13 @@ describe('chains by adapter page data', () => {
 									slug: 'extra-display',
 									category: 'Lending',
 									total24h: null,
+									total48hto24h: 5,
 									total7d: 7,
+									total14dto7d: 8,
 									total30d: 0,
+									total60dto30d: 5,
+									total7DaysAgo: 2,
+									total30DaysAgo: 4,
 									total1y: null,
 									totalAllTime: 70
 								})
@@ -640,11 +651,49 @@ describe('chains by adapter page data', () => {
 			total30d: null,
 			total1y: null,
 			totalAllTime: null,
-			bribes: { total24h: 0, total7d: null, total30d: 30, total1y: 0, totalAllTime: null },
-			tokenTax: { total24h: null, total7d: 7, total30d: 0, total1y: null, totalAllTime: 70 },
+			bribes: {
+				total24h: 10,
+				total48hto24h: 5,
+				total7d: null,
+				total14dto7d: 20,
+				total30d: 30,
+				total60dto30d: 10,
+				total7DaysAgo: 8,
+				total30DaysAgo: null,
+				total1y: 0,
+				totalAllTime: null
+			},
+			tokenTax: {
+				total24h: null,
+				total48hto24h: 5,
+				total7d: 7,
+				total14dto7d: 8,
+				total30d: 0,
+				total60dto30d: 5,
+				total7DaysAgo: 2,
+				total30DaysAgo: 4,
+				total1y: null,
+				totalAllTime: 70
+			},
 			breakdownAliases: ['Extra Raw']
 		})
 		expect(extraRow).not.toHaveProperty('methodology')
+		const adjustedExtraRow = addFeeExtrasToRowTotals(extraRow!, { bribes: true, tokentax: true })
+		expect(adjustedExtraRow).toMatchObject({
+			total24h: 10,
+			total48hto24h: 10,
+			total7d: 7,
+			total14dto7d: 28,
+			total30d: 30,
+			total60dto30d: 15,
+			total7DaysAgo: 10,
+			total30DaysAgo: 4
+		})
+		expect(adjustedExtraRow.change_1d).toBe(0)
+		expect(adjustedExtraRow.change_7d).toBe(0)
+		expect(adjustedExtraRow.change_1m).toBe(150)
+		expect(adjustedExtraRow.change_7dover7d).toBe(-75)
+		expect(adjustedExtraRow.change_30dover30d).toBe(100)
 
 		expect(data?.protocols.find((protocol) => protocol.name === 'Token Tax Display')).toMatchObject({
 			name: 'Token Tax Display',

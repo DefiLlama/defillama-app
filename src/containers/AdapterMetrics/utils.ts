@@ -4,50 +4,63 @@ import type {
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
+import { FEE_EXTRA_PERIOD_TOTAL_KEYS, type FeeExtraPeriodTotals } from '~/metrics/feeExtras'
 import { getNDistinctColors, slug } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IAdapterChainMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
+import { mergeMetricPeriods, type MetricPeriodFields } from './metricPeriods'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData, IProtocol } from './types'
 
-export type BribesData = {
-	total24h: number | null
-	total7d: number | null
-	total30d: number | null
-	total1y: number | null
-	totalAllTime: number | null
-}
+export type BribesData = FeeExtraPeriodTotals
 export type OpenInterestData = { total24h: number | null; doublecounted: boolean }
 export type ActiveLiquidityData = { total24h: number | null; doublecounted: boolean }
 export type NormalizedVolumeData = { total24h: number | null }
 
 type AggregatedProtocol = Omit<
 	IAdapterChainMetrics['protocols'][0],
-	'total24h' | 'total7d' | 'total30d' | 'total1y' | 'totalAllTime'
+	| 'total24h'
+	| 'total48hto24h'
+	| 'total7d'
+	| 'total14dto7d'
+	| 'total30d'
+	| 'total60dto30d'
+	| 'total7DaysAgo'
+	| 'total30DaysAgo'
+	| 'total1y'
+	| 'totalAllTime'
+	| 'change_1d'
+	| 'change_7d'
+	| 'change_1m'
+	| 'change_7dover7d'
+	| 'change_30dover30d'
 > & {
-	total24h: number
-	total7d: number
-	total30d: number
-	total1y: number
-	totalAllTime: number
+	total24h: number | null
+	total48hto24h: number | null
+	total7d: number | null
+	total14dto7d: number | null
+	total30d: number | null
+	total60dto30d: number | null
+	total7DaysAgo: number | null
+	total30DaysAgo: number | null
+	total1y: number | null
+	totalAllTime: number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_7dover7d: number | null
+	change_30dover30d: number | null
 }
 
 export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics['protocols']): AggregatedProtocol {
 	const breakdowns24h: Record<string, Record<string, number>>[] = []
 	const breakdowns30d: Record<string, Record<string, number>>[] = []
-	const aggregatedRevenue = {
-		total24h: 0,
-		total7d: 0,
-		total30d: 0,
-		total1y: 0,
-		totalAllTime: 0
+	let aggregatedRevenue: MetricPeriodFields = {}
+	for (const key of FEE_EXTRA_PERIOD_TOTAL_KEYS) {
+		aggregatedRevenue[key] = 0
 	}
 	for (const p of protocolVersions) {
-		aggregatedRevenue.total24h += p.total24h ?? 0
-		aggregatedRevenue.total7d += p.total7d ?? 0
-		aggregatedRevenue.total30d += p.total30d ?? 0
-		aggregatedRevenue.total1y += p.total1y ?? 0
-		aggregatedRevenue.totalAllTime += p.totalAllTime ?? 0
+		aggregatedRevenue = mergeMetricPeriods(aggregatedRevenue, p)
 		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)
 		if (p.breakdown30d) breakdowns30d.push(p.breakdown30d)
 	}
@@ -276,8 +289,13 @@ export function matchRevenueToEarnings(
 		defillamaId: string
 		groupedName: string
 		total24h: number | null
+		total48hto24h?: number | null
 		total7d: number | null
+		total14dto7d?: number | null
 		total30d: number | null
+		total60dto30d?: number | null
+		total7DaysAgo?: number | null
+		total30DaysAgo?: number | null
 		total1y: number | null
 		totalAllTime: number | null
 	}>,
@@ -307,8 +325,13 @@ export function matchRevenueToEarnings(
 		if (matchingEarningsProtocol) {
 			matchedData[matchingEarningsProtocol.name] = {
 				total24h: revenueProtocol.total24h ?? null,
+				total48hto24h: revenueProtocol.total48hto24h ?? null,
 				total7d: revenueProtocol.total7d ?? null,
+				total14dto7d: revenueProtocol.total14dto7d ?? null,
 				total30d: revenueProtocol.total30d ?? null,
+				total60dto30d: revenueProtocol.total60dto30d ?? null,
+				total7DaysAgo: revenueProtocol.total7DaysAgo ?? null,
+				total30DaysAgo: revenueProtocol.total30DaysAgo ?? null,
 				total1y: revenueProtocol.total1y ?? null,
 				totalAllTime: revenueProtocol.totalAllTime ?? null
 			}

@@ -3,6 +3,7 @@ import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
+import { FEE_EXTRA_PERIOD_TOTAL_KEYS } from '~/metrics/feeExtras'
 import { feeRevenueMetrics, getChainNativeFeeRevenueRankingMetric } from '~/metrics/feesRevenue'
 import { slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -95,6 +96,27 @@ function buildFeeExtraOnlyProtocolRow(protocol: AdapterChainProtocolMetric): Ada
 		change_1m: null,
 		change_7dover7d: null,
 		change_30dover30d: null
+	}
+}
+
+function getFeeExtraPeriodTotals(protocol: AdapterChainProtocolMetric): BribesData {
+	return {
+		total24h: protocol.total24h ?? null,
+		total48hto24h: protocol.total48hto24h ?? null,
+		total7d: protocol.total7d ?? null,
+		total14dto7d: protocol.total14dto7d ?? null,
+		total30d: protocol.total30d ?? null,
+		total60dto30d: protocol.total60dto30d ?? null,
+		total7DaysAgo: protocol.total7DaysAgo ?? null,
+		total30DaysAgo: protocol.total30DaysAgo ?? null,
+		total1y: protocol.total1y ?? null,
+		totalAllTime: protocol.totalAllTime ?? null
+	}
+}
+
+function addFeeExtraPeriodTotals(acc: BribesData, totals: BribesData) {
+	for (const key of FEE_EXTRA_PERIOD_TOTAL_KEYS) {
+		acc[key] = (acc[key] ?? 0) + (totals[key] ?? 0)
 	}
 }
 
@@ -349,13 +371,7 @@ export const getAdapterByChainPageData = async ({
 	} else {
 		if (bribesData) {
 			for (const p of bribesData.protocols) {
-				bribesProtocols[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+				bribesProtocols[p.name] = getFeeExtraPeriodTotals(p)
 
 				if (!allProtocolsByName.has(p.name)) {
 					allProtocolsByName.add(p.name)
@@ -366,13 +382,7 @@ export const getAdapterByChainPageData = async ({
 
 		if (tokenTaxesData) {
 			for (const p of tokenTaxesData.protocols) {
-				tokenTaxesProtocols[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+				tokenTaxesProtocols[p.name] = getFeeExtraPeriodTotals(p)
 
 				if (!allProtocolsByName.has(p.name)) {
 					allProtocolsByName.add(p.name)
@@ -535,20 +545,12 @@ export const getAdapterByChainPageData = async ({
 			if (p.zeroFeePerp) zeroFeePerp = true
 			if (!warning && p.warning) warning = p.warning
 			if (p.bribes) {
-				bribes ??= { total24h: 0, total7d: 0, total30d: 0, total1y: 0, totalAllTime: 0 }
-				bribes.total24h += p.bribes.total24h ?? 0
-				bribes.total7d += p.bribes.total7d ?? 0
-				bribes.total30d += p.bribes.total30d ?? 0
-				bribes.total1y += p.bribes.total1y ?? 0
-				bribes.totalAllTime += p.bribes.totalAllTime ?? 0
+				bribes ??= {}
+				addFeeExtraPeriodTotals(bribes, p.bribes)
 			}
 			if (p.tokenTax) {
-				tokenTax ??= { total24h: 0, total7d: 0, total30d: 0, total1y: 0, totalAllTime: 0 }
-				tokenTax.total24h += p.tokenTax.total24h ?? 0
-				tokenTax.total7d += p.tokenTax.total7d ?? 0
-				tokenTax.total30d += p.tokenTax.total30d ?? 0
-				tokenTax.total1y += p.tokenTax.total1y ?? 0
-				tokenTax.totalAllTime += p.tokenTax.totalAllTime ?? 0
+				tokenTax ??= {}
+				addFeeExtraPeriodTotals(tokenTax, p.tokenTax)
 			}
 			if (p.openInterest != null) {
 				openInterest = (openInterest ?? 0) + p.openInterest
