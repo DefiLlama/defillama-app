@@ -335,13 +335,14 @@ const buildComputedBreakdownResult = ({
 			: null
 	const chainsCharts = chainsDataset != null ? buildChartsForKeys(chainsUnique, 'line') : EMPTY_MULTI_SERIES_CHARTS
 
-	const valueDataset =
-		tvlChart && tvlChart.length > 1
-			? {
-					source: tvlChart.map(([timestamp, value]) => ({ timestamp, [valueSeriesName]: value })),
-					dimensions: ['timestamp', valueSeriesName]
-				}
-			: null
+	let valueDataset: MultiSeriesChart2Dataset | null = null
+	if (tvlChart && tvlChart.length > 1) {
+		const source: MultiSeriesChart2Dataset['source'] = []
+		for (const [timestamp, value] of tvlChart) {
+			source.push({ timestamp, [valueSeriesName]: value })
+		}
+		valueDataset = { source, dimensions: ['timestamp', valueSeriesName] }
+	}
 	const valueCharts =
 		valueDataset != null
 			? [
@@ -430,12 +431,14 @@ const buildComputedBreakdownResult = ({
 	const usdInflows = buildUsdInflowsFromTvlChart(tvlChart)
 	const tokenInflows = buildTokenInflowsFromBreakdowns(tokenBreakdownUSD, tokenBreakdown, tokensUnique)
 
-	const usdInflowsDataset = usdInflows?.length
-		? {
-				source: usdInflows.map(([timestamp, value]) => ({ timestamp, 'USD Inflows': value })),
-				dimensions: ['timestamp', 'USD Inflows'] as ['timestamp', 'USD Inflows']
-			}
-		: null
+	let usdInflowsDataset: InflowsDataset | null = null
+	if (usdInflows?.length) {
+		const source: InflowsDataset['source'] = []
+		for (const [timestamp, value] of usdInflows) {
+			source.push({ timestamp, 'USD Inflows': value })
+		}
+		usdInflowsDataset = { source, dimensions: ['timestamp', 'USD Inflows'] }
+	}
 
 	const tokenInflowsDataset = tokenInflows?.length
 		? {
