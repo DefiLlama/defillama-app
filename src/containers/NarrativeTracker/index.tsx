@@ -80,6 +80,8 @@ const DENOM_COIN_MAP: Record<Denom, string> = {
 	ETH: 'Ethereum',
 	SOL: 'Solana'
 }
+const DENOM_COIN_NAMES = ['Bitcoin', 'Ethereum', 'Solana'] as const
+const DENOM_COIN_NAME_SET = new Set<string>(DENOM_COIN_NAMES)
 
 export const CategoryPerformanceContainer = ({
 	pctChanges,
@@ -110,25 +112,28 @@ export const CategoryPerformanceContainer = ({
 	const disabledDenoms = React.useMemo(() => {
 		const { field, seriesKey } = PERIOD_CONFIG[groupBy]
 		const series = performanceTimeSeries?.[seriesKey] ?? []
+		const timeSeriesDenoms = new Set<string>()
+		const pctDenoms = new Set<string>()
 
-		const hasTimeSeriesDenom = (coinName: string): boolean => {
-			if (series.length === 0) return false
-			for (const row of series) {
-				if (row[coinName] != null) return true
+		for (const row of series) {
+			for (const coinName of DENOM_COIN_NAMES) {
+				if (row[coinName] != null) {
+					timeSeriesDenoms.add(coinName)
+				}
 			}
-			return false
 		}
 
-		const hasPctDenom = (coinName: string): boolean => {
-			const row = pctChanges.find((i) => i.name === coinName)
-			return row?.[field] != null
+		for (const row of pctChanges) {
+			if (row[field] != null && DENOM_COIN_NAME_SET.has(row.name)) {
+				pctDenoms.add(row.name)
+			}
 		}
 
 		const disabled: Denom[] = []
 		for (const denom of DENOMS) {
 			if (denom === '$') continue
 			const coinName = DENOM_COIN_MAP[denom]
-			if (!hasTimeSeriesDenom(coinName) || !hasPctDenom(coinName)) disabled.push(denom)
+			if (!timeSeriesDenoms.has(coinName) || !pctDenoms.has(coinName)) disabled.push(denom)
 		}
 		return disabled
 	}, [groupBy, performanceTimeSeries, pctChanges])
@@ -181,12 +186,13 @@ export const CategoryPerformanceContainer = ({
 		const seriesKeys = areaChartLegend ?? []
 		const dimensions = ['timestamp', ...seriesKeys]
 
-		const sortedRows = (timeSeries ?? []).toSorted((a, b) => a.date - b.date)
-		const source = sortedRows.map((row) => {
+		const sortedRows = [...(timeSeries ?? [])].sort((a, b) => a.date - b.date)
+		const source: Array<Record<string, string | number | null | undefined>> = []
+		for (const row of sortedRows) {
 			const out: Record<string, string | number | null | undefined> = { timestamp: row.date * 1e3 }
 			for (const key of seriesKeys) out[key] = row[key] ?? null
-			return out
-		})
+			source.push(out)
+		}
 
 		return { dimensions, source }
 	}, [timeSeries, areaChartLegend])
