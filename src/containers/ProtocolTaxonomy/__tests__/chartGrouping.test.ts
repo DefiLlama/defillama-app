@@ -23,9 +23,10 @@ function makeCharts(): IProtocolTaxonomyPageData['charts'] {
 
 describe('buildProtocolTaxonomyGroupedCharts', () => {
 	it('groups bar and line series while preserving sparse null values', () => {
-		const grouped = buildProtocolTaxonomyGroupedCharts({ charts: makeCharts(), groupBy: 'daily' })
+		const result = buildProtocolTaxonomyGroupedCharts({ charts: makeCharts(), groupBy: 'daily' })
 
-		expect(grouped.dataset).toEqual({
+		expect(result.hasBarCharts).toBe(true)
+		expect(result.charts.dataset).toEqual({
 			dimensions: ['timestamp', 'Volume', 'TVL'],
 			source: [
 				{ timestamp: toMs(2024, 1, 1), Volume: 10, TVL: 100 },
@@ -33,23 +34,36 @@ describe('buildProtocolTaxonomyGroupedCharts', () => {
 				{ timestamp: toMs(2024, 1, 3), Volume: 30, TVL: null }
 			]
 		})
-		expect(grouped.charts.map((series) => series.type)).toEqual(['bar', 'line'])
+		expect(result.charts.charts.map((series) => series.type)).toEqual(['bar', 'line'])
+	})
+
+	it('returns original chart behavior and hasBarCharts false when no series started as bars', () => {
+		const charts = makeCharts()
+		charts.charts = [{ type: 'line', name: 'TVL', encode: { x: 'timestamp', y: 'TVL' } }]
+
+		const result = buildProtocolTaxonomyGroupedCharts({ charts, groupBy: 'daily' })
+
+		expect(result.charts).toBe(charts)
+		expect(result.hasBarCharts).toBe(false)
 	})
 
 	it('renders cumulative bar groupings as line series', () => {
-		const grouped = buildProtocolTaxonomyGroupedCharts({ charts: makeCharts(), groupBy: 'cumulative' })
+		const result = buildProtocolTaxonomyGroupedCharts({ charts: makeCharts(), groupBy: 'cumulative' })
 
-		expect(grouped.charts[0].type).toBe('line')
-		expect(grouped.dataset.source.map((row) => row.Volume)).toEqual([10, null, 40])
+		expect(result.hasBarCharts).toBe(true)
+		expect(result.charts.charts[0].type).toBe('line')
+		expect(result.charts.dataset.source.map((row) => row.Volume)).toEqual([10, null, 40])
 	})
 
-	it('returns the original chart object when bar series have no numeric values', () => {
+	it('returns the original chart object and hasBarCharts false when bar series have no numeric values', () => {
 		const charts = makeCharts()
 		charts.dataset.source = [
 			{ timestamp: toMs(2024, 1, 1), Volume: null, TVL: 100 },
 			{ timestamp: toMs(2024, 1, 2), Volume: null, TVL: 120 }
 		]
+		const result = buildProtocolTaxonomyGroupedCharts({ charts, groupBy: 'daily' })
 
-		expect(buildProtocolTaxonomyGroupedCharts({ charts, groupBy: 'daily' })).toBe(charts)
+		expect(result.charts).toBe(charts)
+		expect(result.hasBarCharts).toBe(false)
 	})
 })

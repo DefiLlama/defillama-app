@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildNarrativeTreemapTreeData, calculateDenominatedTimeSeries } from '../chartData'
+import {
+	buildNarrativeTreemapTreeData,
+	calculateDenominatedTimeSeries,
+	normalizeNarrativeTimeSeries
+} from '../chartData'
 import type { IPctChangeRow } from '../types'
 
 function row(overrides: Partial<IPctChangeRow>): IPctChangeRow {
@@ -63,6 +67,34 @@ describe('buildNarrativeTreemapTreeData', () => {
 				children: [{ value: [0, 1.23, 1.23], name: 'SpiritSwap', path: '/SpiritSwap' }]
 			}
 		])
+	})
+})
+
+describe('normalizeNarrativeTimeSeries', () => {
+	it('sorts raw dollar chart rows chronologically without changing displayed values', () => {
+		const rows = [
+			{ date: 3, DeFi: 30, Gaming: null },
+			{ date: 1, DeFi: 10, Gaming: 5 },
+			{ date: 2, DeFi: null, Gaming: 15 }
+		]
+
+		const result = normalizeNarrativeTimeSeries(rows)
+
+		expect(result).toEqual([
+			{ date: 1, DeFi: 10, Gaming: 5 },
+			{ date: 2, DeFi: null, Gaming: 15 },
+			{ date: 3, DeFi: 30, Gaming: null }
+		])
+		expect(rows.map((entry) => entry.date)).toEqual([3, 1, 2])
+	})
+
+	it('returns the original rows when source ordering is already normalized', () => {
+		const rows = [
+			{ date: 1, DeFi: 10 },
+			{ date: 2, DeFi: 20 }
+		]
+
+		expect(normalizeNarrativeTimeSeries(rows)).toBe(rows)
 	})
 })
 

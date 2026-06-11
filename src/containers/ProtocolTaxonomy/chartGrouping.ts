@@ -5,6 +5,10 @@ import type { IProtocolTaxonomyPageData } from './types'
 type ProtocolTaxonomyCharts = IProtocolTaxonomyPageData['charts']
 type ProtocolTaxonomyChartSeries = ProtocolTaxonomyCharts['charts'][number] & { encode: { x: string; y: string } }
 type ProtocolTaxonomyChartRow = { timestamp: number } & Record<string, number | null>
+type ProtocolTaxonomyGroupedChartsResult = {
+	charts: ProtocolTaxonomyCharts
+	hasBarCharts: boolean
+}
 
 export function buildProtocolTaxonomyGroupedCharts({
 	charts,
@@ -12,7 +16,7 @@ export function buildProtocolTaxonomyGroupedCharts({
 }: {
 	charts: ProtocolTaxonomyCharts
 	groupBy: ChartTimeGroupingWithCumulative
-}): ProtocolTaxonomyCharts {
+}): ProtocolTaxonomyGroupedChartsResult {
 	const chartSeries = (charts.charts ?? []) as ProtocolTaxonomyChartSeries[]
 	const dataByDimension = new Map<string, Array<[number, number]>>()
 	const barDimensions = new Set<string>()
@@ -30,7 +34,7 @@ export function buildProtocolTaxonomyGroupedCharts({
 		}
 	}
 
-	if (barDimensions.size === 0) return charts
+	if (barDimensions.size === 0) return { charts, hasBarCharts: false }
 
 	let hasBarCharts = false
 	const sourceRows = charts.dataset.source as ProtocolTaxonomyChartRow[]
@@ -44,7 +48,7 @@ export function buildProtocolTaxonomyGroupedCharts({
 		}
 	}
 
-	if (!hasBarCharts) return charts
+	if (!hasBarCharts) return { charts, hasBarCharts: false }
 
 	const rowsByTimestamp = new Map<number, Record<string, number | null>>()
 	const groupedSeries: ProtocolTaxonomyCharts['charts'] = []
@@ -87,11 +91,14 @@ export function buildProtocolTaxonomyGroupedCharts({
 	}
 
 	return {
-		...charts,
-		dataset: {
-			source,
-			dimensions: ['timestamp', ...dimensionOrder]
+		charts: {
+			...charts,
+			dataset: {
+				source,
+				dimensions: ['timestamp', ...dimensionOrder]
+			},
+			charts: groupedSeries
 		},
-		charts: groupedSeries
+		hasBarCharts: true
 	}
 }
