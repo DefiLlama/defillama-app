@@ -120,10 +120,21 @@ export function AdapterByChain(props: IProps) {
 						: categoryParam
 					: props.categories
 
-		// Filter out excludes
-		selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+		if (excludeSet.size > 0) {
+			const filteredCategories: string[] = []
+			for (const category of selectedCategories) {
+				if (!excludeSet.has(category)) filteredCategories.push(category)
+			}
+			selectedCategories = filteredCategories
+		}
 
-		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+		const categoriesToFilter: string[] = []
+		for (const category of selectedCategories) {
+			const normalizedCategory = category.toLowerCase()
+			if (normalizedCategory !== 'all' && normalizedCategory !== 'none') {
+				categoriesToFilter.push(category)
+			}
+		}
 
 		const protocols: IProtocol[] =
 			props.categories.length === 0
@@ -134,37 +145,43 @@ export function AdapterByChain(props: IProps) {
 						? getProtocolsByCategory(props.protocols, categoriesToFilter)
 						: props.protocols
 
-		const finalProtocols = isFeeExtraEligibleAdapterMetric({ adapterType: props.adapterType, dataType: props.dataType })
-			? protocols.map((p) => {
-					const adjustedProtocol = addFeeExtrasToRowTotals(p, enabledSettings)
-					const pfOrPs =
-						adjustedProtocol.mcap != null && adjustedProtocol.total30d != null
-							? getAnnualizedRatio(adjustedProtocol.mcap, adjustedProtocol.total30d)
-							: null
+		let finalProtocols = protocols
+		if (
+			hasEnabledFeeExtras(enabledSettings) &&
+			isFeeExtraEligibleAdapterMetric({ adapterType: props.adapterType, dataType: props.dataType })
+		) {
+			finalProtocols = []
+			for (const p of protocols) {
+				const adjustedProtocol = addFeeExtrasToRowTotals(p, enabledSettings)
+				const pfOrPs =
+					adjustedProtocol.mcap != null && adjustedProtocol.total30d != null
+						? getAnnualizedRatio(adjustedProtocol.mcap, adjustedProtocol.total30d)
+						: null
 
-					const childProtocols: IProtocol['childProtocols'] =
-						p.childProtocols && hasEnabledFeeExtras(enabledSettings)
-							? p.childProtocols.map((cp) => {
-									const adjustedChildProtocol = addFeeExtrasToRowTotals(cp, enabledSettings)
-									const cpPfOrPs =
-										adjustedChildProtocol.mcap != null && adjustedChildProtocol.total30d != null
-											? getAnnualizedRatio(adjustedChildProtocol.mcap, adjustedChildProtocol.total30d)
-											: null
+				let childProtocols: IProtocol['childProtocols'] = p.childProtocols
+				if (p.childProtocols) {
+					childProtocols = []
+					for (const cp of p.childProtocols) {
+						const adjustedChildProtocol = addFeeExtrasToRowTotals(cp, enabledSettings)
+						const cpPfOrPs =
+							adjustedChildProtocol.mcap != null && adjustedChildProtocol.total30d != null
+								? getAnnualizedRatio(adjustedChildProtocol.mcap, adjustedChildProtocol.total30d)
+								: null
 
-									return {
-										...adjustedChildProtocol,
-										pfOrPs: cpPfOrPs
-									}
-								})
-							: p.childProtocols
-
-					return {
-						...adjustedProtocol,
-						pfOrPs,
-						...(childProtocols ? { childProtocols } : {})
+						childProtocols.push({
+							...adjustedChildProtocol,
+							pfOrPs: cpPfOrPs
+						})
 					}
+				}
+
+				finalProtocols.push({
+					...adjustedProtocol,
+					pfOrPs,
+					...(childProtocols ? { childProtocols } : {})
 				})
-			: protocols
+			}
+		}
 
 		return {
 			selectedCategories,
@@ -239,15 +256,19 @@ export function AdapterByChain(props: IProps) {
 
 	const setColumnOptions: React.Dispatch<React.SetStateAction<string[]>> = (newOptions) => {
 		const options = typeof newOptions === 'function' ? newOptions(selectedColumns) : newOptions
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, options.includes(col.id)]))
+		const optionsSet = new Set(options)
+		const ops: Record<string, boolean> = {}
+		for (const col of instance.getAllLeafColumns()) {
+			ops[col.id] = optionsSet.has(col.id)
+		}
 		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
 
-	const selectedColumns = instance
-		.getAllLeafColumns()
-		.filter((col) => col.getIsVisible())
-		.map((col) => col.id)
+	const selectedColumns: string[] = []
+	for (const col of instance.getAllLeafColumns()) {
+		if (col.getIsVisible()) selectedColumns.push(col.id)
+	}
 	const showChartPanel = props.adapterType !== 'fees' || FEES_CHART_PAGE_TYPES.includes(props.type)
 
 	return (

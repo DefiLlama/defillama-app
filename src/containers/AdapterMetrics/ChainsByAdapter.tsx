@@ -59,7 +59,11 @@ export function ChainsByAdapter(props: IProps) {
 			hasEnabledFeeExtras(enabledSettings) &&
 			isFeeExtraEligibleAdapterMetric({ adapterType: props.adapterType, dataType: props.dataType })
 		) {
-			return props.chains.map((chain) => addFeeExtrasToRowTotals(chain, enabledSettings))
+			const adjustedChains: IChainsByAdapterPageData['chains'] = []
+			for (const chain of props.chains) {
+				adjustedChains.push(addFeeExtrasToRowTotals(chain, enabledSettings))
+			}
+			return adjustedChains
 		}
 
 		return props.chains
