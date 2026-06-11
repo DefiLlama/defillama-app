@@ -2,7 +2,7 @@ import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 
-export interface ChainTvlChartSummary {
+interface ChainTvlChartSummary {
 	totalValueUSD: number | null
 	tvlPrevDay: number | null
 	valueChange24hUSD: number | null
