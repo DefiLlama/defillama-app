@@ -757,20 +757,22 @@ describe('mergeNamedDimensionChartDataset', () => {
 	})
 
 	it('keeps extra-only timestamps for known named dimensions', () => {
-		expect(
-			mergeNamedDimensionChartDataset({
-				chartData: {
-					dimensions: ['timestamp', 'Ethereum', 'Solana'],
-					source: [{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 }]
-				},
-				extraCharts: [
-					[[Math.floor(toMs(2024, 1, 2) / 1e3), { Ethereum: 2 }]],
-					[[Math.floor(toMs(2024, 1, 2) / 1e3), { Solana: 4, Base: 99 }]]
-				]
-			}).source
-		).toEqual([
-			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
-			{ timestamp: toMs(2024, 1, 2), Ethereum: 2, Solana: 4 }
+		const result = mergeNamedDimensionChartDataset({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum', 'Solana'],
+				source: [{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 }]
+			},
+			allowedDimensions: ['Ethereum', 'Solana', 'Base'],
+			extraCharts: [
+				[[Math.floor(toMs(2024, 1, 2) / 1e3), { ethereum: 100, Ethereum: 2 }]],
+				[[Math.floor(toMs(2024, 1, 2) / 1e3), { Solana: 4, Base: 99, Ignored: 200 }]]
+			]
+		})
+
+		expect(result.dimensions).toEqual(['timestamp', 'Ethereum', 'Solana', 'Base'])
+		expect(result.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20, Base: null },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 2, Solana: 4, Base: 99 }
 		])
 	})
 })

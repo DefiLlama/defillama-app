@@ -185,7 +185,7 @@ describe('getChainOverviewMetricFilterOptions', () => {
 		expect(options.map((option) => option.key)).toEqual(['staking', 'bribes'])
 	})
 
-	it('does not expose fee toggles for orphan extra totals without a visible fee metric', () => {
+	it('exposes fee toggles when extras are the only visible fee metric value', () => {
 		const options = getChainOverviewMetricFilterOptions({
 			chartData: makeChartData([]),
 			chainFees: { total24h: null },
@@ -198,10 +198,10 @@ describe('getChainOverviewMetricFilterOptions', () => {
 			}
 		})
 
-		expect(options).toEqual([])
+		expect(options.map((option) => option.key)).toEqual(['tokentax'])
 	})
 
-	it('does not expose app-only extras when only chain-native fee metrics are visible', () => {
+	it('exposes app-only extras even when chain-native base fee metrics are the only base fee values', () => {
 		const options = getChainOverviewMetricFilterOptions({
 			chartData: makeChartData([]),
 			chainFees: { total24h: 100 },
@@ -214,7 +214,7 @@ describe('getChainOverviewMetricFilterOptions', () => {
 			}
 		})
 
-		expect(options).toEqual([])
+		expect(options.map((option) => option.key)).toEqual(['bribes'])
 	})
 })
 

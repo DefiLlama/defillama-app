@@ -138,4 +138,22 @@ describe('ChainOverview chart metric semantics', () => {
 
 		expect(mocks.lastResult?.finalCharts['Chain Fees']).toEqual([[timestamp * 1e3, 100]])
 	})
+
+	it('keeps Chain Fees visible and reports failed enabled fee-extra chart fetches', () => {
+		const timestamp = Date.UTC(2024, 0, 1) / 1e3
+		mocks.useQuery.mockImplementation((options: { queryKey: unknown[]; enabled?: boolean; queryFn: () => unknown }) => {
+			if (options.queryKey[1] === 'chain-fees') {
+				return { data: [[timestamp, 100]], isLoading: false }
+			}
+			if (options.queryKey[1] === 'chain-native-fee-extra' && options.queryKey[2] === 'dailyBribesRevenue') {
+				return { data: undefined, isLoading: false, error: new Error('bribes failed') }
+			}
+			return { data: null, isLoading: false }
+		})
+
+		renderToStaticMarkup(<Probe toggledCharts={['Chain Fees']} feesSettings={{ bribes: true }} />)
+
+		expect(mocks.lastResult?.finalCharts['Chain Fees']).toEqual([[timestamp * 1e3, 100]])
+		expect(mocks.lastResult?.failedMetrics).toEqual(['Chain Fees'])
+	})
 })

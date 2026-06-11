@@ -141,18 +141,22 @@ const baseChartData: MultiSeriesChart2Dataset = {
 function renderChart({
 	adapterType,
 	dataType,
-	chartName
+	chartName,
+	chartData = baseChartData,
+	allChains = ['Base', 'Ethereum']
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
 	chartName: string
+	chartData?: MultiSeriesChart2Dataset
+	allChains?: string[]
 }) {
 	renderToStaticMarkup(
 		<ChainsByAdapterChart
 			adapterType={adapterType}
 			dataType={dataType}
-			chartData={baseChartData}
-			allChains={['Base', 'Ethereum']}
+			chartData={chartData}
+			allChains={allChains}
 			chartName={chartName}
 		/>
 	)
@@ -240,6 +244,26 @@ describe('ChainsByAdapterChart fee extras', () => {
 			{ metric: ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE, enabled: true },
 			{ metric: ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES, enabled: true }
 		])
+	})
+
+	it('keeps enabled extra-only chain dimensions when they are selectable', () => {
+		mocks.feesSettings.bribes = true
+
+		const chartData = renderChart({
+			adapterType: ADAPTER_TYPES.FEES,
+			dataType: ADAPTER_DATA_TYPES.DAILY_APP_FEES,
+			chartName: 'App Fees',
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum'],
+				source: [{ timestamp: timestampMs, Ethereum: 50 }]
+			},
+			allChains: ['Base', 'Ethereum']
+		})
+
+		expect(chartData).toEqual({
+			dimensions: ['timestamp', 'Ethereum', 'Base'],
+			source: [{ timestamp: timestampMs, Ethereum: 55, Base: 20 }]
+		})
 	})
 
 	it('does not merge fee extras into non-fee adapter chain chart data', () => {

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
 import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { addOptionalFeeExtraTotal } from '~/metrics/feeExtras'
 import type { IProtocolOverviewPageData } from './types'
 
 type ToggleOption = { name: string; key: string }
@@ -136,6 +137,7 @@ const hasAnyPeriodTotals = (totals: TotalsByPeriod | null | undefined) =>
 	totals?.total7d != null ||
 	totals?.total30d != null ||
 	totals?.total1y != null ||
+	totals?.annualized1y != null ||
 	totals?.totalAllTime != null
 
 export const getAdjustedTotals = (
@@ -154,9 +156,7 @@ export const getAdjustedTotals = (
 		const baseValue = base?.[key]
 		const bribesValue = enabledBribeRevenue?.[key]
 		const tokenTaxValue = enabledTokenTax?.[key]
-		return baseValue != null || bribesValue != null || tokenTaxValue != null
-			? (baseValue ?? 0) + (bribesValue ?? 0) + (tokenTaxValue ?? 0)
-			: null
+		return addOptionalFeeExtraTotal(baseValue, (bribesValue ?? 0) + (tokenTaxValue ?? 0))
 	}
 
 	return {

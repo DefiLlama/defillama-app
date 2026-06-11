@@ -1,8 +1,12 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IKeyMetricsProps } from '../KeyMetrics'
 import type { IProtocolPageMetrics } from '../types'
+
+const mocks = vi.hoisted(() => ({
+	tvlFeesSettings: { bribes: false, tokentax: false }
+}))
 
 vi.mock('~/contexts/LocalStorage', () => ({
 	TVL_SETTINGS: {
@@ -19,7 +23,7 @@ vi.mock('~/contexts/LocalStorage', () => ({
 		TOKENTAX: 'tokentax'
 	},
 	isTvlSettingsKey: () => false,
-	useLocalStorageSettingsManager: () => [{ bribes: false, tokentax: false }]
+	useLocalStorageSettingsManager: () => [mocks.tvlFeesSettings]
 }))
 
 vi.mock('~/components/Icon', () => ({
@@ -89,6 +93,11 @@ const baseProps = {
 }
 
 describe('KeyMetrics', () => {
+	beforeEach(() => {
+		mocks.tvlFeesSettings.bribes = false
+		mocks.tvlFeesSettings.tokentax = false
+	})
+
 	it('renders chain rows for fee breakdown metrics', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
@@ -224,5 +233,47 @@ describe('KeyMetrics', () => {
 		expect(markup).toContain('Earnings (Annualized)')
 		expect(markup).toContain('$3600')
 		expect(markup).not.toContain('$3660')
+	})
+
+	it('uses enabled extra-only adjusted revenue periods for earnings', async () => {
+		mocks.tvlFeesSettings.bribes = true
+
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			revenue: {
+				total24h: null,
+				total7d: null,
+				total30d: null,
+				total1y: null,
+				annualized1y: null,
+				totalAllTime: null,
+				chainBreakdown: null
+			},
+			bribeRevenue: {
+				total24h: 50,
+				total7d: 200,
+				total30d: 600,
+				total1y: null,
+				annualized1y: null,
+				totalAllTime: 1000
+			},
+			incentives: {
+				emissions24h: 10,
+				emissions7d: 20,
+				emissions30d: 100,
+				emissions1y: null,
+				emissionsAllTime: 200,
+				emissionsMonthlyAverage1y: 0
+			}
+		})
+
+		expect(markup).toContain('Earnings 30d')
+		expect(markup).toContain('$500')
+		expect(markup).toContain('Earnings 7d')
+		expect(markup).toContain('$180')
+		expect(markup).toContain('Earnings 24h')
+		expect(markup).toContain('$40')
+		expect(markup).toContain('Cumulative Earnings')
+		expect(markup).toContain('$800')
 	})
 })

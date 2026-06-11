@@ -521,15 +521,19 @@ export function normalizeProtocolBreakdownChartData({
 
 export function mergeNamedDimensionChartDataset({
 	chartData,
-	extraCharts
+	extraCharts,
+	allowedDimensions
 }: {
 	chartData: MultiSeriesChart2Dataset
 	extraCharts: Array<Array<[number, Record<string, number>]>>
+	allowedDimensions?: string[]
 }): MultiSeriesChart2Dataset {
 	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 	if (extraCharts.every((chart) => chart.length === 0)) return chartData
 
 	const dimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
+	const allowedDimensionSet = allowedDimensions ? new Set(allowedDimensions) : null
+	const dimensionByLowercase = new Map(dimensions.map((dimension) => [dimension.toLowerCase(), dimension]))
 	const rows = new Map<number, Record<string, number | null>>()
 
 	for (const row of chartData.source) {
@@ -541,20 +545,29 @@ export function mergeNamedDimensionChartDataset({
 		rows.set(Number(row.timestamp), nextRow)
 	}
 
+	const getExtraDimension = (key: string) => {
+		const existingDimension = dimensionByLowercase.get(key.toLowerCase())
+		if (existingDimension != null) {
+			return existingDimension === key ? existingDimension : null
+		}
+		if (allowedDimensionSet && !allowedDimensionSet.has(key)) {
+			return null
+		}
+
+		dimensions.push(key)
+		dimensionByLowercase.set(key.toLowerCase(), key)
+		return key
+	}
+
 	for (const extraChart of extraCharts) {
 		for (const [timestamp, values] of extraChart) {
 			const chartTimestamp = toChartTimestamp(timestamp)
 			const row = rows.get(chartTimestamp) ?? { timestamp: chartTimestamp }
 
-			for (const dimension of dimensions) {
-				if (!(dimension in row)) {
-					row[dimension] = null
-				}
-			}
-
 			for (const key in values) {
-				if (!(key in row)) continue
-				row[key] = (row[key] ?? 0) + values[key]
+				const dimension = getExtraDimension(key)
+				if (!dimension) continue
+				row[dimension] = (row[dimension] ?? 0) + values[key]
 			}
 
 			rows.set(chartTimestamp, row)
@@ -562,8 +575,16 @@ export function mergeNamedDimensionChartDataset({
 	}
 
 	return {
-		dimensions: chartData.dimensions,
-		source: Array.from(rows.values()).sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+		dimensions: ['timestamp', ...dimensions],
+		source: Array.from(rows.values())
+			.sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+			.map((row) => {
+				const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+				for (const dimension of dimensions) {
+					nextRow[dimension] = row[dimension] ?? null
+				}
+				return nextRow
+			})
 	}
 }
 

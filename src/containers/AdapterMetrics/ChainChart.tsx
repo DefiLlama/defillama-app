@@ -997,6 +997,7 @@ export const ChainsByAdapterChart = ({
 			case 'fees':
 				return mergeNamedDimensionChartDataset({
 					chartData: currentChartData,
+					allowedDimensions: allChains,
 					extraCharts: [
 						feesChartMode.extras.includes('dailyBribesRevenue') ? (bribesChartData ?? []) : [],
 						feesChartMode.extras.includes('dailyTokenTaxes') ? (tokenTaxChartData ?? []) : []
@@ -1005,7 +1006,7 @@ export const ChainsByAdapterChart = ({
 			default:
 				return assertNever(feesChartMode)
 		}
-	}, [bribesChartData, currentChartData, feesChartMode, tokenTaxChartData])
+	}, [allChains, bribesChartData, currentChartData, feesChartMode, tokenTaxChartData])
 
 	const failedMetrics = React.useMemo(() => {
 		if (feesChartMode.kind === 'plain') {

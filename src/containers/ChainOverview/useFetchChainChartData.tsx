@@ -202,9 +202,11 @@ export const useFetchChainChartData = ({
 	const isChainNativeFeeChartEnabled = isChainFeesEnabled || isChainRevenueEnabled
 	const isAppFeeChartEnabled = isChainAppFeesEnabled || isChainAppRevenueEnabled
 
-	const { data: chainNativeBribesDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingChainNativeBribes } = useQuery<
-		Array<[number, number]>
-	>({
+	const {
+		data: chainNativeBribesDataChart = EMPTY_FEE_EXTRA_CHART,
+		isLoading: fetchingChainNativeBribes,
+		error: chainNativeBribesError
+	} = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'chain-native-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes, selectedChain],
 		queryFn: () =>
 			fetchJson<Array<[number, number]>>(
@@ -215,35 +217,40 @@ export const useFetchChainChartData = ({
 					protocol: selectedChain,
 					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
 				})
-			).catch(() => []),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!feesSettings.bribes && isChainNativeFeeChartEnabled
 	})
 
-	const { data: chainNativeTokenTaxDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingChainNativeTokenTax } =
-		useQuery<Array<[number, number]>>({
-			queryKey: ['chain-overview', 'chain-native-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax, selectedChain],
-			queryFn: () =>
-				fetchJson<Array<[number, number]>>(
-					buildChainChartApiUrl({
-						kind: 'adapter-protocol',
-						entity: 'chain',
-						adapterType: 'fees',
-						protocol: selectedChain,
-						dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
-					})
-				).catch(() => []),
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0,
-			enabled: !!feesSettings.tokentax && isChainNativeFeeChartEnabled
-		})
+	const {
+		data: chainNativeTokenTaxDataChart = EMPTY_FEE_EXTRA_CHART,
+		isLoading: fetchingChainNativeTokenTax,
+		error: chainNativeTokenTaxError
+	} = useQuery<Array<[number, number]>>({
+		queryKey: ['chain-overview', 'chain-native-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax, selectedChain],
+		queryFn: () =>
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: selectedChain,
+					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
+				})
+			),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: !!feesSettings.tokentax && isChainNativeFeeChartEnabled
+	})
 
-	const { data: appBribesDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingAppBribes } = useQuery<
-		Array<[number, number]>
-	>({
+	const {
+		data: appBribesDataChart = EMPTY_FEE_EXTRA_CHART,
+		isLoading: fetchingAppBribes,
+		error: appBribesError
+	} = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'app-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes, selectedChain],
 		queryFn: () =>
 			fetchJson<Array<[number, number]>>(
@@ -253,16 +260,18 @@ export const useFetchChainChartData = ({
 					chain: selectedChain,
 					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
 				})
-			).catch(() => []),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!feesSettings.bribes && isAppFeeChartEnabled
 	})
 
-	const { data: appTokenTaxDataChart = EMPTY_FEE_EXTRA_CHART, isLoading: fetchingAppTokenTax } = useQuery<
-		Array<[number, number]>
-	>({
+	const {
+		data: appTokenTaxDataChart = EMPTY_FEE_EXTRA_CHART,
+		isLoading: fetchingAppTokenTax,
+		error: appTokenTaxError
+	} = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'app-fee-extra', FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax, selectedChain],
 		queryFn: () =>
 			fetchJson<Array<[number, number]>>(
@@ -272,7 +281,7 @@ export const useFetchChainChartData = ({
 					chain: selectedChain,
 					dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
 				})
-			).catch(() => []),
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -406,6 +415,8 @@ export const useFetchChainChartData = ({
 		: EMPTY_FEE_EXTRA_CHART
 	const enabledAppBribesDataChart = feesSettings.bribes ? appBribesDataChart : EMPTY_FEE_EXTRA_CHART
 	const enabledAppTokenTaxDataChart = feesSettings.tokentax ? appTokenTaxDataChart : EMPTY_FEE_EXTRA_CHART
+	const hasChainNativeFeeExtraError = !!(chainNativeBribesError || chainNativeTokenTaxError)
+	const hasAppFeeExtraError = !!(appBribesError || appTokenTaxError)
 
 	const chartData = useMemo(() => {
 		const charts: { [key in ChainChartLabels]?: Array<[number, number]> } = {}
@@ -713,6 +724,22 @@ export const useFetchChainChartData = ({
 			if (isTokenMetric && !denominationGeckoId) return false
 			return !Object.prototype.hasOwnProperty.call(charts, chartLabel)
 		})
+		if (hasChainNativeFeeExtraError) {
+			if (isChainFeesEnabled && !failedMetrics.includes(chainFeesMetric.label)) {
+				failedMetrics.push(chainFeesMetric.label)
+			}
+			if (isChainRevenueEnabled && !failedMetrics.includes(chainRevenueMetric.label)) {
+				failedMetrics.push(chainRevenueMetric.label)
+			}
+		}
+		if (hasAppFeeExtraError) {
+			if (isChainAppFeesEnabled && !failedMetrics.includes(appFeesMetric.label)) {
+				failedMetrics.push(appFeesMetric.label)
+			}
+			if (isChainAppRevenueEnabled && !failedMetrics.includes(appRevenueMetric.label)) {
+				failedMetrics.push(appRevenueMetric.label)
+			}
+		}
 
 		return {
 			finalCharts: charts,
@@ -748,6 +775,8 @@ export const useFetchChainChartData = ({
 		fetchingChainNativeTokenTax,
 		fetchingAppBribes,
 		fetchingAppTokenTax,
+		hasChainNativeFeeExtraError,
+		hasAppFeeExtraError,
 		enabledChainNativeBribesDataChart,
 		enabledChainNativeTokenTaxDataChart,
 		enabledAppBribesDataChart,

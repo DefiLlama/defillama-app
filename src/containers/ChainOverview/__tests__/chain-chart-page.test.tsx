@@ -114,9 +114,9 @@ describe('chart/chain/[chain]', () => {
 
 	it('passes fee include query params through to the chart data hook', () => {
 		mocks.routerState.query = {
-			include_staking_in_tvl: 'true',
+			include_staking_in_tvl: 'yes',
 			include_pool2_in_tvl: 'false',
-			include_bribes_in_fees: 'true',
+			include_bribes_in_fees: '1',
 			include_tokentax_in_fees: 'false'
 		}
 

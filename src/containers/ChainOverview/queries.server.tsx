@@ -131,25 +131,10 @@ async function fetchChainNativeFeeExtraTotals({
 	chain: string
 	dataType: FeeExtraMetric
 }): Promise<FeeExtraTotals | null> {
-	if (chain !== 'All') {
-		return fetchAdapterProtocolMetrics({ adapterType: 'fees', protocol: chain, dataType })
-			.then(toFeeExtraTotals)
-			.catch(() => null)
-	}
+	if (chain === 'All') return null
 
-	return fetchAdapterChainMetrics({ adapterType: 'fees', chain: 'All', dataType })
-		.then((data) => {
-			const totals: FeeExtraTotals = {}
-
-			for (const protocol of data.protocols) {
-				if (protocol.protocolType !== 'chain') continue
-				for (const key of FEE_EXTRA_TOTAL_KEYS) {
-					totals[key] = (totals[key] ?? 0) + (protocol[key] ?? 0)
-				}
-			}
-
-			return toFeeExtraTotals(totals)
-		})
+	return fetchAdapterProtocolMetrics({ adapterType: 'fees', protocol: chain, dataType })
+		.then(toFeeExtraTotals)
 		.catch(() => null)
 }
 
@@ -168,8 +153,16 @@ export function getChainOverviewMetricFilterOptions({
 	appFees: { total24h: number | null } | null | undefined
 	feeExtras: IChainOverviewData['feeExtras']
 }) {
-	const hasVisibleChainNativeFeeMetric = chainFees?.total24h != null || chainRevenue?.total24h != null
-	const hasVisibleAppFeeMetric = appRevenue?.total24h != null || appFees?.total24h != null
+	const hasVisibleChainNativeFeeMetric =
+		chainFees?.total24h != null ||
+		chainRevenue?.total24h != null ||
+		hasAnyFeeExtraTotals(feeExtras.chainNative.bribes) ||
+		hasAnyFeeExtraTotals(feeExtras.chainNative.tokenTax)
+	const hasVisibleAppFeeMetric =
+		appRevenue?.total24h != null ||
+		appFees?.total24h != null ||
+		hasAnyFeeExtraTotals(feeExtras.app.bribes) ||
+		hasAnyFeeExtraTotals(feeExtras.app.tokenTax)
 	const hasFeeExtraOption = (setting: FeeExtraSetting) => {
 		const totalsKey = FEE_EXTRA_TOTAL_FIELD_BY_SETTING[setting]
 		return (
@@ -622,10 +615,13 @@ export async function getChainOverviewData({
 		if (stablecoins?.mcap != null) {
 			charts.push('Stablecoins Mcap')
 		}
-		if (chainFees?.total24h != null) {
+		const hasChainNativeFeeExtras = hasAnyFeeExtraTotals(chainNativeBribes) || hasAnyFeeExtraTotals(chainNativeTokenTax)
+		const hasAppFeeExtras = hasAnyFeeExtraTotals(appBribes) || hasAnyFeeExtraTotals(appTokenTax)
+
+		if (chainFees?.total24h != null || hasChainNativeFeeExtras) {
 			charts.push(chainFeesMetric.label)
 		}
-		if (chainRevenue?.total24h != null) {
+		if (chainRevenue?.total24h != null || hasChainNativeFeeExtras) {
 			charts.push(chainRevenueMetric.label)
 		}
 		if (shouldFetchDexs && dexs?.total24h != null) {
@@ -637,10 +633,10 @@ export async function getChainOverviewData({
 		if (chainIncentives?.emissions24h != null) {
 			charts.push('Token Incentives')
 		}
-		if (appRevenue?.total24h != null) {
+		if (appRevenue?.total24h != null || hasAppFeeExtras) {
 			charts.push(appRevenueMetric.label)
 		}
-		if (appFees?.total24h != null) {
+		if (appFees?.total24h != null || hasAppFeeExtras) {
 			charts.push(appFeesMetric.label)
 		}
 

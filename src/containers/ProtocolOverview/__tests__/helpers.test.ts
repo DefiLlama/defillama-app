@@ -144,6 +144,25 @@ describe('getAdjustedTotals', () => {
 
 		expect(result?.annualized1y).toBeNull()
 	})
+
+	it('returns annualized1y when it is the only selected period', () => {
+		const result = getAdjustedTotals(null, { annualized1y: 700 }, null, { bribes: true, tokentax: false })
+
+		expect(result).toMatchObject({
+			total24h: null,
+			total7d: null,
+			total30d: null,
+			total1y: null,
+			annualized1y: 700,
+			totalAllTime: null
+		})
+	})
+
+	it('keeps enabled zero-only extra periods null when the base period is missing', () => {
+		const result = getAdjustedTotals(null, { total24h: 0 }, null, { bribes: true, tokentax: false })
+
+		expect(result?.total24h).toBeNull()
+	})
 })
 
 describe('useFinalTVL', () => {
