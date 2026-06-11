@@ -60,6 +60,7 @@ export function buildNarrativeTreemapTreeData(rows: IPctChangeRow[]): NarrativeT
 
 	for (const row of rows) {
 		const categoryName = row.categoryName ?? ''
+		const marketCap = row.mcap ?? 0
 		let category = categoryGroups.get(categoryName)
 		if (!category) {
 			category = {
@@ -72,10 +73,10 @@ export function buildNarrativeTreemapTreeData(rows: IPctChangeRow[]): NarrativeT
 			treeData.push(category)
 		}
 
-		category.value[0] += row.mcap
+		category.value[0] += marketCap
 		const returnValue = safeTreemapReturn(row.returnField)
 		category.children.push({
-			value: [row.mcap, returnValue, returnValue],
+			value: [marketCap, returnValue, returnValue],
 			name: row.name,
 			path: `${categoryName}/${row.name}`
 		})

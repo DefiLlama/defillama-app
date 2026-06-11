@@ -6,7 +6,7 @@ function row(overrides: Partial<IPctChangeRow>): IPctChangeRow {
 	return {
 		id: overrides.id ?? overrides.name?.toLowerCase() ?? 'row',
 		name: overrides.name ?? 'Row',
-		mcap: overrides.mcap ?? 0,
+		mcap: overrides.mcap === undefined ? 0 : overrides.mcap,
 		volume1D: overrides.volume1D ?? null,
 		change1W: null,
 		change1M: null,
@@ -50,6 +50,17 @@ describe('buildNarrativeTreemapTreeData', () => {
 				name: '',
 				path: '',
 				children: [{ value: [500, 0, 0], name: 'Bitcoin', path: '/Bitcoin' }]
+			}
+		])
+	})
+
+	it('uses zero treemap weight for coins without market cap data', () => {
+		expect(buildNarrativeTreemapTreeData([row({ name: 'SpiritSwap', mcap: null, returnField: 1.23 })])).toEqual([
+			{
+				value: [0, null, null],
+				name: '',
+				path: '',
+				children: [{ value: [0, 1.23, 1.23], name: 'SpiritSwap', path: '/SpiritSwap' }]
 			}
 		])
 	})

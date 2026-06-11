@@ -73,7 +73,7 @@ function calculateCumulativePercentageChange(
 		if (!groupedData[id]) groupedData[id] = []
 		groupedData[id].push({
 			timestamp: Math.floor(new Date(timestamp).getTime() / 1000),
-			price: parseFloat(price)
+			price
 		})
 	}
 

@@ -188,6 +188,8 @@ Important files:
 
 Do not assume two routes use the same TVL model just because they share the same toggle names. Some pages start from an adjusted base TVL, while others start from raw TVL and add selected extras. Some table paths use double counted or liquid staking toggles for display/strike behavior rather than normal extra addition.
 
+Oracle and Fork chart API `key` query params are not the same contract as local TVL setting keys. For valid keys, the chart response shape is stable across keys, but the backend v2 chart routes only accept the protocol/treasury TVL chart keys such as `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `all`, and `OwnTokens`. Do not send local overlap setting names such as `doublecounted`, `liquidstaking`, or `dcAndLsOverlap` directly as Fork/Oracle chart `key` values.
+
 Before refactoring TVL:
 
 - Inventory the route families involved.

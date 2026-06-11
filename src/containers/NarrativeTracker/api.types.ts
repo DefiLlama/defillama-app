@@ -12,13 +12,13 @@ export interface ICategoryInfoApiItem {
 export interface ICoinInfoApiItem {
 	id: string
 	name: string
-	mcap: number
+	mcap: number | null
 	volume1D: number | null
 	categoryName?: string
 }
 
 /** Raw price entry: [coinId, timestamp, price] */
-export type PriceEntry = [string, string, string]
+export type PriceEntry = [string, string, number]
 
 /** Time series entry: { date: number; [name]: number } */
 export type TimeSeriesEntry = Record<string, number>
