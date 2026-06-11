@@ -437,6 +437,29 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[2].value).toBe(20)
 	})
 
+	it('keeps zero cumulative totals distinct from missing selected series for ranking', () => {
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Positive', 'Missing', 'Zero'],
+				source: [
+					{ timestamp: toMs(2024, 1, 1), Positive: 5, Zero: 0 },
+					{ timestamp: toMs(2024, 1, 2), Positive: 10, Zero: 0 }
+				]
+			},
+			selectedProtocols: ['Positive', 'Missing', 'Zero'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'absolute',
+				barLayout: 'stacked',
+				groupBy: 'cumulative'
+			}
+		})
+
+		expect(presentation.kind).toBe('bar')
+		expect(presentation.charts.map((chart) => chart.name)).toEqual(['Positive', 'Zero', 'Missing'])
+		expect(presentation.dataset.source.at(-1)).toMatchObject({ Positive: 15, Zero: 0, Missing: null })
+	})
+
 	it('sums rolling-window values for dominance-backed latest-value charts (weekly = last 7 days)', () => {
 		const lineBackedChartData = {
 			dimensions: ['timestamp', 'Hyperliquid', 'dYdX'],

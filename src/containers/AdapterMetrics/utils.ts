@@ -1186,6 +1186,35 @@ function buildNullLatestRows(selectedNames: string[]): BreakdownLatestValueRow[]
 	return rows
 }
 
+function buildCumulativeLatestValueRowsFromChartData({
+	chartData,
+	selectedNames
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+}): BreakdownLatestValueRow[] {
+	const totals = new Map<string, number>()
+	const pointCounts = new Map<string, number>()
+
+	for (const row of chartData.source) {
+		for (const name of selectedNames) {
+			const value = row[name] as number | null | undefined
+			if (value == null) continue
+			totals.set(name, (totals.get(name) ?? 0) + value)
+			pointCounts.set(name, (pointCounts.get(name) ?? 0) + 1)
+		}
+	}
+
+	const rows: BreakdownLatestValueRow[] = []
+	for (const name of selectedNames) {
+		rows.push({
+			name,
+			total24h: (pointCounts.get(name) ?? 0) === 0 ? null : (totals.get(name) ?? 0)
+		})
+	}
+	return rows
+}
+
 function buildLatestValueRowsFromChartData({
 	chartData,
 	selectedNames,
@@ -1214,23 +1243,8 @@ function buildLatestValueRowsFromChartData({
 	}
 
 	if (groupBy === 'cumulative') {
-		const seriesMap = buildSeriesMapForNames({ chartData, seriesNames: selectedNames })
-		const rows: BreakdownLatestValueRow[] = []
-		for (const name of selectedNames) {
-			// Cumulative rankings should always use running totals, even for line renderers.
-			const groupedData = formatBarChart({
-				data: seriesMap.get(name) ?? [],
-				groupBy,
-				dateInMs: true,
-				denominationPriceHistory: null
-			})
-
-			rows.push({
-				name,
-				total24h: groupedData.at(-1)?.[1] ?? null
-			})
-		}
-		return rows
+		// Mirrors the final point from formatBarChart(..., groupBy: 'cumulative', denominationPriceHistory: null).
+		return buildCumulativeLatestValueRowsFromChartData({ chartData, selectedNames })
 	}
 
 	const latestTsMs = getLatestTimestampMsInDataset(chartData)
