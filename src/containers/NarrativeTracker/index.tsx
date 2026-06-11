@@ -217,7 +217,7 @@ export const CategoryPerformanceContainer = ({
 			name,
 			encode: { x: 'timestamp', y: name },
 			stack: 'A',
-			large: true
+			large: false
 		}))
 	}, [areaChartLegend])
 	const chartDataBundle = React.useMemo(() => ({ dataset, barCharts, lineCharts }), [dataset, barCharts, lineCharts])

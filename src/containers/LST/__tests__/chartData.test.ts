@@ -60,16 +60,48 @@ describe('LST chart data helpers', () => {
 			]
 		})
 
-		expect(
-			buildLstInflowsSeriesData({
-				inflowsData: [{ date: 1, Lido: 10, RocketPool: -1 }],
-				tokens,
-				lsdColors,
-				barChartStacks: { Lido: 'A', RocketPool: 'A' }
-			}).dataset
-		).toEqual({
+		const inflowsSeriesData = buildLstInflowsSeriesData({
+			inflowsData: [{ date: 1, Lido: 10, RocketPool: -1 }],
+			tokens,
+			lsdColors,
+			barChartStacks: { Lido: 'A', RocketPool: 'A' }
+		})
+
+		expect(inflowsSeriesData.dataset).toEqual({
 			source: [{ timestamp: 1_000, Lido: 10, RocketPool: -1 }],
 			dimensions: ['timestamp', 'Lido', 'RocketPool']
 		})
+		expect(inflowsSeriesData.barCharts).toEqual([
+			{
+				type: 'bar',
+				name: 'Lido',
+				encode: { x: 'timestamp', y: 'Lido' },
+				color: '#111',
+				stack: 'A',
+				large: false
+			},
+			{
+				type: 'bar',
+				name: 'RocketPool',
+				encode: { x: 'timestamp', y: 'RocketPool' },
+				color: '#222',
+				stack: 'A',
+				large: false
+			}
+		])
+		expect(inflowsSeriesData.cumulativeCharts).toEqual([
+			{
+				type: 'line',
+				name: 'Lido',
+				encode: { x: 'timestamp', y: 'Lido' },
+				color: '#111'
+			},
+			{
+				type: 'line',
+				name: 'RocketPool',
+				encode: { x: 'timestamp', y: 'RocketPool' },
+				color: '#222'
+			}
+		])
 	})
 })

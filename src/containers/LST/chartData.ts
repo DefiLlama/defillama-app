@@ -110,6 +110,7 @@ export function buildLstInflowsSeriesData({
 		encode: { x: string; y: string }
 		color: string
 		stack: string
+		large: false
 	}> = []
 
 	for (const name of tokens) {
@@ -124,7 +125,8 @@ export function buildLstInflowsSeriesData({
 			name,
 			encode: { x: 'timestamp', y: name },
 			color: lsdColors[name],
-			stack: barChartStacks[name]
+			stack: barChartStacks[name],
+			large: false
 		})
 	}
 

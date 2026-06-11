@@ -682,7 +682,7 @@ function buildBridgeChainsMultiSeriesChart({
 		// Use per-series stacks so selected chains render as clustered bars (not stacked).
 		stack: name,
 		color: CHART_COLORS[i % CHART_COLORS.length],
-		large: true
+		large: false
 	}))
 
 	return {

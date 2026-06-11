@@ -1084,7 +1084,7 @@ function buildBarPresentation({
 			type: 'bar',
 			name: seriesName,
 			encode: { x: 'timestamp', y: seriesName },
-			...(state.barLayout === 'stacked' ? { stack: 'chain' as const } : {}),
+			...(state.barLayout === 'stacked' ? { stack: 'chain' as const, large: false } : {}),
 			color: topColorBySeriesName[seriesName]
 		})),
 		valueMode: state.valueMode,

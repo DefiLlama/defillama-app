@@ -113,8 +113,8 @@ describe('OverviewChart helpers', () => {
 				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([
-			{ name: 'Meta', type: 'bar', stack: 'A' },
-			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+			{ name: 'Meta', type: 'bar', stack: 'A', large: false },
+			{ name: 'NVIDIA', type: 'bar', stack: 'A', large: false }
 		])
 	})
 
@@ -171,6 +171,7 @@ describe('OverviewChart helpers', () => {
 				name: 'Total',
 				type: 'bar',
 				stack: 'A',
+				large: false,
 				encode: { x: 'timestamp', y: 'Total' },
 				color: CHART_COLORS[0]
 			},
@@ -178,6 +179,7 @@ describe('OverviewChart helpers', () => {
 				name: 'Meta',
 				type: 'bar',
 				stack: 'A',
+				large: false,
 				encode: { x: 'timestamp', y: 'Meta' },
 				color: CHART_COLORS[1]
 			},
@@ -185,6 +187,7 @@ describe('OverviewChart helpers', () => {
 				name: 'NVIDIA',
 				type: 'bar',
 				stack: 'A',
+				large: false,
 				encode: { x: 'timestamp', y: 'NVIDIA' },
 				color: CHART_COLORS[2]
 			}

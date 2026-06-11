@@ -43,7 +43,8 @@ describe('buildTimeSeriesChart', () => {
 					name: 'Fees',
 					encode: { x: 'timestamp', y: 'Fees' },
 					stack: 'volume',
-					color: '#111111'
+					color: '#111111',
+					large: false
 				}
 			]
 		})
@@ -152,14 +153,16 @@ describe('buildTimeSeriesChart', () => {
 					name: 'A',
 					encode: { x: 'timestamp', y: 'A' },
 					stack: 'asset',
-					color: '#111111'
+					color: '#111111',
+					large: false
 				},
 				{
 					type: 'bar',
 					name: 'B',
 					encode: { x: 'timestamp', y: 'B' },
 					stack: 'asset',
-					color: '#222222'
+					color: '#222222',
+					large: false
 				}
 			]
 		})

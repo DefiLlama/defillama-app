@@ -319,7 +319,8 @@ export const buildTokenInflowsPayload = (params: IBuildStablecoinChartDataParams
 			name,
 			encode: { x: 'timestamp', y: name },
 			color: TOKEN_COLORS[name] ?? CHART_COLORS[i % CHART_COLORS.length],
-			stack: 'tokenInflows'
+			stack: 'tokenInflows',
+			large: false
 		})),
 		stacked: true,
 		showTotalInTooltip: true

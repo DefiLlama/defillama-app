@@ -161,6 +161,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.barLayout).toBe('stacked')
 		expect(presentation.groupBy).toBe('daily')
 		expect(presentation.charts.every((chart) => chart.stack === 'chain')).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large === false)).toBe(true)
 		expect(presentation.dataset.source).toEqual([
 			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 0 },
 			{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 },
@@ -189,6 +190,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.valueMode).toBe('relative')
 		expect(presentation.barLayout).toBe('separate')
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large == null)).toBe(true)
 
 		const [day1, day2, day3] = presentation.dataset.source
 		expect(day1.Ethereum).toBe(100)
@@ -560,6 +562,7 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 		if (presentation.kind !== 'bar') return
 
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large == null)).toBe(true)
 		expect(presentation.dataset.source).toEqual([
 			{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 33.33333333333333, dYdX: 66.66666666666666 },
 			{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 66.66666666666666, dYdX: 33.33333333333333 },
