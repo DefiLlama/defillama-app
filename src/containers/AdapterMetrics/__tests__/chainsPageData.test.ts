@@ -224,6 +224,68 @@ const overloadedNotionalVolumeChainMetadata = {
 	}
 }
 
+const adapterProtocolRow = (overrides: Record<string, unknown>) => ({
+	total24h: 0,
+	total48hto24h: 0,
+	total7d: 0,
+	total14dto7d: 0,
+	total60dto30d: 0,
+	total30d: 0,
+	total1y: 0,
+	totalAllTime: 0,
+	average1y: 0,
+	monthlyAverage1y: 0,
+	change_1d: 0,
+	change_7d: 0,
+	change_1m: 0,
+	change_7dover7d: 0,
+	change_30dover30d: 0,
+	breakdown24h: {},
+	breakdown30d: {},
+	total7DaysAgo: 0,
+	total30DaysAgo: 0,
+	defillamaId: 'adapter-row',
+	name: 'Adapter Row',
+	displayName: 'Adapter Row',
+	module: 'adapter-row',
+	category: 'Dexes',
+	logo: '',
+	chains: ['Base'],
+	protocolType: 'protocol',
+	methodologyURL: '',
+	methodology: {},
+	latestFetchIsOk: true,
+	parentProtocol: '',
+	slug: 'adapter-row',
+	linkedProtocols: [],
+	id: 'adapter-row',
+	...overrides
+})
+
+const adapterMetricsResponse = (overrides: Record<string, unknown> = {}) => ({
+	breakdown24h: null,
+	breakdown30d: null,
+	chain: 'Base',
+	allChains: ['Base'],
+	total24h: 100,
+	total48hto24h: 90,
+	total7d: 700,
+	total14dto7d: 600,
+	total60dto30d: 2000,
+	total30d: 3000,
+	total1y: 36_000,
+	change_1d: 11.11,
+	change_7d: 16.67,
+	change_1m: 50,
+	change_7dover7d: 10,
+	change_30dover30d: 20,
+	total7DaysAgo: 80,
+	total30DaysAgo: 70,
+	totalAllTime: 100_000,
+	protocols: [],
+	...overrides
+})
+
 function mockFeesAdapterMetrics() {
 	fetchJsonMock.mockImplementation((url: string) => {
 		const dataType = new URL(url).searchParams.get('dataType')
@@ -446,6 +508,151 @@ describe('chains by adapter page data', () => {
 				metricName: 'DEX Volume'
 			})
 		).rejects.toThrow('backend contract failed')
+	})
+
+	it('builds bribes and token-tax only protocol rows without changing base totals or chart data', async () => {
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [{ name: 'Core Fees', mcap: 12_000 }],
+			parentProtocols: []
+		})
+		fetchJsonMock.mockImplementation((url: string) => {
+			const parsedUrl = new URL(url)
+			const dataType = parsedUrl.searchParams.get('dataType')
+
+			if (parsedUrl.pathname.includes('/chart/')) {
+				return Promise.resolve([[1_700_000_000, 100]])
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE) {
+				return Promise.resolve(
+					adapterMetricsResponse({
+						protocols: [
+							{
+								...adapterProtocolRow({
+									defillamaId: 'extra-row',
+									name: 'Extra Raw',
+									displayName: 'Extra Display',
+									slug: 'extra-display',
+									category: 'Lending',
+									methodology: undefined,
+									linkedProtocols: undefined,
+									total24h: 0,
+									total7d: null,
+									total30d: 30,
+									total1y: 0,
+									totalAllTime: null
+								})
+							}
+						]
+					})
+				)
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+				return Promise.resolve(
+					adapterMetricsResponse({
+						protocols: [
+							{
+								...adapterProtocolRow({
+									defillamaId: 'extra-row',
+									name: 'Extra Raw',
+									displayName: 'Extra Display',
+									slug: 'extra-display',
+									category: 'Lending',
+									total24h: null,
+									total7d: 7,
+									total30d: 0,
+									total1y: null,
+									totalAllTime: 70
+								})
+							},
+							{
+								...adapterProtocolRow({
+									defillamaId: 'token-tax-only',
+									name: 'Token Tax Raw',
+									displayName: 'Token Tax Display',
+									slug: 'token-tax-display',
+									category: undefined,
+									total24h: 5,
+									total7d: 0,
+									total30d: null,
+									total1y: 50,
+									totalAllTime: 500
+								})
+							}
+						]
+					})
+				)
+			}
+
+			return Promise.resolve(
+				adapterMetricsResponse({
+					protocols: [
+						adapterProtocolRow({
+							defillamaId: 'core-fees',
+							name: 'Core Fees',
+							displayName: 'Core Fees',
+							slug: 'core-fees',
+							total24h: 100,
+							total7d: 700,
+							total30d: 3000,
+							total1y: 36_000,
+							totalAllTime: 100_000
+						})
+					]
+				})
+			)
+		})
+
+		const data = await getAdapterByChainPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'Base',
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			route: 'fees',
+			metricName: 'Fees'
+		})
+
+		expect(data?.total24h).toBe(100)
+		expect(data?.chartData).toEqual({
+			dimensions: ['timestamp', 'Fees'],
+			source: [{ timestamp: 1_700_000_000_000, Fees: 100 }]
+		})
+		expect(data?.protocols.map((protocol) => protocol.name)).toEqual([
+			'Core Fees',
+			'Extra Display',
+			'Token Tax Display'
+		])
+		expect(data?.protocols[0]).toMatchObject({
+			name: 'Core Fees',
+			total24h: 100,
+			total7d: 700,
+			total30d: 3000
+		})
+
+		const extraRow = data?.protocols.find((protocol) => protocol.name === 'Extra Display')
+		expect(extraRow).toMatchObject({
+			name: 'Extra Display',
+			slug: 'extra-display',
+			chains: ['Base'],
+			category: 'Lending',
+			total24h: null,
+			total7d: null,
+			total30d: null,
+			total1y: null,
+			totalAllTime: null,
+			bribes: { total24h: 0, total7d: null, total30d: 30, total1y: 0, totalAllTime: null },
+			tokenTax: { total24h: null, total7d: 7, total30d: 0, total1y: null, totalAllTime: 70 },
+			breakdownAliases: ['Extra Raw']
+		})
+		expect(extraRow).not.toHaveProperty('methodology')
+
+		expect(data?.protocols.find((protocol) => protocol.name === 'Token Tax Display')).toMatchObject({
+			name: 'Token Tax Display',
+			slug: 'token-tax-display',
+			category: null,
+			total24h: null,
+			tokenTax: { total24h: 5, total7d: 0, total30d: null, total1y: 50, totalAllTime: 500 }
+		})
 	})
 
 	it('uses chainFees metadata to qualify Chain Fees rankings without summing bribes or token taxes into totals', async () => {

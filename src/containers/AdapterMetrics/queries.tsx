@@ -39,6 +39,65 @@ const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
 	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
 
+type AdapterChainProtocolMetric = IAdapterChainMetrics['protocols'][number]
+type AdapterByChainSourceProtocol = Pick<
+	AdapterChainProtocolMetric,
+	'name' | 'displayName' | 'slug' | 'protocolType' | 'chains'
+> &
+	Partial<
+		Pick<
+			AdapterChainProtocolMetric,
+			| 'category'
+			| 'methodology'
+			| 'linkedProtocols'
+			| 'doublecounted'
+			| 'total24h'
+			| 'total48hto24h'
+			| 'total7d'
+			| 'total14dto7d'
+			| 'total30d'
+			| 'total60dto30d'
+			| 'total7DaysAgo'
+			| 'total30DaysAgo'
+			| 'total1y'
+			| 'totalAllTime'
+			| 'change_1d'
+			| 'change_7d'
+			| 'change_1m'
+			| 'change_7dover7d'
+			| 'change_30dover30d'
+		>
+	>
+
+function buildFeeExtraOnlyProtocolRow(protocol: AdapterChainProtocolMetric): AdapterByChainSourceProtocol {
+	return {
+		name: protocol.name,
+		displayName: protocol.displayName,
+		slug: protocol.slug,
+		protocolType: protocol.protocolType,
+		chains: protocol.chains,
+		category: protocol.category,
+		methodology: protocol.methodology,
+		linkedProtocols: protocol.linkedProtocols,
+		doublecounted: protocol.doublecounted,
+		total24h: null,
+		total48hto24h: null,
+		total7d: null,
+		total14dto7d: null,
+		total30d: null,
+		total60dto30d: null,
+		total7DaysAgo: null,
+		total30DaysAgo: null,
+		total1y: null,
+		totalAllTime: null,
+		change_1d: null,
+		change_7d: null,
+		change_1m: null,
+		change_7dover7d: null,
+		change_30dover30d: null
+	}
+}
+
 function buildChainsChartData({
 	rawChartData,
 	allChains
@@ -263,7 +322,7 @@ export const getAdapterByChainPageData = async ({
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
 
-	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
+	const allProtocols: AdapterByChainSourceProtocol[] = [...data.protocols]
 
 	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
 	const allProtocolsByName = new Set<string>()
@@ -300,14 +359,7 @@ export const getAdapterByChainPageData = async ({
 
 				if (!allProtocolsByName.has(p.name)) {
 					allProtocolsByName.add(p.name)
-					allProtocols.push({
-						...p,
-						total24h: null,
-						total7d: null,
-						total30d: null,
-						total1y: null,
-						totalAllTime: null
-					} as unknown as IAdapterChainOverview['protocols'][0])
+					allProtocols.push(buildFeeExtraOnlyProtocolRow(p))
 				}
 			}
 		}
@@ -324,14 +376,7 @@ export const getAdapterByChainPageData = async ({
 
 				if (!allProtocolsByName.has(p.name)) {
 					allProtocolsByName.add(p.name)
-					allProtocols.push({
-						...p,
-						total24h: null,
-						total7d: null,
-						total30d: null,
-						total1y: null,
-						totalAllTime: null
-					} as unknown as IAdapterChainOverview['protocols'][0])
+					allProtocols.push(buildFeeExtraOnlyProtocolRow(p))
 				}
 			}
 		}

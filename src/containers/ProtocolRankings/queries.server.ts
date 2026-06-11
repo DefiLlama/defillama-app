@@ -13,6 +13,17 @@ import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } fro
 import type { IChildProtocol, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { toFilterProtocol, toStrikeTvl } from './utils'
 
+const PREVIOUS_TVL_KEYS = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
+const PREVIOUS_TVL_KEYS_SET = new Set<string>(PREVIOUS_TVL_KEYS)
+
+function addMetricTotals<T extends object>(acc: T, values: T | null | undefined) {
+	for (const key in values ?? {}) {
+		const metricKey = key as keyof T
+		acc[metricKey] = (Number((acc[metricKey] as number | null | undefined) ?? 0) +
+			Number(values?.[metricKey] as number | null | undefined)) as T[keyof T]
+	}
+}
+
 export const getProtocolsByChain = async ({
 	chain,
 	chainMetadata,
@@ -349,7 +360,8 @@ export const getProtocolsByChain = async ({
 		}
 
 		if (protocol.parentProtocol && protocolMetadata[protocol.parentProtocol]) {
-			parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
+			parentStore[protocol.parentProtocol] ??= []
+			parentStore[protocol.parentProtocol].push(childStore)
 		} else {
 			protocolsStore[protocol.defillamaId] = childStore
 		}
@@ -365,106 +377,90 @@ export const getProtocolsByChain = async ({
 	}
 
 	for (const parentProtocol of parentProtocols) {
-		if (parentStore[parentProtocol.id] && parentStore[parentProtocol.id].length > 1) {
-			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const chainOrExtraTvlKey in curr.tvl ?? {}) {
-								if (!acc[chainOrExtraTvlKey]) {
-									acc[chainOrExtraTvlKey] = {}
-								}
-								for (const currentOrPreviousTvlKey in curr.tvl[chainOrExtraTvlKey]) {
-									let currValue = curr.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
+		const childProtocols = parentStore[parentProtocol.id]
+		if (childProtocols && childProtocols.length > 1) {
+			let parentTvl: IChildProtocol['tvl'] | null = null
+			let parentFees: IChildProtocol['fees'] | null = null
+			let parentRevenue: IChildProtocol['revenue'] | null = null
+			let parentHoldersRevenue: IChildProtocol['holdersRevenue'] | null = null
+			let parentDexs: IChildProtocol['dexs'] | null = null
+			let parentEmissions: IChildProtocol['emissions'] | null = null
+			const missingPrevKeys = new Set<(typeof PREVIOUS_TVL_KEYS)[number]>()
+			const categorySet = new Set<string>()
+			const chainsSet = new Set<string>()
+			let parentStrikeTvl = false
 
-									// Skip if accumulator is already null (don't override)
-									if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] === null) {
-										continue
-									}
+			for (const child of childProtocols) {
+				if (child.tvl !== null) {
+					parentTvl ??= {} as IChildProtocol['tvl']
+					for (const chainOrExtraTvlKey in child.tvl ?? {}) {
+						if (!parentTvl[chainOrExtraTvlKey]) {
+							parentTvl[chainOrExtraTvlKey] = {}
+						}
+						for (const currentOrPreviousTvlKey in child.tvl[chainOrExtraTvlKey]) {
+							const currValue = child.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
 
-									if (currValue == null) {
-										// If current value is null, propagate null to parent only for these keys
-										if (['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].includes(currentOrPreviousTvlKey)) {
-											acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
-										}
-									} else {
-										acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
-											(acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
-									}
-								}
+							// Skip if accumulator is already null (don't override)
+							if (parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] === null) {
+								continue
 							}
-							return acc
-						},
-						{} as IChildProtocol['tvl']
-					)
-				: null
 
-			const parentFees = parentStore[parentProtocol.id].some((child) => child.fees !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.fees ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.fees[key1]
+							if (currValue == null) {
+								// If current value is null, propagate null to parent only for these keys
+								if (PREVIOUS_TVL_KEYS_SET.has(currentOrPreviousTvlKey)) {
+									parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
+								}
+							} else {
+								parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
+									(parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
 							}
-							return acc
-						},
-						{} as IChildProtocol['fees']
-					)
-				: null
+						}
+					}
+				}
+
+				if (child.tvl?.default?.tvl != null) {
+					for (const key of PREVIOUS_TVL_KEYS) {
+						if (child.tvl.default[key] == null) {
+							missingPrevKeys.add(key)
+						}
+					}
+				}
+
+				if (child.fees !== null) {
+					parentFees ??= {} as NonNullable<IChildProtocol['fees']>
+					addMetricTotals(parentFees, child.fees)
+				}
+				if (child.revenue !== null) {
+					parentRevenue ??= {} as NonNullable<IChildProtocol['revenue']>
+					addMetricTotals(parentRevenue, child.revenue)
+				}
+				if (child.holdersRevenue !== null) {
+					parentHoldersRevenue ??= {} as NonNullable<IChildProtocol['holdersRevenue']>
+					addMetricTotals(parentHoldersRevenue, child.holdersRevenue)
+				}
+				if (child.dexs !== null) {
+					parentDexs ??= {} as NonNullable<IChildProtocol['dexs']>
+					addMetricTotals(parentDexs, child.dexs)
+				}
+				if (child.emissions !== null) {
+					parentEmissions ??= {} as NonNullable<IChildProtocol['emissions']>
+					addMetricTotals(parentEmissions, child.emissions)
+				}
+
+				if (child.category) categorySet.add(child.category)
+				for (const childChain of child.chains ?? []) {
+					chainsSet.add(childChain)
+				}
+				if (child.strikeTvl) parentStrikeTvl = true
+			}
 
 			if (parentFees) {
 				parentFees.pf = getAnnualizedRatio(parentProtocol.mcap, parentFees.total30d)
 			}
 
-			const parentRevenue = parentStore[parentProtocol.id].some((child) => child.revenue !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.revenue ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.revenue[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['revenue']
-					)
-				: null
-
 			if (parentRevenue) {
 				parentRevenue.ps = getAnnualizedRatio(parentProtocol.mcap, parentRevenue.total30d)
 			}
-
-			const parentHoldersRevenue = parentStore[parentProtocol.id].some((child) => child.holdersRevenue !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.holdersRevenue ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.holdersRevenue[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['holdersRevenue']
-					)
-				: null
-
-			const parentDexs = parentStore[parentProtocol.id].some((child) => child.dexs !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.dexs ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.dexs[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['dexs']
-					)
-				: null
-
-			let parentEmissions = parentStore[parentProtocol.id].some((child) => child.emissions !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.emissions ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.emissions[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['emissions']
-					)
-				: null
 
 			if (!parentEmissions) {
 				const parentEmissionsMatch = emissionsProtocols[protocolMetadata[parentProtocol.id]?.displayName]
@@ -495,14 +491,7 @@ export const getProtocolsByChain = async ({
 				}
 			}
 
-			const prevKeys = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
-			const missingPrevKeys = prevKeys.filter((key) =>
-				parentStore[parentProtocol.id].some(
-					(child) => child.tvl?.default?.['tvl'] != null && child.tvl?.default?.[key] == null
-				)
-			)
-
-			if (missingPrevKeys.length && parentTvl?.default) {
+			if (missingPrevKeys.size && parentTvl?.default) {
 				for (const key of missingPrevKeys) {
 					parentTvl.default[key] = null
 				}
@@ -517,10 +506,6 @@ export const getProtocolsByChain = async ({
 						}
 					: null
 
-			const categorySet = new Set<string>()
-			for (const p of parentStore[parentProtocol.id]) {
-				if (p.category) categorySet.add(p.category)
-			}
 			const chilsProtocolCategories = Array.from(categorySet)
 
 			const parentProtocolTvl = parentTvl?.default?.tvl
@@ -537,11 +522,11 @@ export const getProtocolsByChain = async ({
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
-				childProtocols: parentStore[parentProtocol.id],
-				chains: Array.from(new Set(parentStore[parentProtocol.id].flatMap((p) => p.chains ?? []))),
+				childProtocols,
+				chains: Array.from(chainsSet),
 				tvl: parentTvl,
 				tvlChange: parentTvlChange,
-				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
+				strikeTvl: parentStrikeTvl,
 				mcap: parentProtocol.mcap ?? null,
 				tokenPrice: parentProtocol.gecko_id
 					? (protocolTokenPrices[`coingecko:${parentProtocol.gecko_id}`]?.price ?? null)
