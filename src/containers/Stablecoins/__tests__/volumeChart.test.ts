@@ -43,6 +43,24 @@ describe('buildStablecoinVolumeChartPayload', () => {
 		expect(payload.stacked).toBe(true)
 	})
 
+	it('keeps zero and missing breakdown values exact while preserving input order', () => {
+		const payload = buildStablecoinVolumeChartPayload(
+			[
+				[1609459200, { ethereum: 100, base: 5 }],
+				[1609545600, { ethereum: 0, tron: 10, base: 0 }]
+			],
+			{ chart: 'chain', limit: 2 }
+		)
+
+		expect(payload.dataset.dimensions).toEqual(['timestamp', 'tron', 'Others'])
+		expect(payload.dataset.source).toEqual([
+			{ timestamp: 1609459200000, tron: 0, Others: 105 },
+			{ timestamp: 1609545600000, tron: 10, Others: 0 }
+		])
+		expect(payload.showTotalInTooltip).toBe(true)
+		expect(payload.stacked).toBe(true)
+	})
+
 	it('returns one compact chain series when a selected dimension is requested', () => {
 		const payload = buildStablecoinVolumeChartPayload(
 			[
@@ -61,6 +79,24 @@ describe('buildStablecoinVolumeChartPayload', () => {
 		})
 		expect(payload.showTotalInTooltip).toBe(false)
 		expect(payload.stacked).toBe(false)
+	})
+
+	it('uses zero for a selected dimension missing from a bucket', () => {
+		const payload = buildStablecoinVolumeChartPayload(
+			[
+				[1609459200, { ethereum: 100 }],
+				[1609545600, { tron: 30 }]
+			],
+			{ chart: 'chain', selectedDimension: 'ethereum' }
+		)
+
+		expect(payload.dataset).toEqual({
+			source: [
+				{ timestamp: 1609459200000, Volume: 100 },
+				{ timestamp: 1609545600000, Volume: 0 }
+			],
+			dimensions: ['timestamp', 'Volume']
+		})
 	})
 
 	it('uses a fallback dimension before returning an empty selected-dimension payload', () => {

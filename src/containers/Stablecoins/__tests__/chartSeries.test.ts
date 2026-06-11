@@ -57,6 +57,35 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.dataset.dimensions).toEqual(['timestamp', 'Mcap'])
 	})
 
+	it('keeps total market cap ordering, currency totals, and missing values exact', () => {
+		const mixedCurrencyParams = {
+			chartDataByAssetOrChain: [
+				[
+					{ date: 1609632000, mcap: { peggedUSD: 30, peggedEUR: 5 } },
+					{ date: 1609459200, mcap: { peggedUSD: 10, peggedEUR: 2 } },
+					{ date: 1609545600 }
+				],
+				[
+					{ date: 1609459200, mcap: { peggedUSD: 3 } },
+					{ date: 1609545600, mcap: { peggedUSD: 4 } },
+					{ date: 1609632000, mcap: { peggedUSD: 5 } }
+				]
+			],
+			assetsOrChainsList: ['EUR Stable', 'USD Stable'],
+			filteredIndexes: [0, 1],
+			issuanceType: 'mcap',
+			selectedChain: 'All'
+		}
+		const payload = buildTotalMcapPayload(mixedCurrencyParams)
+
+		expect(payload.dataset.source).toEqual([
+			{ timestamp: 1609459200000, Mcap: 15 },
+			{ timestamp: 1609545600000, Mcap: 4 },
+			{ timestamp: 1609632000000, Mcap: 40 }
+		])
+		expect(payload.dataset.dimensions).toEqual(['timestamp', 'Mcap'])
+	})
+
 	it('adds unreleased values to total circulating payloads when requested', () => {
 		const payload = buildTotalMcapPayload(circulatingParams, {
 			totalName: 'Circulating',
@@ -85,6 +114,29 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.stacked).toBe(false)
 		expect(payload.showTotalInTooltip).toBe(false)
 		expect(payload.charts.every((chart) => !('stack' in chart))).toBe(true)
+	})
+
+	it('keeps area rows sparse when a visible series has no value for a timestamp', () => {
+		const sparseAreaParams = {
+			chartDataByAssetOrChain: [
+				[
+					{ date: 1609459200, mcap: { peggedUSD: 10 } },
+					{ date: 1609545600, mcap: { peggedUSD: 20 } }
+				],
+				[{ date: 1609545600, mcap: { peggedUSD: 5 } }]
+			],
+			assetsOrChainsList: ['USDT', 'USDC'],
+			filteredIndexes: [0, 1],
+			issuanceType: 'mcap',
+			selectedChain: 'All'
+		}
+		const payload = buildAreaPayload(sparseAreaParams, { stackName: 'tokenMcaps' })
+
+		expect(payload.dataset.source).toEqual([
+			{ timestamp: 1609459200000, USDT: 10 },
+			{ timestamp: 1609545600000, USDT: 20, USDC: 5 }
+		])
+		expect(payload.dataset.dimensions).toEqual(['timestamp', 'USDT', 'USDC'])
 	})
 
 	it('matches the legacy inflow outputs', () => {

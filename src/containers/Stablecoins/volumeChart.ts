@@ -8,7 +8,8 @@ import { CHART_COLORS } from '~/constants/colors'
 import type {
 	StablecoinVolumeBreakdownChartPoint,
 	StablecoinVolumeChartKind,
-	StablecoinVolumeChartResponse
+	StablecoinVolumeChartResponse,
+	StablecoinVolumeTotalChartPoint
 } from './api.types'
 
 export interface StablecoinVolumeChartPayload {
@@ -58,12 +59,12 @@ const buildCharts = (names: string[], stacked: boolean): MultiSeriesChart2Series
 	return charts
 }
 
-const buildTotalVolumePayload = (data: StablecoinVolumeChartResponse): StablecoinVolumeChartPayload => {
+const buildTotalVolumePayload = (data: StablecoinVolumeTotalChartPoint[]): StablecoinVolumeChartPayload => {
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of data) {
 		source.push({
 			timestamp: point[0] * 1e3,
-			[TOTAL_VOLUME_NAME]: point[1] as number
+			[TOTAL_VOLUME_NAME]: point[1]
 		})
 	}
 
@@ -186,7 +187,7 @@ export const buildStablecoinVolumeChartPayload = (
 	data: StablecoinVolumeChartResponse,
 	options: StablecoinVolumeChartOptions
 ): StablecoinVolumeChartPayload => {
-	if (options.chart === 'total') return buildTotalVolumePayload(data)
+	if (options.chart === 'total') return buildTotalVolumePayload(data as StablecoinVolumeTotalChartPoint[])
 	return buildBreakdownVolumePayload(data, options)
 }
 
@@ -203,9 +204,8 @@ export const groupStablecoinVolumeChartPayload = (
 		if (dimension === 'timestamp') continue
 		const points: Array<[number, number]> = []
 		for (const row of payload.dataset.source) {
-			const timestamp = Number(row.timestamp)
-			const value = Number(row[dimension])
-			if (Number.isFinite(timestamp) && Number.isFinite(value)) points.push([timestamp, value])
+			const value = row[dimension]
+			if (value != null) points.push([row.timestamp as number, value as number])
 		}
 		for (const [timestamp, value] of formatBarChart({
 			data: points,

@@ -124,7 +124,7 @@ export const useFetchProtocolChartData = ({
 					const store: Record<string, number> = {}
 					for (const [date, value] of res.data.prices) {
 						store[String(date)] = value
-						store[String(Math.floor(Number(date) / 1e3))] = value
+						store[String(Math.floor(date / 1e3))] = value
 					}
 					return store
 				}
@@ -714,10 +714,13 @@ export const useFetchProtocolChartData = ({
 			{ isLoading: isGasUsedToggled && fetchingGasUsed, label: 'Gas Used' },
 			{ isLoading: isBridgeVolumeToggled && fetchingBridgeVolume, label: 'Bridge Volume' }
 		]
-		const loadingCharts = Array.from(
-			new Set(loadingStates.filter((state) => state.isLoading).map((state) => state.label))
-		)
+		const loadingCharts: string[] = []
 		const loadingChartSet = new Set(loadingCharts)
+		for (const state of loadingStates) {
+			if (!state.isLoading || loadingChartSet.has(state.label)) continue
+			loadingCharts.push(state.label)
+			loadingChartSet.add(state.label)
+		}
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number | null]> } = {}
 
@@ -772,92 +775,54 @@ export const useFetchProtocolChartData = ({
 		const isCumulative = groupBy === 'cumulative'
 		const applyValue = (date: number, value: number) => {
 			if (!denominationPriceHistory) return value
-			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(+date * 1e3)]
+			const price = denominationPriceHistory[String(date)] ?? denominationPriceHistory[String(date * 1e3)]
 			return price ? value / price : null
 		}
+		const applyBaseFeeFamilyChart = (
+			chart: Array<[number, number]> | null | undefined,
+			store: Record<string, number | null>
+		) => {
+			if (!chart) return
+			let total = 0
+			for (const [date, value] of chart) {
+				const dateKey = getGroupedTimestampSec(date, groupBy)
+				const finalValue = applyValue(date, value)
+				if (finalValue == null) {
+					store[dateKey] = null
+					continue
+				}
+				if (store[dateKey] === null) continue
+				store[dateKey] = (store[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) total += finalValue
+			}
+		}
+		const applyExtraFeeFamilyChart = (chart: Array<[number, number]> | null | undefined) => {
+			if (!chart) return
+			let total = 0
+			for (const [date, value] of chart) {
+				const dateKey = getGroupedTimestampSec(date, groupBy)
+				const finalValue = applyValue(date, value)
+				if (finalValue == null) {
+					if (feesDataChart) feesStore[dateKey] = null
+					if (revenueDataChart) revenueStore[dateKey] = null
+					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
+					continue
+				}
+				if (feesDataChart && feesStore[dateKey] !== null)
+					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
+				if (revenueDataChart && revenueStore[dateKey] !== null)
+					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
+				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
+					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
+				if (isCumulative) total += finalValue
+			}
+		}
 
-		if (feesDataChart) {
-			let total = 0
-			for (const [date, value] of feesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					feesStore[dateKey] = null
-					continue
-				}
-				if (feesStore[dateKey] === null) continue
-				feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (revenueDataChart) {
-			let total = 0
-			for (const [date, value] of revenueDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					revenueStore[dateKey] = null
-					continue
-				}
-				if (revenueStore[dateKey] === null) continue
-				revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (holdersRevenueDataChart) {
-			let total = 0
-			for (const [date, value] of holdersRevenueDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (holdersRevenueStore[dateKey] === null) continue
-				holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (enabledBribesDataChart) {
-			let total = 0
-			for (const [date, value] of enabledBribesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					if (feesDataChart) feesStore[dateKey] = null
-					if (revenueDataChart) revenueStore[dateKey] = null
-					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (feesDataChart && feesStore[dateKey] !== null)
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart && revenueStore[dateKey] !== null)
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
-		if (enabledTokenTaxesDataChart) {
-			let total = 0
-			for (const [date, value] of enabledTokenTaxesDataChart) {
-				const dateKey = getGroupedTimestampSec(+date, groupBy)
-				const finalValue = applyValue(+date, value)
-				if (finalValue == null) {
-					if (feesDataChart) feesStore[dateKey] = null
-					if (revenueDataChart) revenueStore[dateKey] = null
-					if (holdersRevenueDataChart) holdersRevenueStore[dateKey] = null
-					continue
-				}
-				if (feesDataChart && feesStore[dateKey] !== null)
-					feesStore[dateKey] = (feesStore[dateKey] ?? 0) + finalValue + total
-				if (revenueDataChart && revenueStore[dateKey] !== null)
-					revenueStore[dateKey] = (revenueStore[dateKey] ?? 0) + finalValue + total
-				if (holdersRevenueDataChart && holdersRevenueStore[dateKey] !== null)
-					holdersRevenueStore[dateKey] = (holdersRevenueStore[dateKey] ?? 0) + finalValue + total
-				if (isCumulative) total += finalValue
-			}
-		}
+		applyBaseFeeFamilyChart(feesDataChart, feesStore)
+		applyBaseFeeFamilyChart(revenueDataChart, revenueStore)
+		applyBaseFeeFamilyChart(holdersRevenueDataChart, holdersRevenueStore)
+		applyExtraFeeFamilyChart(enabledBribesDataChart)
+		applyExtraFeeFamilyChart(enabledTokenTaxesDataChart)
 
 		const finalFeesChart: Array<[number, number | null]> = []
 		for (const date in feesStore) {

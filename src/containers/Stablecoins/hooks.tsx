@@ -122,14 +122,11 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 	const peggedAssetTotals = useMemo<StablecoinCirculatingOutput<T>[]>(() => {
 		const updatedPeggedAssets: StablecoinCirculatingOutput<T>[] = []
 		for (const asset of filteredPeggedAssets) {
-			const unreleased = Number(asset.unreleased ?? 0)
+			const unreleased = asset.unreleased ?? 0
 			const pegType = asset.pegType ?? ''
-			const rawPegDeviation = asset.pegDeviation
-			const numericPegDeviation =
-				typeof rawPegDeviation === 'number' ? rawPegDeviation : rawPegDeviation != null ? Number(rawPegDeviation) : null
-			const pegDeviation = Number.isFinite(numericPegDeviation) ? numericPegDeviation : null
+			const pegDeviation = asset.pegDeviation ?? null
 
-			let circulating = Number(asset.circulating ?? 0)
+			let circulating = asset.circulating ?? 0
 			if (shouldIncludeUnreleased && unreleased) {
 				circulating += unreleased
 			}
@@ -151,7 +148,7 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 			}
 		}
 
-		return updatedPeggedAssets.sort((a, b) => Number(b.mcap ?? 0) - Number(a.mcap ?? 0))
+		return updatedPeggedAssets.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}, [filteredPeggedAssets, shouldIncludeUnreleased])
 
 	return peggedAssetTotals

@@ -62,7 +62,7 @@ type IUseProtocolBreakdownChartsComputed = Omit<IUseProtocolBreakdownChartsResul
 const getLatestChartTimestamp = (chart: Array<[number, unknown]>): number | null => {
 	if (chart.length === 0) return null
 	const lastPoint = chart[chart.length - 1]
-	return lastPoint && Number.isFinite(lastPoint[0]) ? lastPoint[0] : null
+	return lastPoint?.[0] ?? null
 }
 
 /**
@@ -149,7 +149,6 @@ const buildUsdInflowsFromTvlChart = (
 	for (let i = 1; i < tvlChart.length; i++) {
 		const [timestamp, value] = tvlChart[i]
 		const previousValue = tvlChart[i - 1][1]
-		if (!Number.isFinite(value) || !Number.isFinite(previousValue)) continue
 		inflows.push([timestamp, value - previousValue])
 	}
 
@@ -227,18 +226,19 @@ const buildTokenInflowsFromBreakdowns = (
 			const currentAmount = currentRaw[token] ?? 0
 			const previousAmount = previousRaw[token] ?? 0
 			const amountDiff = currentAmount - previousAmount
-			if (!Number.isFinite(amountDiff) || amountDiff === 0) continue
+			if (amountDiff === 0) continue
 
-			let price = Number.NaN
-			if (currentAmount !== 0 && Number.isFinite(currentUsd[token])) {
-				price = currentUsd[token] / currentAmount
-			} else if (previousAmount !== 0 && Number.isFinite(previousUsd[token])) {
-				price = previousUsd[token] / previousAmount
+			let price: number | null = null
+			const currentUsdValue = currentUsd[token]
+			const previousUsdValue = previousUsd[token]
+			if (currentAmount !== 0 && currentUsdValue != null) {
+				price = currentUsdValue / currentAmount
+			} else if (previousAmount !== 0 && previousUsdValue != null) {
+				price = previousUsdValue / previousAmount
 			}
-			if (!Number.isFinite(price)) continue
+			if (price == null) continue
 
 			const inflow = amountDiff * price
-			if (!Number.isFinite(inflow)) continue
 
 			point[token] = inflow
 			hasTokenInflows = true
@@ -306,7 +306,7 @@ const EMPTY_COMPUTED_RESULT: IUseProtocolBreakdownChartsComputed = {
 	tokenInflowsCharts: EMPTY_MULTI_SERIES_CHARTS
 }
 
-const buildComputedBreakdownResult = ({
+export const buildComputedBreakdownResult = ({
 	tvlCharts,
 	chainBreakdownCharts,
 	tokenBreakdownUsdCharts,

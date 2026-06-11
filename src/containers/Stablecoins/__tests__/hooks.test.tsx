@@ -86,15 +86,19 @@ describe('useCalcCirculating', () => {
 			[
 				{ name: 'Old', circulating: 999, unreleased: 1, mcap: 999, delisted: true },
 				{ name: 'Beta', circulating: 50, unreleased: 10, mcap: 200, pegType: 'peggedVAR', pegDeviation: 3 },
-				{ name: 'Alpha', circulating: 100, unreleased: 25, mcap: 100, pegDeviation: null }
+				{ name: 'Alpha', circulating: 100, unreleased: 25, mcap: 100, pegDeviation: null },
+				{ name: 'Zero', circulating: 25, unreleased: null, mcap: 50, pegDeviation: 0 }
 			],
 			true
 		)
 
-		expect(result.map((asset) => asset.name)).toEqual(['Beta', 'Alpha'])
-		expect(result.map((asset) => asset.circulating)).toEqual([60, 125])
+		expect(result.map((asset) => asset.name)).toEqual(['Beta', 'Alpha', 'Zero'])
+		expect(result.map((asset) => asset.circulating)).toEqual([60, 125, 25])
 		expect(result[0].floatingPeg).toBe(true)
 		expect(result[0].depeggedTwoPercent).toBe(true)
+		expect(result[1].pegDeviation).toBeNull()
+		expect(result[2].pegDeviation).toBe(0)
+		expect(result[2].depeggedTwoPercent).toBe(false)
 	})
 })
 
