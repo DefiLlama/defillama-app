@@ -21,41 +21,6 @@ export function toUnixMsTimestamp(ts: number): number {
 	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
 }
 
-const toFiniteNumberOrZero = (value: unknown): number => {
-	const numeric = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(numeric) ? numeric : 0
-}
-
-const normalizeNumberMap = (value: unknown): Record<string, number> | null => {
-	if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-
-	const normalized: Record<string, number> = {}
-	for (const key in value as Record<string, unknown>) {
-		normalized[key] = toFiniteNumberOrZero((value as Record<string, unknown>)[key])
-	}
-	return normalized
-}
-
-const normalizeNestedNumberMap = (value: unknown): Record<string, Record<string, number>> | null => {
-	if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-
-	const normalized: Record<string, Record<string, number>> = {}
-	for (const outerKey in value as Record<string, unknown>) {
-		const innerValue = (value as Record<string, unknown>)[outerKey]
-		normalized[outerKey] = normalizeNumberMap(innerValue) ?? {}
-	}
-	return normalized
-}
-
-const normalizeFetchedRWAProject = (item: IFetchedRWAProject): IFetchedRWAProject => {
-	return {
-		...item,
-		onChainMcap: normalizeNumberMap(item.onChainMcap),
-		activeMcap: normalizeNumberMap(item.activeMcap),
-		defiActiveTvl: normalizeNestedNumberMap(item.defiActiveTvl)
-	}
-}
-
 function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
 }
@@ -64,14 +29,7 @@ function assertNever(value: never): never {
  * Fetch current active TVL values for RWA projects.
  */
 export async function fetchRWAActiveTVLs(): Promise<Array<IFetchedRWAProject>> {
-	const rows = await fetchJson<unknown>(`${RWA_SERVER_URL}/current`)
-	if (!Array.isArray(rows)) return []
-	const normalizedRows: IFetchedRWAProject[] = []
-	for (const row of rows) {
-		if (!row || typeof row !== 'object' || Array.isArray(row)) continue
-		normalizedRows.push(normalizeFetchedRWAProject(row as IFetchedRWAProject))
-	}
-	return normalizedRows
+	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current`)
 }
 
 /**
@@ -86,8 +44,7 @@ export async function fetchRWAStats(): Promise<IRWAStatsResponse> {
  */
 export async function fetchRWAAssetDataById(assetId: string): Promise<IFetchedRWAProject> {
 	const encodedAssetId = encodeURIComponent(assetId)
-	const row = await fetchJson<unknown>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
-	return normalizeFetchedRWAProject(row as IFetchedRWAProject)
+	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
 }
 
 export async function fetchRWAChartDataByAsset({

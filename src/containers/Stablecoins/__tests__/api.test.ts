@@ -32,34 +32,6 @@ describe('stablecoin volume api fetchers', () => {
 		expect(fetchJsonMock).toHaveBeenCalledWith(expect.stringContaining('/chart/volume/currency-breakdown'))
 	})
 
-	it('normalizes total volume rows at the fetch boundary', async () => {
-		fetchJsonMock.mockResolvedValueOnce([
-			[1609459200, '100'],
-			['bad-date', 50],
-			[1609545600, { Ethereum: 10 }],
-			[1609632000, 0]
-		])
-
-		await expect(fetchStablecoinVolumeChartApi('total')).resolves.toEqual([
-			[1609459200, 100],
-			[1609632000, 0]
-		])
-	})
-
-	it('normalizes breakdown volume rows at the fetch boundary', async () => {
-		fetchJsonMock.mockResolvedValueOnce([
-			[1609459200, { Ethereum: '100', Base: 0, Bad: 'nope', Missing: null }],
-			['bad-date', { Ethereum: 50 }],
-			[1609545600, 125],
-			[1609632000, { Tron: 25 }]
-		])
-
-		await expect(fetchStablecoinVolumeChartApi('chain')).resolves.toEqual([
-			[1609459200, { Ethereum: 100, Base: 0 }],
-			[1609632000, { Tron: 25 }]
-		])
-	})
-
 	it('preserves token symbols for scoped token routes', async () => {
 		await fetchStablecoinTokenVolumeChartApi('USDT', 'chain')
 

@@ -51,7 +51,7 @@ export function buildRwaChartDatasetTotal({
 
 		let total = 0
 		for (const dimension of seriesDimensions) {
-			total += toFiniteRwaChartValue(row[dimension])
+			total += row[dimension] ?? 0
 		}
 		nextRow[totalLabel] = total
 		source.push(nextRow)
@@ -81,7 +81,7 @@ export function limitRwaHorizontalBarData(
 	let othersValue = 0
 	const withoutOthers: RwaNamedValue[] = []
 	for (const item of items) {
-		const value = toFiniteRwaChartValue(item.value)
+		const value = item.value
 		if (value <= 0) continue
 		if (item.name === 'Others') {
 			othersValue += value

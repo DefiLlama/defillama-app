@@ -43,12 +43,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 		if (kind === 'supply') {
 			// Supply is not part of the CoinGecko chart payload; it comes from the
 			// cache-server supply snapshot while price charts use the CG cache path.
-			const data = await fetchJson<{ data?: { total_supply?: unknown } }>(`${CACHE_SERVER}/supply/${geckoId}`).catch(
-				() => null
-			)
-			const rawSupply = data?.data?.total_supply
-			const numericSupply = rawSupply == null ? null : typeof rawSupply === 'number' ? rawSupply : Number(rawSupply)
-			const totalSupply = numericSupply != null && Number.isFinite(numericSupply) ? numericSupply : null
+			const data = await fetchJson<{ data?: { total_supply?: number | null } }>(
+				`${CACHE_SERVER}/supply/${geckoId}`
+			).catch(() => null)
+			const rawSupply = data?.data?.total_supply ?? null
+			const totalSupply = rawSupply != null && Number.isFinite(rawSupply) ? rawSupply : null
 			if (totalSupply === null) {
 				setNoStoreHeaders(res)
 			} else {

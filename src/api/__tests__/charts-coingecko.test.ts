@@ -32,7 +32,7 @@ beforeEach(() => {
 
 describe('/api/public/charts/coingecko/[geckoId]', () => {
 	it('normalizes finite supply values from the cache server', async () => {
-		fetchJsonMock.mockResolvedValueOnce({ data: { total_supply: '123' } })
+		fetchJsonMock.mockResolvedValueOnce({ data: { total_supply: 123 } })
 		const res = createMockNextApiResponse()
 
 		await handler(
@@ -50,8 +50,8 @@ describe('/api/public/charts/coingecko/[geckoId]', () => {
 		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('s-maxage='))
 	})
 
-	it('returns null supply for malformed cache server values', async () => {
-		fetchJsonMock.mockResolvedValueOnce({ data: { total_supply: '1,234' } })
+	it('returns null supply when the cache server has no supply value', async () => {
+		fetchJsonMock.mockResolvedValueOnce({ data: {} })
 		const res = createMockNextApiResponse()
 
 		await handler(
