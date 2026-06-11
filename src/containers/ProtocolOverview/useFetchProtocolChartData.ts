@@ -12,6 +12,7 @@ import {
 	useFetchProtocolTVLChart
 } from '~/containers/ProtocolOverview/queries.client'
 import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
+import { FEE_EXTRA_CONFIG_BY_SETTING, type FeeExtraConfig } from '~/metrics/feeExtras'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL, type AdapterChartDescriptorLabel } from './chartDescriptors'
@@ -345,63 +346,57 @@ export const useFetchProtocolChartData = ({
 		queryFn: () => fetchProtocolAdapterChart('Holders Revenue')
 	})
 
-	const isBribesEnabled = !!(
-		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
-		feesSettings?.bribes &&
-		metrics.bribes &&
-		isRouterReady
-	)
+	const isFeeFamilyChartEnabled =
+		toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true'
+	const feeExtraQueryConfigs = useMemo(() => {
+		const buildConfig = (extra: FeeExtraConfig) => {
+			const enabled = !!(
+				isFeeFamilyChartEnabled &&
+				feesSettings?.[extra.setting] &&
+				metrics[extra.protocolMetricField] &&
+				isRouterReady
+			)
+
+			return {
+				queryKey: ['protocol-overview', protocolSlug, extra.clientQueryKey],
+				queryFn: () =>
+					fetchJson<Array<[number, number]> | null>(
+						buildProtocolChartApiUrl({
+							kind: 'adapter',
+							adapterType: 'fees',
+							dataType: extra.dataType,
+							protocol: name
+						})
+					),
+				staleTime: 60 * 60 * 1000,
+				refetchOnWindowFocus: false,
+				retry: 0,
+				enabled
+			}
+		}
+
+		return {
+			bribes: buildConfig(FEE_EXTRA_CONFIG_BY_SETTING.bribes),
+			tokentax: buildConfig(FEE_EXTRA_CONFIG_BY_SETTING.tokentax)
+		}
+	}, [isFeeFamilyChartEnabled, feesSettings, metrics, isRouterReady, protocolSlug, name])
+	const isBribesEnabled = feeExtraQueryConfigs.bribes.enabled
 	const {
 		data: bribesDataChart = null,
 		isLoading: fetchingBribes,
 		error: bribesChartError
-	} = useQuery<Array<[number, number]> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'bribes'],
-		queryFn: () =>
-			isBribesEnabled
-				? fetchJson(
-						buildProtocolChartApiUrl({
-							kind: 'adapter',
-							adapterType: 'fees',
-							dataType: 'dailyBribesRevenue',
-							protocol: name
-						})
-					)
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isBribesEnabled
-	})
+	} = useQuery<Array<[number, number]> | null>(feeExtraQueryConfigs.bribes)
 
-	const isTokenTaxesEnabled = !!(
-		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
-		feesSettings?.tokentax &&
-		metrics.tokenTax &&
-		isRouterReady
-	)
+	const isTokenTaxesEnabled = feeExtraQueryConfigs.tokentax.enabled
 	const {
 		data: tokenTaxesDataChart = null,
 		isLoading: fetchingTokenTaxes,
 		error: tokenTaxesChartError
-	} = useQuery<Array<[number, number]> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'token-taxes'],
-		queryFn: () =>
-			isTokenTaxesEnabled
-				? fetchJson(
-						buildProtocolChartApiUrl({
-							kind: 'adapter',
-							adapterType: 'fees',
-							dataType: 'dailyTokenTaxes',
-							protocol: name
-						})
-					)
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isTokenTaxesEnabled
-	})
+	} = useQuery<Array<[number, number]> | null>(feeExtraQueryConfigs.tokentax)
+	const enabledBribesDataChart = isBribesEnabled ? bribesDataChart : null
+	const enabledTokenTaxesDataChart = isTokenTaxesEnabled ? tokenTaxesDataChart : null
+	const enabledBribesChartError = isBribesEnabled ? bribesChartError : null
+	const enabledTokenTaxesChartError = isTokenTaxesEnabled ? tokenTaxesChartError : null
 
 	const isDexVolumeEnabled = !!(toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady)
 	const { data: dexVolumeDataChart, isLoading: fetchingDexVolume } = usePrefetchedProtocolChartQuery({
@@ -812,9 +807,9 @@ export const useFetchProtocolChartData = ({
 				if (isCumulative) total += finalValue
 			}
 		}
-		if (bribesDataChart) {
+		if (enabledBribesDataChart) {
 			let total = 0
-			for (const [date, value] of bribesDataChart) {
+			for (const [date, value] of enabledBribesDataChart) {
 				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
@@ -832,9 +827,9 @@ export const useFetchProtocolChartData = ({
 				if (isCumulative) total += finalValue
 			}
 		}
-		if (tokenTaxesDataChart) {
+		if (enabledTokenTaxesDataChart) {
 			let total = 0
-			for (const [date, value] of tokenTaxesDataChart) {
+			for (const [date, value] of enabledTokenTaxesDataChart) {
 				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
@@ -1065,7 +1060,7 @@ export const useFetchProtocolChartData = ({
 			if (loadingChartSet.has(chartLabel)) return false
 			return !Object.prototype.hasOwnProperty.call(filteredCharts, chartLabel)
 		})
-		if (bribesChartError || tokenTaxesChartError) {
+		if (enabledBribesChartError || enabledTokenTaxesChartError) {
 			if (isFeesEnabled && !failedMetrics.includes('Fees')) {
 				failedMetrics.push('Fees')
 			}
@@ -1124,11 +1119,11 @@ export const useFetchProtocolChartData = ({
 		fetchingHoldersRevenue,
 		holdersRevenueDataChart,
 		fetchingBribes,
-		bribesDataChart,
-		bribesChartError,
+		enabledBribesDataChart,
+		enabledBribesChartError,
 		fetchingTokenTaxes,
-		tokenTaxesDataChart,
-		tokenTaxesChartError,
+		enabledTokenTaxesDataChart,
+		enabledTokenTaxesChartError,
 		fetchingDexVolume,
 		dexVolumeDataChart,
 		fetchingDexNotionalVolume,

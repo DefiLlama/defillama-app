@@ -16,6 +16,7 @@ import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapter
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { FEE_EXTRA_CONFIG_BY_SETTING, FEE_EXTRA_CONFIGS, type FeeExtraConfig } from '~/metrics/feeExtras'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
@@ -84,67 +85,56 @@ export const DimensionProtocolChartByType = ({
 		retry: 0
 	})
 
+	const feeExtraQueryConfigs = React.useMemo(() => {
+		const buildConfig = (extra: FeeExtraConfig) => {
+			const metricEnabled = metadata?.[extra.protocolMetadataField]
+			const enabled = !!(metricEnabled && feesSettings[extra.setting])
+
+			return {
+				queryKey: [
+					'dimension-adapter-chart-breakdown',
+					protocolName,
+					adapterType,
+					extra.dataType,
+					chartType,
+					metricEnabled ?? false,
+					feesSettings[extra.setting] ?? false
+				],
+				queryFn: () =>
+					enabled
+						? fetchJson<Array<[number, Record<string, number>]>>(
+								buildAdapterProtocolBreakdownApiUrl({
+									adapterType,
+									protocol: protocolName,
+									dataType: extra.dataType,
+									type: chartType
+								})
+							)
+						: Promise.resolve(null),
+				enabled,
+				staleTime: 60 * 60 * 1000,
+				refetchOnWindowFocus: false,
+				retry: 0
+			}
+		}
+
+		return {
+			bribes: buildConfig(FEE_EXTRA_CONFIG_BY_SETTING.bribes),
+			tokentax: buildConfig(FEE_EXTRA_CONFIG_BY_SETTING.tokentax)
+		}
+	}, [adapterType, chartType, feesSettings, metadata, protocolName])
+
 	const {
 		data: bribeData,
 		isLoading: fetchingBribeData,
 		error: fetchingBribeError
-	} = useQuery({
-		queryKey: [
-			'dimension-adapter-chart-breakdown',
-			protocolName,
-			adapterType,
-			'dailyBribesRevenue',
-			chartType,
-			metadata?.bribeRevenue ?? false,
-			feesSettings.bribes ?? false
-		],
-		queryFn: feesSettings.bribes
-			? () =>
-					fetchJson<Array<[number, Record<string, number>]>>(
-						buildAdapterProtocolBreakdownApiUrl({
-							adapterType,
-							protocol: protocolName,
-							dataType: 'dailyBribesRevenue',
-							type: chartType
-						})
-					)
-			: () => Promise.resolve(null),
-		enabled: !!(metadata?.bribeRevenue && feesSettings.bribes),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
+	} = useQuery(feeExtraQueryConfigs.bribes)
 
 	const {
 		data: tokenTaxData,
 		isLoading: fetchingTokenTaxData,
 		error: fetchingTokenTaxError
-	} = useQuery({
-		queryKey: [
-			'dimension-adapter-chart-breakdown',
-			protocolName,
-			adapterType,
-			'dailyTokenTaxes',
-			chartType,
-			metadata?.tokenTax ?? false,
-			feesSettings.tokentax ?? false
-		],
-		queryFn: feesSettings.tokentax
-			? () =>
-					fetchJson<Array<[number, Record<string, number>]>>(
-						buildAdapterProtocolBreakdownApiUrl({
-							adapterType,
-							protocol: protocolName,
-							dataType: 'dailyTokenTaxes',
-							type: chartType
-						})
-					)
-			: () => Promise.resolve(null),
-		enabled: !!(metadata?.tokenTax && feesSettings.tokentax),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
+	} = useQuery(feeExtraQueryConfigs.tokentax)
 
 	const failedApiErrors = React.useMemo(() => {
 		const errors: string[] = []
@@ -157,23 +147,15 @@ export const DimensionProtocolChartByType = ({
 
 		pushError('main', error)
 
-		if (metadata?.bribeRevenue && feesSettings.bribes) {
-			pushError('dailyBribesRevenue', fetchingBribeError)
-		}
-		if (metadata?.tokenTax && feesSettings.tokentax) {
-			pushError('dailyTokenTaxes', fetchingTokenTaxError)
+		const feeExtraErrors = { bribes: fetchingBribeError, tokentax: fetchingTokenTaxError }
+		for (const extra of FEE_EXTRA_CONFIGS) {
+			if (feeExtraQueryConfigs[extra.setting].enabled) {
+				pushError(extra.dataType, feeExtraErrors[extra.setting])
+			}
 		}
 
 		return errors
-	}, [
-		error,
-		fetchingBribeError,
-		fetchingTokenTaxError,
-		metadata?.bribeRevenue,
-		metadata?.tokenTax,
-		feesSettings.bribes,
-		feesSettings.tokentax
-	])
+	}, [error, fetchingBribeError, fetchingTokenTaxError, feeExtraQueryConfigs])
 
 	if (isLoading || fetchingBribeData || fetchingTokenTaxData) {
 		return (

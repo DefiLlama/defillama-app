@@ -27,7 +27,13 @@ import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/ty
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { FEE_EXTRA_METRIC_LABEL, type FeeExtraMetric } from '~/metrics/feeExtras'
+import {
+	FEE_EXTRA_CONFIG_BY_SETTING,
+	FEE_EXTRA_CONFIGS,
+	FEE_EXTRA_METRIC_LABEL,
+	type FeeExtraConfig,
+	type FeeExtraMetric
+} from '~/metrics/feeExtras'
 import { formattedNum, slug } from '~/utils'
 import { buildHallmarksWithGenuineSpikes } from '~/utils/hallmarks'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -53,6 +59,12 @@ const fetchOptionalAdapterProtocolOverview = async (
 		return { data: null, failed: true }
 	}
 }
+
+const isProtocolFeeExtraMetadataEnabled = (metadata: IProtocolMetadata, extra: FeeExtraConfig) =>
+	!!metadata[extra.protocolMetadataField]
+
+const isProtocolFeeExtraMetricEnabled = (metrics: IProtocolOverviewPageData['metrics'], extra: FeeExtraConfig) =>
+	!!metrics[extra.protocolMetricField]
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/fees/[protocol]',
@@ -96,29 +108,38 @@ export const getStaticProps = withPerformanceLogging(
 					excludeTotalDataChart: false,
 					dataType: 'dailyHoldersRevenue'
 				}),
-				fetchOptionalAdapterProtocolOverview(!!metadata[1].bribeRevenue, {
-					adapterType: 'fees',
-					protocol: metadata[1].displayName,
-					excludeTotalDataChart: false,
-					dataType: 'dailyBribesRevenue'
-				}),
-				fetchOptionalAdapterProtocolOverview(!!metadata[1].tokenTax, {
-					adapterType: 'fees',
-					protocol: metadata[1].displayName,
-					excludeTotalDataChart: false,
-					dataType: 'dailyTokenTaxes'
-				})
+				fetchOptionalAdapterProtocolOverview(
+					isProtocolFeeExtraMetadataEnabled(metadata[1], FEE_EXTRA_CONFIG_BY_SETTING.bribes),
+					{
+						adapterType: 'fees',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						dataType: FEE_EXTRA_CONFIG_BY_SETTING.bribes.dataType
+					}
+				),
+				fetchOptionalAdapterProtocolOverview(
+					isProtocolFeeExtraMetadataEnabled(metadata[1], FEE_EXTRA_CONFIG_BY_SETTING.tokentax),
+					{
+						adapterType: 'fees',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						dataType: FEE_EXTRA_CONFIG_BY_SETTING.tokentax.dataType
+					}
+				)
 			])
 		const revenueData = revenueResult.data
 		const holdersRevenueData = holdersRevenueResult.data
 		const bribeRevenueData = bribeRevenueResult.data
 		const tokenTaxData = tokenTaxResult.data
-		const failedMetrics = [
-			...(revenueResult.failed ? ['Revenue'] : []),
-			...(holdersRevenueResult.failed ? ['Holders Revenue'] : []),
-			...(bribeRevenueResult.failed ? ['dailyBribesRevenue' satisfies FeeExtraMetric] : []),
-			...(tokenTaxResult.failed ? ['dailyTokenTaxes' satisfies FeeExtraMetric] : [])
-		]
+		const failedMetrics: Array<string | FeeExtraMetric> = []
+		if (revenueResult.failed) failedMetrics.push('Revenue')
+		if (holdersRevenueResult.failed) failedMetrics.push('Holders Revenue')
+		const feeExtraResults = { bribes: bribeRevenueResult, tokentax: tokenTaxResult }
+		for (const extra of FEE_EXTRA_CONFIGS) {
+			if (feeExtraResults[extra.setting].failed) {
+				failedMetrics.push(extra.dataType)
+			}
+		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
@@ -133,11 +154,11 @@ export const getStaticProps = withPerformanceLogging(
 		})
 		const bribeRevenue: IProtocolOverviewPageData['bribeRevenue'] = formatAdapterData({
 			data: bribeRevenueData,
-			methodologyKey: 'BribesRevenue'
+			methodologyKey: FEE_EXTRA_CONFIG_BY_SETTING.bribes.methodologyKey
 		})
 		const tokenTax: IProtocolOverviewPageData['tokenTax'] = formatAdapterData({
 			data: tokenTaxData,
-			methodologyKey: 'TokenTaxes'
+			methodologyKey: FEE_EXTRA_CONFIG_BY_SETTING.tokentax.methodologyKey
 		})
 
 		const linkedProtocolsSet = new Set((feesData?.linkedProtocols ?? []).slice(1))
@@ -202,7 +223,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const toggleOptions = feesOptions.filter((option) =>
-			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
+			isProtocolFeeExtraMetricEnabled(metrics, FEE_EXTRA_CONFIG_BY_SETTING[option.key])
 		)
 
 		const hallmarks = buildHallmarksWithGenuineSpikes({

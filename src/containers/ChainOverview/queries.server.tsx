@@ -25,12 +25,13 @@ import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import {
-	FEE_EXTRA_DATA_TYPES_BY_SETTING,
+	FEE_EXTRA_CONFIG_BY_SETTING,
 	FEE_EXTRA_TOTAL_FIELD_BY_SETTING,
 	FEE_EXTRA_TOTAL_KEYS,
 	hasAnyFeeExtraTotals,
-	type FeeExtraSetting,
+	type FeeExtraConfig,
 	type FeeExtraMetric,
+	type FeeExtraSetting,
 	type FeeExtraTotals
 } from '~/metrics/feeExtras'
 import { feeRevenueMetrics, shouldFetchChainOverviewFeeRevenueMetric } from '~/metrics/feesRevenue'
@@ -49,6 +50,17 @@ import type { ChainChartLabels } from './constants'
 import { fetchHomepageUnlocksSummary } from './homepageUnlocks.server'
 import type { IChainOverviewData, ILiteChart } from './types'
 import { formatChainAssets } from './utils'
+
+const FEE_EXTRA_PHASE_BY_SETTING = {
+	bribes: {
+		chainNative: 'chain_native_bribes',
+		app: 'app_bribes'
+	},
+	tokentax: {
+		chainNative: 'chain_native_token_tax',
+		app: 'app_token_tax'
+	}
+} as const
 
 function computeTvlChartSummary(chart: Array<[number, number]>): {
 	totalValueUSD: number | null
@@ -235,6 +247,31 @@ export async function getChainOverviewData({
 	})
 	const shouldFetchChainNativeFeeExtras = shouldFetchChainFeesMetric || shouldFetchChainRevenueMetric
 	const shouldFetchAppFeeExtras = shouldFetchAppFeesMetric || shouldFetchAppRevenueMetric
+	const chainNativeFeeExtraTotalPromise = (extra: FeeExtraConfig) =>
+		timePhase(FEE_EXTRA_PHASE_BY_SETTING[extra.setting].chainNative, () =>
+			shouldFetchChainNativeFeeExtras
+				? fetchChainNativeFeeExtraTotals({
+						chain: currentChainMetadata.name,
+						dataType: extra.dataType
+					})
+				: Promise.resolve(null)
+		)
+	const appFeeExtraTotalPromise = (extra: FeeExtraConfig) =>
+		timePhase(FEE_EXTRA_PHASE_BY_SETTING[extra.setting].app, () =>
+			shouldFetchAppFeeExtras
+				? fetchAdapterChainMetrics({
+						adapterType: 'fees',
+						chain: currentChainMetadata.name,
+						dataType: extra.dataType
+					})
+						.then(toFeeExtraTotals)
+						.catch(() => null)
+				: Promise.resolve(null)
+		)
+	const chainNativeBribesTotalPromise = chainNativeFeeExtraTotalPromise(FEE_EXTRA_CONFIG_BY_SETTING.bribes)
+	const chainNativeTokenTaxTotalPromise = chainNativeFeeExtraTotalPromise(FEE_EXTRA_CONFIG_BY_SETTING.tokentax)
+	const appBribesTotalPromise = appFeeExtraTotalPromise(FEE_EXTRA_CONFIG_BY_SETTING.bribes)
+	const appTokenTaxTotalPromise = appFeeExtraTotalPromise(FEE_EXTRA_CONFIG_BY_SETTING.tokentax)
 
 	try {
 		const [
@@ -402,44 +439,10 @@ export async function getChainOverviewData({
 						})
 					: Promise.resolve(null)
 			),
-			timePhase('chain_native_bribes', () =>
-				shouldFetchChainNativeFeeExtras
-					? fetchChainNativeFeeExtraTotals({
-							chain: currentChainMetadata.name,
-							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
-						})
-					: Promise.resolve(null)
-			),
-			timePhase('chain_native_token_tax', () =>
-				shouldFetchChainNativeFeeExtras
-					? fetchChainNativeFeeExtraTotals({
-							chain: currentChainMetadata.name,
-							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
-						})
-					: Promise.resolve(null)
-			),
-			timePhase('app_bribes', () =>
-				shouldFetchAppFeeExtras
-					? fetchAdapterChainMetrics({
-							adapterType: 'fees',
-							chain: currentChainMetadata.name,
-							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes
-						})
-							.then(toFeeExtraTotals)
-							.catch(() => null)
-					: Promise.resolve(null)
-			),
-			timePhase('app_token_tax', () =>
-				shouldFetchAppFeeExtras
-					? fetchAdapterChainMetrics({
-							adapterType: 'fees',
-							chain: currentChainMetadata.name,
-							dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax
-						})
-							.then(toFeeExtraTotals)
-							.catch(() => null)
-					: Promise.resolve(null)
-			),
+			chainNativeBribesTotalPromise,
+			chainNativeTokenTaxTotalPromise,
+			appBribesTotalPromise,
+			appTokenTaxTotalPromise,
 			timePhase('perps', () =>
 				shouldFetchPerps
 					? fetchAdapterChainMetrics({
