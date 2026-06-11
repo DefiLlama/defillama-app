@@ -233,6 +233,7 @@ const adapterProtocolRow = (overrides: Record<string, unknown>) => ({
 	total60dto30d: 0,
 	total30d: 0,
 	total1y: 0,
+	annualized1y: 0,
 	totalAllTime: 0,
 	average1y: 0,
 	monthlyAverage1y: 0,
@@ -275,6 +276,7 @@ const adapterMetricsResponse = (overrides: Record<string, unknown> = {}) => ({
 	total60dto30d: 2000,
 	total30d: 3000,
 	total1y: 36_000,
+	annualized1y: 36_000,
 	change_1d: 11.11,
 	change_7d: 16.67,
 	change_1m: 50,
@@ -608,6 +610,7 @@ describe('chains by adapter page data', () => {
 							total7d: 700,
 							total30d: 3000,
 							total1y: 36_000,
+							annualized1y: 60_000,
 							totalAllTime: 100_000
 						})
 					]
@@ -637,7 +640,8 @@ describe('chains by adapter page data', () => {
 			name: 'Core Fees',
 			total24h: 100,
 			total7d: 700,
-			total30d: 3000
+			total30d: 3000,
+			annualized1y: 60_000
 		})
 
 		const extraRow = data?.protocols.find((protocol) => protocol.name === 'Extra Display')
@@ -702,6 +706,63 @@ describe('chains by adapter page data', () => {
 			total24h: null,
 			tokenTax: { total24h: 5, total7d: 0, total30d: null, total1y: 50, totalAllTime: 500 }
 		})
+	})
+
+	it('uses annualized1y, not 30d fallback, for P/F rankings', async () => {
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [
+				{ name: 'Annualized Fees', mcap: 12_000 },
+				{ name: 'Thirty Day Only', mcap: 12_000 }
+			],
+			parentProtocols: []
+		})
+		fetchJsonMock.mockImplementation((url: string) => {
+			const parsedUrl = new URL(url)
+			const dataType = parsedUrl.searchParams.get('dataType')
+
+			if (parsedUrl.pathname.includes('/chart/')) {
+				return Promise.resolve([])
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE || dataType === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+				return Promise.resolve(adapterMetricsResponse({ protocols: [] }))
+			}
+
+			return Promise.resolve(
+				adapterMetricsResponse({
+					protocols: [
+						adapterProtocolRow({
+							defillamaId: 'annualized-fees',
+							name: 'Annualized Fees',
+							displayName: 'Annualized Fees',
+							slug: 'annualized-fees',
+							total30d: 3000,
+							annualized1y: 60_000
+						}),
+						adapterProtocolRow({
+							defillamaId: 'thirty-day-only',
+							name: 'Thirty Day Only',
+							displayName: 'Thirty Day Only',
+							slug: 'thirty-day-only',
+							total30d: 3000,
+							annualized1y: null
+						})
+					]
+				})
+			)
+		})
+
+		const data = await getAdapterByChainPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'Base',
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			route: 'pf',
+			metricName: 'P/F'
+		})
+
+		expect(data?.protocols.map((protocol) => ({ name: protocol.name, pfOrPs: protocol.pfOrPs }))).toEqual([
+			{ name: 'Annualized Fees', pfOrPs: 0.2 }
+		])
 	})
 
 	it('uses chainFees metadata to qualify Chain Fees rankings without summing bribes or token taxes into totals', async () => {

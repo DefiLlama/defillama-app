@@ -28,6 +28,7 @@ type AggregatedProtocol = Omit<
 	| 'total7DaysAgo'
 	| 'total30DaysAgo'
 	| 'total1y'
+	| 'annualized1y'
 	| 'totalAllTime'
 	| 'change_1d'
 	| 'change_7d'
@@ -44,6 +45,7 @@ type AggregatedProtocol = Omit<
 	total7DaysAgo: number | null
 	total30DaysAgo: number | null
 	total1y: number | null
+	annualized1y: number | null
 	totalAllTime: number | null
 	change_1d: number | null
 	change_7d: number | null
@@ -81,6 +83,7 @@ export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics
 		displayName: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.displayName,
 		slug: slug(parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.name),
 		...aggregatedRevenue,
+		annualized1y: aggregatedRevenue.annualized1y ?? null,
 		chains: Array.from(chains),
 		breakdown24h: mergedBreakdown24h,
 		breakdown30d: mergedBreakdown30d

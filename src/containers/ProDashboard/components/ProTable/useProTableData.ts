@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import type { IParentProtocol } from '~/containers/ProtocolLists/protocol-table.types'
-import { getAnnualizedRatio, getPercentChange } from '~/utils'
+import { getMarketCapToAnnualizedMetricRatio, getPercentChange } from '~/utils'
 import type { IProtocolRow } from './proTable.types'
 import type { UseProTableDataParams, UseProTableDataResult, ProtocolWithSubRows } from './proTable.types'
 import { formatProtocolsList } from './proTable.utils'
@@ -90,11 +90,13 @@ const recalculateParentMetrics = (
 	let fees7d = 0
 	let fees30d = 0
 	let fees1y = 0
+	let feesAnnualized1y = 0
 	let average1y = 0
 	let revenue24h = 0
 	let revenue7d = 0
 	let revenue30d = 0
 	let revenue1y = 0
+	let revenueAnnualized1y = 0
 	let perpsVolume24h = 0
 	let perpsVolume7d = 0
 	let perpsVolume30d = 0
@@ -147,6 +149,9 @@ const recalculateParentMetrics = (
 		const childFees1y = toNumber(child.fees_1y)
 		if (childFees1y !== null) fees1y += childFees1y
 
+		const childFeesAnnualized1y = toNumber(child.feesAnnualized1y)
+		if (childFeesAnnualized1y !== null) feesAnnualized1y += childFeesAnnualized1y
+
 		const childAverage1y = toNumber(child.average_1y)
 		if (childAverage1y !== null) average1y += childAverage1y
 
@@ -161,6 +166,9 @@ const recalculateParentMetrics = (
 
 		const childRevenue1y = toNumber(child.revenue_1y)
 		if (childRevenue1y !== null) revenue1y += childRevenue1y
+
+		const childRevenueAnnualized1y = toNumber(child.revenueAnnualized1y)
+		if (childRevenueAnnualized1y !== null) revenueAnnualized1y += childRevenueAnnualized1y
 
 		const childPerpsVolume24h = toNumber(child.perps_volume_24h)
 		if (childPerpsVolume24h !== null) perpsVolume24h += childPerpsVolume24h
@@ -191,8 +199,8 @@ const recalculateParentMetrics = (
 	const parentMcap = toNumber(parent.mcap) ?? 0
 	const finalMcap = mcap > 0 ? mcap : parentMcap
 	const mcaptvl = tvl > 0 && finalMcap > 0 ? Number((finalMcap / tvl).toFixed(2)) : null
-	const pf = getAnnualizedRatio(finalMcap, fees30d)
-	const ps = getAnnualizedRatio(finalMcap, revenue30d)
+	const pf = getMarketCapToAnnualizedMetricRatio(finalMcap, feesAnnualized1y)
+	const ps = getMarketCapToAnnualizedMetricRatio(finalMcap, revenueAnnualized1y)
 
 	const oracleSet = new Set<string>()
 	const oraclesByChain = new Map<string, Set<string>>()
@@ -240,11 +248,13 @@ const recalculateParentMetrics = (
 		fees_7d: fees7d,
 		fees_30d: fees30d,
 		fees_1y: fees1y,
+		feesAnnualized1y,
 		average_1y: average1y,
 		revenue_24h: revenue24h,
 		revenue_7d: revenue7d,
 		revenue_30d: revenue30d,
 		revenue_1y: revenue1y,
+		revenueAnnualized1y,
 		perps_volume_24h: perpsVolume24h,
 		perps_volume_7d: perpsVolume7d,
 		perps_volume_30d: perpsVolume30d,

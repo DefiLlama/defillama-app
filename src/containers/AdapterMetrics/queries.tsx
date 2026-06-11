@@ -5,7 +5,7 @@ import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
 import { FEE_EXTRA_PERIOD_TOTAL_KEYS } from '~/metrics/feeExtras'
 import { feeRevenueMetrics, getChainNativeFeeRevenueRankingMetric } from '~/metrics/feesRevenue'
-import { slug, getAnnualizedRatio } from '~/utils'
+import { slug, getMarketCapToAnnualizedMetricRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
@@ -61,6 +61,7 @@ type AdapterByChainSourceProtocol = Pick<
 			| 'total7DaysAgo'
 			| 'total30DaysAgo'
 			| 'total1y'
+			| 'annualized1y'
 			| 'totalAllTime'
 			| 'change_1d'
 			| 'change_7d'
@@ -90,6 +91,7 @@ function buildFeeExtraOnlyProtocolRow(protocol: AdapterChainProtocolMetric): Ada
 		total7DaysAgo: null,
 		total30DaysAgo: null,
 		total1y: null,
+		annualized1y: null,
 		totalAllTime: null,
 		change_1d: null,
 		change_7d: null,
@@ -110,6 +112,7 @@ function getFeeExtraPeriodTotals(protocol: AdapterChainProtocolMetric): BribesDa
 		total7DaysAgo: protocol.total7DaysAgo ?? null,
 		total30DaysAgo: protocol.total30DaysAgo ?? null,
 		total1y: protocol.total1y ?? null,
+		annualized1y: protocol.annualized1y ?? null,
 		totalAllTime: protocol.totalAllTime ?? null
 	}
 }
@@ -442,10 +445,9 @@ export const getAdapterByChainPageData = async ({
 							protocol.methodology?.['TokenTaxes'])
 				: null
 
-		// Calculate P/F or P/S ratio (same calculation, context depends on dataType)
 		const pfOrPs =
-			protocolsMcap[protocol.name] && protocol.total30d
-				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
+			protocolsMcap[protocol.name] && protocol.annualized1y
+				? getMarketCapToAnnualizedMetricRatio(protocolsMcap[protocol.name], protocol.annualized1y)
 				: null
 
 		const summary = {
@@ -463,6 +465,7 @@ export const getAdapterByChainPageData = async ({
 			total7DaysAgo: protocol.total7DaysAgo ?? null,
 			total30DaysAgo: protocol.total30DaysAgo ?? null,
 			total1y: protocol.total1y ?? null,
+			annualized1y: protocol.annualized1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
 			change_1d: protocol.change_1d ?? null,
 			change_7d: protocol.change_7d ?? null,
@@ -524,6 +527,7 @@ export const getAdapterByChainPageData = async ({
 			total7d: periodTotals.total7d ?? null,
 			total30d: periodTotals.total30d ?? null,
 			total1y: periodTotals.total1y ?? null,
+			annualized1y: periodTotals.annualized1y ?? null,
 			totalAllTime: periodTotals.totalAllTime ?? null
 		}
 		let doublecounted = false
@@ -594,7 +598,9 @@ export const getAdapterByChainPageData = async ({
 		}
 
 		const pfOrPs =
-			protocolsMcap[protocol] && totals.total30d ? getAnnualizedRatio(protocolsMcap[protocol], totals.total30d) : null
+			protocolsMcap[protocol] && totals.annualized1y
+				? getMarketCapToAnnualizedMetricRatio(protocolsMcap[protocol], totals.annualized1y)
+				: null
 
 		protocols[protocol] = {
 			name: protocol,

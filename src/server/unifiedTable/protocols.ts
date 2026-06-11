@@ -105,14 +105,14 @@ interface ProtocolQueryOptions {
 	rowHeaders: UnifiedRowHeaderType[]
 }
 
-const computeAnnualizedRatioFrom30d = (
+const computeMarketCapToAnnualizedMetricRatio = (
 	marketCap: number | null | undefined,
-	rolling30d: number | null | undefined
+	annualizedMetric: number | null | undefined
 ): number | null => {
-	if (marketCap == null || rolling30d == null || rolling30d <= 0) {
+	if (marketCap == null || annualizedMetric == null || annualizedMetric === 0) {
 		return null
 	}
-	return Number((marketCap / (rolling30d * 12)).toFixed(2))
+	return Number((marketCap / annualizedMetric).toFixed(2))
 }
 
 const totalsPromise = llamaDb.one<{
@@ -208,6 +208,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		fees_7d: fees7d,
 		fees_30d: fees30d,
 		fees_1y: row.fees_365d ?? null,
+		feesAnnualized1y: row.fees_annualised ?? null,
 		average_1y: row.fees_annualised ? row.fees_annualised / 12 : null,
 		cumulativeFees: row.fees_alltime ?? null,
 		userFees_24h: null,
@@ -222,6 +223,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		revenue_7d: row.revenue_7d ?? null,
 		revenue_30d: row.revenue_30d ?? null,
 		revenue_1y: row.revenue_365d ?? null,
+		revenueAnnualized1y: row.revenue_annualised ?? null,
 		average_revenue_1y: row.revenue_annualised ? row.revenue_annualised / 12 : null,
 		cumulativeRevenue: row.revenue_alltime ?? null,
 		revenueChange_1d: toPercent(row.revenue_1d_pct_change),
@@ -258,8 +260,8 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		fdv: row.fdv ?? null,
 		chainMcap: row.chain_mcap ?? null,
 		mcaptvl: row.mcap != null && tvl != null ? row.mcap / tvl : null,
-		pf: computeAnnualizedRatioFrom30d(row.mcap, row.fees_30d),
-		ps: computeAnnualizedRatioFrom30d(row.mcap, row.revenue_30d),
+		pf: computeMarketCapToAnnualizedMetricRatio(row.mcap, row.fees_annualised),
+		ps: computeMarketCapToAnnualizedMetricRatio(row.mcap, row.revenue_annualised),
 		protocolCount: null
 	}
 }

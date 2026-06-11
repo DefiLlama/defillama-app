@@ -597,8 +597,8 @@ export const CHART_TYPES = {
 	chainMcap: { id: 'chainMcap', title: 'Native Token Market Cap', chartType: 'area', color: '#426ecd' },
 	chainPrice: { id: 'chainPrice', title: 'Native Token Price', chartType: 'area', color: '#27914e' },
 	borrowed: { id: 'borrowed', title: 'Borrowed', chartType: 'area', color: '#cc3e3e' },
-	pfRatio: { id: 'pfRatio', title: 'P/F Ratio', chartType: 'line', color: '#683ecc' },
-	psRatio: { id: 'psRatio', title: 'P/S Ratio', chartType: 'line', color: '#2e9aad' }
+	pfRatio: { id: 'pfRatio', title: 'P/F Ratio (30d Run Rate)', chartType: 'line', color: '#683ecc' },
+	psRatio: { id: 'psRatio', title: 'P/S Ratio (30d Run Rate)', chartType: 'line', color: '#2e9aad' }
 }
 
 // Helper functions to extract chart types from CHART_TYPES

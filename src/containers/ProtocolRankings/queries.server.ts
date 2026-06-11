@@ -8,7 +8,7 @@ import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { formatNum, getAnnualizedRatio, getPercentChange, slug } from '~/utils'
+import { formatNum, getMarketCapToAnnualizedMetricRatio, getPercentChange, slug } from '~/utils'
 import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import type { IChildProtocol, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { toFilterProtocol, toStrikeTvl } from './utils'
@@ -182,6 +182,7 @@ export const getProtocolsByChain = async ({
 					total7d: protocol.total7d ?? null,
 					total30d: protocol.total30d ?? null,
 					total1y: protocol.total1y ?? null,
+					annualized1y: protocol.annualized1y ?? null,
 					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
 					totalAllTime: protocol.totalAllTime ?? null
 				}
@@ -198,6 +199,7 @@ export const getProtocolsByChain = async ({
 					total7d: protocol.total7d ?? null,
 					total30d: protocol.total30d ?? null,
 					total1y: protocol.total1y ?? null,
+					annualized1y: protocol.annualized1y ?? null,
 					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
 					totalAllTime: protocol.totalAllTime ?? null
 				}
@@ -325,14 +327,17 @@ export const getProtocolsByChain = async ({
 		if (dimensionProtocols[protocol.defillamaId]?.fees) {
 			childStore.fees = dimensionProtocols[protocol.defillamaId].fees
 			childStore.fees.pf = protocol.mcap
-				? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.total30d)
+				? getMarketCapToAnnualizedMetricRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.annualized1y)
 				: null
 		}
 
 		if (dimensionProtocols[protocol.defillamaId]?.revenue) {
 			childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
 			childStore.revenue.ps = protocol.mcap
-				? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].revenue.total30d)
+				? getMarketCapToAnnualizedMetricRatio(
+						protocol.mcap,
+						dimensionProtocols[protocol.defillamaId].revenue.annualized1y
+					)
 				: null
 		}
 
@@ -455,11 +460,11 @@ export const getProtocolsByChain = async ({
 			}
 
 			if (parentFees) {
-				parentFees.pf = getAnnualizedRatio(parentProtocol.mcap, parentFees.total30d)
+				parentFees.pf = getMarketCapToAnnualizedMetricRatio(parentProtocol.mcap, parentFees.annualized1y)
 			}
 
 			if (parentRevenue) {
-				parentRevenue.ps = getAnnualizedRatio(parentProtocol.mcap, parentRevenue.total30d)
+				parentRevenue.ps = getMarketCapToAnnualizedMetricRatio(parentProtocol.mcap, parentRevenue.annualized1y)
 			}
 
 			if (!parentEmissions) {

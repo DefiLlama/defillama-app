@@ -1,14 +1,14 @@
 import { getPercentChange } from '~/utils'
 import type { NormalizedRow, NumericMetrics } from '../types'
 
-const computeAnnualizedRatioFrom30d = (
+const computeMarketCapToAnnualizedMetricRatio = (
 	marketCap: number | null | undefined,
-	rolling30d: number | null | undefined
+	annualizedMetric: number | null | undefined
 ): number | null => {
-	if (marketCap == null || rolling30d == null || rolling30d <= 0) {
+	if (marketCap == null || annualizedMetric == null || annualizedMetric === 0) {
 		return null
 	}
-	return Number((marketCap / (rolling30d * 12)).toFixed(2))
+	return Number((marketCap / annualizedMetric).toFixed(2))
 }
 
 export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
@@ -29,6 +29,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'fees_7d',
 		'fees_30d',
 		'fees_1y',
+		'feesAnnualized1y',
 		'average_1y',
 		'cumulativeFees',
 		'userFees_24h',
@@ -40,6 +41,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'revenue_7d',
 		'revenue_30d',
 		'revenue_1y',
+		'revenueAnnualized1y',
 		'average_revenue_1y',
 		'cumulativeRevenue',
 		'perpsVolume24h',
@@ -201,8 +203,8 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		aggregated.mcaptvl = null
 	}
 
-	aggregated.pf = computeAnnualizedRatioFrom30d(aggregated.mcap, aggregated.fees_30d)
-	aggregated.ps = computeAnnualizedRatioFrom30d(aggregated.mcap, aggregated.revenue_30d)
+	aggregated.pf = computeMarketCapToAnnualizedMetricRatio(aggregated.mcap, aggregated.feesAnnualized1y)
+	aggregated.ps = computeMarketCapToAnnualizedMetricRatio(aggregated.mcap, aggregated.revenueAnnualized1y)
 
 	aggregated.protocolCount = protocolIds.size > 0 ? protocolIds.size : null
 

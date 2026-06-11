@@ -4,6 +4,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useContext, useMemo, useRef } from 'react'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/ProtocolLists/utils.old'
+import { getMarketCapToAnnualizedMetricRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { StreamDoneContext } from '../../queries'
 import {
@@ -63,14 +64,8 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 	if (options?.computeRatios) {
 		const mcap = toFiniteNumber(result.mcap ?? result.marketCap)
 		if (mcap !== null) {
-			const fees30d = toFiniteNumber(result.total30d)
-			if (fees30d !== null && fees30d > 0) {
-				result.pf = Number((mcap / (fees30d * 12)).toFixed(2))
-			}
-			const revenue30d = toFiniteNumber(result.revenue30d)
-			if (revenue30d !== null && revenue30d > 0) {
-				result.ps = Number((mcap / (revenue30d * 12)).toFixed(2))
-			}
+			result.pf = getMarketCapToAnnualizedMetricRatio(mcap, toFiniteNumber(result.annualized1y))
+			result.ps = getMarketCapToAnnualizedMetricRatio(mcap, toFiniteNumber(result.revenueAnnualized1y))
 		}
 	}
 
@@ -208,6 +203,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 					existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 					existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+					existing.annualized1y = (existing.annualized1y || 0) + (protocol.annualized1y || 0)
 					existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
 
 					applyWeightedChange(existing, 'change_1d', protocol.total24h, protocol.change_1d)
@@ -292,6 +288,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 					existing.revenue7d = (existing.revenue7d || 0) + (protocol.revenue7d || 0)
 					existing.revenue30d = (existing.revenue30d || 0) + (protocol.revenue30d || 0)
 					existing.revenue1y = (existing.revenue1y || 0) + (protocol.revenue1y || 0)
+					existing.revenueAnnualized1y = (existing.revenueAnnualized1y || 0) + (protocol.revenueAnnualized1y || 0)
 					existing.holdersRevenue24h = (existing.holdersRevenue24h || 0) + (protocol.holdersRevenue24h || 0)
 					existing.holdersRevenue30d = (existing.holdersRevenue30d || 0) + (protocol.holdersRevenue30d || 0)
 

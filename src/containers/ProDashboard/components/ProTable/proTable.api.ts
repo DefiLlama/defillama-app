@@ -59,6 +59,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 			revenue7d: revenueProtocol?.total7d ?? null,
 			revenue30d: revenueProtocol?.total30d ?? null,
 			revenue1y: revenueProtocol?.total1y ?? null,
+			revenueAnnualized1y: revenueProtocol?.annualized1y ?? null,
 			averageRevenue1y: revenueProtocol?.average1y ?? null,
 			feesChange_1d: protocol.change_1d ?? null,
 			feesChange_7d: protocol.change_7d ?? null,

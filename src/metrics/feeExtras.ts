@@ -74,7 +74,14 @@ const FEE_EXTRA_ELIGIBLE_DATA_TYPES = new Set<string>([
 	'dailyEarnings'
 ])
 
-export const FEE_EXTRA_TOTAL_KEYS = ['total24h', 'total7d', 'total30d', 'total1y', 'totalAllTime'] as const
+export const FEE_EXTRA_TOTAL_KEYS = [
+	'total24h',
+	'total7d',
+	'total30d',
+	'total1y',
+	'annualized1y',
+	'totalAllTime'
+] as const
 export const FEE_EXTRA_PERIOD_TOTAL_KEYS = [
 	'total24h',
 	'total48hto24h',
@@ -85,6 +92,7 @@ export const FEE_EXTRA_PERIOD_TOTAL_KEYS = [
 	'total7DaysAgo',
 	'total30DaysAgo',
 	'total1y',
+	'annualized1y',
 	'totalAllTime'
 ] as const
 

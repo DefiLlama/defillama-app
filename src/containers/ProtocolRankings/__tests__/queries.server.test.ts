@@ -91,6 +91,7 @@ const metricRow = (defillamaId: string, totals: Record<string, number | null>) =
 	total7d: totals.total7d ?? null,
 	total30d: totals.total30d ?? null,
 	total1y: totals.total1y ?? null,
+	annualized1y: totals.annualized1y ?? null,
 	monthlyAverage1y: totals.monthlyAverage1y ?? null,
 	totalAllTime: totals.totalAllTime ?? null,
 	change_7dover7d: totals.change_7dover7d ?? null
@@ -116,8 +117,20 @@ describe('getProtocolsByChain parent aggregation', () => {
 			if (dataType === 'dailyRevenue') {
 				return Promise.resolve({
 					protocols: [
-						metricRow('child-alpha-one', { total24h: 10, total7d: 70, total30d: 300, totalAllTime: 3000 }),
-						metricRow('child-alpha-two', { total24h: 5, total7d: 35, total30d: 150, totalAllTime: 1500 })
+						metricRow('child-alpha-one', {
+							total24h: 10,
+							total7d: 70,
+							total30d: 300,
+							annualized1y: 2700,
+							totalAllTime: 3000
+						}),
+						metricRow('child-alpha-two', {
+							total24h: 5,
+							total7d: 35,
+							total30d: 150,
+							annualized1y: null,
+							totalAllTime: 1500
+						})
 					]
 				})
 			}
@@ -130,8 +143,20 @@ describe('getProtocolsByChain parent aggregation', () => {
 
 			return Promise.resolve({
 				protocols: [
-					metricRow('child-alpha-one', { total24h: 20, total7d: 140, total30d: 600, totalAllTime: 6000 }),
-					metricRow('child-alpha-two', { total24h: 8, total7d: 56, total30d: 240, totalAllTime: 2400 })
+					metricRow('child-alpha-one', {
+						total24h: 20,
+						total7d: 140,
+						total30d: 600,
+						annualized1y: 3000,
+						totalAllTime: 6000
+					}),
+					metricRow('child-alpha-two', {
+						total24h: 8,
+						total7d: 56,
+						total30d: 240,
+						annualized1y: 2400,
+						totalAllTime: 2400
+					})
 				]
 			})
 		})
@@ -217,12 +242,14 @@ describe('getProtocolsByChain parent aggregation', () => {
 				excludeParent: { tvl: 30, tvlPrevDay: 5, tvlPrevWeek: 4, tvlPrevMonth: 3 }
 			},
 			tvlChange: { change1d: null, change7d: null, change1m: expect.any(Number) },
-			fees: { total24h: 28, total7d: 196, total30d: 840, totalAllTime: 8400 },
-			revenue: { total24h: 15, total7d: 105, total30d: 450, totalAllTime: 4500 },
+			fees: { total24h: 28, total7d: 196, total30d: 840, annualized1y: 5400, totalAllTime: 8400, pf: 0.1 },
+			revenue: { total24h: 15, total7d: 105, total30d: 450, annualized1y: 2700, totalAllTime: 4500, ps: 0.2 },
 			holdersRevenue: { total24h: 4, total7d: 28, total30d: 120 },
 			dexs: { total24h: 150, total7d: 1050, totalAllTime: 15_000 }
 		})
 		expect(parent?.childProtocols?.map((protocol) => protocol.name)).toEqual(['Alpha One', 'Alpha Two'])
+		expect(parent?.childProtocols?.map((protocol) => protocol.fees?.pf ?? null)).toEqual([0.33, 0.21])
+		expect(parent?.childProtocols?.map((protocol) => protocol.revenue?.ps ?? null)).toEqual([0.37, null])
 
 		const withStakingAndMin = applyProtocolTvlSettings({
 			protocols: data?.protocols ?? [],
