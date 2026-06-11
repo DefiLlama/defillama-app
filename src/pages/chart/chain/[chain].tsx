@@ -9,8 +9,9 @@ import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/Cha
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import type { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
-import { FEES_SETTINGS, TVL_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
+import { FEE_EXTRA_CONFIGS } from '~/metrics/feeExtras'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -106,10 +107,8 @@ export default function ChainChartPage(props: IChainOverviewData) {
 
 			const feesSettings = {}
 
-			for (const setting in FEES_SETTINGS) {
-				feesSettings[FEES_SETTINGS[setting]] = isTruthyQueryParam(
-					queryParams[`include_${FEES_SETTINGS[setting]}_in_fees`]
-				)
+			for (const extra of FEE_EXTRA_CONFIGS) {
+				feesSettings[extra.setting] = isTruthyQueryParam(queryParams[extra.queryParam])
 			}
 
 			const toggledCharts = props.charts.filter((tchart, index) =>

@@ -3,6 +3,11 @@ export const FEE_EXTRA_DATA_TYPES_BY_SETTING = {
 	tokentax: 'dailyTokenTaxes'
 } as const
 
+export const FEE_EXTRA_QUERY_PARAMS_BY_SETTING = {
+	bribes: 'include_bribes_in_fees',
+	tokentax: 'include_tokentax_in_fees'
+} as const
+
 export const FEE_EXTRA_METRIC_LABEL = {
 	dailyBribesRevenue: 'Bribes Revenue',
 	dailyTokenTaxes: 'Token Tax'
@@ -12,6 +17,53 @@ export const FEE_EXTRA_TOTAL_FIELD_BY_SETTING = {
 	bribes: 'bribes',
 	tokentax: 'tokenTax'
 } as const
+
+export const FEE_EXTRA_PROTOCOL_METADATA_FIELD_BY_SETTING = {
+	bribes: 'bribeRevenue',
+	tokentax: 'tokenTax'
+} as const
+
+export const FEE_EXTRA_PROTOCOL_METRIC_FIELD_BY_SETTING = {
+	bribes: 'bribes',
+	tokentax: 'tokenTax'
+} as const
+
+export const FEE_EXTRA_METHODOLOGY_KEY_BY_SETTING = {
+	bribes: 'BribesRevenue',
+	tokentax: 'TokenTaxes'
+} as const
+
+export const FEE_EXTRA_CLIENT_QUERY_KEY_BY_SETTING = {
+	bribes: 'bribes',
+	tokentax: 'token-taxes'
+} as const
+
+export const FEE_EXTRA_CONFIG_BY_SETTING = {
+	bribes: {
+		setting: 'bribes',
+		dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes,
+		queryParam: FEE_EXTRA_QUERY_PARAMS_BY_SETTING.bribes,
+		label: FEE_EXTRA_METRIC_LABEL.dailyBribesRevenue,
+		totalField: FEE_EXTRA_TOTAL_FIELD_BY_SETTING.bribes,
+		protocolMetadataField: FEE_EXTRA_PROTOCOL_METADATA_FIELD_BY_SETTING.bribes,
+		protocolMetricField: FEE_EXTRA_PROTOCOL_METRIC_FIELD_BY_SETTING.bribes,
+		methodologyKey: FEE_EXTRA_METHODOLOGY_KEY_BY_SETTING.bribes,
+		clientQueryKey: FEE_EXTRA_CLIENT_QUERY_KEY_BY_SETTING.bribes
+	},
+	tokentax: {
+		setting: 'tokentax',
+		dataType: FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax,
+		queryParam: FEE_EXTRA_QUERY_PARAMS_BY_SETTING.tokentax,
+		label: FEE_EXTRA_METRIC_LABEL.dailyTokenTaxes,
+		totalField: FEE_EXTRA_TOTAL_FIELD_BY_SETTING.tokentax,
+		protocolMetadataField: FEE_EXTRA_PROTOCOL_METADATA_FIELD_BY_SETTING.tokentax,
+		protocolMetricField: FEE_EXTRA_PROTOCOL_METRIC_FIELD_BY_SETTING.tokentax,
+		methodologyKey: FEE_EXTRA_METHODOLOGY_KEY_BY_SETTING.tokentax,
+		clientQueryKey: FEE_EXTRA_CLIENT_QUERY_KEY_BY_SETTING.tokentax
+	}
+} as const
+
+export const FEE_EXTRA_CONFIGS = [FEE_EXTRA_CONFIG_BY_SETTING.bribes, FEE_EXTRA_CONFIG_BY_SETTING.tokentax] as const
 
 const FEE_EXTRA_ELIGIBLE_DATA_TYPES = new Set<string>([
 	'dailyFees',
@@ -26,6 +78,7 @@ export const FEE_EXTRA_TOTAL_KEYS = ['total24h', 'total7d', 'total30d', 'total1y
 
 export type FeeExtraSetting = keyof typeof FEE_EXTRA_DATA_TYPES_BY_SETTING
 export type FeeExtraMetric = keyof typeof FEE_EXTRA_METRIC_LABEL
+export type FeeExtraConfig = (typeof FEE_EXTRA_CONFIGS)[number]
 export type FeeExtraSettings = Partial<Record<FeeExtraSetting, boolean>>
 export type FeeExtraTotals = Partial<Record<(typeof FEE_EXTRA_TOTAL_KEYS)[number], number | null>>
 export type RowWithFeeExtras = FeeExtraTotals & {
@@ -35,6 +88,14 @@ export type RowWithFeeExtras = FeeExtraTotals & {
 
 export function hasEnabledFeeExtras(settings: FeeExtraSettings) {
 	return !!(settings.bribes || settings.tokentax)
+}
+
+export function getEnabledFeeExtraConfigs(settings: FeeExtraSettings): FeeExtraConfig[] {
+	const extras: FeeExtraConfig[] = []
+	for (const extra of FEE_EXTRA_CONFIGS) {
+		if (settings[extra.setting]) extras.push(extra)
+	}
+	return extras
 }
 
 export function hasAnyFeeExtraTotals(totals: FeeExtraTotals | null | undefined) {
@@ -48,8 +109,9 @@ export function hasAnyFeeExtraTotals(totals: FeeExtraTotals | null | undefined) 
 
 export function getEnabledFeeExtraDataTypes(settings: FeeExtraSettings): FeeExtraMetric[] {
 	const extras: FeeExtraMetric[] = []
-	if (settings.bribes) extras.push(FEE_EXTRA_DATA_TYPES_BY_SETTING.bribes)
-	if (settings.tokentax) extras.push(FEE_EXTRA_DATA_TYPES_BY_SETTING.tokentax)
+	for (const extra of getEnabledFeeExtraConfigs(settings)) {
+		extras.push(extra.dataType)
+	}
 	return extras
 }
 
