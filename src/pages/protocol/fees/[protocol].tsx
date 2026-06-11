@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -26,6 +27,7 @@ import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/ty
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { FEE_EXTRA_METRIC_LABEL, type FeeExtraMetric } from '~/metrics/feeExtras'
 import { formattedNum, slug } from '~/utils'
 import { buildHallmarksWithGenuineSpikes } from '~/utils/hallmarks'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -33,6 +35,24 @@ import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+
+type OptionalAdapterOverviewResult = {
+	data: Awaited<ReturnType<typeof getAdapterProtocolOverview>> | null
+	failed: boolean
+}
+
+const fetchOptionalAdapterProtocolOverview = async (
+	enabled: boolean,
+	params: Parameters<typeof getAdapterProtocolOverview>[0]
+): Promise<OptionalAdapterOverviewResult> => {
+	if (!enabled) return { data: null, failed: false }
+
+	try {
+		return { data: await getAdapterProtocolOverview(params), failed: false }
+	} catch {
+		return { data: null, failed: true }
+	}
+}
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/fees/[protocol]',
@@ -56,48 +76,49 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
-			[
+		const [protocolData, feesData, revenueResult, holdersRevenueResult, bribeRevenueResult, tokenTaxResult] =
+			await Promise.all([
 				fetchProtocolOverviewMetrics(protocol),
 				getAdapterProtocolOverview({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
 					excludeTotalDataChart: false
 				}),
-				metadata[1].revenue
-					? getAdapterProtocolOverview({
-							adapterType: 'fees',
-							protocol: metadata[1].displayName,
-							excludeTotalDataChart: false,
-							dataType: 'dailyRevenue'
-						}).catch(() => null)
-					: Promise.resolve(null),
-				metadata[1].holdersRevenue
-					? getAdapterProtocolOverview({
-							adapterType: 'fees',
-							protocol: metadata[1].displayName,
-							excludeTotalDataChart: false,
-							dataType: 'dailyHoldersRevenue'
-						}).catch(() => null)
-					: Promise.resolve(null),
-				metadata[1].bribeRevenue
-					? getAdapterProtocolOverview({
-							adapterType: 'fees',
-							protocol: metadata[1].displayName,
-							excludeTotalDataChart: false,
-							dataType: 'dailyBribesRevenue'
-						}).catch(() => null)
-					: Promise.resolve(null),
-				metadata[1].tokenTax
-					? getAdapterProtocolOverview({
-							adapterType: 'fees',
-							protocol: metadata[1].displayName,
-							excludeTotalDataChart: false,
-							dataType: 'dailyTokenTaxes'
-						}).catch(() => null)
-					: Promise.resolve(null)
-			]
-		)
+				fetchOptionalAdapterProtocolOverview(!!metadata[1].revenue, {
+					adapterType: 'fees',
+					protocol: metadata[1].displayName,
+					excludeTotalDataChart: false,
+					dataType: 'dailyRevenue'
+				}),
+				fetchOptionalAdapterProtocolOverview(!!metadata[1].holdersRevenue, {
+					adapterType: 'fees',
+					protocol: metadata[1].displayName,
+					excludeTotalDataChart: false,
+					dataType: 'dailyHoldersRevenue'
+				}),
+				fetchOptionalAdapterProtocolOverview(!!metadata[1].bribeRevenue, {
+					adapterType: 'fees',
+					protocol: metadata[1].displayName,
+					excludeTotalDataChart: false,
+					dataType: 'dailyBribesRevenue'
+				}),
+				fetchOptionalAdapterProtocolOverview(!!metadata[1].tokenTax, {
+					adapterType: 'fees',
+					protocol: metadata[1].displayName,
+					excludeTotalDataChart: false,
+					dataType: 'dailyTokenTaxes'
+				})
+			])
+		const revenueData = revenueResult.data
+		const holdersRevenueData = holdersRevenueResult.data
+		const bribeRevenueData = bribeRevenueResult.data
+		const tokenTaxData = tokenTaxResult.data
+		const failedMetrics = [
+			...(revenueResult.failed ? ['Revenue'] : []),
+			...(holdersRevenueResult.failed ? ['Holders Revenue'] : []),
+			...(bribeRevenueResult.failed ? ['dailyBribesRevenue' satisfies FeeExtraMetric] : []),
+			...(tokenTaxResult.failed ? ['dailyTokenTaxes' satisfies FeeExtraMetric] : [])
+		]
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
@@ -222,7 +243,8 @@ export const getStaticProps = withPerformanceLogging(
 				toggleOptions,
 				hallmarks,
 				seoTitle,
-				seoDescription
+				seoDescription,
+				failedMetrics
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -358,7 +380,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
-				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
+				<div className="relative col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
 						{props.defaultCharts.length > 1 ? (
@@ -387,6 +409,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							onReady={handleChartReady}
 						/>
 					</Suspense>
+					<FailedProtocolFeeMetricsPopover failedMetrics={props.failedMetrics ?? []} />
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
@@ -461,5 +484,35 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				) : null}
 			</div>
 		</ProtocolOverviewLayout>
+	)
+}
+
+function FailedProtocolFeeMetricsPopover({ failedMetrics }: { failedMetrics: Array<string> }) {
+	if (failedMetrics.length === 0) {
+		return null
+	}
+
+	return (
+		<Ariakit.PopoverProvider>
+			<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+				<Icon name="alert-triangle" className="size-3.5" />
+				<span className="sr-only">Show failed metric APIs</span>
+			</Ariakit.PopoverDisclosure>
+			<Ariakit.Popover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				className="z-10 mr-1 flex max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),300px)] flex-col gap-1 overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-xs dark:border-[hsl(204,3%,32%)]"
+			>
+				<p className="font-medium text-(--error)">Failed to load data for:</p>
+				<ul className="pl-4">
+					{failedMetrics.map((metric) => (
+						<li key={metric} className="list-disc">
+							{metric in FEE_EXTRA_METRIC_LABEL ? FEE_EXTRA_METRIC_LABEL[metric as FeeExtraMetric] : metric}
+						</li>
+					))}
+				</ul>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
 	)
 }

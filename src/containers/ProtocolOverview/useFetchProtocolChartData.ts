@@ -34,7 +34,8 @@ const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): n
 
 const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
 	const searchParams = new URLSearchParams()
-	for (const [key, value] of Object.entries(params)) {
+	for (const key in params) {
+		const value = params[key]
 		if (value != null) {
 			searchParams.set(key, value)
 		}
@@ -350,7 +351,11 @@ export const useFetchProtocolChartData = ({
 		metrics.bribes &&
 		isRouterReady
 	)
-	const { data: bribesDataChart = null, isLoading: fetchingBribes } = useQuery<Array<[number, number]> | null>({
+	const {
+		data: bribesDataChart = null,
+		isLoading: fetchingBribes,
+		error: bribesChartError
+	} = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'bribes'],
 		queryFn: () =>
 			isBribesEnabled
@@ -375,7 +380,11 @@ export const useFetchProtocolChartData = ({
 		metrics.tokenTax &&
 		isRouterReady
 	)
-	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]> | null>({
+	const {
+		data: tokenTaxesDataChart = null,
+		isLoading: fetchingTokenTaxes,
+		error: tokenTaxesChartError
+	} = useQuery<Array<[number, number]> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-taxes'],
 		queryFn: () =>
 			isTokenTaxesEnabled
@@ -839,15 +848,18 @@ export const useFetchProtocolChartData = ({
 			}
 		}
 
-		const finalFeesChart = Object.entries(feesStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number | null]
-		)
-		const finalRevenueChart = Object.entries(revenueStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number | null]
-		)
-		const finalHoldersRevenueChart = Object.entries(holdersRevenueStore).map(
-			([date, value]) => [+date * 1e3, value] as [number, number | null]
-		)
+		const finalFeesChart: Array<[number, number | null]> = []
+		for (const date in feesStore) {
+			finalFeesChart.push([+date * 1e3, feesStore[date]])
+		}
+		const finalRevenueChart: Array<[number, number | null]> = []
+		for (const date in revenueStore) {
+			finalRevenueChart.push([+date * 1e3, revenueStore[date]])
+		}
+		const finalHoldersRevenueChart: Array<[number, number | null]> = []
+		for (const date in holdersRevenueStore) {
+			finalHoldersRevenueChart.push([+date * 1e3, holdersRevenueStore[date]])
+		}
 		if (finalFeesChart.length > 0) charts['Fees'] = finalFeesChart
 		if (finalRevenueChart.length > 0) charts['Revenue'] = finalRevenueChart
 		if (finalHoldersRevenueChart.length > 0) charts['Holders Revenue'] = finalHoldersRevenueChart
@@ -1034,12 +1046,13 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory
 			})
 
-		const filteredCharts = Object.fromEntries(
-			Object.entries(charts).filter(([chartLabel]) => {
-				const queryParamKey = protocolCharts[chartLabel as ProtocolChartsLabels]
-				return queryParamKey ? toggledMetrics[queryParamKey] === 'true' : true
-			})
-		) as Record<string, Array<[number, number | null]>>
+		const filteredCharts: Record<string, Array<[number, number | null]>> = {}
+		for (const chartLabel in charts) {
+			const queryParamKey = protocolCharts[chartLabel as ProtocolChartsLabels]
+			if (!queryParamKey || toggledMetrics[queryParamKey] === 'true') {
+				filteredCharts[chartLabel] = charts[chartLabel]
+			}
+		}
 
 		const failedMetrics = availableCharts.filter((chartLabel) => {
 			const queryParamKey = protocolCharts[chartLabel]
@@ -1047,6 +1060,17 @@ export const useFetchProtocolChartData = ({
 			if (loadingChartSet.has(chartLabel)) return false
 			return !Object.prototype.hasOwnProperty.call(filteredCharts, chartLabel)
 		})
+		if (bribesChartError || tokenTaxesChartError) {
+			if (isFeesEnabled && !failedMetrics.includes('Fees')) {
+				failedMetrics.push('Fees')
+			}
+			if (isRevenueEnabled && !failedMetrics.includes('Revenue')) {
+				failedMetrics.push('Revenue')
+			}
+			if (isHoldersRevenueEnabled && !failedMetrics.includes('Holders Revenue')) {
+				failedMetrics.push('Holders Revenue')
+			}
+		}
 
 		return { finalCharts: filteredCharts, valueSymbol, loadingCharts, failedMetrics }
 	}, [
@@ -1096,8 +1120,10 @@ export const useFetchProtocolChartData = ({
 		holdersRevenueDataChart,
 		fetchingBribes,
 		bribesDataChart,
+		bribesChartError,
 		fetchingTokenTaxes,
 		tokenTaxesDataChart,
+		tokenTaxesChartError,
 		fetchingDexVolume,
 		dexVolumeDataChart,
 		fetchingDexNotionalVolume,

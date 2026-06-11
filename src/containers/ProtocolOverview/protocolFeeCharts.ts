@@ -6,8 +6,8 @@ const toSeries = (chart: ProtocolFeeExtraChartMap): Array<[number, number]> => {
 	if (!chart) return []
 
 	const series: Array<[number, number]> = []
-	for (const [timestamp, value] of Object.entries(chart)) {
-		series.push([Number(timestamp), value])
+	for (const timestamp in chart) {
+		series.push([Number(timestamp), chart[timestamp]])
 	}
 	return series
 }

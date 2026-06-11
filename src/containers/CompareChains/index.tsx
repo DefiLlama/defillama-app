@@ -1,9 +1,11 @@
+import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import * as React from 'react'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { Select } from '~/components/Select/Select'
@@ -79,7 +81,8 @@ const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 
 	return {
 		data: data.map((r) => r?.data ?? null),
-		isLoading: data.some((r) => r.isLoading)
+		isLoading: data.some((r) => r.isLoading),
+		failedChains: data.flatMap((r, index) => (r.error ? [chains[index]] : []))
 	}
 }
 
@@ -194,7 +197,9 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 	const router = useRouter()
 	const chainsQuery = router.query?.chains
 
-	const { data, isLoading } = useCompare({ chains: router.query?.chains ? [router.query?.chains].flat() : [] })
+	const { data, isLoading, failedChains } = useCompare({
+		chains: router.query?.chains ? [router.query?.chains].flat() : []
+	})
 
 	const selectedChains = React.useMemo(() => {
 		return [chainsQuery]
@@ -251,7 +256,7 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 							<LocalLoader />
 						</div>
 					) : (
-						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<MultiSeriesChart2
 									dataset={chartData.dataset}
@@ -265,6 +270,7 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 									}}
 								/>
 							</React.Suspense>
+							<FailedCompareChainsPopover failedChains={failedChains} />
 						</div>
 					)}
 
@@ -287,6 +293,36 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 				</div>
 			)}
 		</>
+	)
+}
+
+function FailedCompareChainsPopover({ failedChains }: { failedChains: string[] }) {
+	if (failedChains.length === 0) {
+		return null
+	}
+
+	return (
+		<Ariakit.PopoverProvider>
+			<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+				<Icon name="alert-triangle" className="size-3.5" />
+				<span className="sr-only">Show failed chain APIs</span>
+			</Ariakit.PopoverDisclosure>
+			<Ariakit.Popover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				className="z-10 mr-1 flex max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),300px)] flex-col gap-1 overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-xs dark:border-[hsl(204,3%,32%)]"
+			>
+				<p className="font-medium text-(--error)">Failed to load data for:</p>
+				<ul className="pl-4">
+					{failedChains.map((chain) => (
+						<li key={chain} className="list-disc">
+							{chain}
+						</li>
+					))}
+				</ul>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
 	)
 }
 
