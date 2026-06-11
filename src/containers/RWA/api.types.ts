@@ -257,6 +257,14 @@ export type IRWABreakdownChartParams = {
 	includeGovernance?: boolean
 }
 
+export type IRWAAssetChartApiRow = {
+	timestamp: number
+	onChainMcap: number | null
+	activeMcap: number | null
+	defiActiveTvl: number | null
+	totalSupply?: number | null
+}
+
 export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind: 'platform' } | { kind: 'assetGroup' }
 export type RWAOverviewBreakdownRequest =
 	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }

@@ -182,6 +182,18 @@ describe('aggregateRwaMetricData', () => {
 			dimensions: ['timestamp', 'Stablecoins', 'Unknown']
 		})
 	})
+
+	it('ignores inherited chart row keys while aggregating asset series', () => {
+		const row = Object.assign(Object.create({ 'superstate/ustb': 999 }), {
+			timestamp: 1,
+			'ondo/usdy': 100
+		})
+
+		expect(aggregateRwaMetricData(assets, [row], 'assetName')).toEqual({
+			source: [{ timestamp: 1, Alpha: 100 }],
+			dimensions: ['timestamp', 'Alpha']
+		})
+	})
 })
 
 describe('appendRwaChartDatasetTotal', () => {

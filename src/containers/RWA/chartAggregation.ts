@@ -190,9 +190,11 @@ function aggregateMetricRows(
 		const outRow: RWAChartRow = { timestamp: row.timestamp }
 		let hasData = false
 
-		for (const [assetKey, value] of Object.entries(row)) {
+		for (const assetKey in row) {
+			if (!Object.prototype.hasOwnProperty.call(row, assetKey)) continue
 			if (assetKey === 'timestamp') continue
-			if (!Number.isFinite(value) || value === 0) continue
+			const value = row[assetKey]
+			if (value === 0) continue
 
 			const groups = assetToGroups.get(assetKey)
 			if (!groups || groups.size === 0) continue
@@ -226,13 +228,15 @@ function buildAggregatedRwaDataset(
 }
 
 export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
-	const arr = Array.from(keys).filter(Boolean)
+	const arr: string[] = []
+	for (const key of keys) {
+		if (key) arr.push(key)
+	}
 	if (arr.length === 0) return arr
 
 	let latestRow: RWAChartRow | null = null
 	let latestTimestamp = Number.NEGATIVE_INFINITY
 	for (const row of rows) {
-		if (!Number.isFinite(row.timestamp)) continue
 		if (row.timestamp >= latestTimestamp) {
 			latestTimestamp = row.timestamp
 			latestRow = row
@@ -245,8 +249,8 @@ export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterab
 
 		const aValueRaw = latestRow?.[a]
 		const bValueRaw = latestRow?.[b]
-		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
-		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
+		const aValue = aValueRaw ?? 0
+		const bValue = bValueRaw ?? 0
 		if (aValue !== bValue) return bValue - aValue
 		return a.localeCompare(b)
 	})

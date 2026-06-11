@@ -42,22 +42,30 @@ const clampLimit = (limit: number | undefined): number => {
 }
 
 const buildCharts = (names: string[], stacked: boolean): MultiSeriesChart2SeriesConfig[] => {
-	return names.map((name, i) => ({
-		type: 'bar',
-		name,
-		encode: { x: 'timestamp', y: name },
-		color: CHART_COLORS[i % CHART_COLORS.length],
-		barMinWidth: 1,
-		barMaxWidth: 24,
-		...(stacked ? { stack: 'stablecoin-volume' } : {})
-	}))
+	const charts: MultiSeriesChart2SeriesConfig[] = []
+	for (let i = 0; i < names.length; i++) {
+		const name = names[i]
+		charts.push({
+			type: 'bar',
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: CHART_COLORS[i % CHART_COLORS.length],
+			barMinWidth: 1,
+			barMaxWidth: 24,
+			...(stacked ? { stack: 'stablecoin-volume' } : {})
+		})
+	}
+	return charts
 }
 
 const buildTotalVolumePayload = (data: StablecoinVolumeChartResponse): StablecoinVolumeChartPayload => {
-	const source = data.map((point) => ({
-		timestamp: point[0] * 1e3,
-		[TOTAL_VOLUME_NAME]: point[1] as number
-	}))
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const point of data) {
+		source.push({
+			timestamp: point[0] * 1e3,
+			[TOTAL_VOLUME_NAME]: point[1] as number
+		})
+	}
 
 	return {
 		dataset: {
@@ -121,14 +129,19 @@ const buildBreakdownVolumePayload = (
 		}
 	}
 	const keys = selectedKey ? [selectedKey] : getTopBreakdownKeys(points, clampLimit(options.limit))
-	const labelsByKey = new Map(
-		keys.map((key) => [key, selectedKey ? TOTAL_VOLUME_NAME : formatDimensionLabel(key, options.chart)])
-	)
+	const labelsByKey = new Map<string, string>()
+	const dimensions = ['timestamp']
+	for (const key of keys) {
+		const label = selectedKey ? TOTAL_VOLUME_NAME : formatDimensionLabel(key, options.chart)
+		labelsByKey.set(key, label)
+		dimensions.push(label)
+	}
 	const includeOthers = !selectedKey && keys.length > 0
 	let hasOthersValue = false
 
 	const selectedKeysSet = new Set(keys)
-	const source = points.map(([timestamp, breakdown]) => {
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const [timestamp, breakdown] of points) {
 		const row: Record<string, number> = { timestamp: timestamp * 1e3 }
 		for (const key of keys) {
 			const label = labelsByKey.get(key)
@@ -146,13 +159,15 @@ const buildBreakdownVolumePayload = (
 			row[OTHERS_NAME] = others
 		}
 
-		return row
-	})
+		source.push(row)
+	}
 
-	const dimensions = ['timestamp', ...keys.flatMap((key) => labelsByKey.get(key) ?? [])]
 	if (includeOthers && hasOthersValue) dimensions.push(OTHERS_NAME)
 
-	const seriesNames = dimensions.filter((dimension) => dimension !== 'timestamp')
+	const seriesNames: string[] = []
+	for (let i = 1; i < dimensions.length; i++) {
+		seriesNames.push(dimensions[i])
+	}
 	const stacked = !selectedKey && seriesNames.length > 1
 
 	return {

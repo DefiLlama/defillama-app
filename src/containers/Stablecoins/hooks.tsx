@@ -120,7 +120,8 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 	const shouldIncludeUnreleased = Boolean(includeUnreleased)
 
 	const peggedAssetTotals = useMemo<StablecoinCirculatingOutput<T>[]>(() => {
-		const updatedPeggedAssets = filteredPeggedAssets.map((asset) => {
+		const updatedPeggedAssets: StablecoinCirculatingOutput<T>[] = []
+		for (const asset of filteredPeggedAssets) {
 			const unreleased = Number(asset.unreleased ?? 0)
 			const pegType = asset.pegType ?? ''
 			const rawPegDeviation = asset.pegDeviation
@@ -136,7 +137,7 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 			const floatingPeg = pegType === 'peggedVAR'
 			const depeggedTwoPercent = pegDeviation != null && 2 < Math.abs(pegDeviation)
 
-			return {
+			const updatedAsset = {
 				...asset,
 				circulating,
 				unreleased,
@@ -145,11 +146,12 @@ export const useCalcCirculating = <T extends StablecoinCirculatingInput = IPegge
 				depeggedTwoPercent,
 				floatingPeg
 			} as StablecoinCirculatingOutput<T>
-		})
+			if (!updatedAsset.delisted) {
+				updatedPeggedAssets.push(updatedAsset)
+			}
+		}
 
-		return updatedPeggedAssets
-			.sort((a, b) => Number(b.mcap ?? 0) - Number(a.mcap ?? 0))
-			.filter((pegged) => !pegged.delisted)
+		return updatedPeggedAssets.sort((a, b) => Number(b.mcap ?? 0) - Number(a.mcap ?? 0))
 	}, [filteredPeggedAssets, shouldIncludeUnreleased])
 
 	return peggedAssetTotals
@@ -172,7 +174,10 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 	const [groupsEnabled] = useLocalStorageSettingsManager('tvl_chains')
 	const data: StablecoinsChainsRow[] = useMemo(() => {
 		// Build lookup map for O(1) access by name
-		const chainsByName = new Map<string, StablecoinsChainsRow>(chains.map((item) => [item.name, item]))
+		const chainsByName = new Map<string, StablecoinsChainsRow>()
+		for (const item of chains) {
+			chainsByName.set(item.name, item)
+		}
 
 		const finalData: Record<string, StablecoinsChainsRow> = {}
 		const addedChains = new Set<string>()
@@ -201,7 +206,10 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 
 			let addedChildren = false
 			// O(1) Set lookup for already added children (built once per parent)
-			const alreadyAddedNames = new Set((finalData[parentName]?.subRows ?? []).map((p) => p.name))
+			const alreadyAddedNames = new Set<string>()
+			for (const row of finalData[parentName]?.subRows ?? []) {
+				alreadyAddedNames.add(row.name)
+			}
 
 			for (const type in groupData[parentName]) {
 				if (!isChainsCategoryGroupKey(type) || groupsEnabled[type] !== true) {
@@ -384,9 +392,12 @@ export const useGroupBridgeData = (
 		}
 		const finalDataArray: (typeof finalData)[string][] = []
 		for (const key in finalData) {
-			finalDataArray.push(finalData[key])
+			const row = finalData[key]
+			if (row.name) {
+				finalDataArray.push(row)
+			}
 		}
-		return finalDataArray.filter((chain) => chain.name).sort((a, b) => b.circulating - a.circulating)
+		return finalDataArray.sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])
 
 	return data

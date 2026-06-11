@@ -744,13 +744,18 @@ export const useFetchProtocolChartData = ({
 					dateInMs: true,
 					denominationPriceHistory
 				})
-			if (isFdvToggled && tokenTotalSupply != null && Number.isFinite(tokenTotalSupply))
+			if (isFdvToggled && tokenTotalSupply != null) {
+				const fdvData: Array<[number, number]> = []
+				for (const [date, price] of protocolTokenData.prices) {
+					fdvData.push([date, price * tokenTotalSupply])
+				}
 				charts['FDV'] = formatLineChart({
-					data: protocolTokenData.prices.map(([date, price]): [number, number] => [date, price * tokenTotalSupply]),
+					data: fdvData,
 					groupBy,
 					dateInMs: true,
 					denominationPriceHistory
 				})
+			}
 		}
 		if (tokenLiquidityData)
 			charts['Token Liquidity'] = formatLineChart({ data: tokenLiquidityData, groupBy, denominationPriceHistory })
