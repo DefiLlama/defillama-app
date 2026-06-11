@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
@@ -30,6 +29,52 @@ const chainFeesMetric = feeRevenueMetrics.chainFees
 const chainRevenueMetric = feeRevenueMetrics.chainRevenue
 const appFeesMetric = feeRevenueMetrics.appFees
 const appRevenueMetric = feeRevenueMetrics.appRevenue
+
+type CoingeckoChartData = {
+	prices: Array<[number, number]>
+	mcaps: Array<[number, number]>
+	volumes: Array<[number, number]>
+}
+
+type DenominationPriceHistory = {
+	prices: Record<string, number>
+	priceChart: Array<[number, number]>
+	mcaps: Array<[number, number]>
+	volumes: Array<[number, number]>
+}
+
+export function buildDenominationPriceHistory(data: CoingeckoChartData): DenominationPriceHistory {
+	const prices: Record<string, number> = {}
+	for (const [date, value] of data.prices) {
+		prices[date] = value
+	}
+
+	return { prices, priceChart: data.prices, mcaps: data.mcaps, volumes: data.volumes }
+}
+
+type BridgedTvlChartPoint = {
+	timestamp: number
+	data: {
+		total: string | number
+		ownTokens?: string | number | null
+	}
+}
+
+export function buildBridgedTvlChart(
+	bridgedTvlData: Array<BridgedTvlChartPoint | null>,
+	isGovTokensEnabled: boolean | undefined
+): Array<[number, number]> {
+	const chart: Array<[number, number]> = []
+	for (const item of bridgedTvlData) {
+		if (!item) continue
+		const timestampSec = Math.floor(item.timestamp / 86_400) * 86_400
+		if (isGovTokensEnabled && item.data.ownTokens) {
+			chart.push([timestampSec, +item.data.total + +item.data.ownTokens])
+		}
+		chart.push([timestampSec * 1e3, +item.data.total])
+	}
+	return chart
+}
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -76,6 +121,7 @@ export const useFetchChainChartData = ({
 	// date in the chart is in ms
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<{
 		prices: Record<string, number>
+		priceChart: Array<[number, number]>
 		mcaps: Array<[number, number]>
 		volumes: Array<[number, number]>
 	}>({
@@ -84,13 +130,7 @@ export const useFetchChainChartData = ({
 			fetchJson(`/api/public/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
 				(res) => {
 					if (!res.data?.prices?.length) return null
-
-					const store = {}
-					for (const [date, value] of res.data.prices) {
-						store[date] = value
-					}
-
-					return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
+					return buildDenominationPriceHistory(res.data)
 				}
 			),
 		staleTime: 60 * 60 * 1000,
@@ -457,14 +497,10 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (isTokenPriceEnabled && denominationPriceHistory?.prices) {
+		if (isTokenPriceEnabled && denominationPriceHistory?.priceChart) {
 			const chartName: ChainChartLabels = 'Token Price' as const
-			const priceData = []
-			for (const date in denominationPriceHistory.prices) {
-				priceData.push([+date, denominationPriceHistory.prices[date]])
-			}
 			charts[chartName] = formatLineChart({
-				data: priceData,
+				data: denominationPriceHistory.priceChart,
 				groupBy,
 				denominationPriceHistory: null,
 				dateInMs: true
@@ -551,26 +587,9 @@ export const useFetchChainChartData = ({
 		}
 
 		if (isBridgedTvlEnabled && bridgedTvlData) {
-			const finalChainAssetsChart = []
-			for (const item of bridgedTvlData) {
-				if (!item) continue
-				const ts = Math.floor(
-					dayjs(item.timestamp * 1000)
-						.utc()
-						.set('hour', 0)
-						.set('minute', 0)
-						.set('second', 0)
-						.toDate()
-						.getTime() / 1000
-				)
-				if (isGovTokensEnabled && item.data.ownTokens) {
-					finalChainAssetsChart.push([ts, +item.data.total + +item.data.ownTokens])
-				}
-				finalChainAssetsChart.push([ts * 1e3, +item.data.total])
-			}
 			const chartName: ChainChartLabels = 'Bridged TVL' as const
 			charts[chartName] = formatLineChart({
-				data: finalChainAssetsChart,
+				data: buildBridgedTvlChart(bridgedTvlData, isGovTokensEnabled),
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null,
 				dateInMs: true

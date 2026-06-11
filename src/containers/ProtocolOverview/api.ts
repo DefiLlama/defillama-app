@@ -317,7 +317,7 @@ const fetchProtocolTreasuryChainBreakdownChart = async ({
 /**
  * Fetch protocol treasury chart data grouped by token.
  */
-export const fetchProtocolTreasuryTokenBreakdownChart = async ({
+const fetchProtocolTreasuryTokenBreakdownChart = async ({
 	protocol,
 	key,
 	currency,

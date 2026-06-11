@@ -4,9 +4,9 @@ import { formatLineChart, getBucketTimestampSec } from '~/components/ECharts/uti
 type ChartInterval = ChartTimeGroupingWithCumulative
 type V2ChartPoint = [string | number, number]
 
-export const MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC = 24 * 60 * 60
+const MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC = 24 * 60 * 60
 
-export interface ExtraTvlChartsResult {
+interface ExtraTvlChartsResult {
 	charts: Record<string, Record<string, number>>
 	latestTimestamps: Record<string, number>
 }
