@@ -81,10 +81,16 @@ const getProtocolTvlChartQueryOptions = (params: IProtocolChartParams) =>
 const getProtocolTreasuryChartQueryOptions = (params: IProtocolChartParams) =>
 	getProtocolChartQueryOptions({ ...params, source: 'treasury' as const })
 
-const normalizeActivityChart = (values: Array<[number, number]> | null): IActivityChart =>
-	values && values.length > 0
-		? values.map(([date, val]): [number, number] => [date * 1e3, +val]).sort((a, b) => a[0] - b[0])
-		: null
+const normalizeActivityChart = (values: Array<[number, number]> | null): IActivityChart => {
+	if (!values || values.length === 0) return null
+
+	const normalized: Array<[number, number]> = []
+	for (const [date, val] of values) {
+		normalized.push([date * 1e3, +val])
+	}
+	normalized.sort((a, b) => a[0] - b[0])
+	return normalized
+}
 
 export const useFetchProtocolActivityChart = ({
 	queryKey,
