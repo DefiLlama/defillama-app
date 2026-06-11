@@ -31,9 +31,12 @@ describe('buildBridgeVolumeChartData', () => {
 	it('groups combined transaction rows by selected period', () => {
 		const day1 = 1_704_067_200
 		const day2 = 1_704_153_600
+		const day9 = day1 + 8 * 86_400
 		const bucket = getBucketTimestampSec(day1, 'weekly')
+		const nextBucket = getBucketTimestampSec(day9, 'weekly')
 		const result = buildBridgeVolumeChartData({
 			data: [
+				{ date: String(day9), depositUSD: 40, withdrawUSD: 30, depositTxs: 4, withdrawTxs: 3 },
 				{ date: String(day2), depositUSD: 70, withdrawUSD: 20, depositTxs: 7, withdrawTxs: 2 },
 				{ date: String(day1), depositUSD: 30, withdrawUSD: 10, depositTxs: 3, withdrawTxs: 1 }
 			],
@@ -44,7 +47,10 @@ describe('buildBridgeVolumeChartData', () => {
 
 		expect(result.dataset).toEqual({
 			dimensions: ['timestamp', 'Total'],
-			source: [{ timestamp: bucket * 1e3, Total: 13 }]
+			source: [
+				{ timestamp: bucket * 1e3, Total: 13 },
+				{ timestamp: nextBucket * 1e3, Total: 7 }
+			]
 		})
 		expect(result.charts).toBe(BRIDGE_VOLUME_COMBINED_CHARTS)
 	})
