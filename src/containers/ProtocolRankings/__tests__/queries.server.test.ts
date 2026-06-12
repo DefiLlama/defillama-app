@@ -243,7 +243,7 @@ describe('getProtocolsByChain parent aggregation', () => {
 			},
 			tvlChange: { change1d: null, change7d: null, change1m: expect.any(Number) },
 			fees: { total24h: 28, total7d: 196, total30d: 840, annualized1y: 5400, totalAllTime: 8400, pf: 0.1 },
-			revenue: { total24h: 15, total7d: 105, total30d: 450, annualized1y: 2700, totalAllTime: 4500, ps: 0.2 },
+			revenue: { total24h: 15, total7d: 105, total30d: 450, annualized1y: null, totalAllTime: 4500, ps: null },
 			holdersRevenue: { total24h: 4, total7d: 28, total30d: 120 },
 			dexs: { total24h: 150, total7d: 1050, totalAllTime: 15_000 }
 		})

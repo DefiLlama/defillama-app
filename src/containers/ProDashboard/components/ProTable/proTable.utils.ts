@@ -24,6 +24,16 @@ function addElement(
 	}
 }
 
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
+
+const hasAnyNumber = (protocol: IFormattedProtocol, keys: string[]): boolean => {
+	const row = protocol as unknown as Record<string, unknown>
+	return keys.some((key) => isFiniteNumber(row[key]))
+}
+
+const FEE_ANNUALIZED_CONTRIBUTOR_KEYS = ['fees_24h', 'fees_7d', 'fees_30d', 'fees_1y', 'cumulativeFees']
+const REVENUE_ANNUALIZED_CONTRIBUTOR_KEYS = ['revenue_24h', 'revenue_7d', 'revenue_30d', 'revenue_1y']
+
 interface GroupAccumulator {
 	mcap: number
 	tvl: number
@@ -44,6 +54,10 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	let totalVolumeWeight = 0
 	let weightedPerpsVolumeChange = 0
 	let totalPerpsVolumeWeight = 0
+	let hasFeesAnnualized1y = false
+	let isFeesAnnualized1yIncomplete = false
+	let hasRevenueAnnualized1y = false
+	let isRevenueAnnualized1yIncomplete = false
 
 	const {
 		mcap,
@@ -86,6 +100,18 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 
 			if (curr.category) {
 				categories.add(curr.category)
+			}
+
+			if (isFiniteNumber(curr.feesAnnualized1y)) {
+				hasFeesAnnualized1y = true
+			} else if (hasAnyNumber(curr, FEE_ANNUALIZED_CONTRIBUTOR_KEYS)) {
+				isFeesAnnualized1yIncomplete = true
+			}
+
+			if (isFiniteNumber(curr.revenueAnnualized1y)) {
+				hasRevenueAnnualized1y = true
+			} else if (hasAnyNumber(curr, REVENUE_ANNUALIZED_CONTRIBUTOR_KEYS)) {
+				isRevenueAnnualized1yIncomplete = true
 			}
 
 			if (curr.tvl) {
@@ -206,8 +232,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	}
 
 	const finalMcap = mcap > 0 ? mcap : (parent?.mcap ?? 0)
-	const pf = getMarketCapToAnnualizedMetricRatio(finalMcap, feesAnnualized1y)
-	const ps = getMarketCapToAnnualizedMetricRatio(finalMcap, revenueAnnualized1y)
+	const finalFeesAnnualized1y = hasFeesAnnualized1y && !isFeesAnnualized1yIncomplete ? (feesAnnualized1y ?? null) : null
+	const finalRevenueAnnualized1y =
+		hasRevenueAnnualized1y && !isRevenueAnnualized1yIncomplete ? (revenueAnnualized1y ?? null) : null
+	const pf = getMarketCapToAnnualizedMetricRatio(finalMcap, finalFeesAnnualized1y)
+	const ps = getMarketCapToAnnualizedMetricRatio(finalMcap, finalRevenueAnnualized1y)
 
 	const mcaptvl = tvl > 0 && finalMcap > 0 ? Number((finalMcap / tvl).toFixed(2)) : null
 
@@ -255,12 +284,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		fees_7d,
 		fees_30d,
 		fees_1y,
-		feesAnnualized1y,
+		feesAnnualized1y: finalFeesAnnualized1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
 		revenue_1y,
-		revenueAnnualized1y,
+		revenueAnnualized1y: finalRevenueAnnualized1y,
 		holderRevenue_24h,
 		holdersRevenue30d,
 		userFees_24h,

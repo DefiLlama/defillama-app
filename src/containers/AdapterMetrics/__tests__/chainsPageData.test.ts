@@ -708,13 +708,100 @@ describe('chains by adapter page data', () => {
 		})
 	})
 
+	it('keeps linked fee-extra parent periods null when every child is missing the period', async () => {
+		const nullPeriods = {
+			total24h: null,
+			total48hto24h: null,
+			total7d: null,
+			total14dto7d: null,
+			total30d: null,
+			total60dto30d: null,
+			total7DaysAgo: null,
+			total30DaysAgo: null,
+			total1y: null,
+			annualized1y: null,
+			totalAllTime: null
+		}
+
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [],
+			parentProtocols: []
+		})
+		fetchJsonMock.mockImplementation((url: string) => {
+			const parsedUrl = new URL(url)
+			const dataType = parsedUrl.searchParams.get('dataType')
+
+			if (parsedUrl.pathname.includes('/chart/')) {
+				return Promise.resolve([])
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE) {
+				return Promise.resolve(
+					adapterMetricsResponse({
+						protocols: [
+							adapterProtocolRow({
+								...nullPeriods,
+								defillamaId: 'null-extra-a',
+								name: 'Null Extra A',
+								displayName: 'Null Extra A',
+								slug: 'null-extra-a',
+								linkedProtocols: ['Null Extras Parent', 'Null Extra A']
+							}),
+							adapterProtocolRow({
+								...nullPeriods,
+								defillamaId: 'null-extra-b',
+								name: 'Null Extra B',
+								displayName: 'Null Extra B',
+								slug: 'null-extra-b',
+								linkedProtocols: ['Null Extras Parent', 'Null Extra B']
+							})
+						]
+					})
+				)
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+				return Promise.resolve(adapterMetricsResponse({ protocols: [] }))
+			}
+
+			return Promise.resolve(adapterMetricsResponse({ protocols: [] }))
+		})
+
+		const data = await getAdapterByChainPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'Base',
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			route: 'fees',
+			metricName: 'Fees'
+		})
+
+		expect(data?.protocols).toHaveLength(1)
+		expect(data?.protocols[0]).toMatchObject({
+			name: 'Null Extras Parent',
+			total24h: null,
+			annualized1y: null,
+			bribes: {
+				total24h: null,
+				total7d: null,
+				total30d: null,
+				annualized1y: null,
+				totalAllTime: null
+			}
+		})
+		expect(data?.protocols[0].bribes).not.toHaveProperty('change_1d')
+	})
+
 	it('uses annualized1y, not 30d fallback, for P/F rankings', async () => {
 		fetchProtocolsMock.mockResolvedValue({
 			protocols: [
 				{ name: 'Annualized Fees', mcap: 12_000 },
-				{ name: 'Thirty Day Only', mcap: 12_000 }
+				{ name: 'Thirty Day Only', mcap: 12_000 },
+				{ name: 'Zero Mcap Fees', mcap: 0 }
 			],
-			parentProtocols: []
+			parentProtocols: [
+				{ name: 'Zero Mcap Parent', mcap: 0 },
+				{ name: 'Partial Annualized Parent', mcap: 12_000 }
+			]
 		})
 		fetchJsonMock.mockImplementation((url: string) => {
 			const parsedUrl = new URL(url)
@@ -746,6 +833,50 @@ describe('chains by adapter page data', () => {
 							slug: 'thirty-day-only',
 							total30d: 3000,
 							annualized1y: null
+						}),
+						adapterProtocolRow({
+							defillamaId: 'zero-mcap-fees',
+							name: 'Zero Mcap Fees',
+							displayName: 'Zero Mcap Fees',
+							slug: 'zero-mcap-fees',
+							total30d: 3000,
+							annualized1y: 60_000
+						}),
+						adapterProtocolRow({
+							defillamaId: 'zero-parent-child-a',
+							name: 'Zero Parent Child A',
+							displayName: 'Zero Parent Child A',
+							slug: 'zero-parent-child-a',
+							total30d: 1000,
+							annualized1y: 20_000,
+							linkedProtocols: ['Zero Mcap Parent', 'Zero Parent Child A']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'zero-parent-child-b',
+							name: 'Zero Parent Child B',
+							displayName: 'Zero Parent Child B',
+							slug: 'zero-parent-child-b',
+							total30d: 2000,
+							annualized1y: 40_000,
+							linkedProtocols: ['Zero Mcap Parent', 'Zero Parent Child B']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'partial-parent-child-a',
+							name: 'Partial Parent Child A',
+							displayName: 'Partial Parent Child A',
+							slug: 'partial-parent-child-a',
+							total30d: 1000,
+							annualized1y: 20_000,
+							linkedProtocols: ['Partial Annualized Parent', 'Partial Parent Child A']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'partial-parent-child-b',
+							name: 'Partial Parent Child B',
+							displayName: 'Partial Parent Child B',
+							slug: 'partial-parent-child-b',
+							total30d: 2000,
+							annualized1y: null,
+							linkedProtocols: ['Partial Annualized Parent', 'Partial Parent Child B']
 						})
 					]
 				})
@@ -761,7 +892,9 @@ describe('chains by adapter page data', () => {
 		})
 
 		expect(data?.protocols.map((protocol) => ({ name: protocol.name, pfOrPs: protocol.pfOrPs }))).toEqual([
-			{ name: 'Annualized Fees', pfOrPs: 0.2 }
+			{ name: 'Annualized Fees', pfOrPs: 0.2 },
+			{ name: 'Zero Mcap Fees', pfOrPs: 0 },
+			{ name: 'Zero Mcap Parent', pfOrPs: 0 }
 		])
 	})
 

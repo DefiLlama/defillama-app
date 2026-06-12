@@ -46,4 +46,72 @@ describe('formatProtocolsList fee ratios', () => {
 			ps: null
 		})
 	})
+
+	it('keeps parent P/F null when a fee-contributing child is missing annualized1y', () => {
+		const protocols = [
+			{
+				name: 'Child A',
+				parentProtocol: 'parent#protocol',
+				mcap: 600,
+				tvl: 100,
+				tvlPrevDay: 90,
+				tvlPrevWeek: 80,
+				tvlPrevMonth: 70,
+				chainTvls: {},
+				change_1d: null,
+				change_7d: null,
+				change_1m: null,
+				mcaptvl: null,
+				chains: ['Base'],
+				logo: null,
+				url: '',
+				defillamaId: 'child-a'
+			},
+			{
+				name: 'Child B',
+				parentProtocol: 'parent#protocol',
+				mcap: 400,
+				tvl: 200,
+				tvlPrevDay: 180,
+				tvlPrevWeek: 160,
+				tvlPrevMonth: 140,
+				chainTvls: {},
+				change_1d: null,
+				change_7d: null,
+				change_1m: null,
+				mcaptvl: null,
+				chains: ['Base'],
+				logo: null,
+				url: '',
+				defillamaId: 'child-b'
+			}
+		] as any
+
+		const result = formatProtocolsList({
+			protocols,
+			parentProtocols: [{ id: 'parent#protocol', name: 'Parent Protocol', chains: ['Base'], mcap: 1000 }] as any,
+			extraTvlsEnabled: {},
+			feesData: [
+				{
+					name: 'Child A',
+					total30d: 100,
+					annualized1y: 600
+				},
+				{
+					name: 'Child B',
+					total30d: 200,
+					annualized1y: null
+				}
+			],
+			noSubrows: true
+		})
+
+		expect(result).toHaveLength(1)
+		expect(result[0]).toMatchObject({
+			name: 'Parent Protocol',
+			fees_30d: 300,
+			feesAnnualized1y: null,
+			pf: null
+		})
+	})
 })

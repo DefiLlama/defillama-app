@@ -11,6 +11,9 @@ const computeMarketCapToAnnualizedMetricRatio = (
 	return Number((marketCap / annualizedMetric).toFixed(2))
 }
 
+const hasMetricValue = (metrics: NumericMetrics, keys: (keyof NumericMetrics)[]) =>
+	keys.some((key) => metrics[key] !== null && metrics[key] !== undefined)
+
 export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	const sumKeys: (keyof NumericMetrics)[] = [
 		'tvl',
@@ -58,9 +61,27 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'options_volume_7d',
 		'options_volume_30d'
 	]
+	const feeAnnualizedContributorKeys: (keyof NumericMetrics)[] = [
+		'fees24h',
+		'fees_7d',
+		'fees_30d',
+		'fees_1y',
+		'cumulativeFees',
+		'feesAnnualized1y'
+	]
+	const revenueAnnualizedContributorKeys: (keyof NumericMetrics)[] = [
+		'revenue24h',
+		'revenue_7d',
+		'revenue_30d',
+		'revenue_1y',
+		'cumulativeRevenue',
+		'revenueAnnualized1y'
+	]
 
 	const totals: Partial<Record<keyof NumericMetrics, number>> = {}
 	const seen: Partial<Record<keyof NumericMetrics, boolean>> = {}
+	let hasIncompleteFeesAnnualized1y = false
+	let hasIncompleteRevenueAnnualized1y = false
 
 	const protocolIds = new Set<string>()
 	const uniqueMcapValues = new Map<string, number>()
@@ -81,6 +102,13 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 			uniqueFdvValues.set(uniqueKey, metrics.fdv)
 		}
 
+		if (metrics.feesAnnualized1y == null && hasMetricValue(metrics, feeAnnualizedContributorKeys)) {
+			hasIncompleteFeesAnnualized1y = true
+		}
+		if (metrics.revenueAnnualized1y == null && hasMetricValue(metrics, revenueAnnualizedContributorKeys)) {
+			hasIncompleteRevenueAnnualized1y = true
+		}
+
 		for (const key of sumKeys) {
 			const value = metrics[key]
 			if (value !== null && value !== undefined) {
@@ -94,6 +122,12 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 
 	for (const key of sumKeys) {
 		;(aggregated as any)[key] = seen[key] ? (totals[key] ?? null) : null
+	}
+	if (hasIncompleteFeesAnnualized1y) {
+		aggregated.feesAnnualized1y = null
+	}
+	if (hasIncompleteRevenueAnnualized1y) {
+		aggregated.revenueAnnualized1y = null
 	}
 
 	aggregated.mcap = uniqueMcapValues.size

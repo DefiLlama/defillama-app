@@ -4,7 +4,7 @@ import type {
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
-import { FEE_EXTRA_PERIOD_TOTAL_KEYS, type FeeExtraPeriodTotals } from '~/metrics/feeExtras'
+import type { FeeExtraPeriodTotals } from '~/metrics/feeExtras'
 import { getNDistinctColors, slug } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IAdapterChainMetrics } from './api.types'
@@ -58,9 +58,6 @@ export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics
 	const breakdowns24h: Record<string, Record<string, number>>[] = []
 	const breakdowns30d: Record<string, Record<string, number>>[] = []
 	let aggregatedRevenue: MetricPeriodFields = {}
-	for (const key of FEE_EXTRA_PERIOD_TOTAL_KEYS) {
-		aggregatedRevenue[key] = 0
-	}
 	for (const p of protocolVersions) {
 		aggregatedRevenue = mergeMetricPeriods(aggregatedRevenue, p)
 		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)

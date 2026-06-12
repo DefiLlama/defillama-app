@@ -25,9 +25,9 @@ const toFiniteNumber = (value: unknown): number | null => {
 	return Number.isFinite(num) ? num : null
 }
 
-const addNullableNumber = (left: number | null | undefined, right: number | null | undefined) => {
-	if (left == null && right == null) return null
-	return (left ?? 0) + (right ?? 0)
+const addCompleteNumber = (left: number | null | undefined, right: number | null | undefined) => {
+	if (left == null || right == null) return null
+	return left + right
 }
 
 const ensureWeightedStore = (target: Record<string | symbol, any>): WeightedStore => {
@@ -98,13 +98,13 @@ export function aggregateFeesAndRevenueProtocolsByChain(queryDatas: ChainProtoco
 				existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 				existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 				existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
-				existing.annualized1y = addNullableNumber(existing.annualized1y, protocol.annualized1y)
+				existing.annualized1y = addCompleteNumber(existing.annualized1y, protocol.annualized1y)
 				existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
 				existing.revenue24h = (existing.revenue24h || 0) + (protocol.revenue24h || 0)
 				existing.revenue7d = (existing.revenue7d || 0) + (protocol.revenue7d || 0)
 				existing.revenue30d = (existing.revenue30d || 0) + (protocol.revenue30d || 0)
 				existing.revenue1y = (existing.revenue1y || 0) + (protocol.revenue1y || 0)
-				existing.revenueAnnualized1y = addNullableNumber(existing.revenueAnnualized1y, protocol.revenueAnnualized1y)
+				existing.revenueAnnualized1y = addCompleteNumber(existing.revenueAnnualized1y, protocol.revenueAnnualized1y)
 				existing.holdersRevenue24h = (existing.holdersRevenue24h || 0) + (protocol.holdersRevenue24h || 0)
 				existing.holdersRevenue30d = (existing.holdersRevenue30d || 0) + (protocol.holdersRevenue30d || 0)
 
@@ -288,7 +288,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 					existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 					existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
-					existing.annualized1y = (existing.annualized1y || 0) + (protocol.annualized1y || 0)
+					existing.annualized1y = addCompleteNumber(existing.annualized1y, protocol.annualized1y)
 					existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
 
 					applyWeightedChange(existing, 'change_1d', protocol.total24h, protocol.change_1d)

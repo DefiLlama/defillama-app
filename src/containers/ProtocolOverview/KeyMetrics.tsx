@@ -357,6 +357,7 @@ function TVL(props: IKeyMetricsProps) {
 
 interface MetricDefinition {
 	annualized?: string
+	'1y'?: string
 	'30d'?: string
 	'7d'?: string
 	'24h'?: string

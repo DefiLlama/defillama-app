@@ -56,6 +56,14 @@ const toNumber = (value: unknown): number | null => {
 	return null
 }
 
+const hasAnyNumber = (protocol: IProtocolRow, keys: string[]): boolean => {
+	const row = protocol as unknown as Record<string, unknown>
+	return keys.some((key) => toNumber(row[key]) !== null)
+}
+
+const FEE_ANNUALIZED_CONTRIBUTOR_KEYS = ['fees_24h', 'fees_7d', 'fees_30d', 'fees_1y', 'cumulativeFees']
+const REVENUE_ANNUALIZED_CONTRIBUTOR_KEYS = ['revenue_24h', 'revenue_7d', 'revenue_30d', 'revenue_1y']
+
 const getProtocolOracles = (protocol: IProtocolRow): string[] => {
 	if (Array.isArray(protocol.oracles) && protocol.oracles.length > 0) {
 		return protocol.oracles
@@ -91,12 +99,16 @@ const recalculateParentMetrics = (
 	let fees30d = 0
 	let fees1y = 0
 	let feesAnnualized1y = 0
+	let hasFeesAnnualized1y = false
+	let isFeesAnnualized1yIncomplete = false
 	let average1y = 0
 	let revenue24h = 0
 	let revenue7d = 0
 	let revenue30d = 0
 	let revenue1y = 0
 	let revenueAnnualized1y = 0
+	let hasRevenueAnnualized1y = false
+	let isRevenueAnnualized1yIncomplete = false
 	let perpsVolume24h = 0
 	let perpsVolume7d = 0
 	let perpsVolume30d = 0
@@ -150,7 +162,12 @@ const recalculateParentMetrics = (
 		if (childFees1y !== null) fees1y += childFees1y
 
 		const childFeesAnnualized1y = toNumber(child.feesAnnualized1y)
-		if (childFeesAnnualized1y !== null) feesAnnualized1y += childFeesAnnualized1y
+		if (childFeesAnnualized1y !== null) {
+			feesAnnualized1y += childFeesAnnualized1y
+			hasFeesAnnualized1y = true
+		} else if (hasAnyNumber(child, FEE_ANNUALIZED_CONTRIBUTOR_KEYS)) {
+			isFeesAnnualized1yIncomplete = true
+		}
 
 		const childAverage1y = toNumber(child.average_1y)
 		if (childAverage1y !== null) average1y += childAverage1y
@@ -168,7 +185,12 @@ const recalculateParentMetrics = (
 		if (childRevenue1y !== null) revenue1y += childRevenue1y
 
 		const childRevenueAnnualized1y = toNumber(child.revenueAnnualized1y)
-		if (childRevenueAnnualized1y !== null) revenueAnnualized1y += childRevenueAnnualized1y
+		if (childRevenueAnnualized1y !== null) {
+			revenueAnnualized1y += childRevenueAnnualized1y
+			hasRevenueAnnualized1y = true
+		} else if (hasAnyNumber(child, REVENUE_ANNUALIZED_CONTRIBUTOR_KEYS)) {
+			isRevenueAnnualized1yIncomplete = true
+		}
 
 		const childPerpsVolume24h = toNumber(child.perps_volume_24h)
 		if (childPerpsVolume24h !== null) perpsVolume24h += childPerpsVolume24h
@@ -199,8 +221,11 @@ const recalculateParentMetrics = (
 	const parentMcap = toNumber(parent.mcap) ?? 0
 	const finalMcap = mcap > 0 ? mcap : parentMcap
 	const mcaptvl = tvl > 0 && finalMcap > 0 ? Number((finalMcap / tvl).toFixed(2)) : null
-	const pf = getMarketCapToAnnualizedMetricRatio(finalMcap, feesAnnualized1y)
-	const ps = getMarketCapToAnnualizedMetricRatio(finalMcap, revenueAnnualized1y)
+	const finalFeesAnnualized1y = hasFeesAnnualized1y && !isFeesAnnualized1yIncomplete ? feesAnnualized1y : null
+	const finalRevenueAnnualized1y =
+		hasRevenueAnnualized1y && !isRevenueAnnualized1yIncomplete ? revenueAnnualized1y : null
+	const pf = getMarketCapToAnnualizedMetricRatio(finalMcap, finalFeesAnnualized1y)
+	const ps = getMarketCapToAnnualizedMetricRatio(finalMcap, finalRevenueAnnualized1y)
 
 	const oracleSet = new Set<string>()
 	const oraclesByChain = new Map<string, Set<string>>()
@@ -248,13 +273,13 @@ const recalculateParentMetrics = (
 		fees_7d: fees7d,
 		fees_30d: fees30d,
 		fees_1y: fees1y,
-		feesAnnualized1y,
+		feesAnnualized1y: finalFeesAnnualized1y,
 		average_1y: average1y,
 		revenue_24h: revenue24h,
 		revenue_7d: revenue7d,
 		revenue_30d: revenue30d,
 		revenue_1y: revenue1y,
-		revenueAnnualized1y,
+		revenueAnnualized1y: finalRevenueAnnualized1y,
 		perps_volume_24h: perpsVolume24h,
 		perps_volume_7d: perpsVolume7d,
 		perps_volume_30d: perpsVolume30d,

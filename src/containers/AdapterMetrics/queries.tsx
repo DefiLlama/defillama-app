@@ -119,8 +119,25 @@ function getFeeExtraPeriodTotals(protocol: AdapterChainProtocolMetric): BribesDa
 
 function addFeeExtraPeriodTotals(acc: BribesData, totals: BribesData) {
 	for (const key of FEE_EXTRA_PERIOD_TOTAL_KEYS) {
-		acc[key] = (acc[key] ?? 0) + (totals[key] ?? 0)
+		const value = totals[key]
+		if (value == null) {
+			if (acc[key] === undefined) {
+				acc[key] = null
+			}
+			continue
+		}
+		acc[key] = (acc[key] ?? 0) + value
 	}
+}
+
+function hasPeriodTotal(protocol: MetricPeriodFields) {
+	return (
+		protocol.total24h != null ||
+		protocol.total7d != null ||
+		protocol.total30d != null ||
+		protocol.total1y != null ||
+		protocol.totalAllTime != null
+	)
 }
 
 function buildChainsChartData({
@@ -445,9 +462,10 @@ export const getAdapterByChainPageData = async ({
 							protocol.methodology?.['TokenTaxes'])
 				: null
 
+		const protocolMcap = protocolsMcap[protocol.name]
 		const pfOrPs =
-			protocolsMcap[protocol.name] && protocol.annualized1y
-				? getMarketCapToAnnualizedMetricRatio(protocolsMcap[protocol.name], protocol.annualized1y)
+			protocolMcap != null && protocol.annualized1y != null
+				? getMarketCapToAnnualizedMetricRatio(protocolMcap, protocol.annualized1y)
 				: null
 
 		const summary = {
@@ -475,7 +493,7 @@ export const getAdapterByChainPageData = async ({
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-			...(pfOrPs ? { pfOrPs } : {}),
+			...(pfOrPs != null ? { pfOrPs } : {}),
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
@@ -519,15 +537,23 @@ export const getAdapterByChainPageData = async ({
 			continue
 		}
 		let periodTotals: MetricPeriodFields = {}
+		let hasAnnualized1y = false
+		let isAnnualized1yIncomplete = false
 		for (const p of parentProtocols[protocol]) {
 			periodTotals = mergeMetricPeriods(periodTotals, p)
+			if (p.annualized1y != null) {
+				hasAnnualized1y = true
+			} else if (hasPeriodTotal(p)) {
+				isAnnualized1yIncomplete = true
+			}
 		}
+		const annualized1y = hasAnnualized1y && !isAnnualized1yIncomplete ? (periodTotals.annualized1y ?? null) : null
 		const totals = {
 			total24h: periodTotals.total24h ?? null,
 			total7d: periodTotals.total7d ?? null,
 			total30d: periodTotals.total30d ?? null,
 			total1y: periodTotals.total1y ?? null,
-			annualized1y: periodTotals.annualized1y ?? null,
+			annualized1y,
 			totalAllTime: periodTotals.totalAllTime ?? null
 		}
 		let doublecounted = false
@@ -597,9 +623,10 @@ export const getAdapterByChainPageData = async ({
 			methodologyText = methodologyParts.join('. ')
 		}
 
+		const protocolMcap = protocolsMcap[protocol]
 		const pfOrPs =
-			protocolsMcap[protocol] && totals.annualized1y
-				? getMarketCapToAnnualizedMetricRatio(protocolsMcap[protocol], totals.annualized1y)
+			protocolMcap != null && totals.annualized1y != null
+				? getMarketCapToAnnualizedMetricRatio(protocolMcap, totals.annualized1y)
 				: null
 
 		protocols[protocol] = {
@@ -615,13 +642,13 @@ export const getAdapterByChainPageData = async ({
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
-			...(pfOrPs ? { pfOrPs } : {}),
+			...(pfOrPs != null ? { pfOrPs } : {}),
 			...(methodologyText ? { methodology: methodologyText } : {}),
 			...(doublecounted ? { doublecounted } : {}),
 			...(zeroFeePerp ? { zeroFeePerp } : {}),
 			...(warning ? { warning } : {}),
-			...(openInterest ? { openInterest } : {}),
-			...(activeLiquidity ? { activeLiquidity } : {}),
+			...(openInterest != null ? { openInterest } : {}),
+			...(activeLiquidity != null ? { activeLiquidity } : {}),
 			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
 		}
 	}

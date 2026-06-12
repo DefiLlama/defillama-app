@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { IProtocol } from '../types'
 import {
+	aggregateProtocolVersions,
 	buildProtocolBreakdownNormalization,
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
@@ -1039,5 +1040,38 @@ describe('leafProtocolNamesFromTableRows', () => {
 			]
 		} as IProtocol
 		expect(leafProtocolNamesFromTableRows([parent])).toEqual(['C2', 'C1'])
+	})
+})
+
+describe('aggregateProtocolVersions', () => {
+	it('keeps all-missing period totals null instead of zero-seeding them', () => {
+		const result = aggregateProtocolVersions([
+			{
+				name: 'Version A',
+				displayName: 'Version A',
+				parentProtocol: 'Parent Protocol',
+				linkedProtocols: ['Parent Protocol', 'Version A'],
+				chains: ['Base']
+			},
+			{
+				name: 'Version B',
+				displayName: 'Version B',
+				parentProtocol: 'Parent Protocol',
+				linkedProtocols: ['Parent Protocol', 'Version B'],
+				chains: ['Optimism']
+			}
+		] as any)
+
+		expect(result).toMatchObject({
+			name: 'Parent Protocol',
+			displayName: 'Parent Protocol',
+			slug: 'parent-protocol',
+			total24h: null,
+			total7d: null,
+			total30d: null,
+			annualized1y: null,
+			totalAllTime: null,
+			chains: ['Base', 'Optimism']
+		})
 	})
 })

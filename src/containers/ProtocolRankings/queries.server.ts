@@ -15,12 +15,24 @@ import { toFilterProtocol, toStrikeTvl } from './utils'
 
 const PREVIOUS_TVL_KEYS = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
 const PREVIOUS_TVL_KEYS_SET = new Set<string>(PREVIOUS_TVL_KEYS)
+const STRICT_NULL_METRIC_KEYS = new Set<string>(['annualized1y'])
 
 function addMetricTotals<T extends object>(acc: T, values: T | null | undefined) {
 	for (const key in values ?? {}) {
 		const metricKey = key as keyof T
-		acc[metricKey] = (Number((acc[metricKey] as number | null | undefined) ?? 0) +
-			Number(values?.[metricKey] as number | null | undefined)) as T[keyof T]
+		const value = values?.[metricKey] as number | null | undefined
+		if (value == null) {
+			if (STRICT_NULL_METRIC_KEYS.has(key) || acc[metricKey] === undefined) {
+				acc[metricKey] = null as T[keyof T]
+			}
+			continue
+		}
+		const numericValue = Number(value)
+		if (!Number.isFinite(numericValue)) continue
+		if (STRICT_NULL_METRIC_KEYS.has(key) && acc[metricKey] === null) {
+			continue
+		}
+		acc[metricKey] = (((acc[metricKey] as number | null | undefined) ?? 0) + numericValue) as T[keyof T]
 	}
 }
 
@@ -326,19 +338,24 @@ export const getProtocolsByChain = async ({
 
 		if (dimensionProtocols[protocol.defillamaId]?.fees) {
 			childStore.fees = dimensionProtocols[protocol.defillamaId].fees
-			childStore.fees.pf = protocol.mcap
-				? getMarketCapToAnnualizedMetricRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.annualized1y)
-				: null
+			childStore.fees.pf =
+				protocol.mcap != null
+					? getMarketCapToAnnualizedMetricRatio(
+							protocol.mcap,
+							dimensionProtocols[protocol.defillamaId].fees.annualized1y
+						)
+					: null
 		}
 
 		if (dimensionProtocols[protocol.defillamaId]?.revenue) {
 			childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
-			childStore.revenue.ps = protocol.mcap
-				? getMarketCapToAnnualizedMetricRatio(
-						protocol.mcap,
-						dimensionProtocols[protocol.defillamaId].revenue.annualized1y
-					)
-				: null
+			childStore.revenue.ps =
+				protocol.mcap != null
+					? getMarketCapToAnnualizedMetricRatio(
+							protocol.mcap,
+							dimensionProtocols[protocol.defillamaId].revenue.annualized1y
+						)
+					: null
 		}
 
 		if (dimensionProtocols[protocol.defillamaId]?.holdersRevenue) {
@@ -431,23 +448,23 @@ export const getProtocolsByChain = async ({
 					}
 				}
 
-				if (child.fees !== null) {
+				if (child.fees != null) {
 					parentFees ??= {} as NonNullable<IChildProtocol['fees']>
 					addMetricTotals(parentFees, child.fees)
 				}
-				if (child.revenue !== null) {
+				if (child.revenue != null) {
 					parentRevenue ??= {} as NonNullable<IChildProtocol['revenue']>
 					addMetricTotals(parentRevenue, child.revenue)
 				}
-				if (child.holdersRevenue !== null) {
+				if (child.holdersRevenue != null) {
 					parentHoldersRevenue ??= {} as NonNullable<IChildProtocol['holdersRevenue']>
 					addMetricTotals(parentHoldersRevenue, child.holdersRevenue)
 				}
-				if (child.dexs !== null) {
+				if (child.dexs != null) {
 					parentDexs ??= {} as NonNullable<IChildProtocol['dexs']>
 					addMetricTotals(parentDexs, child.dexs)
 				}
-				if (child.emissions !== null) {
+				if (child.emissions != null) {
 					parentEmissions ??= {} as NonNullable<IChildProtocol['emissions']>
 					addMetricTotals(parentEmissions, child.emissions)
 				}

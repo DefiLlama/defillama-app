@@ -15,7 +15,7 @@ const protocolRow = (name: string, overrides: Record<string, unknown>) => ({
 })
 
 describe('aggregateFeesAndRevenueProtocolsByChain', () => {
-	it('sums annualized fee and revenue denominators before computing multi-chain P/F and P/S', () => {
+	it('sums annualized fee and revenue denominators only when every selected chain has them', () => {
 		const rows = aggregateFeesAndRevenueProtocolsByChain([
 			{
 				chain: 'Ethereum',
@@ -62,8 +62,8 @@ describe('aggregateFeesAndRevenueProtocolsByChain', () => {
 			ps: 3
 		})
 		expect(rowByName.get('Late Annualized Fees')).toMatchObject({
-			annualized1y: 300,
-			pf: 4,
+			annualized1y: null,
+			pf: null,
 			ps: null
 		})
 		expect(rowByName.get('Missing Annualized Fees')).toMatchObject({
