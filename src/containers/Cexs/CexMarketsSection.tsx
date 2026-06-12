@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import { useCallback, useMemo, useReducer } from 'react'
 import { Icon } from '~/components/Icon'
@@ -7,7 +6,8 @@ import { LocalLoader } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { fetchMarketsExchangeSeries } from '~/containers/Markets/api'
 import type { ExchangeMarketsResponse, MarketPair } from '~/containers/Markets/api.types'
-import { ChangeCell, FundingCell, MetricStat } from '~/containers/Markets/marketMetrics'
+import { ChangeCell, MetricStat } from '~/containers/Markets/marketMetrics'
+import { buildCexMarketPairColumns } from '~/containers/Markets/marketPairColumns'
 import { MarketsAreaChart } from '~/containers/Markets/MarketsAreaChart'
 import { MarketsSegmentTabs } from '~/containers/Markets/MarketsSegmentTabs'
 import { resolveSegment, type Segment, SEGMENT_IDS, segmentHasOi } from '~/containers/Markets/segments'
@@ -23,169 +23,13 @@ import { fetchExchangeMarkets } from './api'
 const STALE_TIME = 60 * 60 * 1000
 const CEX_MARKETS_SECTION_ID = 'markets'
 
-const columnHelper = createColumnHelper<MarketPair>()
-
 function renderNullableNum(value: number | null | undefined, isUsd = false): string {
 	if (value == null) return '–'
 	return formattedNum(value, isUsd)
 }
 
-function renderFeeRate(value: number | null | undefined): string {
-	if (value == null) return '–'
-	return `${(value * 100).toFixed(3)}%`
-}
-
-function renderLeverage(value: number | null | undefined): string {
-	if (value == null) return '–'
-	return `${value}x`
-}
-
-const pairColumn = columnHelper.accessor('symbol', {
-	id: 'symbol',
-	header: 'Pair',
-	enableSorting: false,
-	cell: ({ getValue, row }) => {
-		const pair = <span className="text-sm uppercase">{getValue()}</span>
-		return row.original.pair_url ? (
-			<a
-				href={row.original.pair_url}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="text-(--link-text) hover:underline"
-			>
-				{pair}
-			</a>
-		) : (
-			pair
-		)
-	},
-	meta: {
-		headerClassName: 'w-[140px]'
-	}
-})
-
-const priceColumn = columnHelper.accessor((row) => row.price ?? undefined, {
-	id: 'price',
-	header: 'Price',
-	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	meta: {
-		headerClassName: 'w-[110px]',
-		align: 'end'
-	}
-})
-
-const priceChangeColumn = columnHelper.accessor((row) => row.price_change_24h ?? undefined, {
-	id: 'price_change_24h',
-	header: '24h',
-	cell: ({ row }) => <ChangeCell fraction={row.original.price_change_24h} />,
-	meta: {
-		headerClassName: 'w-[100px]',
-		align: 'end'
-	}
-})
-
-const volumeColumn = columnHelper.accessor((row) => row.volume_24h ?? undefined, {
-	id: 'volume_24h',
-	header: '24h Volume',
-	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	meta: {
-		headerClassName: 'w-[120px]',
-		align: 'end'
-	}
-})
-
-const volumeChangeColumn = columnHelper.accessor((row) => pctChange(row.volume_24h, row.volume_prev_24h) ?? undefined, {
-	id: 'volume_change_24h',
-	header: 'Vol Δ',
-	cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.volume_24h, row.original.volume_prev_24h)} />,
-	meta: {
-		headerClassName: 'w-[100px]',
-		align: 'end'
-	}
-})
-
-const oiColumn = columnHelper.accessor((row) => row.oi_usd ?? undefined, {
-	id: 'oi_usd',
-	header: 'Open Interest',
-	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	meta: {
-		headerClassName: 'w-[140px]',
-		align: 'end'
-	}
-})
-
-const oiChangeColumn = columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
-	id: 'oi_change_24h',
-	header: 'OI Δ',
-	cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
-	meta: {
-		headerClassName: 'w-[100px]',
-		align: 'end'
-	}
-})
-
-const fundingColumn = columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
-	id: 'funding_rate_8h',
-	header: 'Funding (8h)',
-	cell: ({ row }) => <FundingCell rate={row.original.funding_rate_8h} />,
-	meta: {
-		headerClassName: 'w-[130px]',
-		align: 'end'
-	}
-})
-
-const maxLeverageColumn = columnHelper.accessor((row) => row.max_leverage ?? undefined, {
-	id: 'max_leverage',
-	header: 'Max Leverage',
-	cell: ({ row }) => renderLeverage(row.original.max_leverage),
-	meta: {
-		headerClassName: 'w-[130px]',
-		align: 'end'
-	}
-})
-
-const makerFeeColumn = columnHelper.accessor((row) => row.maker_fee ?? undefined, {
-	id: 'maker_fee',
-	header: 'Maker Fee',
-	cell: ({ row }) => renderFeeRate(row.original.maker_fee),
-	meta: {
-		headerClassName: 'w-[110px]',
-		align: 'end'
-	}
-})
-
-const takerFeeColumn = columnHelper.accessor((row) => row.taker_fee ?? undefined, {
-	id: 'taker_fee',
-	header: 'Taker Fee',
-	cell: ({ row }) => renderFeeRate(row.original.taker_fee),
-	meta: {
-		headerClassName: 'w-[110px]',
-		align: 'end'
-	}
-})
-
-const SPOT_COLUMNS: ColumnDef<MarketPair, any>[] = [
-	pairColumn,
-	priceColumn,
-	priceChangeColumn,
-	volumeColumn,
-	volumeChangeColumn,
-	makerFeeColumn,
-	takerFeeColumn
-]
-const PERP_COLUMNS: ColumnDef<MarketPair, any>[] = [
-	pairColumn,
-	priceColumn,
-	priceChangeColumn,
-	volumeColumn,
-	volumeChangeColumn,
-	oiColumn,
-	oiChangeColumn,
-	fundingColumn,
-	maxLeverageColumn,
-	makerFeeColumn,
-	takerFeeColumn
-]
+const SPOT_COLUMNS = buildCexMarketPairColumns('spot')
+const PERP_COLUMNS = buildCexMarketPairColumns('linear_perp')
 
 function getCategoryRows(data: ExchangeMarketsResponse, category: Segment): MarketPair[] {
 	return data.categories[category]?.pairs ?? []

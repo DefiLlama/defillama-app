@@ -4,7 +4,7 @@ import type {
 	MarketsExchangeListEntry,
 	TokenMarketsListResponse
 } from '~/containers/Markets/api.types'
-import { buildCexMarketsSlugIndex, buildTokenMarketsSymbolIndex } from '../markets'
+import { buildCexMarketsSlugIndex, buildTokenMarketsSymbolIndex, resolveMarketsExchangeFromList } from '../markets'
 
 function exchangeEntry(overrides: Partial<MarketsExchangeListEntry> = {}): MarketsExchangeListEntry {
 	return {
@@ -141,5 +141,29 @@ describe('markets dataset indexes', () => {
 			}
 		})
 		expect(cexIndex['constructor']).toEqual({ exchange: 'constructor-id', defillama_slug: 'constructor' })
+	})
+
+	it('resolves route exchange params to backend exchange ids', () => {
+		const exchangesList: ExchangeMarketsListResponse = {
+			last_updated: '2026-06-10T00:00:00Z',
+			cex: {
+				spot: [exchangeEntry({ exchange: 'binance', defillama_slug: 'Binance CEX' })],
+				linear_perp: [],
+				inverse_perp: []
+			},
+			dex: {
+				spot: [exchangeEntry({ exchange: 'hyperliquid', defillama_slug: 'Hyperliquid' })],
+				linear_perp: [],
+				inverse_perp: []
+			},
+			totals: {
+				cex: { spot: emptyExchangeTotal, linear_perp: emptyExchangeTotal, inverse_perp: emptyExchangeTotal },
+				dex: { spot: emptyExchangeTotal, linear_perp: emptyExchangeTotal, inverse_perp: emptyExchangeTotal }
+			}
+		}
+
+		expect(resolveMarketsExchangeFromList('Binance', exchangesList)).toBe('binance')
+		expect(resolveMarketsExchangeFromList('hyperliquid', exchangesList)).toBe('hyperliquid')
+		expect(resolveMarketsExchangeFromList('missing', exchangesList)).toBeNull()
 	})
 })

@@ -4,13 +4,23 @@ import { slug } from '~/utils'
 import {
 	buildCexMarketsSlugIndex,
 	buildTokenMarketsSymbolIndex,
+	fetchExchangeMarketsListFromCache,
 	fetchCexMarketsSlugIndexFromCache,
 	fetchTokenMarketsSymbolIndexFromCache,
+	resolveMarketsExchangeFromList,
 	type CexMarketsSlugIndex,
 	type CexMarketsSlugIndexEntry,
 	type TokenMarketsSymbolIndex
 } from '../markets'
 import { readThroughDatasetCache } from './source'
+
+function fetchExchangeMarketsList() {
+	return readThroughDatasetCache({
+		domain: 'markets',
+		readCache: fetchExchangeMarketsListFromCache,
+		readNetwork: fetchExchangeMarketsListFromNetwork
+	})
+}
 
 function fetchTokenMarketsSymbolIndex(): Promise<TokenMarketsSymbolIndex> {
 	return readThroughDatasetCache({
@@ -34,6 +44,10 @@ export async function resolveCexMarketsByDefillamaSlug(
 	const index = await fetchCexMarketsSlugIndex()
 	const key = slug(defillamaSlug)
 	return Object.hasOwn(index, key) ? index[key] : null
+}
+
+export async function resolveMarketsExchangeByParam(exchange: string): Promise<string | null> {
+	return resolveMarketsExchangeFromList(exchange, await fetchExchangeMarketsList())
 }
 
 export async function hasTokenMarkets(symbol: string): Promise<boolean> {

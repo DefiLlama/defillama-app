@@ -28,6 +28,23 @@ export function buildCexMarketsSlugIndex(exchangesList: ExchangeMarketsListRespo
 	return index
 }
 
+export function resolveMarketsExchangeFromList(
+	exchange: string,
+	exchangesList: ExchangeMarketsListResponse
+): string | null {
+	const normalizedExchange = exchange.toLowerCase()
+
+	for (const venue of [exchangesList.cex, exchangesList.dex]) {
+		for (const category in venue) {
+			for (const entry of venue[category as keyof typeof venue]) {
+				if (entry.exchange.toLowerCase() === normalizedExchange) return entry.exchange
+			}
+		}
+	}
+
+	return null
+}
+
 export async function fetchExchangeMarketsListFromCache(): Promise<ExchangeMarketsListResponse> {
 	return readDatasetDomainJson<ExchangeMarketsListResponse>('markets', MARKET_FILES.exchangesList)
 }
