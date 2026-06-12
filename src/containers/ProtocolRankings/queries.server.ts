@@ -168,13 +168,14 @@ export const getProtocolsByChain = async ({
 			}
 		}
 
-		const tvlChange = tvls.default.tvl
-			? {
-					change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
-					change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
-					change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
-				}
-			: null
+		const tvlChange =
+			tvls.default.tvl != null
+				? {
+						change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
+						change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
+						change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
+					}
+				: null
 
 		for (const chainKey in protocol.chainTvls ?? {}) {
 			if (chain === 'All') {
@@ -328,6 +329,14 @@ export const getProtocolsByChain = async ({
 							parentTvl[chainOrExtraTvlKey] = {}
 						}
 						for (const currentOrPreviousTvlKey in child.tvl[chainOrExtraTvlKey]) {
+							if (
+								child.deprecated &&
+								child.tvl[chainOrExtraTvlKey].tvl === 0 &&
+								PREVIOUS_TVL_KEYS_SET.has(currentOrPreviousTvlKey)
+							) {
+								continue
+							}
+
 							const currValue = child.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
 
 							// Skip if accumulator is already null (don't override)
@@ -348,7 +357,7 @@ export const getProtocolsByChain = async ({
 					}
 				}
 
-				if (child.tvl?.default?.tvl != null) {
+				if (child.tvl?.default?.tvl != null && !(child.deprecated && child.tvl.default.tvl === 0)) {
 					for (const key of PREVIOUS_TVL_KEYS) {
 						if (child.tvl.default[key] == null) {
 							missingPrevKeys.add(key)

@@ -332,6 +332,115 @@ describe('getProtocolsByChain parent aggregation', () => {
 		})
 	})
 
+	it('excludes deprecated zero-TVL children from parent TVL change while keeping real zero-TVL drops', async () => {
+		fetchAdapterChainMetricsMock.mockResolvedValue({ protocols: [] })
+		getAdapterChainOverviewMock.mockResolvedValue({ protocols: [] })
+		fetchProtocolsMock.mockResolvedValue({
+			chains: ['Ethereum'],
+			parentProtocols: [{ id: 'parent#alpha', name: 'Alpha Parent', chains: ['Ethereum'], mcap: 300 }],
+			protocols: [
+				liteProtocol({
+					defillamaId: 'child-alpha-one',
+					name: 'Alpha One Raw',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					tvl: 100,
+					tvlPrevDay: 100,
+					tvlPrevWeek: 100,
+					tvlPrevMonth: 100,
+					chainTvls: {
+						Ethereum: tvlEntry(100, 100, 100, 100)
+					}
+				}),
+				liteProtocol({
+					defillamaId: 'child-alpha-two',
+					name: 'Alpha Two Raw',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					tvl: 0,
+					tvlPrevDay: 100,
+					tvlPrevWeek: 100,
+					tvlPrevMonth: 100,
+					deprecated: true,
+					chainTvls: {
+						Ethereum: tvlEntry(0, 100, 100, 100)
+					}
+				})
+			]
+		})
+
+		const data = await getProtocolsByChain({
+			chain: 'All',
+			chainMetadata,
+			protocolMetadata: protocolMetadata as any
+		})
+
+		const parent = data?.protocols.find((protocol) => protocol.name === 'Alpha Parent')
+		expect(parent?.tvl).toMatchObject({
+			default: { tvl: 100, tvlPrevDay: 100, tvlPrevWeek: 100, tvlPrevMonth: 100 }
+		})
+		expect(parent?.tvlChange).toEqual({ change1d: 0, change7d: 0, change1m: 0 })
+		expect(parent?.childProtocols?.find((protocol) => protocol.name === 'Alpha Two')?.tvlChange).toEqual({
+			change1d: -100,
+			change7d: -100,
+			change1m: -100
+		})
+	})
+
+	it('keeps non-deprecated zero-TVL children in parent TVL change calculations', async () => {
+		fetchAdapterChainMetricsMock.mockResolvedValue({ protocols: [] })
+		getAdapterChainOverviewMock.mockResolvedValue({ protocols: [] })
+		fetchProtocolsMock.mockResolvedValue({
+			chains: ['Ethereum'],
+			parentProtocols: [{ id: 'parent#alpha', name: 'Alpha Parent', chains: ['Ethereum'], mcap: 300 }],
+			protocols: [
+				liteProtocol({
+					defillamaId: 'child-alpha-one',
+					name: 'Alpha One Raw',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					tvl: 100,
+					tvlPrevDay: 100,
+					tvlPrevWeek: 100,
+					tvlPrevMonth: 100,
+					chainTvls: {
+						Ethereum: tvlEntry(100, 100, 100, 100)
+					}
+				}),
+				liteProtocol({
+					defillamaId: 'child-alpha-two',
+					name: 'Alpha Two Raw',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					tvl: 0,
+					tvlPrevDay: 100,
+					tvlPrevWeek: 100,
+					tvlPrevMonth: 100,
+					chainTvls: {
+						Ethereum: tvlEntry(0, 100, 100, 100)
+					}
+				})
+			]
+		})
+
+		const data = await getProtocolsByChain({
+			chain: 'All',
+			chainMetadata,
+			protocolMetadata: protocolMetadata as any
+		})
+
+		const parent = data?.protocols.find((protocol) => protocol.name === 'Alpha Parent')
+		expect(parent?.tvl).toMatchObject({
+			default: { tvl: 100, tvlPrevDay: 200, tvlPrevWeek: 200, tvlPrevMonth: 200 }
+		})
+		expect(parent?.tvlChange).toEqual({ change1d: -50, change7d: -50, change1m: -50 })
+		expect(parent?.childProtocols?.find((protocol) => protocol.name === 'Alpha Two')?.tvlChange).toEqual({
+			change1d: -100,
+			change7d: -100,
+			change1m: -100
+		})
+	})
+
 	it('keeps parent P/F null when a child fee row has only current fees and no annualized denominator', async () => {
 		fetchAdapterChainMetricsMock.mockImplementation(({ dataType }: { dataType?: string }) => {
 			if (dataType === 'dailyRevenue' || dataType === 'dailyHoldersRevenue') {
