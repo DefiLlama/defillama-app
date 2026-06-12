@@ -18,6 +18,7 @@ type MarketPairColumnConfig = {
 	maxLeverageHeader: string
 	maxLeverageHeaderClassName: string
 	maxLeverageCell: (value: number | null | undefined) => ReactNode
+	showMaxLeverageOnSpot: boolean
 	makerHeader: string
 	makerHeaderClassName: string
 	takerHeader: string
@@ -49,6 +50,7 @@ const EXCHANGE_PAIR_COLUMN_CONFIG: MarketPairColumnConfig = {
 	maxLeverageHeader: 'Max Lev',
 	maxLeverageHeaderClassName: 'w-[90px]',
 	maxLeverageCell: renderCompactMarketPairLeverage,
+	showMaxLeverageOnSpot: true,
 	makerHeader: 'Maker',
 	makerHeaderClassName: 'w-[90px]',
 	takerHeader: 'Taker',
@@ -65,6 +67,7 @@ const CEX_MARKETS_COLUMN_CONFIG: MarketPairColumnConfig = {
 	maxLeverageHeader: 'Max Leverage',
 	maxLeverageHeaderClassName: 'w-[130px]',
 	maxLeverageCell: renderExactMarketPairLeverage,
+	showMaxLeverageOnSpot: false,
 	makerHeader: 'Maker Fee',
 	makerHeaderClassName: 'w-[110px]',
 	takerHeader: 'Taker Fee',
@@ -139,7 +142,12 @@ function buildMarketPairColumns(segment: Segment, config: MarketPairColumnConfig
 				header: config.fundingHeader,
 				cell: ({ row }) => config.fundingCell(row.original.funding_rate_8h),
 				meta: { headerClassName: config.fundingHeaderClassName, align: 'end' }
-			}),
+			})
+		)
+	}
+
+	if (segmentHasOi(segment) || config.showMaxLeverageOnSpot) {
+		columns.push(
 			columnHelper.accessor((row) => row.max_leverage ?? undefined, {
 				id: 'max_leverage',
 				header: config.maxLeverageHeader,

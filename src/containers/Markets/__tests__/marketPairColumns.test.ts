@@ -18,8 +18,21 @@ function columnHeader(columns: ColumnDef<MarketPair, any>[], id: string) {
 }
 
 describe('market pair columns', () => {
-	it('keeps spot tables to price, volume, and fee columns', () => {
+	it('keeps exchange spot tables to price, volume, leverage, and fee columns', () => {
 		expect(columnIds(buildExchangePairColumns('spot'))).toEqual([
+			'symbol',
+			'price',
+			'price_change_24h',
+			'volume_24h',
+			'volume_change_24h',
+			'max_leverage',
+			'maker_fee',
+			'taker_fee'
+		])
+	})
+
+	it('keeps CEX section spot tables to price, volume, and fee columns', () => {
+		expect(columnIds(buildCexMarketPairColumns('spot'))).toEqual([
 			'symbol',
 			'price',
 			'price_change_24h',
