@@ -91,6 +91,7 @@ import {
 	streamReducer,
 	type ChatPageContext,
 	type FailedRequest,
+	type QueuedPromptRequest,
 	type StreamBuffer
 } from '~/containers/LlamaAI/streamState'
 import type { AgenticAnswerMode, Message, UpgradeOffer } from '~/containers/LlamaAI/types'
@@ -345,6 +346,9 @@ export function AgenticChat({
 	}>({ hasMore: false, cursor: null })
 	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
+	const [promptDraft, setPromptDraft] = useState('')
+	const [queuedPromptRequests, setQueuedPromptRequests] = useState<QueuedPromptRequest[]>([])
+	const [requestSettledSignal, setRequestSettledSignal] = useState(0)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -489,6 +493,10 @@ export function AgenticChat({
 		},
 		[clearPromptTransitionTimer]
 	)
+
+	const enqueuePrompt = useCallback((request: QueuedPromptRequest) => {
+		setQueuedPromptRequests((current) => [...current, request])
+	}, [])
 
 	useEffect(() => {
 		return () => {
@@ -1225,6 +1233,8 @@ export function AgenticChat({
 		resetPromptTransition()
 		setViewError(null)
 		setPaginationError(null)
+		setPromptDraft('')
+		setQueuedPromptRequests([])
 		dispatchStream({ type: 'RESET_STREAM' })
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
@@ -1460,13 +1470,13 @@ export function AgenticChat({
 		) => {
 			const trimmed = prompt.trim()
 			const hasImages = images && images.length > 0
-			if ((!trimmed && !hasImages) || isStreaming || promptSubmissionLockRef.current) return
+			if ((!trimmed && !hasImages) || isStreaming || promptSubmissionLockRef.current) return false
 
 			// Shared session: fork in-place — seed messages + sessionId, then continue with normal submit flow
 			if (sharedSession && !sessionId) {
 				if (!hasUser) {
 					onForkSubmit?.(trimmed)
-					return
+					return true
 				}
 			}
 			triggerPromptTransition(shouldShowLanding ? 'landing' : 'conversation')
@@ -1705,12 +1715,15 @@ export function AgenticChat({
 						},
 						onFinally: () => {
 							promptSubmissionLockRef.current = false
+							setRequestSettledSignal((current) => current + 1)
 						}
 					})
 				})
 				.catch(() => {
 					promptSubmissionLockRef.current = false
+					setRequestSettledSignal((current) => current + 1)
 				})
+			return true
 		},
 		[
 			isStreaming,
@@ -1939,6 +1952,7 @@ export function AgenticChat({
 				},
 				onFinally: () => {
 					promptSubmissionLockRef.current = false
+					setRequestSettledSignal((current) => current + 1)
 				}
 			})
 			if (!handedOffToResume && shouldThrowEditError) {
@@ -1978,6 +1992,22 @@ export function AgenticChat({
 			updateSessionTitle
 		]
 	)
+
+	useEffect(() => {
+		if (readOnly || isStreaming || promptSubmissionLockRef.current || queuedPromptRequests.length === 0) return
+
+		const nextRequest = queuedPromptRequests[0]
+		const accepted = handleSubmit(
+			nextRequest.prompt,
+			nextRequest.entities,
+			nextRequest.images,
+			nextRequest.pageContext,
+			nextRequest.isSuggestedQuestion
+		)
+		if (!accepted) return
+
+		setQueuedPromptRequests((current) => (current[0] === nextRequest ? current.slice(1) : current))
+	}, [handleSubmit, isStreaming, queuedPromptRequests, readOnly, requestSettledSignal])
 
 	const handleBranchSwitch = useCallback(
 		async (leafMessageId: string) => {
@@ -2252,6 +2282,10 @@ export function AgenticChat({
 		isSharedView,
 		title: readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?',
 		handleSubmit,
+		draftValue: promptDraft,
+		setDraftValue: setPromptDraft,
+		queuedPrompts: queuedPromptRequests,
+		enqueuePrompt,
 		promptInputRef,
 		handleStopRequest,
 		isStreaming,
@@ -2297,6 +2331,10 @@ export function AgenticChat({
 		showScrollToBottom,
 		scrollToBottom,
 		handleSubmit,
+		draftValue: promptDraft,
+		setDraftValue: setPromptDraft,
+		queuedPrompts: queuedPromptRequests,
+		enqueuePrompt,
 		handleStopRequest,
 		handleActionClick,
 		onEditMessage: handleEditMessage,

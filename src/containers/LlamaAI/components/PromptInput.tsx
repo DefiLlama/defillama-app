@@ -11,6 +11,7 @@ import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
 import { fileToBase64, useImageUpload } from '~/containers/LlamaAI/hooks/useImageUpload'
+import type { QueuedPromptRequest } from '~/containers/LlamaAI/streamState'
 import type { AgenticAnswerMode, FactCheckedUsage, ResearchUsage } from '~/containers/LlamaAI/types'
 import { setInputSize, syncHighlightScroll } from '~/containers/LlamaAI/utils/scrollUtils'
 import { highlightWord } from '~/containers/LlamaAI/utils/textUtils'
@@ -34,7 +35,10 @@ interface PromptInputProps {
 		images?: Array<{ data: string; mimeType: string; filename?: string; isPasted?: boolean }>,
 		pageContext?: undefined,
 		isSuggestedQuestion?: boolean
-	) => void | Promise<void>
+	) => boolean | Promise<boolean>
+	draftValue: string
+	setDraftValue: (value: string) => void
+	enqueuePrompt: (request: QueuedPromptRequest) => void
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	isPending: boolean
 	handleStopRequest?: () => void
@@ -70,8 +74,38 @@ interface PendingSelection {
 	focus?: boolean
 }
 
+export function QueuedPromptStack({ queuedPrompts }: { queuedPrompts: QueuedPromptRequest[] }) {
+	if (queuedPrompts.length === 0) return null
+
+	const backCardCount = Math.min(Math.max(queuedPrompts.length - 1, 0), 2)
+	const firstPrompt = queuedPrompts[0].prompt || 'Image prompt'
+
+	return (
+		<div className="pointer-events-none relative pb-2" aria-live="polite" aria-label={`Queued prompt: ${firstPrompt}`}>
+			{backCardCount === 2 ? (
+				<div className="pointer-events-none absolute inset-0 translate-y-2 scale-x-[0.92] rounded-md border border-[#e6e6e6] bg-(--app-bg) opacity-60 dark:border-[#222324]" />
+			) : null}
+			{backCardCount >= 1 ? (
+				<div className="pointer-events-none absolute inset-0 translate-y-1 scale-x-[0.96] rounded-md border border-[#e6e6e6] bg-(--app-bg) opacity-75 dark:border-[#222324]" />
+			) : null}
+			<div className="relative z-1 flex items-center gap-2 rounded-md border border-[#e6e6e6] bg-(--app-bg) px-3 py-2.5 text-sm text-black dark:border-[#222324] dark:text-white">
+				<Icon name="arrow-right-to-line" height={14} width={14} className="shrink-0 text-[#666] dark:text-[#919296]" />
+				<p className="min-w-0 flex-1 truncate">{firstPrompt}</p>
+				{queuedPrompts.length > 1 ? (
+					<span className="shrink-0 text-xs font-medium text-[#666] dark:text-[#919296]">
+						+{queuedPrompts.length - 1}
+					</span>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
 export function PromptInput({
 	handleSubmit,
+	draftValue,
+	setDraftValue,
+	enqueuePrompt,
 	promptInputRef,
 	isPending,
 	handleStopRequest,
@@ -92,7 +126,7 @@ export function PromptInput({
 	enterToSend,
 	walkthroughActive
 }: PromptInputProps) {
-	const [value, setValue] = useState('')
+	const value = draftValue
 	const [submitError, setSubmitError] = useState<string | null>(null)
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
@@ -142,9 +176,9 @@ export function PromptInput({
 							selectionEnd: selectionEnd ?? selectionStart,
 							focus
 						}
-			setValue(nextValue)
+			setDraftValue(nextValue)
 		},
-		[]
+		[setDraftValue]
 	)
 
 	// Image upload handling
@@ -295,12 +329,45 @@ export function PromptInput({
 		const isSuggested = isSuggestedRef.current
 		isSuggestedRef.current = false
 
+		if (isStreaming) {
+			if (hasImages) {
+				try {
+					const images = await prepareImagesForSubmit(imagesToSend)
+					enqueuePrompt({
+						prompt: promptValue.trim(),
+						entities: finalEntities.length ? finalEntities : undefined,
+						images,
+						isSuggestedQuestion: isSuggested || undefined
+					})
+					setSubmitError(null)
+					if (shouldResetSubmittedDraft(promptValue, imagesToSend)) {
+						resetInput(imagesToSend)
+					}
+				} catch (error) {
+					console.error('Failed to queue prompt', error)
+					setSubmitError('Failed to queue your prompt. Please try again.')
+				}
+				return
+			}
+
+			enqueuePrompt({
+				prompt: promptValue.trim(),
+				entities: finalEntities.length ? finalEntities : undefined,
+				isSuggestedQuestion: isSuggested || undefined
+			})
+			setSubmitError(null)
+			resetInput()
+			return
+		}
+
 		if (hasImages) {
 			try {
 				const images = await prepareImagesForSubmit(imagesToSend)
-				await Promise.resolve(handleSubmit(promptValue, finalEntities, images, undefined, isSuggested || undefined))
+				const accepted = await Promise.resolve(
+					handleSubmit(promptValue, finalEntities, images, undefined, isSuggested || undefined)
+				)
 				setSubmitError(null)
-				if (shouldResetSubmittedDraft(promptValue, imagesToSend)) {
+				if (accepted && shouldResetSubmittedDraft(promptValue, imagesToSend)) {
 					resetInput(imagesToSend)
 				}
 				return
@@ -312,9 +379,13 @@ export function PromptInput({
 		}
 
 		try {
-			await Promise.resolve(handleSubmit(promptValue, finalEntities, undefined, undefined, isSuggested || undefined))
+			const accepted = await Promise.resolve(
+				handleSubmit(promptValue, finalEntities, undefined, undefined, isSuggested || undefined)
+			)
 			setSubmitError(null)
-			resetInput()
+			if (accepted) {
+				resetInput()
+			}
 		} catch (error) {
 			console.error('Submission failed', error)
 			setSubmitError('Failed to submit your prompt. Please try again.')
@@ -343,7 +414,6 @@ export function PromptInput({
 		// Handle enter for submission
 		if (shouldSubmit && !entityCombobox.hasRenderedItems && !event.nativeEvent.isComposing) {
 			event.preventDefault()
-			if (isStreaming) return
 			void submitForm(value)
 		}
 	}
