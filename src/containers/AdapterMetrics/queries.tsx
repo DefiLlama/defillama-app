@@ -180,6 +180,8 @@ export const getAdapterByChainPageData = async ({
 	metricName: string
 }): Promise<IAdapterByChainPageData | null> => {
 	const showFeesChart = FEES_CHART_ROUTES.has(route)
+	const rankBy = route === 'pf' || route === 'ps' ? 'pfOrPs' : 'total24h'
+	const cantonIncentivesWarning = metricName === 'Fees' || metricName === 'Revenue' ? CANTON_INCENTIVES_WARNING : null
 
 	const [
 		data,
@@ -256,9 +258,8 @@ export const getAdapterByChainPageData = async ({
 		normalizedVolumeData,
 		adapterType,
 		dataType,
-		route,
-		metricName,
-		cantonIncentivesWarning: CANTON_INCENTIVES_WARNING
+		rankBy,
+		cantonIncentivesWarning
 	})
 
 	const chartData = buildAdapterByChainChartDataset({

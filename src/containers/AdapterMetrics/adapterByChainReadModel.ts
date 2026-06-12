@@ -52,6 +52,7 @@ type ProtocolMcapData = {
 }
 
 type AdapterByChainDataType = `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+type AdapterByChainRankBy = 'pfOrPs' | 'total24h'
 
 type AdapterByChainReadModel = {
 	protocols: IAdapterByChainPageData['protocols']
@@ -163,7 +164,6 @@ function buildProtocolSummary({
 	protocol,
 	adapterType,
 	dataType,
-	metricName,
 	protocolMcap,
 	bribesProtocols,
 	tokenTaxesProtocols,
@@ -175,17 +175,15 @@ function buildProtocolSummary({
 	protocol: AdapterByChainSourceProtocol
 	adapterType: `${ADAPTER_TYPES}`
 	dataType?: AdapterByChainDataType
-	metricName: string
 	protocolMcap: number | null | undefined
 	bribesProtocols: Record<string, BribesData>
 	tokenTaxesProtocols: Record<string, BribesData>
 	openInterestProtocols: Record<string, OpenInterestData>
 	activeLiquidityProtocols: Record<string, ActiveLiquidityData>
 	normalizedVolumeProtocols: Record<string, NormalizedVolumeData>
-	cantonIncentivesWarning: string
+	cantonIncentivesWarning: string | null
 }): IProtocol {
-	const warning =
-		protocol.slug === 'canton' && (metricName === 'Fees' || metricName === 'Revenue') ? cantonIncentivesWarning : null
+	const warning = protocol.slug === 'canton' ? cantonIncentivesWarning : null
 	const methodology = getProtocolMethodology({ adapterType, dataType, protocol })
 	const pfOrPs =
 		protocolMcap != null && protocol.annualized1y != null
@@ -366,13 +364,13 @@ function buildParentProtocolSummary({
 
 function sortFinalProtocols({
 	protocols,
-	route
+	rankBy
 }: {
 	protocols: Record<string, IProtocol>
-	route: string
+	rankBy: AdapterByChainRankBy
 }): IAdapterByChainPageData['protocols'] {
 	const finalProtocols: IAdapterByChainPageData['protocols'] = []
-	if (route === 'pf' || route === 'ps') {
+	if (rankBy === 'pfOrPs') {
 		for (const protocol in protocols) {
 			if (protocols[protocol].pfOrPs != null) {
 				finalProtocols.push(protocols[protocol])
@@ -410,8 +408,7 @@ export function buildAdapterByChainReadModel({
 	normalizedVolumeData,
 	adapterType,
 	dataType,
-	route,
-	metricName,
+	rankBy,
 	cantonIncentivesWarning
 }: {
 	data: IAdapterChainOverview
@@ -423,9 +420,8 @@ export function buildAdapterByChainReadModel({
 	normalizedVolumeData: IAdapterChainMetrics | null
 	adapterType: `${ADAPTER_TYPES}`
 	dataType?: AdapterByChainDataType
-	route: string
-	metricName: string
-	cantonIncentivesWarning: string
+	rankBy: AdapterByChainRankBy
+	cantonIncentivesWarning: string | null
 }): AdapterByChainReadModel {
 	const protocolsMcap = buildProtocolsMcap(protocolsData)
 	const allProtocols: AdapterByChainSourceProtocol[] = [...data.protocols]
@@ -509,7 +505,6 @@ export function buildAdapterByChainReadModel({
 			protocol,
 			adapterType,
 			dataType,
-			metricName,
 			protocolMcap: protocolsMcap[protocol.name],
 			bribesProtocols,
 			tokenTaxesProtocols,
@@ -543,7 +538,7 @@ export function buildAdapterByChainReadModel({
 	}
 
 	return {
-		protocols: sortFinalProtocols({ protocols, route }),
+		protocols: sortFinalProtocols({ protocols, rankBy }),
 		categories: adapterType === 'fees' ? Array.from(categories).sort() : [],
 		openInterest: sumSupplementalTotal(openInterestProtocols),
 		activeLiquidity: activeLiquidityData ? sumSupplementalTotal(activeLiquidityProtocols) : null
