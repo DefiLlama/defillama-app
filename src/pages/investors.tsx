@@ -203,14 +203,34 @@ const GRID_ROWS = 13
 
 type StampCell = { left: number; top: number; delay: string }
 
+function isStaticCell(col: number, row: number): boolean {
+	return GRID_CELLS.some((cell) => cell.left === col * 48 && cell.top === row * 48)
+}
+
+const CENTER_RING_CELLS: [number, number][] = []
+for (let row = 2; row <= 7; row++) {
+	CENTER_RING_CELLS.push([8, row], [9, row], [24, row], [25, row])
+}
+for (let col = 10; col <= 23; col++) {
+	CENTER_RING_CELLS.push([col, 0])
+}
+for (let col = 9; col <= 24; col++) {
+	CENTER_RING_CELLS.push([col, 8])
+}
+CENTER_RING_CELLS.push([10, 1], [11, 1], [12, 1], [21, 1], [22, 1], [23, 1])
+const CENTER_RING_POOL = CENTER_RING_CELLS.filter(([col, row]) => !isStaticCell(col, row))
+
 function randomStampPosition(): { left: number; top: number } {
+	if (Math.random() < 0.75) {
+		const [col, row] = CENTER_RING_POOL[Math.floor(Math.random() * CENTER_RING_POOL.length)]
+		return { left: col * 48, top: row * 48 }
+	}
 	while (true) {
 		const col = Math.floor(Math.random() * GRID_COLS)
 		const row = Math.floor(Math.random() * GRID_ROWS)
-		const inHeroZone = row > 0 && row < 9 && col > 8 && col < 25
-		const inValueStripZone = row > 8 && row < 12 && col > 5 && col < 29
-		const onStaticCell = GRID_CELLS.some((cell) => cell.left === col * 48 && cell.top === row * 48)
-		if (inHeroZone || inValueStripZone || onStaticCell) continue
+		const inHeroZone = row > 0 && row < 8 && col > 9 && col < 24
+		const inValueStripZone = row > 8 && row < 12 && col > 6 && col < 28
+		if (inHeroZone || inValueStripZone || isStaticCell(col, row)) continue
 		return { left: col * 48, top: row * 48 }
 	}
 }
@@ -266,8 +286,8 @@ function Backdrop() {
 			<div
 				className="absolute top-0 left-1/2 h-[640px] w-[1632px] -translate-x-1/2"
 				style={{
-					maskImage: 'radial-gradient(ellipse 55% 70% at 50% 32%, black 0%, transparent 100%)',
-					WebkitMaskImage: 'radial-gradient(ellipse 55% 70% at 50% 32%, black 0%, transparent 100%)'
+					maskImage: 'radial-gradient(ellipse 65% 80% at 50% 32%, black 20%, transparent 100%)',
+					WebkitMaskImage: 'radial-gradient(ellipse 65% 80% at 50% 32%, black 20%, transparent 100%)'
 				}}
 			>
 				<div className="absolute inset-0" style={GRID_PATTERN} />
@@ -281,13 +301,13 @@ function Backdrop() {
 				{stampCells.map((cell, i) => (
 					<div
 						key={i}
-						className="ir-stamp absolute flex size-12 items-center justify-center border border-(--sl-accent)/25 bg-(--sl-accent)/10"
+						className="ir-stamp absolute flex size-12 items-center justify-center border border-(--sl-accent)/35 bg-(--sl-accent)/15 text-(--sl-accent) dark:text-[#4f8ce0]"
 						style={{ left: cell.left, top: cell.top, animationDelay: cell.delay }}
 					>
 						<svg
 							viewBox="0 0 24 24"
 							fill="none"
-							stroke="var(--sl-accent)"
+							stroke="currentColor"
 							strokeWidth="2"
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -301,8 +321,8 @@ function Backdrop() {
 			<div
 				className="absolute top-[430px] left-1/2 h-[480px] w-[1632px] -translate-x-1/2"
 				style={{
-					maskImage: 'radial-gradient(ellipse 50% 80% at 50% 12%, black 0%, transparent 100%)',
-					WebkitMaskImage: 'radial-gradient(ellipse 50% 80% at 50% 12%, black 0%, transparent 100%)'
+					maskImage: 'radial-gradient(ellipse 60% 85% at 50% 12%, black 15%, transparent 100%)',
+					WebkitMaskImage: 'radial-gradient(ellipse 60% 85% at 50% 12%, black 15%, transparent 100%)'
 				}}
 			>
 				<div
