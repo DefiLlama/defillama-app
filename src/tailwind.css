@@ -572,6 +572,70 @@
 	animation: sl-pulse-glow 2s ease-in-out infinite;
 }
 
+@keyframes ir-rise {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.ir-rise {
+	animation: ir-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes ir-stamp-cell {
+	0%,
+	2% {
+		opacity: 0;
+	}
+	6% {
+		opacity: 1;
+	}
+	24% {
+		opacity: 1;
+	}
+	30%,
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes ir-stamp-check {
+	0%,
+	6% {
+		stroke-dashoffset: 26;
+	}
+	14% {
+		stroke-dashoffset: 0;
+	}
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+
+.ir-stamp {
+	opacity: 0;
+	animation: ir-stamp-cell 14s linear infinite;
+}
+
+.ir-stamp-check {
+	stroke-dasharray: 26;
+	stroke-dashoffset: 26;
+	animation: ir-stamp-check 14s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ir-rise,
+	.ir-stamp,
+	.ir-stamp-check {
+		animation: none;
+	}
+}
+
 @utility dark {
 	&html .pro-dashboard {
 		--pro-text1: var(--text-primary);
