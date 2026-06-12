@@ -1,5 +1,6 @@
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
-import { formatLineChart, getBucketTimestampSec } from '~/components/ECharts/utils'
+import { formatLineChart } from '~/components/ECharts/utils'
+import { getGroupedTimestampSec } from './chartSeries.utils'
 
 type ChartInterval = ChartTimeGroupingWithCumulative
 type V2ChartPoint = [string | number, number]
@@ -58,10 +59,6 @@ export function getProtocolExtraTvlChartFetchState({
 			tvlSettings.govtokens
 		)
 	}
-}
-
-const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): number => {
-	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
 }
 
 const toUnixSeconds = (timestamp: string | number): number | null => {

@@ -107,7 +107,7 @@ Current covered helper targets:
   - filters by min/max after selected extras are applied
   - handles child protocols
   - clears `strikeTvl` when liquidstaking or doublecounted is enabled
-Still useful if this area is touched:
+    Still useful if this area is touched:
 
 - `getExtraTvlByChain`: pin the expected extra TVL config for borrowed, staking, and pool2.
 

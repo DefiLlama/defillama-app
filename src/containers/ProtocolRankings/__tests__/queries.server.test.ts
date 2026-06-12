@@ -247,7 +247,7 @@ describe('getProtocolsByChain parent aggregation', () => {
 			fees: { total24h: 28, total7d: 196, total30d: 840, annualized1y: 5400, totalAllTime: 8400, pf: 0.1 },
 			revenue: { total24h: 15, total7d: 105, total30d: 450, annualized1y: null, totalAllTime: 4500, ps: null },
 			holdersRevenue: { total24h: 4, total7d: 28, total30d: 120 },
-			dexs: { total24h: 150, total7d: 1050, totalAllTime: 15_000 }
+			dexs: { total24h: 150, total7d: 1050, change_7dover7d: null, totalAllTime: 15_000 }
 		})
 		const childProtocolsByName = new Map(parent?.childProtocols?.map((protocol) => [protocol.name, protocol]))
 		expect(Array.from(childProtocolsByName.keys())).toEqual(expect.arrayContaining(['Alpha One', 'Alpha Two']))
@@ -264,6 +264,72 @@ describe('getProtocolsByChain parent aggregation', () => {
 		})
 		expect(withStakingAndMin.map((protocol) => protocol.name)).toEqual(['Alpha Parent'])
 		expect(withStakingAndMin[0].tvl?.default.tvl).toBe(300)
+	})
+
+	it('computes parent spot volume change from child 7d volume instead of summing percentages', async () => {
+		fetchAdapterChainMetricsMock.mockResolvedValue({ protocols: [] })
+		getAdapterChainOverviewMock.mockResolvedValue({
+			protocols: [
+				metricRow('child-alpha-one', {
+					total24h: null,
+					total7d: 110,
+					change_7dover7d: 10,
+					totalAllTime: 1000
+				}),
+				metricRow('child-alpha-two', {
+					total24h: null,
+					total7d: 120,
+					change_7dover7d: 20,
+					totalAllTime: 2000
+				})
+			]
+		})
+		fetchProtocolsMock.mockResolvedValue({
+			chains: ['Ethereum'],
+			parentProtocols: [{ id: 'parent#alpha', name: 'Alpha Parent', chains: ['Ethereum'], mcap: 300 }],
+			protocols: [
+				liteProtocol({
+					defillamaId: 'child-alpha-one',
+					name: 'Alpha One Raw',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					tvl: 100,
+					tvlPrevDay: 90,
+					tvlPrevWeek: 80,
+					tvlPrevMonth: 70,
+					chainTvls: {
+						Ethereum: tvlEntry(100, 90, 80, 70)
+					}
+				}),
+				liteProtocol({
+					defillamaId: 'child-alpha-two',
+					name: 'Alpha Two Raw',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					tvl: 200,
+					tvlPrevDay: 190,
+					tvlPrevWeek: 180,
+					tvlPrevMonth: 170,
+					chainTvls: {
+						Ethereum: tvlEntry(200, 190, 180, 170)
+					}
+				})
+			]
+		})
+
+		const data = await getProtocolsByChain({
+			chain: 'All',
+			chainMetadata,
+			protocolMetadata: protocolMetadata as any
+		})
+
+		const parent = data?.protocols.find((protocol) => protocol.name === 'Alpha Parent')
+		expect(parent?.dexs).toMatchObject({
+			total24h: null,
+			total7d: 230,
+			change_7dover7d: 15,
+			totalAllTime: 3000
+		})
 	})
 
 	it('keeps parent P/F null when a child fee row has only current fees and no annualized denominator', async () => {

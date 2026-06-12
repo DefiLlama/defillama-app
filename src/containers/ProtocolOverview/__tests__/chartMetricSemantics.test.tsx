@@ -15,11 +15,13 @@ type QueryOptions = { queryKey: Array<string | null> }
 
 const mocks = vi.hoisted(() => ({
 	useQuery: vi.fn(),
+	useQueries: vi.fn(),
 	lastResult: null as ReturnType<typeof import('../useFetchProtocolChartData').useFetchProtocolChartData> | null
 }))
 
 vi.mock('@tanstack/react-query', () => ({
-	useQuery: mocks.useQuery
+	useQuery: mocks.useQuery,
+	useQueries: mocks.useQueries
 }))
 
 vi.mock('next/router', () => ({
@@ -165,6 +167,9 @@ describe('ProtocolOverview chart metric semantics', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		probeProps = feeProps
+		mocks.useQueries.mockImplementation(({ queries }: { queries: QueryOptions[] }) =>
+			queries.map((options) => mocks.useQuery(options))
+		)
 		mocks.useQuery.mockImplementation((options: QueryOptions) => {
 			if (options.queryKey[2] === 'fees') return { data: [[timestamp, 100]], isLoading: false }
 			if (options.queryKey[2] === 'revenue') return { data: [[timestamp, 50]], isLoading: false }
