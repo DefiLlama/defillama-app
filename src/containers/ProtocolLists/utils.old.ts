@@ -88,7 +88,7 @@ export const formatProtocolsData = ({
 				return final
 			}
 
-			const p = keepNeededProperties(protocol, protocolProps)
+			const p = keepNeededProperties(protocol, protocolProps) as unknown as IFormattedProtocol
 
 			if (chain) {
 				p.tvl = protocol.chainTvls[chain]?.tvl ?? 0
@@ -143,9 +143,9 @@ export const formatProtocolsData = ({
 							}
 						}
 						p.extraTvl[prop].tvl += protocol.chainTvls[sectionName].tvl
-						p.extraTvl[prop].tvlPrevDay += protocol.chainTvls[sectionName].tvlPrevDay
-						p.extraTvl[prop].tvlPrevWeek += protocol.chainTvls[sectionName].tvlPrevWeek
-						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
+						p.extraTvl[prop].tvlPrevDay += protocol.chainTvls[sectionName].tvlPrevDay ?? 0
+						p.extraTvl[prop].tvlPrevWeek += protocol.chainTvls[sectionName].tvlPrevWeek ?? 0
+						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth ?? 0
 					}
 				} else {
 					if (TVL_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {

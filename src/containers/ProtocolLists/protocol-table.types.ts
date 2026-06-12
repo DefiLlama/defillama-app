@@ -74,7 +74,7 @@ export interface ChainMetricSnapshot {
 
 export interface IFormattedProtocol extends LiteProtocol, ProtocolTvls {
 	extraTvl?: {
-		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+		[key: string]: { tvl: number; tvlPrevDay: number | null; tvlPrevWeek: number | null; tvlPrevMonth: number | null }
 	}
 	change_1d: number | null
 	change_7d: number | null

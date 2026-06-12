@@ -36,8 +36,11 @@ function sortCategoriesByTvl(categoryTvlMap: Map<string, number>): string[] {
 
 function extractExtraTvl(
 	protocol: ProtocolLite
-): Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> {
-	const extraTvl: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> = {}
+): Record<string, { tvl: number; tvlPrevDay: number | null; tvlPrevWeek: number | null; tvlPrevMonth: number | null }> {
+	const extraTvl: Record<
+		string,
+		{ tvl: number; tvlPrevDay: number | null; tvlPrevWeek: number | null; tvlPrevMonth: number | null }
+	> = {}
 	for (const sectionName in protocol.chainTvls) {
 		if (TVL_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
 			extraTvl[sectionName] = protocol.chainTvls[sectionName]

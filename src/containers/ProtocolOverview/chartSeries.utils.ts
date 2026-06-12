@@ -1,6 +1,12 @@
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import type { IProtocolOverviewPageData } from './types'
 
 export type IProtocolNumericSeries = Array<[number, number]>
+
+export const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartTimeGroupingWithCumulative): number => {
+	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
+}
 
 export function normalizeChartPointsToMs(points: unknown): IProtocolNumericSeries | null {
 	if (!Array.isArray(points)) return null

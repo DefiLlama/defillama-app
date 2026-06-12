@@ -20,9 +20,10 @@ Start from the route file in `src/pages`, then follow imports here when the page
 ## Main Files
 
 - `Table.tsx`: shared protocol ranking table and `ChainProtocolsTable` rendering.
-- `queries.server.ts`: `getProtocolsByChain` read model and adapter/protocol metric enrichment.
+- `queries.server.ts`: `getProtocolsByChain` fetch orchestration, parent/child aggregation, and row assembly.
+- `readModel.ts`: pure adapter metric row enrichment for protocol fees, revenue, holders revenue, and DEX volume.
 - `types.ts`: shared protocol row, child protocol, and TVL types.
-- `utils.ts`: protocol filtering and `strikeTvl` helpers.
+- `utils.ts`: protocol, fork, oracle, and `strikeTvl` filtering helpers.
 - `customColumnsUtils.ts`: custom protocol table column definitions.
 - `CustomColumnModal.tsx`: custom column UI.
 - `formula.service.ts`: formula evaluation for custom columns.
@@ -70,11 +71,15 @@ Keep this shared row model stable. Changes here can affect multiple pages that d
 Important rules:
 
 - `toFilterProtocol` controls whether a protocol belongs in a chain-scoped row set.
+- `protocolMatchesForkFilter` and `protocolMatchesOracleFilter` control fork/oracle-specific row filtering.
 - `toStrikeTvl` controls whether TVL is visually struck based on category and TVL toggles.
+- Dimension metric rows are admitted when at least one relevant period, annualized, average, or all-time field exists; `total24h` is not required by itself.
 - Parent/child protocol aggregation affects names, chains, TVL, and adapter metric fields.
+- Parent DEX `change_7dover7d` is derived from aggregated current and previous totals rather than summing child percentages.
 - Fee/revenue values here are protocol/app rows on a chain, not Chain Fees or Chain Revenue ranking semantics.
 - Parent P/F and P/S aggregation uses summed `annualized1y` fee/revenue denominators and preserves null when a contributing child is missing the annualized value.
-- TVL display behavior here is table/read-model behavior. Do not assume it matches ChainOverview chart TVL behavior.
+- Deprecated zero-TVL child protocols are excluded from parent previous-TVL change math, while non-deprecated zero-TVL children still count as real drops when previous TVL exists.
+- TVL display behavior here is table/read-model behavior. Previous TVL fields may stay null after table toggles; do not assume this matches ChainOverview chart TVL behavior.
 
 ## TVL Notes
 
@@ -94,17 +99,18 @@ This shared area has high blast radius. Add focused tests before refactoring `qu
 
 Current local tests:
 
-- `__tests__/queries.server.test.ts`: parent/child aggregation, chain dedupe, chain filtering, fee/revenue aggregation, strict annualized null behavior, and TVL extras.
-- `__tests__/utils.test.ts`: direct `toStrikeTvl` behavior.
+- `__tests__/queries.server.test.ts`: parent/child aggregation, chain dedupe, chain filtering, fee/revenue aggregation, strict annualized null behavior, TVL extras, deprecated zero-TVL parent changes, non-deprecated zero-TVL drops, and parent DEX change derivation.
+- `__tests__/readModel.test.ts`: dimension metric row admission and fee/revenue/holders revenue/DEX enrichment.
+- `__tests__/utils.test.ts`: direct `toFilterProtocol`, fork filter, oracle filter, and `toStrikeTvl` behavior.
 
 Still useful if touched:
 
-- Add direct coverage for fork/oracle filters and `toFilterProtocol`.
+- Add consumer coverage for any new route-specific ranking table behavior that cannot be pinned through these pure helpers.
 
 Focused command:
 
 ```bash
-bun run test src/containers/ProtocolRankings/__tests__/queries.server.test.ts src/containers/ProtocolRankings/__tests__/utils.test.ts
+bun run test src/containers/ProtocolRankings/__tests__/queries.server.test.ts src/containers/ProtocolRankings/__tests__/readModel.test.ts src/containers/ProtocolRankings/__tests__/utils.test.ts
 ```
 
 For source changes, follow the repo root verification instructions.
