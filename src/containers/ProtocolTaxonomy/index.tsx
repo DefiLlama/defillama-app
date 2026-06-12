@@ -6,7 +6,6 @@ import {
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
-import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -14,16 +13,18 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { definitions } from '~/public/definitions'
 import { formatNum, formattedNum } from '~/utils'
+import { buildProtocolTaxonomyGroupedCharts } from './chartGrouping'
 import {
 	getProtocolCategoryDexVolumeLabel,
 	getProtocolCategoryColumns,
 	getProtocolCategoryDefaultSort,
 	getProtocolCategoryPresentation
 } from './constants'
+import { applyProtocolTaxonomyTvlSettings } from './tvl'
 import type { IProtocolTaxonomyPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -48,58 +49,17 @@ export function ProtocolTaxonomyPage(props: IProtocolTaxonomyPageData) {
 	const { finalProtocols, charts } = useMemo<{
 		finalProtocols: IProtocolTaxonomyPageData['protocols']
 		charts: IProtocolTaxonomyPageData['charts']
-	}>(() => {
-		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
-
-		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
-
-		const applyTvlSettings = (protocol: IProtocolTaxonomyPageData['protocols'][0]) => {
-			let tvl = protocol.tvl
-			for (const setting of toggledSettings) {
-				if (protocol.extraTvls[setting] == null) continue
-				tvl = (tvl ?? 0) + (protocol.extraTvls[setting] ?? 0)
-			}
-			const updated = { ...protocol, tvl }
-			if (updated.subRows?.length > 0) {
-				updated.subRows = updated.subRows.map(applyTvlSettings)
-			}
-			return updated
-		}
-
-		const finalProtocols = props.protocols.map(applyTvlSettings)
-
-		const shouldMirrorBorrowedChart = props.effectiveCategory === 'Lending' && toggledSettings.includes('borrowed')
-
-		const finalSource: IProtocolTaxonomyPageData['charts']['dataset']['source'] = props.charts.dataset.source.map(
-			(row) => {
-				const timestampKey = row.timestamp
-				const extraSum =
-					timestampKey == null
-						? 0
-						: toggledSettings.reduce((sum, e) => sum + (props.extraTvlCharts[e]?.[timestampKey] ?? 0), 0)
-				const currentTvlValue = typeof row.TVL === 'number' ? row.TVL : Number(row.TVL ?? 0)
-				const safeCurrentTvlValue = Number.isFinite(currentTvlValue) ? currentTvlValue : 0
-				const nextTvlValue = safeCurrentTvlValue + extraSum
-				const timestamp = row.timestamp
-
-				if (shouldMirrorBorrowedChart) {
-					return { ...row, timestamp, TVL: nextTvlValue, 'Active Loans': nextTvlValue }
-				}
-
-				return { ...row, timestamp, TVL: nextTvlValue }
-			}
-		)
-
-		return {
-			finalProtocols,
-			charts: {
-				...props.charts,
-				dataset: { ...props.charts.dataset, source: finalSource }
-			}
-		}
-	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts, props.effectiveCategory])
-
-	const chartSeries = useMemo(() => charts.charts ?? [], [charts.charts])
+	}>(
+		() =>
+			applyProtocolTaxonomyTvlSettings({
+				protocols: props.protocols,
+				charts: props.charts,
+				extraTvlCharts: props.extraTvlCharts,
+				tvlSettings,
+				effectiveCategory: props.effectiveCategory
+			}),
+		[tvlSettings, props.protocols, props.charts, props.extraTvlCharts, props.effectiveCategory]
+	)
 
 	const categoryColumns = useMemo(() => {
 		return getColumnsForCategory(props.effectiveCategory)
@@ -110,94 +70,11 @@ export function ProtocolTaxonomyPage(props: IProtocolTaxonomyPageData) {
 		return [{ id: sortId, desc: true }]
 	}, [props.effectiveCategory])
 
-	const hasBarCharts = useMemo(() => {
-		return chartSeries.some((series) => {
-			if (series.type !== 'bar') return false
-			const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
-			if (!yDimension) return false
-
-			return charts.dataset.source.some((row) => {
-				const rawValue = row[yDimension]
-				if (rawValue == null) return false
-				const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
-				return Number.isFinite(value)
-			})
-		})
-	}, [chartSeries, charts.dataset.source])
-
-	const groupedCharts = useMemo(() => {
-		if (!hasBarCharts) return charts
-
-		const dataBySeries = new Map<string, Map<number, number | null>>()
-		const dimensionOrder: string[] = []
-		const groupedSeries: Array<(typeof chartSeries)[number]> = []
-		for (const series of chartSeries) {
-			const yDimension = typeof series.encode.y === 'string' ? series.encode.y : null
-
-			if (!yDimension) {
-				groupedSeries.push(series)
-				continue
-			}
-
-			dimensionOrder.push(yDimension)
-
-			const rawData: Array<[number, number]> = []
-			for (const row of charts.dataset.source) {
-				const timestamp = Number(row.timestamp)
-				const rawValue = row[yDimension]
-				if (rawValue == null) continue
-				const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
-				if (!Number.isFinite(timestamp) || !Number.isFinite(value)) continue
-				rawData.push([timestamp, value])
-			}
-
-			const groupedData =
-				series.type === 'bar'
-					? formatBarChart({
-							data: rawData,
-							groupBy,
-							dateInMs: true,
-							denominationPriceHistory: null
-						})
-					: formatLineChart({
-							data: rawData,
-							groupBy,
-							dateInMs: true,
-							denominationPriceHistory: null
-						})
-
-			dataBySeries.set(yDimension, new Map(groupedData.map(([timestamp, value]) => [timestamp, value])))
-
-			groupedSeries.push({
-				...series,
-				type: series.type === 'bar' && groupBy === 'cumulative' ? 'line' : series.type
-			})
-		}
-
-		const timestamps = new Set<number>()
-		for (const points of dataBySeries.values()) {
-			for (const timestamp of points.keys()) {
-				timestamps.add(timestamp)
-			}
-		}
-
-		const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b)
-
-		return {
-			...charts,
-			dataset: {
-				source: sortedTimestamps.map((timestamp) => {
-					const row: Record<string, number | null> = { timestamp }
-					for (const dimension of dimensionOrder) {
-						row[dimension] = dataBySeries.get(dimension)?.get(timestamp) ?? null
-					}
-					return row
-				}),
-				dimensions: ['timestamp', ...dimensionOrder]
-			},
-			charts: groupedSeries
-		}
-	}, [charts, chartSeries, groupBy, hasBarCharts])
+	const groupedChartResult = useMemo(() => {
+		return buildProtocolTaxonomyGroupedCharts({ charts, groupBy })
+	}, [charts, groupBy])
+	const hasBarCharts = groupedChartResult.hasBarCharts
+	const groupedCharts = groupedChartResult.charts
 	const deferredGroupedCharts = useDeferredValue(groupedCharts)
 
 	const chartGroupBy = groupBy

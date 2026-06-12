@@ -59,10 +59,8 @@ interface IAdapterOverview {
 	> | null
 }
 
-export type IProtocolOverviewChartSeries = IProtocolNumericSeries
-export type IProtocolOverviewInitialMultiSeriesChartData = Partial<
-	Record<ProtocolChartsLabels, IProtocolOverviewChartSeries>
->
+type IProtocolOverviewChartSeries = IProtocolNumericSeries
+type IProtocolOverviewInitialMultiSeriesChartData = Partial<Record<ProtocolChartsLabels, IProtocolOverviewChartSeries>>
 
 export interface IProtocolOverviewPageData {
 	initialMultiSeriesChartData: IProtocolOverviewInitialMultiSeriesChartData
@@ -211,34 +209,7 @@ export interface IProtocolOverviewPageData {
 	llamaswapChains?: BuyOnLlamaswapChain[] | null
 }
 
-interface ICredit {
-	by: string
-}
-
-interface IContentElement {
-	subheadlines: { basic: string }
-	type: string
-	promo_items: { basic: { url: string } }
-	canonical_url: string
-	display_date: string
-	credits: ICredit[]
-	headlines: { basic: string }
-	taxonomy?: {
-		tags?: {
-			description: string
-			text: string
-			slug: string
-		}[]
-	}
-}
-
-export interface IArticlesResponse {
-	type: string
-	version: string
-	content_elements: IContentElement[]
-}
-
-export interface IArticle {
+interface IArticle {
 	headline: string
 	date: string
 	href: string

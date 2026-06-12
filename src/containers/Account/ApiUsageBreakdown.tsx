@@ -113,7 +113,8 @@ function useChartData(usageStats: any, colors: ChartColors) {
 			name,
 			stack: 'routes',
 			encode: { x: 'date', y: name },
-			color: name === 'Others' ? colors.others : (colors.routes[index % colors.routes.length] ?? colors.routes[0])
+			color: name === 'Others' ? colors.others : (colors.routes[index % colors.routes.length] ?? colors.routes[0]),
+			large: false
 		}))
 
 		return { dataset: { source, dimensions }, charts }

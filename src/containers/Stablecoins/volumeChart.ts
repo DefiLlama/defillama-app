@@ -8,7 +8,8 @@ import { CHART_COLORS } from '~/constants/colors'
 import type {
 	StablecoinVolumeBreakdownChartPoint,
 	StablecoinVolumeChartKind,
-	StablecoinVolumeChartResponse
+	StablecoinVolumeChartResponse,
+	StablecoinVolumeTotalChartPoint
 } from './api.types'
 
 export interface StablecoinVolumeChartPayload {
@@ -42,22 +43,30 @@ const clampLimit = (limit: number | undefined): number => {
 }
 
 const buildCharts = (names: string[], stacked: boolean): MultiSeriesChart2SeriesConfig[] => {
-	return names.map((name, i) => ({
-		type: 'bar',
-		name,
-		encode: { x: 'timestamp', y: name },
-		color: CHART_COLORS[i % CHART_COLORS.length],
-		barMinWidth: 1,
-		barMaxWidth: 24,
-		...(stacked ? { stack: 'stablecoin-volume' } : {})
-	}))
+	const charts: MultiSeriesChart2SeriesConfig[] = []
+	for (let i = 0; i < names.length; i++) {
+		const name = names[i]
+		charts.push({
+			type: 'bar',
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: CHART_COLORS[i % CHART_COLORS.length],
+			barMinWidth: 1,
+			barMaxWidth: 24,
+			...(stacked ? { stack: 'stablecoin-volume', large: false } : {})
+		})
+	}
+	return charts
 }
 
-const buildTotalVolumePayload = (data: StablecoinVolumeChartResponse): StablecoinVolumeChartPayload => {
-	const source = data.map((point) => ({
-		timestamp: point[0] * 1e3,
-		[TOTAL_VOLUME_NAME]: point[1] as number
-	}))
+const buildTotalVolumePayload = (data: StablecoinVolumeTotalChartPoint[]): StablecoinVolumeChartPayload => {
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const point of data) {
+		source.push({
+			timestamp: point[0] * 1e3,
+			[TOTAL_VOLUME_NAME]: point[1]
+		})
+	}
 
 	return {
 		dataset: {
@@ -121,14 +130,19 @@ const buildBreakdownVolumePayload = (
 		}
 	}
 	const keys = selectedKey ? [selectedKey] : getTopBreakdownKeys(points, clampLimit(options.limit))
-	const labelsByKey = new Map(
-		keys.map((key) => [key, selectedKey ? TOTAL_VOLUME_NAME : formatDimensionLabel(key, options.chart)])
-	)
+	const labelsByKey = new Map<string, string>()
+	const dimensions = ['timestamp']
+	for (const key of keys) {
+		const label = selectedKey ? TOTAL_VOLUME_NAME : formatDimensionLabel(key, options.chart)
+		labelsByKey.set(key, label)
+		dimensions.push(label)
+	}
 	const includeOthers = !selectedKey && keys.length > 0
 	let hasOthersValue = false
 
 	const selectedKeysSet = new Set(keys)
-	const source = points.map(([timestamp, breakdown]) => {
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const [timestamp, breakdown] of points) {
 		const row: Record<string, number> = { timestamp: timestamp * 1e3 }
 		for (const key of keys) {
 			const label = labelsByKey.get(key)
@@ -146,13 +160,15 @@ const buildBreakdownVolumePayload = (
 			row[OTHERS_NAME] = others
 		}
 
-		return row
-	})
+		source.push(row)
+	}
 
-	const dimensions = ['timestamp', ...keys.flatMap((key) => labelsByKey.get(key) ?? [])]
 	if (includeOthers && hasOthersValue) dimensions.push(OTHERS_NAME)
 
-	const seriesNames = dimensions.filter((dimension) => dimension !== 'timestamp')
+	const seriesNames: string[] = []
+	for (let i = 1; i < dimensions.length; i++) {
+		seriesNames.push(dimensions[i])
+	}
 	const stacked = !selectedKey && seriesNames.length > 1
 
 	return {
@@ -171,7 +187,7 @@ export const buildStablecoinVolumeChartPayload = (
 	data: StablecoinVolumeChartResponse,
 	options: StablecoinVolumeChartOptions
 ): StablecoinVolumeChartPayload => {
-	if (options.chart === 'total') return buildTotalVolumePayload(data)
+	if (options.chart === 'total') return buildTotalVolumePayload(data as StablecoinVolumeTotalChartPoint[])
 	return buildBreakdownVolumePayload(data, options)
 }
 
@@ -188,9 +204,8 @@ export const groupStablecoinVolumeChartPayload = (
 		if (dimension === 'timestamp') continue
 		const points: Array<[number, number]> = []
 		for (const row of payload.dataset.source) {
-			const timestamp = Number(row.timestamp)
-			const value = Number(row[dimension])
-			if (Number.isFinite(timestamp) && Number.isFinite(value)) points.push([timestamp, value])
+			const value = row[dimension]
+			if (value != null) points.push([row.timestamp as number, value as number])
 		}
 		for (const [timestamp, value] of formatBarChart({
 			data: points,

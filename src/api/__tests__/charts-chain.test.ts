@@ -63,6 +63,7 @@ beforeEach(() => {
 	vi.clearAllMocks()
 	fetchAdapterChainChartDataMock.mockResolvedValue([])
 	fetchAdapterProtocolChartDataMock.mockResolvedValue([])
+	fetchChainAssetsChartMock.mockResolvedValue([])
 	resolveChainParamMock.mockResolvedValue(null)
 	resolveProtocolParamMock.mockResolvedValue({ canonicalSlug: 'aave', id: '1', metadata: { displayName: 'Aave' } })
 })
@@ -301,6 +302,95 @@ describe('/api/public/charts/chain', () => {
 		}
 	)
 
+	const chainNativeFeeExtraRows = [
+		{ label: 'Bribes Revenue', dataType: 'dailyBribesRevenue' },
+		{ label: 'Token Tax', dataType: 'dailyTokenTaxes' }
+	] as const
+
+	it.each(chainNativeFeeExtraRows)(
+		'accepts $label as adapter-protocol entity=chain when the chain has fee/revenue metadata',
+		async (row) => {
+			resolveProtocolParamMock.mockResolvedValue(null)
+			resolveChainParamMock.mockResolvedValue({
+				canonicalName: 'Base',
+				canonicalSlug: 'base',
+				metadata: { name: 'Base', chainFees: true }
+			})
+			const req = {
+				method: 'GET',
+				query: {
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: 'Base',
+					dataType: row.dataType
+				}
+			} as unknown as NextApiRequest
+			const res = createMockNextApiResponse()
+
+			await handler(req, res)
+
+			expect(resolveProtocolParamMock).not.toHaveBeenCalled()
+			expect(fetchAdapterProtocolChartDataMock).toHaveBeenCalledWith({
+				adapterType: 'fees',
+				protocol: 'Base',
+				dataType: row.dataType
+			})
+			expect(res.status).toHaveBeenCalledWith(200)
+		}
+	)
+
+	it.each(chainNativeFeeExtraRows)(
+		'rejects $label as adapter-protocol entity=chain when fee/revenue metadata is missing',
+		async (row) => {
+			resolveProtocolParamMock.mockResolvedValue(null)
+			resolveChainParamMock.mockResolvedValue({
+				canonicalName: 'Base',
+				canonicalSlug: 'base',
+				metadata: { name: 'Base' }
+			})
+			const req = {
+				method: 'GET',
+				query: {
+					kind: 'adapter-protocol',
+					entity: 'chain',
+					adapterType: 'fees',
+					protocol: 'Base',
+					dataType: row.dataType
+				}
+			} as unknown as NextApiRequest
+			const res = createMockNextApiResponse()
+
+			await handler(req, res)
+
+			expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
+			expect(res.status).toHaveBeenCalledWith(404)
+			expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+		}
+	)
+
+	it.each(chainNativeFeeExtraRows)('rejects all-chain $label adapter-protocol entity=chain requests', async (row) => {
+		resolveProtocolParamMock.mockResolvedValue(null)
+		const req = {
+			method: 'GET',
+			query: {
+				kind: 'adapter-protocol',
+				entity: 'chain',
+				adapterType: 'fees',
+				protocol: 'All',
+				dataType: row.dataType
+			}
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(resolveChainParamMock).not.toHaveBeenCalled()
+		expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+	})
+
 	it.each(chainNativeProtocolRows)('does not use chain fallback for explicit protocol $label requests', async (row) => {
 		resolveProtocolParamMock.mockResolvedValue(null)
 		resolveChainParamMock.mockResolvedValue({
@@ -412,6 +502,80 @@ describe('/api/public/charts/chain', () => {
 		expect(fetchAdapterProtocolChartDataMock).not.toHaveBeenCalled()
 		expect(res.status).toHaveBeenCalledWith(404)
 		expect(res.json).toHaveBeenCalledWith({ error: 'protocol not found' })
+	})
+
+	it('accepts Bridged TVL chart requests only for chainAssets chains', async () => {
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Hyperliquid L1',
+			canonicalSlug: 'hyperliquid-l1',
+			metadata: { name: 'Hyperliquid L1', chainAssets: true }
+		})
+		fetchChainAssetsChartMock.mockResolvedValue([{ timestamp: 1_700_000_000, data: { total: '100' } }])
+		const req = {
+			method: 'GET',
+			query: { kind: 'bridged-tvl', chain: 'hyperliquid-l1' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(fetchChainAssetsChartMock).toHaveBeenCalledWith('hyperliquid-l1')
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith([{ timestamp: 1_700_000_000, data: { total: '100' } }])
+	})
+
+	it('does not fetch Bridged TVL charts when chainAssets metadata is missing', async () => {
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Base',
+			canonicalSlug: 'base',
+			metadata: { name: 'Base' }
+		})
+		const req = {
+			method: 'GET',
+			query: { kind: 'bridged-tvl', chain: 'base' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(fetchChainAssetsChartMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'chain not found' })
+	})
+
+	it('rejects all-chain Bridged TVL chart requests', async () => {
+		const req = {
+			method: 'GET',
+			query: { kind: 'bridged-tvl', chain: 'all' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(resolveChainParamMock).not.toHaveBeenCalled()
+		expect(fetchChainAssetsChartMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'chain not found' })
+	})
+
+	it('returns null when Bridged TVL historical data is unavailable upstream', async () => {
+		resolveChainParamMock.mockResolvedValue({
+			canonicalName: 'Base',
+			canonicalSlug: 'base',
+			metadata: { name: 'Base', chainAssets: true }
+		})
+		fetchChainAssetsChartMock.mockRejectedValue(new Error('missing chart'))
+		const req = {
+			method: 'GET',
+			query: { kind: 'bridged-tvl', chain: 'base' }
+		} as unknown as NextApiRequest
+		const res = createMockNextApiResponse()
+
+		await handler(req, res)
+
+		expect(fetchChainAssetsChartMock).toHaveBeenCalledWith('base')
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith(null)
 	})
 
 	it('accepts lowercase all for adapter chain charts', async () => {

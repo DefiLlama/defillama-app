@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { FeeExtraPeriodTotals } from '~/metrics/feeExtras'
 import type { IAdapterChainMetrics, IAdapterChart, IAdapterProtocolMetrics } from './api.types'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
@@ -28,6 +29,7 @@ export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> &
 	total7DaysAgo?: number | null
 	total30DaysAgo?: number | null
 	total1y: number | null
+	annualized1y?: number | null
 	totalAllTime: number | null
 	change_1d?: number | null
 	change_7d?: number | null
@@ -35,20 +37,8 @@ export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> &
 	change_7dover7d?: number | null
 	change_30dover30d?: number | null
 	mcap: number | null
-	bribes?: {
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		total1y: number | null
-		totalAllTime: number | null
-	}
-	tokenTax?: {
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		total1y: number | null
-		totalAllTime: number | null
-	}
+	bribes?: FeeExtraPeriodTotals
+	tokenTax?: FeeExtraPeriodTotals
 	openInterest?: number | null
 	activeLiquidity?: number | null
 	normalizedVolume24h?: number | null

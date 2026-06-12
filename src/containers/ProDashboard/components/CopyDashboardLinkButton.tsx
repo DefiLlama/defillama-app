@@ -5,10 +5,12 @@ import { Tooltip } from '~/components/Tooltip'
 
 export const CopyDashboardLinkButton = ({
 	dashboardVisibility,
-	dashboardId
+	dashboardId,
+	dashboardSlug
 }: {
 	dashboardVisibility: 'private' | 'public'
 	dashboardId: string
+	dashboardSlug?: string
 }) => {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -19,7 +21,7 @@ export const CopyDashboardLinkButton = ({
 	}, [])
 	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
 
-	const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/pro/${dashboardId}`
+	const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/pro/${dashboardSlug || dashboardId}`
 
 	const handleCopyLink = async () => {
 		try {

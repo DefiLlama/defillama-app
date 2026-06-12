@@ -1,9 +1,11 @@
+import type { PublicDashboardAuthor } from '~/containers/Authors/types'
 import { FEATURES_SERVER } from '../../../constants'
 import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
 import type { DashboardItemConfig } from '../types'
 
 export interface Dashboard {
 	id: string
+	slug?: string
 	user: string
 	data: {
 		items: DashboardItemConfig[]
@@ -22,6 +24,7 @@ export interface Dashboard {
 	viewCount?: number
 	likeCount?: number
 	liked?: boolean
+	author?: PublicDashboardAuthor
 	created: string
 	updated: string
 	editedAt?: string
@@ -42,9 +45,28 @@ export interface Dashboard {
 	> | null
 }
 
+export interface FollowingShelf {
+	author: PublicDashboardAuthor
+	dashboardCount: number
+	lastUpdated: string | null
+	dashboards: Dashboard[]
+}
+
 interface LiteDashboard {
 	id: string
 	name: string
+	slug?: string
+}
+
+export function dashboardUrlKey(dashboard: { id: string; slug?: string }): string {
+	return dashboard.slug || dashboard.id
+}
+
+export function matchesDashboardKey(
+	dashboard: { id: string; slug?: string } | null | undefined,
+	key: string | null | undefined
+): boolean {
+	return !!dashboard && !!key && (dashboard.id === key || dashboard.slug === key)
 }
 
 export class DashboardError extends Error {
@@ -279,6 +301,27 @@ class DashboardAPIService {
 		if (params.limit) searchParams.append('limit', params.limit.toString())
 
 		const response = await authorizedFetch(`${FEATURES_SERVER}/dashboards/liked?${searchParams}`)
+		return this.handleResponse(response)
+	}
+
+	async getFollowingAuthors(
+		params: {
+			page?: number
+			limit?: number
+		},
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<{
+		items: FollowingShelf[]
+		page: number
+		perPage: number
+		totalItems: number
+		totalPages: number
+	}> {
+		const searchParams = new URLSearchParams()
+		if (params.page) searchParams.append('page', params.page.toString())
+		if (params.limit) searchParams.append('limit', params.limit.toString())
+
+		const response = await authorizedFetch(`${FEATURES_SERVER}/authors/following?${searchParams}`)
 		return this.handleResponse(response)
 	}
 }

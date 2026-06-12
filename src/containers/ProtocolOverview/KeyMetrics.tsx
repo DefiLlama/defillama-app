@@ -357,10 +357,12 @@ function TVL(props: IKeyMetricsProps) {
 
 interface MetricDefinition {
 	annualized?: string
+	'1y'?: string
 	'30d'?: string
 	'7d'?: string
 	'24h'?: string
 	cumulative?: string
+	runRate?: string
 }
 
 interface MetricConfig {
@@ -394,13 +396,20 @@ const buildMetrics = (
 	const cb = chainBreakdown ?? null
 
 	if (isIncentives) {
-		if (data.emissions30d != null) {
-			const annualizedValue = data.emissions1y != null ? data.emissions1y : data.emissions30d * ANNUALIZATION_FACTOR
+		if (data.emissions1y != null) {
 			metrics.push({
-				name: `${prefix} (Annualized)`,
-				tooltipContent: defs?.annualized,
-				value: annualizedValue
+				name: `${prefix} 1y`,
+				tooltipContent: defs?.['1y'],
+				value: data.emissions1y
 			})
+		} else if (data.emissions30d != null) {
+			metrics.push({
+				name: `${prefix} (30d Run Rate)`,
+				tooltipContent: defs?.runRate,
+				value: data.emissions30d * ANNUALIZATION_FACTOR
+			})
+		}
+		if (data.emissions30d != null) {
 			metrics.push({ name: `${prefix} 30d`, tooltipContent: defs?.['30d'], value: data.emissions30d })
 		}
 		if (data.emissions7d != null) {
@@ -413,13 +422,20 @@ const buildMetrics = (
 			metrics.push({ name: `Cumulative ${prefix}`, tooltipContent: defs?.cumulative, value: data.emissionsAllTime })
 		}
 	} else {
-		if (data.total30d != null) {
-			const annualizedValue = data.annualized1y != null ? data.annualized1y : data.total30d * ANNUALIZATION_FACTOR
+		if (data.annualized1y != null) {
 			metrics.push({
 				name: `${label} (Annualized)`,
 				tooltipContent: defs?.annualized,
-				value: annualizedValue
+				value: data.annualized1y
 			})
+		} else if (data.total30d != null) {
+			metrics.push({
+				name: `${label} (30d Run Rate)`,
+				tooltipContent: defs?.runRate,
+				value: data.total30d * ANNUALIZATION_FACTOR
+			})
+		}
+		if (data.total30d != null) {
 			metrics.push({
 				name: `${label} 30d`,
 				tooltipContent: defs?.['30d'],
@@ -554,15 +570,15 @@ function Earnings(props: IKeyMetricsProps) {
 	const adjustedRevenue = getAdjustedTotals(revenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 
 	const earnings24h =
-		adjustedRevenue && revenue?.total24h != null && incentivesData?.emissions24h != null
+		adjustedRevenue?.total24h != null && incentivesData?.emissions24h != null
 			? adjustedRevenue.total24h - incentivesData.emissions24h
 			: null
 	const earnings7d =
-		adjustedRevenue && revenue?.total7d != null && incentivesData?.emissions7d != null
+		adjustedRevenue?.total7d != null && incentivesData?.emissions7d != null
 			? adjustedRevenue.total7d - incentivesData.emissions7d
 			: null
 	const earnings30d =
-		adjustedRevenue && revenue?.total30d != null && incentivesData?.emissions30d != null
+		adjustedRevenue?.total30d != null && incentivesData?.emissions30d != null
 			? adjustedRevenue.total30d - incentivesData.emissions30d
 			: null
 	const earningsAnnualized1y =
@@ -570,19 +586,26 @@ function Earnings(props: IKeyMetricsProps) {
 			? adjustedRevenue.annualized1y - incentivesData.emissions1y
 			: null
 	const earningsAllTime =
-		adjustedRevenue && revenue?.totalAllTime != null && incentivesData?.emissionsAllTime != null
+		adjustedRevenue?.totalAllTime != null && incentivesData?.emissionsAllTime != null
 			? adjustedRevenue.totalAllTime - incentivesData.emissionsAllTime
 			: null
 
-	const metrics = []
+	const metrics: VolumeMetric[] = []
 
-	if (earnings30d != null) {
-		const annualizedEarnings = earningsAnnualized1y != null ? earningsAnnualized1y : earnings30d * ANNUALIZATION_FACTOR
+	if (earningsAnnualized1y != null) {
 		metrics.push({
 			name: 'Earnings (Annualized)',
 			tooltipContent: definitions.earnings.protocol.annualized,
-			value: annualizedEarnings
+			value: earningsAnnualized1y
 		})
+	} else if (earnings30d != null) {
+		metrics.push({
+			name: 'Earnings (30d Run Rate)',
+			tooltipContent: definitions.earnings.protocol.runRate,
+			value: earnings30d * ANNUALIZATION_FACTOR
+		})
+	}
+	if (earnings30d != null) {
 		metrics.push({ name: 'Earnings 30d', tooltipContent: definitions.earnings.protocol['30d'], value: earnings30d })
 	}
 	if (earnings7d != null) {

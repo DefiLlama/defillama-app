@@ -4,7 +4,7 @@ import type {
 	IFormattedProtocol,
 	IParentProtocol
 } from '~/containers/ProtocolLists/protocol-table.types'
-import { getAnnualizedRatio, getPercentChange } from '~/utils'
+import { getMarketCapToAnnualizedMetricRatio, getPercentChange } from '~/utils'
 import type { ProTableDimensionProtocol } from './proTable.types'
 
 function addElement(
@@ -23,6 +23,16 @@ function addElement(
 		}
 	}
 }
+
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
+
+const hasAnyNumber = (protocol: IFormattedProtocol, keys: string[]): boolean => {
+	const row = protocol as unknown as Record<string, unknown>
+	return keys.some((key) => isFiniteNumber(row[key]))
+}
+
+const FEE_ANNUALIZED_CONTRIBUTOR_KEYS = ['fees_24h', 'fees_7d', 'fees_30d', 'fees_1y', 'cumulativeFees']
+const REVENUE_ANNUALIZED_CONTRIBUTOR_KEYS = ['revenue_24h', 'revenue_7d', 'revenue_30d', 'revenue_1y']
 
 interface GroupAccumulator {
 	mcap: number
@@ -44,6 +54,10 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	let totalVolumeWeight = 0
 	let weightedPerpsVolumeChange = 0
 	let totalPerpsVolumeWeight = 0
+	let hasFeesAnnualized1y = false
+	let isFeesAnnualized1yIncomplete = false
+	let hasRevenueAnnualized1y = false
+	let isRevenueAnnualized1yIncomplete = false
 
 	const {
 		mcap,
@@ -63,10 +77,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		fees_24h,
 		fees_30d,
 		fees_1y,
+		feesAnnualized1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
 		revenue_1y,
+		revenueAnnualized1y,
 		holderRevenue_24h,
 		holdersRevenue30d,
 		userFees_24h,
@@ -84,6 +100,18 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 
 			if (curr.category) {
 				categories.add(curr.category)
+			}
+
+			if (isFiniteNumber(curr.feesAnnualized1y)) {
+				hasFeesAnnualized1y = true
+			} else if (hasAnyNumber(curr, FEE_ANNUALIZED_CONTRIBUTOR_KEYS)) {
+				isFeesAnnualized1yIncomplete = true
+			}
+
+			if (isFiniteNumber(curr.revenueAnnualized1y)) {
+				hasRevenueAnnualized1y = true
+			} else if (hasAnyNumber(curr, REVENUE_ANNUALIZED_CONTRIBUTOR_KEYS)) {
+				isRevenueAnnualized1yIncomplete = true
 			}
 
 			if (curr.tvl) {
@@ -124,10 +152,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				'fees_24h',
 				'fees_30d',
 				'fees_1y',
+				'feesAnnualized1y',
 				'revenue_24h',
 				'revenue_7d',
 				'revenue_30d',
 				'revenue_1y',
+				'revenueAnnualized1y',
 				'holderRevenue_24h',
 				'holdersRevenue30d',
 				'userFees_24h',
@@ -172,10 +202,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			fees_24h: 0,
 			fees_30d: 0,
 			fees_1y: 0,
+			feesAnnualized1y: 0,
 			revenue_24h: 0,
 			revenue_7d: 0,
 			revenue_30d: 0,
 			revenue_1y: 0,
+			revenueAnnualized1y: 0,
 			holderRevenue_24h: 0,
 			holdersRevenue30d: 0,
 			userFees_24h: 0,
@@ -200,8 +232,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	}
 
 	const finalMcap = mcap > 0 ? mcap : (parent?.mcap ?? 0)
-	const pf = getAnnualizedRatio(finalMcap, fees_30d)
-	const ps = getAnnualizedRatio(finalMcap, revenue_30d)
+	const finalFeesAnnualized1y = hasFeesAnnualized1y && !isFeesAnnualized1yIncomplete ? (feesAnnualized1y ?? null) : null
+	const finalRevenueAnnualized1y =
+		hasRevenueAnnualized1y && !isRevenueAnnualized1yIncomplete ? (revenueAnnualized1y ?? null) : null
+	const pf = getMarketCapToAnnualizedMetricRatio(finalMcap, finalFeesAnnualized1y)
+	const ps = getMarketCapToAnnualizedMetricRatio(finalMcap, finalRevenueAnnualized1y)
 
 	const mcaptvl = tvl > 0 && finalMcap > 0 ? Number((finalMcap / tvl).toFixed(2)) : null
 
@@ -249,10 +284,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		fees_7d,
 		fees_30d,
 		fees_1y,
+		feesAnnualized1y: finalFeesAnnualized1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
 		revenue_1y,
+		revenueAnnualized1y: finalRevenueAnnualized1y,
 		holderRevenue_24h,
 		holdersRevenue30d,
 		userFees_24h,
@@ -502,8 +539,10 @@ export const formatProtocolsList = ({
 			revenue_7d: protocol.revenue7d ?? undefined,
 			fees_30d: protocol.total30d ?? undefined,
 			fees_1y: protocol.total1y ?? undefined,
+			feesAnnualized1y: protocol.annualized1y ?? undefined,
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
+			revenueAnnualized1y: protocol.revenueAnnualized1y ?? undefined,
 			feesChange_1d: protocol.feesChange_1d ?? previous.feesChange_1d ?? undefined,
 			feesChange_7d: protocol.feesChange_7d ?? previous.feesChange_7d ?? undefined,
 			feesChange_1m: protocol.feesChange_1m ?? previous.feesChange_1m ?? undefined,
@@ -523,8 +562,8 @@ export const formatProtocolsList = ({
 			supplySideRevenue_24h: protocol.dailySupplySideRevenue ?? undefined,
 			userFees_24h: protocol.dailyUserFees ?? undefined,
 			cumulativeFees: protocol.totalAllTime ?? undefined,
-			pf: protocol.pf ?? previous.pf ?? undefined,
-			ps: protocol.ps ?? previous.ps ?? undefined,
+			pf: getMarketCapToAnnualizedMetricRatio(previous.mcap, protocol.annualized1y),
+			ps: getMarketCapToAnnualizedMetricRatio(previous.mcap, protocol.revenueAnnualized1y),
 			feesByChain: mergeChainBreakdown(previous.feesByChain, getChainBreakdown(protocol)),
 			revenueByChain: mergeChainBreakdown(previous.revenueByChain, getChainBreakdown(protocol))
 		}

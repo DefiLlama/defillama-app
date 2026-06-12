@@ -55,6 +55,7 @@ export interface ChainMetricSnapshot {
 	total7d?: number | null
 	total30d?: number | null
 	total1y?: number | null
+	annualized1y?: number | null
 	change_1d?: number | null
 	change_7d?: number | null
 	change_1m?: number | null
@@ -62,6 +63,7 @@ export interface ChainMetricSnapshot {
 	revenue7d?: number | null
 	revenue30d?: number | null
 	revenue1y?: number | null
+	revenueAnnualized1y?: number | null
 	feesChange_1d?: number | null
 	feesChange_7d?: number | null
 	feesChange_1m?: number | null
@@ -72,7 +74,7 @@ export interface ChainMetricSnapshot {
 
 export interface IFormattedProtocol extends LiteProtocol, ProtocolTvls {
 	extraTvl?: {
-		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+		[key: string]: { tvl: number; tvlPrevDay: number | null; tvlPrevWeek: number | null; tvlPrevMonth: number | null }
 	}
 	change_1d: number | null
 	change_7d: number | null
@@ -85,10 +87,12 @@ export interface IFormattedProtocol extends LiteProtocol, ProtocolTvls {
 	fees_24h?: number | null
 	revenue_24h?: number | null
 	fees_30d?: number | null
+	feesAnnualized1y?: number | null
 	revenue_30d?: number | null
 	fees_1y?: number | null
 	revenue?: number | null
 	revenue_1y?: number | null
+	revenueAnnualized1y?: number | null
 	average_1y?: number | null
 	average_revenue_1y?: number | null
 	holdersRevenue30d?: number | null

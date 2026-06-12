@@ -21,6 +21,7 @@ Current source layout:
 
 - `public/pages.json`: product-facing names, descriptions, route slugs, tabs, and total tracked keys.
 - `src/metrics`: typed internal descriptors for migrated cross-container invariants. It is intentionally not a global registry for every metric.
+- `src/metrics/feeExtras.ts`: shared bribes/token-tax config and small pure helpers for migrated fee-extra behavior.
 - `src/containers/AdapterMetrics/README.md`: adapter-backed page ownership, data flow, and local gotchas.
 - `src/containers/README.md`: route-family to container ownership map.
 - RWA definition files listed below: local source of truth for RWA breakdowns.
@@ -58,12 +59,14 @@ Important files:
 - `src/containers/AdapterMetrics/api.ts`: upstream adapter metrics/chart fetchers.
 - `src/containers/AdapterMetrics/README.md`: local route and change guide.
 - `src/metrics/feesRevenue.ts`: cross-container fee/revenue semantic descriptors for the migrated fee/revenue slice.
+- `src/metrics/feeExtras.ts`: fee-extra setting/data-type mappings, row total helpers, and chart merge helpers.
+- `src/containers/AdapterMetrics/metricPeriods.ts`: nullable period-field merge and change derivation helpers.
 
 Examples of ambiguous pairings:
 
 - `dailyVolume` is used by DEXs, perps, DEX aggregators, and perp aggregators. The metadata flag depends on `adapterType`.
 - `dailyNotionalVolume` is used by DEX notional volume and options notional volume. The metadata flag depends on `adapterType`.
-- Fee subtypes such as bribes and token taxes gate on fee metadata but are not the same product concept as Chain Fees or App Fees.
+- Fee subtypes such as bribes and token taxes gate on fee metadata but are not the same product concept as Chain Fees or App Fees. Product fee-family pages may add them to displayed totals when their toggles are enabled.
 
 Keep route flow visible from the page file. If repeated adapter metadata rules need centralization, prefer a small AdapterMetrics-local descriptor unless another container or public API endpoint consumes the same invariant.
 
@@ -75,6 +78,29 @@ Fees and revenue have two different chain concepts:
 - App-on-chain aggregation: what apps/protocols on that chain collect, excluding chain-native gas economics.
 
 Do not replace chain-level fees/revenue with app aggregation unless the product definition explicitly says `App Fees` or `App Revenue`.
+
+### Fee Extras
+
+Bribes and token taxes are tracked upstream as separate fees adapter data types: `dailyBribesRevenue` and `dailyTokenTaxes`.
+
+Display behavior:
+
+- Fee-family product surfaces that expose `bribes` and `tokentax` toggles add enabled extras into displayed totals and charts.
+- Chain Fees and Chain Revenue use chain-native fee extra records from the adapter protocol chain path.
+- App Fees and App Revenue use app-on-chain fee extra records from the adapter chain path.
+- REV, Pro Dashboard, public raw datasets, raw dimension endpoints, and non-fee adapter pages keep bribes/token taxes separate.
+
+Do not use app-on-chain extras to adjust Chain Fees/Revenue or chain-native extras to adjust App Fees/App Revenue.
+
+### P/F And P/S
+
+P/F and P/S ratios use annualized fee/revenue values, not 30-day fallback totals.
+
+- P/F is market cap divided by `annualized1y` fees.
+- P/S is market cap divided by `annualized1y` revenue.
+- Public definitions describe annualized values as trailing 12-month totals when enough history exists, otherwise all available tracked history scaled to a 12-month run rate.
+- Parent and multi-chain aggregation must preserve null when any fee- or revenue-contributing child/chain is missing the relevant annualized denominator.
+- Fee extras can adjust annualized values on eligible fee-family display surfaces, but percentage changes should be derived from adjusted period totals rather than stale upstream change fields.
 
 ### Chain Fees
 
@@ -159,10 +185,8 @@ TVL is not currently a single global metric implementation. The app has multiple
 Common terms:
 
 - base TVL
-- extra TVL: staking, borrowed, pool2, vesting, govtokens
-- double counted TVL
-- liquid staking TVL
-- `dcAndLsOverlap`, the overlap between double counted and liquid staking TVL
+- extra TVL setting keys: staking, borrowed, pool2, vesting, govtokens, doublecounted, and liquidstaking
+- `dcAndLsOverlap`: not a setting key; this is overlap adjustment data for the shared portion of double counted and liquid staking TVL
 
 Important files:
 
@@ -177,12 +201,34 @@ Important files:
 
 Do not assume two routes use the same TVL model just because they share the same toggle names. Some pages start from an adjusted base TVL, while others start from raw TVL and add selected extras. Some table paths use double counted or liquid staking toggles for display/strike behavior rather than normal extra addition.
 
+Oracle and Fork chart API `key` query params are not the same contract as local TVL setting keys. For valid keys, the chart response shape is stable across keys, but the backend v2 chart routes only accept the protocol/treasury TVL chart keys such as `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `all`, and `OwnTokens`. Do not send local overlap setting names such as `doublecounted`, `liquidstaking`, or `dcAndLsOverlap` directly as Fork/Oracle chart `key` values.
+
 Before refactoring TVL:
 
 - Inventory the route families involved.
 - Pin current behavior with characterization tests.
 - Preserve displayed numbers unless a product/API migration explicitly asks for a change.
 - Prefer local container modules for route-specific behavior. Use `src/metrics` only if a stable cross-container semantic invariant is proven.
+
+## Bridged TVL
+
+Bridged TVL is the value of tokens held on a chain, sourced from chain-assets data. Do not treat it as DeFi protocol TVL.
+
+Current data surfaces:
+
+- Current bridged asset totals come from `/chain-assets/chains`.
+- ChainOverview uses those current totals for the Bridged TVL key metric card when chain asset data exists.
+- Historical Bridged TVL charts come from the precomputed backend `/chain-assets/chart/:chain-slug` route.
+- ChainOverview exposes the historical Bridged TVL chart from chain metadata `chainAssets`; a missing or failed current totals fetch must not hide the chart.
+- Public chain chart API requests for `kind=bridged-tvl` must validate the chain through chain metadata, require the `chainAssets` flag, and query the backend with the validated chain slug.
+- Direct frontend callers, including Pro Dashboard chain charts, must query historical Bridged TVL with `slug(chain)`.
+
+Historical chart semantics:
+
+- `govtokens=false`: emit one millisecond timestamp point per day with `total`.
+- `govtokens=true`: emit one millisecond timestamp point per day with `total + ownTokens`.
+- Non-USD denomination must divide the combined value using the millisecond timestamp price lookup.
+- The Bridged TVL key metric card and chart should agree on `govtokens` semantics.
 
 ## RWA
 

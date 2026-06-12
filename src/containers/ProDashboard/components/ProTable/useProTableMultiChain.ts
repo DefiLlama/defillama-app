@@ -4,6 +4,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useContext, useMemo, useRef } from 'react'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/ProtocolLists/utils.old'
+import { getMarketCapToAnnualizedMetricRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { StreamDoneContext } from '../../queries'
 import {
@@ -22,6 +23,11 @@ const toFiniteNumber = (value: unknown): number | null => {
 	if (value == null) return null
 	const num = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(num) ? num : null
+}
+
+const addCompleteNumber = (left: number | null | undefined, right: number | null | undefined) => {
+	if (left == null || right == null) return null
+	return left + right
 }
 
 const ensureWeightedStore = (target: Record<string | symbol, any>): WeightedStore => {
@@ -63,18 +69,92 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 	if (options?.computeRatios) {
 		const mcap = toFiniteNumber(result.mcap ?? result.marketCap)
 		if (mcap !== null) {
-			const fees30d = toFiniteNumber(result.total30d)
-			if (fees30d !== null && fees30d > 0) {
-				result.pf = Number((mcap / (fees30d * 12)).toFixed(2))
-			}
-			const revenue30d = toFiniteNumber(result.revenue30d)
-			if (revenue30d !== null && revenue30d > 0) {
-				result.ps = Number((mcap / (revenue30d * 12)).toFixed(2))
-			}
+			result.pf = getMarketCapToAnnualizedMetricRatio(mcap, toFiniteNumber(result.annualized1y))
+			result.ps = getMarketCapToAnnualizedMetricRatio(mcap, toFiniteNumber(result.revenueAnnualized1y))
 		}
 	}
 
 	return result
+}
+
+type ChainProtocolPayload = { chain: string; protocols: any[] } | undefined
+
+export function aggregateFeesAndRevenueProtocolsByChain(queryDatas: ChainProtocolPayload[]) {
+	const protocolsMap = new Map<string, any>()
+
+	for (const payload of queryDatas) {
+		if (!payload?.protocols) continue
+		for (const protocol of payload.protocols as any[]) {
+			const key = protocol.name
+			const existing = protocolsMap.get(key)
+			const chainName = payload.chain
+			const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
+			const chainEntry = {
+				...protocol,
+				chain: chainName
+			}
+
+			if (existing) {
+				existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
+				existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
+				existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+				existing.annualized1y = addCompleteNumber(existing.annualized1y, protocol.annualized1y)
+				existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
+				existing.revenue24h = (existing.revenue24h || 0) + (protocol.revenue24h || 0)
+				existing.revenue7d = (existing.revenue7d || 0) + (protocol.revenue7d || 0)
+				existing.revenue30d = (existing.revenue30d || 0) + (protocol.revenue30d || 0)
+				existing.revenue1y = (existing.revenue1y || 0) + (protocol.revenue1y || 0)
+				existing.revenueAnnualized1y = addCompleteNumber(existing.revenueAnnualized1y, protocol.revenueAnnualized1y)
+				existing.holdersRevenue24h = (existing.holdersRevenue24h || 0) + (protocol.holdersRevenue24h || 0)
+				existing.holdersRevenue30d = (existing.holdersRevenue30d || 0) + (protocol.holdersRevenue30d || 0)
+
+				applyWeightedChange(existing, 'feesChange_1d', protocol.total24h, protocol.feesChange_1d)
+				applyWeightedChange(existing, 'feesChange_7d', protocol.total7d, protocol.feesChange_7d)
+				applyWeightedChange(existing, 'feesChange_1m', protocol.total30d, protocol.feesChange_1m)
+				applyWeightedChange(existing, 'revenueChange_1d', protocol.revenue24h, protocol.revenueChange_1d)
+				applyWeightedChange(existing, 'revenueChange_7d', protocol.revenue7d, protocol.revenueChange_7d)
+				applyWeightedChange(existing, 'revenueChange_1m', protocol.revenue30d, protocol.revenueChange_1m)
+
+				if (!existing.chains) existing.chains = []
+				if (chainName && !existing.chains.includes(chainName)) existing.chains.push(chainName)
+				if (existing.feesChange_7dover7d == null && protocol.feesChange_7dover7d != null)
+					existing.feesChange_7dover7d = protocol.feesChange_7dover7d
+				if (existing.feesChange_30dover30d == null && protocol.feesChange_30dover30d != null)
+					existing.feesChange_30dover30d = protocol.feesChange_30dover30d
+				if (existing.revenueChange_7dover7d == null && protocol.revenueChange_7dover7d != null)
+					existing.revenueChange_7dover7d = protocol.revenueChange_7dover7d
+				if (existing.revenueChange_30dover30d == null && protocol.revenueChange_30dover30d != null)
+					existing.revenueChange_30dover30d = protocol.revenueChange_30dover30d
+				if (existing.holdersRevenueChange_7dover7d == null && protocol.holdersRevenueChange_7dover7d != null)
+					existing.holdersRevenueChange_7dover7d = protocol.holdersRevenueChange_7dover7d
+				if (existing.holdersRevenueChange_30dover30d == null && protocol.holdersRevenueChange_30dover30d != null)
+					existing.holdersRevenueChange_30dover30d = protocol.holdersRevenueChange_30dover30d
+				if (normalizedChainKey) {
+					existing.chainBreakdown = existing.chainBreakdown || {}
+					existing.chainBreakdown[normalizedChainKey] = chainEntry
+				}
+			} else {
+				const newEntry: any = {
+					...protocol,
+					annualized1y: protocol.annualized1y ?? null,
+					revenueAnnualized1y: protocol.revenueAnnualized1y ?? null,
+					chains: chainName ? [chainName] : [],
+					chainBreakdown: normalizedChainKey ? { [normalizedChainKey]: chainEntry } : undefined
+				}
+				applyWeightedChange(newEntry, 'feesChange_1d', protocol.total24h, protocol.feesChange_1d)
+				applyWeightedChange(newEntry, 'feesChange_7d', protocol.total7d, protocol.feesChange_7d)
+				applyWeightedChange(newEntry, 'feesChange_1m', protocol.total30d, protocol.feesChange_1m)
+				applyWeightedChange(newEntry, 'revenueChange_1d', protocol.revenue24h, protocol.revenueChange_1d)
+				applyWeightedChange(newEntry, 'revenueChange_7d', protocol.revenue7d, protocol.revenueChange_7d)
+				applyWeightedChange(newEntry, 'revenueChange_1m', protocol.revenue30d, protocol.revenueChange_1m)
+				protocolsMap.set(key, newEntry)
+			}
+		}
+	}
+
+	return Array.from(protocolsMap.values()).map((protocol) =>
+		finalizeAggregatedProtocol(protocol, { computeRatios: true })
+	)
 }
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
@@ -208,6 +288,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 					existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 					existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+					existing.annualized1y = addCompleteNumber(existing.annualized1y, protocol.annualized1y)
 					existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
 
 					applyWeightedChange(existing, 'change_1d', protocol.total24h, protocol.change_1d)
@@ -269,77 +350,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 		void dataKey
 		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
 
-		const protocolsMap = new Map<string, any>()
-
-		for (const payload of queryDatas) {
-			if (!payload?.protocols) continue
-			for (const protocol of payload.protocols as any[]) {
-				const key = protocol.name
-				const existing = protocolsMap.get(key)
-				const chainName = payload.chain
-				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
-				const chainEntry = {
-					...protocol,
-					chain: chainName
-				}
-
-				if (existing) {
-					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
-					existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
-					existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
-					existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
-					existing.revenue24h = (existing.revenue24h || 0) + (protocol.revenue24h || 0)
-					existing.revenue7d = (existing.revenue7d || 0) + (protocol.revenue7d || 0)
-					existing.revenue30d = (existing.revenue30d || 0) + (protocol.revenue30d || 0)
-					existing.revenue1y = (existing.revenue1y || 0) + (protocol.revenue1y || 0)
-					existing.holdersRevenue24h = (existing.holdersRevenue24h || 0) + (protocol.holdersRevenue24h || 0)
-					existing.holdersRevenue30d = (existing.holdersRevenue30d || 0) + (protocol.holdersRevenue30d || 0)
-
-					applyWeightedChange(existing, 'feesChange_1d', protocol.total24h, protocol.feesChange_1d)
-					applyWeightedChange(existing, 'feesChange_7d', protocol.total7d, protocol.feesChange_7d)
-					applyWeightedChange(existing, 'feesChange_1m', protocol.total30d, protocol.feesChange_1m)
-					applyWeightedChange(existing, 'revenueChange_1d', protocol.revenue24h, protocol.revenueChange_1d)
-					applyWeightedChange(existing, 'revenueChange_7d', protocol.revenue7d, protocol.revenueChange_7d)
-					applyWeightedChange(existing, 'revenueChange_1m', protocol.revenue30d, protocol.revenueChange_1m)
-
-					if (!existing.chains) existing.chains = []
-					if (chainName && !existing.chains.includes(chainName)) existing.chains.push(chainName)
-					if (existing.feesChange_7dover7d == null && protocol.feesChange_7dover7d != null)
-						existing.feesChange_7dover7d = protocol.feesChange_7dover7d
-					if (existing.feesChange_30dover30d == null && protocol.feesChange_30dover30d != null)
-						existing.feesChange_30dover30d = protocol.feesChange_30dover30d
-					if (existing.revenueChange_7dover7d == null && protocol.revenueChange_7dover7d != null)
-						existing.revenueChange_7dover7d = protocol.revenueChange_7dover7d
-					if (existing.revenueChange_30dover30d == null && protocol.revenueChange_30dover30d != null)
-						existing.revenueChange_30dover30d = protocol.revenueChange_30dover30d
-					if (existing.holdersRevenueChange_7dover7d == null && protocol.holdersRevenueChange_7dover7d != null)
-						existing.holdersRevenueChange_7dover7d = protocol.holdersRevenueChange_7dover7d
-					if (existing.holdersRevenueChange_30dover30d == null && protocol.holdersRevenueChange_30dover30d != null)
-						existing.holdersRevenueChange_30dover30d = protocol.holdersRevenueChange_30dover30d
-					if (normalizedChainKey) {
-						existing.chainBreakdown = existing.chainBreakdown || {}
-						existing.chainBreakdown[normalizedChainKey] = chainEntry
-					}
-				} else {
-					const newEntry: any = {
-						...protocol,
-						chains: chainName ? [chainName] : [],
-						chainBreakdown: normalizedChainKey ? { [normalizedChainKey]: chainEntry } : undefined
-					}
-					applyWeightedChange(newEntry, 'feesChange_1d', protocol.total24h, protocol.feesChange_1d)
-					applyWeightedChange(newEntry, 'feesChange_7d', protocol.total7d, protocol.feesChange_7d)
-					applyWeightedChange(newEntry, 'feesChange_1m', protocol.total30d, protocol.feesChange_1m)
-					applyWeightedChange(newEntry, 'revenueChange_1d', protocol.revenue24h, protocol.revenueChange_1d)
-					applyWeightedChange(newEntry, 'revenueChange_7d', protocol.revenue7d, protocol.revenueChange_7d)
-					applyWeightedChange(newEntry, 'revenueChange_1m', protocol.revenue30d, protocol.revenueChange_1m)
-					protocolsMap.set(key, newEntry)
-				}
-			}
-		}
-
-		return Array.from(protocolsMap.values()).map((protocol) =>
-			finalizeAggregatedProtocol(protocol, { computeRatios: true })
-		)
+		return aggregateFeesAndRevenueProtocolsByChain(queryDatas)
 	}, [shouldFetchAll, dataKey])
 
 	return { data, isLoading, error }

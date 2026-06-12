@@ -101,6 +101,46 @@ describe('rwa queries', () => {
 		expect(result?.categoryLinks).toEqual([])
 	})
 
+	it('keeps selected-chain table metric breakdowns filtered and sorted', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([
+			{
+				id: 'multi-chain-1',
+				ticker: 'MC1',
+				assetName: 'Multi Chain One',
+				category: ['Treasuries'],
+				chain: ['Ethereum', 'Solana'],
+				onChainMcap: { Solana: 50, Ethereum: 100 },
+				activeMcap: { Solana: 40, Ethereum: 90 },
+				defiActiveTvl: {
+					Solana: { Aave: 100, Spark: 7 },
+					Ethereum: { Morpho: 5, Aave: 20 }
+				}
+			}
+		])
+
+		const result = await getRWAAssetsOverview({
+			chain: 'ethereum',
+			rwaList: {
+				chains: ['Ethereum', 'Solana'],
+				categories: ['Treasuries'],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(result?.assets).toHaveLength(1)
+		expect(result?.assets[0]?.onChainMcap).toEqual({ total: 100, breakdown: [['Ethereum', 100]] })
+		expect(result?.assets[0]?.activeMcap).toEqual({ total: 90, breakdown: [['Ethereum', 90]] })
+		expect(result?.assets[0]?.defiActiveTvl).toEqual({
+			total: 25,
+			breakdown: [
+				['Aave', 20],
+				['Morpho', 5]
+			]
+		})
+		expect(result?.assets[0]?.defiActiveTvlByChain).toEqual({ total: 25, breakdown: [['Ethereum', 25]] })
+	})
+
 	it('merges perps contracts into the overview rows', async () => {
 		fetchRWAActiveTVLsMock.mockResolvedValue([
 			{

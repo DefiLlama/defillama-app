@@ -1,31 +1,22 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
-import { getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import { getEnabledForkOracleExtraTvlChartApiKeys } from '~/utils/tvlOverlap'
+import { buildForksOverviewDisplayData, mergeForkOverviewChartData } from './overviewData'
 import { useForksOverviewExtraSeries } from './queries.client'
-import { getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-interface IForksRow {
-	name: string
-	forkedProtocols: number
-	tvl: number
-	ftot: number | null
-}
-
-const columnHelper = createColumnHelper<IForksRow>()
+const columnHelper = createColumnHelper<ReturnType<typeof buildForksOverviewDisplayData>['tableData'][number]>()
 
 const forksColumn = [
 	columnHelper.accessor('name', {
@@ -85,7 +76,10 @@ export const ForksOverview = ({
 	chartData
 }: ForkOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledExtraApiKeys = React.useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraApiKeys = React.useMemo(
+		() => getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled),
+		[extraTvlsEnabled]
+	)
 	const { isFetchingExtraSeries, extraBreakdownByTimestamp } = useForksOverviewExtraSeries({
 		enabledExtraApiKeys
 	})
@@ -93,106 +87,11 @@ export const ForksOverview = ({
 	const shouldApplyExtraSeries = enabledExtraApiKeys.length > 0 && !isFetchingExtraSeries
 
 	const mergedChartData = React.useMemo(() => {
-		if (!shouldApplyExtraSeries) return chartData
-
-		const mergedRowsByTimestamp = new Map<number, Record<string, number>>()
-
-		for (const row of chartData) {
-			mergedRowsByTimestamp.set(row.timestamp, { ...row })
-		}
-
-		for (const [timestamp, extraRow] of extraBreakdownByTimestamp.entries()) {
-			const mergedRow = mergedRowsByTimestamp.get(timestamp) ?? { timestamp }
-
-			for (const key in extraRow) {
-				const value = extraRow[key]
-				if (!Number.isFinite(value)) continue
-				mergedRow[key] = (mergedRow[key] ?? 0) + value
-			}
-
-			mergedRowsByTimestamp.set(timestamp, mergedRow)
-		}
-
-		return Array.from(mergedRowsByTimestamp.values()).sort((a, b) => a.timestamp - b.timestamp)
+		return mergeForkOverviewChartData({ chartData, extraBreakdownByTimestamp, shouldApplyExtraSeries })
 	}, [chartData, extraBreakdownByTimestamp, shouldApplyExtraSeries])
 
 	const { tableData, tokenTvls, dominanceDataset, dominanceCharts, chartColors } = React.useMemo(() => {
-		const latestData = mergedChartData.length > 0 ? mergedChartData[mergedChartData.length - 1] : null
-		const chartForkKeys = new Set(forks)
-		for (const entry of mergedChartData) {
-			for (const key in entry) {
-				if (key !== 'timestamp') chartForkKeys.add(key)
-			}
-		}
-		const sortedChartForks = Array.from(chartForkKeys).sort(
-			(a, b) => Number(latestData?.[b] ?? 0) - Number(latestData?.[a] ?? 0)
-		)
-
-		const tableDataByName = new Map(baseTableData.map((row) => [row.name, row]))
-		const tableData = sortedChartForks.map((name) => {
-			const baseRow = tableDataByName.get(name)
-			const tvl = Number(latestData?.[name] ?? 0)
-			const parentTvl = baseRow?.parentTvl ?? null
-
-			return {
-				name,
-				forkedProtocols: baseRow?.forkedProtocols ?? 0,
-				parentTvl,
-				tvl,
-				ftot: getForkToOriginalTvlPercent(tvl, parentTvl)
-			}
-		})
-
-		const tvls = latestData
-			? Object.entries(latestData)
-					.filter(([key]) => key !== 'timestamp')
-					.flatMap(([name, value]) => {
-						return typeof value === 'number' && Number.isFinite(value) ? [{ name, value }] : []
-					})
-					.sort((a, b) => b.value - a.value)
-			: []
-
-		const tokenTvls = preparePieChartData({ data: tvls, limit: 5 })
-		const chartColors: Record<string, string> = { ...forkColors }
-
-		for (let index = 0; index < sortedChartForks.length; index++) {
-			const name = sortedChartForks[index]
-			if (!chartColors[name]) {
-				chartColors[name] = CHART_COLORS[index % CHART_COLORS.length]
-			}
-		}
-
-		const dominanceDataset = {
-			source: mergedChartData.map((entry) => {
-				const row: Record<string, number> = { timestamp: entry.timestamp * 1000 }
-				const valuesInRow = sortedChartForks
-					.map((forkName) => {
-						const value = entry[forkName]
-						return typeof value === 'number' && Number.isFinite(value) && value > 0 ? [forkName, value] : null
-					})
-					.filter((item): item is [string, number] => item != null)
-
-				const totalTvl = valuesInRow.reduce((sum, [, value]) => sum + value, 0)
-				if (totalTvl <= 0) return row
-
-				for (const [forkName, value] of valuesInRow) {
-					row[forkName] = (value / totalTvl) * 100
-				}
-
-				return row
-			}),
-			dimensions: ['timestamp', ...sortedChartForks]
-		}
-
-		const dominanceCharts = sortedChartForks.map((name, index) => ({
-			type: 'line' as const,
-			name,
-			encode: { x: 'timestamp', y: name },
-			color: chartColors[name] ?? CHART_COLORS[index % CHART_COLORS.length],
-			stack: 'dominance'
-		}))
-
-		return { tableData, tokenTvls, dominanceDataset, dominanceCharts, chartColors }
+		return buildForksOverviewDisplayData({ forks, forkColors, baseTableData, chartData: mergedChartData })
 	}, [baseTableData, forkColors, forks, mergedChartData])
 
 	const isLoading = enabledExtraApiKeys.length > 0 && isFetchingExtraSeries

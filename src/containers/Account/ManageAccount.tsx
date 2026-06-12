@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 import { NewsletterSignup } from '~/components/Newsletter/NewsletterSignup'
+import { DashboardAuthorProfileCard } from '~/containers/Authors/DashboardAuthorProfileCard'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -21,18 +21,12 @@ export function ManageAccount() {
 
 	const queryTab = Array.isArray(router.query.tab) ? router.query.tab[0] : router.query.tab
 	const inviteToken = Array.isArray(router.query.token) ? router.query.token[0] : router.query.token
-	const [selectedTabId, setSelectedTabId] = useState<string>('account')
-
-	// Sync tab state from URL (handles initial load + back/forward navigation)
-	useEffect(() => {
-		setSelectedTabId(queryTab === 'team' ? 'team' : 'account')
-	}, [queryTab])
+	const selectedTabId = queryTab === 'team' || queryTab === 'profile' ? queryTab : 'account'
 
 	const tabStore = Ariakit.useTabStore({
 		selectedId: selectedTabId,
 		setSelectedId: (id) => {
 			if (!id) return
-			setSelectedTabId(id)
 			const { tab: _ignored, ...rest } = router.query
 			const nextQuery = id === 'account' ? rest : { ...rest, tab: id }
 			void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
@@ -99,6 +93,16 @@ export function ManageAccount() {
 					>
 						Team
 					</Ariakit.Tab>
+					<Ariakit.Tab
+						id="profile"
+						className={`pb-2.5 text-sm font-semibold transition-colors ${
+							selectedTabId === 'profile'
+								? 'border-b-2 border-(--sub-brand-primary) text-(--sub-brand-primary)'
+								: 'text-(--sub-text-muted) hover:text-(--sub-ink-primary) dark:hover:text-white'
+						}`}
+					>
+						Profile
+					</Ariakit.Tab>
 				</Ariakit.TabList>
 
 				<Ariakit.TabPanel tabId="account">
@@ -113,6 +117,10 @@ export function ManageAccount() {
 
 				<Ariakit.TabPanel tabId="team">
 					<TeamTab />
+				</Ariakit.TabPanel>
+
+				<Ariakit.TabPanel tabId="profile">
+					<DashboardAuthorProfileCard />
 				</Ariakit.TabPanel>
 			</Ariakit.TabProvider>
 		</div>

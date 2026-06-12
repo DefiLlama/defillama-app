@@ -1,5 +1,6 @@
 import type { IProtocol } from '~/containers/ProtocolRankings/types'
 import type { RawRaise } from '~/containers/Raises/api.types'
+import type { FeeExtraTotals } from '~/metrics/feeExtras'
 import type { IChainMetadata, IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
 
@@ -49,6 +50,16 @@ export interface IChainOverviewData {
 		totalREV24h: number | null
 	}
 	chainRevenue: { total24h: number | null }
+	feeExtras: {
+		chainNative: {
+			bribes: FeeExtraTotals | null
+			tokenTax: FeeExtraTotals | null
+		}
+		app: {
+			bribes: FeeExtraTotals | null
+			tokenTax: FeeExtraTotals | null
+		}
+	}
 	chainIncentives: {
 		emissions24h: number | null
 		emissions7d: number | null

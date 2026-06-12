@@ -25,6 +25,7 @@ import {
 	type RWAChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
+import { toFiniteRwaChartValue } from './chartDataset'
 import {
 	getDefaultRWAOverviewInclusion,
 	getDefaultSelectedTypes,
@@ -1011,8 +1012,8 @@ export function useRwaChainBreakdownPieChartData({
 			metric: 'onChain' | 'active' | 'defi',
 			valueRaw: number | null | undefined
 		) => {
-			const value = valueRaw ?? 0
-			if (!Number.isFinite(value) || value <= 0) return
+			const value = toFiniteRwaChartValue(valueRaw)
+			if (value <= 0) return
 
 			const chain = (chainRaw ?? '').trim() || UNKNOWN
 			const key = rwaSlug(chain)

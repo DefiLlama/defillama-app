@@ -1,3 +1,4 @@
+import { feesOptions } from '~/components/Filters/options'
 import { ChainsByAdapter } from '~/containers/AdapterMetrics/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import { getChainsByFeesAdapterPageData } from '~/containers/AdapterMetrics/queries'
@@ -32,6 +33,8 @@ const FeesByChain = (props: IChainsByAdapterPageData) => {
 			title="DeFi Fees by Chain - All Blockchains - DefiLlama"
 			description="Compare DeFi fees generated across all blockchains. Track total user fees on Ethereum, Solana, Base, Arbitrum, and 150+ chains. Real-time blockchain fee analytics by chain and category."
 			canonicalUrl={`/fees/chains`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Fees"
 			pageName={pageName}
 		>
 			<ChainsByAdapter {...props} type={type} />

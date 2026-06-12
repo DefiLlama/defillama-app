@@ -1,12 +1,13 @@
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
-import { formatLineChart, getBucketTimestampSec } from '~/components/ECharts/utils'
+import { formatLineChart } from '~/components/ECharts/utils'
+import { getGroupedTimestampSec } from './chartSeries.utils'
 
 type ChartInterval = ChartTimeGroupingWithCumulative
 type V2ChartPoint = [string | number, number]
 
-export const MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC = 24 * 60 * 60
+const MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC = 24 * 60 * 60
 
-export interface ExtraTvlChartsResult {
+interface ExtraTvlChartsResult {
 	charts: Record<string, Record<string, number>>
 	latestTimestamps: Record<string, number>
 }
@@ -58,10 +59,6 @@ export function getProtocolExtraTvlChartFetchState({
 			tvlSettings.govtokens
 		)
 	}
-}
-
-const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): number => {
-	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
 }
 
 const toUnixSeconds = (timestamp: string | number): number | null => {

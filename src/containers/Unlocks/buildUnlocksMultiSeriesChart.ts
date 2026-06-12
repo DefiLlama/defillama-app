@@ -76,7 +76,7 @@ export function buildUnlocksMultiSeriesChartForDateRange({
 		encode: { x: 'timestamp', y: name },
 		stack: 'unlocks',
 		color: COLOR_PALETTE[i % COLOR_PALETTE.length],
-		large: true
+		large: false
 	}))
 
 	return {

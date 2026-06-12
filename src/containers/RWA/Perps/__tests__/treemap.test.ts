@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CHART_COLORS } from '~/constants/colors'
 import { buildRWAPerpsTreemapTreeData } from '../treemap'
 
 const baseMarket = {
@@ -326,6 +327,41 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		expect(tree).toEqual([
 			expect.objectContaining({ name: 'Meta', value: [2, 66.67, 66.67] }),
 			expect.objectContaining({ name: 'NVIDIA', value: [1, 33.33, 33.33] })
+		])
+	})
+
+	it('keeps non-positive typed metric values out of flat trees', () => {
+		const tree = buildRWAPerpsTreemapTreeData({
+			mode: 'overview',
+			markets: [
+				{ ...baseMarket, id: 'xyz:meta', referenceAsset: 'Meta', volume24h: 100 },
+				{
+					...baseMarket,
+					id: 'xyz:zero',
+					contract: 'xyz:ZERO',
+					referenceAsset: 'Zero',
+					volume24h: 0
+				},
+				{
+					...baseMarket,
+					id: 'xyz:negative',
+					contract: 'xyz:NEGATIVE',
+					referenceAsset: 'Negative',
+					volume24h: -10
+				}
+			],
+			metric: 'volume24h',
+			parentGrouping: 'baseAsset',
+			nestedBy: 'none'
+		})
+
+		expect(tree).toEqual([
+			{
+				name: 'Meta',
+				path: 'Base Asset/Meta',
+				value: [100, 100, 100],
+				itemStyle: { color: CHART_COLORS[0] }
+			}
 		])
 	})
 

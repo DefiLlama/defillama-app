@@ -182,7 +182,7 @@ function buildChartSpec(series: BuiltSeries[], missingValueMode: MissingValueMod
 			name: item.name,
 			encode: { x: 'timestamp', y: item.name },
 			color: item.color,
-			...(item.stack ? { stack: item.stack } : {})
+			...(item.stack ? { stack: item.stack, ...(item.type === 'bar' ? { large: false } : {}) } : {})
 		}))
 	}
 }

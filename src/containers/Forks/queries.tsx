@@ -2,20 +2,24 @@ import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { getProtocolsByChain } from '~/containers/ProtocolRankings/queries.server'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchForkMetrics, fetchForkProtocolBreakdownChart, fetchForkProtocolChart } from './api'
+import type { IForkProtocolBreakdownChart } from './api.types'
 import { getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData, ForkByProtocolPageData } from './types'
 
-function sortForksByLatestTvl(forkNames: string[], chartData: unknown): string[] {
+function getLatestTvlByFork(chartData: IForkProtocolBreakdownChart): Record<string, number> {
 	const latestTvlByFork: Record<string, number> = {}
-	if (Array.isArray(chartData) && chartData.length > 0) {
-		const lastDay = chartData[chartData.length - 1]
-		for (const key in lastDay) {
-			if (key !== 'timestamp') {
-				latestTvlByFork[key] = lastDay[key]
-			}
+	const lastDay = chartData.at(-1)
+	if (!lastDay) return latestTvlByFork
+
+	for (const key in lastDay) {
+		if (key !== 'timestamp') {
+			latestTvlByFork[key] = lastDay[key]
 		}
 	}
+	return latestTvlByFork
+}
 
+function sortForksByLatestTvl(forkNames: string[], latestTvlByFork: Record<string, number>): string[] {
 	return forkNames.toSorted((a, b) => (latestTvlByFork[b] ?? 0) - (latestTvlByFork[a] ?? 0))
 }
 
@@ -32,17 +36,8 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 		for (const forkName in metrics) {
 			forkNames.push(forkName)
 		}
-		const sortedForks = sortForksByLatestTvl(forkNames, chartData)
-
-		const latestTvlByFork: Record<string, number> = {}
-		if (Array.isArray(chartData) && chartData.length > 0) {
-			const lastDay = chartData[chartData.length - 1]
-			for (const key in lastDay) {
-				if (key !== 'timestamp') {
-					latestTvlByFork[key] = lastDay[key]
-				}
-			}
-		}
+		const latestTvlByFork = getLatestTvlByFork(chartData)
+		const sortedForks = sortForksByLatestTvl(forkNames, latestTvlByFork)
 
 		// Get fork colors
 		const forkColors: Record<string, string> = { Others: '#AAAAAA' }
@@ -73,7 +68,7 @@ export async function getForksListPageData(): Promise<ForkOverviewPageData | nul
 			forkLinks,
 			forkColors,
 			tableData,
-			chartData: Array.isArray(chartData) ? chartData : []
+			chartData
 		}
 	} catch (error) {
 		console.error('Error fetching forks list page data', error)
@@ -110,7 +105,7 @@ export async function getForksByProtocolPageData({ fork }: { fork: string }): Pr
 		const protocolTableData = protocolsByChainData?.protocols ?? []
 
 		// Build fork links with same TVL ordering as overview page
-		const sortedForks = sortForksByLatestTvl(forkNames, forkBreakdownChartData)
+		const sortedForks = sortForksByLatestTvl(forkNames, getLatestTvlByFork(forkBreakdownChartData))
 		const forkLinks = [{ label: 'All', to: '/forks' }].concat(
 			sortedForks.map((f) => ({ label: f, to: `/forks/${slug(f)}` }))
 		)

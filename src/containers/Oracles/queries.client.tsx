@@ -9,6 +9,21 @@ import {
 } from './api'
 import type { OracleBreakdownItem } from './types'
 
+export function buildOracleProtocolChainExtraSeries({
+	chainBreakdown,
+	chain
+}: {
+	chainBreakdown: Array<OracleBreakdownItem>
+	chain: string
+}): Array<[number, number]> {
+	const series: Array<[number, number]> = []
+	for (const row of chainBreakdown) {
+		// Chain-breakdown extra-TVL rows are sparse by chain; a missing chain means zero extra TVS that day.
+		series.push([row.timestamp, row[chain] ?? 0])
+	}
+	return series
+}
+
 export function useOraclesByChainExtraBreakdowns({
 	enabledExtraApiKeys,
 	chain
@@ -67,13 +82,7 @@ export function useOracleOverviewExtraSeries({
 						protocol: oracle,
 						key
 					})
-					const series: Array<[number, number]> = []
-					for (const row of chainBreakdown) {
-						const chainValue = row[chain]
-						if (!Number.isFinite(row.timestamp) || !Number.isFinite(chainValue)) continue
-						series.push([row.timestamp, chainValue])
-					}
-					return series
+					return buildOracleProtocolChainExtraSeries({ chainBreakdown, chain })
 				}
 				return fetchOracleProtocolChart({
 					protocol: oracle,
@@ -100,7 +109,6 @@ export function useOracleOverviewExtraSeries({
 			const sign = getExtraTvlSeriesSign({ apiKey, shouldSubtractOverlapSeries })
 
 			for (const [timestampInSeconds, value] of data) {
-				if (!Number.isFinite(timestampInSeconds) || !Number.isFinite(value)) continue
 				const currentByApiKey = result.get(timestampInSeconds) ?? 0
 				result.set(timestampInSeconds, currentByApiKey + value * sign)
 			}

@@ -1,19 +1,30 @@
 import { NextRequest } from 'next/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-async function loadProxy(allowedOrigins = '', investorsSite = '') {
-	vi.resetModules()
+function stubProxyEnv(allowedOrigins = '', investorsSite = '') {
 	vi.stubEnv('CORS_ALLOWED_ORIGINS', allowedOrigins)
 	vi.stubEnv('NEXT_PUBLIC_INVESTORS_SITE', investorsSite)
 	vi.stubEnv('NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID', '')
+}
+
+async function loadProxy(allowedOrigins = '', investorsSite = '') {
+	vi.resetModules()
+	stubProxyEnv(allowedOrigins, investorsSite)
 	return import('~/proxy')
 }
 
 async function loadInvestorsConfig(investorsSite: string) {
 	vi.resetModules()
-	vi.stubEnv('NEXT_PUBLIC_INVESTORS_SITE', investorsSite)
-	vi.stubEnv('NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID', '')
+	stubProxyEnv('', investorsSite)
 	return import('~/containers/Investors/config')
+}
+
+async function loadProxyWithInvestorsConfig(investorsSite: string) {
+	vi.resetModules()
+	stubProxyEnv('', investorsSite)
+	const [proxyModule, investorsConfig] = await Promise.all([import('~/proxy'), import('~/containers/Investors/config')])
+
+	return { proxy: proxyModule.proxy, investorsConfig }
 }
 
 function apiRequest(origin: string, method = 'POST', path = '/api/charts/protocol') {
@@ -119,55 +130,82 @@ describe('investors proxy routing', () => {
 		expect(rewriteUrl(response)).toBe('https://enterprise.defillama.com/investors')
 	})
 
-	it('serves only Odyssey locally on the enterprise domain', async () => {
-		const { proxy } = await loadProxy('', 'enterprise')
+	it('serves only active projects locally on the enterprise domain', async () => {
+		const { proxy, investorsConfig } = await loadProxyWithInvestorsConfig('enterprise')
 
-		const odysseyResponse = proxy(pageRequest('https://enterprise.defillama.com/odyssey-ecosystem'))
-		const sparkResponse = proxy(pageRequest('https://enterprise.defillama.com/spark'))
+		for (const projectId of investorsConfig.INVESTORS_PROTOCOL_IDS) {
+			const response = proxy(pageRequest(`https://enterprise.defillama.com/${projectId}`))
 
-		expect(rewriteUrl(odysseyResponse)).toBe('https://enterprise.defillama.com/investors/odyssey-ecosystem')
-		expect(rewriteUrl(sparkResponse)).toBeNull()
+			expect(rewriteUrl(response)).toBe(`https://enterprise.defillama.com/investors/${projectId}`)
+		}
+
+		for (const projectId of investorsConfig.INVESTORS_LANDING_PROTOCOL_IDS.filter(
+			(projectId) => !investorsConfig.INVESTORS_PROTOCOL_IDS.includes(projectId)
+		)) {
+			const response = proxy(pageRequest(`https://enterprise.defillama.com/${projectId}`))
+
+			expect(rewriteUrl(response)).toBeNull()
+		}
 	})
 
-	it('serves the current investor projects on the investors domain', async () => {
-		const { proxy } = await loadProxy('', 'investors')
+	it('serves active investor projects on the investors domain', async () => {
+		const { proxy, investorsConfig } = await loadProxyWithInvestorsConfig('investors')
 
 		const rootResponse = proxy(pageRequest('https://investors.defillama.com/'))
-		const sparkResponse = proxy(pageRequest('https://investors.defillama.com/spark'))
-		const odysseyResponse = proxy(pageRequest('https://investors.defillama.com/odyssey-ecosystem'))
 
 		expect(rewriteUrl(rootResponse)).toBe('https://investors.defillama.com/investors')
-		expect(rewriteUrl(sparkResponse)).toBe('https://investors.defillama.com/investors/spark')
-		expect(rewriteUrl(odysseyResponse)).toBeNull()
+
+		for (const projectId of investorsConfig.INVESTORS_PROTOCOL_IDS) {
+			const response = proxy(pageRequest(`https://investors.defillama.com/${projectId}`))
+
+			expect(rewriteUrl(response)).toBe(`https://investors.defillama.com/investors/${projectId}`)
+		}
+
+		for (const projectId of investorsConfig.INVESTORS_LANDING_PROTOCOL_IDS.filter(
+			(projectId) => !investorsConfig.INVESTORS_PROTOCOL_IDS.includes(projectId)
+		)) {
+			const response = proxy(pageRequest(`https://investors.defillama.com/${projectId}`))
+
+			expect(rewriteUrl(response)).toBeNull()
+		}
 	})
 })
 
 describe('investors landing links', () => {
 	it('shows investor-domain dashboards as external enterprise cards', async () => {
 		const config = await loadInvestorsConfig('enterprise')
+		const [investorsHost] = config.INVESTORS_SITES.investors.hosts
+		if (!investorsHost) throw new Error('Investors site host is required')
+		const investorDomainProjectIds = [...config.INVESTORS_SITES.investors.projectIds]
+		const enterpriseDomainProjectIds = [...config.INVESTORS_SITES.enterprise.projectIds]
 
 		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual([
-			'spark',
-			'sonic',
-			'near',
-			'flare',
-			'odyssey-ecosystem'
+			...investorDomainProjectIds,
+			...enterpriseDomainProjectIds
 		])
-		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(['odyssey-ecosystem'])
-		expect(config.getInvestorsLandingProjectHref('spark')).toBe('https://investors.defillama.com/spark')
-		expect(config.getInvestorsLandingProjectHref('sonic')).toBe('https://investors.defillama.com/sonic')
-		expect(config.getInvestorsLandingProjectHref('near')).toBe('https://investors.defillama.com/near')
-		expect(config.getInvestorsLandingProjectHref('flare')).toBe('https://investors.defillama.com/flare')
-		expect(config.getInvestorsLandingProjectHref('odyssey-ecosystem')).toBe('/odyssey-ecosystem')
-		expect(config.isInvestorsLandingProjectExternal('spark')).toBe(true)
-		expect(config.isInvestorsLandingProjectExternal('odyssey-ecosystem')).toBe(false)
+		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(enterpriseDomainProjectIds)
+
+		for (const projectId of investorDomainProjectIds) {
+			expect(config.getInvestorsLandingProjectHref(projectId)).toBe(`https://${investorsHost}/${projectId}`)
+			expect(config.isInvestorsLandingProjectExternal(projectId)).toBe(true)
+		}
+
+		for (const projectId of enterpriseDomainProjectIds) {
+			expect(config.getInvestorsLandingProjectHref(projectId)).toBe(`/${projectId}`)
+			expect(config.isInvestorsLandingProjectExternal(projectId)).toBe(false)
+		}
 	})
 
 	it('keeps investor-domain landing cards local', async () => {
 		const config = await loadInvestorsConfig('investors')
+		const investorDomainProjectIds = [...config.INVESTORS_SITES.investors.projectIds]
 
-		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(['spark', 'sonic', 'near', 'flare'])
-		expect(config.getInvestorsLandingProjectHref('spark')).toBe('/spark')
-		expect(config.isInvestorsLandingProjectExternal('spark')).toBe(false)
+		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(investorDomainProjectIds)
+		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(investorDomainProjectIds)
+
+		for (const projectId of investorDomainProjectIds) {
+			expect(config.getInvestorsLandingProjectHref(projectId)).toBe(`/${projectId}`)
+			expect(config.isInvestorsLandingProjectExternal(projectId)).toBe(false)
+		}
 	})
 })

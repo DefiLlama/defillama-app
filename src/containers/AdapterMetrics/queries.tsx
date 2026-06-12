@@ -1,14 +1,15 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
+import { REV_PROTOCOLS, V2_SERVER_URL } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
 import { feeRevenueMetrics, getChainNativeFeeRevenueRankingMetric } from '~/metrics/feesRevenue'
-import { slug, getAnnualizedRatio } from '~/utils'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
+import { chainIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { recordRuntimeError } from '~/utils/telemetry'
+import { buildAdapterByChainReadModel } from './adapterByChainReadModel'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
@@ -17,23 +18,13 @@ import {
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, getChainMetadataKey } from './constants'
-import { mergeMetricPeriods, type MetricPeriodFields } from './metricPeriods'
 import type {
 	IAdapterByChainPageData,
 	IAdapterChainOverview,
 	IChainsByAdapterPageData,
-	IChainsByREVPageData,
-	IProtocol
+	IChainsByREVPageData
 } from './types'
-import {
-	buildAdapterByChainChartDataset,
-	matchRevenueToEarnings,
-	processRevenueDataForMatching,
-	type ActiveLiquidityData,
-	type BribesData,
-	type NormalizedVolumeData,
-	type OpenInterestData
-} from './utils'
+import { buildAdapterByChainChartDataset } from './utils'
 
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
@@ -47,26 +38,28 @@ function buildChainsChartData({
 	allChains: string[]
 }): MultiSeriesChart2Dataset {
 	const chartDimensions = ['timestamp', ...allChains]
+	const source: MultiSeriesChart2Dataset['source'] = []
+	for (const [timestamp, chainValues] of rawChartData) {
+		const normalizedTimestamp = timestamp < 1e12 ? timestamp * 1e3 : timestamp
+		const row: Record<string, number | null> = { timestamp: normalizedTimestamp }
+
+		for (const chain of allChains) {
+			row[chain] = null
+		}
+
+		for (const chainKey in chainValues) {
+			if (chainKey in row) {
+				row[chainKey] = chainValues[chainKey]
+			}
+		}
+
+		source.push(row)
+	}
+	source.sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+
 	return {
 		dimensions: chartDimensions,
-		source: rawChartData
-			.map(([timestamp, chainValues]) => {
-				const normalizedTimestamp = timestamp < 1e12 ? timestamp * 1e3 : timestamp
-				const row: Record<string, number | null> = { timestamp: normalizedTimestamp }
-
-				for (const chain of allChains) {
-					row[chain] = null
-				}
-
-				for (const chainKey in chainValues) {
-					if (chainKey in row) {
-						row[chainKey] = chainValues[chainKey]
-					}
-				}
-
-				return row
-			})
-			.sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+		source
 	}
 }
 
@@ -187,6 +180,8 @@ export const getAdapterByChainPageData = async ({
 	metricName: string
 }): Promise<IAdapterByChainPageData | null> => {
 	const showFeesChart = FEES_CHART_ROUTES.has(route)
+	const rankBy = route === 'pf' || route === 'ps' ? 'pfOrPs' : 'total24h'
+	const cantonIncentivesWarning = metricName === 'Fees' || metricName === 'Revenue' ? CANTON_INCENTIVES_WARNING : null
 
 	const [
 		data,
@@ -253,446 +248,19 @@ export const getAdapterByChainPageData = async ({
 			: Promise.resolve(null)
 	])
 
-	const protocolsMcap: Record<string, number | null> = {}
-	for (const protocol of protocolsData.protocols) {
-		protocolsMcap[protocol.name] = protocol.mcap ?? null
-	}
-	for (const protocol of protocolsData.parentProtocols) {
-		protocolsMcap[protocol.name] = protocol.mcap ?? null
-	}
-
-	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
-
-	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
-	const allProtocolsByName = new Set<string>()
-	for (const protocol of allProtocols) {
-		allProtocolsByName.add(protocol.name)
-	}
-
-	let bribesProtocols: Record<string, BribesData> = {}
-	let tokenTaxesProtocols: Record<string, BribesData> = {}
-	let openInterestProtocols: Record<string, OpenInterestData> = {}
-	let activeLiquidityProtocols: Record<string, ActiveLiquidityData> = {}
-	let normalizedVolumeProtocols: Record<string, NormalizedVolumeData> = {}
-
-	if (dataType === 'dailyEarnings') {
-		if (bribesData) {
-			const processedBribesData = processRevenueDataForMatching(bribesData.protocols)
-			bribesProtocols = matchRevenueToEarnings(processedBribesData, data.protocols)
-		}
-
-		if (tokenTaxesData) {
-			const processedTokenTaxData = processRevenueDataForMatching(tokenTaxesData.protocols)
-			tokenTaxesProtocols = matchRevenueToEarnings(processedTokenTaxData, data.protocols)
-		}
-	} else {
-		bribesProtocols =
-			bribesData?.protocols.reduce(
-				(
-					acc: Record<
-						string,
-						{
-							total24h: number | null
-							total7d: number | null
-							total30d: number | null
-							total1y: number | null
-							totalAllTime: number | null
-						}
-					>,
-					p: {
-						name: string
-						total24h: number | null
-						total7d: number | null
-						total30d: number | null
-						total1y: number | null
-						totalAllTime: number | null
-					}
-				) => {
-					acc[p.name] = {
-						total24h: p.total24h ?? null,
-						total7d: p.total7d ?? null,
-						total30d: p.total30d ?? null,
-						total1y: p.total1y ?? null,
-						totalAllTime: p.totalAllTime ?? null
-					}
-
-					// O(1) Map lookup instead of O(n) .find()
-					if (!allProtocolsByName.has(p.name)) {
-						allProtocolsByName.add(p.name)
-						allProtocols.push({
-							...p,
-							total24h: null,
-							total7d: null,
-							total30d: null,
-							total1y: null,
-							totalAllTime: null
-						} as unknown as IAdapterChainOverview['protocols'][0])
-					}
-
-					return acc
-				},
-				{}
-			) ?? {}
-
-		tokenTaxesProtocols =
-			tokenTaxesData?.protocols.reduce(
-				(
-					acc: Record<
-						string,
-						{
-							total24h: number | null
-							total7d: number | null
-							total30d: number | null
-							total1y: number | null
-							totalAllTime: number | null
-						}
-					>,
-					p: {
-						name: string
-						total24h: number | null
-						total7d: number | null
-						total30d: number | null
-						total1y: number | null
-						totalAllTime: number | null
-					}
-				) => {
-					acc[p.name] = {
-						total24h: p.total24h ?? null,
-						total7d: p.total7d ?? null,
-						total30d: p.total30d ?? null,
-						total1y: p.total1y ?? null,
-						totalAllTime: p.totalAllTime ?? null
-					}
-
-					// O(1) Map lookup instead of O(n) .find()
-					if (!allProtocolsByName.has(p.name)) {
-						allProtocolsByName.add(p.name)
-						allProtocols.push({
-							...p,
-							total24h: null,
-							total7d: null,
-							total30d: null,
-							total1y: null,
-							totalAllTime: null
-						} as unknown as IAdapterChainOverview['protocols'][0])
-					}
-
-					return acc
-				},
-				{}
-			) ?? {}
-	}
-
-	if (openInterestData) {
-		openInterestProtocols = openInterestData.protocols.reduce(
-			(
-				acc: Record<string, { total24h: number | null; doublecounted: boolean }>,
-				p: { name: string; total24h: number | null; doublecounted?: boolean }
-			) => {
-				acc[p.name] = {
-					total24h: p.total24h ?? null,
-					doublecounted: !!p.doublecounted
-				}
-				return acc
-			},
-			{}
-		)
-	}
-
-	if (activeLiquidityData) {
-		activeLiquidityProtocols = activeLiquidityData.protocols.reduce(
-			(
-				acc: Record<string, { total24h: number | null; doublecounted: boolean }>,
-				p: { name: string; total24h: number | null; doublecounted?: boolean }
-			) => {
-				acc[p.name] = {
-					total24h: p.total24h ?? null,
-					doublecounted: !!p.doublecounted
-				}
-				return acc
-			},
-			{}
-		)
-	}
-
-	if (normalizedVolumeData) {
-		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce(
-			(acc: Record<string, { total24h: number | null }>, p: { name: string; total24h: number | null }) => {
-				acc[p.name] = {
-					total24h: p.total24h ?? null
-				}
-				return acc
-			},
-			{}
-		)
-	}
-
-	const protocols: Record<string, IProtocol> = {}
-	const parentProtocols: Record<string, IProtocol[]> = {}
-	const categories = new Set<string>()
-
-	for (const protocol of allProtocols) {
-		const warning =
-			protocol.slug === 'canton' && (metricName === 'Fees' || metricName === 'Revenue')
-				? CANTON_INCENTIVES_WARNING
-				: null
-		const methodology =
-			adapterType === 'fees'
-				? dataType === 'dailyRevenue'
-					? (protocol.methodology?.['Revenue'] ??
-						protocol.methodology?.['BribesRevenue'] ??
-						protocol.methodology?.['TokenTaxes'])
-					: dataType === 'dailyHoldersRevenue'
-						? (protocol.methodology?.['HoldersRevenue'] ??
-							protocol.methodology?.['BribesRevenue'] ??
-							protocol.methodology?.['TokenTaxes'])
-						: (protocol.methodology?.['Fees'] ??
-							protocol.methodology?.['BribesRevenue'] ??
-							protocol.methodology?.['TokenTaxes'])
-				: null
-
-		// Calculate P/F or P/S ratio (same calculation, context depends on dataType)
-		const pfOrPs =
-			protocolsMcap[protocol.name] && protocol.total30d
-				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
-				: null
-
-		const summary = {
-			name: protocol.displayName,
-			slug: protocol.slug,
-			logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
-			chains: protocol.chains,
-			category: protocol.category ?? null,
-			total24h: protocol.total24h ?? null,
-			total48hto24h: protocol.total48hto24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total14dto7d: protocol.total14dto7d ?? null,
-			total30d: protocol.total30d ?? null,
-			total60dto30d: protocol.total60dto30d ?? null,
-			total7DaysAgo: protocol.total7DaysAgo ?? null,
-			total30DaysAgo: protocol.total30DaysAgo ?? null,
-			total1y: protocol.total1y ?? null,
-			totalAllTime: protocol.totalAllTime ?? null,
-			change_1d: protocol.change_1d ?? null,
-			change_7d: protocol.change_7d ?? null,
-			change_1m: protocol.change_1m ?? null,
-			change_7dover7d: protocol.change_7dover7d ?? null,
-			change_30dover30d: protocol.change_30dover30d ?? null,
-			mcap: protocolsMcap[protocol.name] ?? null,
-			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
-			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-			...(pfOrPs ? { pfOrPs } : {}),
-			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
-			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
-			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
-			...(warning ? { warning } : {}),
-			...(openInterestProtocols[protocol.name]?.total24h != null
-				? { openInterest: openInterestProtocols[protocol.name].total24h }
-				: {}),
-			...(activeLiquidityProtocols[protocol.name]?.total24h != null
-				? { activeLiquidity: activeLiquidityProtocols[protocol.name].total24h }
-				: {}),
-			...(normalizedVolumeProtocols[protocol.name]?.total24h != null
-				? { normalizedVolume24h: normalizedVolumeProtocols[protocol.name].total24h }
-				: {}),
-			...(protocol.displayName !== protocol.name ? { breakdownAliases: [protocol.name] } : {})
-		}
-
-		if (protocol.linkedProtocols?.length > 1) {
-			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
-			parentProtocols[protocol.linkedProtocols[0]].push(summary)
-		} else {
-			protocols[protocol.displayName] = summary
-		}
-		if (protocol.category) {
-			categories.add(protocol.category)
-		}
-	}
-
-	for (const protocol in parentProtocols) {
-		if (parentProtocols[protocol].length === 1) {
-			protocols[protocol] = {
-				...parentProtocols[protocol][0],
-				name: protocol,
-				slug: slug(protocol),
-				breakdownAliases: Array.from(
-					new Set([parentProtocols[protocol][0].name, ...(parentProtocols[protocol][0].breakdownAliases ?? [])])
-				).filter((alias) => alias !== protocol)
-			}
-			continue
-		}
-		const periodTotals = parentProtocols[protocol].reduce<MetricPeriodFields>(
-			(acc, p) => mergeMetricPeriods(acc, p),
-			{}
-		)
-		const totals = {
-			total24h: periodTotals.total24h ?? null,
-			total7d: periodTotals.total7d ?? null,
-			total30d: periodTotals.total30d ?? null,
-			total1y: periodTotals.total1y ?? null,
-			totalAllTime: periodTotals.totalAllTime ?? null
-		}
-		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
-		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
-		let warning: string | null = null
-		for (const p of parentProtocols[protocol]) {
-			if (p.warning) {
-				warning = p.warning
-				break
-			}
-		}
-		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
-			? parentProtocols[protocol].reduce(
-					(acc, p) => {
-						acc.total24h += p.bribes?.total24h ?? 0
-						acc.total7d += p.bribes?.total7d ?? 0
-						acc.total30d += p.bribes?.total30d ?? 0
-						acc.total1y += p.bribes?.total1y ?? 0
-						acc.totalAllTime += p.bribes?.totalAllTime ?? 0
-						return acc
-					},
-					{
-						total24h: 0,
-						total7d: 0,
-						total30d: 0,
-						total1y: 0,
-						totalAllTime: 0
-					}
-				)
-			: null
-		const tokenTax = parentProtocols[protocol].some((p) => p.tokenTax != null)
-			? parentProtocols[protocol].reduce(
-					(acc, p) => {
-						acc.total24h += p.tokenTax?.total24h ?? 0
-						acc.total7d += p.tokenTax?.total7d ?? 0
-						acc.total30d += p.tokenTax?.total30d ?? 0
-						acc.total1y += p.tokenTax?.total1y ?? 0
-						acc.totalAllTime += p.tokenTax?.totalAllTime ?? 0
-						return acc
-					},
-					{
-						total24h: 0,
-						total7d: 0,
-						total30d: 0,
-						total1y: 0,
-						totalAllTime: 0
-					}
-				)
-			: null
-
-		const openInterest = parentProtocols[protocol].some((p) => p.openInterest != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
-			: null
-
-		const activeLiquidity = parentProtocols[protocol].some((p) => p.activeLiquidity != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.activeLiquidity ?? 0), 0)
-			: null
-
-		const normalizedVolume24h = parentProtocols[protocol].some((p) => p.normalizedVolume24h != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.normalizedVolume24h ?? 0), 0)
-			: null
-
-		const methodologySet = new Set<string>()
-		for (const p of parentProtocols[protocol]) {
-			if (p.methodology) methodologySet.add(p.methodology)
-		}
-		const methodology: Array<string> = Array.from(methodologySet)
-
-		const pfOrPs =
-			protocolsMcap[protocol] && totals.total30d ? getAnnualizedRatio(protocolsMcap[protocol], totals.total30d) : null
-
-		let topProtocol = parentProtocols[protocol][0]
-		for (const p of parentProtocols[protocol]) {
-			if ((p.total24h ?? 0) > (topProtocol.total24h ?? 0)) {
-				topProtocol = p
-			}
-		}
-
-		const breakdownAliasSet = new Set<string>()
-		for (const childProtocol of parentProtocols[protocol]) {
-			if (childProtocol.name !== protocol) breakdownAliasSet.add(childProtocol.name)
-			for (const alias of childProtocol.breakdownAliases ?? []) {
-				if (alias !== protocol) breakdownAliasSet.add(alias)
-			}
-		}
-
-		protocols[protocol] = {
-			name: protocol,
-			slug: slug(protocol),
-			logo: tokenIconUrl(protocol),
-			category: topProtocol.category ?? null,
-			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
-			...periodTotals,
-			...totals,
-			mcap: protocolsMcap[protocol] ?? null,
-			breakdownAliases: Array.from(breakdownAliasSet),
-			childProtocols: parentProtocols[protocol],
-			...(bribes ? { bribes } : {}),
-			...(tokenTax ? { tokenTax } : {}),
-			...(pfOrPs ? { pfOrPs } : {}),
-			...(methodology.length > 0
-				? {
-						methodology:
-							methodology.length > 1
-								? methodology
-										.map((m) => {
-											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
-											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
-										})
-										.join('. ')
-								: methodology[0]
-					}
-				: {}),
-			...(doublecounted ? { doublecounted } : {}),
-			...(zeroFeePerp ? { zeroFeePerp } : {}),
-			...(warning ? { warning } : {}),
-			...(openInterest ? { openInterest } : {}),
-			...(activeLiquidity ? { activeLiquidity } : {}),
-			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
-		}
-	}
-
-	let finalProtocols = []
-	if (route === 'pf' || route === 'ps') {
-		for (const protocol in protocols) {
-			if (protocols[protocol].pfOrPs != null) {
-				finalProtocols.push(protocols[protocol])
-			}
-		}
-	} else {
-		for (const protocol in protocols) {
-			finalProtocols.push(protocols[protocol])
-		}
-	}
-
-	if (route === 'pf' || route === 'ps') {
-		finalProtocols = finalProtocols.sort(
-			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.pfOrPs ?? 0) - (a.pfOrPs ?? 0)
-		)
-	} else {
-		finalProtocols = finalProtocols.sort(
-			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.total24h ?? 0) - (a.total24h ?? 0)
-		)
-	}
-
-	let openInterest = 0
-
-	for (const protocol in openInterestProtocols) {
-		if (openInterestProtocols[protocol]?.doublecounted) continue
-		openInterest += openInterestProtocols[protocol]?.total24h ?? 0
-	}
-
-	let activeLiquidity: number | null = null
-
-	if (activeLiquidityData) {
-		activeLiquidity = 0
-		for (const protocol in activeLiquidityProtocols) {
-			if (activeLiquidityProtocols[protocol]?.doublecounted) continue
-			activeLiquidity += activeLiquidityProtocols[protocol]?.total24h ?? 0
-		}
-	}
+	const readModel = buildAdapterByChainReadModel({
+		data,
+		protocolsData,
+		bribesData,
+		tokenTaxesData,
+		openInterestData,
+		activeLiquidityData,
+		normalizedVolumeData,
+		adapterType,
+		dataType,
+		rankBy,
+		cantonIncentivesWarning
+	})
 
 	const chartData = buildAdapterByChainChartDataset({
 		adapterType,
@@ -708,8 +276,8 @@ export const getAdapterByChainPageData = async ({
 			{ label: 'All', to: `/${route}` },
 			...data.allChains.map((chainName) => ({ label: chainName, to: `/${route}/chain/${slug(chainName)}` }))
 		],
-		protocols: finalProtocols,
-		categories: adapterType === 'fees' ? Array.from(categories).sort() : [],
+		protocols: readModel.protocols,
+		categories: readModel.categories,
 		adapterType,
 		chartData,
 		dataType: dataType ?? null,
@@ -720,8 +288,8 @@ export const getAdapterByChainPageData = async ({
 		change_7d: data.change_7d ?? null,
 		change_1m: data.change_1m ?? null,
 		change_7dover7d: data.change_7dover7d ?? null,
-		openInterest,
-		activeLiquidity
+		openInterest: readModel.openInterest,
+		activeLiquidity: readModel.activeLiquidity
 	}
 }
 
@@ -900,67 +468,56 @@ export const getChainsByAdapterPageData = async ({
 			})
 		])
 
-		const bribesByChain: Record<string, { total24h: number | null; total7d: number | null; total30d: number | null }> =
-			{}
-		const tokenTaxesByChain: Record<
-			string,
-			{ total24h: number | null; total7d: number | null; total30d: number | null }
-		> = {}
-		const openInterestByChain: Record<string, number | null> = {}
-		const activeLiquidityByChain: Record<string, number | null> = {}
+		const chains: IChainsByAdapterPageData['chains'] = []
+		for (const chain of allChains) {
+			const warning =
+				chain === 'Canton' &&
+				(dataType === ADAPTER_DATA_TYPES.DAILY_FEES || dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE)
+					? CANTON_INCENTIVES_WARNING
+					: null
+			const bribes = bribesData[chain]
+				? {
+						total24h: bribesData[chain]?.['24h'] ?? null,
+						total7d: bribesData[chain]?.['7d'] ?? null,
+						total30d: bribesData[chain]?.['30d'] ?? null
+					}
+				: null
+			const tokenTax = tokenTaxesData[chain]
+				? {
+						total24h: tokenTaxesData[chain]?.['24h'] ?? null,
+						total7d: tokenTaxesData[chain]?.['7d'] ?? null,
+						total30d: tokenTaxesData[chain]?.['30d'] ?? null
+					}
+				: null
+			const openInterest = openInterestData[chain]?.['24h'] ?? null
+			const activeLiquidity = activeLiquidityData[chain]?.['24h'] ?? null
 
-		for (const chain in bribesData) {
-			bribesByChain[chain] = {
-				total24h: bribesData[chain]?.['24h'] ?? null,
-				total7d: bribesData[chain]?.['7d'] ?? null,
-				total30d: bribesData[chain]?.['30d'] ?? null
-			}
-		}
-
-		for (const chain in tokenTaxesData) {
-			tokenTaxesByChain[chain] = {
-				total24h: tokenTaxesData[chain]?.['24h'] ?? null,
-				total7d: tokenTaxesData[chain]?.['7d'] ?? null,
-				total30d: tokenTaxesData[chain]?.['30d'] ?? null
-			}
-		}
-
-		for (const chain in openInterestData) {
-			openInterestByChain[chain] = openInterestData[chain]?.['24h'] ?? null
-		}
-
-		for (const chain in activeLiquidityData) {
-			activeLiquidityByChain[chain] = activeLiquidityData[chain]?.['24h'] ?? null
-		}
-
-		const chains = allChains
-			.map((chain) => {
-				const warning =
-					chain === 'Canton' &&
-					(dataType === ADAPTER_DATA_TYPES.DAILY_FEES || dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE)
-						? CANTON_INCENTIVES_WARNING
-						: null
-				return {
-					name: chain,
-					logo: chainIconUrl(chain),
-					total24h: chainsData[chain]?.['24h'] ?? null,
-					total7d: chainsData[chain]?.['7d'] ?? null,
-					total30d: chainsData[chain]?.['30d'] ?? null,
-					...(warning ? { warning } : {}),
-					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
-					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),
-					...(openInterestByChain[chain] ? { openInterest: openInterestByChain[chain] } : {}),
-					...(activeLiquidityByChain[chain] ? { activeLiquidity: activeLiquidityByChain[chain] } : {})
-				}
+			chains.push({
+				name: chain,
+				logo: chainIconUrl(chain),
+				total24h: chainsData[chain]?.['24h'] ?? null,
+				total7d: chainsData[chain]?.['7d'] ?? null,
+				total30d: chainsData[chain]?.['30d'] ?? null,
+				...(warning ? { warning } : {}),
+				...(bribes ? { bribes } : {}),
+				...(tokenTax ? { tokenTax } : {}),
+				...(openInterest ? { openInterest } : {}),
+				...(activeLiquidity ? { activeLiquidity } : {})
 			})
-			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+		}
+
+		chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+		const sortedAllChains: string[] = []
+		for (const chain of chains) {
+			sortedAllChains.push(chain.name)
+		}
 
 		return {
 			adapterType,
 			dataType: dataType ?? null,
 			chartData,
 			chains,
-			allChains: chains.map((c) => c.name)
+			allChains: sortedAllChains
 		}
 	} catch (error) {
 		recordRuntimeError(error, 'pageBuild', { event: 'chainsByAdapter', adapterType, dataType })
@@ -996,27 +553,30 @@ export const getChainsByREVPageData = async ({
 			chain: 'All'
 		})
 
-		const chains = allChains.map((chain, index) => {
+		const chains: IChainsByREVPageData['chains'] = []
+		for (let index = 0; index < allChains.length; index++) {
+			const chain = allChains[index]
 			const chainFees = chainFeesData.protocols.find((p) => p.slug === chain)
-			const protocols = protocolsByChainsData[index].status === 'fulfilled' ? protocolsByChainsData[index].value : null
+			const protocolsResult = protocolsByChainsData[index]
+			const protocols = protocolsResult.status === 'fulfilled' ? protocolsResult.value : null
 			const chainRevProtocols =
 				chain in REV_PROTOCOLS ? new Set(REV_PROTOCOLS[chain as keyof typeof REV_PROTOCOLS]) : new Set<string>()
-			return {
+			let revProtocols24h = 0
+			let revProtocols30d = 0
+			for (const curr of protocols?.protocols ?? []) {
+				if (!chainRevProtocols.has(curr.slug)) continue
+				revProtocols24h += curr.total24h ?? 0
+				revProtocols30d += curr.total30d ?? 0
+			}
+
+			chains.push({
 				name: chainMetadata[chain].name,
 				slug: chain,
 				logo: chainIconUrl(chain),
-				total24h:
-					(chainFees?.total24h ?? 0) +
-					(protocols?.protocols ?? []).reduce((acc, curr) => {
-						return chainRevProtocols.has(curr.slug) ? acc + (curr.total24h ?? 0) : acc
-					}, 0),
-				total30d:
-					(chainFees?.total30d ?? 0) +
-					(protocols?.protocols ?? []).reduce((acc, curr) => {
-						return chainRevProtocols.has(curr.slug) ? acc + (curr.total30d ?? 0) : acc
-					}, 0)
-			}
-		})
+				total24h: (chainFees?.total24h ?? 0) + revProtocols24h,
+				total30d: (chainFees?.total30d ?? 0) + revProtocols30d
+			})
+		}
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {

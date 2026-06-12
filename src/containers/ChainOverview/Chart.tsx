@@ -13,6 +13,9 @@ import {
 	yAxisByChart
 } from './constants'
 
+const BAR_CHARTS_SET = new Set<ChainChartLabels>(BAR_CHARTS)
+const DISABLED_CUMULATIVE_CHARTS_SET = new Set<ChainChartLabels>(DISABLED_CUMULATIVE_CHARTS)
+
 export default function ChainCoreChart({
 	chartData,
 	valueSymbol = '',
@@ -50,24 +53,29 @@ export default function ChainCoreChart({
 		groupBy: tooltipGroupBy
 	})
 
-	const { series, allYAxis } = useMemo(() => {
-		const uniqueYAxis = new Set<ChainChartLabels>()
+	const { series, allYAxis, chartsInSeries } = useMemo(() => {
+		const indexByYAxis = {} as Record<ChainChartLabels, number | undefined>
+		const allYAxis: Array<[ChainChartLabels, number | undefined]> = []
+		const chartsInSeries = new Set<ChainChartLabels>()
 		const stacks: ChainChartLabels[] = []
 		for (const stack in chartData) {
 			const chartLabel = stack as ChainChartLabels
+			const yAxis = yAxisByChart[chartLabel]
 			stacks.push(chartLabel)
-			uniqueYAxis.add(yAxisByChart[chartLabel])
+			chartsInSeries.add(chartLabel)
+			if (!(yAxis in indexByYAxis)) {
+				const yAxisIndex = allYAxis.length === 0 ? undefined : allYAxis.length
+				indexByYAxis[yAxis] = yAxisIndex
+				allYAxis.push([yAxis, yAxisIndex])
+			}
 		}
-
-		const indexByYAxis = Object.fromEntries(
-			Array.from(uniqueYAxis).map((yAxis, index) => [yAxis, index === 0 ? undefined : index])
-		) as Record<ChainChartLabels, number | undefined>
 
 		const series = stacks.map((stack, index) => {
 			const stackColor = chainOverviewChartColors[stack]
+			const data = chartData[stack] ?? []
 
-			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
-			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
+			let type = BAR_CHARTS_SET.has(stack) && !isCumulative ? 'bar' : 'line'
+			type = DISABLED_CUMULATIVE_CHARTS_SET.has(stack) ? 'bar' : type
 
 			const options = {
 				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
@@ -78,7 +86,7 @@ export default function ChainCoreChart({
 				type,
 				...options,
 				scale: true,
-				large: true,
+				large: data.length > 0,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -104,20 +112,11 @@ export default function ChainCoreChart({
 						}
 					: {}),
 				markLine: {},
-				data: chartData[stack] ?? []
+				data
 			}
 		})
 
-		for (const seriesItem of series) {
-			if (seriesItem.data.length === 0) {
-				seriesItem.large = false
-			}
-		}
-
-		return {
-			series,
-			allYAxis: Object.entries(indexByYAxis) as Array<[ChainChartLabels, number | undefined]>
-		}
+		return { series, allYAxis, chartsInSeries }
 	}, [chartData, isThemeDark, isCumulative])
 
 	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
@@ -153,7 +152,6 @@ export default function ChainCoreChart({
 		}
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom } = settings
-		const chartsInSeries = new Set(series.map((s) => s.name))
 		const finalYAxis = buildChainYAxis({
 			allYAxis,
 			baseYAxis: yAxis,
@@ -182,7 +180,17 @@ export default function ChainCoreChart({
 			},
 			{ notMerge: true, lazyUpdate: true }
 		)
-	}, [defaultChartSettings, series, chartOptions, allYAxis, isThemeDark, hideDataZoom, gasUsedValueSymbol, valueSymbol])
+	}, [
+		defaultChartSettings,
+		series,
+		chartOptions,
+		allYAxis,
+		chartsInSeries,
+		isThemeDark,
+		hideDataZoom,
+		gasUsedValueSymbol,
+		valueSymbol
+	])
 
 	return (
 		<div

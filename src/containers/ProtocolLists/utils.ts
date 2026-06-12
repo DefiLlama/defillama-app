@@ -3,10 +3,80 @@ import { getPercentChange } from '~/utils'
 import type { IRecentProtocol } from './types'
 
 interface TvlEntry {
-	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+
+type TvlEntryKey = keyof TvlEntry
+type MutableTvlEntry = Record<TvlEntryKey, number | null>
+
+const TVL_ENTRY_KEYS: Array<TvlEntryKey> = ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth']
+const NON_ADDITIVE_TVL_KEYS = new Set(['doublecounted', 'liquidstaking'])
+
+function getMcapTvl(mcap: number | null, tvl: number | null | undefined): number | null {
+	if (mcap == null || !tvl) return null
+
+	// This is derived arithmetic: numeric API fields can still produce non-finite ratios.
+	const ratio = mcap / tvl
+	return Number.isFinite(ratio) ? +ratio.toFixed(2) : null
+}
+
+function isAdditiveTvlKey(tvlKey: string, extraTvlsEnabled: Record<string, boolean>, normalizeSettingKey: boolean) {
+	const settingKey = normalizeSettingKey ? tvlKey.toLowerCase() : tvlKey
+	return !!extraTvlsEnabled[settingKey] && !NON_ADDITIVE_TVL_KEYS.has(settingKey)
+}
+
+function addRecentProtocolExtraTvls({
+	base,
+	tvlRecord,
+	extraTvlsEnabled
+}: {
+	base: MutableTvlEntry
+	tvlRecord: Record<string, TvlEntry | undefined>
+	extraTvlsEnabled: Record<string, boolean>
+}) {
+	for (const tvlKey in tvlRecord) {
+		if (!isAdditiveTvlKey(tvlKey, extraTvlsEnabled, true)) continue
+
+		const entry = tvlRecord[tvlKey]
+		if (!entry) continue
+
+		for (const field of TVL_ENTRY_KEYS) {
+			const extraValue = entry[field]
+			if (extraValue != null) {
+				base[field] = (base[field] ?? 0) + extraValue
+			}
+		}
+	}
+
+	return base
+}
+
+function addProtocolRankingExtraTvls({
+	base,
+	tvlRecord,
+	extraTvlsEnabled
+}: {
+	base: MutableTvlEntry
+	tvlRecord: Record<string, TvlEntry | undefined>
+	extraTvlsEnabled: Record<string, boolean>
+}) {
+	for (const tvlKey in tvlRecord) {
+		if (!isAdditiveTvlKey(tvlKey, extraTvlsEnabled, false)) continue
+
+		const entry = tvlRecord[tvlKey]
+		if (!entry) continue
+
+		for (const field of TVL_ENTRY_KEYS) {
+			if (base[field] != null) {
+				base[field] += entry[field] ?? 0
+			}
+		}
+	}
+
+	return base
 }
 
 /**
@@ -25,36 +95,21 @@ export function applyExtraTvl(
 	}
 > {
 	return protocols.map((protocol) => {
-		let finalTvl: number | null = protocol.tvl
-		let finalTvlPrevDay: number | null = protocol.tvlPrevDay ?? null
-		let finalTvlPrevWeek: number | null = protocol.tvlPrevWeek ?? null
-		let finalTvlPrevMonth: number | null = protocol.tvlPrevMonth ?? null
+		const tvlEntry = addRecentProtocolExtraTvls({
+			base: {
+				tvl: protocol.tvl,
+				tvlPrevDay: protocol.tvlPrevDay ?? null,
+				tvlPrevWeek: protocol.tvlPrevWeek ?? null,
+				tvlPrevMonth: protocol.tvlPrevMonth ?? null
+			},
+			tvlRecord: protocol.extraTvl,
+			extraTvlsEnabled
+		})
 
-		for (const prop in protocol.extraTvl) {
-			const entry: TvlEntry | undefined = protocol.extraTvl[prop]
-			if (!entry) continue
-
-			const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = entry
-
-			// doublecounted/liquidstaking subtraction logic (applyLqAndDc=false for recent protocols)
-			// Not applied here since RecentProtocols doesn't use applyLqAndDc
-
-			// Add extra TVL if the toggle is enabled (convert key to lowercase for consistency)
-			if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
-				if (tvl != null) {
-					finalTvl = (finalTvl ?? 0) + tvl
-				}
-				if (tvlPrevDay != null) {
-					finalTvlPrevDay = (finalTvlPrevDay ?? 0) + tvlPrevDay
-				}
-				if (tvlPrevWeek != null) {
-					finalTvlPrevWeek = (finalTvlPrevWeek ?? 0) + tvlPrevWeek
-				}
-				if (tvlPrevMonth != null) {
-					finalTvlPrevMonth = (finalTvlPrevMonth ?? 0) + tvlPrevMonth
-				}
-			}
-		}
+		let finalTvl = tvlEntry.tvl
+		let finalTvlPrevDay = tvlEntry.tvlPrevDay
+		let finalTvlPrevWeek = tvlEntry.tvlPrevWeek
+		let finalTvlPrevMonth = tvlEntry.tvlPrevMonth
 
 		// Clamp negative values to 0
 		if (finalTvl != null && finalTvl < 0) finalTvl = 0
@@ -62,9 +117,7 @@ export function applyExtraTvl(
 		if (finalTvlPrevWeek != null && finalTvlPrevWeek < 0) finalTvlPrevWeek = 0
 		if (finalTvlPrevMonth != null && finalTvlPrevMonth < 0) finalTvlPrevMonth = 0
 
-		const mcapNum = protocol.mcap ?? null
-		const tvlNum = finalTvl ?? 0
-		const mcaptvl = mcapNum != null && tvlNum !== 0 ? +(mcapNum / tvlNum).toFixed(2) : null
+		const mcaptvl = getMcapTvl(protocol.mcap ?? null, finalTvl)
 
 		return {
 			...protocol,
@@ -91,19 +144,12 @@ export const applyProtocolTvlSettings = ({
 	minTvl: number | null
 	maxTvl: number | null
 }): IProtocol[] => {
-	type ProtocolTvlEntry = { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-	type MutableProtocolTvlEntry = {
-		tvl: number | null
-		tvlPrevDay: number | null
-		tvlPrevWeek: number | null
-		tvlPrevMonth: number | null
-	}
-	const nullTvlEntry: MutableProtocolTvlEntry = { tvl: null, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: null }
-	const coerceTvlDefaults = (entry: MutableProtocolTvlEntry): ProtocolTvlEntry => ({
+	const nullTvlEntry: MutableTvlEntry = { tvl: null, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: null }
+	const normalizeTvlDefaults = (entry: MutableTvlEntry): TvlEntry => ({
 		tvl: entry.tvl ?? 0,
-		tvlPrevDay: entry.tvlPrevDay ?? 0,
-		tvlPrevWeek: entry.tvlPrevWeek ?? 0,
-		tvlPrevMonth: entry.tvlPrevMonth ?? 0
+		tvlPrevDay: entry.tvlPrevDay,
+		tvlPrevWeek: entry.tvlPrevWeek,
+		tvlPrevMonth: entry.tvlPrevMonth
 	})
 
 	// Use for..in loop instead of Object.values() for better performance
@@ -119,31 +165,12 @@ export const applyProtocolTvlSettings = ({
 
 	if (!shouldModifyTvl) return protocols
 
-	const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
-		if (acc == null || value == null) return null
-		return acc + value
-	}
-
-	const getTvlEntry = (tvlRecord: Record<string, ProtocolTvlEntry>, key: string): ProtocolTvlEntry | undefined =>
-		tvlRecord[key]
-
-	const processTvl = (
-		tvlRecord: Record<string, ProtocolTvlEntry>,
-		base: MutableProtocolTvlEntry
-	): MutableProtocolTvlEntry => {
-		for (const tvlKey in tvlRecord) {
-			if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
-				const entry = getTvlEntry(tvlRecord, tvlKey)
-				if (entry) {
-					base.tvl = addOrNull(base.tvl, entry.tvl)
-					base.tvlPrevDay = addOrNull(base.tvlPrevDay, entry.tvlPrevDay)
-					base.tvlPrevWeek = addOrNull(base.tvlPrevWeek, entry.tvlPrevWeek)
-					base.tvlPrevMonth = addOrNull(base.tvlPrevMonth, entry.tvlPrevMonth)
-				}
-			}
-		}
-		return base
-	}
+	const processTvl = (tvlRecord: Record<string, TvlEntry>, base: MutableTvlEntry): MutableTvlEntry =>
+		addProtocolRankingExtraTvls({
+			base,
+			tvlRecord,
+			extraTvlsEnabled
+		})
 
 	const final: IProtocol[] = []
 	for (const protocol of protocols) {
@@ -153,7 +180,7 @@ export const applyProtocolTvlSettings = ({
 			}
 		} else {
 			let strikeTvl = protocol.strikeTvl ?? false
-			const defaultTvl: MutableProtocolTvlEntry = { ...(protocol.tvl?.default ?? nullTvlEntry) }
+			const defaultTvl: MutableTvlEntry = { ...(protocol.tvl?.default ?? nullTvlEntry) }
 
 			if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
 				strikeTvl = false
@@ -167,13 +194,13 @@ export const applyProtocolTvlSettings = ({
 				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 			}
 
-			const mcaptvl = protocol.mcap != null && defaultTvl.tvl ? +(protocol.mcap / defaultTvl.tvl).toFixed(2) : null
+			const mcaptvl = getMcapTvl(protocol.mcap, defaultTvl.tvl)
 
 			if (protocol.childProtocols) {
 				const childProtocols: IProtocol['childProtocols'] = []
 				for (const child of protocol.childProtocols) {
 					let childStrikeTvl = child.strikeTvl ?? false
-					const childDefaultTvl: MutableProtocolTvlEntry = { ...(child.tvl?.default ?? nullTvlEntry) }
+					const childDefaultTvl: MutableTvlEntry = { ...(child.tvl?.default ?? nullTvlEntry) }
 
 					if (childStrikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
 						childStrikeTvl = false
@@ -189,14 +216,13 @@ export const applyProtocolTvlSettings = ({
 						change1m: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevMonth)
 					}
 
-					const childMcapTvl =
-						child.mcap != null && childDefaultTvl.tvl ? +(child.mcap / childDefaultTvl.tvl).toFixed(2) : null
+					const childMcapTvl = getMcapTvl(child.mcap, childDefaultTvl.tvl)
 
 					if (
 						(minTvl != null ? (childDefaultTvl.tvl ?? 0) >= minTvl : true) &&
 						(maxTvl != null ? (childDefaultTvl.tvl ?? 0) <= maxTvl : true)
 					) {
-						const normalizedChildDefaultTvl = coerceTvlDefaults(childDefaultTvl)
+						const normalizedChildDefaultTvl = normalizeTvlDefaults(childDefaultTvl)
 						childProtocols.push({
 							...child,
 							strikeTvl: childStrikeTvl,
@@ -210,7 +236,7 @@ export const applyProtocolTvlSettings = ({
 					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
 					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
 				) {
-					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
+					const normalizedDefaultTvl = normalizeTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,
@@ -225,7 +251,7 @@ export const applyProtocolTvlSettings = ({
 					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
 					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
 				) {
-					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
+					const normalizedDefaultTvl = normalizeTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,

@@ -69,6 +69,7 @@ Important rules:
 - Chain-native fee/revenue chart requests intentionally use the adapter protocol chart path with `entity=chain`.
 - Do not replace Chain Revenue with app revenue aggregation or vice versa.
 - REV is not currently a ChainOverview chart metric.
+- Bribes and token taxes are optional display add-ons for Chain Fees, Chain Revenue, App Fees, and App Revenue when the corresponding filter toggles are exposed. Chain-native labels use adapter protocol chain extras; app labels use adapter chain extras. `totalREV24h` is not adjusted by those toggles.
 
 ## TVL Notes
 
@@ -76,17 +77,26 @@ ChainOverview receives base and extra TVL chart data from the chain chart API an
 
 Be careful with:
 
-- `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `doublecounted`, `liquidstaking`, and `dcAndLsOverlap`
+- TVL chart keys such as `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `doublecounted`, and `liquidstaking`
+- `dcAndLsOverlap` is not a toggle key. It is overlap adjustment data used when both `doublecounted` and `liquidstaking` are included so the shared TVL is not added twice.
 - local storage namespace differences such as `tvl` and `tvl_chains`
 - chain chart behavior versus protocol table TVL behavior
 
 Do not move TVL behavior into `src/metrics` without first inventorying the route families and adding characterization tests.
+
+## Bridged TVL Notes
+
+ChainOverview can show a Bridged TVL key metric card from current `/chain-assets/chains` totals. The historical Bridged TVL chart is different data: it depends on the precomputed backend `/chain-assets/chart/:chain-slug` route and is exposed from chain metadata `chainAssets`, even when the current totals fetch is missing or failed.
+
+The chart semantics are one millisecond timestamp point per day with `total`, plus `ownTokens` when `govtokens` is enabled. Non-USD denomination conversion uses the same millisecond timestamp for the combined value.
 
 ## Tests
 
 Relevant tests today:
 
 - `__tests__/queries.server.test.ts`
+- `__tests__/tvlChart.test.ts`
+- `__tests__/chartDataTransforms.test.ts`
 - `__tests__/chartMetricSemantics.test.tsx`
 - `__tests__/chain-chart-page.test.tsx`
 - `__tests__/KeyMetrics.test.tsx`
@@ -96,6 +106,7 @@ Focused commands:
 
 ```bash
 bun run test src/containers/ChainOverview/__tests__/queries.server.test.ts
+bun run test src/containers/ChainOverview/__tests__/tvlChart.test.ts src/containers/ChainOverview/__tests__/chartDataTransforms.test.ts
 bun run test src/containers/ChainOverview/__tests__/chartMetricSemantics.test.tsx
 bun run test src/containers/ChainOverview/__tests__/chain-chart-page.test.tsx src/containers/ChainOverview/__tests__/KeyMetrics.test.tsx
 ```

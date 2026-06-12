@@ -16,7 +16,6 @@ import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups, getPrimaryRwaCategory, getRwaPlatforms } from './grouping'
 
 export type RWAChartMetric = RWAChartMetricKey
-type RWAOpenInterestSourceRow = Record<string, number | string>
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
@@ -86,35 +85,34 @@ export function selectRwaChartDatasetSeries(dataset: RWAChartDataset, seriesDime
 
 export function buildRwaOpenInterestDataset(
 	assets: IRWAAssetsOverview['assets'],
-	dataset: { source: RWAOpenInterestSourceRow[]; dimensions: string[] }
+	dataset: RWAChartDataset
 ): RWAChartDataset {
-	const contracts = new Set(
-		assets
-			.filter((asset) => asset.kind === 'perps')
-			.map((asset) => asset.contract)
-			.filter(Boolean)
-	)
+	const contracts = new Set<string>()
+	for (const asset of assets) {
+		if (asset.kind !== 'perps') continue
+		if (asset.contract) contracts.add(asset.contract)
+	}
 
 	if (contracts.size === 0 || dataset.source.length === 0) return emptyChartDataset()
 
 	let hasOpenInterestData = false
-	const source = dataset.source.map((row) => {
+	const source: RWAChartDataset['source'] = []
+	for (const row of dataset.source) {
 		let totalOpenInterest = 0
 
 		for (const contract of contracts) {
 			const value = row[contract]
-			const numericValue = typeof value === 'number' ? value : Number(value)
-			if (Number.isFinite(numericValue)) {
+			if (value != null) {
 				hasOpenInterestData = true
-				totalOpenInterest += numericValue
+				totalOpenInterest += value
 			}
 		}
 
-		return {
-			timestamp: Number(row.timestamp),
+		source.push({
+			timestamp: row.timestamp,
 			[RWA_OPEN_INTEREST_SERIES_LABEL]: totalOpenInterest
-		}
-	})
+		})
+	}
 
 	if (!hasOpenInterestData) {
 		return emptyChartDataset()
@@ -190,9 +188,11 @@ function aggregateMetricRows(
 		const outRow: RWAChartRow = { timestamp: row.timestamp }
 		let hasData = false
 
-		for (const [assetKey, value] of Object.entries(row)) {
+		for (const assetKey in row) {
+			if (!Object.prototype.hasOwnProperty.call(row, assetKey)) continue
 			if (assetKey === 'timestamp') continue
-			if (!Number.isFinite(value) || value === 0) continue
+			const value = row[assetKey]
+			if (value == null || value === 0) continue
 
 			const groups = assetToGroups.get(assetKey)
 			if (!groups || groups.size === 0) continue
@@ -226,13 +226,15 @@ function buildAggregatedRwaDataset(
 }
 
 export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
-	const arr = Array.from(keys).filter(Boolean)
+	const arr: string[] = []
+	for (const key of keys) {
+		if (key) arr.push(key)
+	}
 	if (arr.length === 0) return arr
 
 	let latestRow: RWAChartRow | null = null
 	let latestTimestamp = Number.NEGATIVE_INFINITY
 	for (const row of rows) {
-		if (!Number.isFinite(row.timestamp)) continue
 		if (row.timestamp >= latestTimestamp) {
 			latestTimestamp = row.timestamp
 			latestRow = row
@@ -245,8 +247,8 @@ export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterab
 
 		const aValueRaw = latestRow?.[a]
 		const bValueRaw = latestRow?.[b]
-		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
-		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
+		const aValue = aValueRaw ?? 0
+		const bValue = bValueRaw ?? 0
 		if (aValue !== bValue) return bValue - aValue
 		return a.localeCompare(b)
 	})

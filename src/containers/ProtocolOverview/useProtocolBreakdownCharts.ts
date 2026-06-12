@@ -28,7 +28,7 @@ interface IUseProtocolBreakdownChartsParams {
 
 type FailedQueryCategory = 'tvl' | 'chain-breakdown' | 'token-breakdown-usd' | 'token-breakdown-raw'
 
-export interface IFailedChartQuery {
+interface IFailedChartQuery {
 	category: FailedQueryCategory
 	/** The key parameter for this query (`undefined` = base/aggregate) */
 	key: string | undefined
@@ -62,7 +62,7 @@ type IUseProtocolBreakdownChartsComputed = Omit<IUseProtocolBreakdownChartsResul
 const getLatestChartTimestamp = (chart: Array<[number, unknown]>): number | null => {
 	if (chart.length === 0) return null
 	const lastPoint = chart[chart.length - 1]
-	return lastPoint && Number.isFinite(lastPoint[0]) ? lastPoint[0] : null
+	return lastPoint?.[0] ?? null
 }
 
 /**
@@ -149,7 +149,6 @@ const buildUsdInflowsFromTvlChart = (
 	for (let i = 1; i < tvlChart.length; i++) {
 		const [timestamp, value] = tvlChart[i]
 		const previousValue = tvlChart[i - 1][1]
-		if (!Number.isFinite(value) || !Number.isFinite(previousValue)) continue
 		inflows.push([timestamp, value - previousValue])
 	}
 
@@ -227,18 +226,19 @@ const buildTokenInflowsFromBreakdowns = (
 			const currentAmount = currentRaw[token] ?? 0
 			const previousAmount = previousRaw[token] ?? 0
 			const amountDiff = currentAmount - previousAmount
-			if (!Number.isFinite(amountDiff) || amountDiff === 0) continue
+			if (amountDiff === 0) continue
 
-			let price = Number.NaN
-			if (currentAmount !== 0 && Number.isFinite(currentUsd[token])) {
-				price = currentUsd[token] / currentAmount
-			} else if (previousAmount !== 0 && Number.isFinite(previousUsd[token])) {
-				price = previousUsd[token] / previousAmount
+			let price: number | null = null
+			const currentUsdValue = currentUsd[token]
+			const previousUsdValue = previousUsd[token]
+			if (currentAmount !== 0 && currentUsdValue != null) {
+				price = currentUsdValue / currentAmount
+			} else if (previousAmount !== 0 && previousUsdValue != null) {
+				price = previousUsdValue / previousAmount
 			}
-			if (!Number.isFinite(price)) continue
+			if (price == null) continue
 
 			const inflow = amountDiff * price
-			if (!Number.isFinite(inflow)) continue
 
 			point[token] = inflow
 			hasTokenInflows = true
@@ -306,7 +306,7 @@ const EMPTY_COMPUTED_RESULT: IUseProtocolBreakdownChartsComputed = {
 	tokenInflowsCharts: EMPTY_MULTI_SERIES_CHARTS
 }
 
-const buildComputedBreakdownResult = ({
+export const buildComputedBreakdownResult = ({
 	tvlCharts,
 	chainBreakdownCharts,
 	tokenBreakdownUsdCharts,
@@ -335,13 +335,14 @@ const buildComputedBreakdownResult = ({
 			: null
 	const chainsCharts = chainsDataset != null ? buildChartsForKeys(chainsUnique, 'line') : EMPTY_MULTI_SERIES_CHARTS
 
-	const valueDataset =
-		tvlChart && tvlChart.length > 1
-			? {
-					source: tvlChart.map(([timestamp, value]) => ({ timestamp, [valueSeriesName]: value })),
-					dimensions: ['timestamp', valueSeriesName]
-				}
-			: null
+	let valueDataset: MultiSeriesChart2Dataset | null = null
+	if (tvlChart && tvlChart.length > 1) {
+		const source: MultiSeriesChart2Dataset['source'] = []
+		for (const [timestamp, value] of tvlChart) {
+			source.push({ timestamp, [valueSeriesName]: value })
+		}
+		valueDataset = { source, dimensions: ['timestamp', valueSeriesName] }
+	}
 	const valueCharts =
 		valueDataset != null
 			? [
@@ -430,12 +431,14 @@ const buildComputedBreakdownResult = ({
 	const usdInflows = buildUsdInflowsFromTvlChart(tvlChart)
 	const tokenInflows = buildTokenInflowsFromBreakdowns(tokenBreakdownUSD, tokenBreakdown, tokensUnique)
 
-	const usdInflowsDataset = usdInflows?.length
-		? {
-				source: usdInflows.map(([timestamp, value]) => ({ timestamp, 'USD Inflows': value })),
-				dimensions: ['timestamp', 'USD Inflows'] as ['timestamp', 'USD Inflows']
-			}
-		: null
+	let usdInflowsDataset: InflowsDataset | null = null
+	if (usdInflows?.length) {
+		const source: InflowsDataset['source'] = []
+		for (const [timestamp, value] of usdInflows) {
+			source.push({ timestamp, 'USD Inflows': value })
+		}
+		usdInflowsDataset = { source, dimensions: ['timestamp', 'USD Inflows'] }
+	}
 
 	const tokenInflowsDataset = tokenInflows?.length
 		? {

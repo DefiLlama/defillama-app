@@ -8,6 +8,7 @@ import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
 import type { IChainMetadata } from '~/utils/metadata/types'
+import { shouldSubtractTvlOverlapSeries } from '~/utils/tvlOverlap'
 import { normalizeChainsBaseTvlValue, removeStaleChainExtraTvlEntries } from './tvl'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
 
@@ -48,7 +49,7 @@ function buildChainsByCategoryChartData({
 			includedTvlTypes.add(key)
 		}
 	}
-	if (includedTvlTypes.has('doublecounted') && includedTvlTypes.has('liquidstaking') && 'dcAndLsOverlap' in tvlTypes) {
+	if (shouldSubtractTvlOverlapSeries(includedTvlTypes) && 'dcAndLsOverlap' in tvlTypes) {
 		includedTvlTypes.add('dcAndLsOverlap')
 	}
 

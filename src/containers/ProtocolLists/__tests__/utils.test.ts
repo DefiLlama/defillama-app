@@ -6,7 +6,12 @@ import { applyExtraTvl, applyProtocolTvlSettings } from '../utils'
 type ProtocolTvlRecord = NonNullable<IProtocol['tvl']>
 type ProtocolTvlEntry = ProtocolTvlRecord['default']
 
-const makeTvlEntry = (tvl: number, tvlPrevDay = tvl, tvlPrevWeek = tvl, tvlPrevMonth = tvl): ProtocolTvlEntry => ({
+const makeTvlEntry = (
+	tvl: number | null,
+	tvlPrevDay: number | null = tvl,
+	tvlPrevWeek: number | null = tvl,
+	tvlPrevMonth: number | null = tvl
+): ProtocolTvlEntry => ({
 	tvl,
 	tvlPrevDay,
 	tvlPrevWeek,
@@ -82,6 +87,27 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.mcaptvl).toBe(8.33)
 	})
 
+	it('keeps mixed-case recent protocol doublecounted and liquid staking extras non-additive', () => {
+		const [protocol] = applyExtraTvl(
+			[
+				makeRecentProtocol({
+					extraTvl: {
+						Staking: makeTvlEntry(20),
+						Doublecounted: makeTvlEntry(500),
+						LiquidStaking: makeTvlEntry(600)
+					}
+				})
+			],
+			{ staking: true, doublecounted: true, liquidstaking: true }
+		)
+
+		expect(protocol.tvl).toBe(120)
+		expect(protocol.tvlPrevDay).toBe(100)
+		expect(protocol.tvlPrevWeek).toBe(70)
+		expect(protocol.tvlPrevMonth).toBe(45)
+		expect(protocol.change_1d).toBe(20)
+	})
+
 	it('clamps negative recent protocol TVL values after enabled extras are applied', () => {
 		const [protocol] = applyExtraTvl(
 			[
@@ -103,6 +129,20 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.tvlPrevWeek).toBe(0)
 		expect(protocol.tvlPrevMonth).toBe(0)
 		expect(protocol.change_1d).toBeNull()
+		expect(protocol.mcaptvl).toBeNull()
+	})
+
+	it('returns null for non-finite recent protocol market-cap-to-tvl ratios', () => {
+		const [protocol] = applyExtraTvl(
+			[
+				makeRecentProtocol({
+					tvl: Number.MIN_VALUE,
+					mcap: Number.MAX_VALUE
+				})
+			],
+			{}
+		)
+
 		expect(protocol.mcaptvl).toBeNull()
 	})
 
@@ -128,6 +168,114 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, 100, 70, 45))
 		expect(protocol.tvlChange?.change1d).toBe(20)
 		expect(protocol.mcaptvl).toBe(8.33)
+	})
+
+	it('returns null for non-finite protocol table market-cap-to-tvl ratios', () => {
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					mcap: Number.MAX_VALUE,
+					tvl: makeProtocolTvl({
+						default: makeTvlEntry(Number.MIN_VALUE)
+					})
+				})
+			],
+			extraTvlsEnabled: {},
+			minTvl: null,
+			maxTvl: null
+		})
+
+		expect(protocol.mcaptvl).toBeNull()
+	})
+
+	it('treats missing additive extra fields as zero when protocol table base fields exist', () => {
+		const staking = {
+			tvl: 20,
+			tvlPrevDay: null,
+			tvlPrevWeek: 10,
+			tvlPrevMonth: null
+		} as unknown as ProtocolTvlEntry
+
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					tvl: makeProtocolTvl({
+						default: makeTvlEntry(100, 80, 50, 25),
+						staking
+					})
+				})
+			],
+			extraTvlsEnabled: { staking: true },
+			minTvl: null,
+			maxTvl: null
+		})
+
+		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, 80, 60, 25))
+	})
+
+	it('keeps unknown protocol table base fields unknown even when additive extras exist', () => {
+		const defaultTvl = {
+			tvl: 100,
+			tvlPrevDay: null,
+			tvlPrevWeek: 50,
+			tvlPrevMonth: null
+		} as unknown as ProtocolTvlEntry
+
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					tvl: makeProtocolTvl({
+						default: defaultTvl,
+						staking: makeTvlEntry(20)
+					})
+				})
+			],
+			extraTvlsEnabled: { staking: true },
+			minTvl: null,
+			maxTvl: null
+		})
+
+		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, null, 70, null))
+		expect(protocol.tvlChange?.change1d).toBeNull()
+		expect(protocol.tvlChange?.change1m).toBeNull()
+	})
+
+	it('keeps unknown child protocol table fields unknown after enabled extras are applied', () => {
+		const childDefaultTvl = {
+			tvl: 70,
+			tvlPrevDay: null,
+			tvlPrevWeek: 50,
+			tvlPrevMonth: null
+		} as ProtocolTvlEntry
+
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					tvl: makeProtocolTvl({
+						default: makeTvlEntry(90),
+						staking: makeTvlEntry(20)
+					}),
+					childProtocols: [
+						makeProtocol({
+							name: 'Child Protocol',
+							slug: 'child-protocol',
+							tvl: makeProtocolTvl({
+								default: childDefaultTvl,
+								staking: makeTvlEntry(20)
+							})
+						})
+					]
+				})
+			],
+			extraTvlsEnabled: { staking: true },
+			minTvl: null,
+			maxTvl: null
+		})
+
+		const child = protocol.childProtocols?.[0]
+		expect(child?.tvl?.default).toEqual(makeTvlEntry(90, null, 70, null))
+		expect(child?.tvlChange?.change1d).toBeNull()
+		expect(child?.tvlChange?.change1m).toBeNull()
 	})
 
 	it('filters child protocol rows after enabled extras are applied', () => {

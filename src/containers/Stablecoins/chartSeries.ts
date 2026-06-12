@@ -116,7 +116,7 @@ export const getTopStablecoinFromLatestPoints = ({
 		const chart = chartDataByAssetOrChain[i]
 		const latestPoint = chart?.[chart.length - 1]
 		const mcap = getStablecoinValueFromPoint(latestPoint, issuanceType)
-		if (typeof mcap !== 'number' || !Number.isFinite(mcap) || mcap <= topMcap) continue
+		if (mcap == null || mcap <= topMcap) continue
 		topMcap = mcap
 		topSymbol = symbol
 	}
@@ -151,7 +151,6 @@ export const buildTotalMcapPayload = (
 		const source: MultiSeriesChart2Dataset['source'] = []
 		for (const [date, values] of stackedDataset) {
 			const timestamp = Number(date) * 1e3
-			if (!Number.isFinite(timestamp)) continue
 			let total = 0
 			for (const name in values) {
 				const value = values[name]
@@ -175,9 +174,8 @@ export const buildTotalMcapPayload = (
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of peggedAreaTotalData) {
 		const timestamp = Number(point.date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
-		const value = Number(point[totalName] ?? point.Mcap ?? 0)
-		source.push({ timestamp, [totalName]: Number.isFinite(value) ? value : 0 })
+		const value = totalName === 'Mcap' ? point.Mcap : ((point[totalName] as number | undefined) ?? point.Mcap)
+		source.push({ timestamp, [totalName]: value ?? 0 })
 	}
 
 	const charts = totalName === 'Circulating' ? TOTAL_CIRC_CHARTS : TOTAL_MCAP_CHARTS
@@ -211,11 +209,10 @@ export const buildAreaPayload = (
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of peggedAreaChartData) {
 		const timestamp = Number(point.date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const row: MultiSeriesChart2Dataset['source'][number] = { timestamp }
 		for (const name of chartNames) {
 			const value = point[name]
-			if (typeof value === 'number' && Number.isFinite(value)) row[name] = value
+			if (value != null) row[name] = value
 		}
 		source.push(row)
 	}
@@ -255,7 +252,6 @@ export const buildDominancePayload = (
 
 	for (const [date, values] of stackedDataset) {
 		const timestamp = Number(date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const dayValues: Record<string, number> = {}
 		let total = 0
 		for (const name of chartNames) {
@@ -294,7 +290,6 @@ export const buildUsdInflowsPayload = (params: IBuildStablecoinChartDataParams):
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const [date, value] of usdInflows) {
 		const timestamp = Number(date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		source.push({ timestamp, Inflows: value })
 	}
 	return {
@@ -310,11 +305,10 @@ export const buildTokenInflowsPayload = (params: IBuildStablecoinChartDataParams
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of tokenInflows) {
 		const timestamp = Number(point.date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 		const row: MultiSeriesChart2Dataset['source'][number] = { timestamp }
 		for (const name of tokenInflowNames) {
 			const value = point[name]
-			if (typeof value === 'number' && Number.isFinite(value)) row[name] = value
+			if (value != null) row[name] = value
 		}
 		source.push(row)
 	}
@@ -325,7 +319,8 @@ export const buildTokenInflowsPayload = (params: IBuildStablecoinChartDataParams
 			name,
 			encode: { x: 'timestamp', y: name },
 			color: TOKEN_COLORS[name] ?? CHART_COLORS[i % CHART_COLORS.length],
-			stack: 'tokenInflows'
+			stack: 'tokenInflows',
+			large: false
 		})),
 		stacked: true,
 		showTotalInTooltip: true

@@ -9,6 +9,10 @@ interface ChartDataPoint {
 
 type ResponseData = [number, number][] | { error: string }
 
+// Historical P/F-P/S charts use a rolling 30d run-rate because lens.metrics_protocol_daily
+// does not expose historical annualized1y values.
+const ROLLING_30D_ANNUALIZATION_FACTOR = 12
+
 async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
@@ -52,15 +56,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			SELECT
 				EXTRACT(EPOCH FROM date)::bigint AS timestamp,
 				CASE
-					WHEN $2 = 'pf' AND fees_30d > 0 THEN mcap / (fees_30d * 12)
-					WHEN $2 = 'ps' AND revenue_30d > 0 THEN mcap / (revenue_30d * 12)
+					WHEN $2 = 'pf' AND fees_30d > 0 THEN mcap / (fees_30d * $3)
+					WHEN $2 = 'ps' AND revenue_30d > 0 THEN mcap / (revenue_30d * $3)
 					ELSE NULL
 				END AS ratio
 			FROM rolling
 			WHERE date >= CURRENT_DATE - INTERVAL '365 day'
 			ORDER BY date ASC
 			`,
-			[protocol, type]
+			[protocol, type, ROLLING_30D_ANNUALIZATION_FACTOR]
 		)
 
 		const result: [number, number][] = rows

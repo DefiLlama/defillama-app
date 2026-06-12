@@ -5,11 +5,14 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { FEATURES_SERVER } from '~/constants'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
+import { AuthorProfileStrip } from '~/containers/ProDashboard/components/AuthorProfileStrip'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
 import { DashboardDiscovery } from '~/containers/ProDashboard/components/DashboardDiscovery'
 import { DashboardList } from '~/containers/ProDashboard/components/DashboardList'
 import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
+import { FollowingShelves } from '~/containers/ProDashboard/components/FollowingShelves'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
+import { MyProfileTab } from '~/containers/ProDashboard/components/MyProfileTab'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import {
@@ -47,15 +50,38 @@ type ProPageProps = {
 	initialDiscoveryCategories: DiscoveryCategoriesInitialData
 }
 
+function compactDiscoveryAuthor(author: Dashboard['author']): Dashboard['author'] {
+	if (
+		!author?.slug ||
+		!author.displayName ||
+		typeof author.createdAt !== 'string' ||
+		typeof author.updatedAt !== 'string'
+	) {
+		return undefined
+	}
+	return {
+		slug: author.slug,
+		displayName: author.displayName,
+		bio: author.bio ?? null,
+		avatarUrl: author.avatarUrl ?? null,
+		socials: author.socials || {},
+		createdAt: author.createdAt,
+		updatedAt: author.updatedAt
+	}
+}
+
 function compactDiscoveryDashboard(dashboard: Dashboard): Dashboard {
+	const author = compactDiscoveryAuthor(dashboard.author)
 	return {
 		id: dashboard.id,
+		slug: dashboard.slug,
 		visibility: dashboard.visibility,
 		tags: Array.isArray(dashboard.tags) ? dashboard.tags.filter((tag) => typeof tag === 'string' && tag.trim()) : [],
 		description: typeof dashboard.description === 'string' ? dashboard.description : '',
 		viewCount: dashboard.viewCount,
 		likeCount: dashboard.likeCount,
 		liked: dashboard.liked,
+		...(author ? { author } : {}),
 		created: dashboard.created,
 		updated: dashboard.updated,
 		editedAt: dashboard.editedAt,
@@ -170,7 +196,7 @@ function ProPageContent({ initialDiscoveryCategories }: ProPageProps) {
 	)
 }
 
-const tabs = ['my-dashboards', 'discover', 'favorites'] as const
+const tabs = ['my-dashboards', 'discover', 'favorites', 'following', 'profile'] as const
 type ProTab = (typeof tabs)[number]
 
 const tabClassName =
@@ -326,6 +352,32 @@ function ProContent({
 							Favorites
 						</button>
 					) : null}
+					{isAuthenticated ? (
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'following'}
+							onClick={() => switchTab('following')}
+							data-active={activeTab === 'following'}
+							data-umami-event="dashboard-open-following"
+							className={tabClassName}
+						>
+							Following
+						</button>
+					) : null}
+					{isAuthenticated ? (
+						<button
+							type="button"
+							role="tab"
+							aria-selected={activeTab === 'profile'}
+							onClick={() => switchTab('profile')}
+							data-active={activeTab === 'profile'}
+							data-umami-event="dashboard-open-my-profile"
+							className={tabClassName}
+						>
+							My Profile
+						</button>
+					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
@@ -378,6 +430,8 @@ function ProContent({
 					aria-hidden={activeTab !== 'my-dashboards'}
 					className={activeTab === 'my-dashboards' ? 'flex flex-col gap-4' : 'hidden'}
 				>
+					<AuthorProfileStrip />
+
 					{!isLoadingMyDashboards ? (
 						<p className="text-xs text-(--text-label)">
 							Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
@@ -456,6 +510,22 @@ function ProContent({
 					className={activeTab === 'favorites' ? 'flex flex-col gap-4' : 'hidden'}
 				>
 					<LikedDashboards />
+				</div>
+			) : null}
+
+			{isAuthenticated ? (
+				<div
+					role="tabpanel"
+					aria-hidden={activeTab !== 'following'}
+					className={activeTab === 'following' ? 'flex flex-col gap-4' : 'hidden'}
+				>
+					<FollowingShelves />
+				</div>
+			) : null}
+
+			{isAuthenticated && activeTab === 'profile' ? (
+				<div role="tabpanel" className="flex flex-col gap-6">
+					<MyProfileTab />
 				</div>
 			) : null}
 

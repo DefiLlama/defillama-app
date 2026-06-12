@@ -15,9 +15,9 @@ export function useDashboardEngagement(dashboardId: string | null) {
 		onSuccess: (data) => {
 			if (!dashboardId || !data) return
 			queryClient.setQueriesData(
-				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
+				{ queryKey: ['pro-dashboard', 'dashboard'], exact: false },
 				(oldData: Dashboard | undefined) => {
-					if (!oldData) return oldData
+					if (!oldData || oldData.id !== dashboardId) return oldData
 					return { ...oldData, ...data }
 				}
 			)
@@ -39,9 +39,9 @@ export function useDashboardEngagement(dashboardId: string | null) {
 		onSuccess: (data) => {
 			if (!data) return
 			queryClient.setQueriesData(
-				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
+				{ queryKey: ['pro-dashboard', 'dashboard'], exact: false },
 				(oldData: Dashboard | undefined) => {
-					if (!oldData) return oldData
+					if (!oldData || oldData.id !== dashboardId) return oldData
 					return {
 						...oldData,
 						likeCount: data.likeCount,
@@ -49,6 +49,7 @@ export function useDashboardEngagement(dashboardId: string | null) {
 					}
 				}
 			)
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'liked-dashboards'] })
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
 		onError: (error: unknown) => {

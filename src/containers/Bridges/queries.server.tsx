@@ -383,7 +383,7 @@ function buildTableDataByChain({
 
 export const getBridges = () => fetchBridges(true).then(({ bridges, chains }) => ({ bridges, chains }))
 
-const getChainVolumeData = async (chain: string, chainCoingeckoIds: Record<string, unknown>) => {
+const getChainVolumeData = async (chain: string, chainCoingeckoIds: LlamaConfigResponse['chainCoingeckoIds']) => {
 	if (chain) {
 		if (chainCoingeckoIds[chain]) {
 			const chart: RawBridgeVolumePoint[] = await retryAsync(() => fetchBridgeVolumeByChain(chain), {
@@ -682,7 +682,7 @@ function buildBridgeChainsMultiSeriesChart({
 		// Use per-series stacks so selected chains render as clustered bars (not stacked).
 		stack: name,
 		color: CHART_COLORS[i % CHART_COLORS.length],
-		large: true
+		large: false
 	}))
 
 	return {

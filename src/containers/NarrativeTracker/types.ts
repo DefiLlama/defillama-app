@@ -4,7 +4,7 @@ import type { TimeSeriesEntry } from './api.types'
 export interface IPctChangeRow {
 	id: string
 	name: string
-	mcap: number
+	mcap: number | null
 	volume1D: number | null
 	nbCoins?: number
 	categoryName?: string

@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useCallback } from 'react'
 import toast from 'react-hot-toast'
-import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import { dashboardAPI, dashboardUrlKey } from '~/containers/ProDashboard/services/DashboardAPI'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
@@ -59,7 +59,7 @@ export const useDashboardCreation = () => {
 		},
 		onSuccess: (dashboard) => {
 			toast.success('Dashboard created successfully')
-			void router.push(`/pro/${dashboard.id}`)
+			void router.push(`/pro/${dashboardUrlKey(dashboard)}`)
 		},
 		onError: (error: unknown) => {
 			console.log('Error creating dashboard:', error)

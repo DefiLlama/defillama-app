@@ -1,28 +1,111 @@
 export const RWA_OPEN_INTEREST_SERIES_LABEL = 'RWA Perps OI'
 
-export type RWAChartRow = { timestamp: number } & Record<string, number>
+export type RWAChartSeriesValue = number | null | undefined
+export type RWAChartRow = { timestamp: number } & Record<string, RWAChartSeriesValue>
 export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
+export type RwaNamedValue = { name: string; value: number }
+
+export const RWA_MAX_HORIZONTAL_BARS = 9
 
 export function emptyChartDataset(): RWAChartDataset {
 	return { source: [], dimensions: ['timestamp'] }
 }
 
-export function appendRwaChartDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
-	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
+export function toFiniteRwaChartValue(value: unknown): number {
+	const numeric = typeof value === 'number' ? value : Number(value)
+	return Number.isFinite(numeric) ? numeric : 0
+}
+
+export function buildRwaChartDatasetTotal({
+	dataset,
+	totalLabel = 'Total',
+	onlyTotal = false,
+	isSeriesDimension
+}: {
+	dataset: RWAChartDataset
+	totalLabel?: string
+	onlyTotal?: boolean
+	isSeriesDimension?: (dimension: string) => boolean
+}): RWAChartDataset {
 	if (dataset.source.length === 0) return emptyChartDataset()
-	if (seriesDimensions.length === 0) return dataset
+
+	const seriesDimensions: string[] = []
+	for (const dimension of dataset.dimensions) {
+		const includeSeries = isSeriesDimension
+			? isSeriesDimension(dimension)
+			: dimension !== 'timestamp' && dimension !== totalLabel
+		if (includeSeries) {
+			seriesDimensions.push(dimension)
+		}
+	}
+	if (seriesDimensions.length === 0) return onlyTotal ? emptyChartDataset() : dataset
+
+	const source: RWAChartDataset['source'] = []
+	for (const row of dataset.source) {
+		const nextRow: RWAChartRow = { timestamp: row.timestamp }
+		if (!onlyTotal) {
+			for (const key in row) {
+				nextRow[key] = row[key]
+			}
+		}
+
+		let total = 0
+		for (const dimension of seriesDimensions) {
+			total += row[dimension] ?? 0
+		}
+		nextRow[totalLabel] = total
+		source.push(nextRow)
+	}
+
+	if (onlyTotal) {
+		return {
+			source,
+			dimensions: ['timestamp', totalLabel]
+		}
+	}
 
 	return {
-		source: dataset.source.map((row) => ({
-			...row,
-			Total: seriesDimensions.reduce((sum, dimension) => {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				return Number.isFinite(numericValue) ? sum + numericValue : sum
-			}, 0)
-		})),
-		dimensions: ['timestamp', 'Total', ...seriesDimensions]
+		source,
+		dimensions: ['timestamp', totalLabel, ...seriesDimensions]
 	}
+}
+
+export function appendRwaChartDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
+	return buildRwaChartDatasetTotal({ dataset })
+}
+
+export function limitRwaHorizontalBarData(
+	items: readonly RwaNamedValue[],
+	{ maxBars = RWA_MAX_HORIZONTAL_BARS, sort = false }: { maxBars?: number; sort?: boolean } = {}
+): RwaNamedValue[] {
+	const normalizedMaxBars = Number.isFinite(maxBars) ? Math.floor(maxBars) : RWA_MAX_HORIZONTAL_BARS
+	const effectiveMaxBars = Math.max(1, normalizedMaxBars)
+	let othersValue = 0
+	const withoutOthers: RwaNamedValue[] = []
+	for (const item of items) {
+		const value = item.value
+		if (value <= 0) continue
+		if (item.name === 'Others') {
+			othersValue += value
+			continue
+		}
+		withoutOthers.push({ name: item.name, value })
+	}
+
+	if (sort) {
+		withoutOthers.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+	}
+
+	if (withoutOthers.length <= effectiveMaxBars - (othersValue > 0 ? 1 : 0)) {
+		return othersValue > 0 ? [...withoutOthers, { name: 'Others', value: othersValue }] : withoutOthers
+	}
+
+	const limited = withoutOthers.slice(0, effectiveMaxBars - 1)
+	let overflowValue = othersValue
+	for (let index = effectiveMaxBars - 1; index < withoutOthers.length; index++) {
+		overflowValue += withoutOthers[index].value
+	}
+	return overflowValue > 0 ? [...limited, { name: 'Others', value: overflowValue }] : limited
 }
 
 export function isRwaTotalSeriesLabel(label: string): boolean {

@@ -8,11 +8,13 @@ import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/consta
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { useFetchProtocolChartData } from '~/containers/ProtocolOverview/useFetchProtocolChartData'
-import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
+import { FEE_EXTRA_CONFIGS } from '~/metrics/feeExtras'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { isTruthyQueryParam } from '~/utils/routerQuery'
 
 const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
 
@@ -111,12 +113,12 @@ export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 		const tvlSettings = {}
 
 		for (const setting in TVL_SETTINGS) {
-			tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
+			tvlSettings[TVL_SETTINGS[setting]] = isTruthyQueryParam(queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`])
 		}
 
 		const feesSettings = {}
-		for (const setting in FEES_SETTINGS) {
-			feesSettings[FEES_SETTINGS[setting]] = queryParams[`include_${FEES_SETTINGS[setting]}_in_fees`]
+		for (const extra of FEE_EXTRA_CONFIGS) {
+			feesSettings[extra.setting] = isTruthyQueryParam(queryParams[extra.queryParam])
 		}
 
 		return {

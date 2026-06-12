@@ -1,7 +1,7 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { getPercentChange } from '~/utils'
+import { buildRwaChartDatasetTotal, type RWAChartDataset } from '../chartDataset'
 import {
 	fetchRWAPerpsContractBreakdownChartData,
 	fetchRWAPerpsCurrent,
@@ -55,18 +55,20 @@ type SnapshotBreakdown =
 
 type BreakdownLabelResolver<TRow, TBreakdown extends string> = (row: TRow, breakdown: TBreakdown) => string
 
-const EMPTY_CHART_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+const EMPTY_CHART_DATASET: RWAChartDataset = { source: [], dimensions: ['timestamp'] }
 
 function shouldPreloadInitialChartDataset(activeView: RWAPerpsChartView) {
 	return activeView === 'timeSeries'
 }
 
 function safeNumber(value: unknown): number {
+	// Funding history DB DECIMAL fields and current estimated fees are passthrough values at their API boundaries.
 	const parsed = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(parsed) ? parsed : 0
 }
 
 function safeRatio(value: number, total: number): number {
+	// Stats are served from a passthrough API schema, and empty/invalid totals should not leak NaN shares into UI rows.
 	if (!Number.isFinite(value) || !Number.isFinite(total) || total <= 0) return 0
 	return value / total
 }
@@ -128,8 +130,8 @@ function buildSnapshotBreakdownTotals<TBreakdown extends SnapshotBreakdown>({
 		const label = getBreakdownLabel(row, breakdown)
 		if (!label) continue
 
-		const value = key === 'markets' ? 1 : safeNumber(row[key])
-		if (!Number.isFinite(value) || value < 0) continue
+		const value = key === 'markets' ? 1 : row[key]
+		if (value < 0) continue
 
 		totalsByLabel.set(label, (totalsByLabel.get(label) ?? 0) + value)
 	}
@@ -152,48 +154,31 @@ function assertHasAssetGroupBuckets(stats: IRWAPerpsStatsResponse | null): asser
 	throw new Error('Failed to get RWA perps asset-group stats')
 }
 
-export function hasEnoughTimeSeriesHistory(dataset: MultiSeriesChart2Dataset) {
+export function hasEnoughTimeSeriesHistory(dataset: RWAChartDataset) {
 	if ((dataset.source?.length ?? 0) === 0) return false
-	const uniqueTimestamps = new Set(
-		dataset.source.map((row) => Number(row.timestamp)).filter((timestamp) => Number.isFinite(timestamp))
-	)
-	return uniqueTimestamps.size >= 2 && dataset.dimensions.some((dimension) => dimension !== 'timestamp')
+	let hasSeriesDimension = false
+	for (const dimension of dataset.dimensions) {
+		if (dimension !== 'timestamp') {
+			hasSeriesDimension = true
+			break
+		}
+	}
+	if (!hasSeriesDimension) return false
+
+	const uniqueTimestamps = new Set<number>()
+	for (const row of dataset.source) {
+		uniqueTimestamps.add(row.timestamp)
+		if (uniqueTimestamps.size >= 2) return true
+	}
+	return false
 }
 
-export function groupRWAPerpsTimeSeriesDataset(dataset: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset {
-	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp')
-	if (dataset.source.length === 0 || seriesDimensions.length === 0) return EMPTY_CHART_DATASET
-
-	return {
-		source: dataset.source.map((row) => ({
-			timestamp: row.timestamp,
-			Total: seriesDimensions.reduce((sum, dimension) => {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				return Number.isFinite(numericValue) ? sum + numericValue : sum
-			}, 0)
-		})),
-		dimensions: ['timestamp', 'Total']
-	}
+export function groupRWAPerpsTimeSeriesDataset(dataset: RWAChartDataset): RWAChartDataset {
+	return buildRwaChartDatasetTotal({ dataset, onlyTotal: true })
 }
 
-export function appendRWAPerpsTimeSeriesDatasetTotal(dataset: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset {
-	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
-	if (dataset.source.length === 0) return EMPTY_CHART_DATASET
-	if (seriesDimensions.length === 0) return dataset
-
-	return {
-		source: dataset.source.map((row) => ({
-			...row,
-			timestamp: row.timestamp,
-			Total: seriesDimensions.reduce((sum, dimension) => {
-				const value = row[dimension]
-				const numericValue = typeof value === 'number' ? value : Number(value)
-				return Number.isFinite(numericValue) ? sum + numericValue : sum
-			}, 0)
-		})),
-		dimensions: ['timestamp', 'Total', ...seriesDimensions]
-	}
+export function appendRWAPerpsTimeSeriesDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
+	return buildRwaChartDatasetTotal({ dataset })
 }
 
 function assertHasVenueBuckets(stats: IRWAPerpsStatsResponse | null): asserts stats is IRWAPerpsStatsResponse {
@@ -213,21 +198,29 @@ function toVenueDetailLink(venue: string) {
 }
 
 export function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
-	return markets.reduce((sum, market) => sum + safeNumber(market.estimatedProtocolFees24h), 0)
+	return sumMarketMetric(markets, 'estimatedProtocolFees24h')
 }
 
-export function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' | 'volume24h') {
-	return markets.reduce((sum, market) => sum + safeNumber(market[key]), 0)
+export function sumMarketMetric(
+	markets: IRWAPerpsMarket[],
+	key: 'openInterest' | 'volume24h' | 'estimatedProtocolFees24h'
+) {
+	let total = 0
+	for (const market of markets) {
+		total += key === 'estimatedProtocolFees24h' ? safeNumber(market[key]) : market[key]
+	}
+	return total
 }
 
 function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
-	return markets.toSorted((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
+	return markets.toSorted((a, b) => b.openInterest - a.openInterest)
 }
 
 function derivePreviousValueFromPercentChange(
 	currentValue: number,
 	percentChange: number | null | undefined
 ): number | null {
+	// Aggregate change math combines optional per-market changes; malformed or degenerate rows are not comparable.
 	if (!Number.isFinite(currentValue) || currentValue < 0 || percentChange == null || !Number.isFinite(percentChange)) {
 		return null
 	}
@@ -253,7 +246,7 @@ function getAggregateMarketChange24h(
 	let hasComparableMarket = false
 
 	for (const market of markets) {
-		const currentValue = safeNumber(market[config.valueKey])
+		const currentValue = market[config.valueKey]
 		totalCurrent += currentValue
 
 		if (currentValue <= 0 && market[config.changeKey] == null) continue
@@ -427,7 +420,7 @@ export async function getRWAPerpsBreakdownChartDataset({
 	assetGroup?: string
 	assetClass?: string
 	excludeAssetClass?: string
-}): Promise<MultiSeriesChart2Dataset> {
+}): Promise<RWAChartDataset> {
 	const rows = await getRequiredOverviewBreakdownRows({
 		breakdown,
 		key,
@@ -441,7 +434,7 @@ export async function getRWAPerpsBreakdownChartDataset({
 
 export async function getRWAPerpsContractBreakdownChartDataset(
 	request: IRWAPerpsContractBreakdownRequest
-): Promise<MultiSeriesChart2Dataset> {
+): Promise<RWAChartDataset> {
 	const rows = await getRequiredContractBreakdownRows(request)
 	return toRWAPerpsBreakdownChartDataset(rows)
 }
@@ -460,7 +453,7 @@ async function getInitialTimeSeriesDataset({
 	assetClass?: string
 	excludeAssetClass?: string
 	defaultTimeSeriesBreakdown?: RWAPerpsTimeSeriesBreakdown
-}): Promise<MultiSeriesChart2Dataset> {
+}): Promise<RWAChartDataset> {
 	const defaultBreakdown = getDefaultRWAPerpsChartBreakdown(mode, 'timeSeries', {
 		timeSeriesBreakdown: defaultTimeSeriesBreakdown
 	})
@@ -520,9 +513,9 @@ export async function getRWAPerpsOverview({
 			openInterestChange24h: getAggregateOpenInterestChange24h(current),
 			volume24h: totalVolume24h,
 			volume24hChange24h: getAggregateVolume24hChange24h(current),
-			markets: safeNumber(stats.totalMarkets),
+			markets: stats.totalMarkets,
 			protocolFees24h: sumProtocolFees24h(current),
-			cumulativeFunding: safeNumber(stats.totalCumulativeFunding)
+			cumulativeFunding: stats.totalCumulativeFunding
 		}
 	}
 }
@@ -567,7 +560,7 @@ export async function getRWAPerpsVenuePage({
 			openInterestChange24h: getAggregateOpenInterestChange24h(markets),
 			volume24h: totalVolume24h,
 			volume24hChange24h: getAggregateVolume24hChange24h(markets),
-			markets: safeNumber(statsBucket?.markets ?? markets.length),
+			markets: statsBucket?.markets ?? markets.length,
 			protocolFees24h: sumProtocolFees24h(markets)
 		}
 	}
@@ -637,7 +630,7 @@ export async function getRWAPerpsAssetGroupPage({
 			openInterestChange24h: getAggregateOpenInterestChange24h(markets),
 			volume24h: totalVolume24h,
 			volume24hChange24h: getAggregateVolume24hChange24h(markets),
-			markets: safeNumber(statsBucket?.markets ?? markets.length),
+			markets: statsBucket?.markets ?? markets.length,
 			protocolFees24h: sumProtocolFees24h(markets)
 		}
 	}

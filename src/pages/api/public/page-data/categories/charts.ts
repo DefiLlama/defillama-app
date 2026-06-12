@@ -1,27 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolsCategoriesChartData } from '~/containers/ProtocolTaxonomy/queries'
 import { setPageDataCacheHeaders } from '~/server/pageData/cache'
+import { getCommaSeparatedQueryParam } from '~/server/pageData/query'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
 		responseLimit: false
 	}
-}
-
-function getStringListParam(value: string | string[] | undefined): string[] {
-	if (!value) return []
-	const values = Array.isArray(value) ? value : [value]
-	const items: string[] = []
-
-	for (const rawValue of values) {
-		for (const item of rawValue.split(',')) {
-			const trimmed = item.trim()
-			if (trimmed) items.push(trimmed)
-		}
-	}
-
-	return items
 }
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -32,7 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	try {
 		const chartData = await getProtocolsCategoriesChartData({
-			extraTvlTypes: getStringListParam(req.query.extraTvlTypes)
+			extraTvlTypes: getCommaSeparatedQueryParam(req.query.extraTvlTypes)
 		})
 		setPageDataCacheHeaders(req, res)
 		return res.status(200).json(chartData)

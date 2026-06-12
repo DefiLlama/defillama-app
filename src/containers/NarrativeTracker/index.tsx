@@ -9,20 +9,16 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
-import type { TimeSeriesEntry } from './api.types'
-import type { CategoryPerformanceProps, IPctChangeRow } from './types'
+import {
+	buildNarrativeTreemapTreeData,
+	calculateDenominatedTimeSeries,
+	normalizeNarrativeTimeSeries,
+	type NarrativeTreemapTreeData
+} from './chartData'
+import type { CategoryPerformanceProps, IPctChangeRow, PerformanceTimeSeries } from './types'
 
 interface ITreemapChartProps {
-	treeData: Array<{
-		value: [number, number | null, number | null]
-		name: string
-		path: string
-		children: Array<{
-			value: [number, number, number]
-			name: string
-			path: string
-		}>
-	}>
+	treeData: NarrativeTreemapTreeData
 	variant?: 'yields' | 'narrative'
 	height?: string
 }
@@ -35,66 +31,24 @@ const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart'
 const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
 const columnHelper = createColumnHelper<IPctChangeRow>()
 
-// for linechart
-function calculateDenominatedChange(data: TimeSeriesEntry[] | undefined, denominatedCoin: string): TimeSeriesEntry[] {
-	// Avoid mutating upstream arrays (performanceTimeSeries is reused across views).
-	const sortedData = (data ?? []).toSorted((a, b) => a.date - b.date)
-	if (sortedData.length === 0) return sortedData
-
-	const denominatedCoinDay0 = asFiniteNumber(sortedData[0]?.[denominatedCoin])
-	if (denominatedCoinDay0 == null) return sortedData
-
-	const denominatedReturns: TimeSeriesEntry[] = []
-
-	for (const dayData of sortedData) {
-		const newDayData: TimeSeriesEntry = { date: dayData.date }
-		const denominatedCoinValue = asFiniteNumber(dayData[denominatedCoin])
-		const denominatedCoinPerformance = denominatedCoinValue == null ? null : 1 + denominatedCoinValue / 100
-		if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) {
-			denominatedReturns.push(newDayData)
-			continue
-		}
-
-		for (const [category, value] of Object.entries(dayData)) {
-			if (category !== 'date' && category !== denominatedCoin) {
-				// calculate relative performance
-				const categoryValue = asFiniteNumber(value)
-				if (categoryValue == null) continue
-				const categoryPerformance = 1 + categoryValue / 100
-				const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
-
-				if (Number.isFinite(relativePerformance)) {
-					newDayData[category] = relativePerformance
-				}
-			}
-		}
-
-		denominatedReturns.push(newDayData)
-	}
-
-	return denominatedReturns
-}
-
 // for bar + heatmap
 function calculateDenominatedChange2(
 	data: IPctChangeRow[],
 	denominatedCoin: string,
-	field: keyof IPctChangeRow
+	field: PeriodConfig['field']
 ): IPctChangeRow[] {
 	const denomRow = data.find((i) => i.name === denominatedCoin)
-	const denomChangeRaw = denomRow?.[field]
-	const denomChange = typeof denomChangeRaw === 'number' ? denomChangeRaw : Number(denomChangeRaw)
-	if (!Number.isFinite(denomChange)) return data
+	const denomChange = denomRow?.[field]
+	if (denomChange == null) return data
 
 	const denominatedCoinPerformance = 1 + denomChange / 100
-	if (!Number.isFinite(denominatedCoinPerformance) || denominatedCoinPerformance === 0) return data
+	if (denominatedCoinPerformance === 0) return data
 
 	const denominatedReturns: IPctChangeRow[] = []
 	for (const i of data) {
-		const raw = i[field]
-		const change = typeof raw === 'number' ? raw : Number(raw)
-		if (!Number.isFinite(change)) {
-			denominatedReturns.push({ ...i, [field]: raw })
+		const change = i[field]
+		if (change == null) {
+			denominatedReturns.push(i)
 			continue
 		}
 		const categoryPerformance = 1 + change / 100
@@ -110,9 +64,11 @@ const DENOMS = ['$', 'BTC', 'ETH', 'SOL'] as const
 
 type Period = (typeof PERIODS)[number]
 type Denom = (typeof DENOMS)[number]
+type PeriodField = 'change1W' | 'change1M' | 'changeYtd' | 'change1Y'
+type PeriodConfig = { field: PeriodField; seriesKey: string }
 
 // Unified period configuration to avoid redundant lookups
-const PERIOD_CONFIG: Record<Period, { field: keyof IPctChangeRow; seriesKey: string }> = {
+const PERIOD_CONFIG: Record<Period, PeriodConfig> = {
 	'7D': { field: 'change1W', seriesKey: '7' },
 	'30D': { field: 'change1M', seriesKey: '30' },
 	YTD: { field: 'changeYtd', seriesKey: 'ytd' },
@@ -125,10 +81,8 @@ const DENOM_COIN_MAP: Record<Denom, string> = {
 	ETH: 'Ethereum',
 	SOL: 'Solana'
 }
-
-function asFiniteNumber(value: unknown): number | null {
-	return typeof value === 'number' && Number.isFinite(value) ? value : null
-}
+const DENOM_COIN_NAMES = ['Bitcoin', 'Ethereum', 'Solana'] as const
+const DENOM_COIN_NAME_SET = new Set<string>(DENOM_COIN_NAMES)
 
 export const CategoryPerformanceContainer = ({
 	pctChanges,
@@ -159,30 +113,28 @@ export const CategoryPerformanceContainer = ({
 	const disabledDenoms = React.useMemo(() => {
 		const { field, seriesKey } = PERIOD_CONFIG[groupBy]
 		const series = performanceTimeSeries?.[seriesKey] ?? []
+		const timeSeriesDenoms = new Set<string>()
+		const pctDenoms = new Set<string>()
 
-		const hasTimeSeriesDenom = (coinName: string): boolean => {
-			if (!Array.isArray(series) || series.length === 0) return false
-			for (const row of series) {
-				if (!row || typeof row !== 'object') continue
-				const v = row[coinName]
-				const n = typeof v === 'number' ? v : Number(v)
-				if (Number.isFinite(n)) return true
+		for (const row of series) {
+			for (const coinName of DENOM_COIN_NAMES) {
+				if (row[coinName] != null) {
+					timeSeriesDenoms.add(coinName)
+				}
 			}
-			return false
 		}
 
-		const hasPctDenom = (coinName: string): boolean => {
-			const row = pctChanges.find((i) => i.name === coinName)
-			const v = row?.[field]
-			const n = typeof v === 'number' ? v : Number(v)
-			return Number.isFinite(n)
+		for (const row of pctChanges) {
+			if (row[field] != null && DENOM_COIN_NAME_SET.has(row.name)) {
+				pctDenoms.add(row.name)
+			}
 		}
 
 		const disabled: Denom[] = []
 		for (const denom of DENOMS) {
 			if (denom === '$') continue
 			const coinName = DENOM_COIN_MAP[denom]
-			if (!hasTimeSeriesDenom(coinName) || !hasPctDenom(coinName)) disabled.push(denom)
+			if (!timeSeriesDenoms.has(coinName) || !pctDenoms.has(coinName)) disabled.push(denom)
 		}
 		return disabled
 	}, [groupBy, performanceTimeSeries, pctChanges])
@@ -191,6 +143,14 @@ export const CategoryPerformanceContainer = ({
 		// Prevent selecting a denom that can't be applied (would look like "filter doesn't work").
 		if (disabledDenoms.includes(groupByDenom)) setGroupByDenom('$')
 	}, [disabledDenoms, groupByDenom])
+
+	const orderedPerformanceTimeSeries = React.useMemo<Partial<PerformanceTimeSeries>>(() => {
+		const ordered: Partial<PerformanceTimeSeries> = {}
+		for (const period in performanceTimeSeries ?? {}) {
+			ordered[period] = normalizeNarrativeTimeSeries(performanceTimeSeries[period])
+		}
+		return ordered
+	}, [performanceTimeSeries])
 
 	// All values here are returns / relative returns expressed in percent.
 	const chartValueSymbol = '%'
@@ -211,19 +171,19 @@ export const CategoryPerformanceContainer = ({
 
 		const sorted = pctChangesDenom
 			.toSorted((a, b) => {
-				const bValue = asFiniteNumber(b[field]) ?? Number.NEGATIVE_INFINITY
-				const aValue = asFiniteNumber(a[field]) ?? Number.NEGATIVE_INFINITY
+				const bValue = b[field] ?? Number.NEGATIVE_INFINITY
+				const aValue = a[field] ?? Number.NEGATIVE_INFINITY
 				return bValue - aValue
 			})
-			.map((i) => ({ ...i, change: asFiniteNumber(i[field]) }))
+			.map((i) => ({ ...i, change: i[field] ?? null }))
 
-		const treemapData = sorted.map((i) => ({ ...i, returnField: asFiniteNumber(i[field]) }))
+		const treemapData = sorted.map((i) => ({ ...i, returnField: i[field] ?? null }))
 
-		let chart = performanceTimeSeries?.[seriesKey]
-		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
+		let chart = orderedPerformanceTimeSeries[seriesKey]
+		chart = denomCoin === '$' ? chart : calculateDenominatedTimeSeries(chart, denomCoin)
 
 		return { sortedPctChanges: sorted, timeSeries: chart, treemapChart: treemapData }
-	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
+	}, [pctChanges, groupBy, orderedPerformanceTimeSeries, groupByDenom, isCoinPage])
 
 	const selectedCharts = React.useMemo(() => {
 		// Passing `undefined` shows all series; otherwise MultiSeriesChart2 filters to the set.
@@ -235,12 +195,12 @@ export const CategoryPerformanceContainer = ({
 		const seriesKeys = areaChartLegend ?? []
 		const dimensions = ['timestamp', ...seriesKeys]
 
-		const sortedRows = (timeSeries ?? []).toSorted((a, b) => a.date - b.date)
-		const source = sortedRows.map((row) => {
+		const source: Array<Record<string, string | number | null | undefined>> = []
+		for (const row of timeSeries ?? []) {
 			const out: Record<string, string | number | null | undefined> = { timestamp: row.date * 1e3 }
 			for (const key of seriesKeys) out[key] = row[key] ?? null
-			return out
-		})
+			source.push(out)
+		}
 
 		return { dimensions, source }
 	}, [timeSeries, areaChartLegend])
@@ -265,40 +225,13 @@ export const CategoryPerformanceContainer = ({
 			name,
 			encode: { x: 'timestamp', y: name },
 			stack: 'A',
-			large: true
+			large: false
 		}))
 	}, [areaChartLegend])
 	const chartDataBundle = React.useMemo(() => ({ dataset, barCharts, lineCharts }), [dataset, barCharts, lineCharts])
 	const deferredChartData = React.useDeferredValue(chartDataBundle)
 
-	const treemapTreeData = React.useMemo(() => {
-		const safeReturn = (v: number | null | undefined): number => {
-			return typeof v === 'number' && Number.isFinite(v) ? parseFloat(v.toFixed(2)) : 0
-		}
-
-		const treeData: ITreemapChartProps['treeData'] = []
-		const cData = treemapChart
-
-		// structure into hierarchy
-		const categoryNames = [...new Set(cData.map((p) => p.categoryName ?? ''))]
-		for (const cat of categoryNames) {
-			const catData = cData.filter((p) => (p.categoryName ?? '') === cat)
-			const catMcap = catData.reduce((sum, p) => sum + p.mcap, 0)
-
-			treeData.push({
-				value: [catMcap, null, null],
-				name: cat,
-				path: cat,
-				children: catData.map((p) => ({
-					value: [p.mcap, safeReturn(p.returnField), safeReturn(p.returnField)],
-					name: p.name,
-					path: `${p.categoryName ?? ''}/${p.name}`
-				}))
-			})
-		}
-
-		return treeData
-	}, [treemapChart])
+	const treemapTreeData = React.useMemo(() => buildNarrativeTreemapTreeData(treemapChart), [treemapChart])
 
 	const { chartInstance: exportChartInstance, handleChartReady: onChartReady } = useGetChartInstance()
 

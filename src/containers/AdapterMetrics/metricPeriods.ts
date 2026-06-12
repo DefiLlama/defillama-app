@@ -10,6 +10,7 @@ export type MetricPeriodFields = {
 	total7DaysAgo?: NullableNumber
 	total30DaysAgo?: NullableNumber
 	total1y?: NullableNumber
+	annualized1y?: NullableNumber
 	totalAllTime?: NullableNumber
 	change_1d?: NullableNumber
 	change_7d?: NullableNumber
@@ -33,19 +34,28 @@ const SUM_FIELDS = [
 	'total7DaysAgo',
 	'total30DaysAgo',
 	'total1y',
+	'annualized1y',
 	'totalAllTime'
 ] as const
+
+const ANNUALIZED_PARENT_CONTRIBUTOR_FIELDS = ['total24h', 'total7d', 'total30d', 'total1y', 'totalAllTime'] as const
 
 function sumNullable(left: NullableNumber, right: NullableNumber) {
 	if (left == null && right == null) return null
 	return (left ?? 0) + (right ?? 0)
 }
 
+function hasAnnualizedParentContributor(protocol: MetricPeriodFields) {
+	for (const field of ANNUALIZED_PARENT_CONTRIBUTOR_FIELDS) {
+		if (protocol[field] != null) return true
+	}
+	return false
+}
+
 function getPercentChange(valueNow: NullableNumber, valuePrevious: NullableNumber) {
 	if (valueNow == null || valuePrevious == null || valuePrevious === 0) return null
 
-	const percent = ((valueNow - valuePrevious) / valuePrevious) * 100
-	return Number.isFinite(percent) ? percent : null
+	return ((valueNow - valuePrevious) / valuePrevious) * 100
 }
 
 export function deriveMetricChanges<T extends MetricPeriodFields>(protocol: T): T & MetricPeriodChanges {
@@ -67,4 +77,23 @@ export function mergeMetricPeriods<T extends MetricPeriodFields>(
 	}
 
 	return deriveMetricChanges(existing)
+}
+
+export function mergeParentMetricPeriods<T extends MetricPeriodFields>(protocols: Iterable<T>) {
+	let periodTotals: MetricPeriodFields = {}
+	let hasAnnualized1y = false
+	let isAnnualized1yIncomplete = false
+
+	for (const protocol of protocols) {
+		periodTotals = mergeMetricPeriods(periodTotals, protocol)
+		if (protocol.annualized1y != null) {
+			hasAnnualized1y = true
+		} else if (hasAnnualizedParentContributor(protocol)) {
+			isAnnualized1yIncomplete = true
+		}
+	}
+
+	periodTotals.annualized1y = hasAnnualized1y && !isAnnualized1yIncomplete ? (periodTotals.annualized1y ?? null) : null
+
+	return deriveMetricChanges(periodTotals)
 }

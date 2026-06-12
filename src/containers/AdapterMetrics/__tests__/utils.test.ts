@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { IProtocol } from '../types'
 import {
+	aggregateProtocolVersions,
 	buildProtocolBreakdownNormalization,
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
@@ -161,6 +162,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.barLayout).toBe('stacked')
 		expect(presentation.groupBy).toBe('daily')
 		expect(presentation.charts.every((chart) => chart.stack === 'chain')).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large === false)).toBe(true)
 		expect(presentation.dataset.source).toEqual([
 			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 0 },
 			{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 },
@@ -189,6 +191,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.valueMode).toBe('relative')
 		expect(presentation.barLayout).toBe('separate')
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large == null)).toBe(true)
 
 		const [day1, day2, day3] = presentation.dataset.source
 		expect(day1.Ethereum).toBe(100)
@@ -197,6 +200,37 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(day2.Solana).toBeCloseTo(66.6666666667)
 		expect(day3.Ethereum).toBe(100)
 		expect(day3.Solana).toBe(0)
+	})
+
+	it('clamps negative values to zero when normalizing relative shares', () => {
+		const state: ChainsByAdapterChartState = {
+			chartKind: 'bar',
+			valueMode: 'relative',
+			barLayout: 'separate',
+			groupBy: 'daily'
+		}
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum', 'Solana', 'Base'],
+				source: [
+					{ timestamp: toMs(2024, 1, 1), Ethereum: -10, Solana: 20, Base: null },
+					{ timestamp: toMs(2024, 1, 2), Ethereum: 0, Solana: 0, Base: 5 }
+				]
+			},
+			selectedChains: ['Ethereum', 'Solana', 'Base'],
+			state
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		const [day1, day2] = presentation.dataset.source
+		expect(day1.Ethereum).toBe(0)
+		expect(day1.Solana).toBe(100)
+		expect(day1.Base).toBeNull()
+		expect(day2.Ethereum).toBe(0)
+		expect(day2.Solana).toBe(0)
+		expect(day2.Base).toBe(100)
 	})
 
 	it('keeps missing chain values null so tooltips do not show fake zeroes', () => {
@@ -300,6 +334,33 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[1].value).toBe(30)
 	})
 
+	it('keeps first-row selection for duplicate latest daily timestamps', () => {
+		const timestamp = toMs(2024, 1, 2)
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum'],
+				source: [
+					{ timestamp, Ethereum: 10 },
+					{ timestamp, Ethereum: 20 }
+				]
+			},
+			selectedChains: ['Ethereum'],
+			state: { chartKind: 'treemap', groupBy: 'daily' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data).toEqual([
+			{
+				name: 'Ethereum',
+				value: 10,
+				share: 100,
+				itemStyle: { color: expect.any(String) }
+			}
+		])
+	})
+
 	it('builds hbar data from the latest-value ranking and groups overflow into Others', () => {
 		const extendedChainChartData = {
 			dimensions: ['timestamp', ...Array.from({ length: 11 }, (_, index) => `Chain ${index + 1}`)],
@@ -377,6 +438,29 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[0].value).toBe(30)
 		expect(presentation.data[1].value).toBe(30)
 		expect(presentation.data[2].value).toBe(20)
+	})
+
+	it('keeps zero cumulative totals distinct from missing selected series for ranking', () => {
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: {
+				dimensions: ['timestamp', 'Positive', 'Missing', 'Zero'],
+				source: [
+					{ timestamp: toMs(2024, 1, 1), Positive: 5, Zero: 0 },
+					{ timestamp: toMs(2024, 1, 2), Positive: 10, Zero: 0 }
+				]
+			},
+			selectedProtocols: ['Positive', 'Missing', 'Zero'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'absolute',
+				barLayout: 'stacked',
+				groupBy: 'cumulative'
+			}
+		})
+
+		expect(presentation.kind).toBe('bar')
+		expect(presentation.charts.map((chart) => chart.name)).toEqual(['Positive', 'Zero', 'Missing'])
+		expect(presentation.dataset.source.at(-1)).toMatchObject({ Positive: 15, Zero: 0, Missing: null })
 	})
 
 	it('sums rolling-window values for dominance-backed latest-value charts (weekly = last 7 days)', () => {
@@ -479,6 +563,7 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 		if (presentation.kind !== 'bar') return
 
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.charts.every((chart) => chart.large == null)).toBe(true)
 		expect(presentation.dataset.source).toEqual([
 			{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 33.33333333333333, dYdX: 66.66666666666666 },
 			{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 66.66666666666666, dYdX: 33.33333333333333 },
@@ -679,6 +764,21 @@ describe('mergeSingleDimensionChartDataset', () => {
 			{ timestamp: toMs(2024, 1, 2), Fees: 26 }
 		])
 	})
+
+	it('keeps extra-only timestamps when fee extras are enabled', () => {
+		expect(
+			mergeSingleDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Fees'],
+					source: [{ timestamp: toMs(2024, 1, 1), Fees: 10 }]
+				},
+				extraCharts: [[[Math.floor(toMs(2024, 1, 2) / 1e3), 2]], [[Math.floor(toMs(2024, 1, 2) / 1e3), 4]]]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Fees: 10 },
+			{ timestamp: toMs(2024, 1, 2), Fees: 6 }
+		])
+	})
 })
 
 describe('mergeBreakdownCharts', () => {
@@ -700,6 +800,18 @@ describe('mergeBreakdownCharts', () => {
 		).toEqual([
 			[1, { A: 11, B: 20, C: 2 }],
 			[2, { A: 34, B: 3 }]
+		])
+	})
+
+	it('keeps extra-only timestamps when merging breakdown charts', () => {
+		expect(
+			mergeBreakdownCharts({
+				chart: [[1, { A: 10 }]],
+				extraCharts: [[[2, { A: 1 }]], [[2, { A: 3, B: 4 }]]]
+			})
+		).toEqual([
+			[1, { A: 10 }],
+			[2, { A: 4, B: 4 }]
 		])
 	})
 })
@@ -726,6 +838,26 @@ describe('mergeNamedDimensionChartDataset', () => {
 		).toEqual([
 			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
 			{ timestamp: toMs(2024, 1, 2), Ethereum: 33, Solana: 44 }
+		])
+	})
+
+	it('keeps extra-only timestamps for known named dimensions', () => {
+		const result = mergeNamedDimensionChartDataset({
+			chartData: {
+				dimensions: ['timestamp', 'Ethereum', 'Solana'],
+				source: [{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 }]
+			},
+			allowedDimensions: ['Ethereum', 'Solana', 'Base'],
+			extraCharts: [
+				[[Math.floor(toMs(2024, 1, 2) / 1e3), { ethereum: 100, Ethereum: 2 }]],
+				[[Math.floor(toMs(2024, 1, 2) / 1e3), { Solana: 4, Base: 99, Ignored: 200 }]]
+			]
+		})
+
+		expect(result.dimensions).toEqual(['timestamp', 'Ethereum', 'Solana', 'Base'])
+		expect(result.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20, Base: null },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 2, Solana: 4, Base: 99 }
 		])
 	})
 })
@@ -908,5 +1040,39 @@ describe('leafProtocolNamesFromTableRows', () => {
 			]
 		} as IProtocol
 		expect(leafProtocolNamesFromTableRows([parent])).toEqual(['C2', 'C1'])
+	})
+})
+
+describe('aggregateProtocolVersions', () => {
+	it('keeps all-missing period totals null instead of zero-seeding them', () => {
+		const result = aggregateProtocolVersions([
+			{
+				name: 'Version A',
+				displayName: 'Version A',
+				parentProtocol: 'Parent Protocol',
+				linkedProtocols: ['Parent Protocol', 'Version A'],
+				chains: ['Base']
+			},
+			{
+				name: 'Version B',
+				displayName: 'Version B',
+				parentProtocol: 'Parent Protocol',
+				linkedProtocols: ['Parent Protocol', 'Version B'],
+				chains: ['Optimism']
+			}
+		] as any)
+
+		expect(result).toMatchObject({
+			name: 'Parent Protocol',
+			displayName: 'Parent Protocol',
+			slug: 'parent-protocol',
+			total24h: null,
+			total7d: null,
+			total30d: null,
+			annualized1y: null,
+			totalAllTime: null
+		})
+		expect(result.chains).toEqual(expect.arrayContaining(['Base', 'Optimism']))
+		expect(result.chains).toHaveLength(2)
 	})
 })

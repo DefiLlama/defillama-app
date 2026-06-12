@@ -1,6 +1,13 @@
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 
 export const DC_AND_LS_OVERLAP_API_KEY = 'dcAndLsOverlap'
+const FORK_ORACLE_EXTRA_TVL_CHART_API_KEYS = new Set(['staking', 'borrowed', 'pool2', 'vesting', 'all', 'OwnTokens'])
+
+type EnabledTvlKeys = readonly string[] | ReadonlySet<string>
+
+function hasEnabledTvlKey(enabledKeys: EnabledTvlKeys, key: string): boolean {
+	return 'has' in enabledKeys ? enabledKeys.has(key) : enabledKeys.includes(key)
+}
 
 function hasEnabledTvlOverlap(extraTvlsEnabled: Record<string, boolean>): boolean {
 	return !!extraTvlsEnabled[TVL_SETTINGS.DOUBLE_COUNT] && !!extraTvlsEnabled[TVL_SETTINGS.LIQUID_STAKING]
@@ -20,9 +27,22 @@ export function getEnabledExtraTvlApiKeys(extraTvlsEnabled: Record<string, boole
 	return apiKeys.toSorted((a, b) => a.localeCompare(b))
 }
 
-export function shouldSubtractTvlOverlapSeries(enabledExtraApiKeys: string[]): boolean {
+export function getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled: Record<string, boolean>): string[] {
+	const apiKeys: string[] = []
+	for (const [settingKey, enabled] of Object.entries(extraTvlsEnabled)) {
+		if (!enabled || settingKey.toLowerCase() === 'tvl' || !FORK_ORACLE_EXTRA_TVL_CHART_API_KEYS.has(settingKey)) {
+			continue
+		}
+		apiKeys.push(settingKey)
+	}
+
+	return apiKeys.toSorted((a, b) => a.localeCompare(b))
+}
+
+export function shouldSubtractTvlOverlapSeries(enabledExtraApiKeys: EnabledTvlKeys): boolean {
 	return (
-		enabledExtraApiKeys.includes(TVL_SETTINGS.DOUBLE_COUNT) && enabledExtraApiKeys.includes(TVL_SETTINGS.LIQUID_STAKING)
+		hasEnabledTvlKey(enabledExtraApiKeys, TVL_SETTINGS.DOUBLE_COUNT) &&
+		hasEnabledTvlKey(enabledExtraApiKeys, TVL_SETTINGS.LIQUID_STAKING)
 	)
 }
 

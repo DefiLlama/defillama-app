@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
+import type { MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -12,6 +12,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
+import type { RWAChartDataset } from '../chartDataset'
 import { perpsDefinitions as d } from './definitions'
 import {
 	appendRWAPerpsTimeSeriesDatasetTotal,
@@ -34,7 +35,7 @@ const TIME_SERIES_MODE_OPTIONS: Array<{ key: RWAPerpsTimeSeriesMode; label: stri
 	{ key: 'grouped', label: 'Total' },
 	{ key: 'breakdown', label: 'Breakdown' }
 ]
-const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+const EMPTY_DATASET: RWAChartDataset = { source: [], dimensions: ['timestamp'] }
 const STACKS_QUERY_KEY = 'stacks'
 const EXCLUDE_STACKS_QUERY_KEY: ExcludeQueryKey = 'excludeStacks'
 
@@ -90,10 +91,10 @@ export function resolveRWAPerpsOverviewSelectedStacks({
 }
 
 export function getRWAPerpsChartDatasetForSelectedStacks(
-	dataset: MultiSeriesChart2Dataset,
+	dataset: RWAChartDataset,
 	selectedStacks: string[],
 	stackOptions: string[]
-): MultiSeriesChart2Dataset {
+): RWAChartDataset {
 	if (selectedStacks.length === 0 || selectedStacks.length === stackOptions.length) return dataset
 
 	for (let i = 0; i < dataset.source.length; i++) {
@@ -111,13 +112,13 @@ export function getRWAPerpsChartDatasetForSelectedStacks(
 	return dataset
 }
 
-function fetchOverviewBreakdownDataset(request: IRWAPerpsOverviewBreakdownRequest): Promise<MultiSeriesChart2Dataset> {
+function fetchOverviewBreakdownDataset(request: IRWAPerpsOverviewBreakdownRequest): Promise<RWAChartDataset> {
 	const searchParams = new URLSearchParams({
 		breakdown: request.breakdown,
 		key: request.key
 	})
 
-	return fetchJson<MultiSeriesChart2Dataset>(`/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`)
+	return fetchJson<RWAChartDataset>(`/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`)
 }
 
 export function buildRWAPerpsOverviewChartSeries({
@@ -137,7 +138,7 @@ export function buildRWAPerpsOverviewChartSeries({
 		...breakdownSeries.map((seriesName, index) => ({
 			name: seriesName,
 			type: seriesType,
-			...(chartType === 'volume24h' ? { stack: 'A' } : {}),
+			...(chartType === 'volume24h' ? { stack: 'A', large: false } : {}),
 			encode: { x: 'timestamp', y: seriesName },
 			color: CHART_COLORS[(index + (hasTotalOverlay ? 1 : 0)) % CHART_COLORS.length]
 		})),
@@ -162,7 +163,7 @@ export function RWAPerpsOverviewChart({
 	stackLabel
 }: {
 	breakdown: IRWAPerpsOverviewBreakdownRequest['breakdown']
-	initialChartDataset: MultiSeriesChart2Dataset
+	initialChartDataset: RWAChartDataset
 	stackLabel: string
 }) {
 	const router = useRouter()

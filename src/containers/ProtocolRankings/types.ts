@@ -1,6 +1,13 @@
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import type { IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 
+type LiteProtocolTvlEntry = {
+	tvl: number
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+
 export interface ILiteProtocol {
 	category: string
 	tags?: Array<string>
@@ -12,18 +19,10 @@ export interface ILiteProtocol {
 	url: string
 	referralUrl?: string
 	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
-	chainTvls: Record<
-		(typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS],
-		{
-			tvl: number
-			tvlPrevDay: number
-			tvlPrevWeek: number
-			tvlPrevMonth: number
-		}
-	>
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+	chainTvls: Record<string, LiteProtocolTvlEntry>
 	defillamaId: string
 	governanceID?: Array<string>
 	geckoId?: string
@@ -54,11 +53,18 @@ export interface ILiteParentProtocol {
 
 export type TVL_TYPES = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS] | 'default' | 'excludeParent'
 
+export type ProtocolRankingTvlEntry = {
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+
 export interface IChildProtocol {
 	name: string
 	slug: string
 	category: string | null
-	tvl: Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
+	tvl: Record<TVL_TYPES, ProtocolRankingTvlEntry> | null
 	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
 	chains: Array<string>
 	mcap: number | null
@@ -71,6 +77,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
+		annualized1y: number | null
 		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		pf: number | null
@@ -80,6 +87,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
+		annualized1y: number | null
 		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		ps: number | null
