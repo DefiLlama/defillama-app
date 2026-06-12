@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { MarketSegmentSummary, MarketsCategorySegmentStat, MarketsExchangeListEntry } from '../api.types'
 import {
-	normalizeCategoriesList,
-	normalizeCategoryPage,
-	normalizeCategorySeries,
-	normalizeExchangesList,
-	normalizeExchangeSeries,
-	normalizeTokensList
+	completeCategoryPageData,
+	groupCategoriesBySegment,
+	groupTokensBySegment,
+	mergeExchangeListBySegment
 } from '../normalizers'
 
 function tokenSegment(overrides: Partial<MarketSegmentSummary> = {}): MarketSegmentSummary {
@@ -61,9 +59,9 @@ const emptyExchangeTotal = {
 	total_volume_prev_24h: null
 }
 
-describe('normalizeTokensList', () => {
+describe('groupTokensBySegment', () => {
 	it('expands per-segment stats from the tokens list response and fills missing segments', () => {
-		const result = normalizeTokensList({
+		const result = groupTokensBySegment({
 			last_updated: '2026-06-10T00:00:00Z',
 			tokens: [
 				{
@@ -95,48 +93,48 @@ describe('normalizeTokensList', () => {
 		})
 		expect(result.spot).toHaveLength(1)
 		expect(result.spot[0]).toMatchObject({
-			base: 'btc',
+			symbol: 'btc',
 			tags: ['layer1'],
-			volume_24h_usd: 1000,
-			volume_prev_24h_usd: 800
+			volume_24h: 1000,
+			volume_prev_24h: 800
 		})
 		expect(result.linear_perp[0]).toMatchObject({
 			oi_usd: 200,
 			oi_prev_usd: 150,
-			funding_avg_8h: 0.0001,
+			funding_rate_8h: 0.0001,
 			leverage_max: 100
 		})
 		expect(result.inverse_perp).toEqual([])
 	})
 })
 
-describe('normalizeCategoriesList', () => {
+describe('groupCategoriesBySegment', () => {
 	it('handles the categories list response and fills missing segments', () => {
-		const result = normalizeCategoriesList({
+		const result = groupCategoriesBySegment({
 			last_updated: '2026-06-10T00:00:00Z',
 			categories: [
 				{ category: 'rwa', segments: { spot: categorySegment({ volume_24h: 10, token_count: 4, market_count: 9 }) } }
 			]
 		})
-		expect(result.spot[0]).toMatchObject({ tag: 'rwa', volume_24h_usd: 10, token_count: 4, market_count: 9 })
+		expect(result.spot[0]).toMatchObject({ category: 'rwa', volume_24h: 10, token_count: 4, market_count: 9 })
 		expect(result.linear_perp).toEqual([])
 		expect(result.inverse_perp).toEqual([])
 	})
 
-	it('maps funding_rate_8h to funding_avg_8h', () => {
-		const result = normalizeCategoriesList({
+	it('keeps backend funding_rate_8h unchanged', () => {
+		const result = groupCategoriesBySegment({
 			last_updated: '2026-06-10T00:00:00Z',
 			categories: [
 				{ category: 'ai', segments: { linear_perp: categorySegment({ volume_24h: 1, funding_rate_8h: 0.00012 }) } }
 			]
 		})
-		expect(result.linear_perp[0].funding_avg_8h).toBeCloseTo(0.00012)
+		expect(result.linear_perp[0].funding_rate_8h).toBeCloseTo(0.00012)
 	})
 })
 
-describe('normalizeExchangesList', () => {
+describe('mergeExchangeListBySegment', () => {
 	it('merges cex + dex per segment with prev-day fields and fills missing segment rows', () => {
-		const result = normalizeExchangesList({
+		const result = mergeExchangeListBySegment({
 			last_updated: '2026-06-10T00:00:00Z',
 			cex: {
 				spot: [],
@@ -168,10 +166,10 @@ describe('normalizeExchangesList', () => {
 		const binance = rows.find((r) => r.exchange === 'binance')!
 		expect(binance).toMatchObject({
 			exchange_type: 'cex',
-			volume_24h_usd: 100,
-			volume_prev_24h_usd: 80,
-			oi_usd: 50,
-			oi_prev_usd: 40,
+			total_volume_24h: 100,
+			total_volume_prev_24h: 80,
+			total_oi_usd: 50,
+			total_oi_prev_usd: 40,
 			market_count: 662
 		})
 		expect(rows.find((r) => r.exchange === 'hyperliquid')!.exchange_type).toBe('dex')
@@ -180,48 +178,9 @@ describe('normalizeExchangesList', () => {
 	})
 })
 
-describe('normalizeExchangeSeries', () => {
-	it('reads an explicit segment and converts API seconds to dayMs', () => {
-		const rows = normalizeExchangeSeries({
-			days: 30,
-			last_updated: '2026-06-10T00:00:00Z',
-			series: [
-				{
-					day: 1_700_000_000,
-					exchange: 'binance',
-					exchange_type: 'cex',
-					segment: 'linear_perp',
-					volume_24h: 10,
-					oi_usd: 5,
-					market_count: 12
-				}
-			]
-		})
-		expect(rows[0]).toMatchObject({
-			exchange: 'binance',
-			exchange_type: 'cex',
-			segment: 'linear_perp',
-			volume_usd: 10,
-			oi_usd: 5,
-			dayMs: 1_700_000_000_000
-		})
-	})
-})
-
-describe('normalizeCategorySeries', () => {
-	it('maps category series and converts API seconds to dayMs', () => {
-		const rows = normalizeCategorySeries({
-			days: 30,
-			last_updated: '2026-06-10T00:00:00Z',
-			series: [{ day: 1_700_000_000, category: 'rwa', segment: 'spot', volume_24h: 3, oi_usd: null, market_count: 2 }]
-		})
-		expect(rows[0]).toMatchObject({ tag: 'rwa', segment: 'spot', volume_usd: 3, dayMs: 1_700_000_000_000 })
-	})
-})
-
-describe('normalizeCategoryPage', () => {
-	it('reads summaries, segment-keyed tokens, and both series while filling absent segments', () => {
-		const page = normalizeCategoryPage({
+describe('completeCategoryPageData', () => {
+	it('keeps backend series fields and completes segment-keyed records', () => {
+		const page = completeCategoryPageData({
 			category: 'rwa',
 			last_updated: '2026-06-10T00:00:00Z',
 			segments: { spot: categorySegment({ volume_24h: 100, token_count: 2 }) },
@@ -249,15 +208,15 @@ describe('normalizeCategoryPage', () => {
 				}
 			]
 		})
-		expect(page.tag).toBe('rwa')
-		expect(page.summaries.spot).toMatchObject({ volume_24h_usd: 100, token_count: 2 })
-		expect(page.summaries.linear_perp).toBeNull()
-		expect(page.summaries.inverse_perp).toBeNull()
-		expect(page.tokens.spot[0]).toMatchObject({ base: 'ondo', tags: ['rwa'], volume_24h_usd: 60 })
+		expect(page.category).toBe('rwa')
+		expect(page.segments.spot).toMatchObject({ volume_24h: 100, token_count: 2 })
+		expect(page.segments.linear_perp).toBeNull()
+		expect(page.segments.inverse_perp).toBeNull()
+		expect(page.tokens.spot[0]).toMatchObject({ symbol: 'ondo', tags: ['rwa'], volume_24h: 60 })
 		expect(page.tokens.linear_perp).toEqual([])
 		expect(page.tokens.inverse_perp).toEqual([])
-		expect(page.series[0]).toMatchObject({ tag: 'rwa', segment: 'spot', volume_usd: 9, dayMs: 1_700_000_000_000 })
-		expect(page.seriesByExchange[0]).toMatchObject({ exchange: 'binance', volume_usd: 4, dayMs: 1_700_000_000_000 })
-		expect(page.seriesByPair[0]).toMatchObject({ pair: 'ondo-usdt', volume_usd: 3, dayMs: 1_700_000_000_000 })
+		expect(page.series[0]).toMatchObject({ segment: 'spot', volume_24h: 9, day: 1_700_000_000 })
+		expect(page.series_by_exchange[0]).toMatchObject({ exchange: 'binance', volume_24h: 4, day: 1_700_000_000 })
+		expect(page.series_by_pair[0]).toMatchObject({ pair: 'ondo-usdt', volume_24h: 3, day: 1_700_000_000 })
 	})
 })

@@ -51,7 +51,7 @@ export interface MarketPair {
 
 export interface MarketCategoryTotals {
 	pair_count: number
-	total_volume_24h: number | null
+	total_volume_24h: number
 	total_oi_usd: number | null
 }
 
@@ -110,7 +110,7 @@ export interface MarketsCategoriesListResponse {
 	last_updated: string
 }
 
-interface MarketsExchangeSeriesApiRow {
+export interface MarketsExchangeSeriesApiRow {
 	day: number
 	exchange: string
 	exchange_type: 'cex' | 'dex'
@@ -126,7 +126,7 @@ export interface MarketsExchangeSeriesResponse {
 	series: MarketsExchangeSeriesApiRow[]
 }
 
-interface MarketsCategorySeriesApiRow {
+export interface MarketsCategorySeriesApiRow {
 	category: string
 	day: number
 	market_count: number

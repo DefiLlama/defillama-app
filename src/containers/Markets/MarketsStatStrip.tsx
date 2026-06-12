@@ -23,8 +23,8 @@ export function MarketsStatStrip({ rows, segment }: { rows: SymbolStat[]; segmen
 		<div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
 			<Stat
 				label="24h Volume"
-				value={renderUsd(totals.volume_24h_usd)}
-				sub={<ChangeCell fraction={pctChange(totals.volume_24h_usd, totals.volume_prev_24h_usd)} />}
+				value={renderUsd(totals.volume_24h)}
+				sub={<ChangeCell fraction={pctChange(totals.volume_24h, totals.volume_prev_24h)} />}
 			/>
 			{hasOi ? (
 				<Stat

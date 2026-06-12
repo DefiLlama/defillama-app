@@ -22,8 +22,8 @@ function buildColumns(segment: Segment, knownTokenSlugs: KnownTokenSlugs): Colum
 	const hasOi = segmentHasOi(segment)
 
 	const columns: ColumnDef<SymbolStat, any>[] = [
-		columnHelper.accessor('base', {
-			id: 'base',
+		columnHelper.accessor('symbol', {
+			id: 'symbol',
 			header: 'Asset',
 			enableSorting: false,
 			cell: ({ getValue }) => <TokenName base={getValue()} knownTokenSlugs={knownTokenSlugs} />,
@@ -41,18 +41,16 @@ function buildColumns(segment: Segment, knownTokenSlugs: KnownTokenSlugs): Colum
 			cell: ({ row }) => <ChangeCell fraction={row.original.price_change_24h} />,
 			meta: { headerClassName: 'w-[100px]', align: 'end' }
 		}),
-		columnHelper.accessor('volume_24h_usd', {
-			id: 'volume_24h_usd',
+		columnHelper.accessor('volume_24h', {
+			id: 'volume_24h',
 			header: '24h Volume',
 			cell: ({ getValue }) => renderUsd(getValue()),
 			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
-		columnHelper.accessor((row) => pctChange(row.volume_24h_usd, row.volume_prev_24h_usd) ?? undefined, {
+		columnHelper.accessor((row) => pctChange(row.volume_24h, row.volume_prev_24h) ?? undefined, {
 			id: 'volume_change_24h',
 			header: 'Vol Δ',
-			cell: ({ row }) => (
-				<ChangeCell fraction={pctChange(row.original.volume_24h_usd, row.original.volume_prev_24h_usd)} />
-			),
+			cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.volume_24h, row.original.volume_prev_24h)} />,
 			meta: { headerClassName: 'w-[100px]', align: 'end' }
 		})
 	]
@@ -71,10 +69,10 @@ function buildColumns(segment: Segment, knownTokenSlugs: KnownTokenSlugs): Colum
 				cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
 				meta: { headerClassName: 'w-[100px]', align: 'end' }
 			}),
-			columnHelper.accessor((row) => row.funding_avg_8h ?? undefined, {
-				id: 'funding_avg_8h',
+			columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
+				id: 'funding_rate_8h',
 				header: 'Funding 8h',
-				cell: ({ row }) => renderFunding8h(row.original.funding_avg_8h),
+				cell: ({ row }) => renderFunding8h(row.original.funding_rate_8h),
 				meta: { headerClassName: 'w-[110px]', align: 'end' }
 			})
 		)
@@ -136,7 +134,7 @@ export function TokensTable({
 
 	const columns = React.useMemo(() => buildColumns(segment, knownTokenSlugs), [segment, knownTokenSlugs])
 	const data = React.useMemo(() => topSymbols(rows, effectiveSort, 100), [rows, effectiveSort])
-	const sortColumn = effectiveSort === 'oi' ? 'oi_usd' : 'volume_24h_usd'
+	const sortColumn = effectiveSort === 'oi' ? 'oi_usd' : 'volume_24h'
 
 	const leadingControls = hasOi ? (
 		<select
@@ -157,7 +155,7 @@ export function TokensTable({
 			key={`${segment}-${effectiveSort}`}
 			data={data}
 			columns={columns}
-			columnToSearch="base"
+			columnToSearch="symbol"
 			placeholder="Search assets..."
 			header="Top 100 assets"
 			leadingControls={leadingControls}

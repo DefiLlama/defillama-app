@@ -1,103 +1,39 @@
 /**
- * Markets feature types.
+ * Markets feature read-model types.
  *
- * Presentation types are consumed by the UI. Markets-server response DTOs live
- * in api.types.ts.
+ * Backend DTOs in api.types.ts are the source of truth. The aliases below only
+ * describe structural shapes the UI derives for faster segment/table access.
  */
 
+import type {
+	MarketVenue,
+	MarketsCategoryPageResponse,
+	MarketsCategorySegmentStat,
+	MarketsCategorySeriesApiRow,
+	MarketsCategoryTokenRow,
+	MarketsCategoryPagePairSeriesApiRow,
+	MarketsExchangeListEntry,
+	MarketsExchangeSeriesApiRow
+} from './api.types'
 import type { Segment } from './segments'
 
-// ---------------------------------------------------------------------------
-// Clean internal types
-// ---------------------------------------------------------------------------
-
 /** One base symbol, merged across every exchange in a segment. */
-export interface SymbolStat {
-	base: string
-	tags: string[]
-	price: number | null
-	/** fraction, e.g. 0.05 => +5% */
-	price_change_24h: number | null
-	volume_24h_usd: number
-	volume_prev_24h_usd: number | null
-	oi_usd: number | null
-	oi_prev_usd: number | null
-	funding_avg_8h: number | null
-	leverage_min: number | null
-	leverage_max: number | null
-	market_count: number
-	exchange_count: number
-}
+export type SymbolStat = MarketsCategoryTokenRow
 
 /** One category, merged across its tokens in a segment. */
-export interface CategoryStat {
-	tag: string
-	/** volume-weighted mean of the category's token price changes */
-	price_change_24h: number | null
-	volume_24h_usd: number
-	volume_prev_24h_usd: number | null
-	oi_usd: number | null
-	oi_prev_usd: number | null
-	/** volume-weighted across the category's tokens */
-	funding_avg_8h: number | null
-	leverage_min: number | null
-	leverage_max: number | null
-	token_count: number
-	market_count: number
-}
+export type CategoryStat = MarketsCategorySegmentStat & { category: string }
 
-/** One venue's merged totals for a segment (homepage exchanges table). */
-export interface ExchangeListRow {
-	exchange: string
-	exchange_type: 'cex' | 'dex'
-	defillama_slug: string | null
-	volume_24h_usd: number
-	volume_prev_24h_usd: number | null
-	oi_usd: number | null
-	oi_prev_usd: number | null
-	market_count: number
-}
+/** One venue's merged totals for a segment, with venue kind attached. */
+export type ExchangeListRow = MarketsExchangeListEntry & { exchange_type: MarketVenue }
 
-/** Daily 30d point for the by-exchange charts. */
-export interface ExchangeSeriesRow {
-	dayMs: number
-	exchange: string
-	exchange_type: 'cex' | 'dex'
-	segment: Segment
-	volume_usd: number
-	oi_usd: number | null
-	market_count: number
-}
-
-/** Daily 30d point for the by-category charts. */
-export interface CategorySeriesRow {
-	dayMs: number
-	segment: Segment
-	tag: string
-	volume_usd: number
-	oi_usd: number | null
-	market_count: number
-}
-
-/** Daily 30d point for a single trading pair (category page by-pair charts). */
-export interface PairSeriesRow {
-	dayMs: number
-	segment: Segment
-	pair: string
-	volume_usd: number
-	oi_usd: number | null
-	market_count: number
-}
+export type ExchangeSeriesRow = MarketsExchangeSeriesApiRow
+export type CategorySeriesRow = MarketsCategorySeriesApiRow
+export type PairSeriesRow = MarketsCategoryPagePairSeriesApiRow
 
 export type SymbolStatsBySegment = Record<Segment, SymbolStat[]>
 export type CategoryStatsBySegment = Record<Segment, CategoryStat[]>
 
-export interface CategoryPageData {
-	tag: string
-	last_updated: string
-	summaries: Record<Segment, CategoryStat | null>
+export type CategoryPageData = Omit<MarketsCategoryPageResponse, 'segments' | 'tokens'> & {
+	segments: Record<Segment, MarketsCategorySegmentStat | null>
 	tokens: SymbolStatsBySegment
-	seriesByExchange: ExchangeSeriesRow[]
-	seriesByPair: PairSeriesRow[]
-	series: CategorySeriesRow[]
 }

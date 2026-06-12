@@ -47,11 +47,11 @@ export function MarketsCategory({
 	const hasOi = segmentHasOi(activeSegment)
 
 	const exchangeRows = React.useMemo(() => {
-		const rows = data?.seriesByExchange ?? []
+		const rows = data?.series_by_exchange ?? []
 		return filterRowsBySegment(rows, activeSegment)
 	}, [data, activeSegment])
 	const pairRows = React.useMemo(() => {
-		const rows = data?.seriesByPair ?? []
+		const rows = data?.series_by_pair ?? []
 		return filterRowsBySegment(rows, activeSegment)
 	}, [data, activeSegment])
 	const volByExchange = React.useMemo(() => pivotExchangeSeries(exchangeRows, 'volume'), [exchangeRows])
@@ -75,7 +75,7 @@ export function MarketsCategory({
 
 	return (
 		<div className="flex flex-col gap-5">
-			<MarketsPageHeader title={data?.tag ?? tag} description="Token category metrics merged across venues." />
+			<MarketsPageHeader title={data?.category ?? tag} description="Token category metrics merged across venues." />
 
 			<MarketsSegmentTabs
 				activeSegment={activeSegment}

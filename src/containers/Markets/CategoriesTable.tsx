@@ -16,8 +16,8 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Category
 	const hasOi = segmentHasOi(segment)
 
 	const columns: ColumnDef<CategoryStat, any>[] = [
-		columnHelper.accessor('tag', {
-			id: 'tag',
+		columnHelper.accessor('category', {
+			id: 'category',
 			header: 'Category',
 			enableSorting: false,
 			cell: ({ getValue }) => <CategoryLink tag={getValue()} />,
@@ -29,21 +29,19 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Category
 			cell: ({ row }) => <ChangeCell fraction={row.original.price_change_24h} />,
 			meta: { headerClassName: 'w-[100px]', align: 'end' }
 		}),
-		columnHelper.accessor('volume_24h_usd', {
-			id: 'volume_24h_usd',
+		columnHelper.accessor('volume_24h', {
+			id: 'volume_24h',
 			header: '24h Volume',
 			cell: ({ getValue }) => renderUsd(getValue()),
 			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
-		columnHelper.accessor((row) => pctChange(row.volume_24h_usd, row.volume_prev_24h_usd) ?? undefined, {
+		columnHelper.accessor((row) => pctChange(row.volume_24h, row.volume_prev_24h) ?? undefined, {
 			id: 'volume_change_24h',
 			header: 'Vol Δ',
-			cell: ({ row }) => (
-				<ChangeCell fraction={pctChange(row.original.volume_24h_usd, row.original.volume_prev_24h_usd)} />
-			),
+			cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.volume_24h, row.original.volume_prev_24h)} />,
 			meta: { headerClassName: 'w-[100px]', align: 'end' }
 		}),
-		columnHelper.accessor('volume_24h_usd', {
+		columnHelper.accessor('volume_24h', {
 			id: 'share',
 			header: 'Share',
 			cell: ({ getValue }) => renderShare(getValue(), totalVolume),
@@ -69,10 +67,10 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Category
 				cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
 				meta: { headerClassName: 'w-[100px]', align: 'end' }
 			}),
-			columnHelper.accessor((row) => row.funding_avg_8h ?? undefined, {
-				id: 'funding_avg_8h',
+			columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
+				id: 'funding_rate_8h',
 				header: 'Funding 8h',
-				cell: ({ row }) => renderFunding8h(row.original.funding_avg_8h),
+				cell: ({ row }) => renderFunding8h(row.original.funding_rate_8h),
 				meta: {
 					headerClassName: 'w-[110px]',
 					align: 'end',
@@ -109,7 +107,7 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Category
 export function CategoriesTable({ categories, segment }: { categories: CategoryStat[]; segment: Segment }) {
 	const totalVolume = React.useMemo(() => {
 		let total = 0
-		for (const category of categories) total += category.volume_24h_usd
+		for (const category of categories) total += category.volume_24h
 		return total
 	}, [categories])
 	const columns = React.useMemo(() => buildColumns(segment, totalVolume), [segment, totalVolume])
@@ -119,11 +117,11 @@ export function CategoriesTable({ categories, segment }: { categories: CategoryS
 			key={segment}
 			data={categories}
 			columns={columns}
-			columnToSearch="tag"
+			columnToSearch="category"
 			placeholder="Search categories..."
 			header="Categories"
 			csvFileName={`markets-categories-${segment}`}
-			sortingState={[{ id: 'volume_24h_usd', desc: true }]}
+			sortingState={[{ id: 'volume_24h', desc: true }]}
 		/>
 	)
 }

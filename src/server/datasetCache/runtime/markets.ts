@@ -1,21 +1,42 @@
 import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
-import type { ExchangeMarketsListResponse, TokenMarketsListResponse } from '~/containers/Markets/api.types'
 import { fetchTokenMarketsListFromNetwork } from '~/containers/Token/api'
-import { fetchExchangeMarketsListFromCache, fetchTokenMarketsListFromCache } from '../markets'
+import { slug } from '~/utils'
+import {
+	buildCexMarketsSlugIndex,
+	buildTokenMarketsSymbolIndex,
+	fetchCexMarketsSlugIndexFromCache,
+	fetchTokenMarketsSymbolIndexFromCache,
+	type CexMarketsSlugIndex,
+	type CexMarketsSlugIndexEntry,
+	type TokenMarketsSymbolIndex
+} from '../markets'
 import { readThroughDatasetCache } from './source'
 
-export function fetchExchangeMarketsList(): Promise<ExchangeMarketsListResponse> {
+function fetchTokenMarketsSymbolIndex(): Promise<TokenMarketsSymbolIndex> {
 	return readThroughDatasetCache({
 		domain: 'markets',
-		readCache: fetchExchangeMarketsListFromCache,
-		readNetwork: fetchExchangeMarketsListFromNetwork
+		readCache: fetchTokenMarketsSymbolIndexFromCache,
+		readNetwork: async () => buildTokenMarketsSymbolIndex(await fetchTokenMarketsListFromNetwork())
 	})
 }
 
-export function fetchTokenMarketsList(): Promise<TokenMarketsListResponse> {
+function fetchCexMarketsSlugIndex(): Promise<CexMarketsSlugIndex> {
 	return readThroughDatasetCache({
 		domain: 'markets',
-		readCache: fetchTokenMarketsListFromCache,
-		readNetwork: fetchTokenMarketsListFromNetwork
+		readCache: fetchCexMarketsSlugIndexFromCache,
+		readNetwork: async () => buildCexMarketsSlugIndex(await fetchExchangeMarketsListFromNetwork())
 	})
+}
+
+export async function resolveCexMarketsByDefillamaSlug(
+	defillamaSlug: string
+): Promise<CexMarketsSlugIndexEntry | null> {
+	const index = await fetchCexMarketsSlugIndex()
+	const key = slug(defillamaSlug)
+	return Object.hasOwn(index, key) ? index[key] : null
+}
+
+export async function hasTokenMarkets(symbol: string): Promise<boolean> {
+	const index = await fetchTokenMarketsSymbolIndex()
+	return Object.hasOwn(index, symbol.toLowerCase())
 }

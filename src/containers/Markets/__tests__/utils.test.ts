@@ -19,15 +19,15 @@ import {
 
 function symbol(overrides: Partial<SymbolStat> = {}): SymbolStat {
 	return {
-		base: 'tok',
+		symbol: 'tok',
 		tags: [],
 		price: 1,
 		price_change_24h: 0,
-		volume_24h_usd: 0,
-		volume_prev_24h_usd: 0,
+		volume_24h: 0,
+		volume_prev_24h: 0,
 		oi_usd: null,
 		oi_prev_usd: null,
-		funding_avg_8h: null,
+		funding_rate_8h: null,
 		leverage_min: null,
 		leverage_max: null,
 		market_count: 1,
@@ -51,63 +51,63 @@ describe('pctChange', () => {
 
 describe('sentiment', () => {
 	it('uses volume only on spot', () => {
-		expect(sentiment(symbol({ volume_24h_usd: 130, volume_prev_24h_usd: 100 }), 'spot')).toBe('rising')
-		expect(sentiment(symbol({ volume_24h_usd: 80, volume_prev_24h_usd: 100 }), 'spot')).toBe('fading')
-		expect(sentiment(symbol({ volume_24h_usd: 105, volume_prev_24h_usd: 100 }), 'spot')).toBe('flat')
+		expect(sentiment(symbol({ volume_24h: 130, volume_prev_24h: 100 }), 'spot')).toBe('rising')
+		expect(sentiment(symbol({ volume_24h: 80, volume_prev_24h: 100 }), 'spot')).toBe('fading')
+		expect(sentiment(symbol({ volume_24h: 105, volume_prev_24h: 100 }), 'spot')).toBe('flat')
 	})
 
 	it('uses the volume/OI quadrant on perps', () => {
 		const segment = 'linear_perp' as const
-		const base = { volume_24h_usd: 130, volume_prev_24h_usd: 100, oi_usd: 110, oi_prev_usd: 100 }
+		const base = { volume_24h: 130, volume_prev_24h: 100, oi_usd: 110, oi_prev_usd: 100 }
 		expect(sentiment(symbol(base), segment)).toBe('rising')
 		expect(sentiment(symbol({ ...base, oi_usd: 90 }), segment)).toBe('churn')
-		expect(sentiment(symbol({ ...base, volume_24h_usd: 80 }), segment)).toBe('building')
-		expect(sentiment(symbol({ ...base, volume_24h_usd: 80, oi_usd: 90 }), segment)).toBe('fading')
-		expect(sentiment(symbol({ ...base, volume_24h_usd: 101, oi_usd: 101 }), segment)).toBe('flat')
+		expect(sentiment(symbol({ ...base, volume_24h: 80 }), segment)).toBe('building')
+		expect(sentiment(symbol({ ...base, volume_24h: 80, oi_usd: 90 }), segment)).toBe('fading')
+		expect(sentiment(symbol({ ...base, volume_24h: 101, oi_usd: 101 }), segment)).toBe('flat')
 	})
 
 	it('is flat when OI data is missing on perps', () => {
-		expect(sentiment(symbol({ volume_24h_usd: 130, volume_prev_24h_usd: 100 }), 'linear_perp')).toBe('flat')
+		expect(sentiment(symbol({ volume_24h: 130, volume_prev_24h: 100 }), 'linear_perp')).toBe('flat')
 	})
 })
 
 describe('movers', () => {
 	it('ignores dust rows below the volume floor', () => {
 		const rows = [
-			symbol({ base: 'big', volume_24h_usd: 5_000_000, price_change_24h: 0.2 }),
-			symbol({ base: 'dust', volume_24h_usd: 1000, price_change_24h: 0.9 })
+			symbol({ symbol: 'big', volume_24h: 5_000_000, price_change_24h: 0.2 }),
+			symbol({ symbol: 'dust', volume_24h: 1000, price_change_24h: 0.9 })
 		]
 		const { gainers } = selectMovers(rows, 'price')
-		expect(gainers.map((r) => r.base)).toEqual(['big'])
+		expect(gainers.map((r) => r.symbol)).toEqual(['big'])
 	})
 
 	it('sorts gainers desc and losers asc', () => {
 		const rows = [
-			symbol({ base: 'a', volume_24h_usd: 2_000_000, price_change_24h: 0.3 }),
-			symbol({ base: 'b', volume_24h_usd: 2_000_000, price_change_24h: -0.4 }),
-			symbol({ base: 'c', volume_24h_usd: 2_000_000, price_change_24h: 0.1 })
+			symbol({ symbol: 'a', volume_24h: 2_000_000, price_change_24h: 0.3 }),
+			symbol({ symbol: 'b', volume_24h: 2_000_000, price_change_24h: -0.4 }),
+			symbol({ symbol: 'c', volume_24h: 2_000_000, price_change_24h: 0.1 })
 		]
 		const { gainers, losers } = selectMovers(rows, 'price', 2)
-		expect(gainers.map((r) => r.base)).toEqual(['a', 'c'])
-		expect(losers.map((r) => r.base)).toEqual(['b', 'c'])
+		expect(gainers.map((r) => r.symbol)).toEqual(['a', 'c'])
+		expect(losers.map((r) => r.symbol)).toEqual(['b', 'c'])
 	})
 
 	it('keeps the previous full-sort tie ordering for gainers and losers', () => {
 		const rows = [
-			symbol({ base: 'a', volume_24h_usd: 2_000_000, price_change_24h: 0.2 }),
-			symbol({ base: 'b', volume_24h_usd: 2_000_000, price_change_24h: 0.2 }),
-			symbol({ base: 'c', volume_24h_usd: 2_000_000, price_change_24h: -0.1 }),
-			symbol({ base: 'd', volume_24h_usd: 2_000_000, price_change_24h: -0.1 })
+			symbol({ symbol: 'a', volume_24h: 2_000_000, price_change_24h: 0.2 }),
+			symbol({ symbol: 'b', volume_24h: 2_000_000, price_change_24h: 0.2 }),
+			symbol({ symbol: 'c', volume_24h: 2_000_000, price_change_24h: -0.1 }),
+			symbol({ symbol: 'd', volume_24h: 2_000_000, price_change_24h: -0.1 })
 		]
 		const { gainers, losers } = selectMovers(rows, 'price', 2)
-		expect(gainers.map((r) => r.base)).toEqual(['a', 'b'])
-		expect(losers.map((r) => r.base)).toEqual(['d', 'c'])
+		expect(gainers.map((r) => r.symbol)).toEqual(['a', 'b'])
+		expect(losers.map((r) => r.symbol)).toEqual(['d', 'c'])
 	})
 
 	it('moverValue maps each metric', () => {
 		const row = symbol({
-			volume_24h_usd: 120,
-			volume_prev_24h_usd: 100,
+			volume_24h: 120,
+			volume_prev_24h: 100,
 			oi_usd: 110,
 			oi_prev_usd: 100,
 			price_change_24h: 0.05
@@ -121,39 +121,39 @@ describe('movers', () => {
 describe('topSymbols', () => {
 	it('sorts by volume or oi and caps the count', () => {
 		const rows = [
-			symbol({ base: 'a', volume_24h_usd: 10, oi_usd: 1 }),
-			symbol({ base: 'b', volume_24h_usd: 5, oi_usd: 9 }),
-			symbol({ base: 'c', volume_24h_usd: 7, oi_usd: 3 })
+			symbol({ symbol: 'a', volume_24h: 10, oi_usd: 1 }),
+			symbol({ symbol: 'b', volume_24h: 5, oi_usd: 9 }),
+			symbol({ symbol: 'c', volume_24h: 7, oi_usd: 3 })
 		]
-		expect(topSymbols(rows, 'volume', 2).map((r) => r.base)).toEqual(['a', 'c'])
-		expect(topSymbols(rows, 'oi', 2).map((r) => r.base)).toEqual(['b', 'c'])
+		expect(topSymbols(rows, 'volume', 2).map((r) => r.symbol)).toEqual(['a', 'c'])
+		expect(topSymbols(rows, 'oi', 2).map((r) => r.symbol)).toEqual(['b', 'c'])
 	})
 
 	it('keeps the previous full-sort tie ordering when capped', () => {
 		const rows = [
-			symbol({ base: 'a', volume_24h_usd: 10 }),
-			symbol({ base: 'b', volume_24h_usd: 10 }),
-			symbol({ base: 'c', volume_24h_usd: 9 })
+			symbol({ symbol: 'a', volume_24h: 10 }),
+			symbol({ symbol: 'b', volume_24h: 10 }),
+			symbol({ symbol: 'c', volume_24h: 9 })
 		]
-		expect(topSymbols(rows, 'volume', 2).map((r) => r.base)).toEqual(['a', 'b'])
+		expect(topSymbols(rows, 'volume', 2).map((r) => r.symbol)).toEqual(['a', 'b'])
 	})
 })
 
 describe('segment row helpers', () => {
 	it('finds available segments from complete segment records', () => {
 		const rowsBySegment: SymbolStatsBySegment = {
-			spot: [symbol({ base: 'spot-a' })],
+			spot: [symbol({ symbol: 'spot-a' })],
 			linear_perp: [],
-			inverse_perp: [symbol({ base: 'inverse-a' })]
+			inverse_perp: [symbol({ symbol: 'inverse-a' })]
 		}
 		expect(availableSegmentsFromRows(rowsBySegment)).toEqual(['spot', 'inverse_perp'])
 	})
 
 	it('summarizes assets and volume for every segment', () => {
 		const rowsBySegment: SymbolStatsBySegment = {
-			spot: [symbol({ volume_24h_usd: 10 }), symbol({ volume_24h_usd: 15 })],
+			spot: [symbol({ volume_24h: 10 }), symbol({ volume_24h: 15 })],
 			linear_perp: [],
-			inverse_perp: [symbol({ volume_24h_usd: 5 })]
+			inverse_perp: [symbol({ volume_24h: 5 })]
 		}
 		expect(segmentAssetSummaries(rowsBySegment)).toEqual({
 			spot: { assets: 2, volume: 25 },
@@ -164,9 +164,9 @@ describe('segment row helpers', () => {
 
 	it('formats segment subtitles from the same summaries', () => {
 		const rowsBySegment: SymbolStatsBySegment = {
-			spot: [symbol({ volume_24h_usd: 10 }), symbol({ volume_24h_usd: 15 })],
+			spot: [symbol({ volume_24h: 10 }), symbol({ volume_24h: 15 })],
 			linear_perp: [],
-			inverse_perp: [symbol({ volume_24h_usd: 1_000_000 })]
+			inverse_perp: [symbol({ volume_24h: 1_000_000 })]
 		}
 		expect(segmentSubtitles(rowsBySegment)).toEqual({
 			spot: '2 assets · $25',
@@ -187,29 +187,29 @@ describe('segment row helpers', () => {
 	it('filters exchange series case-insensitively and excludes other segments', () => {
 		const rows: ExchangeSeriesRow[] = [
 			{
-				dayMs: 1000,
+				day: 1000,
 				exchange: 'Binance',
 				exchange_type: 'cex',
 				segment: 'spot',
-				volume_usd: 10,
+				volume_24h: 10,
 				oi_usd: null,
 				market_count: 1
 			},
 			{
-				dayMs: 1000,
+				day: 1000,
 				exchange: 'binance',
 				exchange_type: 'cex',
 				segment: 'linear_perp',
-				volume_usd: 20,
+				volume_24h: 20,
 				oi_usd: 5,
 				market_count: 2
 			},
 			{
-				dayMs: 1000,
+				day: 1000,
 				exchange: 'okx',
 				exchange_type: 'cex',
 				segment: 'linear_perp',
-				volume_usd: 30,
+				volume_24h: 30,
 				oi_usd: 6,
 				market_count: 3
 			}
@@ -221,12 +221,12 @@ describe('segment row helpers', () => {
 describe('segmentTotals', () => {
 	it('sums required fields directly and nullable fields when present', () => {
 		const totals = segmentTotals([
-			symbol({ volume_24h_usd: 10, volume_prev_24h_usd: null, oi_usd: null, oi_prev_usd: 3, market_count: 2 }),
-			symbol({ volume_24h_usd: 20, volume_prev_24h_usd: 5, oi_usd: 7, oi_prev_usd: null, market_count: 4 })
+			symbol({ volume_24h: 10, volume_prev_24h: null, oi_usd: null, oi_prev_usd: 3, market_count: 2 }),
+			symbol({ volume_24h: 20, volume_prev_24h: 5, oi_usd: 7, oi_prev_usd: null, market_count: 4 })
 		])
 		expect(totals).toEqual({
-			volume_24h_usd: 30,
-			volume_prev_24h_usd: 5,
+			volume_24h: 30,
+			volume_prev_24h: 5,
 			oi_usd: 7,
 			oi_prev_usd: 3,
 			market_count: 6,
@@ -238,15 +238,15 @@ describe('segmentTotals', () => {
 describe('pivotSeries', () => {
 	it('keeps the top N keys ranked by latest-day value, drops the rest, and emits seconds', () => {
 		const rows = [
-			{ key: 'a', day: 1_000_000_000_000, value: 100 },
-			{ key: 'b', day: 1_000_000_000_000, value: 50 },
-			{ key: 'c', day: 1_000_000_000_000, value: 10 },
-			{ key: 'a', day: 1_000_086_400_000, value: 200 }
+			{ key: 'a', day: 1_000_000_000, value: 100 },
+			{ key: 'b', day: 1_000_000_000, value: 50 },
+			{ key: 'c', day: 1_000_000_000, value: 10 },
+			{ key: 'a', day: 1_000_086_400, value: 200 }
 		]
 		const { chartData, stacks } = pivotSeries(rows, {
 			keyOf: (r) => r.key,
 			valueOf: (r) => r.value,
-			dayMsOf: (r) => r.day,
+			dayOf: (r) => r.day,
 			top: 2
 		})
 		expect(stacks).toEqual(['a', 'b'])
@@ -262,15 +262,15 @@ describe('pivotSeries', () => {
 
 	it('ranks by the latest day, not the 30d total', () => {
 		const rows = [
-			{ key: 'old', day: 1_000_000_000_000, value: 1000 },
-			{ key: 'new', day: 1_000_000_000_000, value: 1 },
-			{ key: 'new', day: 1_000_086_400_000, value: 500 },
-			{ key: 'old', day: 1_000_086_400_000, value: 0 }
+			{ key: 'old', day: 1_000_000_000, value: 1000 },
+			{ key: 'new', day: 1_000_000_000, value: 1 },
+			{ key: 'new', day: 1_000_086_400, value: 500 },
+			{ key: 'old', day: 1_000_086_400, value: 0 }
 		]
 		const { stacks } = pivotSeries(rows, {
 			keyOf: (r) => r.key,
 			valueOf: (r) => r.value,
-			dayMsOf: (r) => r.day,
+			dayOf: (r) => r.day,
 			top: 1
 		})
 		expect(stacks).toEqual(['new'])
@@ -278,16 +278,16 @@ describe('pivotSeries', () => {
 
 	it('sums duplicate key/day points before charting and ranking', () => {
 		const rows = [
-			{ key: 'a', day: 1_000_000_000_000, value: 100 },
-			{ key: 'a', day: 1_000_000_000_000, value: 25 },
-			{ key: 'b', day: 1_000_000_000_000, value: 80 },
-			{ key: 'a', day: 1_000_086_400_000, value: 10 },
-			{ key: 'b', day: 1_000_086_400_000, value: 20 }
+			{ key: 'a', day: 1_000_000_000, value: 100 },
+			{ key: 'a', day: 1_000_000_000, value: 25 },
+			{ key: 'b', day: 1_000_000_000, value: 80 },
+			{ key: 'a', day: 1_000_086_400, value: 10 },
+			{ key: 'b', day: 1_000_086_400, value: 20 }
 		]
 		const { chartData, stacks } = pivotSeries(rows, {
 			keyOf: (r) => r.key,
 			valueOf: (r) => r.value,
-			dayMsOf: (r) => r.day,
+			dayOf: (r) => r.day,
 			top: 2
 		})
 		expect(stacks).toEqual(['b', 'a'])
@@ -298,7 +298,7 @@ describe('pivotSeries', () => {
 	})
 
 	it('returns empty output for empty input', () => {
-		expect(pivotSeries([], { keyOf: () => '', valueOf: () => 0, dayMsOf: () => 0 })).toEqual({
+		expect(pivotSeries([], { keyOf: () => '', valueOf: () => 0, dayOf: () => 0 })).toEqual({
 			chartData: [],
 			stacks: []
 		})
@@ -328,44 +328,44 @@ describe('aggregateCategories', () => {
 	it('buckets by tag, defaults untagged, and volume-weights price change', () => {
 		const rows = [
 			symbol({
-				base: 'x',
+				symbol: 'x',
 				tags: ['rwa'],
-				volume_24h_usd: 100,
-				volume_prev_24h_usd: 80,
+				volume_24h: 100,
+				volume_prev_24h: 80,
 				oi_usd: 10,
 				oi_prev_usd: 8,
-				funding_avg_8h: 0.01,
+				funding_rate_8h: 0.01,
 				leverage_min: 2,
 				leverage_max: 20,
 				price_change_24h: 0.1,
 				market_count: 2
 			}),
 			symbol({
-				base: 'y',
+				symbol: 'y',
 				tags: ['rwa'],
-				volume_24h_usd: 300,
-				volume_prev_24h_usd: 240,
+				volume_24h: 300,
+				volume_prev_24h: 240,
 				oi_usd: 30,
 				oi_prev_usd: 24,
-				funding_avg_8h: 0.03,
+				funding_rate_8h: 0.03,
 				leverage_min: 1,
 				leverage_max: 50,
 				price_change_24h: 0.2,
 				market_count: 3
 			}),
-			symbol({ base: 'z', tags: [], volume_24h_usd: 50, price_change_24h: -0.5, market_count: 1 })
+			symbol({ symbol: 'z', tags: [], volume_24h: 50, price_change_24h: -0.5, market_count: 1 })
 		]
 		const cats = aggregateCategories(rows)
-		const rwa = cats.find((c) => c.tag === 'rwa')!
-		const untagged = cats.find((c) => c.tag === 'untagged')!
+		const rwa = cats.find((c) => c.category === 'rwa')!
+		const untagged = cats.find((c) => c.category === 'untagged')!
 		expect(rwa.token_count).toBe(2)
 		expect(rwa.market_count).toBe(5)
-		expect(rwa.volume_24h_usd).toBe(400)
-		expect(rwa.volume_prev_24h_usd).toBe(320)
+		expect(rwa.volume_24h).toBe(400)
+		expect(rwa.volume_prev_24h).toBe(320)
 		expect(rwa.oi_usd).toBe(40)
 		expect(rwa.oi_prev_usd).toBe(32)
 		expect(rwa.price_change_24h).toBeCloseTo(0.175)
-		expect(rwa.funding_avg_8h).toBeCloseTo(0.025)
+		expect(rwa.funding_rate_8h).toBeCloseTo(0.025)
 		expect(rwa.leverage_min).toBe(1)
 		expect(rwa.leverage_max).toBe(50)
 		expect(untagged.token_count).toBe(1)

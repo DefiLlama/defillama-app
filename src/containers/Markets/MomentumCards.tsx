@@ -2,7 +2,7 @@ import * as React from 'react'
 import { type Segment, segmentHasOi } from './segments'
 import { CategoryLink, ChangeCell, TokenName, type KnownTokenSlugs } from './shared'
 import type { CategoryStat, SymbolStat } from './types'
-import { type MoverMetricKey, MOVER_METRICS, moverValue, selectMovers } from './utils'
+import { type MoverMetricKey, MOVER_METRICS, moverValue, selectMovers, UNTAGGED_CATEGORY } from './utils'
 
 interface MoverRow {
 	name: React.ReactNode
@@ -99,11 +99,11 @@ export function MomentumCards({
 }) {
 	const hasOi = segmentHasOi(segment)
 	const metricKeys = React.useMemo(() => MOVER_METRICS.filter((m) => !m.perpOnly || hasOi), [hasOi])
-	// `untagged` is a catch-all, not a real category — keep it out of the momentum panels.
+	// The untagged bucket is a catch-all, not a real category — keep it out of the momentum panels.
 	const categoryRows = React.useMemo(() => {
 		const rows: CategoryStat[] = []
 		for (const category of categories) {
-			if (category.tag !== 'untagged') rows.push(category)
+			if (category.category !== UNTAGGED_CATEGORY) rows.push(category)
 		}
 		return rows
 	}, [categories])
@@ -114,13 +114,13 @@ export function MomentumCards({
 				title="momentum · categories"
 				rows={categoryRows}
 				metricKeys={metricKeys}
-				nameOf={(row) => <CategoryLink tag={row.tag} />}
+				nameOf={(row) => <CategoryLink tag={row.category} />}
 			/>
 			<MoverRowSet
 				title="momentum · tokens"
 				rows={tokens}
 				metricKeys={metricKeys}
-				nameOf={(row) => <TokenName base={row.base} knownTokenSlugs={knownTokenSlugs} />}
+				nameOf={(row) => <TokenName base={row.symbol} knownTokenSlugs={knownTokenSlugs} />}
 			/>
 		</div>
 	)

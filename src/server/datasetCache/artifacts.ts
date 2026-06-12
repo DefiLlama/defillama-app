@@ -52,7 +52,9 @@ export const DATASET_DOMAIN_ARTIFACTS = {
 	markets: {
 		files: {
 			tokensList: 'tokens-list.json',
-			exchangesList: 'exchanges-list.json'
+			exchangesList: 'exchanges-list.json',
+			tokenSymbols: 'token-symbols.json',
+			cexByDefillamaSlug: 'cex-by-defillama-slug.json'
 		}
 	}
 } as const satisfies Record<string, DatasetDomainArtifactContract>

@@ -29,21 +29,21 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Exchange
 			cell: ({ getValue }) => <VenueBadge type={getValue()} />,
 			meta: { headerClassName: 'w-[80px]' }
 		}),
-		columnHelper.accessor('volume_24h_usd', {
-			id: 'volume_24h_usd',
+		columnHelper.accessor('total_volume_24h', {
+			id: 'total_volume_24h',
 			header: '24h Volume',
 			cell: ({ getValue }) => renderUsd(getValue()),
 			meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 		}),
-		columnHelper.accessor((row) => pctChange(row.volume_24h_usd, row.volume_prev_24h_usd) ?? undefined, {
+		columnHelper.accessor((row) => pctChange(row.total_volume_24h, row.total_volume_prev_24h) ?? undefined, {
 			id: 'volume_change_24h',
 			header: 'Vol Δ',
 			cell: ({ row }) => (
-				<ChangeCell fraction={pctChange(row.original.volume_24h_usd, row.original.volume_prev_24h_usd)} />
+				<ChangeCell fraction={pctChange(row.original.total_volume_24h, row.original.total_volume_prev_24h)} />
 			),
 			meta: { headerClassName: 'w-[100px]', align: 'end' }
 		}),
-		columnHelper.accessor('volume_24h_usd', {
+		columnHelper.accessor('total_volume_24h', {
 			id: 'share',
 			header: 'Share',
 			cell: ({ getValue }) => renderShare(getValue(), totalVolume),
@@ -57,16 +57,18 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Exchange
 
 	if (hasOi) {
 		columns.push(
-			columnHelper.accessor((row) => row.oi_usd ?? undefined, {
-				id: 'oi_usd',
+			columnHelper.accessor((row) => row.total_oi_usd ?? undefined, {
+				id: 'total_oi_usd',
 				header: 'OI',
-				cell: ({ row }) => renderUsd(row.original.oi_usd),
+				cell: ({ row }) => renderUsd(row.original.total_oi_usd),
 				meta: { headerClassName: 'w-[120px]', align: 'end' as const }
 			}),
-			columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
+			columnHelper.accessor((row) => pctChange(row.total_oi_usd, row.total_oi_prev_usd) ?? undefined, {
 				id: 'oi_change_24h',
 				header: 'OI Δ',
-				cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
+				cell: ({ row }) => (
+					<ChangeCell fraction={pctChange(row.original.total_oi_usd, row.original.total_oi_prev_usd)} />
+				),
 				meta: { headerClassName: 'w-[100px]', align: 'end' }
 			})
 		)
@@ -99,11 +101,11 @@ export function ExchangesTable({ exchanges, segment }: { exchanges: ExchangeList
 		const rows: ExchangeListRow[] = []
 		let totalVolume = 0
 		for (const exchange of exchanges) {
-			if (exchange.volume_24h_usd <= 0 || (venue !== 'all' && exchange.exchange_type !== venue)) continue
+			if (exchange.total_volume_24h <= 0 || (venue !== 'all' && exchange.exchange_type !== venue)) continue
 			rows.push(exchange)
-			totalVolume += exchange.volume_24h_usd
+			totalVolume += exchange.total_volume_24h
 		}
-		rows.sort((a, b) => b.volume_24h_usd - a.volume_24h_usd)
+		rows.sort((a, b) => b.total_volume_24h - a.total_volume_24h)
 		return { rows, totalVolume }
 	}, [exchanges, venue])
 	const columns = React.useMemo(() => buildColumns(segment, totalVolume), [segment, totalVolume])
@@ -138,7 +140,7 @@ export function ExchangesTable({ exchanges, segment }: { exchanges: ExchangeList
 			header="Exchanges"
 			leadingControls={leadingControls}
 			csvFileName={`markets-exchanges-${segment}`}
-			sortingState={[{ id: 'volume_24h_usd', desc: true }]}
+			sortingState={[{ id: 'total_volume_24h', desc: true }]}
 		/>
 	)
 }

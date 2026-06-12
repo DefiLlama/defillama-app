@@ -83,7 +83,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			{ isDatasetCacheIntegrityError },
 			{ hasTokenLiquidationsData },
 			{ fetchLiquidityEntryByProtocolId },
-			{ fetchTokenMarketsList },
+			{ hasTokenMarkets },
 			{ fetchRaisesByDefillamaId },
 			{ getIndexedTokenRiskBorrowCapacity },
 			{ fetchTokenRightsEntryByDefillamaId, fetchTokenRightsEntryByName },
@@ -102,17 +102,9 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		])
 		const downgradeTokenPageError = <T,>(error: unknown, message: string, fallback: T): T =>
 			downgradeTokenPageDataError(error, message, fallback, isDatasetCacheIntegrityError)
-		const normalizedMarketsSymbol = record.symbol.toLowerCase()
-		const marketsAvailablePromise = fetchTokenMarketsList()
-			.then((tokenMarketsList) => {
-				for (const tokenMarket of tokenMarketsList.tokens) {
-					if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
-						return true
-					}
-				}
-				return false
-			})
-			.catch((error) => downgradeTokenPageError(error, `Failed to load token markets list for ${record.symbol}`, false))
+		const marketsAvailablePromise = hasTokenMarkets(record.symbol).catch((error) =>
+			downgradeTokenPageError(error, `Failed to load token markets list for ${record.symbol}`, false)
+		)
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol

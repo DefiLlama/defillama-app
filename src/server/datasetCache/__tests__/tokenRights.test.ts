@@ -46,7 +46,7 @@ describe('dataset cache token rights reader', () => {
 		vi.stubEnv('DATASET_CACHE_DIR', tempDir)
 		await writeDatasetManifest(
 			{
-				artifactVersion: 2,
+				artifactVersion: 3,
 				builtAt: Date.now(),
 				domains: createDatasetManifestDomains()
 			},

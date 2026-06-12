@@ -9,12 +9,10 @@ import type {
 	TokenMarketsListResponse
 } from './api.types'
 import {
-	normalizeCategoriesList,
-	normalizeCategoryPage,
-	normalizeCategorySeries,
-	normalizeExchangesList,
-	normalizeExchangeSeries,
-	normalizeTokensList
+	completeCategoryPageData,
+	groupCategoriesBySegment,
+	groupTokensBySegment,
+	mergeExchangeListBySegment
 } from './normalizers'
 import type { Segment } from './segments'
 import {
@@ -28,22 +26,22 @@ import {
 
 /** Per-segment merged symbol stats (homepage movers / top-100 / sentiment). */
 export async function fetchMarketsTokens(): Promise<SymbolStatsBySegment> {
-	return normalizeTokensList(await fetchJson<TokenMarketsListResponse>('/api/public/markets/tokens'))
+	return groupTokensBySegment(await fetchJson<TokenMarketsListResponse>('/api/public/markets/tokens'))
 }
 
 /** Per-segment merged category stats (homepage category movers + table). */
 export async function fetchMarketsCategories(): Promise<CategoryStatsBySegment> {
-	return normalizeCategoriesList(await fetchJson<MarketsCategoriesListResponse>('/api/public/markets/categories'))
+	return groupCategoriesBySegment(await fetchJson<MarketsCategoriesListResponse>('/api/public/markets/categories'))
 }
 
 /** 30d daily by-exchange rows (homepage by-exchange charts). */
 export async function fetchMarketsExchangeSeries(): Promise<ExchangeSeriesRow[]> {
-	return normalizeExchangeSeries(await fetchJson<MarketsExchangeSeriesResponse>('/api/public/markets/exchanges/series'))
+	return (await fetchJson<MarketsExchangeSeriesResponse>('/api/public/markets/exchanges/series')).series
 }
 
 /** Per-segment merged venue stats (homepage exchanges table). */
 export async function fetchMarketsExchangesList(): Promise<Record<Segment, ExchangeListRow[]>> {
-	return normalizeExchangesList(await fetchJson<ExchangeMarketsListResponse>('/api/public/markets/exchanges'))
+	return mergeExchangeListBySegment(await fetchJson<ExchangeMarketsListResponse>('/api/public/markets/exchanges'))
 }
 
 /** One venue's per-segment totals + pairs (exchange page). */
@@ -55,9 +53,7 @@ export async function fetchMarketsExchange(exchange: string): Promise<ExchangeMa
 
 /** 30d daily by-category rows (homepage by-category charts). */
 export async function fetchMarketsCategorySeries(): Promise<CategorySeriesRow[]> {
-	return normalizeCategorySeries(
-		await fetchJson<MarketsCategoriesSeriesResponse>('/api/public/markets/categories/series')
-	)
+	return (await fetchJson<MarketsCategoriesSeriesResponse>('/api/public/markets/categories/series')).series
 }
 
 /** Everything the category page needs in one fetch. */
@@ -65,5 +61,5 @@ export async function fetchMarketsCategoryPage(tag: string): Promise<CategoryPag
 	const data = await fetchJson<MarketsCategoryPageResponse>(
 		`/api/public/markets/categories/${encodeURIComponent(tag.toLowerCase())}`
 	)
-	return normalizeCategoryPage(data)
+	return completeCategoryPageData(data)
 }

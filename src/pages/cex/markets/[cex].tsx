@@ -73,38 +73,10 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const { fetchExchangeMarketsList } = await import('~/server/datasetCache/runtime/markets')
-		const exchangesList = await fetchExchangeMarketsList()
-		const normalizedCexSlug = slug(exchangeData.slug ?? '')
-		let cexMarketsExchange: string | null = null
-		let cexMarketsSlug: string | null = null
-		for (const entry of exchangesList.cex.spot) {
-			if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
-				cexMarketsExchange = entry.exchange
-				cexMarketsSlug = entry.defillama_slug
-				break
-			}
-		}
-		if (!cexMarketsExchange) {
-			for (const entry of exchangesList.cex.linear_perp) {
-				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
-					cexMarketsExchange = entry.exchange
-					cexMarketsSlug = entry.defillama_slug
-					break
-				}
-			}
-		}
-		if (!cexMarketsExchange) {
-			for (const entry of exchangesList.cex.inverse_perp) {
-				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
-					cexMarketsExchange = entry.exchange
-					cexMarketsSlug = entry.defillama_slug
-					break
-				}
-			}
-		}
+		const { resolveCexMarketsByDefillamaSlug } = await import('~/server/datasetCache/runtime/markets')
+		const cexMarkets = await resolveCexMarketsByDefillamaSlug(exchangeData.slug ?? '')
 
-		if (!cexMarketsExchange || !cexMarketsSlug) {
+		if (!cexMarkets) {
 			return { notFound: true }
 		}
 
@@ -120,8 +92,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
 				metrics: CEX_MARKETS_METRICS,
-				cexMarketsExchange,
-				cexMarketsSlug
+				cexMarketsExchange: cexMarkets.exchange,
+				cexMarketsSlug: cexMarkets.defillama_slug
 			},
 			revalidate: maxAgeForNext([22])
 		}

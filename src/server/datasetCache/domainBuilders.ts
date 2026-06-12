@@ -14,6 +14,7 @@ import { ensureDirectory } from '~/utils/cacheDirectory'
 import { DATASET_DOMAIN_ARTIFACTS, type DatasetDomain } from './artifacts'
 import type { DatasetDomainBuildResult } from './buildTypes'
 import { writeDatasetCacheJson as writeJsonFile } from './jsonCache'
+import { buildCexMarketsSlugIndex, buildTokenMarketsSymbolIndex } from './markets'
 import { buildTokenRightsIndexes } from './tokenRightsIndex'
 export { buildYieldsDomain } from './yields.builder'
 
@@ -131,7 +132,9 @@ export async function buildMarketsDomain(rootDir: string): Promise<DatasetDomain
 
 	await Promise.all([
 		writeJsonFile(path.join(domainDir, files.tokensList), tokensList),
-		writeJsonFile(path.join(domainDir, files.exchangesList), exchangesList)
+		writeJsonFile(path.join(domainDir, files.exchangesList), exchangesList),
+		writeJsonFile(path.join(domainDir, files.tokenSymbols), buildTokenMarketsSymbolIndex(tokensList)),
+		writeJsonFile(path.join(domainDir, files.cexByDefillamaSlug), buildCexMarketsSlugIndex(exchangesList))
 	])
 
 	return { builtAt }
