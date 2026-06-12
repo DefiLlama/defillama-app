@@ -11,7 +11,7 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getMarketCapToAnnualizedMetricRatio, getPercentChange, slug } from '~/utils'
 import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import { buildDimensionProtocolMetrics } from './readModel'
-import type { IChildProtocol, IProtocol, TVL_TYPES } from './types'
+import type { IChildProtocol, IProtocol, ProtocolRankingTvlEntry, TVL_TYPES } from './types'
 import { protocolMatchesForkFilter, protocolMatchesOracleFilter, toFilterProtocol, toStrikeTvl } from './utils'
 
 const PREVIOUS_TVL_KEYS = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
@@ -150,7 +150,7 @@ export const getProtocolsByChain = async ({
 	const parentStore: Record<string, Array<IChildProtocol>> = {}
 
 	for (const protocol of eligibleProtocols) {
-		const tvls = {} as Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }>
+		const tvls = {} as Record<TVL_TYPES, ProtocolRankingTvlEntry>
 
 		if (chain === 'All') {
 			tvls.default = {

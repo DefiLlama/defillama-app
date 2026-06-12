@@ -58,9 +58,9 @@ export interface IProtocolsWithTokensByChainPageData {
 
 interface TvlEntry {
 	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
 }
 
 export interface IRecentProtocol {

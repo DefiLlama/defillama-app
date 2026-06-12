@@ -1,3 +1,10 @@
+type ProtocolLiteTvlEntry = {
+	tvl: number
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+
 /** Raw protocol from the lite/protocols2 API. */
 export interface ProtocolLite {
 	name: string
@@ -10,11 +17,11 @@ export interface ProtocolLite {
 	tags?: string[]
 	referralUrl?: string | null
 	chains: string[]
-	chainTvls: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }>
+	chainTvls: Record<string, ProtocolLiteTvlEntry>
 	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
 	mcap: number | null
 	defillamaId: string
 	geckoId?: string

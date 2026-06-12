@@ -1,6 +1,13 @@
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import type { IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 
+type LiteProtocolTvlEntry = {
+	tvl: number
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+
 export interface ILiteProtocol {
 	category: string
 	tags?: Array<string>
@@ -12,18 +19,10 @@ export interface ILiteProtocol {
 	url: string
 	referralUrl?: string
 	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
-	chainTvls: Record<
-		(typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS],
-		{
-			tvl: number
-			tvlPrevDay: number
-			tvlPrevWeek: number
-			tvlPrevMonth: number
-		}
-	>
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+	chainTvls: Record<string, LiteProtocolTvlEntry>
 	defillamaId: string
 	governanceID?: Array<string>
 	geckoId?: string

@@ -25,7 +25,7 @@ function getMcapTvl(mcap: number | null, tvl: number | null | undefined): number
 
 function isAdditiveTvlKey(tvlKey: string, extraTvlsEnabled: Record<string, boolean>, normalizeSettingKey: boolean) {
 	const settingKey = normalizeSettingKey ? tvlKey.toLowerCase() : tvlKey
-	return !!extraTvlsEnabled[settingKey] && !NON_ADDITIVE_TVL_KEYS.has(tvlKey)
+	return !!extraTvlsEnabled[settingKey] && !NON_ADDITIVE_TVL_KEYS.has(settingKey)
 }
 
 function addRecentProtocolExtraTvls({

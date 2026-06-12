@@ -87,6 +87,27 @@ describe('ProtocolLists TVL helpers', () => {
 		expect(protocol.mcaptvl).toBe(8.33)
 	})
 
+	it('keeps mixed-case recent protocol doublecounted and liquid staking extras non-additive', () => {
+		const [protocol] = applyExtraTvl(
+			[
+				makeRecentProtocol({
+					extraTvl: {
+						Staking: makeTvlEntry(20),
+						Doublecounted: makeTvlEntry(500),
+						LiquidStaking: makeTvlEntry(600)
+					}
+				})
+			],
+			{ staking: true, doublecounted: true, liquidstaking: true }
+		)
+
+		expect(protocol.tvl).toBe(120)
+		expect(protocol.tvlPrevDay).toBe(100)
+		expect(protocol.tvlPrevWeek).toBe(70)
+		expect(protocol.tvlPrevMonth).toBe(45)
+		expect(protocol.change_1d).toBe(20)
+	})
+
 	it('clamps negative recent protocol TVL values after enabled extras are applied', () => {
 		const [protocol] = applyExtraTvl(
 			[
