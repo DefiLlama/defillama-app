@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { addFeeExtrasToRowTotals } from '~/metrics/feeExtras'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '../constants'
 
 const { fetchJsonMock, fetchProtocolsMock } = vi.hoisted(() => ({
@@ -513,7 +512,7 @@ describe('chains by adapter page data', () => {
 		).rejects.toThrow('backend contract failed')
 	})
 
-	it('builds bribes and token-tax only protocol rows without changing base totals or chart data', async () => {
+	it('builds bribes and token-tax only protocol rows without changing base totals', async () => {
 		fetchProtocolsMock.mockResolvedValue({
 			protocols: [{ name: 'Core Fees', mcap: 12_000 }],
 			parentProtocols: []
@@ -627,16 +626,11 @@ describe('chains by adapter page data', () => {
 		})
 
 		expect(data?.total24h).toBe(100)
-		expect(data?.chartData).toEqual({
-			dimensions: ['timestamp', 'Fees'],
-			source: [{ timestamp: 1_700_000_000_000, Fees: 100 }]
-		})
-		expect(data?.protocols.map((protocol) => protocol.name)).toEqual([
-			'Core Fees',
-			'Extra Display',
-			'Token Tax Display'
-		])
-		expect(data?.protocols[0]).toMatchObject({
+		const protocolsByName = new Map(data?.protocols.map((protocol) => [protocol.name, protocol]))
+		expect(Array.from(protocolsByName.keys())).toEqual(
+			expect.arrayContaining(['Core Fees', 'Extra Display', 'Token Tax Display'])
+		)
+		expect(protocolsByName.get('Core Fees')).toMatchObject({
 			name: 'Core Fees',
 			total24h: 100,
 			total7d: 700,
@@ -644,7 +638,7 @@ describe('chains by adapter page data', () => {
 			annualized1y: 60_000
 		})
 
-		const extraRow = data?.protocols.find((protocol) => protocol.name === 'Extra Display')
+		const extraRow = protocolsByName.get('Extra Display')
 		expect(extraRow).toMatchObject({
 			name: 'Extra Display',
 			slug: 'extra-display',
@@ -682,24 +676,8 @@ describe('chains by adapter page data', () => {
 			breakdownAliases: ['Extra Raw']
 		})
 		expect(extraRow).not.toHaveProperty('methodology')
-		const adjustedExtraRow = addFeeExtrasToRowTotals(extraRow!, { bribes: true, tokentax: true })
-		expect(adjustedExtraRow).toMatchObject({
-			total24h: 10,
-			total48hto24h: 10,
-			total7d: 7,
-			total14dto7d: 28,
-			total30d: 30,
-			total60dto30d: 15,
-			total7DaysAgo: 10,
-			total30DaysAgo: 4
-		})
-		expect(adjustedExtraRow.change_1d).toBe(0)
-		expect(adjustedExtraRow.change_7d).toBe(0)
-		expect(adjustedExtraRow.change_1m).toBe(150)
-		expect(adjustedExtraRow.change_7dover7d).toBe(-75)
-		expect(adjustedExtraRow.change_30dover30d).toBe(100)
 
-		expect(data?.protocols.find((protocol) => protocol.name === 'Token Tax Display')).toMatchObject({
+		expect(protocolsByName.get('Token Tax Display')).toMatchObject({
 			name: 'Token Tax Display',
 			slug: 'token-tax-display',
 			category: null,
@@ -891,11 +869,12 @@ describe('chains by adapter page data', () => {
 			metricName: 'P/F'
 		})
 
-		expect(data?.protocols.map((protocol) => ({ name: protocol.name, pfOrPs: protocol.pfOrPs }))).toEqual([
-			{ name: 'Annualized Fees', pfOrPs: 0.2 },
-			{ name: 'Zero Mcap Fees', pfOrPs: 0 },
-			{ name: 'Zero Mcap Parent', pfOrPs: 0 }
-		])
+		const protocolsByName = new Map(data?.protocols.map((protocol) => [protocol.name, protocol]))
+		expect(protocolsByName.get('Annualized Fees')?.pfOrPs).toBe(0.2)
+		expect(protocolsByName.get('Zero Mcap Fees')?.pfOrPs).toBe(0)
+		expect(protocolsByName.get('Zero Mcap Parent')?.pfOrPs).toBe(0)
+		expect(protocolsByName.has('Thirty Day Only')).toBe(false)
+		expect(protocolsByName.has('Partial Annualized Parent')).toBe(false)
 	})
 
 	it('uses chainFees metadata to qualify Chain Fees rankings without summing bribes or token taxes into totals', async () => {

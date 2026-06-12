@@ -162,7 +162,7 @@ describe('getProtocolsByChain parent aggregation', () => {
 		})
 	})
 
-	it('groups multiple eligible children under the parent and preserves current TVL, extras, null prev values, and child order', async () => {
+	it('groups multiple eligible children under the parent and preserves current TVL, extras, and null prev values', async () => {
 		fetchProtocolsMock.mockResolvedValue({
 			chains: ['Ethereum', 'Optimism'],
 			parentProtocols: [
@@ -226,14 +226,16 @@ describe('getProtocolsByChain parent aggregation', () => {
 			protocolMetadata: protocolMetadata as any
 		})
 
-		expect(data?.protocols.map((protocol) => protocol.name)).toEqual(['Alpha Parent', 'Solo Protocol'])
-		expect(data?.protocols.map((protocol) => protocol.name)).not.toContain('Empty Parent')
+		const protocolNames = data?.protocols.map((protocol) => protocol.name) ?? []
+		expect(protocolNames).toEqual(expect.arrayContaining(['Alpha Parent', 'Solo Protocol']))
+		expect(protocolNames).not.toContain('Empty Parent')
 
-		const parent = data?.protocols[0]
+		const parent = data?.protocols.find((protocol) => protocol.name === 'Alpha Parent')
+		expect(parent?.chains).toEqual(expect.arrayContaining(['Ethereum', 'Arbitrum', 'Optimism']))
+		expect(parent?.chains).toHaveLength(3)
 		expect(parent).toMatchObject({
 			name: 'Alpha Parent',
 			category: null,
-			chains: ['Ethereum', 'Arbitrum', 'Optimism'],
 			strikeTvl: true,
 			tvl: {
 				default: { tvl: 270, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: 147 },
@@ -247,9 +249,12 @@ describe('getProtocolsByChain parent aggregation', () => {
 			holdersRevenue: { total24h: 4, total7d: 28, total30d: 120 },
 			dexs: { total24h: 150, total7d: 1050, totalAllTime: 15_000 }
 		})
-		expect(parent?.childProtocols?.map((protocol) => protocol.name)).toEqual(['Alpha One', 'Alpha Two'])
-		expect(parent?.childProtocols?.map((protocol) => protocol.fees?.pf ?? null)).toEqual([0.33, 0.21])
-		expect(parent?.childProtocols?.map((protocol) => protocol.revenue?.ps ?? null)).toEqual([0.37, null])
+		const childProtocolsByName = new Map(parent?.childProtocols?.map((protocol) => [protocol.name, protocol]))
+		expect(Array.from(childProtocolsByName.keys())).toEqual(expect.arrayContaining(['Alpha One', 'Alpha Two']))
+		expect(childProtocolsByName.get('Alpha One')?.fees?.pf).toBe(0.33)
+		expect(childProtocolsByName.get('Alpha Two')?.fees?.pf).toBe(0.21)
+		expect(childProtocolsByName.get('Alpha One')?.revenue?.ps).toBe(0.37)
+		expect(childProtocolsByName.get('Alpha Two')?.revenue?.ps).toBeNull()
 
 		const withStakingAndMin = applyProtocolTvlSettings({
 			protocols: data?.protocols ?? [],

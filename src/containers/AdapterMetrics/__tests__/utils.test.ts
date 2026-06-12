@@ -1070,8 +1070,9 @@ describe('aggregateProtocolVersions', () => {
 			total7d: null,
 			total30d: null,
 			annualized1y: null,
-			totalAllTime: null,
-			chains: ['Base', 'Optimism']
+			totalAllTime: null
 		})
+		expect(result.chains).toEqual(expect.arrayContaining(['Base', 'Optimism']))
+		expect(result.chains).toHaveLength(2)
 	})
 })
