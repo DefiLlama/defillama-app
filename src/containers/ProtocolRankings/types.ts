@@ -54,11 +54,18 @@ export interface ILiteParentProtocol {
 
 export type TVL_TYPES = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS] | 'default' | 'excludeParent'
 
+export type ProtocolRankingTvlEntry = {
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+}
+
 export interface IChildProtocol {
 	name: string
 	slug: string
 	category: string | null
-	tvl: Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
+	tvl: Record<TVL_TYPES, ProtocolRankingTvlEntry> | null
 	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
 	chains: Array<string>
 	mcap: number | null

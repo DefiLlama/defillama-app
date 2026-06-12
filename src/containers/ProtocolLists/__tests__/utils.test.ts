@@ -6,7 +6,12 @@ import { applyExtraTvl, applyProtocolTvlSettings } from '../utils'
 type ProtocolTvlRecord = NonNullable<IProtocol['tvl']>
 type ProtocolTvlEntry = ProtocolTvlRecord['default']
 
-const makeTvlEntry = (tvl: number, tvlPrevDay = tvl, tvlPrevWeek = tvl, tvlPrevMonth = tvl): ProtocolTvlEntry => ({
+const makeTvlEntry = (
+	tvl: number | null,
+	tvlPrevDay: number | null = tvl,
+	tvlPrevWeek: number | null = tvl,
+	tvlPrevMonth: number | null = tvl
+): ProtocolTvlEntry => ({
 	tvl,
 	tvlPrevDay,
 	tvlPrevWeek,
@@ -209,9 +214,47 @@ describe('ProtocolLists TVL helpers', () => {
 			maxTvl: null
 		})
 
-		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, 0, 70, 0))
+		expect(protocol.tvl?.default).toEqual(makeTvlEntry(120, null, 70, null))
 		expect(protocol.tvlChange?.change1d).toBeNull()
 		expect(protocol.tvlChange?.change1m).toBeNull()
+	})
+
+	it('keeps unknown child protocol table fields unknown after enabled extras are applied', () => {
+		const childDefaultTvl = {
+			tvl: 70,
+			tvlPrevDay: null,
+			tvlPrevWeek: 50,
+			tvlPrevMonth: null
+		} as ProtocolTvlEntry
+
+		const [protocol] = applyProtocolTvlSettings({
+			protocols: [
+				makeProtocol({
+					tvl: makeProtocolTvl({
+						default: makeTvlEntry(90),
+						staking: makeTvlEntry(20)
+					}),
+					childProtocols: [
+						makeProtocol({
+							name: 'Child Protocol',
+							slug: 'child-protocol',
+							tvl: makeProtocolTvl({
+								default: childDefaultTvl,
+								staking: makeTvlEntry(20)
+							})
+						})
+					]
+				})
+			],
+			extraTvlsEnabled: { staking: true },
+			minTvl: null,
+			maxTvl: null
+		})
+
+		const child = protocol.childProtocols?.[0]
+		expect(child?.tvl?.default).toEqual(makeTvlEntry(90, null, 70, null))
+		expect(child?.tvlChange?.change1d).toBeNull()
+		expect(child?.tvlChange?.change1m).toBeNull()
 	})
 
 	it('filters child protocol rows after enabled extras are applied', () => {
