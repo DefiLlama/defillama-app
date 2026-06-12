@@ -176,16 +176,16 @@ describe('investors landing links', () => {
 		const config = await loadInvestorsConfig('enterprise')
 		const [investorsHost] = config.INVESTORS_SITES.investors.hosts
 		if (!investorsHost) throw new Error('Investors site host is required')
-		const investorDomainProjectIds = [...config.INVESTORS_SITES.investors.projectIds]
+		const investorDomainLandingProjectIds = [...config.INVESTORS_SITES.investors.landingProjectIds]
 		const enterpriseDomainProjectIds = [...config.INVESTORS_SITES.enterprise.projectIds]
 
 		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual([
-			...investorDomainProjectIds,
+			...investorDomainLandingProjectIds,
 			...enterpriseDomainProjectIds
 		])
 		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(enterpriseDomainProjectIds)
 
-		for (const projectId of investorDomainProjectIds) {
+		for (const projectId of investorDomainLandingProjectIds) {
 			expect(config.getInvestorsLandingProjectHref(projectId)).toBe(`https://${investorsHost}/${projectId}`)
 			expect(config.isInvestorsLandingProjectExternal(projectId)).toBe(true)
 		}
@@ -199,13 +199,33 @@ describe('investors landing links', () => {
 	it('keeps investor-domain landing cards local', async () => {
 		const config = await loadInvestorsConfig('investors')
 		const investorDomainProjectIds = [...config.INVESTORS_SITES.investors.projectIds]
+		const investorDomainLandingProjectIds = [...config.INVESTORS_SITES.investors.landingProjectIds]
 
-		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(investorDomainProjectIds)
+		expect(config.INVESTORS_LANDING_PROJECTS.map((project) => project.id)).toEqual(investorDomainLandingProjectIds)
 		expect(config.INVESTORS_PROTOCOL_IDS).toEqual(investorDomainProjectIds)
 
 		for (const projectId of investorDomainProjectIds) {
 			expect(config.getInvestorsLandingProjectHref(projectId)).toBe(`/${projectId}`)
 			expect(config.isInvestorsLandingProjectExternal(projectId)).toBe(false)
+		}
+	})
+
+	it('keeps coming-soon projects reachable by direct url on the investors domain', async () => {
+		const { proxy, investorsConfig } = await loadProxyWithInvestorsConfig('investors')
+		const landingProjectIds = new Set(investorsConfig.INVESTORS_LANDING_PROTOCOL_IDS)
+		const comingSoonServedProjectIds = investorsConfig.INVESTORS_COMING_SOON_PROJECTS.map(
+			(project) => project.id
+		).filter((projectId) => investorsConfig.INVESTORS_PROTOCOL_IDS.includes(projectId))
+
+		expect(comingSoonServedProjectIds).toContain('flare')
+		expect(comingSoonServedProjectIds).toContain('thorchain')
+
+		for (const projectId of comingSoonServedProjectIds) {
+			expect(landingProjectIds.has(projectId)).toBe(false)
+
+			const response = proxy(pageRequest(`https://investors.defillama.com/${projectId}`))
+
+			expect(rewriteUrl(response)).toBe(`https://investors.defillama.com/investors/${projectId}`)
 		}
 	})
 })

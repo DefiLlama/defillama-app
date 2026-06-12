@@ -20,6 +20,12 @@ const INVESTORS_COMING_SOON_PROJECT_IDS = [
 	'thorchain',
 	'berachain'
 ] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_DOMAIN_LANDING_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_COMING_SOON_PROJECT_IDS = [
+	'flare',
+	'thorchain',
+	'berachain'
+] as const satisfies readonly InvestorsProjectId[]
 const ENTERPRISE_DOMAIN_PROJECT_IDS = ['odyssey-ecosystem'] as const satisfies readonly InvestorsProjectId[]
 
 type InvestorsSite = {
@@ -34,14 +40,14 @@ export const INVESTORS_SITES = {
 	investors: {
 		hosts: ['investors.defillama.com'],
 		projectIds: INVESTORS_DOMAIN_PROJECT_IDS,
-		landingProjectIds: INVESTORS_DOMAIN_PROJECT_IDS,
+		landingProjectIds: INVESTORS_DOMAIN_LANDING_PROJECT_IDS,
 		defaultProjectId: 'spark',
 		comingSoonProjectIds: INVESTORS_COMING_SOON_PROJECT_IDS
 	},
 	enterprise: {
 		hosts: ['enterprise.defillama.com'],
 		projectIds: ENTERPRISE_DOMAIN_PROJECT_IDS,
-		landingProjectIds: [...INVESTORS_DOMAIN_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
+		landingProjectIds: [...INVESTORS_DOMAIN_LANDING_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
 		defaultProjectId: 'odyssey-ecosystem',
 		comingSoonProjectIds: []
 	}
