@@ -1,6 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getStaticProps as getCexStaticProps } from '~/pages/cex/[cex]'
 import { getStaticProps as getCexMarketsStaticProps } from '~/pages/cex/markets/[cex]'
+
+const { resolveCexMarketsByDefillamaSlugMock } = vi.hoisted(() => ({
+	resolveCexMarketsByDefillamaSlugMock: vi.fn()
+}))
 
 const cexs = [
 	{ name: 'Crypto.com', slug: 'Crypto-com' },
@@ -8,11 +12,7 @@ const cexs = [
 ]
 
 vi.mock('~/server/datasetCache/runtime/markets', () => ({
-	resolveCexMarketsByDefillamaSlug: vi.fn((defillamaSlug: string) =>
-		defillamaSlug === 'Crypto-com'
-			? Promise.resolve({ exchange: 'cryptocom', defillama_slug: 'Crypto-com' })
-			: Promise.resolve(null)
-	)
+	resolveCexMarketsByDefillamaSlug: resolveCexMarketsByDefillamaSlugMock
 }))
 
 vi.mock('~/constants', async (importOriginal) => {
@@ -65,6 +65,15 @@ vi.mock('~/containers/ProtocolOverview/api', () => ({
 }))
 
 describe('CEX markets routes', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		resolveCexMarketsByDefillamaSlugMock.mockImplementation((defillamaSlug: string) =>
+			defillamaSlug === 'Crypto-com'
+				? Promise.resolve({ exchange: 'cryptocom', defillama_slug: 'Crypto-com' })
+				: Promise.resolve(null)
+		)
+	})
+
 	it('adds the markets exchange to the CEX overview props when the cached list matches', async () => {
 		await expect(getCexStaticProps({ params: { cex: 'crypto-com' } } as never)).resolves.toMatchObject({
 			props: {
@@ -84,6 +93,24 @@ describe('CEX markets routes', () => {
 			},
 			revalidate: 123
 		})
+	})
+
+	it('keeps the CEX overview page when the optional markets lookup fails', async () => {
+		resolveCexMarketsByDefillamaSlugMock.mockRejectedValueOnce(new Error('markets unavailable'))
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		try {
+			await expect(getCexStaticProps({ params: { cex: 'crypto-com' } } as never)).resolves.toMatchObject({
+				props: {
+					name: 'Crypto.com',
+					cexMarketsExchange: null,
+					cexMarketsSlug: null
+				},
+				revalidate: 123
+			})
+		} finally {
+			warnSpy.mockRestore()
+		}
 	})
 
 	it('returns props for the standalone markets tab when cached markets exist', async () => {

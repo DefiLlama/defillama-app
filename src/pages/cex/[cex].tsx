@@ -33,7 +33,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { resolveCexMarketsByDefillamaSlug } = await import('~/server/datasetCache/runtime/markets')
 		const [cexMarkets, data] = await Promise.all([
-			resolveCexMarketsByDefillamaSlug(exchangeData.slug ?? ''),
+			resolveCexMarketsByDefillamaSlug(exchangeData.slug ?? '').catch((error) => {
+				console.warn(`[cex/[cex]] Failed to resolve markets exchange for ${exchangeName}`, error)
+				return null
+			}),
 			getProtocolOverviewPageData({
 				protocolId: slug(exchangeData.slug),
 				currentProtocolMetadata: {

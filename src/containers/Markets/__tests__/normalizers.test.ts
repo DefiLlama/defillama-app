@@ -106,6 +106,32 @@ describe('groupTokensBySegment', () => {
 		})
 		expect(result.inverse_perp).toEqual([])
 	})
+
+	it('keeps token identity fields ahead of colliding backend segment fields', () => {
+		const result = groupTokensBySegment({
+			last_updated: '2026-06-10T00:00:00Z',
+			tokens: [
+				{
+					exchange_count: 1,
+					market_count: 1,
+					symbol: 'btc',
+					tags: ['layer1'],
+					total_oi_usd: null,
+					total_volume_24h: 1,
+					segments: {
+						spot: {
+							...tokenSegment({ volume_24h: 1 }),
+							symbol: 'backend-symbol',
+							tags: ['backend-tag']
+						} as MarketSegmentSummary
+					}
+				}
+			]
+		})
+
+		expect(result.spot[0].symbol).toBe('btc')
+		expect(result.spot[0].tags).toEqual(['layer1'])
+	})
 })
 
 describe('groupCategoriesBySegment', () => {
@@ -129,6 +155,22 @@ describe('groupCategoriesBySegment', () => {
 			]
 		})
 		expect(result.linear_perp[0].funding_rate_8h).toBeCloseTo(0.00012)
+	})
+
+	it('keeps category identity ahead of colliding backend segment fields', () => {
+		const result = groupCategoriesBySegment({
+			last_updated: '2026-06-10T00:00:00Z',
+			categories: [
+				{
+					category: 'ai',
+					segments: {
+						spot: { ...categorySegment({ volume_24h: 1 }), category: 'backend-category' } as MarketsCategorySegmentStat
+					}
+				}
+			]
+		})
+
+		expect(result.spot[0].category).toBe('ai')
 	})
 })
 

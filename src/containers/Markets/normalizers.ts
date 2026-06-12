@@ -21,7 +21,7 @@ export function groupTokensBySegment(raw: TokenMarketsListResponse): SymbolStats
 	for (const entry of raw.tokens) {
 		for (const segment of SEGMENT_IDS) {
 			const stat = entry.segments[segment]
-			if (stat) out[segment].push({ symbol: entry.symbol, tags: entry.tags, ...stat })
+			if (stat) out[segment].push({ ...stat, symbol: entry.symbol, tags: entry.tags })
 		}
 	}
 	return out
@@ -33,7 +33,7 @@ export function groupCategoriesBySegment(raw: MarketsCategoriesListResponse): Ca
 	for (const entry of raw.categories) {
 		for (const segment of SEGMENT_IDS) {
 			const stat = entry.segments[segment]
-			if (stat) out[segment].push({ category: entry.category, ...stat })
+			if (stat) out[segment].push({ ...stat, category: entry.category })
 		}
 	}
 	return out
