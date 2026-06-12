@@ -10,15 +10,18 @@ import {
 } from '@tanstack/react-table'
 import dynamic from 'next/dynamic'
 import { startTransition, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Checkbox } from '~/components/Checkbox'
 import type { ITreemapChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Switch } from '~/components/Switch'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 import { buildTokenUsageTreemapTreeData } from '~/containers/TokenUsage/treemap'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
 import { TokenPrivateSectionGate, useTokenPrivateSectionAccess } from './TokenPrivateSectionGate'
@@ -112,6 +115,7 @@ export function TokenUsageSection({
 }: TokenUsageSectionProps) {
 	const access = useTokenPrivateSectionAccess()
 	const { authorizedFetch, hasActiveSubscription, isAuthenticated, loaders } = access
+	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useGetChartInstance()
 	const [includeCentralizedExchanges, setIncludeCentralizedExchanges] = useState(initialIncludeCentralizedExchanges)
 	const [view, setView] = useState<TokenUsageView>('list')
 	const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING)
@@ -137,11 +141,13 @@ export function TokenUsageSection({
 		() => filterTokenUsageRows(rows ?? [], includeCentralizedExchanges),
 		[rows, includeCentralizedExchanges]
 	)
+	const tokenUsageTreemapRootLabel = `${tokenSymbol.toUpperCase()} usage`
+	const tokenUsageExportTitle = `${tokenSymbol.toUpperCase()} token usage`
+	const tokenUsageExportFilename = `token-usage-${tokenSymbol.toLowerCase()}`
 
 	const treemapTreeData = useMemo(
-		() =>
-			view === 'treemap' ? buildTokenUsageTreemapTreeData(filteredRows, `${tokenSymbol.toUpperCase()} usage`) : [],
-		[view, filteredRows, tokenSymbol]
+		() => (view === 'treemap' ? buildTokenUsageTreemapTreeData(filteredRows, tokenUsageTreemapRootLabel) : []),
+		[view, filteredRows, tokenUsageTreemapRootLabel]
 	)
 
 	const table = useReactTable({
@@ -176,26 +182,8 @@ export function TokenUsageSection({
 			headerActions={
 				isAuthenticated && hasActiveSubscription && rows ? (
 					<div className="flex flex-wrap items-center gap-2 max-sm:w-full">
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-							<button
-								data-active={view === 'list'}
-								onClick={() => setView('list')}
-								className="flex shrink-0 items-center gap-1 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							>
-								<Icon name="align-left" height={14} width={14} />
-								<span>List</span>
-							</button>
-							<button
-								data-active={view === 'treemap'}
-								onClick={() => setView('treemap')}
-								className="flex shrink-0 items-center gap-1 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							>
-								<Icon name="layout-grid" height={14} width={14} />
-								<span>Treemap</span>
-							</button>
-						</div>
-						<Switch
-							label="Include CEXs"
+						<Checkbox
+							variant="filter"
 							value="includeCentralizedExchanges"
 							checked={includeCentralizedExchanges}
 							onChange={() =>
@@ -204,7 +192,39 @@ export function TokenUsageSection({
 									setPagination((prev) => ({ ...prev, pageIndex: 0 }))
 								})
 							}
-						/>
+						>
+							Include CEXs
+						</Checkbox>
+						<div className="flex w-fit flex-nowrap items-center overflow-hidden rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+							<button
+								type="button"
+								data-active={view === 'list'}
+								onClick={() => setView('list')}
+								className="flex shrink-0 items-center gap-1 px-2 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							>
+								<Icon name="align-left" height={14} width={14} />
+								<span>List</span>
+							</button>
+							<button
+								type="button"
+								data-active={view === 'treemap'}
+								onClick={() => setView('treemap')}
+								className="flex shrink-0 items-center gap-1 px-2 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							>
+								<Icon name="layout-grid" height={14} width={14} />
+								<span>Treemap</span>
+							</button>
+						</div>
+						{view === 'treemap' ? (
+							<>
+								<ChartRestoreButton chartInstance={treemapChartInstance} />
+								<ChartPngExportButton
+									chartInstance={treemapChartInstance}
+									filename={tokenUsageExportFilename}
+									title={tokenUsageExportTitle}
+								/>
+							</>
+						) : null}
 						<CSVDownloadButton
 							prepareCsv={() =>
 								prepareTableCsv({
@@ -219,7 +239,14 @@ export function TokenUsageSection({
 			}
 		>
 			{view === 'treemap' ? (
-				<TreemapChart treeData={treemapTreeData} variant="rwa" height="480px" valueLabel="Amount" valueSymbol="$" />
+				<TreemapChart
+					treeData={treemapTreeData}
+					variant="rwa"
+					height="480px"
+					valueLabel="Amount"
+					valueSymbol="$"
+					onReady={handleTreemapChartReady}
+				/>
 			) : (
 				<DeferredPaginatedTable
 					table={table}
