@@ -17,7 +17,7 @@ vi.mock('@tanstack/react-query', () => ({
 							{
 								amount_precision: null,
 								base: 'BTC',
-								contract_size: null,
+								contract_size: 1,
 								contract_type: '',
 								exchange: 'binance',
 								exchange_type: 'cex',
@@ -34,7 +34,7 @@ vi.mock('@tanstack/react-query', () => ({
 								oi_prev_usd: null,
 								oi_usd: null,
 								pair_id: 'BTC/USDT',
-								pair_url: null,
+								pair_url: '',
 								price_change_24h: null,
 								price_precision: null,
 								quote: 'USDT',

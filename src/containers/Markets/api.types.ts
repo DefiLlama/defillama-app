@@ -1,6 +1,7 @@
 import type { Segment } from './segments'
 
 export type MarketVenue = 'dex' | 'cex'
+export type MarketType = 'spot' | 'perpetual'
 
 export interface MarketSegmentSummary {
 	exchange_count: number
@@ -19,14 +20,14 @@ export interface MarketSegmentSummary {
 export interface MarketPair {
 	exchange: string
 	exchange_type: MarketVenue
-	market_type: 'spot' | 'perpetual'
+	market_type: MarketType
 	contract_type: '' | 'linear' | 'inverse'
 	base: string
 	quote: string
-	settle_asset: string | null
+	settle_asset: string
 	pair_id: string
 	market_id: string
-	pair_url: string | null
+	pair_url: string
 	symbol: string
 	price: number | null
 	price_change_24h: number | null
@@ -42,7 +43,7 @@ export interface MarketPair {
 	taker_fee: number | null
 	amount_precision: number | null
 	price_precision: number | null
-	contract_size: number | null
+	contract_size: number
 	expiry_ts: number | null
 	listed_ts: number | null
 	min_order_cost: number | null
@@ -215,7 +216,7 @@ export interface ExchangeMarketsResponse {
 	exchange_type: MarketVenue
 	last_updated: string
 	market_count: number
-	market_types: string[]
+	market_types: MarketType[]
 	supports_funding: boolean
 	supports_oi: boolean
 	total_oi_usd: number | null
