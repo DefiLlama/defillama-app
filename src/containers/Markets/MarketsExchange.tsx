@@ -9,10 +9,10 @@ import { MarketsAreaChart } from './MarketsAreaChart'
 import { MarketsLineChart } from './MarketsLineChart'
 import { MarketsPageHeader } from './MarketsPageHeader'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
+import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './segments'
 import { ChangeCell, renderUsd, VenueBadge } from './shared'
-import type { Segment } from './types'
-import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './types'
-import { pctChange, pivotExchangeSeries } from './utils'
+import type { ExchangeSeriesRow, Segment } from './types'
+import { EMPTY_PIVOTED_SERIES, pctChange, pivotExchangeSeries } from './utils'
 
 const STALE_TIME = 60 * 60 * 1000
 
@@ -81,15 +81,19 @@ export function MarketsExchange({
 	const pairs = segmentData?.pairs ?? []
 
 	const exchangeKey = (data?.exchange ?? exchange).toLowerCase()
-	const seriesRows = React.useMemo(
-		() =>
-			(seriesQuery.data ?? []).filter(
-				(row) => row.exchange.toLowerCase() === exchangeKey && row.segment === activeSegment
-			),
-		[seriesQuery.data, exchangeKey, activeSegment]
-	)
+	const seriesRows = React.useMemo(() => {
+		const rows = seriesQuery.data ?? []
+		const filtered: ExchangeSeriesRow[] = []
+		for (const row of rows) {
+			if (row.exchange.toLowerCase() === exchangeKey && row.segment === activeSegment) filtered.push(row)
+		}
+		return filtered
+	}, [seriesQuery.data, exchangeKey, activeSegment])
 	const volSeries = React.useMemo(() => pivotExchangeSeries(seriesRows, 'volume'), [seriesRows])
-	const oiSeries = React.useMemo(() => pivotExchangeSeries(seriesRows, 'oi'), [seriesRows])
+	const oiSeries = React.useMemo(
+		() => (hasOi ? pivotExchangeSeries(seriesRows, 'oi') : EMPTY_PIVOTED_SERIES),
+		[seriesRows, hasOi]
+	)
 	const marketsSeries = React.useMemo(() => pivotExchangeSeries(seriesRows, 'markets'), [seriesRows])
 
 	const subtitleFor = React.useCallback(

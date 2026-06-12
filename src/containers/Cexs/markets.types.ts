@@ -12,23 +12,23 @@ export interface ExchangeMarketsListEntry {
 	supports_oi?: boolean
 	total_oi_usd?: number | null
 	total_oi_prev_usd?: number | null
-	total_volume_24h: number | null
-	total_volume_prev_24h?: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
 }
 
 export interface ExchangeMarketsListCategoryTotals {
 	exchange_count: number
 	total_oi_usd: number | null
-	total_oi_prev_usd?: number | null
-	total_volume_24h: number | null
-	total_volume_prev_24h?: number | null
+	total_oi_prev_usd: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
 }
 
 export type ExchangeMarketsListByCategory = Record<ExchangeMarketCategory, ExchangeMarketsListEntry[]>
 export type ExchangeMarketsListTotalsByCategory = Record<ExchangeMarketCategory, ExchangeMarketsListCategoryTotals>
 
 export interface ExchangeMarketsListResponse {
-	last_updated?: string
+	last_updated: string
 	cex: ExchangeMarketsListByCategory
 	dex: ExchangeMarketsListByCategory
 	totals: Record<ExchangeMarketVenue, ExchangeMarketsListTotalsByCategory>
@@ -38,9 +38,9 @@ export interface ExchangeMarketCategoryData {
 	market_count: number
 	pairs: ExchangeMarketPair[]
 	total_oi_usd: number | null
-	total_oi_prev_usd?: number | null
-	total_volume_24h: number | null
-	total_volume_prev_24h?: number | null
+	total_oi_prev_usd: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
 }
 
 export interface ExchangeMarketsResponse {
@@ -48,13 +48,13 @@ export interface ExchangeMarketsResponse {
 	defillama_slug: string | null
 	exchange: string
 	exchange_type: ExchangeMarketVenue
-	last_updated?: string
+	last_updated: string
 	market_count: number
 	market_types: string[]
 	supports_funding: boolean
 	supports_oi: boolean
 	total_oi_usd: number | null
-	total_oi_prev_usd?: number | null
-	total_volume_24h: number | null
-	total_volume_prev_24h?: number | null
+	total_oi_prev_usd: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
 }

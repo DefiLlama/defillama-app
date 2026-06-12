@@ -9,9 +9,9 @@ import { fetchMarketsExchangeSeries } from '~/containers/Markets/api'
 import { ChangeCell, FundingCell, MetricStat } from '~/containers/Markets/marketMetrics'
 import { MarketsAreaChart } from '~/containers/Markets/MarketsAreaChart'
 import { MarketsSegmentTabs } from '~/containers/Markets/MarketsSegmentTabs'
-import type { Segment } from '~/containers/Markets/types'
-import { resolveSegment, segmentHasOi } from '~/containers/Markets/types'
-import { pctChange, pivotExchangeSeries } from '~/containers/Markets/utils'
+import { resolveSegment, segmentHasOi } from '~/containers/Markets/segments'
+import type { ExchangeSeriesRow, Segment } from '~/containers/Markets/types'
+import { EMPTY_PIVOTED_SERIES, pctChange, pivotExchangeSeries } from '~/containers/Markets/utils'
 import { formattedNum } from '~/utils'
 import { fetchExchangeMarkets } from './api'
 import type { ExchangeMarketCategory, ExchangeMarketPair, ExchangeMarketsResponse } from './markets.types'
@@ -278,15 +278,19 @@ export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
 	const columns = selectedCategoryTab === 'spot' ? SPOT_COLUMNS : PERP_COLUMNS
 
 	const exchangeKey = (data?.exchange ?? exchange).toLowerCase()
-	const seriesRows = useMemo(
-		() =>
-			(seriesQuery.data ?? []).filter(
-				(row) => row.exchange.toLowerCase() === exchangeKey && row.segment === selectedCategoryTab
-			),
-		[seriesQuery.data, exchangeKey, selectedCategoryTab]
-	)
+	const seriesRows = useMemo(() => {
+		const allSeriesRows = seriesQuery.data ?? []
+		const filtered: ExchangeSeriesRow[] = []
+		for (const row of allSeriesRows) {
+			if (row.exchange.toLowerCase() === exchangeKey && row.segment === selectedCategoryTab) filtered.push(row)
+		}
+		return filtered
+	}, [seriesQuery.data, exchangeKey, selectedCategoryTab])
 	const volSeries = useMemo(() => pivotExchangeSeries(seriesRows, 'volume'), [seriesRows])
-	const oiSeries = useMemo(() => pivotExchangeSeries(seriesRows, 'oi'), [seriesRows])
+	const oiSeries = useMemo(
+		() => (hasOi ? pivotExchangeSeries(seriesRows, 'oi') : EMPTY_PIVOTED_SERIES),
+		[seriesRows, hasOi]
+	)
 
 	const subtitleFor = useCallback(
 		(segment: Segment) => {

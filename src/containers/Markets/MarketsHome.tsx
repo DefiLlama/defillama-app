@@ -15,10 +15,10 @@ import { MarketsCharts } from './MarketsCharts'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
 import { MarketsStatStrip } from './MarketsStatStrip'
 import { MomentumCards } from './MomentumCards'
+import { resolveSegment, SEGMENT_IDS } from './segments'
 import type { KnownTokenSlugs } from './shared'
 import { TokensTable } from './TokensTable'
 import type { CategoryStatsBySegment, ExchangeListRow, Segment, SymbolStat, SymbolStatsBySegment } from './types'
-import { resolveSegment, SEGMENT_IDS } from './types'
 import { aggregateCategories } from './utils'
 
 const STALE_TIME = 60 * 60 * 1000
@@ -83,15 +83,20 @@ export function MarketsHome({
 		return aggregateCategories(segmentTokens)
 	}, [categoriesData, activeSegment, segmentTokens])
 
-	const subtitleFor = React.useCallback(
-		(seg: Segment) => {
-			const rows = tokens[seg]
-			if (!rows) return null
-			const volume = rows.reduce((acc, row) => acc + (row.volume_24h_usd || 0), 0)
-			return `${rows.length} assets · ${formattedNum(volume, true)}`
-		},
-		[tokens]
-	)
+	const segmentSubtitles = React.useMemo(() => {
+		if (!tokensQuery.data) return null
+		const subtitles: Partial<Record<Segment, string>> = {}
+		for (const segmentId of SEGMENT_IDS) {
+			const rows = tokens[segmentId]
+			if (!rows) continue
+			let volume = 0
+			for (const row of rows) volume += row.volume_24h_usd
+			subtitles[segmentId] = `${rows.length} assets · ${formattedNum(volume, true)}`
+		}
+		return subtitles
+	}, [tokensQuery.data, tokens])
+
+	const subtitleFor = React.useCallback((seg: Segment) => segmentSubtitles?.[seg] ?? null, [segmentSubtitles])
 
 	return (
 		<div className="flex flex-col gap-5">

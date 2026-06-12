@@ -336,11 +336,28 @@ vi.mock('~/containers/Token/TokenMarketsSection', () => ({
 
 vi.mock('~/server/datasetCache/runtime/markets', () => ({
 	fetchTokenMarketsList: vi.fn().mockResolvedValue({
+		last_updated: '2026-06-10T00:00:00Z',
 		tokens: [
 			{
 				exchange_count: 1,
 				market_count: 1,
+				segments: {
+					spot: {
+						exchange_count: 1,
+						funding_rate_8h: null,
+						leverage_max: null,
+						leverage_min: null,
+						market_count: 1,
+						oi_prev_usd: null,
+						oi_usd: null,
+						price: 100,
+						price_change_24h: 0.01,
+						volume_24h: 1,
+						volume_prev_24h: 1
+					}
+				},
 				symbol: 'BTC',
+				tags: ['l1'],
 				total_oi_usd: 1,
 				total_volume_24h: 1
 			}

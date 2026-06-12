@@ -1,6 +1,7 @@
+import * as React from 'react'
+import { segmentHasOi } from './segments'
 import { CategoryLink, ChangeCell, TokenName, type KnownTokenSlugs } from './shared'
 import type { CategoryStat, Segment, SymbolStat } from './types'
-import { segmentHasOi } from './types'
 import { type MoverMetricKey, MOVER_METRICS, moverValue, selectMovers } from './utils'
 
 interface MoverRow {
@@ -96,9 +97,16 @@ export function MomentumCards({
 	segment: Segment
 	knownTokenSlugs: KnownTokenSlugs
 }) {
-	const metricKeys = MOVER_METRICS.filter((m) => !m.perpOnly || segmentHasOi(segment))
+	const hasOi = segmentHasOi(segment)
+	const metricKeys = React.useMemo(() => MOVER_METRICS.filter((m) => !m.perpOnly || hasOi), [hasOi])
 	// `untagged` is a catch-all, not a real category — keep it out of the momentum panels.
-	const categoryRows = categories.filter((c) => c.tag !== 'untagged')
+	const categoryRows = React.useMemo(() => {
+		const rows: CategoryStat[] = []
+		for (const category of categories) {
+			if (category.tag !== 'untagged') rows.push(category)
+		}
+		return rows
+	}, [categories])
 
 	return (
 		<div className="flex flex-col gap-2">

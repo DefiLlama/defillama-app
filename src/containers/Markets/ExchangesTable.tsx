@@ -1,9 +1,9 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { segmentHasOi } from './segments'
 import { ChangeCell, ExchangeName, renderUsd, VenueBadge } from './shared'
 import type { ExchangeListRow, Segment } from './types'
-import { segmentHasOi } from './types'
 import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<ExchangeListRow>()
@@ -95,14 +95,17 @@ const VENUE_OPTIONS: ReadonlyArray<{ id: VenueFilter; label: string }> = [
 export function ExchangesTable({ exchanges, segment }: { exchanges: ExchangeListRow[]; segment: Segment }) {
 	const [venue, setVenue] = React.useState<VenueFilter>('all')
 
-	const rows = React.useMemo(
-		() =>
-			exchanges
-				.filter((e) => e.volume_24h_usd > 0 && (venue === 'all' || e.exchange_type === venue))
-				.sort((a, b) => b.volume_24h_usd - a.volume_24h_usd),
-		[exchanges, venue]
-	)
-	const totalVolume = React.useMemo(() => rows.reduce((acc, e) => acc + (e.volume_24h_usd || 0), 0), [rows])
+	const { rows, totalVolume } = React.useMemo(() => {
+		const rows: ExchangeListRow[] = []
+		let totalVolume = 0
+		for (const exchange of exchanges) {
+			if (exchange.volume_24h_usd <= 0 || (venue !== 'all' && exchange.exchange_type !== venue)) continue
+			rows.push(exchange)
+			totalVolume += exchange.volume_24h_usd
+		}
+		rows.sort((a, b) => b.volume_24h_usd - a.volume_24h_usd)
+		return { rows, totalVolume }
+	}, [exchanges, venue])
 	const columns = React.useMemo(() => buildColumns(segment, totalVolume), [segment, totalVolume])
 
 	const leadingControls = (

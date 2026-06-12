@@ -1,9 +1,9 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { segmentHasOi } from './segments'
 import { CategoryLink, ChangeCell, renderFunding8h, renderLeverage, renderUsd } from './shared'
 import type { CategoryStat, Segment } from './types'
-import { segmentHasOi } from './types'
 import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<CategoryStat>()
@@ -107,7 +107,11 @@ function buildColumns(segment: Segment, totalVolume: number): ColumnDef<Category
 }
 
 export function CategoriesTable({ categories, segment }: { categories: CategoryStat[]; segment: Segment }) {
-	const totalVolume = React.useMemo(() => categories.reduce((acc, c) => acc + (c.volume_24h_usd || 0), 0), [categories])
+	const totalVolume = React.useMemo(() => {
+		let total = 0
+		for (const category of categories) total += category.volume_24h_usd
+		return total
+	}, [categories])
 	const columns = React.useMemo(() => buildColumns(segment, totalVolume), [segment, totalVolume])
 
 	return (

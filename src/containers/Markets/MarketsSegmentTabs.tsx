@@ -1,4 +1,5 @@
-import { SEGMENTS, type Segment } from './types'
+import { SEGMENTS } from './segments'
+import type { Segment } from './types'
 
 interface MarketsSegmentTabsProps {
 	activeSegment: Segment

@@ -8,11 +8,11 @@ import { MarketsLineChart } from './MarketsLineChart'
 import { MarketsPageHeader } from './MarketsPageHeader'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
 import { MarketsStatStrip } from './MarketsStatStrip'
+import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './segments'
 import type { KnownTokenSlugs } from './shared'
 import { TokensTable } from './TokensTable'
-import type { Segment } from './types'
-import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './types'
-import { pivotExchangeSeries, pivotPairSeries } from './utils'
+import type { ExchangeSeriesRow, PairSeriesRow, Segment } from './types'
+import { EMPTY_PIVOTED_SERIES, pivotExchangeSeries, pivotPairSeries } from './utils'
 
 const STALE_TIME = 60 * 60 * 1000
 
@@ -44,29 +44,48 @@ export function MarketsCategory({
 	const segmentTokens = data?.tokens[activeSegment] ?? []
 	const hasOi = segmentHasOi(activeSegment)
 
-	const exchangeRows = React.useMemo(
-		() => (data?.seriesByExchange ?? []).filter((row) => row.segment === activeSegment),
-		[data, activeSegment]
-	)
-	const pairRows = React.useMemo(
-		() => (data?.seriesByPair ?? []).filter((row) => row.segment === activeSegment),
-		[data, activeSegment]
-	)
+	const exchangeRows = React.useMemo(() => {
+		const rows = data?.seriesByExchange ?? []
+		const filtered: ExchangeSeriesRow[] = []
+		for (const row of rows) {
+			if (row.segment === activeSegment) filtered.push(row)
+		}
+		return filtered
+	}, [data, activeSegment])
+	const pairRows = React.useMemo(() => {
+		const rows = data?.seriesByPair ?? []
+		const filtered: PairSeriesRow[] = []
+		for (const row of rows) {
+			if (row.segment === activeSegment) filtered.push(row)
+		}
+		return filtered
+	}, [data, activeSegment])
 	const volByExchange = React.useMemo(() => pivotExchangeSeries(exchangeRows, 'volume'), [exchangeRows])
-	const oiByExchange = React.useMemo(() => pivotExchangeSeries(exchangeRows, 'oi'), [exchangeRows])
+	const oiByExchange = React.useMemo(
+		() => (hasOi ? pivotExchangeSeries(exchangeRows, 'oi') : EMPTY_PIVOTED_SERIES),
+		[exchangeRows, hasOi]
+	)
 	const volByPair = React.useMemo(() => pivotPairSeries(pairRows, 'volume'), [pairRows])
-	const oiByPair = React.useMemo(() => pivotPairSeries(pairRows, 'oi'), [pairRows])
+	const oiByPair = React.useMemo(
+		() => (hasOi ? pivotPairSeries(pairRows, 'oi') : EMPTY_PIVOTED_SERIES),
+		[pairRows, hasOi]
+	)
 	const marketsByExchange = React.useMemo(() => pivotExchangeSeries(exchangeRows, 'markets'), [exchangeRows])
 
-	const subtitleFor = React.useCallback(
-		(seg: Segment) => {
-			const rows = data?.tokens[seg]
-			if (!rows) return null
-			const volume = rows.reduce((acc, row) => acc + (row.volume_24h_usd || 0), 0)
-			return `${rows.length} assets · ${formattedNum(volume, true)}`
-		},
-		[data]
-	)
+	const segmentSubtitles = React.useMemo(() => {
+		if (!data) return null
+		const subtitles: Partial<Record<Segment, string>> = {}
+		for (const segmentId of SEGMENT_IDS) {
+			const rows = data.tokens[segmentId]
+			if (!rows) continue
+			let volume = 0
+			for (const row of rows) volume += row.volume_24h_usd
+			subtitles[segmentId] = `${rows.length} assets · ${formattedNum(volume, true)}`
+		}
+		return subtitles
+	}, [data])
+
+	const subtitleFor = React.useCallback((seg: Segment) => segmentSubtitles?.[seg] ?? null, [segmentSubtitles])
 
 	return (
 		<div className="flex flex-col gap-5">

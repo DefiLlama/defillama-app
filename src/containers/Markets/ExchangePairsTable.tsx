@@ -2,9 +2,9 @@ import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ExchangeMarketPair } from '~/containers/Cexs/markets.types'
+import { segmentHasOi } from './segments'
 import { ChangeCell, renderFunding8h, renderPrice, renderUsd } from './shared'
 import type { Segment } from './types'
-import { segmentHasOi } from './types'
 import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<ExchangeMarketPair>()

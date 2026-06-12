@@ -7,14 +7,14 @@
  */
 import type { CategorySeriesRow, CategoryStat, ExchangeSeriesRow, PairSeriesRow, Segment, SymbolStat } from './types'
 
-export const SENT_VOL_T = 0.1
-export const SENT_OI_T = 0.05
+const SENT_VOL_T = 0.1
+const SENT_OI_T = 0.05
 /** Ignore dust rows (under $1M 24h volume) in the movers panels. */
-export const MOVER_MIN_VOL = 1_000_000
-export const MOVER_ROWS = 5
+const MOVER_MIN_VOL = 1_000_000
+const MOVER_ROWS = 5
 export const TOP_N = 100
 /** Top N series kept in a breakdown chart (ranked by latest-day value); the rest are dropped. */
-export const SERIES_TOP = 25
+const SERIES_TOP = 25
 
 /** Fractional change, e.g. 0.05 => +5%. Null when prev is missing/non-positive. */
 export function pctChange(now: number | null | undefined, prev: number | null | undefined): number | null {
@@ -99,7 +99,7 @@ export function moverValue(row: MoverInput, key: MoverMetricKey): number | null 
 	return pctChange(row.oi_usd, row.oi_prev_usd)
 }
 
-export interface Movers<T> {
+interface Movers<T> {
 	gainers: T[]
 	losers: T[]
 }
@@ -107,7 +107,7 @@ export interface Movers<T> {
 /** Top/bottom movers for a metric, ignoring dust and rows with no value. */
 export function selectMovers<T extends MoverInput>(rows: T[], key: MoverMetricKey, count = MOVER_ROWS): Movers<T> {
 	const eligible = rows
-		.filter((r) => r.volume_24h_usd >= MOVER_MIN_VOL && moverValue(r, key) != null)
+		.filter((row) => row.volume_24h_usd >= MOVER_MIN_VOL && moverValue(row, key) != null)
 		.sort((a, b) => (moverValue(b, key) as number) - (moverValue(a, key) as number))
 	return {
 		gainers: eligible.slice(0, count),
@@ -119,7 +119,7 @@ export function selectMovers<T extends MoverInput>(rows: T[], key: MoverMetricKe
 // Aggregates
 // ---------------------------------------------------------------------------
 
-export interface SegmentTotals {
+interface SegmentTotals {
 	volume_24h_usd: number
 	volume_prev_24h_usd: number
 	oi_usd: number
@@ -151,9 +151,7 @@ export function segmentTotals(rows: SymbolStat[]): SegmentTotals {
 export function topSymbols(rows: SymbolStat[], sortBy: 'volume' | 'oi', limit = TOP_N): SymbolStat[] {
 	return rows
 		.slice()
-		.sort((a, b) =>
-			sortBy === 'oi' ? (b.oi_usd ?? 0) - (a.oi_usd ?? 0) : (b.volume_24h_usd ?? 0) - (a.volume_24h_usd ?? 0)
-		)
+		.sort((a, b) => (sortBy === 'oi' ? (b.oi_usd ?? 0) - (a.oi_usd ?? 0) : b.volume_24h_usd - a.volume_24h_usd))
 		.slice(0, limit)
 }
 
@@ -167,7 +165,9 @@ export interface PivotedSeries {
 	stacks: string[]
 }
 
-export type SeriesMetric = 'volume' | 'oi' | 'markets'
+export const EMPTY_PIVOTED_SERIES: PivotedSeries = { chartData: [], stacks: [] }
+
+type SeriesMetric = 'volume' | 'oi' | 'markets'
 
 interface PivotOptions<T> {
 	keyOf: (row: T) => string
@@ -188,6 +188,7 @@ export function pivotSeries<T>(
 	if (rows.length === 0) return { chartData: [], stacks: [] }
 
 	const byKey = new Map<string, Map<number, number>>()
+	const totalByKey = new Map<string, number>()
 	const days = new Set<number>()
 
 	for (const row of rows) {
@@ -201,22 +202,29 @@ export function pivotSeries<T>(
 			byKey.set(key, perDay)
 		}
 		perDay.set(dayMs, (perDay.get(dayMs) ?? 0) + value)
+		totalByKey.set(key, (totalByKey.get(key) ?? 0) + value)
 	}
 
 	const sortedDays = [...days].sort((a, b) => a - b)
 	const latestDay = sortedDays[sortedDays.length - 1]
 	// Rank by latest-day value (tie-break on overall total so ordering stays stable).
-	const totalOf = (m: Map<number, number>) => [...m.values()].reduce((a, b) => a + b, 0)
-	const ranked = [...byKey.entries()]
-		.sort((a, b) => (b[1].get(latestDay) ?? 0) - (a[1].get(latestDay) ?? 0) || totalOf(b[1]) - totalOf(a[1]))
-		.map(([k]) => k)
+	const ranked = [...byKey.keys()].sort((a, b) => {
+		const aValues = byKey.get(a)!
+		const bValues = byKey.get(b)!
+		return (
+			(bValues.get(latestDay) ?? 0) - (aValues.get(latestDay) ?? 0) ||
+			(totalByKey.get(b) ?? 0) - (totalByKey.get(a) ?? 0)
+		)
+	})
 	const topKeys = ranked.slice(0, top)
 
-	const chartData = sortedDays.map((dayMs) => {
+	const chartData = new Array<Record<string, number>>(sortedDays.length)
+	for (let i = 0; i < sortedDays.length; i++) {
+		const dayMs = sortedDays[i]
 		const point: Record<string, number> = { date: Math.floor(dayMs / 1000) }
 		for (const key of topKeys) point[key] = byKey.get(key)?.get(dayMs) ?? 0
-		return point
-	})
+		chartData[i] = point
+	}
 
 	return { chartData, stacks: topKeys }
 }
@@ -258,11 +266,11 @@ export function pivotPairSeries(rows: PairSeriesRow[], metric: SeriesMetric): Pi
 const SERIES_PALETTE_SIZE = 26
 
 /** Deterministic muted categorical colour for series index `i`. */
-export function seriesColor(i: number): string {
+function seriesColor(i: number): string {
 	return `hsl(${((i * 360) / SERIES_PALETTE_SIZE + 210) % 360}, 45%, 55%)`
 }
 
-export interface LineSeries {
+interface LineSeries {
 	name: string
 	type: 'line'
 	color: string
@@ -286,67 +294,91 @@ export function toLineSeries(pivoted: PivotedSeries): LineSeries[] {
 // Category helpers
 // ---------------------------------------------------------------------------
 
-/** Volume-weighted mean of a per-token field, skipping null values and zero-volume rows. */
-function volumeWeightedMean(rows: SymbolStat[], valueOf: (r: SymbolStat) => number | null): number | null {
-	let weightedSum = 0
-	let weight = 0
-	for (const r of rows) {
-		const value = valueOf(r)
-		if (value == null || !(r.volume_24h_usd > 0)) continue
-		weightedSum += value * r.volume_24h_usd
-		weight += r.volume_24h_usd
-	}
-	return weight > 0 ? weightedSum / weight : null
-}
-
-/** Volume-weighted mean of token price changes (used when the server omits it). */
-export function volumeWeightedPriceChange(rows: SymbolStat[]): number | null {
-	return volumeWeightedMean(rows, (r) => r.price_change_24h)
-}
-
-/** Leverage min/max across a set of rows. */
-export function leverageRange(rows: Array<{ leverage_min: number | null; leverage_max: number | null }>): {
-	min: number | null
-	max: number | null
-} {
-	let min: number | null = null
-	let max: number | null = null
-	for (const r of rows) {
-		if (r.leverage_min != null) min = min == null ? r.leverage_min : Math.min(min, r.leverage_min)
-		if (r.leverage_max != null) max = max == null ? r.leverage_max : Math.max(max, r.leverage_max)
-	}
-	return { min, max }
-}
-
 /** Derive per-category stats from symbol rows (fallback when categories/list is unavailable). */
 export function aggregateCategories(rows: SymbolStat[]): CategoryStat[] {
-	const byTag = new Map<string, SymbolStat[]>()
+	interface CategoryAccumulator {
+		priceWeightedSum: number
+		priceWeight: number
+		volume_24h_usd: number
+		volume_prev_24h_usd: number
+		oi_usd: number
+		oi_prev_usd: number
+		hasOi: boolean
+		hasOiPrev: boolean
+		fundingWeightedSum: number
+		fundingWeight: number
+		leverage_min: number | null
+		leverage_max: number | null
+		token_count: number
+		market_count: number
+	}
+
+	const byTag = new Map<string, CategoryAccumulator>()
 	for (const row of rows) {
 		for (const tag of row.tags.length ? row.tags : ['untagged']) {
-			let list = byTag.get(tag)
-			if (!list) {
-				list = []
-				byTag.set(tag, list)
+			let acc = byTag.get(tag)
+			if (!acc) {
+				acc = {
+					priceWeightedSum: 0,
+					priceWeight: 0,
+					volume_24h_usd: 0,
+					volume_prev_24h_usd: 0,
+					oi_usd: 0,
+					oi_prev_usd: 0,
+					hasOi: false,
+					hasOiPrev: false,
+					fundingWeightedSum: 0,
+					fundingWeight: 0,
+					leverage_min: null,
+					leverage_max: null,
+					token_count: 0,
+					market_count: 0
+				}
+				byTag.set(tag, acc)
 			}
-			list.push(row)
+			acc.volume_24h_usd += row.volume_24h_usd || 0
+			acc.volume_prev_24h_usd += row.volume_prev_24h_usd || 0
+			if (row.oi_usd != null) {
+				acc.hasOi = true
+				acc.oi_usd += row.oi_usd
+			}
+			if (row.oi_prev_usd != null) {
+				acc.hasOiPrev = true
+				acc.oi_prev_usd += row.oi_prev_usd
+			}
+			if (row.price_change_24h != null && row.volume_24h_usd > 0) {
+				acc.priceWeightedSum += row.price_change_24h * row.volume_24h_usd
+				acc.priceWeight += row.volume_24h_usd
+			}
+			if (row.funding_avg_8h != null && row.volume_24h_usd > 0) {
+				acc.fundingWeightedSum += row.funding_avg_8h * row.volume_24h_usd
+				acc.fundingWeight += row.volume_24h_usd
+			}
+			if (row.leverage_min != null) {
+				acc.leverage_min = acc.leverage_min == null ? row.leverage_min : Math.min(acc.leverage_min, row.leverage_min)
+			}
+			if (row.leverage_max != null) {
+				acc.leverage_max = acc.leverage_max == null ? row.leverage_max : Math.max(acc.leverage_max, row.leverage_max)
+			}
+			acc.token_count += 1
+			acc.market_count += row.market_count || 0
 		}
 	}
 
 	const out: CategoryStat[] = []
-	for (const [tag, list] of byTag) {
-		const lev = leverageRange(list)
+	for (const [tag, acc] of byTag) {
 		out.push({
 			tag,
-			price_change_24h: volumeWeightedPriceChange(list),
-			volume_24h_usd: list.reduce((a, r) => a + (r.volume_24h_usd || 0), 0),
-			volume_prev_24h_usd: list.reduce((a, r) => a + (r.volume_prev_24h_usd || 0), 0),
-			oi_usd: list.some((r) => r.oi_usd != null) ? list.reduce((a, r) => a + (r.oi_usd || 0), 0) : null,
-			oi_prev_usd: list.some((r) => r.oi_prev_usd != null) ? list.reduce((a, r) => a + (r.oi_prev_usd || 0), 0) : null,
-			funding_avg_8h: volumeWeightedMean(list, (r) => r.funding_avg_8h),
-			leverage_min: lev.min,
-			leverage_max: lev.max,
-			token_count: list.length,
-			market_count: list.reduce((a, r) => a + (r.market_count || 0), 0)
+			price_change_24h: acc.priceWeight > 0 ? acc.priceWeightedSum / acc.priceWeight : null,
+			volume_24h_usd: acc.volume_24h_usd,
+			volume_prev_24h_usd: acc.volume_prev_24h_usd,
+			oi_usd: acc.hasOi ? acc.oi_usd : null,
+			oi_prev_usd: acc.hasOiPrev ? acc.oi_prev_usd : null,
+			funding_avg_8h: acc.fundingWeight > 0 ? acc.fundingWeightedSum / acc.fundingWeight : null,
+			leverage_min: acc.leverage_min,
+			leverage_max: acc.leverage_max,
+			token_count: acc.token_count,
+			market_count: acc.market_count
 		})
 	}
 	return out.sort((a, b) => b.volume_24h_usd - a.volume_24h_usd)

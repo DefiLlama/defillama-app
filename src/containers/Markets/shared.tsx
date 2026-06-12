@@ -3,11 +3,11 @@ import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, slug } from '~/utils'
 import { type Sentiment, SENTIMENT_TITLE } from './utils'
 
-export { ChangeCell, FundingCell, MetricStat, renderUsd } from './marketMetrics'
+export { ChangeCell, renderUsd } from './marketMetrics'
 
 export type KnownTokenSlugs = ReadonlySet<string>
 
-export function categoryHref(tag: string): string {
+function categoryHref(tag: string): string {
 	return `/markets?category=${encodeURIComponent(tag)}`
 }
 
@@ -20,7 +20,7 @@ export function isKnownTokenSlug(base: string, knownTokenSlugs: KnownTokenSlugs 
 	return tokenSlug.length > 0 && Boolean(knownTokenSlugs?.has(tokenSlug))
 }
 
-export function exchangeHref(exchange: string): string {
+function exchangeHref(exchange: string): string {
 	return `/markets?exchange=${encodeURIComponent(exchange)}`
 }
 

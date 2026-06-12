@@ -1,7 +1,7 @@
 import { formattedNum } from '~/utils'
+import { segmentHasOi } from './segments'
 import { ChangeCell, renderUsd } from './shared'
 import type { Segment, SymbolStat } from './types'
-import { segmentHasOi } from './types'
 import { pctChange, segmentTotals, sentimentCounts, TOP_N, topSymbols } from './utils'
 
 function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
