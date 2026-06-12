@@ -6,9 +6,9 @@ import { ThemeSwitch } from '~/components/Nav/ThemeSwitch'
 import { SEO } from '~/components/SEO'
 import {
 	DEFAULT_INVESTORS_PROTOCOL_ID,
+	INVESTORS_COMING_SOON_PROJECTS,
 	INVESTORS_LANDING_PROJECTS,
 	INVESTORS_PROJECTS,
-	SHOW_INVESTORS_COMING_SOON_PROJECT,
 	getInvestorsLandingProjectHref,
 	isInvestorsEnabled,
 	isInvestorsLandingProjectExternal,
@@ -387,6 +387,12 @@ const PROJECT_CARD_CONTENT = {
 	}
 } satisfies Partial<Record<InvestorsProjectId, LandingCardContent>>
 
+const COMING_SOON_ICONS: Partial<Record<InvestorsProjectId, ReactNode>> = {
+	berachain: <BerachainIcon />,
+	flare: <FlareIcon />,
+	thorchain: <ThorchainIcon />
+}
+
 function ProjectFallbackIcon({ name }: { name: string }) {
 	return (
 		<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-(--sl-accent-muted) text-sm font-semibold text-(--sl-accent)">
@@ -531,19 +537,20 @@ export default function InvestorsPage() {
 							<ProjectCard key={project.id} project={project} />
 						))}
 
-						{SHOW_INVESTORS_COMING_SOON_PROJECT &&
-							[{ icon: <BerachainIcon />, name: 'Berachain' }].map((item) => (
-								<div
-									key={item.name}
-									className="relative isolate flex flex-col items-center justify-center gap-3 overflow-hidden rounded-[20px] border border-(--cards-border) bg-(--cards-bg) p-5 text-center"
-								>
-									<span className="opacity-50">{item.icon}</span>
-									<span className="text-base font-semibold text-(--text-primary)/60">{item.name}</span>
-									<span className="text-xs font-light tracking-[0.2em] text-(--text-primary)/60 uppercase">
-										Coming Soon
-									</span>
-								</div>
-							))}
+						{INVESTORS_COMING_SOON_PROJECTS.map((project) => (
+							<div
+								key={project.id}
+								className="relative isolate flex flex-col items-center justify-center gap-3 overflow-hidden rounded-[20px] border border-(--cards-border) bg-(--cards-bg) p-5 text-center"
+							>
+								<span className="flex size-14 items-center justify-center opacity-50">
+									{COMING_SOON_ICONS[project.id] ?? <ProjectFallbackIcon name={project.name} />}
+								</span>
+								<span className="text-base font-semibold text-(--text-primary)/60">{project.name}</span>
+								<span className="text-xs font-light tracking-[0.2em] text-(--text-primary)/60 uppercase">
+									Coming Soon
+								</span>
+							</div>
+						))}
 					</div>
 				</section>
 

@@ -14,12 +14,11 @@ export const ALL_INVESTORS_PROJECTS = [
 export type InvestorsProject = (typeof ALL_INVESTORS_PROJECTS)[number]
 export type InvestorsProjectId = InvestorsProject['id']
 
-const INVESTORS_DOMAIN_PROJECT_IDS = [
-	'spark',
-	'sonic',
-	'near',
+const INVESTORS_DOMAIN_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_COMING_SOON_PROJECT_IDS = [
 	'flare',
-	'thorchain'
+	'thorchain',
+	'berachain'
 ] as const satisfies readonly InvestorsProjectId[]
 const ENTERPRISE_DOMAIN_PROJECT_IDS = ['odyssey-ecosystem'] as const satisfies readonly InvestorsProjectId[]
 
@@ -28,7 +27,7 @@ type InvestorsSite = {
 	projectIds: readonly InvestorsProjectId[]
 	landingProjectIds: readonly InvestorsProjectId[]
 	defaultProjectId: InvestorsProjectId
-	showComingSoonProject: boolean
+	comingSoonProjectIds: readonly InvestorsProjectId[]
 }
 
 export const INVESTORS_SITES = {
@@ -37,14 +36,14 @@ export const INVESTORS_SITES = {
 		projectIds: INVESTORS_DOMAIN_PROJECT_IDS,
 		landingProjectIds: INVESTORS_DOMAIN_PROJECT_IDS,
 		defaultProjectId: 'spark',
-		showComingSoonProject: true
+		comingSoonProjectIds: INVESTORS_COMING_SOON_PROJECT_IDS
 	},
 	enterprise: {
 		hosts: ['enterprise.defillama.com'],
 		projectIds: ENTERPRISE_DOMAIN_PROJECT_IDS,
 		landingProjectIds: [...INVESTORS_DOMAIN_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
 		defaultProjectId: 'odyssey-ecosystem',
-		showComingSoonProject: false
+		comingSoonProjectIds: []
 	}
 } as const satisfies Record<string, InvestorsSite>
 
@@ -93,7 +92,10 @@ export const INVESTORS_PROTOCOL_IDS: string[] = INVESTORS_PROJECTS.map((p) => p.
 export const INVESTORS_LANDING_PROTOCOL_IDS: string[] = INVESTORS_LANDING_PROJECTS.map((p) => p.id)
 export const DEFAULT_INVESTORS_PROTOCOL_ID =
 	ACTIVE_INVESTORS_SITE?.defaultProjectId ?? INVESTORS_PROJECTS[0]?.id ?? null
-export const SHOW_INVESTORS_COMING_SOON_PROJECT = ACTIVE_INVESTORS_SITE?.showComingSoonProject ?? false
+export const INVESTORS_COMING_SOON_PROJECTS: InvestorsProject[] = getInvestorsProjects(
+	ACTIVE_INVESTORS_SITE?.comingSoonProjectIds
+)
+export const SHOW_INVESTORS_COMING_SOON_PROJECT = INVESTORS_COMING_SOON_PROJECTS.length > 0
 
 export function isInvestorsEnabled(): boolean {
 	return !!ACTIVE_INVESTORS_SITE
