@@ -260,7 +260,7 @@ describe('KeyMetrics', () => {
 		expect(runRateMarkup).not.toContain('Incentives (Annualized)')
 	})
 
-	it('labels earnings explicitly when combining annualized revenue with 1y incentives', async () => {
+	it('labels annualized earnings compactly and keeps the mixed-source definition in the tooltip', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
 			revenue: {
@@ -282,7 +282,8 @@ describe('KeyMetrics', () => {
 			}
 		})
 
-		expect(markup).toContain('Earnings (Annualized Revenue - 1y Incentives)')
+		expect(markup).toContain('Earnings (Annualized)')
+		expect(markup).toContain('minus incentives emitted over the last 12 months')
 		expect(markup).toContain('$3600')
 		expect(markup).not.toContain('$3660')
 	})

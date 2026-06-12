@@ -594,7 +594,7 @@ function Earnings(props: IKeyMetricsProps) {
 
 	if (earningsAnnualized1y != null) {
 		metrics.push({
-			name: 'Earnings (Annualized Revenue - 1y Incentives)',
+			name: 'Earnings (Annualized)',
 			tooltipContent: definitions.earnings.protocol.annualized,
 			value: earningsAnnualized1y
 		})
