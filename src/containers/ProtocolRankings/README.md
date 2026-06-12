@@ -73,6 +73,7 @@ Important rules:
 - `toStrikeTvl` controls whether TVL is visually struck based on category and TVL toggles.
 - Parent/child protocol aggregation affects names, chains, TVL, and adapter metric fields.
 - Fee/revenue values here are protocol/app rows on a chain, not Chain Fees or Chain Revenue ranking semantics.
+- Parent P/F and P/S aggregation uses summed `annualized1y` fee/revenue denominators and preserves null when a contributing child is missing the annualized value.
 - TVL display behavior here is table/read-model behavior. Do not assume it matches ChainOverview chart TVL behavior.
 
 ## TVL Notes
@@ -89,20 +90,21 @@ Before changing TVL behavior here, check `docs/metrics.md` and add characterizat
 
 ## Tests
 
-This shared area has high blast radius and currently limited direct local tests. Add focused tests before refactoring `queries.server.ts`, `toFilterProtocol`, `toStrikeTvl`, or parent/child aggregation.
+This shared area has high blast radius. Add focused tests before refactoring `queries.server.ts`, `toFilterProtocol`, `toStrikeTvl`, or parent/child aggregation.
 
-Good test targets:
+Current local tests:
 
-- chain-scoped protocol filtering
-- parent/child aggregation and chain dedupe
-- `strikeTvl` behavior when liquidstaking or doublecounted settings change
-- fee/revenue/dex enrichment staying distinct
-- fork and oracle filters, if touched
+- `__tests__/queries.server.test.ts`: parent/child aggregation, chain dedupe, chain filtering, fee/revenue aggregation, strict annualized null behavior, and TVL extras.
+- `__tests__/utils.test.ts`: direct `toStrikeTvl` behavior.
 
-Focused command once tests exist:
+Still useful if touched:
+
+- Add direct coverage for fork/oracle filters and `toFilterProtocol`.
+
+Focused command:
 
 ```bash
-bun run test src/containers/ProtocolRankings/__tests__/<test-file>.test.ts
+bun run test src/containers/ProtocolRankings/__tests__/queries.server.test.ts src/containers/ProtocolRankings/__tests__/utils.test.ts
 ```
 
 For source changes, follow the repo root verification instructions.

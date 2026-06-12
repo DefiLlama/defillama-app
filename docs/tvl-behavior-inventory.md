@@ -52,4 +52,4 @@ The highest-value characterization gaps from the initial inventory are now cover
 - Do not create `src/metrics/tvl.ts` from the current evidence. The repeated names are not yet stable cross-container invariants.
 - The safest next production target is not broad extraction. ChainOverview and CompareChains chart behavior is locally covered, and only their shared chain add-back plus overlap transform is centralized.
 - Keep ChainOverview summary behavior local. CompareChains only builds adjusted chart series for the comparison chart; its cards reuse ChainOverview `Stats` and therefore follow the ChainOverview summary/toggle path. Keep protocol overview timestamp alignment local.
-- Oracles and Forks share a tiny local helper for enabled extra API keys, total add-back, and overlap sign handling. Do not pull chain/protocol table behavior into that helper.
+- Oracles and Forks share the tiny `src/utils/tvlOverlap.ts` helper for enabled extra API keys, total add-back, and overlap sign handling. Do not pull chain/protocol table behavior into that helper.

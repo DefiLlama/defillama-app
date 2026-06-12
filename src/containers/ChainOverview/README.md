@@ -95,6 +95,8 @@ The chart semantics are one millisecond timestamp point per day with `total`, pl
 Relevant tests today:
 
 - `__tests__/queries.server.test.ts`
+- `__tests__/tvlChart.test.ts`
+- `__tests__/chartDataTransforms.test.ts`
 - `__tests__/chartMetricSemantics.test.tsx`
 - `__tests__/chain-chart-page.test.tsx`
 - `__tests__/KeyMetrics.test.tsx`
@@ -104,6 +106,7 @@ Focused commands:
 
 ```bash
 bun run test src/containers/ChainOverview/__tests__/queries.server.test.ts
+bun run test src/containers/ChainOverview/__tests__/tvlChart.test.ts src/containers/ChainOverview/__tests__/chartDataTransforms.test.ts
 bun run test src/containers/ChainOverview/__tests__/chartMetricSemantics.test.tsx
 bun run test src/containers/ChainOverview/__tests__/chain-chart-page.test.tsx src/containers/ChainOverview/__tests__/KeyMetrics.test.tsx
 ```

@@ -78,7 +78,8 @@ Important rules:
 - `getProtocolMetricFlags` maps protocol metadata to chart/section availability.
 - Protocol fees/revenue charts use protocol adapter endpoints, not chain-native fee/revenue ranking semantics.
 - `chartDescriptors.ts` owns protocol-level adapter chart request descriptors.
-- Chain Fees, Chain Revenue, App Fees, App Revenue, and REV semantics live in `src/metrics` only because they cross ChainOverview, AdapterMetrics, and public chart validation. Do not move ProtocolOverview descriptors there unless another container or API endpoint needs the same invariant.
+- Chain Fees, Chain Revenue, App Fees, App Revenue, REV, and fee-extra semantics live in `src/metrics` only where they cross ChainOverview, AdapterMetrics, CompareChains, and public chart validation. Do not move ProtocolOverview descriptors there unless another container or API endpoint needs the same invariant.
+- Annualized fee/revenue cards use `annualized1y` values when available; missing annualized values should stay missing rather than falling back to 30-day totals.
 - TVL chart composition in `useFetchProtocolChartData.ts` is local and has timestamp alignment and denomination behavior. Add characterization tests before extracting it.
 
 ## TVL Notes
@@ -112,6 +113,15 @@ Prefer a local `ProtocolOverview` helper if this code needs extraction. Do not s
 Relevant tests today:
 
 - `__tests__/queries.test.ts`
+- `__tests__/queries.client.test.tsx`
+- `__tests__/api.test.ts`
+- `__tests__/chartDescriptors.test.ts`
+- `__tests__/chartMetricSemantics.test.tsx`
+- `__tests__/tvlChart.test.ts`
+- `__tests__/chartSeries.utils.test.ts`
+- `__tests__/useProtocolBreakdownCharts.test.ts`
+- `__tests__/protocol-chart-page.test.tsx`
+- `__tests__/protocolFeeCharts.test.ts`
 - `__tests__/formatAdapterData.test.ts`
 - `__tests__/helpers.test.ts`
 - `__tests__/category.test.ts`
@@ -121,7 +131,9 @@ Relevant tests today:
 Focused commands:
 
 ```bash
-bun run test src/containers/ProtocolOverview/__tests__/queries.test.ts
+bun run test src/containers/ProtocolOverview/__tests__/queries.test.ts src/containers/ProtocolOverview/__tests__/queries.client.test.tsx
+bun run test src/containers/ProtocolOverview/__tests__/api.test.ts src/containers/ProtocolOverview/__tests__/chartDescriptors.test.ts
+bun run test src/containers/ProtocolOverview/__tests__/tvlChart.test.ts src/containers/ProtocolOverview/__tests__/chartSeries.utils.test.ts src/containers/ProtocolOverview/__tests__/useProtocolBreakdownCharts.test.ts
 bun run test src/containers/ProtocolOverview/__tests__/formatAdapterData.test.ts src/containers/ProtocolOverview/__tests__/helpers.test.ts
 bun run test src/containers/ProtocolOverview/__tests__/KeyMetrics.test.tsx src/containers/ProtocolOverview/__tests__/seo.test.tsx
 ```
