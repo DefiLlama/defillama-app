@@ -8,6 +8,7 @@ import { MarketsLineChart } from './MarketsLineChart'
 import { MarketsPageHeader } from './MarketsPageHeader'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
 import { MarketsStatStrip } from './MarketsStatStrip'
+import type { KnownTokenSlugs } from './shared'
 import { TokensTable } from './TokensTable'
 import type { Segment } from './types'
 import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './types'
@@ -18,11 +19,13 @@ const STALE_TIME = 60 * 60 * 1000
 export function MarketsCategory({
 	tag,
 	segment,
-	onSegmentChange
+	onSegmentChange,
+	knownTokenSlugs
 }: {
 	tag: string
 	segment: Segment
 	onSegmentChange: (segment: Segment) => void
+	knownTokenSlugs: KnownTokenSlugs
 }) {
 	const { data, isLoading, isError } = useQuery({
 		queryKey: ['markets-category', tag],
@@ -98,7 +101,7 @@ export function MarketsCategory({
 						{hasOi ? <MarketsAreaChart title="Open interest by token" series={oiByPair} /> : null}
 						<MarketsLineChart title="Markets tracked by exchange" series={marketsByExchange} />
 					</div>
-					<TokensTable rows={segmentTokens} segment={activeSegment} />
+					<TokensTable rows={segmentTokens} segment={activeSegment} knownTokenSlugs={knownTokenSlugs} />
 				</div>
 			)}
 		</div>

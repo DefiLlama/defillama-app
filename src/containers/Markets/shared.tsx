@@ -1,16 +1,23 @@
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { type Sentiment, SENTIMENT_TITLE } from './utils'
 
 export { ChangeCell, FundingCell, MetricStat, renderUsd } from './marketMetrics'
+
+export type KnownTokenSlugs = ReadonlySet<string>
 
 export function categoryHref(tag: string): string {
 	return `/markets?category=${encodeURIComponent(tag)}`
 }
 
 export function tokenHref(base: string): string {
-	return `/token/${encodeURIComponent(base.toLowerCase())}`
+	return `/token/${encodeURIComponent(slug(base))}`
+}
+
+export function isKnownTokenSlug(base: string, knownTokenSlugs: KnownTokenSlugs | undefined): boolean {
+	const tokenSlug = slug(base)
+	return tokenSlug.length > 0 && Boolean(knownTokenSlugs?.has(tokenSlug))
 }
 
 export function exchangeHref(exchange: string): string {
@@ -57,13 +64,21 @@ export function CategoryLink({ tag }: { tag: string }) {
 }
 
 /** Asset symbol linking to the token page. */
-export function TokenName({ base }: { base: string }) {
+export function TokenName({ base, knownTokenSlugs }: { base: string; knownTokenSlugs?: KnownTokenSlugs }) {
+	const label = (
+		<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap uppercase">{base}</span>
+	)
+
+	if (!isKnownTokenSlug(base, knownTokenSlugs)) {
+		return <span className="text-(--text-primary)">{label}</span>
+	}
+
 	return (
 		<BasicLink
 			href={tokenHref(base)}
 			className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) uppercase hover:underline"
 		>
-			{base}
+			{label}
 		</BasicLink>
 	)
 }

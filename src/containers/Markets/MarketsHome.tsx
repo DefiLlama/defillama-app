@@ -15,6 +15,7 @@ import { MarketsCharts } from './MarketsCharts'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
 import { MarketsStatStrip } from './MarketsStatStrip'
 import { MomentumCards } from './MomentumCards'
+import type { KnownTokenSlugs } from './shared'
 import { TokensTable } from './TokensTable'
 import type { CategoryStatsBySegment, ExchangeListRow, Segment, SymbolStat, SymbolStatsBySegment } from './types'
 import { resolveSegment, SEGMENT_IDS } from './types'
@@ -30,10 +31,12 @@ const EMPTY_EXCHANGES: ExchangeListRow[] = []
 
 export function MarketsHome({
 	segment,
-	onSegmentChange
+	onSegmentChange,
+	knownTokenSlugs
 }: {
 	segment: Segment
 	onSegmentChange: (segment: Segment) => void
+	knownTokenSlugs: KnownTokenSlugs
 }) {
 	const tokensQuery = useQuery({
 		queryKey: ['markets-tokens'],
@@ -116,7 +119,12 @@ export function MarketsHome({
 					<MarketsStatStrip rows={segmentTokens} segment={activeSegment} />
 					<div className="flex flex-col gap-2">
 						<h2 className="text-base font-semibold">Movers · 24h</h2>
-						<MomentumCards categories={segmentCategories} tokens={segmentTokens} segment={activeSegment} />
+						<MomentumCards
+							categories={segmentCategories}
+							tokens={segmentTokens}
+							segment={activeSegment}
+							knownTokenSlugs={knownTokenSlugs}
+						/>
 					</div>
 					<MarketsCharts
 						exchangeSeries={exchangeSeriesQuery.data ?? []}
@@ -125,7 +133,7 @@ export function MarketsHome({
 					/>
 					<CategoriesTable categories={segmentCategories} segment={activeSegment} />
 					<ExchangesTable exchanges={exchangesQuery.data?.[activeSegment] ?? EMPTY_EXCHANGES} segment={activeSegment} />
-					<TokensTable rows={segmentTokens} segment={activeSegment} />
+					<TokensTable rows={segmentTokens} segment={activeSegment} knownTokenSlugs={knownTokenSlugs} />
 				</div>
 			)}
 		</div>

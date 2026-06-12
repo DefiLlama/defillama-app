@@ -6,6 +6,15 @@ describe('getDatasetIndexFileName', () => {
 	it('keeps short encoded keys readable', () => {
 		expect(getDatasetIndexFileName('btc')).toBe('btc.json')
 		expect(getDatasetIndexFileName('staked eth')).toBe('staked%20eth.json')
+		expect(getDatasetIndexFileName('usd*')).toBe('usd%2A.json')
+	})
+
+	it('hashes Windows reserved basenames', () => {
+		const expectedHash = createHash('sha256').update('con').digest('hex')
+
+		expect(getDatasetIndexFileName('con')).toBe(`${expectedHash}.json`)
+		expect(getDatasetIndexFileName('CON')).toBe(`${createHash('sha256').update('CON').digest('hex')}.json`)
+		expect(getDatasetIndexFileName('lpt1')).toBe(`${createHash('sha256').update('lpt1').digest('hex')}.json`)
 	})
 
 	it('uses a deterministic bounded filename for long keys', () => {

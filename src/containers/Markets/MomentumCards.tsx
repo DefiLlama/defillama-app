@@ -1,4 +1,4 @@
-import { CategoryLink, ChangeCell, TokenName } from './shared'
+import { CategoryLink, ChangeCell, TokenName, type KnownTokenSlugs } from './shared'
 import type { CategoryStat, Segment, SymbolStat } from './types'
 import { segmentHasOi } from './types'
 import { type MoverMetricKey, MOVER_METRICS, moverValue, selectMovers } from './utils'
@@ -88,11 +88,13 @@ function MoverRowSet<T extends Parameters<typeof moverValue>[0]>({
 export function MomentumCards({
 	categories,
 	tokens,
-	segment
+	segment,
+	knownTokenSlugs
 }: {
 	categories: CategoryStat[]
 	tokens: SymbolStat[]
 	segment: Segment
+	knownTokenSlugs: KnownTokenSlugs
 }) {
 	const metricKeys = MOVER_METRICS.filter((m) => !m.perpOnly || segmentHasOi(segment))
 	// `untagged` is a catch-all, not a real category — keep it out of the momentum panels.
@@ -110,7 +112,7 @@ export function MomentumCards({
 				title="momentum · tokens"
 				rows={tokens}
 				metricKeys={metricKeys}
-				nameOf={(row) => <TokenName base={row.base} />}
+				nameOf={(row) => <TokenName base={row.base} knownTokenSlugs={knownTokenSlugs} />}
 			/>
 		</div>
 	)

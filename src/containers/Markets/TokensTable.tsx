@@ -9,7 +9,8 @@ import {
 	renderUsd,
 	SentimentBadge,
 	TagPills,
-	TokenName
+	TokenName,
+	type KnownTokenSlugs
 } from './shared'
 import type { Segment, SymbolStat } from './types'
 import { segmentHasOi } from './types'
@@ -17,7 +18,7 @@ import { pctChange, sentiment, topSymbols } from './utils'
 
 const columnHelper = createColumnHelper<SymbolStat>()
 
-function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
+function buildColumns(segment: Segment, knownTokenSlugs: KnownTokenSlugs): ColumnDef<SymbolStat, any>[] {
 	const hasOi = segmentHasOi(segment)
 
 	const columns: ColumnDef<SymbolStat, any>[] = [
@@ -25,7 +26,7 @@ function buildColumns(segment: Segment): ColumnDef<SymbolStat, any>[] {
 			id: 'base',
 			header: 'Asset',
 			enableSorting: false,
-			cell: ({ getValue }) => <TokenName base={getValue()} />,
+			cell: ({ getValue }) => <TokenName base={getValue()} knownTokenSlugs={knownTokenSlugs} />,
 			meta: { headerClassName: 'min-w-[140px]' }
 		}),
 		columnHelper.accessor((row) => row.price ?? undefined, {
@@ -120,12 +121,20 @@ const SORT_OPTIONS: ReadonlyArray<{ id: 'volume' | 'oi'; label: string }> = [
 	{ id: 'oi', label: 'by open interest' }
 ]
 
-export function TokensTable({ rows, segment }: { rows: SymbolStat[]; segment: Segment }) {
+export function TokensTable({
+	rows,
+	segment,
+	knownTokenSlugs
+}: {
+	rows: SymbolStat[]
+	segment: Segment
+	knownTokenSlugs: KnownTokenSlugs
+}) {
 	const hasOi = segmentHasOi(segment)
 	const [sortBy, setSortBy] = React.useState<'volume' | 'oi'>('volume')
 	const effectiveSort = hasOi ? sortBy : 'volume'
 
-	const columns = React.useMemo(() => buildColumns(segment), [segment])
+	const columns = React.useMemo(() => buildColumns(segment, knownTokenSlugs), [segment, knownTokenSlugs])
 	const data = React.useMemo(() => topSymbols(rows, effectiveSort, 100), [rows, effectiveSort])
 	const sortColumn = effectiveSort === 'oi' ? 'oi_usd' : 'volume_24h_usd'
 
