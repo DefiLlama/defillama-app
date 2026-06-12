@@ -778,7 +778,8 @@ describe('chains by adapter page data', () => {
 			],
 			parentProtocols: [
 				{ name: 'Zero Mcap Parent', mcap: 0 },
-				{ name: 'Partial Annualized Parent', mcap: 12_000 }
+				{ name: 'Partial Annualized Parent', mcap: 12_000 },
+				{ name: 'Sparse Null Parent', mcap: 12_000 }
 			]
 		})
 		fetchJsonMock.mockImplementation((url: string) => {
@@ -855,6 +856,28 @@ describe('chains by adapter page data', () => {
 							total30d: 2000,
 							annualized1y: null,
 							linkedProtocols: ['Partial Annualized Parent', 'Partial Parent Child B']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'sparse-null-parent-child-a',
+							name: 'Sparse Null Parent Child A',
+							displayName: 'Sparse Null Parent Child A',
+							slug: 'sparse-null-parent-child-a',
+							total30d: 1000,
+							annualized1y: 20_000,
+							linkedProtocols: ['Sparse Null Parent', 'Sparse Null Parent Child A']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'sparse-null-parent-child-b',
+							name: 'Sparse Null Parent Child B',
+							displayName: 'Sparse Null Parent Child B',
+							slug: 'sparse-null-parent-child-b',
+							total24h: null,
+							total7d: null,
+							total30d: null,
+							total1y: null,
+							annualized1y: null,
+							totalAllTime: null,
+							linkedProtocols: ['Sparse Null Parent', 'Sparse Null Parent Child B']
 						})
 					]
 				})
@@ -873,6 +896,7 @@ describe('chains by adapter page data', () => {
 		expect(protocolsByName.get('Annualized Fees')?.pfOrPs).toBe(0.2)
 		expect(protocolsByName.get('Zero Mcap Fees')?.pfOrPs).toBe(0)
 		expect(protocolsByName.get('Zero Mcap Parent')?.pfOrPs).toBe(0)
+		expect(protocolsByName.get('Sparse Null Parent')?.pfOrPs).toBe(0.6)
 		expect(protocolsByName.has('Thirty Day Only')).toBe(false)
 		expect(protocolsByName.has('Partial Annualized Parent')).toBe(false)
 	})

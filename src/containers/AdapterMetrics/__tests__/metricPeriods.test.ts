@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { deriveMetricChanges, mergeMetricPeriods } from '../metricPeriods'
+import { deriveMetricChanges, mergeMetricPeriods, mergeParentMetricPeriods } from '../metricPeriods'
 
 describe('dimension metric periods', () => {
 	test('derives period changes from current and previous period totals', () => {
@@ -69,5 +69,38 @@ describe('dimension metric periods', () => {
 		expect(protocol.total30DaysAgo).toBe(150)
 		expect(protocol.change_1m).toBe(0)
 		expect(protocol.change_30dover30d).toBe(87.5)
+	})
+
+	test('merges parent annualized totals when every contributing child has annualized data', () => {
+		const protocol = mergeParentMetricPeriods([
+			{ total24h: 100, total30d: 3000, annualized1y: 20_000 },
+			{ total24h: 50, total30d: 1500, annualized1y: 10_000 }
+		])
+
+		expect(protocol.total24h).toBe(150)
+		expect(protocol.total30d).toBe(4500)
+		expect(protocol.annualized1y).toBe(30_000)
+	})
+
+	test('keeps parent annualized null when a contributing child is missing annualized data', () => {
+		const protocol = mergeParentMetricPeriods([
+			{ total24h: 100, total30d: 3000, annualized1y: 20_000 },
+			{ total24h: 50, total30d: 1500, annualized1y: null }
+		])
+
+		expect(protocol.total24h).toBe(150)
+		expect(protocol.total30d).toBe(4500)
+		expect(protocol.annualized1y).toBeNull()
+	})
+
+	test('does not poison parent annualized totals for sparse children without period totals', () => {
+		const protocol = mergeParentMetricPeriods([
+			{ total24h: 100, total30d: 3000, annualized1y: 20_000 },
+			{ annualized1y: null }
+		])
+
+		expect(protocol.total24h).toBe(100)
+		expect(protocol.total30d).toBe(3000)
+		expect(protocol.annualized1y).toBe(20_000)
 	})
 })

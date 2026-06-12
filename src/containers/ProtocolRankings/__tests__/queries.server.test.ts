@@ -266,6 +266,77 @@ describe('getProtocolsByChain parent aggregation', () => {
 		expect(withStakingAndMin[0].tvl?.default.tvl).toBe(300)
 	})
 
+	it('keeps parent P/F null when a child fee row has only current fees and no annualized denominator', async () => {
+		fetchAdapterChainMetricsMock.mockImplementation(({ dataType }: { dataType?: string }) => {
+			if (dataType === 'dailyRevenue' || dataType === 'dailyHoldersRevenue') {
+				return Promise.resolve({ protocols: [] })
+			}
+
+			// Rows without total24h do not reach parent aggregation; this pins the reachable strict-null case.
+			return Promise.resolve({
+				protocols: [
+					metricRow('child-alpha-one', {
+						total24h: 20,
+						annualized1y: 3000
+					}),
+					metricRow('child-alpha-two', {
+						total24h: 8,
+						annualized1y: null
+					})
+				]
+			})
+		})
+		fetchProtocolsMock.mockResolvedValue({
+			chains: ['Ethereum'],
+			parentProtocols: [{ id: 'parent#alpha', name: 'Alpha Parent', chains: ['Ethereum'], mcap: 300 }],
+			protocols: [
+				liteProtocol({
+					defillamaId: 'child-alpha-one',
+					name: 'Alpha One Raw',
+					category: 'Dexes',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					mcap: 200,
+					tvl: 100,
+					tvlPrevDay: 90,
+					tvlPrevWeek: 80,
+					tvlPrevMonth: 70,
+					chainTvls: {
+						Ethereum: tvlEntry(100, 90, 80, 70)
+					}
+				}),
+				liteProtocol({
+					defillamaId: 'child-alpha-two',
+					name: 'Alpha Two Raw',
+					category: 'Lending',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#alpha',
+					mcap: 100,
+					tvl: 200,
+					tvlPrevDay: 190,
+					tvlPrevWeek: 180,
+					tvlPrevMonth: 170,
+					chainTvls: {
+						Ethereum: tvlEntry(200, 190, 180, 170)
+					}
+				})
+			]
+		})
+
+		const data = await getProtocolsByChain({
+			chain: 'All',
+			chainMetadata,
+			protocolMetadata: protocolMetadata as any
+		})
+
+		const parent = data?.protocols.find((protocol) => protocol.name === 'Alpha Parent')
+		expect(parent?.fees).toMatchObject({
+			total24h: 28,
+			annualized1y: null,
+			pf: null
+		})
+	})
+
 	it('keeps a single eligible child ungrouped when the chain filter leaves only one child under a parent', async () => {
 		fetchProtocolsMock.mockResolvedValue({
 			chains: ['Ethereum', 'Optimism'],
