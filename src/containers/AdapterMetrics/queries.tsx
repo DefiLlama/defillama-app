@@ -1,15 +1,15 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
+import { REV_PROTOCOLS, V2_SERVER_URL } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
-import { FEE_EXTRA_PERIOD_TOTAL_KEYS } from '~/metrics/feeExtras'
 import { feeRevenueMetrics, getChainNativeFeeRevenueRankingMetric } from '~/metrics/feesRevenue'
-import { slug, getMarketCapToAnnualizedMetricRatio } from '~/utils'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
+import { chainIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { recordRuntimeError } from '~/utils/telemetry'
+import { buildAdapterByChainReadModel } from './adapterByChainReadModel'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
@@ -18,127 +18,17 @@ import {
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, getChainMetadataKey } from './constants'
-import { mergeMetricPeriods, type MetricPeriodFields } from './metricPeriods'
 import type {
 	IAdapterByChainPageData,
 	IAdapterChainOverview,
 	IChainsByAdapterPageData,
-	IChainsByREVPageData,
-	IProtocol
+	IChainsByREVPageData
 } from './types'
-import {
-	buildAdapterByChainChartDataset,
-	matchRevenueToEarnings,
-	processRevenueDataForMatching,
-	type ActiveLiquidityData,
-	type BribesData,
-	type NormalizedVolumeData,
-	type OpenInterestData
-} from './utils'
+import { buildAdapterByChainChartDataset } from './utils'
 
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
 	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
-
-type AdapterChainProtocolMetric = IAdapterChainMetrics['protocols'][number]
-type AdapterByChainSourceProtocol = Pick<
-	AdapterChainProtocolMetric,
-	'name' | 'displayName' | 'slug' | 'protocolType' | 'chains'
-> &
-	Partial<
-		Pick<
-			AdapterChainProtocolMetric,
-			| 'category'
-			| 'methodology'
-			| 'linkedProtocols'
-			| 'doublecounted'
-			| 'total24h'
-			| 'total48hto24h'
-			| 'total7d'
-			| 'total14dto7d'
-			| 'total30d'
-			| 'total60dto30d'
-			| 'total7DaysAgo'
-			| 'total30DaysAgo'
-			| 'total1y'
-			| 'annualized1y'
-			| 'totalAllTime'
-			| 'change_1d'
-			| 'change_7d'
-			| 'change_1m'
-			| 'change_7dover7d'
-			| 'change_30dover30d'
-		>
-	>
-
-function buildFeeExtraOnlyProtocolRow(protocol: AdapterChainProtocolMetric): AdapterByChainSourceProtocol {
-	return {
-		name: protocol.name,
-		displayName: protocol.displayName,
-		slug: protocol.slug,
-		protocolType: protocol.protocolType,
-		chains: protocol.chains,
-		category: protocol.category,
-		methodology: protocol.methodology,
-		linkedProtocols: protocol.linkedProtocols,
-		doublecounted: protocol.doublecounted,
-		total24h: null,
-		total48hto24h: null,
-		total7d: null,
-		total14dto7d: null,
-		total30d: null,
-		total60dto30d: null,
-		total7DaysAgo: null,
-		total30DaysAgo: null,
-		total1y: null,
-		annualized1y: null,
-		totalAllTime: null,
-		change_1d: null,
-		change_7d: null,
-		change_1m: null,
-		change_7dover7d: null,
-		change_30dover30d: null
-	}
-}
-
-function getFeeExtraPeriodTotals(protocol: AdapterChainProtocolMetric): BribesData {
-	return {
-		total24h: protocol.total24h ?? null,
-		total48hto24h: protocol.total48hto24h ?? null,
-		total7d: protocol.total7d ?? null,
-		total14dto7d: protocol.total14dto7d ?? null,
-		total30d: protocol.total30d ?? null,
-		total60dto30d: protocol.total60dto30d ?? null,
-		total7DaysAgo: protocol.total7DaysAgo ?? null,
-		total30DaysAgo: protocol.total30DaysAgo ?? null,
-		total1y: protocol.total1y ?? null,
-		annualized1y: protocol.annualized1y ?? null,
-		totalAllTime: protocol.totalAllTime ?? null
-	}
-}
-
-function addFeeExtraPeriodTotals(acc: BribesData, totals: BribesData) {
-	for (const key of FEE_EXTRA_PERIOD_TOTAL_KEYS) {
-		const value = totals[key]
-		if (value == null) {
-			if (acc[key] === undefined) {
-				acc[key] = null
-			}
-			continue
-		}
-		acc[key] = (acc[key] ?? 0) + value
-	}
-}
-
-function hasPeriodTotal(protocol: MetricPeriodFields) {
-	return (
-		protocol.total24h != null ||
-		protocol.total7d != null ||
-		protocol.total30d != null ||
-		protocol.total1y != null ||
-		protocol.totalAllTime != null
-	)
-}
 
 function buildChainsChartData({
 	rawChartData,
@@ -356,344 +246,20 @@ export const getAdapterByChainPageData = async ({
 			: Promise.resolve(null)
 	])
 
-	const protocolsMcap: Record<string, number | null> = {}
-	for (const protocol of protocolsData.protocols) {
-		protocolsMcap[protocol.name] = protocol.mcap ?? null
-	}
-	for (const protocol of protocolsData.parentProtocols) {
-		protocolsMcap[protocol.name] = protocol.mcap ?? null
-	}
-
-	const allProtocols: AdapterByChainSourceProtocol[] = [...data.protocols]
-
-	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
-	const allProtocolsByName = new Set<string>()
-	for (const protocol of allProtocols) {
-		allProtocolsByName.add(protocol.name)
-	}
-
-	let bribesProtocols: Record<string, BribesData> = {}
-	let tokenTaxesProtocols: Record<string, BribesData> = {}
-	let openInterestProtocols: Record<string, OpenInterestData> = {}
-	let activeLiquidityProtocols: Record<string, ActiveLiquidityData> = {}
-	let normalizedVolumeProtocols: Record<string, NormalizedVolumeData> = {}
-
-	if (dataType === 'dailyEarnings') {
-		if (bribesData) {
-			const processedBribesData = processRevenueDataForMatching(bribesData.protocols)
-			bribesProtocols = matchRevenueToEarnings(processedBribesData, data.protocols)
-		}
-
-		if (tokenTaxesData) {
-			const processedTokenTaxData = processRevenueDataForMatching(tokenTaxesData.protocols)
-			tokenTaxesProtocols = matchRevenueToEarnings(processedTokenTaxData, data.protocols)
-		}
-	} else {
-		if (bribesData) {
-			for (const p of bribesData.protocols) {
-				bribesProtocols[p.name] = getFeeExtraPeriodTotals(p)
-
-				if (!allProtocolsByName.has(p.name)) {
-					allProtocolsByName.add(p.name)
-					allProtocols.push(buildFeeExtraOnlyProtocolRow(p))
-				}
-			}
-		}
-
-		if (tokenTaxesData) {
-			for (const p of tokenTaxesData.protocols) {
-				tokenTaxesProtocols[p.name] = getFeeExtraPeriodTotals(p)
-
-				if (!allProtocolsByName.has(p.name)) {
-					allProtocolsByName.add(p.name)
-					allProtocols.push(buildFeeExtraOnlyProtocolRow(p))
-				}
-			}
-		}
-	}
-
-	if (openInterestData) {
-		for (const p of openInterestData.protocols) {
-			openInterestProtocols[p.name] = {
-				total24h: p.total24h ?? null,
-				doublecounted: !!p.doublecounted
-			}
-		}
-	}
-
-	if (activeLiquidityData) {
-		for (const p of activeLiquidityData.protocols) {
-			activeLiquidityProtocols[p.name] = {
-				total24h: p.total24h ?? null,
-				doublecounted: !!p.doublecounted
-			}
-		}
-	}
-
-	if (normalizedVolumeData) {
-		for (const p of normalizedVolumeData.protocols) {
-			normalizedVolumeProtocols[p.name] = {
-				total24h: p.total24h ?? null
-			}
-		}
-	}
-
-	const protocols: Record<string, IProtocol> = {}
-	const parentProtocols: Record<string, IProtocol[]> = {}
-	const categories = new Set<string>()
-
-	for (const protocol of allProtocols) {
-		const warning =
-			protocol.slug === 'canton' && (metricName === 'Fees' || metricName === 'Revenue')
-				? CANTON_INCENTIVES_WARNING
-				: null
-		const methodology =
-			adapterType === 'fees'
-				? dataType === 'dailyRevenue'
-					? (protocol.methodology?.['Revenue'] ??
-						protocol.methodology?.['BribesRevenue'] ??
-						protocol.methodology?.['TokenTaxes'])
-					: dataType === 'dailyHoldersRevenue'
-						? (protocol.methodology?.['HoldersRevenue'] ??
-							protocol.methodology?.['BribesRevenue'] ??
-							protocol.methodology?.['TokenTaxes'])
-						: (protocol.methodology?.['Fees'] ??
-							protocol.methodology?.['BribesRevenue'] ??
-							protocol.methodology?.['TokenTaxes'])
-				: null
-
-		const protocolMcap = protocolsMcap[protocol.name]
-		const pfOrPs =
-			protocolMcap != null && protocol.annualized1y != null
-				? getMarketCapToAnnualizedMetricRatio(protocolMcap, protocol.annualized1y)
-				: null
-
-		const summary = {
-			name: protocol.displayName,
-			slug: protocol.slug,
-			logo: protocol.protocolType === 'chain' ? chainIconUrl(protocol.slug) : tokenIconUrl(protocol.slug),
-			chains: protocol.chains,
-			category: protocol.category ?? null,
-			total24h: protocol.total24h ?? null,
-			total48hto24h: protocol.total48hto24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total14dto7d: protocol.total14dto7d ?? null,
-			total30d: protocol.total30d ?? null,
-			total60dto30d: protocol.total60dto30d ?? null,
-			total7DaysAgo: protocol.total7DaysAgo ?? null,
-			total30DaysAgo: protocol.total30DaysAgo ?? null,
-			total1y: protocol.total1y ?? null,
-			annualized1y: protocol.annualized1y ?? null,
-			totalAllTime: protocol.totalAllTime ?? null,
-			change_1d: protocol.change_1d ?? null,
-			change_7d: protocol.change_7d ?? null,
-			change_1m: protocol.change_1m ?? null,
-			change_7dover7d: protocol.change_7dover7d ?? null,
-			change_30dover30d: protocol.change_30dover30d ?? null,
-			mcap: protocolsMcap[protocol.name] ?? null,
-			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
-			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-			...(pfOrPs != null ? { pfOrPs } : {}),
-			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
-			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
-			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
-			...(warning ? { warning } : {}),
-			...(openInterestProtocols[protocol.name]?.total24h != null
-				? { openInterest: openInterestProtocols[protocol.name].total24h }
-				: {}),
-			...(activeLiquidityProtocols[protocol.name]?.total24h != null
-				? { activeLiquidity: activeLiquidityProtocols[protocol.name].total24h }
-				: {}),
-			...(normalizedVolumeProtocols[protocol.name]?.total24h != null
-				? { normalizedVolume24h: normalizedVolumeProtocols[protocol.name].total24h }
-				: {}),
-			...(protocol.displayName !== protocol.name ? { breakdownAliases: [protocol.name] } : {})
-		}
-
-		if (protocol.linkedProtocols?.length > 1) {
-			parentProtocols[protocol.linkedProtocols[0]] = parentProtocols[protocol.linkedProtocols[0]] || []
-			parentProtocols[protocol.linkedProtocols[0]].push(summary)
-		} else {
-			protocols[protocol.displayName] = summary
-		}
-		if (protocol.category) {
-			categories.add(protocol.category)
-		}
-	}
-
-	for (const protocol in parentProtocols) {
-		if (parentProtocols[protocol].length === 1) {
-			const breakdownAliases = new Set([
-				parentProtocols[protocol][0].name,
-				...(parentProtocols[protocol][0].breakdownAliases ?? [])
-			])
-			breakdownAliases.delete(protocol)
-			protocols[protocol] = {
-				...parentProtocols[protocol][0],
-				name: protocol,
-				slug: slug(protocol),
-				breakdownAliases: Array.from(breakdownAliases)
-			}
-			continue
-		}
-		let periodTotals: MetricPeriodFields = {}
-		let hasAnnualized1y = false
-		let isAnnualized1yIncomplete = false
-		for (const p of parentProtocols[protocol]) {
-			periodTotals = mergeMetricPeriods(periodTotals, p)
-			if (p.annualized1y != null) {
-				hasAnnualized1y = true
-			} else if (hasPeriodTotal(p)) {
-				isAnnualized1yIncomplete = true
-			}
-		}
-		const annualized1y = hasAnnualized1y && !isAnnualized1yIncomplete ? (periodTotals.annualized1y ?? null) : null
-		const totals = {
-			total24h: periodTotals.total24h ?? null,
-			total7d: periodTotals.total7d ?? null,
-			total30d: periodTotals.total30d ?? null,
-			total1y: periodTotals.total1y ?? null,
-			annualized1y,
-			totalAllTime: periodTotals.totalAllTime ?? null
-		}
-		let doublecounted = false
-		let zeroFeePerp = false
-		let warning: string | null = null
-		let bribes: BribesData | null = null
-		let tokenTax: BribesData | null = null
-		let openInterest: number | null = null
-		let activeLiquidity: number | null = null
-		let normalizedVolume24h: number | null = null
-		const methodologySet = new Set<string>()
-		const methodologyChildrenByMethod = new Map<string, string[]>()
-		let topProtocol = parentProtocols[protocol][0]
-		const breakdownAliasSet = new Set<string>()
-		const chainSet = new Set<string>()
-
-		for (const p of parentProtocols[protocol]) {
-			if (p.doublecounted) doublecounted = true
-			if (p.zeroFeePerp) zeroFeePerp = true
-			if (!warning && p.warning) warning = p.warning
-			if (p.bribes) {
-				bribes ??= {}
-				addFeeExtraPeriodTotals(bribes, p.bribes)
-			}
-			if (p.tokenTax) {
-				tokenTax ??= {}
-				addFeeExtraPeriodTotals(tokenTax, p.tokenTax)
-			}
-			if (p.openInterest != null) {
-				openInterest = (openInterest ?? 0) + p.openInterest
-			}
-			if (p.activeLiquidity != null) {
-				activeLiquidity = (activeLiquidity ?? 0) + p.activeLiquidity
-			}
-			if (p.normalizedVolume24h != null) {
-				normalizedVolume24h = (normalizedVolume24h ?? 0) + p.normalizedVolume24h
-			}
-			if (p.methodology) {
-				methodologySet.add(p.methodology)
-				let children = methodologyChildrenByMethod.get(p.methodology)
-				if (!children) {
-					children = []
-					methodologyChildrenByMethod.set(p.methodology, children)
-				}
-				children.push(p.name.startsWith(protocol) ? p.name.replace(protocol, '').trim() : p.name)
-			}
-			if ((p.total24h ?? 0) > (topProtocol.total24h ?? 0)) {
-				topProtocol = p
-			}
-			if (p.name !== protocol) breakdownAliasSet.add(p.name)
-			for (const alias of p.breakdownAliases ?? []) {
-				if (alias !== protocol) breakdownAliasSet.add(alias)
-			}
-			for (const childChain of p.chains ?? []) {
-				chainSet.add(childChain)
-			}
-		}
-		const methodology: Array<string> = Array.from(methodologySet)
-		let methodologyText: string | null = null
-		if (methodology.length === 1) {
-			methodologyText = methodology[0]
-		} else if (methodology.length > 1) {
-			const methodologyParts: string[] = []
-			for (const method of methodology) {
-				methodologyParts.push(`${(methodologyChildrenByMethod.get(method) ?? []).join(', ')}: ${method}`)
-			}
-			methodologyText = methodologyParts.join('. ')
-		}
-
-		const protocolMcap = protocolsMcap[protocol]
-		const pfOrPs =
-			protocolMcap != null && totals.annualized1y != null
-				? getMarketCapToAnnualizedMetricRatio(protocolMcap, totals.annualized1y)
-				: null
-
-		protocols[protocol] = {
-			name: protocol,
-			slug: slug(protocol),
-			logo: tokenIconUrl(protocol),
-			category: topProtocol.category ?? null,
-			chains: Array.from(chainSet),
-			...periodTotals,
-			...totals,
-			mcap: protocolsMcap[protocol] ?? null,
-			breakdownAliases: Array.from(breakdownAliasSet),
-			childProtocols: parentProtocols[protocol],
-			...(bribes ? { bribes } : {}),
-			...(tokenTax ? { tokenTax } : {}),
-			...(pfOrPs != null ? { pfOrPs } : {}),
-			...(methodologyText ? { methodology: methodologyText } : {}),
-			...(doublecounted ? { doublecounted } : {}),
-			...(zeroFeePerp ? { zeroFeePerp } : {}),
-			...(warning ? { warning } : {}),
-			...(openInterest != null ? { openInterest } : {}),
-			...(activeLiquidity != null ? { activeLiquidity } : {}),
-			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
-		}
-	}
-
-	let finalProtocols = []
-	if (route === 'pf' || route === 'ps') {
-		for (const protocol in protocols) {
-			if (protocols[protocol].pfOrPs != null) {
-				finalProtocols.push(protocols[protocol])
-			}
-		}
-	} else {
-		for (const protocol in protocols) {
-			finalProtocols.push(protocols[protocol])
-		}
-	}
-
-	if (route === 'pf' || route === 'ps') {
-		finalProtocols = finalProtocols.sort(
-			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.pfOrPs ?? 0) - (a.pfOrPs ?? 0)
-		)
-	} else {
-		finalProtocols = finalProtocols.sort(
-			(a: IAdapterByChainPageData['protocols'][0], b: IAdapterByChainPageData['protocols'][0]) =>
-				(b.total24h ?? 0) - (a.total24h ?? 0)
-		)
-	}
-
-	let openInterest = 0
-
-	for (const protocol in openInterestProtocols) {
-		if (openInterestProtocols[protocol]?.doublecounted) continue
-		openInterest += openInterestProtocols[protocol]?.total24h ?? 0
-	}
-
-	let activeLiquidity: number | null = null
-
-	if (activeLiquidityData) {
-		activeLiquidity = 0
-		for (const protocol in activeLiquidityProtocols) {
-			if (activeLiquidityProtocols[protocol]?.doublecounted) continue
-			activeLiquidity += activeLiquidityProtocols[protocol]?.total24h ?? 0
-		}
-	}
+	const readModel = buildAdapterByChainReadModel({
+		data,
+		protocolsData,
+		bribesData,
+		tokenTaxesData,
+		openInterestData,
+		activeLiquidityData,
+		normalizedVolumeData,
+		adapterType,
+		dataType,
+		route,
+		metricName,
+		cantonIncentivesWarning: CANTON_INCENTIVES_WARNING
+	})
 
 	const chartData = buildAdapterByChainChartDataset({
 		adapterType,
@@ -709,8 +275,8 @@ export const getAdapterByChainPageData = async ({
 			{ label: 'All', to: `/${route}` },
 			...data.allChains.map((chainName) => ({ label: chainName, to: `/${route}/chain/${slug(chainName)}` }))
 		],
-		protocols: finalProtocols,
-		categories: adapterType === 'fees' ? Array.from(categories).sort() : [],
+		protocols: readModel.protocols,
+		categories: readModel.categories,
 		adapterType,
 		chartData,
 		dataType: dataType ?? null,
@@ -721,8 +287,8 @@ export const getAdapterByChainPageData = async ({
 		change_7d: data.change_7d ?? null,
 		change_1m: data.change_1m ?? null,
 		change_7dover7d: data.change_7dover7d ?? null,
-		openInterest,
-		activeLiquidity
+		openInterest: readModel.openInterest,
+		activeLiquidity: readModel.activeLiquidity
 	}
 }
 
