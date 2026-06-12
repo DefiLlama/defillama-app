@@ -224,6 +224,70 @@ const overloadedNotionalVolumeChainMetadata = {
 	}
 }
 
+const adapterProtocolRow = (overrides: Record<string, unknown>) => ({
+	total24h: 0,
+	total48hto24h: 0,
+	total7d: 0,
+	total14dto7d: 0,
+	total60dto30d: 0,
+	total30d: 0,
+	total1y: 0,
+	annualized1y: 0,
+	totalAllTime: 0,
+	average1y: 0,
+	monthlyAverage1y: 0,
+	change_1d: 0,
+	change_7d: 0,
+	change_1m: 0,
+	change_7dover7d: 0,
+	change_30dover30d: 0,
+	breakdown24h: {},
+	breakdown30d: {},
+	total7DaysAgo: 0,
+	total30DaysAgo: 0,
+	defillamaId: 'adapter-row',
+	name: 'Adapter Row',
+	displayName: 'Adapter Row',
+	module: 'adapter-row',
+	category: 'Dexes',
+	logo: '',
+	chains: ['Base'],
+	protocolType: 'protocol',
+	methodologyURL: '',
+	methodology: {},
+	latestFetchIsOk: true,
+	parentProtocol: '',
+	slug: 'adapter-row',
+	linkedProtocols: [],
+	id: 'adapter-row',
+	...overrides
+})
+
+const adapterMetricsResponse = (overrides: Record<string, unknown> = {}) => ({
+	breakdown24h: null,
+	breakdown30d: null,
+	chain: 'Base',
+	allChains: ['Base'],
+	total24h: 100,
+	total48hto24h: 90,
+	total7d: 700,
+	total14dto7d: 600,
+	total60dto30d: 2000,
+	total30d: 3000,
+	total1y: 36_000,
+	annualized1y: 36_000,
+	change_1d: 11.11,
+	change_7d: 16.67,
+	change_1m: 50,
+	change_7dover7d: 10,
+	change_30dover30d: 20,
+	total7DaysAgo: 80,
+	total30DaysAgo: 70,
+	totalAllTime: 100_000,
+	protocols: [],
+	...overrides
+})
+
 function mockFeesAdapterMetrics() {
 	fetchJsonMock.mockImplementation((url: string) => {
 		const dataType = new URL(url).searchParams.get('dataType')
@@ -446,6 +510,371 @@ describe('chains by adapter page data', () => {
 				metricName: 'DEX Volume'
 			})
 		).rejects.toThrow('backend contract failed')
+	})
+
+	it('builds bribes and token-tax only protocol rows without changing base totals', async () => {
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [{ name: 'Core Fees', mcap: 12_000 }],
+			parentProtocols: []
+		})
+		fetchJsonMock.mockImplementation((url: string) => {
+			const parsedUrl = new URL(url)
+			const dataType = parsedUrl.searchParams.get('dataType')
+
+			if (parsedUrl.pathname.includes('/chart/')) {
+				return Promise.resolve([[1_700_000_000, 100]])
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE) {
+				return Promise.resolve(
+					adapterMetricsResponse({
+						protocols: [
+							{
+								...adapterProtocolRow({
+									defillamaId: 'extra-row',
+									name: 'Extra Raw',
+									displayName: 'Extra Display',
+									slug: 'extra-display',
+									category: 'Lending',
+									methodology: undefined,
+									linkedProtocols: undefined,
+									total24h: 10,
+									total48hto24h: 5,
+									total7d: null,
+									total14dto7d: 20,
+									total30d: 30,
+									total60dto30d: 10,
+									total7DaysAgo: 8,
+									total30DaysAgo: null,
+									total1y: 0,
+									totalAllTime: null
+								})
+							}
+						]
+					})
+				)
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+				return Promise.resolve(
+					adapterMetricsResponse({
+						protocols: [
+							{
+								...adapterProtocolRow({
+									defillamaId: 'extra-row',
+									name: 'Extra Raw',
+									displayName: 'Extra Display',
+									slug: 'extra-display',
+									category: 'Lending',
+									total24h: null,
+									total48hto24h: 5,
+									total7d: 7,
+									total14dto7d: 8,
+									total30d: 0,
+									total60dto30d: 5,
+									total7DaysAgo: 2,
+									total30DaysAgo: 4,
+									total1y: null,
+									totalAllTime: 70
+								})
+							},
+							{
+								...adapterProtocolRow({
+									defillamaId: 'token-tax-only',
+									name: 'Token Tax Raw',
+									displayName: 'Token Tax Display',
+									slug: 'token-tax-display',
+									category: undefined,
+									total24h: 5,
+									total7d: 0,
+									total30d: null,
+									total1y: 50,
+									totalAllTime: 500
+								})
+							}
+						]
+					})
+				)
+			}
+
+			return Promise.resolve(
+				adapterMetricsResponse({
+					protocols: [
+						adapterProtocolRow({
+							defillamaId: 'core-fees',
+							name: 'Core Fees',
+							displayName: 'Core Fees',
+							slug: 'core-fees',
+							total24h: 100,
+							total7d: 700,
+							total30d: 3000,
+							total1y: 36_000,
+							annualized1y: 60_000,
+							totalAllTime: 100_000
+						})
+					]
+				})
+			)
+		})
+
+		const data = await getAdapterByChainPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'Base',
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			route: 'fees',
+			metricName: 'Fees'
+		})
+
+		expect(data?.total24h).toBe(100)
+		const protocolsByName = new Map(data?.protocols.map((protocol) => [protocol.name, protocol]))
+		expect(Array.from(protocolsByName.keys())).toEqual(
+			expect.arrayContaining(['Core Fees', 'Extra Display', 'Token Tax Display'])
+		)
+		expect(protocolsByName.get('Core Fees')).toMatchObject({
+			name: 'Core Fees',
+			total24h: 100,
+			total7d: 700,
+			total30d: 3000,
+			annualized1y: 60_000
+		})
+
+		const extraRow = protocolsByName.get('Extra Display')
+		expect(extraRow).toMatchObject({
+			name: 'Extra Display',
+			slug: 'extra-display',
+			chains: ['Base'],
+			category: 'Lending',
+			total24h: null,
+			total7d: null,
+			total30d: null,
+			total1y: null,
+			totalAllTime: null,
+			bribes: {
+				total24h: 10,
+				total48hto24h: 5,
+				total7d: null,
+				total14dto7d: 20,
+				total30d: 30,
+				total60dto30d: 10,
+				total7DaysAgo: 8,
+				total30DaysAgo: null,
+				total1y: 0,
+				totalAllTime: null
+			},
+			tokenTax: {
+				total24h: null,
+				total48hto24h: 5,
+				total7d: 7,
+				total14dto7d: 8,
+				total30d: 0,
+				total60dto30d: 5,
+				total7DaysAgo: 2,
+				total30DaysAgo: 4,
+				total1y: null,
+				totalAllTime: 70
+			},
+			breakdownAliases: ['Extra Raw']
+		})
+		expect(extraRow).not.toHaveProperty('methodology')
+
+		expect(protocolsByName.get('Token Tax Display')).toMatchObject({
+			name: 'Token Tax Display',
+			slug: 'token-tax-display',
+			category: null,
+			total24h: null,
+			tokenTax: { total24h: 5, total7d: 0, total30d: null, total1y: 50, totalAllTime: 500 }
+		})
+	})
+
+	it('keeps linked fee-extra parent periods null when every child is missing the period', async () => {
+		const nullPeriods = {
+			total24h: null,
+			total48hto24h: null,
+			total7d: null,
+			total14dto7d: null,
+			total30d: null,
+			total60dto30d: null,
+			total7DaysAgo: null,
+			total30DaysAgo: null,
+			total1y: null,
+			annualized1y: null,
+			totalAllTime: null
+		}
+
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [],
+			parentProtocols: []
+		})
+		fetchJsonMock.mockImplementation((url: string) => {
+			const parsedUrl = new URL(url)
+			const dataType = parsedUrl.searchParams.get('dataType')
+
+			if (parsedUrl.pathname.includes('/chart/')) {
+				return Promise.resolve([])
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE) {
+				return Promise.resolve(
+					adapterMetricsResponse({
+						protocols: [
+							adapterProtocolRow({
+								...nullPeriods,
+								defillamaId: 'null-extra-a',
+								name: 'Null Extra A',
+								displayName: 'Null Extra A',
+								slug: 'null-extra-a',
+								linkedProtocols: ['Null Extras Parent', 'Null Extra A']
+							}),
+							adapterProtocolRow({
+								...nullPeriods,
+								defillamaId: 'null-extra-b',
+								name: 'Null Extra B',
+								displayName: 'Null Extra B',
+								slug: 'null-extra-b',
+								linkedProtocols: ['Null Extras Parent', 'Null Extra B']
+							})
+						]
+					})
+				)
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+				return Promise.resolve(adapterMetricsResponse({ protocols: [] }))
+			}
+
+			return Promise.resolve(adapterMetricsResponse({ protocols: [] }))
+		})
+
+		const data = await getAdapterByChainPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'Base',
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			route: 'fees',
+			metricName: 'Fees'
+		})
+
+		expect(data?.protocols).toHaveLength(1)
+		expect(data?.protocols[0]).toMatchObject({
+			name: 'Null Extras Parent',
+			total24h: null,
+			annualized1y: null,
+			bribes: {
+				total24h: null,
+				total7d: null,
+				total30d: null,
+				annualized1y: null,
+				totalAllTime: null
+			}
+		})
+		expect(data?.protocols[0].bribes).not.toHaveProperty('change_1d')
+	})
+
+	it('uses annualized1y, not 30d fallback, for P/F rankings', async () => {
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [
+				{ name: 'Annualized Fees', mcap: 12_000 },
+				{ name: 'Thirty Day Only', mcap: 12_000 },
+				{ name: 'Zero Mcap Fees', mcap: 0 }
+			],
+			parentProtocols: [
+				{ name: 'Zero Mcap Parent', mcap: 0 },
+				{ name: 'Partial Annualized Parent', mcap: 12_000 }
+			]
+		})
+		fetchJsonMock.mockImplementation((url: string) => {
+			const parsedUrl = new URL(url)
+			const dataType = parsedUrl.searchParams.get('dataType')
+
+			if (parsedUrl.pathname.includes('/chart/')) {
+				return Promise.resolve([])
+			}
+
+			if (dataType === ADAPTER_DATA_TYPES.DAILY_BRIBES_REVENUE || dataType === ADAPTER_DATA_TYPES.DAILY_TOKEN_TAXES) {
+				return Promise.resolve(adapterMetricsResponse({ protocols: [] }))
+			}
+
+			return Promise.resolve(
+				adapterMetricsResponse({
+					protocols: [
+						adapterProtocolRow({
+							defillamaId: 'annualized-fees',
+							name: 'Annualized Fees',
+							displayName: 'Annualized Fees',
+							slug: 'annualized-fees',
+							total30d: 3000,
+							annualized1y: 60_000
+						}),
+						adapterProtocolRow({
+							defillamaId: 'thirty-day-only',
+							name: 'Thirty Day Only',
+							displayName: 'Thirty Day Only',
+							slug: 'thirty-day-only',
+							total30d: 3000,
+							annualized1y: null
+						}),
+						adapterProtocolRow({
+							defillamaId: 'zero-mcap-fees',
+							name: 'Zero Mcap Fees',
+							displayName: 'Zero Mcap Fees',
+							slug: 'zero-mcap-fees',
+							total30d: 3000,
+							annualized1y: 60_000
+						}),
+						adapterProtocolRow({
+							defillamaId: 'zero-parent-child-a',
+							name: 'Zero Parent Child A',
+							displayName: 'Zero Parent Child A',
+							slug: 'zero-parent-child-a',
+							total30d: 1000,
+							annualized1y: 20_000,
+							linkedProtocols: ['Zero Mcap Parent', 'Zero Parent Child A']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'zero-parent-child-b',
+							name: 'Zero Parent Child B',
+							displayName: 'Zero Parent Child B',
+							slug: 'zero-parent-child-b',
+							total30d: 2000,
+							annualized1y: 40_000,
+							linkedProtocols: ['Zero Mcap Parent', 'Zero Parent Child B']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'partial-parent-child-a',
+							name: 'Partial Parent Child A',
+							displayName: 'Partial Parent Child A',
+							slug: 'partial-parent-child-a',
+							total30d: 1000,
+							annualized1y: 20_000,
+							linkedProtocols: ['Partial Annualized Parent', 'Partial Parent Child A']
+						}),
+						adapterProtocolRow({
+							defillamaId: 'partial-parent-child-b',
+							name: 'Partial Parent Child B',
+							displayName: 'Partial Parent Child B',
+							slug: 'partial-parent-child-b',
+							total30d: 2000,
+							annualized1y: null,
+							linkedProtocols: ['Partial Annualized Parent', 'Partial Parent Child B']
+						})
+					]
+				})
+			)
+		})
+
+		const data = await getAdapterByChainPageData({
+			adapterType: ADAPTER_TYPES.FEES,
+			chain: 'Base',
+			dataType: ADAPTER_DATA_TYPES.DAILY_FEES,
+			route: 'pf',
+			metricName: 'P/F'
+		})
+
+		const protocolsByName = new Map(data?.protocols.map((protocol) => [protocol.name, protocol]))
+		expect(protocolsByName.get('Annualized Fees')?.pfOrPs).toBe(0.2)
+		expect(protocolsByName.get('Zero Mcap Fees')?.pfOrPs).toBe(0)
+		expect(protocolsByName.get('Zero Mcap Parent')?.pfOrPs).toBe(0)
+		expect(protocolsByName.has('Thirty Day Only')).toBe(false)
+		expect(protocolsByName.has('Partial Annualized Parent')).toBe(false)
 	})
 
 	it('uses chainFees metadata to qualify Chain Fees rankings without summing bribes or token taxes into totals', async () => {

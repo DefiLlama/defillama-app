@@ -10,6 +10,7 @@ export type MetricPeriodFields = {
 	total7DaysAgo?: NullableNumber
 	total30DaysAgo?: NullableNumber
 	total1y?: NullableNumber
+	annualized1y?: NullableNumber
 	totalAllTime?: NullableNumber
 	change_1d?: NullableNumber
 	change_7d?: NullableNumber
@@ -33,6 +34,7 @@ const SUM_FIELDS = [
 	'total7DaysAgo',
 	'total30DaysAgo',
 	'total1y',
+	'annualized1y',
 	'totalAllTime'
 ] as const
 

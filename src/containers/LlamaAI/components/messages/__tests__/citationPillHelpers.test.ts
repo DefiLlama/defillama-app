@@ -18,7 +18,7 @@ import {
 
 describe('metricLabel', () => {
 	it('labels ratios and identity metrics', () => {
-		expect(metricLabel('pf_ratio')).toBe('P/F ratio (price ÷ annual fees)')
+		expect(metricLabel('pf_ratio')).toBe('P/F ratio (market cap ÷ annualized fees)')
 		expect(metricLabel('mcap')).toBe('market cap')
 		expect(metricLabel('tvl_base')).toBe('total value locked')
 	})
@@ -51,7 +51,9 @@ describe('describeFigure', () => {
 			rows: [{ name: 'uniswap', pf_ratio: 2.5 }],
 			columns: ['name', 'pf_ratio']
 		} as unknown as UnifiedCitationReference
-		expect(describeFigure(ref, { rowIndex: 0, column: 'pf_ratio' })).toBe('Uniswap · P/F ratio (price ÷ annual fees)')
+		expect(describeFigure(ref, { rowIndex: 0, column: 'pf_ratio' })).toBe(
+			'Uniswap · P/F ratio (market cap ÷ annualized fees)'
+		)
 	})
 
 	it('keeps digit-bearing entity names', () => {
@@ -65,7 +67,7 @@ describe('describeFigure', () => {
 			columns: ['name', 'pf_ratio']
 		} as unknown as UnifiedCitationReference
 		expect(describeFigure(ref, { rowIndex: 0, column: 'pf_ratio' })).toBe(
-			'Uniswap V3 · P/F ratio (price ÷ annual fees)'
+			'Uniswap V3 · P/F ratio (market cap ÷ annualized fees)'
 		)
 	})
 

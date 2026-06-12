@@ -3,8 +3,9 @@ import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
+import { FEE_EXTRA_PERIOD_TOTAL_KEYS } from '~/metrics/feeExtras'
 import { feeRevenueMetrics, getChainNativeFeeRevenueRankingMetric } from '~/metrics/feesRevenue'
-import { slug, getAnnualizedRatio } from '~/utils'
+import { slug, getMarketCapToAnnualizedMetricRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
@@ -38,6 +39,106 @@ import {
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
 	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
+
+type AdapterChainProtocolMetric = IAdapterChainMetrics['protocols'][number]
+type AdapterByChainSourceProtocol = Pick<
+	AdapterChainProtocolMetric,
+	'name' | 'displayName' | 'slug' | 'protocolType' | 'chains'
+> &
+	Partial<
+		Pick<
+			AdapterChainProtocolMetric,
+			| 'category'
+			| 'methodology'
+			| 'linkedProtocols'
+			| 'doublecounted'
+			| 'total24h'
+			| 'total48hto24h'
+			| 'total7d'
+			| 'total14dto7d'
+			| 'total30d'
+			| 'total60dto30d'
+			| 'total7DaysAgo'
+			| 'total30DaysAgo'
+			| 'total1y'
+			| 'annualized1y'
+			| 'totalAllTime'
+			| 'change_1d'
+			| 'change_7d'
+			| 'change_1m'
+			| 'change_7dover7d'
+			| 'change_30dover30d'
+		>
+	>
+
+function buildFeeExtraOnlyProtocolRow(protocol: AdapterChainProtocolMetric): AdapterByChainSourceProtocol {
+	return {
+		name: protocol.name,
+		displayName: protocol.displayName,
+		slug: protocol.slug,
+		protocolType: protocol.protocolType,
+		chains: protocol.chains,
+		category: protocol.category,
+		methodology: protocol.methodology,
+		linkedProtocols: protocol.linkedProtocols,
+		doublecounted: protocol.doublecounted,
+		total24h: null,
+		total48hto24h: null,
+		total7d: null,
+		total14dto7d: null,
+		total30d: null,
+		total60dto30d: null,
+		total7DaysAgo: null,
+		total30DaysAgo: null,
+		total1y: null,
+		annualized1y: null,
+		totalAllTime: null,
+		change_1d: null,
+		change_7d: null,
+		change_1m: null,
+		change_7dover7d: null,
+		change_30dover30d: null
+	}
+}
+
+function getFeeExtraPeriodTotals(protocol: AdapterChainProtocolMetric): BribesData {
+	return {
+		total24h: protocol.total24h ?? null,
+		total48hto24h: protocol.total48hto24h ?? null,
+		total7d: protocol.total7d ?? null,
+		total14dto7d: protocol.total14dto7d ?? null,
+		total30d: protocol.total30d ?? null,
+		total60dto30d: protocol.total60dto30d ?? null,
+		total7DaysAgo: protocol.total7DaysAgo ?? null,
+		total30DaysAgo: protocol.total30DaysAgo ?? null,
+		total1y: protocol.total1y ?? null,
+		annualized1y: protocol.annualized1y ?? null,
+		totalAllTime: protocol.totalAllTime ?? null
+	}
+}
+
+function addFeeExtraPeriodTotals(acc: BribesData, totals: BribesData) {
+	for (const key of FEE_EXTRA_PERIOD_TOTAL_KEYS) {
+		const value = totals[key]
+		if (value == null) {
+			if (acc[key] === undefined) {
+				acc[key] = null
+			}
+			continue
+		}
+		acc[key] = (acc[key] ?? 0) + value
+	}
+}
+
+function hasPeriodTotal(protocol: MetricPeriodFields) {
+	return (
+		protocol.total24h != null ||
+		protocol.total7d != null ||
+		protocol.total30d != null ||
+		protocol.total1y != null ||
+		protocol.totalAllTime != null
+	)
+}
 
 function buildChainsChartData({
 	rawChartData,
@@ -263,7 +364,7 @@ export const getAdapterByChainPageData = async ({
 		protocolsMcap[protocol.name] = protocol.mcap ?? null
 	}
 
-	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
+	const allProtocols: AdapterByChainSourceProtocol[] = [...data.protocols]
 
 	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
 	const allProtocolsByName = new Set<string>()
@@ -290,48 +391,22 @@ export const getAdapterByChainPageData = async ({
 	} else {
 		if (bribesData) {
 			for (const p of bribesData.protocols) {
-				bribesProtocols[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+				bribesProtocols[p.name] = getFeeExtraPeriodTotals(p)
 
 				if (!allProtocolsByName.has(p.name)) {
 					allProtocolsByName.add(p.name)
-					allProtocols.push({
-						...p,
-						total24h: null,
-						total7d: null,
-						total30d: null,
-						total1y: null,
-						totalAllTime: null
-					} as unknown as IAdapterChainOverview['protocols'][0])
+					allProtocols.push(buildFeeExtraOnlyProtocolRow(p))
 				}
 			}
 		}
 
 		if (tokenTaxesData) {
 			for (const p of tokenTaxesData.protocols) {
-				tokenTaxesProtocols[p.name] = {
-					total24h: p.total24h ?? null,
-					total7d: p.total7d ?? null,
-					total30d: p.total30d ?? null,
-					total1y: p.total1y ?? null,
-					totalAllTime: p.totalAllTime ?? null
-				}
+				tokenTaxesProtocols[p.name] = getFeeExtraPeriodTotals(p)
 
 				if (!allProtocolsByName.has(p.name)) {
 					allProtocolsByName.add(p.name)
-					allProtocols.push({
-						...p,
-						total24h: null,
-						total7d: null,
-						total30d: null,
-						total1y: null,
-						totalAllTime: null
-					} as unknown as IAdapterChainOverview['protocols'][0])
+					allProtocols.push(buildFeeExtraOnlyProtocolRow(p))
 				}
 			}
 		}
@@ -387,10 +462,10 @@ export const getAdapterByChainPageData = async ({
 							protocol.methodology?.['TokenTaxes'])
 				: null
 
-		// Calculate P/F or P/S ratio (same calculation, context depends on dataType)
+		const protocolMcap = protocolsMcap[protocol.name]
 		const pfOrPs =
-			protocolsMcap[protocol.name] && protocol.total30d
-				? getAnnualizedRatio(protocolsMcap[protocol.name], protocol.total30d)
+			protocolMcap != null && protocol.annualized1y != null
+				? getMarketCapToAnnualizedMetricRatio(protocolMcap, protocol.annualized1y)
 				: null
 
 		const summary = {
@@ -408,6 +483,7 @@ export const getAdapterByChainPageData = async ({
 			total7DaysAgo: protocol.total7DaysAgo ?? null,
 			total30DaysAgo: protocol.total30DaysAgo ?? null,
 			total1y: protocol.total1y ?? null,
+			annualized1y: protocol.annualized1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
 			change_1d: protocol.change_1d ?? null,
 			change_7d: protocol.change_7d ?? null,
@@ -417,7 +493,7 @@ export const getAdapterByChainPageData = async ({
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
-			...(pfOrPs ? { pfOrPs } : {}),
+			...(pfOrPs != null ? { pfOrPs } : {}),
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
@@ -461,14 +537,23 @@ export const getAdapterByChainPageData = async ({
 			continue
 		}
 		let periodTotals: MetricPeriodFields = {}
+		let hasAnnualized1y = false
+		let isAnnualized1yIncomplete = false
 		for (const p of parentProtocols[protocol]) {
 			periodTotals = mergeMetricPeriods(periodTotals, p)
+			if (p.annualized1y != null) {
+				hasAnnualized1y = true
+			} else if (hasPeriodTotal(p)) {
+				isAnnualized1yIncomplete = true
+			}
 		}
+		const annualized1y = hasAnnualized1y && !isAnnualized1yIncomplete ? (periodTotals.annualized1y ?? null) : null
 		const totals = {
 			total24h: periodTotals.total24h ?? null,
 			total7d: periodTotals.total7d ?? null,
 			total30d: periodTotals.total30d ?? null,
 			total1y: periodTotals.total1y ?? null,
+			annualized1y,
 			totalAllTime: periodTotals.totalAllTime ?? null
 		}
 		let doublecounted = false
@@ -490,20 +575,12 @@ export const getAdapterByChainPageData = async ({
 			if (p.zeroFeePerp) zeroFeePerp = true
 			if (!warning && p.warning) warning = p.warning
 			if (p.bribes) {
-				bribes ??= { total24h: 0, total7d: 0, total30d: 0, total1y: 0, totalAllTime: 0 }
-				bribes.total24h += p.bribes.total24h ?? 0
-				bribes.total7d += p.bribes.total7d ?? 0
-				bribes.total30d += p.bribes.total30d ?? 0
-				bribes.total1y += p.bribes.total1y ?? 0
-				bribes.totalAllTime += p.bribes.totalAllTime ?? 0
+				bribes ??= {}
+				addFeeExtraPeriodTotals(bribes, p.bribes)
 			}
 			if (p.tokenTax) {
-				tokenTax ??= { total24h: 0, total7d: 0, total30d: 0, total1y: 0, totalAllTime: 0 }
-				tokenTax.total24h += p.tokenTax.total24h ?? 0
-				tokenTax.total7d += p.tokenTax.total7d ?? 0
-				tokenTax.total30d += p.tokenTax.total30d ?? 0
-				tokenTax.total1y += p.tokenTax.total1y ?? 0
-				tokenTax.totalAllTime += p.tokenTax.totalAllTime ?? 0
+				tokenTax ??= {}
+				addFeeExtraPeriodTotals(tokenTax, p.tokenTax)
 			}
 			if (p.openInterest != null) {
 				openInterest = (openInterest ?? 0) + p.openInterest
@@ -546,8 +623,11 @@ export const getAdapterByChainPageData = async ({
 			methodologyText = methodologyParts.join('. ')
 		}
 
+		const protocolMcap = protocolsMcap[protocol]
 		const pfOrPs =
-			protocolsMcap[protocol] && totals.total30d ? getAnnualizedRatio(protocolsMcap[protocol], totals.total30d) : null
+			protocolMcap != null && totals.annualized1y != null
+				? getMarketCapToAnnualizedMetricRatio(protocolMcap, totals.annualized1y)
+				: null
 
 		protocols[protocol] = {
 			name: protocol,
@@ -562,13 +642,13 @@ export const getAdapterByChainPageData = async ({
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
-			...(pfOrPs ? { pfOrPs } : {}),
+			...(pfOrPs != null ? { pfOrPs } : {}),
 			...(methodologyText ? { methodology: methodologyText } : {}),
 			...(doublecounted ? { doublecounted } : {}),
 			...(zeroFeePerp ? { zeroFeePerp } : {}),
 			...(warning ? { warning } : {}),
-			...(openInterest ? { openInterest } : {}),
-			...(activeLiquidity ? { activeLiquidity } : {}),
+			...(openInterest != null ? { openInterest } : {}),
+			...(activeLiquidity != null ? { activeLiquidity } : {}),
 			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
 		}
 	}

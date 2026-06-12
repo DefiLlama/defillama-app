@@ -675,12 +675,9 @@ export function formatValue(value: unknown, formatType: string = 'auto'): string
 		}
 	}
 }
-export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
-	if (numerator == null || denominator == null) {
+export const getMarketCapToAnnualizedMetricRatio = (marketCap?: number | null, annualizedMetric?: number | null) => {
+	if (marketCap == null || annualizedMetric == null || annualizedMetric === 0) {
 		return null
 	}
-	if (denominator === 0) {
-		return null
-	}
-	return Number((numerator / (denominator * 12)).toFixed(2))
+	return Number((marketCap / annualizedMetric).toFixed(2))
 }

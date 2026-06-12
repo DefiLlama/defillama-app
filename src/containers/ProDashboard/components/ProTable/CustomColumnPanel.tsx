@@ -632,7 +632,7 @@ export function CustomColumnPanel({
 				<div className="space-y-2 text-xs">
 					<div>
 						<code className="text-(--primary)">(fees_24h + revenue_24h) * 365</code>
-						<span className="ml-2 pro-text3">Annualized fees + revenue</span>
+						<span className="ml-2 pro-text3">24h run-rate fees + revenue</span>
 					</div>
 					<div>
 						<code className="text-(--primary)">volume_24h / tvl</code>

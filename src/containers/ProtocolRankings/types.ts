@@ -71,6 +71,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
+		annualized1y: number | null
 		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		pf: number | null
@@ -80,6 +81,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
+		annualized1y: number | null
 		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		ps: number | null

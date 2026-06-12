@@ -229,8 +229,8 @@ export function humanizeColumn(name: string): string {
 }
 
 const METRIC_EXACT: Record<string, string> = {
-	pf_ratio: 'P/F ratio (price ÷ annual fees)',
-	ps_ratio: 'P/S ratio (price ÷ annual revenue)',
+	pf_ratio: 'P/F ratio (market cap ÷ annualized fees)',
+	ps_ratio: 'P/S ratio (market cap ÷ annualized revenue)',
 	price: 'price',
 	mcap: 'market cap',
 	fdv: 'fully diluted valuation',
