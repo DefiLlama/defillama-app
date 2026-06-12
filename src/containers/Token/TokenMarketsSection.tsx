@@ -17,18 +17,18 @@ import { LocalLoader } from '~/components/Loaders'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import type {
+	MarketCategoryTotals,
+	MarketPair,
+	MarketVenue,
+	TokenMarketsResponse
+} from '~/containers/Markets/api.types'
 import { ChangeCell, FundingCell, MetricStat, renderUsd } from '~/containers/Markets/marketMetrics'
+import type { Segment } from '~/containers/Markets/segments'
 import { pctChange } from '~/containers/Markets/utils'
 import { formattedNum } from '~/utils'
 import { fetchTokenMarkets } from './api'
 import { DEFAULT_TABLE_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
-import type {
-	TokenMarketCategory,
-	TokenMarketCategoryTotals,
-	TokenMarketPair,
-	TokenMarketsResponse,
-	TokenMarketVenue
-} from './tokenMarkets.types'
 
 const DEFAULT_SORTING: SortingState = [{ id: 'volume_24h', desc: true }]
 
@@ -42,22 +42,22 @@ const VENUE_TABS: ReadonlyArray<{ id: VenueTabId; label: string }> = [
 	{ id: 'all', label: 'All' }
 ]
 
-const CATEGORY_TABS: ReadonlyArray<{ id: TokenMarketCategory; label: string }> = [
+const CATEGORY_TABS: ReadonlyArray<{ id: Segment; label: string }> = [
 	{ id: 'spot', label: 'Spot' },
 	{ id: 'linear_perp', label: 'Linear Perp' },
 	{ id: 'inverse_perp', label: 'Inverse Perp' }
 ]
 
-const EMPTY_TOTALS: TokenMarketCategoryTotals = { pair_count: 0, total_volume_24h: 0, total_oi_usd: null }
+const EMPTY_TOTALS: MarketCategoryTotals = { pair_count: 0, total_volume_24h: 0, total_oi_usd: null }
 
-const columnHelper = createColumnHelper<TokenMarketPair>()
+const columnHelper = createColumnHelper<MarketPair>()
 
 function renderNullableNum(value: number | null | undefined, isUsd = false): string {
 	if (value == null) return '–'
 	return formattedNum(value, isUsd)
 }
 
-function sumPairMetrics(rows: TokenMarketPair[]) {
+function sumPairMetrics(rows: MarketPair[]) {
 	let volume = 0
 	let volumePrev = 0
 	let hasVolumePrev = false
@@ -236,7 +236,7 @@ const takerFeeColumn = columnHelper.accessor((row) => row.taker_fee ?? undefined
 	}
 })
 
-const SPOT_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
+const SPOT_COLUMNS: ColumnDef<MarketPair, any>[] = [
 	venueColumn,
 	pairColumn,
 	priceColumn,
@@ -246,7 +246,7 @@ const SPOT_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
 	makerFeeColumn,
 	takerFeeColumn
 ]
-const PERP_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
+const PERP_COLUMNS: ColumnDef<MarketPair, any>[] = [
 	venueColumn,
 	pairColumn,
 	priceColumn,
@@ -261,11 +261,7 @@ const PERP_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
 	takerFeeColumn
 ]
 
-function getCategoryRows(
-	data: TokenMarketsResponse,
-	venue: VenueTabId,
-	category: TokenMarketCategory
-): TokenMarketPair[] {
+function getCategoryRows(data: TokenMarketsResponse, venue: VenueTabId, category: Segment): MarketPair[] {
 	if (venue === 'dex') return data.dex[category] ?? []
 	if (venue === 'cex') return data.cex[category] ?? []
 	const dexRows = data.dex[category] ?? []
@@ -273,11 +269,7 @@ function getCategoryRows(
 	return [...dexRows, ...cexRows].sort((a, b) => (b.volume_24h ?? 0) - (a.volume_24h ?? 0))
 }
 
-function getCategoryTotals(
-	data: TokenMarketsResponse,
-	venue: VenueTabId,
-	category: TokenMarketCategory
-): TokenMarketCategoryTotals {
+function getCategoryTotals(data: TokenMarketsResponse, venue: VenueTabId, category: Segment): MarketCategoryTotals {
 	if (venue === 'all') {
 		const dex = data.totals.dex?.[category] ?? EMPTY_TOTALS
 		const cex = data.totals.cex?.[category] ?? EMPTY_TOTALS
@@ -288,26 +280,18 @@ function getCategoryTotals(
 				dex.total_oi_usd == null && cex.total_oi_usd == null ? null : (dex.total_oi_usd ?? 0) + (cex.total_oi_usd ?? 0)
 		}
 	}
-	return data.totals[venue as TokenMarketVenue]?.[category] ?? EMPTY_TOTALS
+	return data.totals[venue as MarketVenue]?.[category] ?? EMPTY_TOTALS
 }
 
-function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): TokenMarketCategory[] {
-	const categories: TokenMarketCategory[] = []
+function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): Segment[] {
+	const categories: Segment[] = []
 	for (const tab of CATEGORY_TABS) {
 		if (getCategoryRows(data, venue, tab.id).length > 0) categories.push(tab.id)
 	}
 	return categories
 }
 
-function HeaderStrip({
-	rows,
-	totals,
-	showOi
-}: {
-	rows: TokenMarketPair[]
-	totals: TokenMarketCategoryTotals
-	showOi: boolean
-}) {
+function HeaderStrip({ rows, totals, showOi }: { rows: MarketPair[]; totals: MarketCategoryTotals; showOi: boolean }) {
 	const metrics = sumPairMetrics(rows)
 
 	return (
@@ -393,7 +377,7 @@ interface TokenMarketsSectionProps {
 
 export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 	const [venueTab, setVenueTab] = useReducer((_: VenueTabId, next: VenueTabId) => next, 'dex')
-	const [categoryTab, setCategoryTab] = useReducer((_: TokenMarketCategory, next: TokenMarketCategory) => next, 'spot')
+	const [categoryTab, setCategoryTab] = useReducer((_: Segment, next: Segment) => next, 'spot')
 
 	const { data, error, isLoading } = useQuery({
 		queryKey: ['token-markets', tokenSymbol],
@@ -406,13 +390,13 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 
 	const availableCategoriesByVenue = useMemo(() => {
 		if (!data) {
-			return { dex: [], cex: [], all: [] } as Record<VenueTabId, TokenMarketCategory[]>
+			return { dex: [], cex: [], all: [] } as Record<VenueTabId, Segment[]>
 		}
 		return {
 			dex: getAvailableCategories(data, 'dex'),
 			cex: getAvailableCategories(data, 'cex'),
 			all: getAvailableCategories(data, 'all')
-		} as Record<VenueTabId, TokenMarketCategory[]>
+		} as Record<VenueTabId, Segment[]>
 	}, [data])
 
 	const visibleVenueTabs = useMemo(
@@ -429,7 +413,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 		return CATEGORY_TABS.filter((tab) => available.has(tab.id))
 	}, [availableCategoriesByVenue, selectedVenueTab])
 
-	const selectedCategoryTab = useMemo<TokenMarketCategory>(() => {
+	const selectedCategoryTab = useMemo<Segment>(() => {
 		if (visibleCategoryTabs.some((tab) => tab.id === categoryTab)) return categoryTab
 		return visibleCategoryTabs[0]?.id ?? categoryTab
 	}, [visibleCategoryTabs, categoryTab])

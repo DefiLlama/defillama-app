@@ -1,18 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
-import { formattedNum } from '~/utils'
 import { fetchMarketsCategoryPage } from './api'
 import { MarketsAreaChart } from './MarketsAreaChart'
 import { MarketsLineChart } from './MarketsLineChart'
 import { MarketsPageHeader } from './MarketsPageHeader'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
 import { MarketsStatStrip } from './MarketsStatStrip'
-import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './segments'
+import { resolveSegment, type Segment, segmentHasOi } from './segments'
 import type { KnownTokenSlugs } from './shared'
 import { TokensTable } from './TokensTable'
-import type { ExchangeSeriesRow, PairSeriesRow, Segment } from './types'
-import { EMPTY_PIVOTED_SERIES, pivotExchangeSeries, pivotPairSeries } from './utils'
+import {
+	availableSegmentsFromRows,
+	EMPTY_PIVOTED_SERIES,
+	filterRowsBySegment,
+	pivotExchangeSeries,
+	pivotPairSeries,
+	segmentSubtitles as buildSegmentSubtitles
+} from './utils'
 
 const STALE_TIME = 60 * 60 * 1000
 
@@ -36,29 +41,18 @@ export function MarketsCategory({
 	})
 
 	// Only show segments this category actually trades; fall back off an empty requested segment.
-	const availableSegments = React.useMemo(
-		() => (data ? SEGMENT_IDS.filter((s) => (data.tokens[s]?.length ?? 0) > 0) : []),
-		[data]
-	)
+	const availableSegments = React.useMemo(() => (data ? availableSegmentsFromRows(data.tokens) : []), [data])
 	const activeSegment = data ? resolveSegment(segment, availableSegments) : segment
 	const segmentTokens = data?.tokens[activeSegment] ?? []
 	const hasOi = segmentHasOi(activeSegment)
 
 	const exchangeRows = React.useMemo(() => {
 		const rows = data?.seriesByExchange ?? []
-		const filtered: ExchangeSeriesRow[] = []
-		for (const row of rows) {
-			if (row.segment === activeSegment) filtered.push(row)
-		}
-		return filtered
+		return filterRowsBySegment(rows, activeSegment)
 	}, [data, activeSegment])
 	const pairRows = React.useMemo(() => {
 		const rows = data?.seriesByPair ?? []
-		const filtered: PairSeriesRow[] = []
-		for (const row of rows) {
-			if (row.segment === activeSegment) filtered.push(row)
-		}
-		return filtered
+		return filterRowsBySegment(rows, activeSegment)
 	}, [data, activeSegment])
 	const volByExchange = React.useMemo(() => pivotExchangeSeries(exchangeRows, 'volume'), [exchangeRows])
 	const oiByExchange = React.useMemo(
@@ -74,15 +68,7 @@ export function MarketsCategory({
 
 	const segmentSubtitles = React.useMemo(() => {
 		if (!data) return null
-		const subtitles: Partial<Record<Segment, string>> = {}
-		for (const segmentId of SEGMENT_IDS) {
-			const rows = data.tokens[segmentId]
-			if (!rows) continue
-			let volume = 0
-			for (const row of rows) volume += row.volume_24h_usd
-			subtitles[segmentId] = `${rows.length} assets · ${formattedNum(volume, true)}`
-		}
-		return subtitles
+		return buildSegmentSubtitles(data.tokens)
 	}, [data])
 
 	const subtitleFor = React.useCallback((seg: Segment) => segmentSubtitles?.[seg] ?? null, [segmentSubtitles])

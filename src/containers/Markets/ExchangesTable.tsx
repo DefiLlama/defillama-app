@@ -1,9 +1,9 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { segmentHasOi } from './segments'
+import { type Segment, segmentHasOi } from './segments'
 import { ChangeCell, ExchangeName, renderUsd, VenueBadge } from './shared'
-import type { ExchangeListRow, Segment } from './types'
+import type { ExchangeListRow } from './types'
 import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<ExchangeListRow>()

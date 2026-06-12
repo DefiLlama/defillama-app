@@ -1,7 +1,6 @@
 import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
-import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
+import type { ExchangeMarketsListResponse, TokenMarketsListResponse } from '~/containers/Markets/api.types'
 import { fetchTokenMarketsListFromNetwork } from '~/containers/Token/api'
-import type { TokenMarketsListResponse } from '~/containers/Token/tokenMarkets.types'
 import { fetchExchangeMarketsListFromCache, fetchTokenMarketsListFromCache } from '../markets'
 import { readThroughDatasetCache } from './source'
 

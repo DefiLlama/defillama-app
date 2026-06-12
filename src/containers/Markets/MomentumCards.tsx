@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { segmentHasOi } from './segments'
+import { type Segment, segmentHasOi } from './segments'
 import { CategoryLink, ChangeCell, TokenName, type KnownTokenSlugs } from './shared'
-import type { CategoryStat, Segment, SymbolStat } from './types'
+import type { CategoryStat, SymbolStat } from './types'
 import { type MoverMetricKey, MOVER_METRICS, moverValue, selectMovers } from './utils'
 
 interface MoverRow {

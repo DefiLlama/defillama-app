@@ -84,7 +84,7 @@ export function TokenName({ base, knownTokenSlugs }: { base: string; knownTokenS
 }
 
 export function TagPills({ tags, max = 3 }: { tags: string[]; max?: number }) {
-	if (!tags || tags.length === 0) return <span className="text-(--text-disabled)">–</span>
+	if (tags.length === 0) return <span className="text-(--text-disabled)">–</span>
 	return (
 		<span className="flex flex-wrap gap-1">
 			{tags.slice(0, max).map((tag) => (

@@ -1,7 +1,7 @@
 import { MARKETS_SERVER_URL, RISK_SERVER_URL } from '~/constants'
+import type { TokenMarketsListResponse, TokenMarketsResponse } from '~/containers/Markets/api.types'
 import { fetchJson } from '~/utils/async'
 import type { TokenRiskBorrowCapacityResponse } from './api.types'
-import type { TokenMarketsListResponse, TokenMarketsResponse } from './tokenMarkets.types'
 import type { RiskTimelineResponse } from './tokenRiskTimeline.types'
 
 export async function getTokenRiskBorrowCapacityFromNetwork(): Promise<TokenRiskBorrowCapacityResponse> {

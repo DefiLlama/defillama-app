@@ -7,7 +7,7 @@ Start from `src/pages/markets.tsx`, then follow imports here. This container is 
 ## Main Files
 
 - `api.ts`: client fetchers for the local `/api/public/markets/*` endpoints.
-- `api.types.ts`: markets-server response DTOs.
+- `api.types.ts`: markets-server response DTOs reused by Markets, Token, and CEX views.
 - `types.ts`: UI/read-model types consumed by components and helpers.
 - `normalizers.ts`: direct mapping from markets-server DTOs to UI/read-model types.
 - `segments.ts`: segment constants and route/UI segment helpers.
@@ -44,7 +44,7 @@ Markets tables and charts can process large token, venue, and series arrays. Pre
 Focused command:
 
 ```bash
-bun run test src/containers/Markets/__tests__/markets.test.ts src/containers/Markets/__tests__/shared.test.tsx
+bun run test src/containers/Markets/__tests__/segments.test.ts src/containers/Markets/__tests__/utils.test.ts src/containers/Markets/__tests__/normalizers.test.ts src/containers/Markets/__tests__/shared.test.tsx
 ```
 
 For source changes, follow the repo root verification instructions.

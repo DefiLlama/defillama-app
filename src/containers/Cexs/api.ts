@@ -1,7 +1,7 @@
 import { MARKETS_SERVER_URL, SERVER_URL } from '~/constants'
+import type { ExchangeMarketsListResponse, ExchangeMarketsResponse } from '~/containers/Markets/api.types'
 import { fetchJson } from '~/utils/async'
 import type { RawCexInflowsResponse, RawCexsResponse } from './api.types'
-import type { ExchangeMarketsListResponse, ExchangeMarketsResponse } from './markets.types'
 
 const CEXS_API_URL = `${SERVER_URL}/cexs`
 

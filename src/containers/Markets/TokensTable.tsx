@@ -1,7 +1,7 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { segmentHasOi } from './segments'
+import { type Segment, segmentHasOi } from './segments'
 import {
 	ChangeCell,
 	renderFunding8h,
@@ -13,7 +13,7 @@ import {
 	TokenName,
 	type KnownTokenSlugs
 } from './shared'
-import type { Segment, SymbolStat } from './types'
+import type { SymbolStat } from './types'
 import { pctChange, sentiment, topSymbols } from './utils'
 
 const columnHelper = createColumnHelper<SymbolStat>()

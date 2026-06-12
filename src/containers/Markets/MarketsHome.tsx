@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
-import { formattedNum } from '~/utils'
 import {
 	fetchMarketsCategories,
 	fetchMarketsCategorySeries,
@@ -15,18 +14,17 @@ import { MarketsCharts } from './MarketsCharts'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
 import { MarketsStatStrip } from './MarketsStatStrip'
 import { MomentumCards } from './MomentumCards'
-import { resolveSegment, SEGMENT_IDS } from './segments'
+import { recordBySegment, resolveSegment, type Segment } from './segments'
 import type { KnownTokenSlugs } from './shared'
 import { TokensTable } from './TokensTable'
-import type { CategoryStatsBySegment, ExchangeListRow, Segment, SymbolStat, SymbolStatsBySegment } from './types'
-import { aggregateCategories } from './utils'
+import type { CategoryStatsBySegment, ExchangeListRow, SymbolStatsBySegment } from './types'
+import { aggregateCategories, availableSegmentsFromRows, segmentSubtitles as buildSegmentSubtitles } from './utils'
 
 const STALE_TIME = 60 * 60 * 1000
 
 // Stable empty fallbacks so query-less renders don't churn memo/callback deps.
-const EMPTY_TOKENS: SymbolStatsBySegment = {}
-const EMPTY_CATEGORIES: CategoryStatsBySegment = {}
-const EMPTY_ROWS: SymbolStat[] = []
+const EMPTY_TOKENS: SymbolStatsBySegment = recordBySegment(() => [])
+const EMPTY_CATEGORIES: CategoryStatsBySegment = recordBySegment(() => [])
 const EMPTY_EXCHANGES: ExchangeListRow[] = []
 
 export function MarketsHome({
@@ -71,11 +69,11 @@ export function MarketsHome({
 
 	const tokens = tokensQuery.data ?? EMPTY_TOKENS
 	const availableSegments = React.useMemo(
-		() => (tokensQuery.data ? SEGMENT_IDS.filter((s) => (tokens[s]?.length ?? 0) > 0) : []),
+		() => (tokensQuery.data ? availableSegmentsFromRows(tokens) : []),
 		[tokensQuery.data, tokens]
 	)
 	const activeSegment = tokensQuery.data ? resolveSegment(segment, availableSegments) : segment
-	const segmentTokens = tokens[activeSegment] ?? EMPTY_ROWS
+	const segmentTokens = tokens[activeSegment]
 	const categoriesData = categoriesQuery.data ?? EMPTY_CATEGORIES
 	const segmentCategories = React.useMemo(() => {
 		const fromServer = categoriesData[activeSegment]
@@ -85,15 +83,7 @@ export function MarketsHome({
 
 	const segmentSubtitles = React.useMemo(() => {
 		if (!tokensQuery.data) return null
-		const subtitles: Partial<Record<Segment, string>> = {}
-		for (const segmentId of SEGMENT_IDS) {
-			const rows = tokens[segmentId]
-			if (!rows) continue
-			let volume = 0
-			for (const row of rows) volume += row.volume_24h_usd
-			subtitles[segmentId] = `${rows.length} assets · ${formattedNum(volume, true)}`
-		}
-		return subtitles
+		return buildSegmentSubtitles(tokens)
 	}, [tokensQuery.data, tokens])
 
 	const subtitleFor = React.useCallback((seg: Segment) => segmentSubtitles?.[seg] ?? null, [segmentSubtitles])

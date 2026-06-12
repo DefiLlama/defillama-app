@@ -1,6 +1,8 @@
-import type { Segment } from './types'
+import type { Segment } from './segments'
 
-export interface MarketsTokenSegmentStat {
+export type MarketVenue = 'dex' | 'cex'
+
+export interface MarketSegmentSummary {
 	exchange_count: number
 	funding_rate_8h: number | null
 	leverage_max: number | null
@@ -14,19 +16,74 @@ export interface MarketsTokenSegmentStat {
 	volume_prev_24h: number | null
 }
 
-interface MarketsTokenEntry {
+export interface MarketPair {
+	exchange: string
+	exchange_type: MarketVenue
+	market_type: 'spot' | 'perpetual'
+	contract_type: '' | 'linear' | 'inverse'
+	base: string
+	quote: string
+	settle_asset: string | null
+	pair_id: string
+	market_id: string
+	pair_url: string | null
+	symbol: string
+	price: number | null
+	price_change_24h: number | null
+	volume_24h: number | null
+	volume_prev_24h: number | null
+	oi: number | null
+	oi_usd: number | null
+	oi_prev_usd: number | null
+	funding_rate_8h: number | null
+	funding_period_h: number | null
+	max_leverage: number | null
+	maker_fee: number | null
+	taker_fee: number | null
+	amount_precision: number | null
+	price_precision: number | null
+	contract_size: number | null
+	expiry_ts: number | null
+	listed_ts: number | null
+	min_order_cost: number | null
+}
+
+export interface MarketCategoryTotals {
+	pair_count: number
+	total_volume_24h: number | null
+	total_oi_usd: number | null
+}
+
+export type MarketPairsBySegment = Record<Segment, MarketPair[]>
+export type MarketTotalsBySegment = Record<Segment, MarketCategoryTotals>
+
+interface TokenMarketsListEntry {
 	exchange_count: number
 	market_count: number
-	segments: Partial<Record<Segment, MarketsTokenSegmentStat>>
+	segments: Partial<Record<Segment, MarketSegmentSummary>>
 	symbol: string
 	tags: string[]
 	total_oi_usd: number | null
 	total_volume_24h: number
 }
 
-export interface MarketsTokensListResponse {
+export interface TokenMarketsListResponse {
 	last_updated: string
-	tokens: MarketsTokenEntry[]
+	tokens: TokenMarketsListEntry[]
+}
+
+export interface TokenMarketsResponse {
+	symbol: string
+	last_updated: string
+	exchange_count: number
+	market_count: number
+	segments: Partial<Record<Segment, MarketSegmentSummary>>
+	tags: string[]
+	total_oi_usd: number | null
+	total_volume_24h: number
+	cex: MarketPairsBySegment
+	dex: MarketPairsBySegment
+	totals: Record<MarketVenue, MarketTotalsBySegment>
 }
 
 export interface MarketsCategorySegmentStat {
@@ -50,31 +107,6 @@ interface MarketsCategoryEntry {
 export interface MarketsCategoriesListResponse {
 	categories: MarketsCategoryEntry[]
 	last_updated: string
-}
-
-export interface MarketsExchangeListEntry {
-	defillama_slug: string | null
-	exchange: string
-	market_count: number
-	total_oi_prev_usd?: number | null
-	total_oi_usd?: number | null
-	total_volume_24h: number
-	total_volume_prev_24h: number | null
-}
-
-interface MarketsExchangeListTotals {
-	exchange_count: number
-	total_oi_prev_usd: number | null
-	total_oi_usd: number | null
-	total_volume_24h: number
-	total_volume_prev_24h: number | null
-}
-
-export interface MarketsExchangesListResponse {
-	cex: Record<Segment, MarketsExchangeListEntry[]>
-	dex: Record<Segment, MarketsExchangeListEntry[]>
-	last_updated: string
-	totals: Record<'cex' | 'dex', Record<Segment, MarketsExchangeListTotals>>
 }
 
 interface MarketsExchangeSeriesApiRow {
@@ -125,7 +157,7 @@ export interface MarketsCategoryPagePairSeriesApiRow extends MarketsCategoryPage
 	pair: string
 }
 
-export interface MarketsCategoryTokenRow extends MarketsTokenSegmentStat {
+export interface MarketsCategoryTokenRow extends MarketSegmentSummary {
 	symbol: string
 	tags: string[]
 }
@@ -138,4 +170,56 @@ export interface MarketsCategoryPageResponse {
 	series_by_exchange: MarketsCategoryPageExchangeSeriesApiRow[]
 	series_by_pair: MarketsCategoryPagePairSeriesApiRow[]
 	tokens: Partial<Record<Segment, MarketsCategoryTokenRow[]>>
+}
+
+interface MarketsExchangeListTotals {
+	exchange_count: number
+	total_oi_prev_usd: number | null
+	total_oi_usd: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
+}
+
+export interface MarketsExchangeListEntry {
+	defillama_slug: string | null
+	exchange: string
+	market_count: number
+	supports_funding?: boolean
+	supports_oi?: boolean
+	total_oi_prev_usd?: number | null
+	total_oi_usd?: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
+}
+
+export interface ExchangeMarketsListResponse {
+	cex: Record<Segment, MarketsExchangeListEntry[]>
+	dex: Record<Segment, MarketsExchangeListEntry[]>
+	last_updated: string
+	totals: Record<MarketVenue, Record<Segment, MarketsExchangeListTotals>>
+}
+
+export interface ExchangeMarketCategoryData {
+	market_count: number
+	pairs: MarketPair[]
+	total_oi_usd: number | null
+	total_oi_prev_usd: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
+}
+
+export interface ExchangeMarketsResponse {
+	categories: Partial<Record<Segment, ExchangeMarketCategoryData>>
+	defillama_slug: string | null
+	exchange: string
+	exchange_type: MarketVenue
+	last_updated: string
+	market_count: number
+	market_types: string[]
+	supports_funding: boolean
+	supports_oi: boolean
+	total_oi_usd: number | null
+	total_oi_prev_usd: number | null
+	total_volume_24h: number
+	total_volume_prev_24h: number | null
 }

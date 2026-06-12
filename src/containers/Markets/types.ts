@@ -5,7 +5,7 @@
  * in api.types.ts.
  */
 
-export type Segment = 'spot' | 'linear_perp' | 'inverse_perp'
+import type { Segment } from './segments'
 
 // ---------------------------------------------------------------------------
 // Clean internal types
@@ -58,9 +58,9 @@ export interface ExchangeListRow {
 	market_count: number
 }
 
-/** Daily 30d point for the by-exchange charts. `day` is unix milliseconds. */
+/** Daily 30d point for the by-exchange charts. */
 export interface ExchangeSeriesRow {
-	day: number
+	dayMs: number
 	exchange: string
 	exchange_type: 'cex' | 'dex'
 	segment: Segment
@@ -69,9 +69,9 @@ export interface ExchangeSeriesRow {
 	market_count: number
 }
 
-/** Daily 30d point for the by-category charts. `day` is unix milliseconds. */
+/** Daily 30d point for the by-category charts. */
 export interface CategorySeriesRow {
-	day: number
+	dayMs: number
 	segment: Segment
 	tag: string
 	volume_usd: number
@@ -81,7 +81,7 @@ export interface CategorySeriesRow {
 
 /** Daily 30d point for a single trading pair (category page by-pair charts). */
 export interface PairSeriesRow {
-	day: number
+	dayMs: number
 	segment: Segment
 	pair: string
 	volume_usd: number
@@ -89,13 +89,13 @@ export interface PairSeriesRow {
 	market_count: number
 }
 
-export type SymbolStatsBySegment = Partial<Record<Segment, SymbolStat[]>>
-export type CategoryStatsBySegment = Partial<Record<Segment, CategoryStat[]>>
+export type SymbolStatsBySegment = Record<Segment, SymbolStat[]>
+export type CategoryStatsBySegment = Record<Segment, CategoryStat[]>
 
 export interface CategoryPageData {
 	tag: string
 	last_updated: string
-	summaries: Partial<Record<Segment, CategoryStat>>
+	summaries: Record<Segment, CategoryStat | null>
 	tokens: SymbolStatsBySegment
 	seriesByExchange: ExchangeSeriesRow[]
 	seriesByPair: PairSeriesRow[]

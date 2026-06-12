@@ -1,13 +1,12 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import type { ExchangeMarketPair } from '~/containers/Cexs/markets.types'
-import { segmentHasOi } from './segments'
+import type { MarketPair } from './api.types'
+import { type Segment, segmentHasOi } from './segments'
 import { ChangeCell, renderFunding8h, renderPrice, renderUsd } from './shared'
-import type { Segment } from './types'
 import { pctChange } from './utils'
 
-const columnHelper = createColumnHelper<ExchangeMarketPair>()
+const columnHelper = createColumnHelper<MarketPair>()
 
 function renderFee(value: number | null | undefined): string {
 	if (value == null) return '–'
@@ -19,10 +18,10 @@ function renderMaxLeverage(value: number | null | undefined): string {
 	return `${value >= 10 ? value.toFixed(0) : value}×`
 }
 
-function buildColumns(segment: Segment): ColumnDef<ExchangeMarketPair, any>[] {
+function buildColumns(segment: Segment): ColumnDef<MarketPair, any>[] {
 	const hasOi = segmentHasOi(segment)
 
-	const columns: ColumnDef<ExchangeMarketPair, any>[] = [
+	const columns: ColumnDef<MarketPair, any>[] = [
 		columnHelper.accessor('symbol', {
 			id: 'symbol',
 			header: 'Pair',
@@ -117,7 +116,7 @@ function buildColumns(segment: Segment): ColumnDef<ExchangeMarketPair, any>[] {
 	return columns
 }
 
-export function ExchangePairsTable({ pairs, segment }: { pairs: ExchangeMarketPair[]; segment: Segment }) {
+export function ExchangePairsTable({ pairs, segment }: { pairs: MarketPair[]; segment: Segment }) {
 	const columns = React.useMemo(() => buildColumns(segment), [segment])
 
 	return (

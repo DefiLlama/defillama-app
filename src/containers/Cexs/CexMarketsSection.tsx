@@ -6,20 +6,24 @@ import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { fetchMarketsExchangeSeries } from '~/containers/Markets/api'
+import type { ExchangeMarketsResponse, MarketPair } from '~/containers/Markets/api.types'
 import { ChangeCell, FundingCell, MetricStat } from '~/containers/Markets/marketMetrics'
 import { MarketsAreaChart } from '~/containers/Markets/MarketsAreaChart'
 import { MarketsSegmentTabs } from '~/containers/Markets/MarketsSegmentTabs'
-import { resolveSegment, segmentHasOi } from '~/containers/Markets/segments'
-import type { ExchangeSeriesRow, Segment } from '~/containers/Markets/types'
-import { EMPTY_PIVOTED_SERIES, pctChange, pivotExchangeSeries } from '~/containers/Markets/utils'
+import { resolveSegment, type Segment, SEGMENT_IDS, segmentHasOi } from '~/containers/Markets/segments'
+import {
+	EMPTY_PIVOTED_SERIES,
+	filterExchangeSeriesBySegment,
+	pctChange,
+	pivotExchangeSeries
+} from '~/containers/Markets/utils'
 import { formattedNum } from '~/utils'
 import { fetchExchangeMarkets } from './api'
-import type { ExchangeMarketCategory, ExchangeMarketPair, ExchangeMarketsResponse } from './markets.types'
 
 const STALE_TIME = 60 * 60 * 1000
 const CEX_MARKETS_SECTION_ID = 'markets'
 
-const columnHelper = createColumnHelper<ExchangeMarketPair>()
+const columnHelper = createColumnHelper<MarketPair>()
 
 function renderNullableNum(value: number | null | undefined, isUsd = false): string {
 	if (value == null) return '–'
@@ -160,7 +164,7 @@ const takerFeeColumn = columnHelper.accessor((row) => row.taker_fee ?? undefined
 	}
 })
 
-const SPOT_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
+const SPOT_COLUMNS: ColumnDef<MarketPair, any>[] = [
 	pairColumn,
 	priceColumn,
 	priceChangeColumn,
@@ -169,7 +173,7 @@ const SPOT_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
 	makerFeeColumn,
 	takerFeeColumn
 ]
-const PERP_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
+const PERP_COLUMNS: ColumnDef<MarketPair, any>[] = [
 	pairColumn,
 	priceColumn,
 	priceChangeColumn,
@@ -183,13 +187,13 @@ const PERP_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
 	takerFeeColumn
 ]
 
-function getCategoryRows(data: ExchangeMarketsResponse, category: ExchangeMarketCategory): ExchangeMarketPair[] {
+function getCategoryRows(data: ExchangeMarketsResponse, category: Segment): MarketPair[] {
 	return data.categories[category]?.pairs ?? []
 }
 
-function getAvailableCategories(data: ExchangeMarketsResponse): ExchangeMarketCategory[] {
-	const categories: ExchangeMarketCategory[] = []
-	for (const segment of ['spot', 'linear_perp', 'inverse_perp'] as const) {
+function getAvailableCategories(data: ExchangeMarketsResponse): Segment[] {
+	const categories: Segment[] = []
+	for (const segment of SEGMENT_IDS) {
 		if (getCategoryRows(data, segment).length > 0) categories.push(segment)
 	}
 	return categories
@@ -201,7 +205,7 @@ function HeaderStrip({
 	showOi
 }: {
 	data: ExchangeMarketsResponse
-	category: ExchangeMarketCategory
+	category: Segment
 	showOi: boolean
 }) {
 	const totals = data.categories[category]
@@ -251,10 +255,7 @@ interface CexMarketsSectionProps {
 }
 
 export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
-	const [categoryTab, setCategoryTab] = useReducer(
-		(_: ExchangeMarketCategory, next: ExchangeMarketCategory) => next,
-		'spot'
-	)
+	const [categoryTab, setCategoryTab] = useReducer((_: Segment, next: Segment) => next, 'spot')
 
 	const { data, error, isLoading } = useQuery({
 		queryKey: ['exchange-markets', exchange],
@@ -277,15 +278,11 @@ export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
 	const rows = useMemo(() => (data ? getCategoryRows(data, selectedCategoryTab) : []), [data, selectedCategoryTab])
 	const columns = selectedCategoryTab === 'spot' ? SPOT_COLUMNS : PERP_COLUMNS
 
-	const exchangeKey = (data?.exchange ?? exchange).toLowerCase()
+	const exchangeName = data?.exchange ?? exchange
 	const seriesRows = useMemo(() => {
 		const allSeriesRows = seriesQuery.data ?? []
-		const filtered: ExchangeSeriesRow[] = []
-		for (const row of allSeriesRows) {
-			if (row.exchange.toLowerCase() === exchangeKey && row.segment === selectedCategoryTab) filtered.push(row)
-		}
-		return filtered
-	}, [seriesQuery.data, exchangeKey, selectedCategoryTab])
+		return filterExchangeSeriesBySegment(allSeriesRows, selectedCategoryTab, exchangeName)
+	}, [seriesQuery.data, exchangeName, selectedCategoryTab])
 	const volSeries = useMemo(() => pivotExchangeSeries(seriesRows, 'volume'), [seriesRows])
 	const oiSeries = useMemo(
 		() => (hasOi ? pivotExchangeSeries(seriesRows, 'oi') : EMPTY_PIVOTED_SERIES),

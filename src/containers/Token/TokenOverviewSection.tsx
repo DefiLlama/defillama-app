@@ -15,13 +15,14 @@ import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
+import type { MarketTotalsBySegment, TokenMarketsResponse } from '~/containers/Markets/api.types'
+import type { Segment } from '~/containers/Markets/segments'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import { fetchTokenMarkets } from './api'
-import type { TokenMarketCategory, TokenMarketsResponse, TokenMarketsTotalsByCategory } from './tokenMarkets.types'
 import {
 	buildDisplayedTokenChartData,
 	TOKEN_OVERVIEW_DEFAULT_CHARTS,
@@ -53,12 +54,12 @@ const OPEN_INTEREST_TOOLTIP =
 	'Open Interest is the total notional USD value of outstanding perpetual contracts across tracked markets.'
 const TREASURY_TOOLTIP = 'Treasury is the value of assets held by the entity issuing or stewarding this token.'
 
-const MARKET_CATEGORY_LABELS: Record<TokenMarketCategory, string> = {
+const MARKET_CATEGORY_LABELS: Record<Segment, string> = {
 	spot: 'Spot',
 	linear_perp: 'Linear Perp',
 	inverse_perp: 'Inverse Perp'
 }
-const MARKET_CATEGORY_ORDER: TokenMarketCategory[] = ['spot', 'linear_perp', 'inverse_perp']
+const MARKET_CATEGORY_ORDER: Segment[] = ['spot', 'linear_perp', 'inverse_perp']
 const TOKEN_OVERVIEW_CHART_QUERY_KEY = 'chart'
 const TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY = 'chartGroup'
 
@@ -247,17 +248,13 @@ export function TokenPageHero({
 	)
 }
 
-function getCategoryMetric(
-	totals: TokenMarketsTotalsByCategory,
-	category: TokenMarketCategory,
-	metric: 'volume' | 'oi'
-): number | null {
+function getCategoryMetric(totals: MarketTotalsBySegment, category: Segment, metric: 'volume' | 'oi'): number | null {
 	const entry = totals[category]
 	if (!entry) return null
 	return metric === 'volume' ? (entry.total_volume_24h ?? null) : (entry.total_oi_usd ?? null)
 }
 
-function sumVenueMetric(totals: TokenMarketsTotalsByCategory, metric: 'volume' | 'oi'): number | null {
+function sumVenueMetric(totals: MarketTotalsBySegment, metric: 'volume' | 'oi'): number | null {
 	let sum = 0
 	let hasValue = false
 	for (const category of MARKET_CATEGORY_ORDER) {
@@ -270,13 +267,7 @@ function sumVenueMetric(totals: TokenMarketsTotalsByCategory, metric: 'volume' |
 	return hasValue ? sum : null
 }
 
-function MarketsCategoryBreakdown({
-	totals,
-	metric
-}: {
-	totals: TokenMarketsTotalsByCategory
-	metric: 'volume' | 'oi'
-}) {
+function MarketsCategoryBreakdown({ totals, metric }: { totals: MarketTotalsBySegment; metric: 'volume' | 'oi' }) {
 	const visibleCategories = metric === 'oi' ? MARKET_CATEGORY_ORDER.filter((c) => c !== 'spot') : MARKET_CATEGORY_ORDER
 	return (
 		<>

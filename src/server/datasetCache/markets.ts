@@ -1,5 +1,4 @@
-import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
-import type { TokenMarketsListResponse } from '~/containers/Token/tokenMarkets.types'
+import type { ExchangeMarketsListResponse, TokenMarketsListResponse } from '~/containers/Markets/api.types'
 import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
 import { readDatasetDomainJson } from './core'
 

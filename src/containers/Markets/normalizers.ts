@@ -7,13 +7,13 @@ import type {
 	MarketsCategoryPageSeriesApiRow,
 	MarketsCategorySegmentStat,
 	MarketsCategoryTokenRow,
+	MarketSegmentSummary,
 	MarketsExchangeListEntry,
-	MarketsExchangesListResponse,
 	MarketsExchangeSeriesResponse,
-	MarketsTokenSegmentStat,
-	MarketsTokensListResponse
+	ExchangeMarketsListResponse,
+	TokenMarketsListResponse
 } from './api.types'
-import { SEGMENT_IDS } from './segments'
+import { type Segment, recordBySegment, SEGMENT_IDS } from './segments'
 import type {
 	CategoryPageData,
 	CategorySeriesRow,
@@ -22,12 +22,23 @@ import type {
 	ExchangeListRow,
 	ExchangeSeriesRow,
 	PairSeriesRow,
-	Segment,
 	SymbolStat,
 	SymbolStatsBySegment
 } from './types'
 
-function normalizeSymbolStat(base: string, tags: string[], raw: MarketsTokenSegmentStat): SymbolStat {
+function emptySymbolStatsBySegment(): SymbolStatsBySegment {
+	return recordBySegment(() => [])
+}
+
+function emptyCategoryStatsBySegment(): CategoryStatsBySegment {
+	return recordBySegment(() => [])
+}
+
+function emptyExchangeListRowsBySegment(): Record<Segment, ExchangeListRow[]> {
+	return recordBySegment(() => [])
+}
+
+function normalizeSymbolStat(base: string, tags: string[], raw: MarketSegmentSummary): SymbolStat {
 	return {
 		base,
 		tags,
@@ -66,12 +77,12 @@ function normalizeCategoryStat(tag: string, raw: MarketsCategorySegmentStat): Ca
 }
 
 /** tokens/list.json -> per-segment arrays of merged symbol stats. */
-export function normalizeTokensList(raw: MarketsTokensListResponse): SymbolStatsBySegment {
-	const out: SymbolStatsBySegment = {}
+export function normalizeTokensList(raw: TokenMarketsListResponse): SymbolStatsBySegment {
+	const out = emptySymbolStatsBySegment()
 	for (const entry of raw.tokens) {
 		for (const segment of SEGMENT_IDS) {
 			const stat = entry.segments[segment]
-			if (stat) (out[segment] ??= []).push(normalizeSymbolStat(entry.symbol, entry.tags, stat))
+			if (stat) out[segment].push(normalizeSymbolStat(entry.symbol, entry.tags, stat))
 		}
 	}
 	return out
@@ -79,19 +90,19 @@ export function normalizeTokensList(raw: MarketsTokensListResponse): SymbolStats
 
 /** categories/list.json -> per-segment arrays of merged category stats. */
 export function normalizeCategoriesList(raw: MarketsCategoriesListResponse): CategoryStatsBySegment {
-	const out: CategoryStatsBySegment = {}
+	const out = emptyCategoryStatsBySegment()
 	for (const entry of raw.categories) {
 		for (const segment of SEGMENT_IDS) {
 			const stat = entry.segments[segment]
-			if (stat) (out[segment] ??= []).push(normalizeCategoryStat(entry.category, stat))
+			if (stat) out[segment].push(normalizeCategoryStat(entry.category, stat))
 		}
 	}
 	return out
 }
 
 /** exchanges/list.json -> per-segment arrays of venue rows (cex + dex merged). */
-export function normalizeExchangesList(raw: MarketsExchangesListResponse): Partial<Record<Segment, ExchangeListRow[]>> {
-	const out: Partial<Record<Segment, ExchangeListRow[]>> = {}
+export function normalizeExchangesList(raw: ExchangeMarketsListResponse): Record<Segment, ExchangeListRow[]> {
+	const out = emptyExchangeListRowsBySegment()
 	for (const segment of SEGMENT_IDS) {
 		const rows: ExchangeListRow[] = []
 		const cexRows = raw.cex[segment]
@@ -119,14 +130,14 @@ function normalizeExchangeListRow(
 	}
 }
 
-/** exchanges/series.json -> flat daily rows (day in ms). */
+/** exchanges/series.json -> flat daily rows (`dayMs` in ms). */
 export function normalizeExchangeSeries(raw: MarketsExchangeSeriesResponse): ExchangeSeriesRow[] {
 	const out: ExchangeSeriesRow[] = new Array(raw.series.length)
 	for (let i = 0; i < raw.series.length; i++) out[i] = normalizeExchangeSeriesRow(raw.series[i])
 	return out
 }
 
-/** categories/series.json -> flat daily rows (day in ms). */
+/** categories/series.json -> flat daily rows (`dayMs` in ms). */
 export function normalizeCategorySeries(raw: MarketsCategoriesSeriesResponse): CategorySeriesRow[] {
 	const out: CategorySeriesRow[] = new Array(raw.series.length)
 	for (let i = 0; i < raw.series.length; i++) {
@@ -144,7 +155,7 @@ function normalizeCategoryPageSeries(rows: MarketsCategoryPageSeriesApiRow[], ta
 
 function normalizeCategorySeriesRow(row: MarketsCategoryPageSeriesApiRow, tag: string): CategorySeriesRow {
 	return {
-		day: row.day * 1000,
+		dayMs: row.day * 1000,
 		segment: row.segment,
 		tag,
 		volume_usd: row.volume_24h,
@@ -163,7 +174,7 @@ function normalizeExchangeSeriesRow(
 	row: MarketsExchangeSeriesResponse['series'][number] | MarketsCategoryPageExchangeSeriesApiRow
 ): ExchangeSeriesRow {
 	return {
-		day: row.day * 1000,
+		dayMs: row.day * 1000,
 		exchange: row.exchange,
 		exchange_type: row.exchange_type,
 		segment: row.segment,
@@ -173,13 +184,13 @@ function normalizeExchangeSeriesRow(
 	}
 }
 
-/** categories/<category>.json series_by_pair -> flat daily per-pair rows (day in ms). */
+/** categories/<category>.json series_by_pair -> flat daily per-pair rows (`dayMs` in ms). */
 function normalizeCategoryPairSeries(rows: MarketsCategoryPagePairSeriesApiRow[]): PairSeriesRow[] {
 	const out: PairSeriesRow[] = new Array(rows.length)
 	for (let i = 0; i < rows.length; i++) {
 		const row = rows[i]
 		out[i] = {
-			day: row.day * 1000,
+			dayMs: row.day * 1000,
 			segment: row.segment,
 			pair: row.pair,
 			volume_usd: row.volume_24h,
@@ -192,13 +203,13 @@ function normalizeCategoryPairSeries(rows: MarketsCategoryPagePairSeriesApiRow[]
 
 /** categories/<category>.json -> everything the category page needs. */
 export function normalizeCategoryPage(raw: MarketsCategoryPageResponse): CategoryPageData {
-	const summaries: Partial<Record<Segment, CategoryStat>> = {}
+	const summaries = recordBySegment<CategoryStat | null>(() => null)
 	for (const segment of SEGMENT_IDS) {
 		const stat = raw.segments[segment]
 		if (stat) summaries[segment] = normalizeCategoryStat(raw.category, stat)
 	}
 
-	const tokens: SymbolStatsBySegment = {}
+	const tokens = emptySymbolStatsBySegment()
 	for (const segment of SEGMENT_IDS) {
 		const list = raw.tokens[segment]
 		if (!list) continue

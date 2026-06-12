@@ -5,7 +5,16 @@
  * live entirely on the client — the server only ships raw now/prev pairs, so these can be tuned
  * freely without any backend change.
  */
-import type { CategorySeriesRow, CategoryStat, ExchangeSeriesRow, PairSeriesRow, Segment, SymbolStat } from './types'
+import { formattedNum } from '~/utils'
+import { type Segment, recordBySegment, SEGMENT_IDS } from './segments'
+import type {
+	CategorySeriesRow,
+	CategoryStat,
+	ExchangeSeriesRow,
+	PairSeriesRow,
+	SymbolStat,
+	SymbolStatsBySegment
+} from './types'
 
 const SENT_VOL_T = 0.1
 const SENT_OI_T = 0.05
@@ -138,11 +147,11 @@ export function segmentTotals(rows: SymbolStat[]): SegmentTotals {
 		asset_count: rows.length
 	}
 	for (const r of rows) {
-		totals.volume_24h_usd += r.volume_24h_usd || 0
-		totals.volume_prev_24h_usd += r.volume_prev_24h_usd || 0
-		totals.oi_usd += r.oi_usd || 0
-		totals.oi_prev_usd += r.oi_prev_usd || 0
-		totals.market_count += r.market_count || 0
+		totals.volume_24h_usd += r.volume_24h_usd
+		totals.volume_prev_24h_usd += r.volume_prev_24h_usd ?? 0
+		totals.oi_usd += r.oi_usd ?? 0
+		totals.oi_prev_usd += r.oi_prev_usd ?? 0
+		totals.market_count += r.market_count
 	}
 	return totals
 }
@@ -153,6 +162,62 @@ export function topSymbols(rows: SymbolStat[], sortBy: 'volume' | 'oi', limit = 
 		.slice()
 		.sort((a, b) => (sortBy === 'oi' ? (b.oi_usd ?? 0) - (a.oi_usd ?? 0) : b.volume_24h_usd - a.volume_24h_usd))
 		.slice(0, limit)
+}
+
+// ---------------------------------------------------------------------------
+// Segment row helpers
+// ---------------------------------------------------------------------------
+
+export function availableSegmentsFromRows<T>(rowsBySegment: Record<Segment, readonly T[]>): Segment[] {
+	const segments: Segment[] = []
+	for (const segment of SEGMENT_IDS) {
+		if (rowsBySegment[segment].length > 0) segments.push(segment)
+	}
+	return segments
+}
+
+export function segmentAssetSummaries(
+	rowsBySegment: SymbolStatsBySegment
+): Record<Segment, { assets: number; volume: number }> {
+	const summaries = recordBySegment(() => ({ assets: 0, volume: 0 }))
+
+	for (const segment of SEGMENT_IDS) {
+		const rows = rowsBySegment[segment]
+		let volume = 0
+		for (const row of rows) volume += row.volume_24h_usd
+		summaries[segment] = { assets: rows.length, volume }
+	}
+
+	return summaries
+}
+
+export function segmentSubtitles(rowsBySegment: SymbolStatsBySegment): Record<Segment, string> {
+	const summaries = segmentAssetSummaries(rowsBySegment)
+	return recordBySegment((segment) => {
+		const summary = summaries[segment]
+		return `${summary.assets} assets · ${formattedNum(summary.volume, true)}`
+	})
+}
+
+export function filterRowsBySegment<T extends { segment: Segment }>(rows: T[], segment: Segment): T[] {
+	const filtered: T[] = []
+	for (const row of rows) {
+		if (row.segment === segment) filtered.push(row)
+	}
+	return filtered
+}
+
+export function filterExchangeSeriesBySegment(
+	rows: ExchangeSeriesRow[],
+	segment: Segment,
+	exchange: string
+): ExchangeSeriesRow[] {
+	const exchangeKey = exchange.toLowerCase()
+	const filtered: ExchangeSeriesRow[] = []
+	for (const row of rows) {
+		if (row.exchange.toLowerCase() === exchangeKey && row.segment === segment) filtered.push(row)
+	}
+	return filtered
 }
 
 // ---------------------------------------------------------------------------
@@ -194,7 +259,7 @@ export function pivotSeries<T>(
 	for (const row of rows) {
 		const key = keyOf(row)
 		const dayMs = dayMsOf(row)
-		const value = valueOf(row) || 0
+		const value = valueOf(row)
 		days.add(dayMs)
 		let perDay = byKey.get(key)
 		if (!perDay) {
@@ -241,7 +306,7 @@ export function pivotExchangeSeries(rows: ExchangeSeriesRow[], metric: SeriesMet
 	return pivotSeries(rows, {
 		keyOf: (r) => r.exchange,
 		valueOf: (r) => metricValue(metric, r.volume_usd, r.oi_usd, r.market_count),
-		dayMsOf: (r) => r.day
+		dayMsOf: (r) => r.dayMs
 	})
 }
 
@@ -249,7 +314,7 @@ export function pivotCategorySeries(rows: CategorySeriesRow[], metric: SeriesMet
 	return pivotSeries(rows, {
 		keyOf: (r) => r.tag,
 		valueOf: (r) => metricValue(metric, r.volume_usd, r.oi_usd, r.market_count),
-		dayMsOf: (r) => r.day
+		dayMsOf: (r) => r.dayMs
 	})
 }
 
@@ -257,7 +322,7 @@ export function pivotPairSeries(rows: PairSeriesRow[], metric: SeriesMetric): Pi
 	return pivotSeries(rows, {
 		keyOf: (r) => r.pair,
 		valueOf: (r) => metricValue(metric, r.volume_usd, r.oi_usd, r.market_count),
-		dayMsOf: (r) => r.day
+		dayMsOf: (r) => r.dayMs
 	})
 }
 
@@ -336,8 +401,8 @@ export function aggregateCategories(rows: SymbolStat[]): CategoryStat[] {
 				}
 				byTag.set(tag, acc)
 			}
-			acc.volume_24h_usd += row.volume_24h_usd || 0
-			acc.volume_prev_24h_usd += row.volume_prev_24h_usd || 0
+			acc.volume_24h_usd += row.volume_24h_usd
+			acc.volume_prev_24h_usd += row.volume_prev_24h_usd ?? 0
 			if (row.oi_usd != null) {
 				acc.hasOi = true
 				acc.oi_usd += row.oi_usd
@@ -361,7 +426,7 @@ export function aggregateCategories(rows: SymbolStat[]): CategoryStat[] {
 				acc.leverage_max = acc.leverage_max == null ? row.leverage_max : Math.max(acc.leverage_max, row.leverage_max)
 			}
 			acc.token_count += 1
-			acc.market_count += row.market_count || 0
+			acc.market_count += row.market_count
 		}
 	}
 

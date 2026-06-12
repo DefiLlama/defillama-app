@@ -1,9 +1,9 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { segmentHasOi } from './segments'
+import { type Segment, segmentHasOi } from './segments'
 import { CategoryLink, ChangeCell, renderFunding8h, renderLeverage, renderUsd } from './shared'
-import type { CategoryStat, Segment } from './types'
+import type { CategoryStat } from './types'
 import { pctChange } from './utils'
 
 const columnHelper = createColumnHelper<CategoryStat>()

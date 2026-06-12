@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { MarketsAreaChart } from './MarketsAreaChart'
 import { MarketsLineChart } from './MarketsLineChart'
-import { segmentHasOi } from './segments'
-import type { CategorySeriesRow, ExchangeSeriesRow, Segment } from './types'
-import { EMPTY_PIVOTED_SERIES, pivotCategorySeries, pivotExchangeSeries } from './utils'
+import { type Segment, segmentHasOi } from './segments'
+import type { CategorySeriesRow, ExchangeSeriesRow } from './types'
+import { EMPTY_PIVOTED_SERIES, filterRowsBySegment, pivotCategorySeries, pivotExchangeSeries } from './utils'
 
 export function MarketsCharts({
 	exchangeSeries,
@@ -16,20 +16,8 @@ export function MarketsCharts({
 }) {
 	const hasOi = segmentHasOi(segment)
 
-	const exchangeRows = React.useMemo(() => {
-		const rows: ExchangeSeriesRow[] = []
-		for (const row of exchangeSeries) {
-			if (row.segment === segment) rows.push(row)
-		}
-		return rows
-	}, [exchangeSeries, segment])
-	const categoryRows = React.useMemo(() => {
-		const rows: CategorySeriesRow[] = []
-		for (const row of categorySeries) {
-			if (row.segment === segment) rows.push(row)
-		}
-		return rows
-	}, [categorySeries, segment])
+	const exchangeRows = React.useMemo(() => filterRowsBySegment(exchangeSeries, segment), [exchangeSeries, segment])
+	const categoryRows = React.useMemo(() => filterRowsBySegment(categorySeries, segment), [categorySeries, segment])
 
 	const volByExchange = React.useMemo(() => pivotExchangeSeries(exchangeRows, 'volume'), [exchangeRows])
 	const oiByExchange = React.useMemo(

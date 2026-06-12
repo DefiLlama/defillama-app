@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchExchangeMarketsFromNetwork } from '~/containers/Cexs/api'
-import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
+import type { ExchangeMarketsListResponse } from '~/containers/Markets/api.types'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 

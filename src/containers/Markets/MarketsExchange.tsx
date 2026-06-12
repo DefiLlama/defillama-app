@@ -1,18 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
-import type { ExchangeMarketCategoryData } from '~/containers/Cexs/markets.types'
 import { formattedNum } from '~/utils'
 import { fetchMarketsExchange, fetchMarketsExchangeSeries } from './api'
+import type { ExchangeMarketCategoryData } from './api.types'
 import { ExchangePairsTable } from './ExchangePairsTable'
 import { MarketsAreaChart } from './MarketsAreaChart'
 import { MarketsLineChart } from './MarketsLineChart'
 import { MarketsPageHeader } from './MarketsPageHeader'
 import { MarketsSegmentTabs } from './MarketsSegmentTabs'
-import { resolveSegment, SEGMENT_IDS, segmentHasOi } from './segments'
+import { resolveSegment, type Segment, SEGMENT_IDS, segmentHasOi } from './segments'
 import { ChangeCell, renderUsd, VenueBadge } from './shared'
-import type { ExchangeSeriesRow, Segment } from './types'
-import { EMPTY_PIVOTED_SERIES, pctChange, pivotExchangeSeries } from './utils'
+import { EMPTY_PIVOTED_SERIES, filterExchangeSeriesBySegment, pctChange, pivotExchangeSeries } from './utils'
 
 const STALE_TIME = 60 * 60 * 1000
 
@@ -80,15 +79,11 @@ export function MarketsExchange({
 	const segmentData = data?.categories?.[activeSegment]
 	const pairs = segmentData?.pairs ?? []
 
-	const exchangeKey = (data?.exchange ?? exchange).toLowerCase()
+	const exchangeName = data?.exchange ?? exchange
 	const seriesRows = React.useMemo(() => {
 		const rows = seriesQuery.data ?? []
-		const filtered: ExchangeSeriesRow[] = []
-		for (const row of rows) {
-			if (row.exchange.toLowerCase() === exchangeKey && row.segment === activeSegment) filtered.push(row)
-		}
-		return filtered
-	}, [seriesQuery.data, exchangeKey, activeSegment])
+		return filterExchangeSeriesBySegment(rows, activeSegment, exchangeName)
+	}, [seriesQuery.data, exchangeName, activeSegment])
 	const volSeries = React.useMemo(() => pivotExchangeSeries(seriesRows, 'volume'), [seriesRows])
 	const oiSeries = React.useMemo(
 		() => (hasOi ? pivotExchangeSeries(seriesRows, 'oi') : EMPTY_PIVOTED_SERIES),
