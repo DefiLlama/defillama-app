@@ -89,6 +89,7 @@ Important rules:
 - Recent/airdrop TVL toggle behavior is not the same as chain TVL normalization.
 - `applyExtraTvl` intentionally does not apply the chain doublecounted/liquidstaking subtraction model.
 - `applyProtocolTvlSettings` applies table toggles, min/max TVL filtering, child protocol behavior, and `strikeTvl` adjustments.
+- `applyProtocolTvlSettings` preserves unknown previous TVL fields as `null` after toggles while normalizing current TVL for table display.
 
 Read `docs/metrics.md` before changing TVL terminology or trying to share behavior with chain TVL pages.
 
@@ -107,7 +108,9 @@ Current covered helper targets:
   - filters by min/max after selected extras are applied
   - handles child protocols
   - clears `strikeTvl` when liquidstaking or doublecounted is enabled
-    Still useful if this area is touched:
+  - preserves null previous TVL fields for parent and child table rows
+
+Still useful if this area is touched:
 
 - `getExtraTvlByChain`: pin the expected extra TVL config for borrowed, staking, and pool2.
 
