@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import {
+	ALL_INVESTORS_PROTOCOL_IDS,
 	DEFAULT_INVESTORS_PROTOCOL_ID,
 	INVESTORS_LANDING_PROTOCOL_IDS,
 	INVESTORS_PROTOCOL_IDS,
@@ -102,6 +103,10 @@ function getInvestorsRewrite(request: NextRequest) {
 	const segment = pathname.slice(1)
 	if (INVESTORS_PROTOCOL_IDS.includes(segment)) {
 		return new URL(`/investors/${segment}`, request.url)
+	}
+
+	if (ALL_INVESTORS_PROTOCOL_IDS.includes(segment)) {
+		return new URL('/404', request.url)
 	}
 
 	return null

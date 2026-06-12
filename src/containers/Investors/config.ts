@@ -14,17 +14,13 @@ export const ALL_INVESTORS_PROJECTS = [
 export type InvestorsProject = (typeof ALL_INVESTORS_PROJECTS)[number]
 export type InvestorsProjectId = InvestorsProject['id']
 
-const INVESTORS_DOMAIN_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
-const INVESTORS_COMING_SOON_PROJECT_IDS = [
-	'flare',
-	'thorchain',
-	'berachain'
-] as const satisfies readonly InvestorsProjectId[]
-const INVESTORS_DOMAIN_LANDING_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
-const INVESTORS_COMING_SOON_PROJECT_IDS = [
-	'flare',
-	'thorchain',
-	'berachain'
+const INVESTORS_LIVE_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_PREVIEW_PROJECT_IDS = ['flare', 'thorchain'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_COMING_SOON_PROJECT_IDS = ['berachain'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_PREVIEW_ENABLED = process.env.NEXT_PUBLIC_INVESTORS_PREVIEW === 'true'
+const INVESTORS_DOMAIN_PROJECT_IDS = [
+	...INVESTORS_LIVE_PROJECT_IDS,
+	...(INVESTORS_PREVIEW_ENABLED ? INVESTORS_PREVIEW_PROJECT_IDS : [])
 ] as const satisfies readonly InvestorsProjectId[]
 const ENTERPRISE_DOMAIN_PROJECT_IDS = ['odyssey-ecosystem'] as const satisfies readonly InvestorsProjectId[]
 
@@ -40,14 +36,14 @@ export const INVESTORS_SITES = {
 	investors: {
 		hosts: ['investors.defillama.com'],
 		projectIds: INVESTORS_DOMAIN_PROJECT_IDS,
-		landingProjectIds: INVESTORS_DOMAIN_LANDING_PROJECT_IDS,
+		landingProjectIds: INVESTORS_LIVE_PROJECT_IDS,
 		defaultProjectId: 'spark',
 		comingSoonProjectIds: INVESTORS_COMING_SOON_PROJECT_IDS
 	},
 	enterprise: {
 		hosts: ['enterprise.defillama.com'],
 		projectIds: ENTERPRISE_DOMAIN_PROJECT_IDS,
-		landingProjectIds: [...INVESTORS_DOMAIN_LANDING_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
+		landingProjectIds: [...INVESTORS_LIVE_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
 		defaultProjectId: 'odyssey-ecosystem',
 		comingSoonProjectIds: []
 	}
@@ -96,6 +92,7 @@ export const INVESTORS_LANDING_PROJECTS: InvestorsProject[] = getInvestorsProjec
 
 export const INVESTORS_PROTOCOL_IDS: string[] = INVESTORS_PROJECTS.map((p) => p.id)
 export const INVESTORS_LANDING_PROTOCOL_IDS: string[] = INVESTORS_LANDING_PROJECTS.map((p) => p.id)
+export const ALL_INVESTORS_PROTOCOL_IDS: string[] = ALL_INVESTORS_PROJECTS.map((p) => p.id)
 export const DEFAULT_INVESTORS_PROTOCOL_ID =
 	ACTIVE_INVESTORS_SITE?.defaultProjectId ?? INVESTORS_PROJECTS[0]?.id ?? null
 export const INVESTORS_COMING_SOON_PROJECTS: InvestorsProject[] = getInvestorsProjects(
