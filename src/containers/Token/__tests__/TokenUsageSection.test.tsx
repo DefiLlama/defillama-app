@@ -69,6 +69,10 @@ vi.mock('next/router', () => ({
 }))
 
 vi.mock('@ariakit/react', () => ({
+	Checkbox: ({ clickOnEnter: _clickOnEnter, onFocusVisible: _onFocusVisible, ...props }: any) => (
+		<input type="checkbox" {...props} />
+	),
+	VisuallyHidden: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 	useDialogStore: () => ({ show: vi.fn() })
 }))
 

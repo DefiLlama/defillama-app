@@ -8,13 +8,16 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, Suspense, useMemo, useRef, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Checkbox } from '~/components/Checkbox'
+import type { ITreemapChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
-import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -22,10 +25,14 @@ import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
+import { buildTokenUsageTreemapTreeData } from '~/containers/TokenUsage/treemap'
 import { useDebouncedValue } from '~/hooks/useDebounce'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
+
+const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 const pageName = ['Token', 'usage in', 'Protocols']
 
@@ -43,6 +50,7 @@ const columnHelper = createColumnHelper<TokenUsagePageRow>()
 export default function Tokens() {
 	const router = useRouter()
 	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
+	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useGetChartInstance()
 	const signInDialogStore = Ariakit.useDialogStore()
 
 	const { token, includecex } = router.query
@@ -72,6 +80,14 @@ export default function Tokens() {
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
+	const tokenUsageTreemapRootLabel = tokenSymbol ? `${tokenSymbol.toUpperCase()} usage` : 'Token usage'
+	const tokenUsageExportTitle = tokenSymbol ? `${tokenSymbol.toUpperCase()} token usage` : 'Token usage'
+	const tokenUsageExportFilename = tokenSymbol ? `token-usage-${tokenSymbol.toLowerCase()}` : 'token-usage'
+	const treemapTreeData = useMemo(
+		() => buildTokenUsageTreemapTreeData(filteredProtocols, tokenUsageTreemapRootLabel),
+		[filteredProtocols, tokenUsageTreemapRootLabel]
+	)
+
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
 	const tableInstance = useReactTable({
 		data: filteredProtocols,
@@ -142,8 +158,8 @@ export default function Tokens() {
 							<div className="flex w-full grow text-lg font-semibold sm:w-auto">{`${tokenSymbol.toUpperCase()} usage in protocols`}</div>
 
 							<div className="flex items-center gap-2 max-sm:w-full">
-								<Switch
-									label="Include CEXs"
+								<Checkbox
+									variant="filter"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
 									onChange={() => {
@@ -151,7 +167,19 @@ export default function Tokens() {
 											includecex: !includeCentraliseExchanges ? 'true' : undefined
 										})
 									}}
-								/>
+								>
+									Include CEXs
+								</Checkbox>
+								{treemapTreeData.length > 0 ? (
+									<>
+										<ChartRestoreButton chartInstance={treemapChartInstance} />
+										<ChartPngExportButton
+											chartInstance={treemapChartInstance}
+											filename={tokenUsageExportFilename}
+											title={tokenUsageExportTitle}
+										/>
+									</>
+								) : null}
 								<CSVDownloadButton
 									prepareCsv={() =>
 										prepareTableCsv({
@@ -163,6 +191,19 @@ export default function Tokens() {
 								/>
 							</div>
 						</div>
+
+						{treemapTreeData.length > 0 ? (
+							<Suspense fallback={<div style={{ height: '480px' }} />}>
+								<TreemapChart
+									treeData={treemapTreeData}
+									variant="rwa"
+									height="480px"
+									valueLabel="Amount"
+									valueSymbol="$"
+									onReady={handleTreemapChartReady}
+								/>
+							</Suspense>
+						) : null}
 
 						<Suspense
 							fallback={
