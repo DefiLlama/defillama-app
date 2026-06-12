@@ -74,6 +74,7 @@ function compactDiscoveryDashboard(dashboard: Dashboard): Dashboard {
 	const author = compactDiscoveryAuthor(dashboard.author)
 	return {
 		id: dashboard.id,
+		slug: dashboard.slug,
 		visibility: dashboard.visibility,
 		tags: Array.isArray(dashboard.tags) ? dashboard.tags.filter((tag) => typeof tag === 'string' && tag.trim()) : [],
 		description: typeof dashboard.description === 'string' ? dashboard.description : '',

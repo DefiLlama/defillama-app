@@ -10,6 +10,7 @@ export type PublicDashboardAuthor = {
 
 export type AuthorDashboardSummary = {
 	id: string
+	slug?: string
 	data: {
 		dashboardName?: string
 		items?: Array<{ id?: string; kind?: string }>

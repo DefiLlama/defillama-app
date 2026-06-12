@@ -21,6 +21,7 @@ Current source layout:
 
 - `public/pages.json`: product-facing names, descriptions, route slugs, tabs, and total tracked keys.
 - `src/metrics`: typed internal descriptors for migrated cross-container invariants. It is intentionally not a global registry for every metric.
+- `src/metrics/feeExtras.ts`: shared bribes/token-tax config and small pure helpers for migrated fee-extra behavior.
 - `src/containers/AdapterMetrics/README.md`: adapter-backed page ownership, data flow, and local gotchas.
 - `src/containers/README.md`: route-family to container ownership map.
 - RWA definition files listed below: local source of truth for RWA breakdowns.
@@ -58,6 +59,8 @@ Important files:
 - `src/containers/AdapterMetrics/api.ts`: upstream adapter metrics/chart fetchers.
 - `src/containers/AdapterMetrics/README.md`: local route and change guide.
 - `src/metrics/feesRevenue.ts`: cross-container fee/revenue semantic descriptors for the migrated fee/revenue slice.
+- `src/metrics/feeExtras.ts`: fee-extra setting/data-type mappings, row total helpers, and chart merge helpers.
+- `src/containers/AdapterMetrics/metricPeriods.ts`: nullable period-field merge and change derivation helpers.
 
 Examples of ambiguous pairings:
 
@@ -88,6 +91,16 @@ Display behavior:
 - REV, Pro Dashboard, public raw datasets, raw dimension endpoints, and non-fee adapter pages keep bribes/token taxes separate.
 
 Do not use app-on-chain extras to adjust Chain Fees/Revenue or chain-native extras to adjust App Fees/App Revenue.
+
+### P/F And P/S
+
+P/F and P/S ratios use annualized fee/revenue values, not 30-day fallback totals.
+
+- P/F is market cap divided by `annualized1y` fees.
+- P/S is market cap divided by `annualized1y` revenue.
+- Public definitions describe annualized values as trailing 12-month totals when enough history exists, otherwise all available tracked history scaled to a 12-month run rate.
+- Parent and multi-chain aggregation must preserve null when any fee- or revenue-contributing child/chain is missing the relevant annualized denominator.
+- Fee extras can adjust annualized values on eligible fee-family display surfaces, but percentage changes should be derived from adjusted period totals rather than stale upstream change fields.
 
 ### Chain Fees
 
@@ -187,6 +200,8 @@ Important files:
 - `src/contexts/LocalStorage.tsx`: TVL setting keys.
 
 Do not assume two routes use the same TVL model just because they share the same toggle names. Some pages start from an adjusted base TVL, while others start from raw TVL and add selected extras. Some table paths use double counted or liquid staking toggles for display/strike behavior rather than normal extra addition.
+
+Oracle and Fork chart API `key` query params are not the same contract as local TVL setting keys. For valid keys, the chart response shape is stable across keys, but the backend v2 chart routes only accept the protocol/treasury TVL chart keys such as `tvl`, `staking`, `borrowed`, `pool2`, `vesting`, `all`, and `OwnTokens`. Do not send local overlap setting names such as `doublecounted`, `liquidstaking`, or `dcAndLsOverlap` directly as Fork/Oracle chart `key` values.
 
 Before refactoring TVL:
 

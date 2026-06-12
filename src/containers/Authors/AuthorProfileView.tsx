@@ -257,7 +257,7 @@ function DashboardCard({ dashboard }: { dashboard: AuthorDashboardSummary }) {
 					<DashboardCardStats dashboard={dashboard} />
 				</div>
 			</div>
-			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
+			<BasicLink href={`/pro/${dashboard.slug || dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">{dashboardName(dashboard)}</span>
 			</BasicLink>
 		</div>
@@ -302,7 +302,7 @@ function FeaturedDashboardCard({ dashboard }: { dashboard: AuthorDashboardSummar
 					</div>
 				</div>
 			</div>
-			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
+			<BasicLink href={`/pro/${dashboard.slug || dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">{dashboardName(dashboard)}</span>
 			</BasicLink>
 		</section>

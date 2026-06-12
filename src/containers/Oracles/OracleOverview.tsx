@@ -9,7 +9,11 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getTokenDominance, slug } from '~/utils'
-import { calculateTotalWithExtraToggles, getEnabledExtraTvlApiKeys } from '~/utils/tvlOverlap'
+import {
+	calculateTotalWithExtraToggles,
+	getEnabledExtraTvlApiKeys,
+	getEnabledForkOracleExtraTvlChartApiKeys
+} from '~/utils/tvlOverlap'
 import { useOracleOverviewExtraSeries } from './queries.client'
 import type { OracleOverviewPageData } from './types'
 
@@ -106,9 +110,13 @@ export const OracleOverview = ({
 		[extraTvlsEnabled]
 	)
 	const enabledExtraApiKeys = useMemo(() => getEnabledExtraTvlApiKeys(extraTvlsEnabled), [extraTvlsEnabled])
+	const enabledExtraChartApiKeys = useMemo(
+		() => getEnabledForkOracleExtraTvlChartApiKeys(extraTvlsEnabled),
+		[extraTvlsEnabled]
+	)
 
 	const { isFetchingExtraSeries, extraTvsByTimestamp } = useOracleOverviewExtraSeries({
-		enabledExtraApiKeys,
+		enabledExtraApiKeys: enabledExtraChartApiKeys,
 		oracle,
 		chain
 	})
@@ -156,21 +164,15 @@ export const OracleOverview = ({
 			}
 		}
 		const selectedOracle = oracle ?? firstOracle
-		const shouldApplyExtraSeries = enabledExtraApiKeys.length > 0 && !isFetchingExtraSeries
+		const shouldApplyExtraSeries = enabledExtraChartApiKeys.length > 0 && !isFetchingExtraSeries
 
 		const datasetSource: Array<{ timestamp: number; TVS: number }> = []
 
 		for (const point of chartBreakdownByTimestamp) {
 			const timestampInSeconds = point.timestamp
-			if (!Number.isFinite(timestampInSeconds)) {
-				continue
-			}
-
 			const baseTvs = selectedOracle ? (point[selectedOracle] ?? 0) : 0
 			const extraTvs = shouldApplyExtraSeries ? (extraTvsByTimestamp.get(timestampInSeconds) ?? 0) : 0
 			const tvsValue = baseTvs + extraTvs
-
-			if (!Number.isFinite(tvsValue)) continue
 
 			datasetSource.push({
 				timestamp: timestampInSeconds * 1e3,
@@ -192,7 +194,7 @@ export const OracleOverview = ({
 				}
 			]
 		}
-	}, [chartData, enabledExtraApiKeys.length, extraTvsByTimestamp, isFetchingExtraSeries, oracle])
+	}, [chartData, enabledExtraChartApiKeys.length, extraTvsByTimestamp, isFetchingExtraSeries, oracle])
 
 	const topProtocol = tableData[0] ?? null
 	const dominance = topProtocol ? getTokenDominance({ tvl: topProtocol.tvl }, totalValue) : null

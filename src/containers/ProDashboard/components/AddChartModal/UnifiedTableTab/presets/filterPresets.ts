@@ -91,13 +91,13 @@ const INVESTMENT_PRESETS: FilterPreset[] = [
 	{
 		id: 'institutional-grade',
 		name: 'Institutional Grade',
-		description: 'Large protocols with $1B+ TVL and $10M+ annual revenue',
+		description: 'Large protocols with $1B+ TVL and $10M+ 1y revenue',
 		category: 'investment',
 		filters: {
 			tvlMin: 1_000_000_000,
 			revenue1yMin: 10_000_000
 		},
-		tooltip: 'TVL ≥ $1B, Annualized Revenue ≥ $10M',
+		tooltip: 'TVL ≥ $1B, 1y revenue ≥ $10M',
 		sortBy: { field: 'tvl', direction: 'desc' },
 		strategyType: 'protocols'
 	}

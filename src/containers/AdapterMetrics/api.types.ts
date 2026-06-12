@@ -71,6 +71,7 @@ export interface IAdapterProtocolMetrics {
 			total30d: number
 			total60dto30d: number
 			total1y: number
+			annualized1y?: number | null
 			total7DaysAgo: number
 			total30DaysAgo: number
 			totalAllTime: number
@@ -97,6 +98,7 @@ export interface IAdapterChainMetrics {
 	total60dto30d: number
 	total30d: number
 	total1y: number
+	annualized1y?: number | null
 	change_1d: number
 	change_7d: number
 	change_1m: number
@@ -113,6 +115,7 @@ export interface IAdapterChainMetrics {
 		total60dto30d: number
 		total30d: number
 		total1y: number
+		annualized1y?: number | null
 		totalAllTime: number
 		average1y: number
 		monthlyAverage1y: number

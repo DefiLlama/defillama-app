@@ -19,7 +19,7 @@ import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimeP
 import { useAutoSave, useDashboardAPI, useDashboardPermissions, useFreeTierStatus } from './hooks'
 import { useDashboardStream } from './hooks/useDashboardStream'
 import { ProxyAuthTokenContext, StreamDoneContext, useChartsData, useProtocolsAndChains } from './queries'
-import type { Dashboard } from './services/DashboardAPI'
+import { type Dashboard, matchesDashboardKey } from './services/DashboardAPI'
 import type {
 	CexAnalyticsMetric,
 	CexAnalyticsView,
@@ -337,7 +337,7 @@ export function ProDashboardAPIProvider({
 	const hasStoredToken = typeof window !== 'undefined' && pb.authStore.isValid && !!pb.authStore.token
 	const authReady = hasMounted && !loaders.userLoading && (!hasStoredToken || !!authToken)
 	const stream = useDashboardStream(initialDashboardId, authToken, authReady)
-	const hasInitialDashboard = !!initialDashboard && initialDashboard.id === initialDashboardId
+	const hasInitialDashboard = matchesDashboardKey(initialDashboard, initialDashboardId)
 	const streamSettled = authReady && stream.isDone
 	const streamFatal = streamSettled && !!stream.error && stream.dashboard == null
 	const dashboardReady =
@@ -450,7 +450,7 @@ function ProDashboardAPIProviderInner({
 	useEffect(() => {
 		if (
 			stream.dashboard &&
-			initialDashboardId === stream.dashboard.id &&
+			matchesDashboardKey(stream.dashboard, initialDashboardId) &&
 			currentDashboard?.id !== stream.dashboard.id
 		) {
 			applyDashboard(stream.dashboard)
@@ -581,7 +581,7 @@ function ProDashboardAPIProviderInner({
 		refetchOnMount: initialDashboard ? false : 'always',
 		retry: (failureCount, err: any) => err?.status >= 500 && failureCount < 3,
 		enabled: dashboardReady && !!initialDashboardId,
-		initialData: initialDashboard?.id === initialDashboardId ? initialDashboard : undefined,
+		initialData: matchesDashboardKey(initialDashboard, initialDashboardId) ? initialDashboard : undefined,
 		initialDataUpdatedAt: getDashboardInitialUpdatedAt(initialDashboard)
 	})
 	// Loading until dashboard config arrives from stream (or query fallback)
@@ -591,7 +591,7 @@ function ProDashboardAPIProviderInner({
 	useEffect(() => {
 		if (
 			currentDashboard2 !== null &&
-			initialDashboardId === currentDashboard2?.id &&
+			matchesDashboardKey(currentDashboard2, initialDashboardId) &&
 			currentDashboard?.id !== currentDashboard2?.id
 		) {
 			applyDashboard(currentDashboard2)
@@ -617,6 +617,13 @@ function ProDashboardAPIProviderInner({
 		void queryClient.invalidateQueries({ queryKey: dashboardQueryKey })
 		void refetchDashboardQuery()
 	}, [queryClient, dashboardQueryKey, refetchDashboardQuery])
+
+	const deleteDashboard = useCallback(
+		async (id: string) => {
+			await deleteDashboardWithConfirmation(id, currentDashboard?.id === id ? currentDashboard?.slug : undefined)
+		},
+		[deleteDashboardWithConfirmation, currentDashboard?.id, currentDashboard?.slug]
+	)
 
 	// Save dashboard
 	const saveDashboard = useCallback(
@@ -1257,7 +1264,7 @@ function ProDashboardAPIProviderInner({
 			setDashboardVisibility,
 			setDashboardTags,
 			setDashboardDescription,
-			deleteDashboard: deleteDashboardWithConfirmation,
+			deleteDashboard,
 			saveDashboard,
 			copyDashboard,
 			handleCreateDashboard,
@@ -1286,7 +1293,7 @@ function ProDashboardAPIProviderInner({
 			setDashboardVisibility,
 			setDashboardTags,
 			setDashboardDescription,
-			deleteDashboardWithConfirmation,
+			deleteDashboard,
 			saveDashboard,
 			copyDashboard,
 			handleCreateDashboard,

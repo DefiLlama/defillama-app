@@ -15,6 +15,7 @@ export interface ProTableDimensionProtocol {
 	total7d?: number | null
 	total30d?: number | null
 	total1y?: number | null
+	annualized1y?: number | null
 	totalAllTime?: number | null
 	change_1d?: number | null
 	change_7d?: number | null
@@ -25,6 +26,7 @@ export interface ProTableDimensionProtocol {
 	revenue7d?: number | null
 	revenue30d?: number | null
 	revenue1y?: number | null
+	revenueAnnualized1y?: number | null
 	average1y?: number | null
 	averageRevenue1y?: number | null
 	monthlyAverage1y?: number | null

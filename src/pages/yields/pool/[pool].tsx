@@ -102,8 +102,22 @@ const tvlApyCharts = [
 const tvlApyChartOptions = { tooltip: { formatter: formatTvlApyTooltip } }
 
 const BASE_REWARD_BAR_CHARTS: IMultiSeriesChart2Props['charts'] = [
-	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
-	{ type: 'bar', name: 'Reward', encode: { x: 'timestamp', y: 'Reward' }, stack: 'a', color: CHART_COLORS[1] }
+	{
+		type: 'bar',
+		name: 'Base',
+		encode: { x: 'timestamp', y: 'Base' },
+		stack: 'a',
+		color: CHART_COLORS[0],
+		large: false
+	},
+	{
+		type: 'bar',
+		name: 'Reward',
+		encode: { x: 'timestamp', y: 'Reward' },
+		stack: 'a',
+		color: CHART_COLORS[1],
+		large: false
+	}
 ]
 
 const SINGLE_APY_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [

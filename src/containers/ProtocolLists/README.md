@@ -89,14 +89,15 @@ Important rules:
 - Recent/airdrop TVL toggle behavior is not the same as chain TVL normalization.
 - `applyExtraTvl` intentionally does not apply the chain doublecounted/liquidstaking subtraction model.
 - `applyProtocolTvlSettings` applies table toggles, min/max TVL filtering, child protocol behavior, and `strikeTvl` adjustments.
+- `applyProtocolTvlSettings` preserves unknown previous TVL fields as `null` after toggles while normalizing current TVL for table display.
 
 Read `docs/metrics.md` before changing TVL terminology or trying to share behavior with chain TVL pages.
 
 ## Tests
 
-There are currently fewer local tests here than the surface area deserves. Add focused tests before refactoring TVL/list behavior.
+Local TVL/list helper coverage now exists, but the surface area is still broad. Add or update focused tests before refactoring TVL/list behavior.
 
-Good first test targets:
+Current covered helper targets:
 
 - `applyExtraTvl`:
   - adds selected non-doublecounted/non-liquidstaking extras
@@ -107,13 +108,16 @@ Good first test targets:
   - filters by min/max after selected extras are applied
   - handles child protocols
   - clears `strikeTvl` when liquidstaking or doublecounted is enabled
-- `getExtraTvlByChain`:
-  - uses the expected extra TVL config for borrowed, staking, and pool2
+  - preserves null previous TVL fields for parent and child table rows
 
-Focused command once tests exist:
+Still useful if this area is touched:
+
+- `getExtraTvlByChain`: pin the expected extra TVL config for borrowed, staking, and pool2.
+
+Focused command:
 
 ```bash
-bun run test src/containers/ProtocolLists/__tests__/<test-file>.test.ts
+bun run test src/containers/ProtocolLists/__tests__/utils.test.ts
 ```
 
 For source changes, follow the repo root verification instructions.

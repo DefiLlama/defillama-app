@@ -22,8 +22,8 @@ const NetflowChart = React.lazy(() => import('~/components/ECharts/BarChart/Netf
 const NET_FLOW_CHARTS = [{ type: 'bar' as const, name: 'Net Flow', encode: { x: 'timestamp', y: 'Net Flow' } }]
 
 const NET_FLOW_PCT_CHARTS = [
-	{ type: 'bar' as const, name: 'Inflows', encode: { x: 'timestamp', y: 'Inflows' }, stack: 'stackA' },
-	{ type: 'bar' as const, name: 'Outflows', encode: { x: 'timestamp', y: 'Outflows' }, stack: 'stackA' }
+	{ type: 'bar' as const, name: 'Inflows', encode: { x: 'timestamp', y: 'Inflows' }, stack: 'stackA', large: false },
+	{ type: 'bar' as const, name: 'Outflows', encode: { x: 'timestamp', y: 'Outflows' }, stack: 'stackA', large: false }
 ]
 const CHAIN_INFLOW_CHARTS = [
 	{
@@ -31,14 +31,16 @@ const CHAIN_INFLOW_CHARTS = [
 		name: 'Deposits',
 		encode: { x: 'timestamp', y: 'Deposits' },
 		color: '#3b82f6',
-		stack: 'inflows'
+		stack: 'inflows',
+		large: false
 	},
 	{
 		type: 'bar' as const,
 		name: 'Withdrawals',
 		encode: { x: 'timestamp', y: 'Withdrawals' },
 		color: '#ef4444',
-		stack: 'inflows'
+		stack: 'inflows',
+		large: false
 	}
 ]
 const BRIDGE_CHAIN_CHART_OPTIONS = [

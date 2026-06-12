@@ -145,8 +145,8 @@ function buildSeries({
 		const resolvedColor = chart.color ?? CHART_COLORS[i % CHART_COLORS.length]
 		const showSymbol = chart.type === 'line' ? !!chart.showSymbol : false
 		const symbol = showSymbol ? (chart.symbol ?? 'circle') : 'none'
-		// ECharts large mode disables symbols; default to disabling large mode when symbols are requested.
-		const large = chart.large ?? !showSymbol
+		// ECharts large bar mode does not support stack layout.
+		const large = chart.large ?? (chart.type === 'bar' && chart.stack != null ? false : !showSymbol)
 		const symbolSize = showSymbol ? (chart.symbolSize ?? 6) : undefined
 
 		const base: any = {

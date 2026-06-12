@@ -4,50 +4,62 @@ import type {
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
+import type { FeeExtraPeriodTotals } from '~/metrics/feeExtras'
 import { getNDistinctColors, slug } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IAdapterChainMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
+import { mergeMetricPeriods, type MetricPeriodFields } from './metricPeriods'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData, IProtocol } from './types'
 
-export type BribesData = {
-	total24h: number | null
-	total7d: number | null
-	total30d: number | null
-	total1y: number | null
-	totalAllTime: number | null
-}
+export type BribesData = FeeExtraPeriodTotals
 export type OpenInterestData = { total24h: number | null; doublecounted: boolean }
 export type ActiveLiquidityData = { total24h: number | null; doublecounted: boolean }
 export type NormalizedVolumeData = { total24h: number | null }
 
 type AggregatedProtocol = Omit<
 	IAdapterChainMetrics['protocols'][0],
-	'total24h' | 'total7d' | 'total30d' | 'total1y' | 'totalAllTime'
+	| 'total24h'
+	| 'total48hto24h'
+	| 'total7d'
+	| 'total14dto7d'
+	| 'total30d'
+	| 'total60dto30d'
+	| 'total7DaysAgo'
+	| 'total30DaysAgo'
+	| 'total1y'
+	| 'annualized1y'
+	| 'totalAllTime'
+	| 'change_1d'
+	| 'change_7d'
+	| 'change_1m'
+	| 'change_7dover7d'
+	| 'change_30dover30d'
 > & {
-	total24h: number
-	total7d: number
-	total30d: number
-	total1y: number
-	totalAllTime: number
+	total24h: number | null
+	total48hto24h: number | null
+	total7d: number | null
+	total14dto7d: number | null
+	total30d: number | null
+	total60dto30d: number | null
+	total7DaysAgo: number | null
+	total30DaysAgo: number | null
+	total1y: number | null
+	annualized1y: number | null
+	totalAllTime: number | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	change_7dover7d: number | null
+	change_30dover30d: number | null
 }
 
 export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics['protocols']): AggregatedProtocol {
 	const breakdowns24h: Record<string, Record<string, number>>[] = []
 	const breakdowns30d: Record<string, Record<string, number>>[] = []
-	const aggregatedRevenue = {
-		total24h: 0,
-		total7d: 0,
-		total30d: 0,
-		total1y: 0,
-		totalAllTime: 0
-	}
+	let aggregatedRevenue: MetricPeriodFields = {}
 	for (const p of protocolVersions) {
-		aggregatedRevenue.total24h += p.total24h ?? 0
-		aggregatedRevenue.total7d += p.total7d ?? 0
-		aggregatedRevenue.total30d += p.total30d ?? 0
-		aggregatedRevenue.total1y += p.total1y ?? 0
-		aggregatedRevenue.totalAllTime += p.totalAllTime ?? 0
+		aggregatedRevenue = mergeMetricPeriods(aggregatedRevenue, p)
 		if (p.breakdown24h) breakdowns24h.push(p.breakdown24h)
 		if (p.breakdown30d) breakdowns30d.push(p.breakdown30d)
 	}
@@ -68,6 +80,7 @@ export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics
 		displayName: parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.displayName,
 		slug: slug(parentProtocol.linkedProtocols?.[0] || parentProtocol.parentProtocol || parentProtocol.name),
 		...aggregatedRevenue,
+		annualized1y: aggregatedRevenue.annualized1y ?? null,
 		chains: Array.from(chains),
 		breakdown24h: mergedBreakdown24h,
 		breakdown30d: mergedBreakdown30d
@@ -276,8 +289,13 @@ export function matchRevenueToEarnings(
 		defillamaId: string
 		groupedName: string
 		total24h: number | null
+		total48hto24h?: number | null
 		total7d: number | null
+		total14dto7d?: number | null
 		total30d: number | null
+		total60dto30d?: number | null
+		total7DaysAgo?: number | null
+		total30DaysAgo?: number | null
 		total1y: number | null
 		totalAllTime: number | null
 	}>,
@@ -307,8 +325,13 @@ export function matchRevenueToEarnings(
 		if (matchingEarningsProtocol) {
 			matchedData[matchingEarningsProtocol.name] = {
 				total24h: revenueProtocol.total24h ?? null,
+				total48hto24h: revenueProtocol.total48hto24h ?? null,
 				total7d: revenueProtocol.total7d ?? null,
+				total14dto7d: revenueProtocol.total14dto7d ?? null,
 				total30d: revenueProtocol.total30d ?? null,
+				total60dto30d: revenueProtocol.total60dto30d ?? null,
+				total7DaysAgo: revenueProtocol.total7DaysAgo ?? null,
+				total30DaysAgo: revenueProtocol.total30DaysAgo ?? null,
 				total1y: revenueProtocol.total1y ?? null,
 				totalAllTime: revenueProtocol.totalAllTime ?? null
 			}
@@ -1084,7 +1107,7 @@ function buildBarPresentation({
 			type: 'bar',
 			name: seriesName,
 			encode: { x: 'timestamp', y: seriesName },
-			...(state.barLayout === 'stacked' ? { stack: 'chain' as const } : {}),
+			...(state.barLayout === 'stacked' ? { stack: 'chain' as const, large: false } : {}),
 			color: topColorBySeriesName[seriesName]
 		})),
 		valueMode: state.valueMode,
@@ -1186,6 +1209,35 @@ function buildNullLatestRows(selectedNames: string[]): BreakdownLatestValueRow[]
 	return rows
 }
 
+function buildCumulativeLatestValueRowsFromChartData({
+	chartData,
+	selectedNames
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+}): BreakdownLatestValueRow[] {
+	const totals = new Map<string, number>()
+	const pointCounts = new Map<string, number>()
+
+	for (const row of chartData.source) {
+		for (const name of selectedNames) {
+			const value = row[name] as number | null | undefined
+			if (value == null) continue
+			totals.set(name, (totals.get(name) ?? 0) + value)
+			pointCounts.set(name, (pointCounts.get(name) ?? 0) + 1)
+		}
+	}
+
+	const rows: BreakdownLatestValueRow[] = []
+	for (const name of selectedNames) {
+		rows.push({
+			name,
+			total24h: (pointCounts.get(name) ?? 0) === 0 ? null : (totals.get(name) ?? 0)
+		})
+	}
+	return rows
+}
+
 function buildLatestValueRowsFromChartData({
 	chartData,
 	selectedNames,
@@ -1197,22 +1249,14 @@ function buildLatestValueRowsFromChartData({
 	seriesType: LatestValueSeriesType
 }): BreakdownLatestValueRow[] {
 	if (groupBy === 'daily') {
-		const effectiveTimestamp = getEffectiveDailyLatestTimestamp(chartData)
-		if (effectiveTimestamp == null) {
+		const sourceRow = getEffectiveDailyLatestRow(chartData)
+		if (!sourceRow) {
 			return buildNullLatestRows(selectedNames)
-		}
-
-		let sourceRow: MultiSeriesChart2Dataset['source'][0] | undefined
-		for (const row of chartData.source) {
-			if (Number(row.timestamp) === effectiveTimestamp) {
-				sourceRow = row
-				break
-			}
 		}
 
 		const rows: BreakdownLatestValueRow[] = []
 		for (const name of selectedNames) {
-			const value = sourceRow?.[name] as number | null | undefined
+			const value = sourceRow[name] as number | null | undefined
 			rows.push({
 				name,
 				total24h: value ?? null
@@ -1222,23 +1266,8 @@ function buildLatestValueRowsFromChartData({
 	}
 
 	if (groupBy === 'cumulative') {
-		const seriesMap = buildSeriesMapForNames({ chartData, seriesNames: selectedNames })
-		const rows: BreakdownLatestValueRow[] = []
-		for (const name of selectedNames) {
-			// Cumulative rankings should always use running totals, even for line renderers.
-			const groupedData = formatBarChart({
-				data: seriesMap.get(name) ?? [],
-				groupBy,
-				dateInMs: true,
-				denominationPriceHistory: null
-			})
-
-			rows.push({
-				name,
-				total24h: groupedData.at(-1)?.[1] ?? null
-			})
-		}
-		return rows
+		// Mirrors the final point from formatBarChart(..., groupBy: 'cumulative', denominationPriceHistory: null).
+		return buildCumulativeLatestValueRowsFromChartData({ chartData, selectedNames })
 	}
 
 	const latestTsMs = getLatestTimestampMsInDataset(chartData)
@@ -1272,23 +1301,31 @@ function buildLatestValueRowsFromChartData({
 	return rows
 }
 
-function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): number | null {
+function getEffectiveDailyLatestRow(chartData: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset['source'][0] | null {
 	let lastTimestamp = Number.NEGATIVE_INFINITY
 	let previousTimestamp = Number.NEGATIVE_INFINITY
+	let lastTimestampRow: MultiSeriesChart2Dataset['source'][0] | null = null
+	let previousTimestampRow: MultiSeriesChart2Dataset['source'][0] | null = null
 	let count = 0
 	for (const row of chartData.source) {
 		const timestamp = Number(row.timestamp)
 		count++
-		if (timestamp >= lastTimestamp) {
+		if (timestamp > lastTimestamp) {
 			previousTimestamp = lastTimestamp
+			previousTimestampRow = lastTimestampRow
 			lastTimestamp = timestamp
+			lastTimestampRow = row
+		} else if (timestamp === lastTimestamp) {
+			previousTimestamp = lastTimestamp
+			previousTimestampRow = lastTimestampRow
 		} else if (timestamp > previousTimestamp) {
 			previousTimestamp = timestamp
+			previousTimestampRow = row
 		}
 	}
 
 	if (count === 0) return null
-	if (count === 1) return lastTimestamp
+	if (count === 1) return lastTimestampRow
 
 	const lastDate = new Date(lastTimestamp)
 	const isUtcMidnight =
@@ -1298,7 +1335,7 @@ function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): 
 		lastDate.getUTCMilliseconds() === 0
 	const gapMs = lastTimestamp - previousTimestamp
 
-	return !isUtcMidnight || gapMs < MIN_COMPLETE_DAILY_GAP_MS ? previousTimestamp : lastTimestamp
+	return !isUtcMidnight || gapMs < MIN_COMPLETE_DAILY_GAP_MS ? previousTimestampRow : lastTimestampRow
 }
 
 function buildHBarPresentation({

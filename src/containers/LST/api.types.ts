@@ -18,7 +18,6 @@ export interface IYieldPoolApiItem {
 	chain: string
 	symbol: string
 	apy: number | null
-	[key: string]: unknown
 }
 
 /** LSD rate entry from LSD_RATES_API */

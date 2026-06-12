@@ -8,10 +8,36 @@ import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { formatNum, getAnnualizedRatio, getPercentChange, slug } from '~/utils'
+import { formatNum, getMarketCapToAnnualizedMetricRatio, getPercentChange, slug } from '~/utils'
 import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
-import type { IChildProtocol, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
-import { toFilterProtocol, toStrikeTvl } from './utils'
+import { buildDimensionProtocolMetrics } from './readModel'
+import type { IChildProtocol, IProtocol, ProtocolRankingTvlEntry, TVL_TYPES } from './types'
+import { protocolMatchesForkFilter, protocolMatchesOracleFilter, toFilterProtocol, toStrikeTvl } from './utils'
+
+const PREVIOUS_TVL_KEYS = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
+const PREVIOUS_TVL_KEYS_SET = new Set<string>(PREVIOUS_TVL_KEYS)
+const STRICT_NULL_METRIC_KEYS = new Set<string>(['annualized1y'])
+
+function addMetricTotals<T extends object>(acc: T, values: T | null | undefined) {
+	for (const key in values ?? {}) {
+		if (key === 'change_7dover7d') continue
+
+		const metricKey = key as keyof T
+		const value = values?.[metricKey] as number | null | undefined
+		if (value == null) {
+			if (STRICT_NULL_METRIC_KEYS.has(key) || acc[metricKey] === undefined) {
+				acc[metricKey] = null as T[keyof T]
+			}
+			continue
+		}
+		const numericValue = Number(value)
+		if (!Number.isFinite(numericValue)) continue
+		if (STRICT_NULL_METRIC_KEYS.has(key) && acc[metricKey] === null) {
+			continue
+		}
+		acc[metricKey] = (((acc[metricKey] as number | null | undefined) ?? 0) + numericValue) as T[keyof T]
+	}
+}
 
 export const getProtocolsByChain = async ({
 	chain,
@@ -40,53 +66,6 @@ export const getProtocolsByChain = async ({
 
 	const normalizedOracle = oracle ? slug(oracle) : null
 	const normalizedFork = fork ? slug(fork) : null
-
-	const protocolMatchesForkFilter = (protocol: ILiteProtocol): boolean => {
-		if (!normalizedFork) return true
-
-		const forkedFrom = protocol.forkedFrom
-		if (!forkedFrom) return false
-		for (const forkName of forkedFrom) {
-			if (slug(forkName) === normalizedFork) return true
-		}
-		return false
-	}
-
-	const protocolMatchesOracleFilter = (protocol: ILiteProtocol): boolean => {
-		if (!normalizedOracle) return true
-
-		const oraclesByChain = protocol.oraclesByChain
-		let hasOraclesByChain = false
-		for (const _chain in oraclesByChain) {
-			hasOraclesByChain = true
-			break
-		}
-
-		if (hasOraclesByChain) {
-			if (chain !== 'All') {
-				const normalizedChainName = slug(currentChainMetadata.name)
-				for (const chainName in oraclesByChain) {
-					if (slug(chainName) !== normalizedChainName) continue
-					const oracleNames = oraclesByChain[chainName]
-					for (const oracleName of oracleNames) {
-						if (slug(oracleName) === normalizedOracle) return true
-					}
-					return false
-				}
-				return false
-			}
-
-			for (const chainName in oraclesByChain) {
-				const oracleNames = oraclesByChain[chainName]
-				for (const oracleName of oracleNames) {
-					if (slug(oracleName) === normalizedOracle) return true
-				}
-			}
-			return false
-		}
-
-		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)
-	}
 
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsProtocols]: [
 		ProtocolsResponse,
@@ -135,8 +114,13 @@ export const getProtocolsByChain = async ({
 		(protocol) =>
 			!protocol.defillamaId.startsWith('chain#') &&
 			protocolMetadata[protocol.defillamaId] &&
-			protocolMatchesForkFilter(protocol) &&
-			protocolMatchesOracleFilter(protocol) &&
+			protocolMatchesForkFilter({ protocol, normalizedFork }) &&
+			protocolMatchesOracleFilter({
+				protocol,
+				normalizedOracle,
+				isAllChains: chain === 'All',
+				chainDisplayName: currentChainMetadata.name
+			}) &&
 			toFilterProtocol({
 				protocolMetadata: protocolMetadata[protocol.defillamaId],
 				protocolData: protocol,
@@ -160,75 +144,13 @@ export const getProtocolsByChain = async ({
 
 	const protocolTokenPrices = geckoIds.size > 0 ? await fetchCoinPrices(Array.from(geckoIds)).catch(() => ({})) : {}
 
-	const dimensionProtocols = {}
-
-	for (const protocol of fees?.protocols ?? []) {
-		if (protocol.total24h != null) {
-			dimensionProtocols[protocol.defillamaId] = {
-				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				fees: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					total30d: protocol.total30d ?? null,
-					total1y: protocol.total1y ?? null,
-					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
-			}
-		}
-	}
-
-	for (const protocol of revenue?.protocols ?? []) {
-		if (protocol.total24h != null) {
-			dimensionProtocols[protocol.defillamaId] = {
-				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				revenue: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					total30d: protocol.total30d ?? null,
-					total1y: protocol.total1y ?? null,
-					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
-			}
-		}
-	}
-
-	for (const protocol of holdersRevenue?.protocols ?? []) {
-		if (protocol.total24h != null) {
-			dimensionProtocols[protocol.defillamaId] = {
-				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				holdersRevenue: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					total30d: protocol.total30d ?? null,
-					total1y: protocol.total1y ?? null,
-					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
-			}
-		}
-	}
-
-	for (const protocol of dexs?.protocols ?? []) {
-		if (protocol.total24h != null) {
-			dimensionProtocols[protocol.defillamaId] = {
-				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				dexs: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					change_7dover7d: protocol.change_7dover7d ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
-			}
-		}
-	}
+	const dimensionProtocols = buildDimensionProtocolMetrics({ fees, revenue, holdersRevenue, dexs })
 	const protocolsStore: Record<string, IProtocol> = {}
 
 	const parentStore: Record<string, Array<IChildProtocol>> = {}
 
 	for (const protocol of eligibleProtocols) {
-		const tvls = {} as Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }>
+		const tvls = {} as Record<TVL_TYPES, ProtocolRankingTvlEntry>
 
 		if (chain === 'All') {
 			tvls.default = {
@@ -246,13 +168,14 @@ export const getProtocolsByChain = async ({
 			}
 		}
 
-		const tvlChange = tvls.default.tvl
-			? {
-					change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
-					change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
-					change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
-				}
-			: null
+		const tvlChange =
+			tvls.default.tvl != null
+				? {
+						change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
+						change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
+						change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
+					}
+				: null
 
 		for (const chainKey in protocol.chainTvls ?? {}) {
 			if (chain === 'All') {
@@ -278,14 +201,12 @@ export const getProtocolsByChain = async ({
 		}
 
 		const childProtocolTvl = tvls?.default?.tvl
-		const childMcapTvl =
-			protocol.mcap != null &&
-			protocol.category !== 'Bridge' &&
-			childProtocolTvl != null &&
-			childProtocolTvl !== 0 &&
-			Number.isFinite(childProtocolTvl)
-				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
-				: null
+		let childMcapTvl: number | null = null
+		if (protocol.mcap != null && protocol.category !== 'Bridge' && childProtocolTvl != null && childProtocolTvl !== 0) {
+			// Derived display math can be non-finite even when upstream fields are numeric.
+			const childMcapTvlRatio = +protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2)
+			childMcapTvl = Number.isFinite(childMcapTvlRatio) ? +formatNum(childMcapTvlRatio) : null
+		}
 
 		const llamaswapChains = protocol.geckoId ? (protocolLlamaswapDataset?.[protocol.geckoId] ?? null) : null
 		const childStore: IChildProtocol & { defillamaId: string } = {
@@ -313,26 +234,42 @@ export const getProtocolsByChain = async ({
 			childStore.deprecated = true
 		}
 
-		if (dimensionProtocols[protocol.defillamaId]?.fees) {
-			childStore.fees = dimensionProtocols[protocol.defillamaId].fees
-			childStore.fees.pf = protocol.mcap
-				? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.total30d)
-				: null
+		const dimensionProtocol = dimensionProtocols[protocol.defillamaId]
+		const feesMetrics = dimensionProtocol?.fees
+		if (feesMetrics) {
+			childStore.fees = {
+				total24h: feesMetrics.total24h,
+				total7d: feesMetrics.total7d,
+				total30d: feesMetrics.total30d,
+				total1y: feesMetrics.total1y,
+				annualized1y: feesMetrics.annualized1y,
+				monthlyAverage1y: feesMetrics.monthlyAverage1y,
+				totalAllTime: feesMetrics.totalAllTime,
+				pf: protocol.mcap != null ? getMarketCapToAnnualizedMetricRatio(protocol.mcap, feesMetrics.annualized1y) : null
+			}
 		}
 
-		if (dimensionProtocols[protocol.defillamaId]?.revenue) {
-			childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
-			childStore.revenue.ps = protocol.mcap
-				? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].revenue.total30d)
-				: null
+		const revenueMetrics = dimensionProtocol?.revenue
+		if (revenueMetrics) {
+			childStore.revenue = {
+				total24h: revenueMetrics.total24h,
+				total7d: revenueMetrics.total7d,
+				total30d: revenueMetrics.total30d,
+				total1y: revenueMetrics.total1y,
+				annualized1y: revenueMetrics.annualized1y,
+				monthlyAverage1y: revenueMetrics.monthlyAverage1y,
+				totalAllTime: revenueMetrics.totalAllTime,
+				ps:
+					protocol.mcap != null ? getMarketCapToAnnualizedMetricRatio(protocol.mcap, revenueMetrics.annualized1y) : null
+			}
 		}
 
-		if (dimensionProtocols[protocol.defillamaId]?.holdersRevenue) {
-			childStore.holdersRevenue = dimensionProtocols[protocol.defillamaId].holdersRevenue
+		if (dimensionProtocol?.holdersRevenue) {
+			childStore.holdersRevenue = dimensionProtocol.holdersRevenue
 		}
 
-		if (dimensionProtocols[protocol.defillamaId]?.dexs) {
-			childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
+		if (dimensionProtocol?.dexs) {
+			childStore.dexs = dimensionProtocol.dexs
 		}
 
 		const emissionsMatch =
@@ -351,7 +288,8 @@ export const getProtocolsByChain = async ({
 		}
 
 		if (protocol.parentProtocol && protocolMetadata[protocol.parentProtocol]) {
-			parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
+			parentStore[protocol.parentProtocol] ??= []
+			parentStore[protocol.parentProtocol].push(childStore)
 		} else {
 			protocolsStore[protocol.defillamaId] = childStore
 		}
@@ -367,106 +305,119 @@ export const getProtocolsByChain = async ({
 	}
 
 	for (const parentProtocol of parentProtocols) {
-		if (parentStore[parentProtocol.id] && parentStore[parentProtocol.id].length > 1) {
-			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const chainOrExtraTvlKey in curr.tvl ?? {}) {
-								if (!acc[chainOrExtraTvlKey]) {
-									acc[chainOrExtraTvlKey] = {}
-								}
-								for (const currentOrPreviousTvlKey in curr.tvl[chainOrExtraTvlKey]) {
-									let currValue = curr.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
+		const childProtocols = parentStore[parentProtocol.id]
+		if (childProtocols && childProtocols.length > 1) {
+			let parentTvl: IChildProtocol['tvl'] | null = null
+			let parentFees: IChildProtocol['fees'] | null = null
+			let parentRevenue: IChildProtocol['revenue'] | null = null
+			let parentHoldersRevenue: IChildProtocol['holdersRevenue'] | null = null
+			let parentDexs: IChildProtocol['dexs'] | null = null
+			let parentEmissions: IChildProtocol['emissions'] | null = null
+			let parentDexsPrevious7d = 0
+			let hasParentDexsChangeInput = false
+			let isParentDexsChangeIncomplete = false
+			const missingPrevKeys = new Set<(typeof PREVIOUS_TVL_KEYS)[number]>()
+			const categorySet = new Set<string>()
+			const chainsSet = new Set<string>()
+			let parentStrikeTvl = false
 
-									// Skip if accumulator is already null (don't override)
-									if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] === null) {
-										continue
-									}
-
-									if (currValue == null) {
-										// If current value is null, propagate null to parent only for these keys
-										if (['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].includes(currentOrPreviousTvlKey)) {
-											acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
-										}
-									} else {
-										acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
-											(acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
-									}
-								}
+			for (const child of childProtocols) {
+				if (child.tvl !== null) {
+					parentTvl ??= {} as IChildProtocol['tvl']
+					for (const chainOrExtraTvlKey in child.tvl ?? {}) {
+						if (!parentTvl[chainOrExtraTvlKey]) {
+							parentTvl[chainOrExtraTvlKey] = {}
+						}
+						for (const currentOrPreviousTvlKey in child.tvl[chainOrExtraTvlKey]) {
+							if (
+								child.deprecated &&
+								child.tvl[chainOrExtraTvlKey].tvl === 0 &&
+								PREVIOUS_TVL_KEYS_SET.has(currentOrPreviousTvlKey)
+							) {
+								continue
 							}
-							return acc
-						},
-						{} as IChildProtocol['tvl']
-					)
-				: null
 
-			const parentFees = parentStore[parentProtocol.id].some((child) => child.fees !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.fees ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.fees[key1]
+							const currValue = child.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
+
+							// Skip if accumulator is already null (don't override)
+							if (parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] === null) {
+								continue
 							}
-							return acc
-						},
-						{} as IChildProtocol['fees']
-					)
-				: null
+
+							if (currValue == null) {
+								// If current value is null, propagate null to parent only for these keys
+								if (PREVIOUS_TVL_KEYS_SET.has(currentOrPreviousTvlKey)) {
+									parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
+								}
+							} else {
+								parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
+									(parentTvl[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
+							}
+						}
+					}
+				}
+
+				if (child.tvl?.default?.tvl != null && !(child.deprecated && child.tvl.default.tvl === 0)) {
+					for (const key of PREVIOUS_TVL_KEYS) {
+						if (child.tvl.default[key] == null) {
+							missingPrevKeys.add(key)
+						}
+					}
+				}
+
+				if (child.fees != null) {
+					parentFees ??= {} as NonNullable<IChildProtocol['fees']>
+					addMetricTotals(parentFees, child.fees)
+				}
+				if (child.revenue != null) {
+					parentRevenue ??= {} as NonNullable<IChildProtocol['revenue']>
+					addMetricTotals(parentRevenue, child.revenue)
+				}
+				if (child.holdersRevenue != null) {
+					parentHoldersRevenue ??= {} as NonNullable<IChildProtocol['holdersRevenue']>
+					addMetricTotals(parentHoldersRevenue, child.holdersRevenue)
+				}
+				if (child.dexs != null) {
+					parentDexs ??= {} as NonNullable<IChildProtocol['dexs']>
+					addMetricTotals(parentDexs, child.dexs)
+
+					if (child.dexs.total7d != null) {
+						const change = child.dexs.change_7dover7d
+						const previous7dRatio = change == null ? null : 1 + change / 100
+						if (previous7dRatio == null || previous7dRatio <= 0) {
+							isParentDexsChangeIncomplete = true
+						} else {
+							hasParentDexsChangeInput = true
+							parentDexsPrevious7d += child.dexs.total7d / previous7dRatio
+						}
+					}
+				}
+				if (child.emissions != null) {
+					parentEmissions ??= {} as NonNullable<IChildProtocol['emissions']>
+					addMetricTotals(parentEmissions, child.emissions)
+				}
+
+				if (child.category) categorySet.add(child.category)
+				for (const childChain of child.chains ?? []) {
+					chainsSet.add(childChain)
+				}
+				if (child.strikeTvl) parentStrikeTvl = true
+			}
 
 			if (parentFees) {
-				parentFees.pf = getAnnualizedRatio(parentProtocol.mcap, parentFees.total30d)
+				parentFees.pf = getMarketCapToAnnualizedMetricRatio(parentProtocol.mcap, parentFees.annualized1y)
 			}
-
-			const parentRevenue = parentStore[parentProtocol.id].some((child) => child.revenue !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.revenue ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.revenue[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['revenue']
-					)
-				: null
 
 			if (parentRevenue) {
-				parentRevenue.ps = getAnnualizedRatio(parentProtocol.mcap, parentRevenue.total30d)
+				parentRevenue.ps = getMarketCapToAnnualizedMetricRatio(parentProtocol.mcap, parentRevenue.annualized1y)
 			}
 
-			const parentHoldersRevenue = parentStore[parentProtocol.id].some((child) => child.holdersRevenue !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.holdersRevenue ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.holdersRevenue[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['holdersRevenue']
-					)
-				: null
-
-			const parentDexs = parentStore[parentProtocol.id].some((child) => child.dexs !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.dexs ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.dexs[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['dexs']
-					)
-				: null
-
-			let parentEmissions = parentStore[parentProtocol.id].some((child) => child.emissions !== null)
-				? parentStore[parentProtocol.id].reduce(
-						(acc, curr) => {
-							for (const key1 in curr.emissions ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.emissions[key1]
-							}
-							return acc
-						},
-						{} as IChildProtocol['emissions']
-					)
-				: null
+			if (parentDexs) {
+				parentDexs.change_7dover7d =
+					isParentDexsChangeIncomplete || !hasParentDexsChangeInput
+						? null
+						: getPercentChange(parentDexs.total7d, parentDexsPrevious7d)
+			}
 
 			if (!parentEmissions) {
 				const parentEmissionsMatch = emissionsProtocols[protocolMetadata[parentProtocol.id]?.displayName]
@@ -497,14 +448,7 @@ export const getProtocolsByChain = async ({
 				}
 			}
 
-			const prevKeys = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
-			const missingPrevKeys = prevKeys.filter((key) =>
-				parentStore[parentProtocol.id].some(
-					(child) => child.tvl?.default?.['tvl'] != null && child.tvl?.default?.[key] == null
-				)
-			)
-
-			if (missingPrevKeys.length && parentTvl?.default) {
+			if (missingPrevKeys.size && parentTvl?.default) {
 				for (const key of missingPrevKeys) {
 					parentTvl.default[key] = null
 				}
@@ -519,18 +463,11 @@ export const getProtocolsByChain = async ({
 						}
 					: null
 
-			const categorySet = new Set<string>()
-			for (const p of parentStore[parentProtocol.id]) {
-				if (p.category) categorySet.add(p.category)
-			}
 			const chilsProtocolCategories = Array.from(categorySet)
 
 			const parentProtocolTvl = parentTvl?.default?.tvl
 			const parentMcapTvl =
-				parentProtocol.mcap != null &&
-				parentProtocolTvl != null &&
-				parentProtocolTvl !== 0 &&
-				Number.isFinite(parentProtocolTvl)
+				parentProtocol.mcap != null && parentProtocolTvl != null && parentProtocolTvl !== 0
 					? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentProtocolTvl.toFixed(2))
 					: null
 
@@ -542,11 +479,11 @@ export const getProtocolsByChain = async ({
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
-				childProtocols: parentStore[parentProtocol.id],
-				chains: Array.from(new Set(parentStore[parentProtocol.id].flatMap((p) => p.chains ?? []))),
+				childProtocols,
+				chains: Array.from(chainsSet),
 				tvl: parentTvl,
 				tvlChange: parentTvlChange,
-				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
+				strikeTvl: parentStrikeTvl,
 				mcap: parentProtocol.mcap ?? null,
 				tokenPrice: parentProtocol.gecko_id
 					? (protocolTokenPrices[`coingecko:${parentProtocol.gecko_id}`]?.price ?? null)

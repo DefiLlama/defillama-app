@@ -559,7 +559,7 @@ export function LiquidationsDistributionChart({
 			encode: { x: 'liqPrice', y: entry.key },
 			stack: 'liquidations',
 			color: CHART_COLORS[index % CHART_COLORS.length],
-			large: true
+			large: false
 		}))
 
 		return {

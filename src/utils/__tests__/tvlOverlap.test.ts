@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	calculateTotalWithExtraToggles,
 	getEnabledExtraTvlApiKeys,
+	getEnabledForkOracleExtraTvlChartApiKeys,
 	getExtraTvlSeriesSign,
 	shouldSubtractTvlOverlapSeries
 } from '../tvlOverlap'
@@ -32,6 +33,18 @@ describe('Oracle and Fork TVL overlap helpers', () => {
 				liquidstaking: true
 			})
 		).toEqual(['dcAndLsOverlap', 'doublecounted', 'liquidstaking'])
+	})
+
+	it('keeps Fork and Oracle chart query keys limited to backend-supported keys', () => {
+		expect(
+			getEnabledForkOracleExtraTvlChartApiKeys({
+				tvl: true,
+				staking: true,
+				pool2: true,
+				doublecounted: true,
+				liquidstaking: true
+			})
+		).toEqual(['pool2', 'staking'])
 	})
 
 	it('adds enabled extras and subtracts overlap when both overlap parents are enabled', () => {

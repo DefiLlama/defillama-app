@@ -64,6 +64,15 @@ const getServerSidePropsHandler: GetServerSideProps<DashboardPageProps> = async 
 	const { dashboard, status } = await fetchDashboardConfigWithStatus(dashboardId, null)
 	context.res.setHeader('Vary', 'Cookie, Authorization')
 
+	if (dashboard?.slug && dashboard.slug !== dashboardId) {
+		return {
+			redirect: {
+				destination: `/pro/${encodeURIComponent(dashboard.slug)}`,
+				permanent: true
+			}
+		}
+	}
+
 	if (dashboard?.visibility === 'public') {
 		context.res.setHeader('Cache-Control', PUBLIC_DASHBOARD_CACHE_CONTROL)
 		const seo = buildDashboardSeo(dashboard)
@@ -139,8 +148,16 @@ function DashboardPageContent({
 	const { isLoadingDashboard, streamHasResolved, loadError, reloadDashboard, dashboardVisibility, currentDashboard } =
 		useProDashboardDashboard()
 	const [isValidating, setIsValidating] = useState(true)
-	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
+	const { trackView } = useDashboardEngagement(currentDashboard?.id ?? null)
 	const hasTrackedView = useRef(false)
+
+	useEffect(() => {
+		if (dashboardId === 'new' || !currentDashboard?.slug) return
+		const routeKey = router.query.dashboardId
+		if (typeof routeKey === 'string' && routeKey !== 'new' && routeKey !== currentDashboard.slug) {
+			void router.replace(`/pro/${currentDashboard.slug}`, undefined, { shallow: true })
+		}
+	}, [dashboardId, currentDashboard?.slug, router.query.dashboardId, router])
 
 	useEffect(() => {
 		if (dashboardId === 'new') {

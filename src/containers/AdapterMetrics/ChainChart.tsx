@@ -365,10 +365,10 @@ function applyBarLayoutToPresentation(
 
 	const charts = presentation.charts.map((chart) => {
 		if (chartState.barLayout === 'stacked') {
-			return { ...chart, stack: 'chain' as const }
+			return { ...chart, stack: 'chain' as const, large: false }
 		}
 
-		const { stack: _stack, ...rest } = chart
+		const { stack: _stack, large: _large, ...rest } = chart
 		return rest
 	})
 

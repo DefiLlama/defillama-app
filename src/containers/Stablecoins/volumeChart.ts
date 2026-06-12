@@ -53,7 +53,7 @@ const buildCharts = (names: string[], stacked: boolean): MultiSeriesChart2Series
 			color: CHART_COLORS[i % CHART_COLORS.length],
 			barMinWidth: 1,
 			barMaxWidth: 24,
-			...(stacked ? { stack: 'stablecoin-volume' } : {})
+			...(stacked ? { stack: 'stablecoin-volume', large: false } : {})
 		})
 	}
 	return charts

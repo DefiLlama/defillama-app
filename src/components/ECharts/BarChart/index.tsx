@@ -121,7 +121,7 @@ export default function BarChart({
 				stackedSeries[stack] = {
 					name: stack,
 					type: 'bar',
-					large: true,
+					large: false,
 					stack: defaultStacks[stack],
 					emphasis: {
 						focus: 'series',

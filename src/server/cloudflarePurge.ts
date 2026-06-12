@@ -43,11 +43,21 @@ export function researchPathsToUrls(paths: string[], env: NodeJS.ProcessEnv = pr
 	return Array.from(urls)
 }
 
-export function dashboardPathsToUrls(dashboardId: string, env: NodeJS.ProcessEnv = process.env): string[] {
+export type DashboardPurgeKeys = {
+	id: string
+	slug?: string | null
+	previousSlug?: string | null
+}
+
+export function dashboardPathsToUrls(keys: DashboardPurgeKeys, env: NodeJS.ProcessEnv = process.env): string[] {
 	const siteUrl = siteUrlFromEnv(env)
-	return [`/pro/${dashboardId}`, `/api/dynamic/dashboard/${dashboardId}/stream`].map((path) =>
-		new URL(path, siteUrl).toString()
-	)
+	const distinctKeys = new Set([keys.id, keys.slug, keys.previousSlug].filter((key): key is string => !!key))
+	const urls = new Set<string>()
+	for (const key of distinctKeys) {
+		urls.add(new URL(`/pro/${key}`, siteUrl).toString())
+		urls.add(new URL(`/api/dynamic/dashboard/${key}/stream`, siteUrl).toString())
+	}
+	return Array.from(urls)
 }
 
 async function purgeCloudflareUrls(
@@ -98,8 +108,8 @@ export async function purgeCloudflareResearchUrls(
 }
 
 export async function purgeCloudflareDashboardUrls(
-	dashboardId: string,
+	keys: DashboardPurgeKeys,
 	options: PurgeCloudflareOptions = {}
 ): Promise<CloudflarePurgeResult> {
-	return purgeCloudflareUrls(dashboardPathsToUrls(dashboardId, options.env), 'dashboard', options)
+	return purgeCloudflareUrls(dashboardPathsToUrls(keys, options.env), 'dashboard', options)
 }

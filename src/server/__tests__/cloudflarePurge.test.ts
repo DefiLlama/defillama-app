@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { normalizeResearchCachePaths, purgeCloudflareResearchUrls, researchPathsToUrls } from '~/server/cloudflarePurge'
+import {
+	dashboardPathsToUrls,
+	normalizeResearchCachePaths,
+	purgeCloudflareResearchUrls,
+	researchPathsToUrls
+} from '~/server/cloudflarePurge'
 
 describe('research Cloudflare purge helpers', () => {
 	it('normalizes only research paths', () => {
@@ -48,5 +53,27 @@ describe('research Cloudflare purge helpers', () => {
 		expect(
 			researchPathsToUrls(['/research/report/story'], { ...process.env, SITE_URL: 'https://www.defillama.test' })
 		).toEqual(['https://www.defillama.test/research/report/story'])
+	})
+})
+
+describe('dashboard Cloudflare purge helpers', () => {
+	const env = { ...process.env, NEXT_PUBLIC_SITE_URL: 'https://defillama.test' }
+
+	it('builds page and stream urls for id, slug, and previous slug', () => {
+		expect(dashboardPathsToUrls({ id: 'dash-1', slug: 'yield-overview', previousSlug: 'old-yield' }, env)).toEqual([
+			'https://defillama.test/pro/dash-1',
+			'https://defillama.test/api/dynamic/dashboard/dash-1/stream',
+			'https://defillama.test/pro/yield-overview',
+			'https://defillama.test/api/dynamic/dashboard/yield-overview/stream',
+			'https://defillama.test/pro/old-yield',
+			'https://defillama.test/api/dynamic/dashboard/old-yield/stream'
+		])
+	})
+
+	it('dedupes keys and skips empty slugs', () => {
+		expect(dashboardPathsToUrls({ id: 'dash-1', slug: 'dash-1', previousSlug: null }, env)).toEqual([
+			'https://defillama.test/pro/dash-1',
+			'https://defillama.test/api/dynamic/dashboard/dash-1/stream'
+		])
 	})
 })

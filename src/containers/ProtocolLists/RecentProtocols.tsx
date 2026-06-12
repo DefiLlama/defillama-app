@@ -99,8 +99,10 @@ export function RecentProtocols({
 			let tvlPrevDay: number | null = null
 			let tvlPrevWeek: number | null = null
 			let tvlPrevMonth: number | null = null
-			const extraTvl: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> =
-				{}
+			const extraTvl: Record<
+				string,
+				{ tvl: number; tvlPrevDay: number | null; tvlPrevWeek: number | null; tvlPrevMonth: number | null }
+			> = {}
 
 			for (const chainName of protocol.chains) {
 				if (!chainsToSelectSet.has(chainName.toLowerCase())) continue

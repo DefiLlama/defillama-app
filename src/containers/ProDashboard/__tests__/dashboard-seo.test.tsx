@@ -93,6 +93,21 @@ describe('pro dashboard SEO shell', () => {
 		})
 	})
 
+	it('prefers the dashboard slug for canonical url and structured data', () => {
+		const seo = buildDashboardSeo({ ...dashboard, slug: 'revenue-watchlist' })
+
+		expect(seo.canonicalPath).toBe('/pro/revenue-watchlist')
+		expect(seo.jsonLd).toMatchObject({
+			'@graph': expect.arrayContaining([
+				expect.objectContaining({
+					'@type': 'WebPage',
+					url: 'https://defillama.com/pro/revenue-watchlist'
+				})
+			])
+		})
+		expect(toDashboardSeoPublicDashboard({ ...dashboard, slug: 'revenue-watchlist' }).slug).toBe('revenue-watchlist')
+	})
+
 	it('renders a visible semantic summary for the initial HTML', () => {
 		const seo = buildDashboardSeo(dashboard)
 		const html = renderToStaticMarkup(<DashboardSeoSummary dashboard={dashboard} seo={seo} />)

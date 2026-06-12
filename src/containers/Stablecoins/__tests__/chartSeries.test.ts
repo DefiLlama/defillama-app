@@ -165,6 +165,7 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.stacked).toBe(true)
 		expect(payload.showTotalInTooltip).toBe(true)
 		expect(payload.charts.every((chart) => chart.type === 'bar' && chart.stack === 'tokenInflows')).toBe(true)
+		expect(payload.charts.every((chart) => chart.large === false)).toBe(true)
 	})
 })
 

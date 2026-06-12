@@ -152,7 +152,26 @@ describe('KeyMetrics', () => {
 		expect(markup).not.toContain('$1220')
 	})
 
-	it('falls back to 30d annualized fees when annualized1y fees are missing', async () => {
+	it('renders annualized1y fees even when 30d fees are missing', async () => {
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			fees: {
+				total24h: null,
+				total7d: null,
+				total30d: null,
+				total1y: 3500,
+				annualized1y: 3500,
+				totalAllTime: null,
+				chainBreakdown: null
+			}
+		})
+
+		expect(markup).toContain('Fees (Annualized)')
+		expect(markup).toContain('$3500')
+		expect(markup).not.toContain('Fees 30d')
+	})
+
+	it('shows a 30d run-rate fees label when using the 30d fallback value', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
 			fees: {
@@ -166,7 +185,8 @@ describe('KeyMetrics', () => {
 			}
 		})
 
-		expect(markup).toContain('Fees (Annualized)')
+		expect(markup).toContain('Fees (30d Run Rate)')
+		expect(markup).not.toContain('Fees (Annualized)')
 		expect(markup).toContain('$1220')
 	})
 
@@ -208,7 +228,39 @@ describe('KeyMetrics', () => {
 		expect(markup).not.toContain('$0')
 	})
 
-	it('uses annualized1y revenue and trailing 12-month incentives for annualized earnings when both are available', async () => {
+	it('labels incentives as observed 1y or 30d run-rate, not annualized', async () => {
+		const oneYearMarkup = await renderKeyMetrics({
+			...baseProps,
+			incentives: {
+				emissions24h: null,
+				emissions7d: null,
+				emissions30d: 100,
+				emissions1y: 1400,
+				emissionsAllTime: null,
+				emissionsMonthlyAverage1y: null
+			}
+		})
+
+		expect(oneYearMarkup).toContain('Incentives 1y')
+		expect(oneYearMarkup).not.toContain('Incentives (Annualized)')
+
+		const runRateMarkup = await renderKeyMetrics({
+			...baseProps,
+			incentives: {
+				emissions24h: null,
+				emissions7d: null,
+				emissions30d: 100,
+				emissions1y: null,
+				emissionsAllTime: null,
+				emissionsMonthlyAverage1y: null
+			}
+		})
+
+		expect(runRateMarkup).toContain('Incentives (30d Run Rate)')
+		expect(runRateMarkup).not.toContain('Incentives (Annualized)')
+	})
+
+	it('labels annualized earnings compactly and keeps the mixed-source definition in the tooltip', async () => {
 		const markup = await renderKeyMetrics({
 			...baseProps,
 			revenue: {
@@ -231,6 +283,7 @@ describe('KeyMetrics', () => {
 		})
 
 		expect(markup).toContain('Earnings (Annualized)')
+		expect(markup).toContain('minus incentives emitted over the last 12 months')
 		expect(markup).toContain('$3600')
 		expect(markup).not.toContain('$3660')
 	})
@@ -268,6 +321,8 @@ describe('KeyMetrics', () => {
 		})
 
 		expect(markup).toContain('Earnings 30d')
+		expect(markup).toContain('Earnings (30d Run Rate)')
+		expect(markup).toContain('$6100')
 		expect(markup).toContain('$500')
 		expect(markup).toContain('Earnings 7d')
 		expect(markup).toContain('$180')

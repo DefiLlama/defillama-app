@@ -102,16 +102,16 @@ const FORMAT_OPTIONS: Array<{ id: ColumnFormat; label: string; description: stri
 
 const AGGREGATION_OPTIONS: Array<{ id: ColumnAggregation; label: string; description: string }> = [
 	{ id: 'recalculate', label: 'Recalc', description: 'Re-evaluate expression on aggregated metrics (best for ratios)' },
-	{ id: 'sum', label: 'Sum', description: 'Sum individual row values (best for totals like fees * 365)' },
+	{ id: 'sum', label: 'Sum', description: 'Sum individual row values (best for totals like 24h run-rate fees)' },
 	{ id: 'first', label: 'First', description: 'Use first row value only' },
 	{ id: 'none', label: 'None', description: 'Show dash (-) for grouped rows' }
 ]
 
 const EXAMPLE_PRESETS = [
 	{ name: 'TVL/MCap', expression: 'tvl / mcap', format: 'ratio' as ColumnFormat },
-	{ name: 'Annualized Fees', expression: 'fees24h * 365', format: 'usd' as ColumnFormat },
-	{ name: 'Fee Yield', expression: '(fees24h * 365) / tvl * 100', format: 'percent' as ColumnFormat },
-	{ name: 'P/F Ratio', expression: 'mcap / (fees24h * 365)', format: 'ratio' as ColumnFormat },
+	{ name: 'Fees (24h Run Rate)', expression: 'fees24h * 365', format: 'usd' as ColumnFormat },
+	{ name: 'Fee Yield (24h Run Rate)', expression: '(fees24h * 365) / tvl * 100', format: 'percent' as ColumnFormat },
+	{ name: 'P/F Ratio (24h Run Rate)', expression: 'mcap / (fees24h * 365)', format: 'ratio' as ColumnFormat },
 	{ name: 'Revenue Margin', expression: 'revenue24h / fees24h * 100', format: 'percent' as ColumnFormat }
 ]
 

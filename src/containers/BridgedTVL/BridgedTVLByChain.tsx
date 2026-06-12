@@ -104,7 +104,8 @@ export function BridgedTVLByChain({
 				encode: { x: 'timestamp', y: name },
 				// BarChart auto-assigned all series to stackA when `customLegendOptions` was present.
 				// MultiSeriesChart2 requires an explicit stack to preserve stacked rendering.
-				stack: 'tokenInflows'
+				stack: 'tokenInflows',
+				large: false
 			}))
 		}
 	}, [inflows, tokenInflowNames])

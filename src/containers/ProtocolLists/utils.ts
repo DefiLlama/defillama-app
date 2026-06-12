@@ -15,9 +15,17 @@ type MutableTvlEntry = Record<TvlEntryKey, number | null>
 const TVL_ENTRY_KEYS: Array<TvlEntryKey> = ['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth']
 const NON_ADDITIVE_TVL_KEYS = new Set(['doublecounted', 'liquidstaking'])
 
+function getMcapTvl(mcap: number | null, tvl: number | null | undefined): number | null {
+	if (mcap == null || !tvl) return null
+
+	// This is derived arithmetic: numeric API fields can still produce non-finite ratios.
+	const ratio = mcap / tvl
+	return Number.isFinite(ratio) ? +ratio.toFixed(2) : null
+}
+
 function isAdditiveTvlKey(tvlKey: string, extraTvlsEnabled: Record<string, boolean>, normalizeSettingKey: boolean) {
 	const settingKey = normalizeSettingKey ? tvlKey.toLowerCase() : tvlKey
-	return !!extraTvlsEnabled[settingKey] && !NON_ADDITIVE_TVL_KEYS.has(tvlKey)
+	return !!extraTvlsEnabled[settingKey] && !NON_ADDITIVE_TVL_KEYS.has(settingKey)
 }
 
 function addRecentProtocolExtraTvls({
@@ -109,9 +117,7 @@ export function applyExtraTvl(
 		if (finalTvlPrevWeek != null && finalTvlPrevWeek < 0) finalTvlPrevWeek = 0
 		if (finalTvlPrevMonth != null && finalTvlPrevMonth < 0) finalTvlPrevMonth = 0
 
-		const mcapNum = protocol.mcap ?? null
-		const tvlNum = finalTvl ?? 0
-		const mcaptvl = mcapNum != null && tvlNum !== 0 ? +(mcapNum / tvlNum).toFixed(2) : null
+		const mcaptvl = getMcapTvl(protocol.mcap ?? null, finalTvl)
 
 		return {
 			...protocol,
@@ -138,13 +144,12 @@ export const applyProtocolTvlSettings = ({
 	minTvl: number | null
 	maxTvl: number | null
 }): IProtocol[] => {
-	type ProtocolTvlEntry = { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
 	const nullTvlEntry: MutableTvlEntry = { tvl: null, tvlPrevDay: null, tvlPrevWeek: null, tvlPrevMonth: null }
-	const coerceTvlDefaults = (entry: MutableTvlEntry): ProtocolTvlEntry => ({
+	const normalizeTvlDefaults = (entry: MutableTvlEntry): TvlEntry => ({
 		tvl: entry.tvl ?? 0,
-		tvlPrevDay: entry.tvlPrevDay ?? 0,
-		tvlPrevWeek: entry.tvlPrevWeek ?? 0,
-		tvlPrevMonth: entry.tvlPrevMonth ?? 0
+		tvlPrevDay: entry.tvlPrevDay,
+		tvlPrevWeek: entry.tvlPrevWeek,
+		tvlPrevMonth: entry.tvlPrevMonth
 	})
 
 	// Use for..in loop instead of Object.values() for better performance
@@ -160,7 +165,7 @@ export const applyProtocolTvlSettings = ({
 
 	if (!shouldModifyTvl) return protocols
 
-	const processTvl = (tvlRecord: Record<string, ProtocolTvlEntry>, base: MutableTvlEntry): MutableTvlEntry =>
+	const processTvl = (tvlRecord: Record<string, TvlEntry>, base: MutableTvlEntry): MutableTvlEntry =>
 		addProtocolRankingExtraTvls({
 			base,
 			tvlRecord,
@@ -189,7 +194,7 @@ export const applyProtocolTvlSettings = ({
 				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 			}
 
-			const mcaptvl = protocol.mcap != null && defaultTvl.tvl ? +(protocol.mcap / defaultTvl.tvl).toFixed(2) : null
+			const mcaptvl = getMcapTvl(protocol.mcap, defaultTvl.tvl)
 
 			if (protocol.childProtocols) {
 				const childProtocols: IProtocol['childProtocols'] = []
@@ -211,14 +216,13 @@ export const applyProtocolTvlSettings = ({
 						change1m: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevMonth)
 					}
 
-					const childMcapTvl =
-						child.mcap != null && childDefaultTvl.tvl ? +(child.mcap / childDefaultTvl.tvl).toFixed(2) : null
+					const childMcapTvl = getMcapTvl(child.mcap, childDefaultTvl.tvl)
 
 					if (
 						(minTvl != null ? (childDefaultTvl.tvl ?? 0) >= minTvl : true) &&
 						(maxTvl != null ? (childDefaultTvl.tvl ?? 0) <= maxTvl : true)
 					) {
-						const normalizedChildDefaultTvl = coerceTvlDefaults(childDefaultTvl)
+						const normalizedChildDefaultTvl = normalizeTvlDefaults(childDefaultTvl)
 						childProtocols.push({
 							...child,
 							strikeTvl: childStrikeTvl,
@@ -232,7 +236,7 @@ export const applyProtocolTvlSettings = ({
 					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
 					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
 				) {
-					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
+					const normalizedDefaultTvl = normalizeTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,
@@ -247,7 +251,7 @@ export const applyProtocolTvlSettings = ({
 					(minTvl != null ? (defaultTvl.tvl ?? 0) >= minTvl : true) &&
 					(maxTvl != null ? (defaultTvl.tvl ?? 0) <= maxTvl : true)
 				) {
-					const normalizedDefaultTvl = coerceTvlDefaults(defaultTvl)
+					const normalizedDefaultTvl = normalizeTvlDefaults(defaultTvl)
 					final.push({
 						...protocol,
 						strikeTvl,

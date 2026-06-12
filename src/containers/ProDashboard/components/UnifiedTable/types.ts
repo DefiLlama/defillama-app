@@ -45,6 +45,7 @@ export interface NumericMetrics {
 	fees_7d?: number | null
 	fees_30d?: number | null
 	fees_1y?: number | null
+	feesAnnualized1y?: number | null
 	average_1y?: number | null
 	cumulativeFees?: number | null
 	userFees_24h?: number | null
@@ -60,6 +61,7 @@ export interface NumericMetrics {
 	revenue_7d?: number | null
 	revenue_30d?: number | null
 	revenue_1y?: number | null
+	revenueAnnualized1y?: number | null
 	average_revenue_1y?: number | null
 	cumulativeRevenue?: number | null
 	revenueChange_1d?: number | null

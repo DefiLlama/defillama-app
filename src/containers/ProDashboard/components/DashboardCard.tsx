@@ -4,7 +4,7 @@ import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { avatarColorStyle } from '~/containers/Authors/avatarColor'
-import type { Dashboard } from '../services/DashboardAPI'
+import { type Dashboard, dashboardUrlKey } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
 import { CardLikeButton } from './CardLikeButton'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -192,7 +192,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 					</p>
 				</div>
 			</div>
-			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
+			<BasicLink href={`/pro/${dashboardUrlKey(dashboard)}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
 			</BasicLink>
 

@@ -11,6 +11,10 @@ interface ProtocolAvailability {
 	has_ps: boolean
 }
 
+// Historical P/F-P/S charts use a rolling 30d run-rate because lens.metrics_protocol_daily
+// does not expose historical annualized1y values.
+const ROLLING_30D_ANNUALIZATION_FACTOR = 12
+
 export async function fetchPfPsChartData(protocol: string, type: 'pf' | 'ps'): Promise<[number, number][]> {
 	const rows = await llamaDb.any<ChartDataPoint>(
 		`
@@ -38,15 +42,15 @@ export async function fetchPfPsChartData(protocol: string, type: 'pf' | 'ps'): P
 		SELECT
 			EXTRACT(EPOCH FROM date)::bigint AS timestamp,
 			CASE
-				WHEN $2 = 'pf' AND fees_30d > 0 THEN mcap / (fees_30d * 12)
-				WHEN $2 = 'ps' AND revenue_30d > 0 THEN mcap / (revenue_30d * 12)
+				WHEN $2 = 'pf' AND fees_30d > 0 THEN mcap / (fees_30d * $3)
+				WHEN $2 = 'ps' AND revenue_30d > 0 THEN mcap / (revenue_30d * $3)
 				ELSE NULL
 			END AS ratio
 		FROM rolling
 		WHERE date >= CURRENT_DATE - INTERVAL '365 day'
 		ORDER BY date ASC
 		`,
-		[protocol, type]
+		[protocol, type, ROLLING_30D_ANNUALIZATION_FACTOR]
 	)
 
 	return rows.filter((row) => row.ratio !== null).map((row) => [row.timestamp, row.ratio as number] as [number, number])

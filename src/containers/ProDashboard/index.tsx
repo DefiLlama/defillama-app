@@ -295,7 +295,7 @@ function ProDashboardContent() {
 										<button
 											type="button"
 											onClick={() => {
-												void router.push(`/pro/${dashboardId}/edit`)
+												void router.push(`/pro/${currentDashboard?.slug ?? dashboardId}/edit`)
 											}}
 											className="flex items-center gap-1 rounded-md pro-btn-purple px-3 py-1.5 text-sm"
 										>
@@ -307,7 +307,7 @@ function ProDashboardContent() {
 										<button
 											type="button"
 											onClick={() => {
-												void router.push(`/pro/${dashboardId}`)
+												void router.push(`/pro/${currentDashboard?.slug ?? dashboardId}`)
 											}}
 											className="flex items-center gap-1 rounded-md pro-btn-purple px-3 py-1.5 text-sm"
 										>
@@ -363,7 +363,11 @@ function ProDashboardContent() {
 								dashboardVisibility={dashboardVisibility}
 								dashboardId={dashboardId}
 							/>
-							<CopyDashboardLinkButton dashboardVisibility={dashboardVisibility} dashboardId={dashboardId} />
+							<CopyDashboardLinkButton
+								dashboardVisibility={dashboardVisibility}
+								dashboardId={dashboardId}
+								dashboardSlug={currentDashboard?.slug}
+							/>
 						</div>
 					</div>
 				</div>
