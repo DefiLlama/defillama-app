@@ -14,7 +14,14 @@ export const ALL_INVESTORS_PROJECTS = [
 export type InvestorsProject = (typeof ALL_INVESTORS_PROJECTS)[number]
 export type InvestorsProjectId = InvestorsProject['id']
 
-const INVESTORS_DOMAIN_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_DOMAIN_PROJECT_IDS = [
+	'spark',
+	'sonic',
+	'near',
+	'flare',
+	'thorchain'
+] as const satisfies readonly InvestorsProjectId[]
+const INVESTORS_DOMAIN_LANDING_PROJECT_IDS = ['spark', 'sonic', 'near'] as const satisfies readonly InvestorsProjectId[]
 const INVESTORS_COMING_SOON_PROJECT_IDS = [
 	'flare',
 	'thorchain',
@@ -34,14 +41,14 @@ export const INVESTORS_SITES = {
 	investors: {
 		hosts: ['investors.defillama.com'],
 		projectIds: INVESTORS_DOMAIN_PROJECT_IDS,
-		landingProjectIds: INVESTORS_DOMAIN_PROJECT_IDS,
+		landingProjectIds: INVESTORS_DOMAIN_LANDING_PROJECT_IDS,
 		defaultProjectId: 'spark',
 		comingSoonProjectIds: INVESTORS_COMING_SOON_PROJECT_IDS
 	},
 	enterprise: {
 		hosts: ['enterprise.defillama.com'],
 		projectIds: ENTERPRISE_DOMAIN_PROJECT_IDS,
-		landingProjectIds: [...INVESTORS_DOMAIN_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
+		landingProjectIds: [...INVESTORS_DOMAIN_LANDING_PROJECT_IDS, ...ENTERPRISE_DOMAIN_PROJECT_IDS],
 		defaultProjectId: 'odyssey-ecosystem',
 		comingSoonProjectIds: []
 	}
