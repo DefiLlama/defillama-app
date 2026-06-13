@@ -64,13 +64,13 @@ vi.mock('~/utils/metadata', () => ({
 	default: metadataCache
 }))
 
-vi.mock('~/containers/LiquidationsV2/server/dataset.cache', () => ({
-	getLiquidationsProtocolsResponseFromCache: vi.fn().mockResolvedValue({ protocols: ['aave'] }),
-	getLiquidationsProtocolChainIdsFromCache: vi.fn().mockResolvedValue(['ethereum'])
+vi.mock('~/containers/LiquidationsV2/server/dataset', () => ({
+	getLiquidationsProtocolsList: vi.fn().mockResolvedValue({ protocols: ['aave'] }),
+	getLiquidationsProtocolChainIds: vi.fn().mockResolvedValue(['ethereum'])
 }))
 
-vi.mock('~/containers/Cexs/server/dataset.markets.cache', () => ({
-	fetchExchangeMarketsListFromCache: vi.fn().mockResolvedValue({
+vi.mock('~/containers/Cexs/server/dataset.markets', () => ({
+	fetchExchangeMarketsList: vi.fn().mockResolvedValue({
 		cex: {
 			spot: [{ defillama_slug: 'Binance', exchange: 'binance', market_count: 1, total_volume_24h: 1 }],
 			linear_perp: [],
@@ -187,12 +187,12 @@ describe('cache-backed sitemap sections', () => {
 	})
 
 	it('serves the previous sitemap snapshot while an expired cache refresh fails', async () => {
-		const { fetchExchangeMarketsListFromCache } = await import('~/containers/Cexs/server/dataset.markets.cache')
+		const { fetchExchangeMarketsList } = await import('~/containers/Cexs/server/dataset.markets')
 		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 		await buildAppSitemapSections()
 		vi.useFakeTimers({ now: Date.now() + 60 * 60 * 1000 + 1 })
-		vi.mocked(fetchExchangeMarketsListFromCache).mockRejectedValueOnce(new Error('refresh failed'))
+		vi.mocked(fetchExchangeMarketsList).mockRejectedValueOnce(new Error('refresh failed'))
 
 		const section = await getSitemapSection('cexs.xml')
 

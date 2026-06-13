@@ -41,12 +41,12 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const [{ getLiquidationsProtocolsResponseFromCache }, metadataModule] = await Promise.all([
-			import('~/containers/LiquidationsV2/server/dataset.cache'),
+		const [{ getLiquidationsProtocolsList }, metadataModule] = await Promise.all([
+			import('~/containers/LiquidationsV2/server/dataset'),
 			import('~/utils/metadata')
 		])
 		const [protocolsResponse, protocolMetadataLookup] = [
-			await getLiquidationsProtocolsResponseFromCache(),
+			await getLiquidationsProtocolsList(),
 			createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
 		]
 

@@ -2,24 +2,24 @@ import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
-const { fetchExchangeMarketsFromNetworkMock, fetchExchangeMarketsListFromCacheMock } = vi.hoisted(() => ({
+const { fetchExchangeMarketsFromNetworkMock, fetchExchangeMarketsListMock } = vi.hoisted(() => ({
 	fetchExchangeMarketsFromNetworkMock: vi.fn(),
-	fetchExchangeMarketsListFromCacheMock: vi.fn()
+	fetchExchangeMarketsListMock: vi.fn()
 }))
 
 vi.mock('~/containers/Cexs/api', () => ({
 	fetchExchangeMarketsFromNetwork: fetchExchangeMarketsFromNetworkMock
 }))
 
-vi.mock('~/containers/Cexs/server/dataset.markets.cache', () => ({
-	fetchExchangeMarketsListFromCache: fetchExchangeMarketsListFromCacheMock
+vi.mock('~/containers/Cexs/server/dataset.markets', () => ({
+	fetchExchangeMarketsList: fetchExchangeMarketsListMock
 }))
 
 import handler from '~/pages/api/public/markets/exchanges/[exchange]'
 
 beforeEach(() => {
 	vi.clearAllMocks()
-	fetchExchangeMarketsListFromCacheMock.mockResolvedValue({
+	fetchExchangeMarketsListMock.mockResolvedValue({
 		cex: {
 			spot: [{ exchange: 'binance', defillama_slug: 'Binance-CEX', market_count: 1, total_volume_24h: 100 }],
 			linear_perp: [],
