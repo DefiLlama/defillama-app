@@ -1,4 +1,3 @@
-import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
 import { queryFilterMode, queryIntClamped, queryList } from '~/server/api/params'
 import { ok } from '~/server/api/respond'
@@ -7,8 +6,10 @@ import { defineApiRoute } from '~/server/api/types'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
+	displayChainName,
 	filterOutToday,
 	normalizeDailyPairs,
+	resolveAllowedChainNamesFromCategories,
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'
@@ -17,17 +18,6 @@ import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 const BREAKDOWN_RESULT_TTL_MS = 10 * 60 * 1000
 const BREAKDOWN_CACHE_CONTROL = 'public, s-maxage=600, stale-while-revalidate=1200'
-
-const displayChainName = (slug: string): string => {
-	const display = toDisplayName(slug)
-	if (display !== slug) return display
-	const lc = slug.toLowerCase()
-	const norm = lc.replace(/_/g, '-')
-	return norm
-		.split('-')
-		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
-		.join(' ')
-}
 
 const sumStablecoinUsd = (value: any): number => {
 	if (typeof value === 'number') return value || 0
@@ -38,19 +28,6 @@ const sumStablecoinUsd = (value: any): number => {
 		else if (nested && typeof nested === 'object') total += sumStablecoinUsd(nested)
 	}
 	return total
-}
-
-async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {
-	if (!categories || categories.length === 0) return new Set()
-	const responses = await Promise.allSettled(categories.map((cat) => fetchChainsByCategory(cat)))
-	const out = new Set<string>()
-	for (const res of responses) {
-		if (res.status === 'fulfilled') {
-			const arr: string[] = Array.isArray(res.value?.chainsUnique) ? res.value.chainsUnique : []
-			for (const name of arr) out.add(name)
-		}
-	}
-	return out
 }
 
 async function getStablecoinByChainBreakdownData({
@@ -233,10 +210,8 @@ export const stablecoinByChainBreakdown = defineApiRoute({
 		const rawChains = queryList(req.query, 'chains')
 		const chains = rawChains.includes('All') ? [] : rawChains
 		const chainCategories = queryList(req.query, 'chainCategories')
-		const protocolCategories = queryList(req.query, 'protocolCategories')
 		const chainMode = queryFilterMode(req.query, 'chainFilterMode', 'filterMode')
 		const chainCategoryMode = queryFilterMode(req.query, 'chainCategoryFilterMode', 'filterMode')
-		const protocolCategoryMode = queryFilterMode(req.query, 'protocolCategoryFilterMode', 'filterMode')
 		const topN = queryIntClamped(req.query, 'limit', 5, 1, 20)
 
 		try {
@@ -247,9 +222,7 @@ export const stablecoinByChainBreakdown = defineApiRoute({
 				topN,
 				chainMode,
 				chainCategoryMode,
-				protocolCategoryMode,
-				chainCategories,
-				protocolCategories
+				chainCategories
 			])
 			const result = await cachedResult(
 				'stablecoins-breakdown-chain',

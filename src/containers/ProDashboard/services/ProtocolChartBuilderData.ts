@@ -1,3 +1,4 @@
+import { getProtocolChainBreakdownRoute, NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/utils/breakdowns'
 import type { ProtocolBreakdownData, ProtocolChainData } from '~/utils/breakdowns'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRuntimeError } from '~/utils/telemetry'
@@ -218,20 +219,15 @@ export default class ProtocolChartBuilderData {
 			params.append('chainCategories', chainCategories.join(','))
 			params.append('chainCategoryFilterMode', chainCategoryFilterMode)
 		}
-		if (protocolCategories && protocolCategories.length > 0) {
+		const supportsProtocolCategoryFilter =
+			!NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS.has(metric) && (!protocol || protocol.toLowerCase() === 'all')
+		if (supportsProtocolCategoryFilter && protocolCategories && protocolCategories.length > 0) {
 			params.append('protocolCategories', protocolCategories.join(','))
 			params.append('protocolCategoryFilterMode', protocolCategoryFilterMode)
 		}
 
 		try {
-			const endpoint =
-				metric === 'tvl'
-					? '/api/public/protocols/breakdowns/by-chain/tvl'
-					: metric === 'stablecoins'
-						? '/api/public/stablecoins/breakdowns/by-chain'
-						: metric === 'chain-fees' || metric === 'chain-revenue'
-							? `/api/public/chains/breakdowns/by-chain/${metric}`
-							: `/api/public/adapter-metrics/breakdowns/by-chain/${metric}`
+			const endpoint = getProtocolChainBreakdownRoute(metric)
 			const response = await fetchWithPoolingOnServer(`${endpoint}?${params.toString()}`)
 
 			if (!response.ok) {

@@ -48,10 +48,8 @@ export const protocolTvlByChainBreakdown = defineApiRoute({
 		const rawChains = queryList(req.query, 'chains')
 		const chains = rawChains.includes('All') ? [] : rawChains
 		const chainCategories = queryList(req.query, 'chainCategories')
-		const protocolCategories = queryList(req.query, 'protocolCategories')
 		const chainMode = queryFilterMode(req.query, 'chainFilterMode', 'filterMode')
 		const chainCategoryMode = queryFilterMode(req.query, 'chainCategoryFilterMode', 'filterMode')
-		const protocolCategoryMode = queryFilterMode(req.query, 'protocolCategoryFilterMode', 'filterMode')
 		const topN = queryIntClamped(req.query, 'limit', 5, 1, 20)
 		const protocol = queryString(req.query, 'protocol')
 
@@ -63,9 +61,7 @@ export const protocolTvlByChainBreakdown = defineApiRoute({
 				topN,
 				chainMode,
 				chainCategoryMode,
-				protocolCategoryMode,
-				chainCategories,
-				protocolCategories
+				chainCategories
 			])
 			const result = await cachedResult(
 				'protocols-breakdown-chain-tvl',
@@ -79,9 +75,7 @@ export const protocolTvlByChainBreakdown = defineApiRoute({
 						topN,
 						chainFilterMode: chainMode,
 						chainCategoryFilterMode: chainCategoryMode,
-						protocolCategoryFilterMode: protocolCategoryMode,
-						chainCategories,
-						protocolCategories
+						chainCategories
 					})
 			)
 			return ok(result)

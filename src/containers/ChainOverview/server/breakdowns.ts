@@ -1,5 +1,4 @@
 import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
-import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { queryFilterMode, queryIntClamped, queryList, queryString } from '~/server/api/params'
 import { badRequest, ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
@@ -8,18 +7,20 @@ import { fetchJson } from '~/utils/async'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
+	CHAIN_NATIVE_BREAKDOWN_METRICS,
+	displayChainName,
 	filterOutToday,
 	normalizeDailyPairs,
+	resolveAllowedChainSlugsFromCategories,
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'
-import { buildChainMatchSet, toDimensionsSlug, toDisplayName } from '~/utils/chainNormalizer'
+import { buildChainMatchSet, toDimensionsSlug } from '~/utils/chainNormalizer'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 const BREAKDOWN_RESULT_TTL_MS = 10 * 60 * 1000
 const BREAKDOWN_CACHE_CONTROL = 'public, s-maxage=600, stale-while-revalidate=1200'
 
-const CHAIN_NATIVE_BREAKDOWN_METRICS = new Set(['chain-fees', 'chain-revenue'])
 const CHAIN_NATIVE_BREAKDOWN_LABELS: Record<'chain-fees' | 'chain-revenue', string> = {
 	'chain-fees': 'Chain Fees',
 	'chain-revenue': 'Chain Revenue'
@@ -27,30 +28,6 @@ const CHAIN_NATIVE_BREAKDOWN_LABELS: Record<'chain-fees' | 'chain-revenue', stri
 const CHAIN_NATIVE_BREAKDOWN_CONFIG: Record<'chain-fees' | 'chain-revenue', { dataType?: string }> = {
 	'chain-fees': {},
 	'chain-revenue': { dataType: 'dailyRevenue' }
-}
-
-const displayChainName = (slug: string): string => {
-	const display = toDisplayName(slug)
-	if (display !== slug) return display
-	const lc = slug.toLowerCase()
-	const norm = lc.replace(/_/g, '-')
-	return norm
-		.split('-')
-		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
-		.join(' ')
-}
-
-async function resolveAllowedChainSlugsFromCategories(categories: string[]): Promise<Set<string>> {
-	const responses = await Promise.allSettled(categories.map((cat) => fetchChainsByCategory(cat)))
-	const slugs = new Set<string>()
-	for (const res of responses) {
-		if (res.status !== 'fulfilled') continue
-		const names: string[] = Array.isArray(res.value?.chainsUnique) ? res.value.chainsUnique : []
-		for (const name of names) {
-			slugs.add(toDimensionsSlug(name))
-		}
-	}
-	return slugs
 }
 
 async function getChainNativeByChainBreakdownData({

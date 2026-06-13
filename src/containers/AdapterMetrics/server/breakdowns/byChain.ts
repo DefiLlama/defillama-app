@@ -1,12 +1,13 @@
 import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
-import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchJson } from '~/utils/async'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
+	displayChainName,
 	filterOutToday,
 	normalizeDailyPairs,
+	resolveAllowedChainSlugsFromCategories,
 	sumSeriesByTimestamp,
 	toSlug,
 	type ChartSeries,
@@ -102,17 +103,6 @@ const getProtocolCategoryLookup = async (): Promise<ProtocolCategoryLookup | nul
 		console.log('Failed to prepare protocol category lookup for chain builder filters:', error)
 		return null
 	}
-}
-
-const displayChainName = (slug: string): string => {
-	const display = toDisplayName(slug)
-	if (display !== slug) return display
-	const lc = slug.toLowerCase()
-	const norm = lc.replace(/_/g, '-')
-	return norm
-		.split('-')
-		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
-		.join(' ')
 }
 
 async function getDimensionsProtocolChainData(
@@ -514,27 +504,4 @@ export const getAdapterMetricProtocolChainBreakdownData = async ({
 		chainCategoryFilterMode,
 		chainCategories
 	)
-}
-
-async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {
-	if (!categories || categories.length === 0) return new Set()
-	const responses = await Promise.allSettled(categories.map((cat) => fetchChainsByCategory(cat)))
-	const out = new Set<string>()
-	for (const res of responses) {
-		if (res.status === 'fulfilled') {
-			const arr: string[] = Array.isArray(res.value?.chainsUnique) ? res.value.chainsUnique : []
-			for (const name of arr) out.add(name)
-		}
-	}
-	return out
-}
-
-async function resolveAllowedChainSlugsFromCategories(categories: string[]): Promise<Set<string>> {
-	const names = await resolveAllowedChainNamesFromCategories(categories)
-	const slugs = new Set<string>()
-	for (const name of names) {
-		const slug = toDimensionsSlug(name)
-		slugs.add(slug)
-	}
-	return slugs
 }

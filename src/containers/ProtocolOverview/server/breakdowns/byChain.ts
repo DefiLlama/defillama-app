@@ -1,15 +1,16 @@
-import { fetchChainChart, fetchChainsByCategory, fetchChainsTvlOverview } from '~/containers/Chains/api'
+import { fetchChainChart, fetchChainsTvlOverview } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
 	filterOutToday,
 	normalizeDailyPairs,
+	resolveAllowedChainNamesFromCategories,
 	sumSeriesByTimestamp,
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'
-import { toDisplayName } from '~/utils/chainNormalizer'
+import { buildChainMatchSet, toDisplayName } from '~/utils/chainNormalizer'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
 
 const keysToSkip = new Set(['staking', 'pool2', 'borrowed', 'doublecounted', 'liquidstaking', 'vesting'])
@@ -30,7 +31,7 @@ async function getTvlProtocolChainData(
 		const availableChains: string[] = []
 		let colorIndex = 0
 
-		const excludeSet = new Set<string>((chains || []).map((c) => toDisplayName(c)))
+		const chainMatchSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
 
 		let allowNamesFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
@@ -48,10 +49,11 @@ async function getTvlProtocolChainData(
 			}
 
 			if (chains && chains.length > 0) {
+				const matches = chainMatchSet.has(chainKey) || chainMatchSet.has(chainKey.toLowerCase())
 				if (chainFilterMode === 'include') {
-					if (!chains.includes(chainKey)) continue
+					if (!matches) continue
 				} else {
-					if (excludeSet.has(chainKey)) continue
+					if (matches) continue
 				}
 			}
 
@@ -218,9 +220,7 @@ type ProtocolChainBreakdownParams = {
 	topN: number
 	chainFilterMode: 'include' | 'exclude'
 	chainCategoryFilterMode: 'include' | 'exclude'
-	protocolCategoryFilterMode: 'include' | 'exclude'
 	chainCategories: string[]
-	protocolCategories: string[]
 }
 
 export const getProtocolChainBreakdownData = async ({
@@ -244,17 +244,4 @@ export const getProtocolChainBreakdownData = async ({
 	}
 
 	return getTvlProtocolChainData(protocolStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
-}
-
-async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {
-	if (!categories || categories.length === 0) return new Set()
-	const responses = await Promise.allSettled(categories.map((cat) => fetchChainsByCategory(cat)))
-	const out = new Set<string>()
-	for (const res of responses) {
-		if (res.status === 'fulfilled') {
-			const arr: string[] = Array.isArray(res.value?.chainsUnique) ? res.value.chainsUnique : []
-			for (const name of arr) out.add(name)
-		}
-	}
-	return out
 }

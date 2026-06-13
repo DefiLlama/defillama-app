@@ -311,9 +311,9 @@ export const getDimensionsBreakdownData = async ({
 		}
 	}
 
-	const protocolData: Map<string, [number, number][]> = new Map()
+	const protocolData: Map<string, Map<number, number>> = new Map()
 	for (const protocol of topProtocols) {
-		protocolData.set(protocol, [])
+		protocolData.set(protocol, new Map())
 	}
 
 	const timestampTotals: Map<number, number> = new Map()
@@ -346,12 +346,7 @@ export const getDimensionsBreakdownData = async ({
 				topTotal += protocolValue
 				const series = protocolData.get(displayName)
 				if (series) {
-					const existingIndex = series.findIndex(([ts]) => ts === timestamp)
-					if (existingIndex >= 0) {
-						series[existingIndex][1] += protocolValue
-					} else {
-						series.push([timestamp, protocolValue])
-					}
+					series.set(timestamp, (series.get(timestamp) || 0) + protocolValue)
 				}
 			}
 		}
@@ -366,8 +361,7 @@ export const getDimensionsBreakdownData = async ({
 
 	for (let i = 0; i < topProtocols.length; i++) {
 		const protocol = topProtocols[i]
-		const sortedData = (protocolData.get(protocol) || []).sort((a, b) => a[0] - b[0])
-		const protocolDataMap = new Map(sortedData)
+		const protocolDataMap = protocolData.get(protocol) || new Map<number, number>()
 
 		const alignedData: [number, number][] = allTimestamps.map((timestamp) => {
 			return [timestamp, protocolDataMap.get(timestamp) || 0]

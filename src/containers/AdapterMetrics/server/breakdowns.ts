@@ -2,6 +2,7 @@ import { queryBoolean, queryFilterMode, queryIntClamped, queryList, queryString 
 import { badRequest, ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
+import { NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/utils/breakdowns'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { getAdapterMetricProtocolChainBreakdownData } from './breakdowns/byChain'
 import { DIMENSIONS_METRIC_CONFIG } from './breakdowns/config'
@@ -66,13 +67,7 @@ export const adapterMetricByChainBreakdown = defineApiRoute({
 		const metric = queryString(req.query, 'metric') ?? ''
 		const protocol = queryString(req.query, 'protocol')
 
-		if (
-			metric === 'tvl' ||
-			metric === 'stablecoins' ||
-			metric === 'chain-fees' ||
-			metric === 'chain-revenue' ||
-			!DIMENSIONS_METRIC_CONFIG[metric]
-		) {
+		if (NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS.has(metric) || !DIMENSIONS_METRIC_CONFIG[metric]) {
 			return badRequest(`Unsupported metric: ${metric}`)
 		}
 
