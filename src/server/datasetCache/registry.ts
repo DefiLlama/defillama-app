@@ -50,15 +50,10 @@ export const DATASET_CACHE_REGISTRY = {
 		artifacts: DATASET_DOMAIN_ARTIFACTS.liquidations,
 		traceFolders: ['liquidations']
 	},
-	'cex-markets': {
-		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildCexMarketsDomain(rootDir)),
-		artifacts: DATASET_DOMAIN_ARTIFACTS['cex-markets'],
-		traceFolders: ['cex-markets']
-	},
-	'token-markets': {
-		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildTokenMarketsDomain(rootDir)),
-		artifacts: DATASET_DOMAIN_ARTIFACTS['token-markets'],
-		traceFolders: ['token-markets']
+	markets: {
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildMarketsDomain(rootDir)),
+		artifacts: DATASET_DOMAIN_ARTIFACTS.markets,
+		traceFolders: ['markets']
 	}
 } as const satisfies Record<
 	DatasetDomain,

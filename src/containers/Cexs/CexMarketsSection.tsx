@@ -1,115 +1,44 @@
 import { useQuery } from '@tanstack/react-query'
-import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import dayjs from 'dayjs'
-import { type KeyboardEvent, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useMemo, useReducer } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { fetchMarketsExchangeSeries } from '~/containers/Markets/api'
+import type { ExchangeMarketsResponse, MarketPair } from '~/containers/Markets/api.types'
+import { ChangeCell, MetricStat } from '~/containers/Markets/marketMetrics'
+import { buildCexMarketPairColumns } from '~/containers/Markets/marketPairColumns'
+import { MarketsAreaChart } from '~/containers/Markets/MarketsAreaChart'
+import { MarketsSegmentTabs } from '~/containers/Markets/MarketsSegmentTabs'
+import { resolveSegment, type Segment, SEGMENT_IDS, segmentHasOi } from '~/containers/Markets/segments'
+import {
+	EMPTY_PIVOTED_SERIES,
+	filterExchangeSeriesBySegment,
+	pctChange,
+	pivotExchangeSeries
+} from '~/containers/Markets/utils'
 import { formattedNum } from '~/utils'
 import { fetchExchangeMarkets } from './api'
-import type { ExchangeMarketCategory, ExchangeMarketPair, ExchangeMarketsResponse } from './markets.types'
 
+const STALE_TIME = 60 * 60 * 1000
 const CEX_MARKETS_SECTION_ID = 'markets'
-
-const CATEGORY_TABS: ReadonlyArray<{ id: ExchangeMarketCategory; label: string }> = [
-	{ id: 'spot', label: 'Spot' },
-	{ id: 'linear_perp', label: 'Linear Perp' },
-	{ id: 'inverse_perp', label: 'Inverse Perp' }
-]
-
-const columnHelper = createColumnHelper<ExchangeMarketPair>()
 
 function renderNullableNum(value: number | null | undefined, isUsd = false): string {
 	if (value == null) return '–'
 	return formattedNum(value, isUsd)
 }
 
-function renderFundingRate(value: number | null | undefined): string {
-	if (value == null) return '–'
-	return `${(value * 100).toFixed(4)}%`
-}
+const SPOT_COLUMNS = buildCexMarketPairColumns('spot')
+const PERP_COLUMNS = buildCexMarketPairColumns('linear_perp')
 
-const pairColumn = columnHelper.accessor('symbol', {
-	id: 'symbol',
-	header: 'Pair',
-	enableSorting: false,
-	cell: ({ getValue, row }) => {
-		const pair = <span className="text-sm uppercase">{getValue()}</span>
-		return row.original.pair_url ? (
-			<a
-				href={row.original.pair_url}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="text-(--link-text) hover:underline"
-			>
-				{pair}
-			</a>
-		) : (
-			pair
-		)
-	},
-	meta: {
-		headerClassName: 'w-[140px]'
-	}
-})
-
-const priceColumn = columnHelper.accessor((row) => row.price ?? undefined, {
-	id: 'price',
-	header: 'Price',
-	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	meta: {
-		headerClassName: 'w-[110px]',
-		align: 'end'
-	}
-})
-
-const volumeColumn = columnHelper.accessor((row) => row.volume_24h ?? undefined, {
-	id: 'volume_24h',
-	header: '24h Volume',
-	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	meta: {
-		headerClassName: 'w-[120px]',
-		align: 'end'
-	}
-})
-
-const oiColumn = columnHelper.accessor((row) => row.oi_usd ?? undefined, {
-	id: 'oi_usd',
-	header: 'Open Interest',
-	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	meta: {
-		headerClassName: 'w-[140px]',
-		align: 'end'
-	}
-})
-
-const fundingColumn = columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
-	id: 'funding_rate_8h',
-	header: 'Funding (8h)',
-	cell: ({ row }) => renderFundingRate(row.original.funding_rate_8h),
-	meta: {
-		headerClassName: 'w-[130px]',
-		align: 'end'
-	}
-})
-
-const SPOT_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [pairColumn, priceColumn, volumeColumn]
-const PERP_COLUMNS: ColumnDef<ExchangeMarketPair, any>[] = [
-	pairColumn,
-	priceColumn,
-	volumeColumn,
-	oiColumn,
-	fundingColumn
-]
-
-function getCategoryRows(data: ExchangeMarketsResponse, category: ExchangeMarketCategory): ExchangeMarketPair[] {
+function getCategoryRows(data: ExchangeMarketsResponse, category: Segment): MarketPair[] {
 	return data.categories[category]?.pairs ?? []
 }
 
-function getAvailableCategories(data: ExchangeMarketsResponse): ExchangeMarketCategory[] {
-	const categories: ExchangeMarketCategory[] = []
-	for (const tab of CATEGORY_TABS) {
-		if (getCategoryRows(data, tab.id).length > 0) categories.push(tab.id)
+function getAvailableCategories(data: ExchangeMarketsResponse): Segment[] {
+	const categories: Segment[] = []
+	for (const segment of SEGMENT_IDS) {
+		if (getCategoryRows(data, segment).length > 0) categories.push(segment)
 	}
 	return categories
 }
@@ -120,35 +49,26 @@ function HeaderStrip({
 	showOi
 }: {
 	data: ExchangeMarketsResponse
-	category: ExchangeMarketCategory
+	category: Segment
 	showOi: boolean
 }) {
 	const totals = data.categories[category]
-	return (
-		<div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3.5 py-2.5">
-			<div className="flex items-baseline gap-1.5">
-				<span className="text-sm text-(--text-label)">Pairs</span>
-				<span className="text-sm font-medium">{formattedNum(totals?.market_count ?? 0)}</span>
-			</div>
-			<div className="flex items-baseline gap-1.5">
-				<span className="text-sm text-(--text-label)">24h Volume</span>
-				<span className="text-sm font-medium">{renderNullableNum(totals?.total_volume_24h, true)}</span>
-			</div>
-			{showOi ? (
-				<div className="flex items-baseline gap-1.5">
-					<span className="text-sm text-(--text-label)">Open Interest</span>
-					<span className="text-sm font-medium">{renderNullableNum(totals?.total_oi_usd, true)}</span>
-				</div>
-			) : null}
-		</div>
-	)
-}
 
-function SummaryMetric({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="flex min-w-0 flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-			<span className="text-xs text-(--text-label)">{label}</span>
-			<span className="font-jetbrains text-lg font-semibold">{value}</span>
+		<div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+			<MetricStat label="Pairs" value={formattedNum(totals?.market_count ?? 0)} />
+			<MetricStat
+				label="24h Volume"
+				value={renderNullableNum(totals?.total_volume_24h, true)}
+				sub={<ChangeCell fraction={pctChange(totals?.total_volume_24h, totals?.total_volume_prev_24h)} />}
+			/>
+			{showOi ? (
+				<MetricStat
+					label="Open Interest"
+					value={renderNullableNum(totals?.total_oi_usd, true)}
+					sub={<ChangeCell fraction={pctChange(totals?.total_oi_usd, totals?.total_oi_prev_usd)} />}
+				/>
+			) : null}
 		</div>
 	)
 }
@@ -156,72 +76,19 @@ function SummaryMetric({ label, value }: { label: string; value: string }) {
 function MarketsSummary({ data }: { data: ExchangeMarketsResponse }) {
 	return (
 		<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
-			<SummaryMetric label="Volume 24h" value={renderNullableNum(data.total_volume_24h, true)} />
-			<SummaryMetric label="Open Interest" value={renderNullableNum(data.total_oi_usd, true)} />
-			<SummaryMetric label="Spot Markets" value={formattedNum(data.categories.spot?.market_count ?? 0)} />
-			<SummaryMetric label="Linear Perp Markets" value={formattedNum(data.categories.linear_perp?.market_count ?? 0)} />
-			<SummaryMetric
-				label="Inverse Perp Markets"
-				value={formattedNum(data.categories.inverse_perp?.market_count ?? 0)}
+			<MetricStat
+				label="Volume 24h"
+				value={renderNullableNum(data.total_volume_24h, true)}
+				sub={<ChangeCell fraction={pctChange(data.total_volume_24h, data.total_volume_prev_24h)} />}
 			/>
-		</div>
-	)
-}
-
-function Tabs<T extends string>({
-	tabs,
-	activeTab,
-	onChange,
-	ariaLabel
-}: {
-	tabs: ReadonlyArray<{ id: T; label: string }>
-	activeTab: T
-	onChange: (id: T) => void
-	ariaLabel: string
-}) {
-	const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
-	const focusTab = (index: number) => {
-		const tab = tabs[index]
-		if (!tab) return
-		onChange(tab.id)
-		buttonRefs.current[index]?.focus()
-	}
-	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-		if (event.key === 'ArrowLeft') {
-			event.preventDefault()
-			focusTab((index - 1 + tabs.length) % tabs.length)
-		} else if (event.key === 'ArrowRight') {
-			event.preventDefault()
-			focusTab((index + 1) % tabs.length)
-		} else if (event.key === 'Home') {
-			event.preventDefault()
-			focusTab(0)
-		} else if (event.key === 'End') {
-			event.preventDefault()
-			focusTab(tabs.length - 1)
-		}
-	}
-
-	return (
-		<div className="flex items-center overflow-x-auto" role="tablist" aria-label={ariaLabel}>
-			{tabs.map((tab, index) => (
-				<button
-					key={tab.id}
-					ref={(node) => {
-						buttonRefs.current[index] = node
-					}}
-					type="button"
-					role="tab"
-					aria-selected={activeTab === tab.id}
-					tabIndex={activeTab === tab.id ? 0 : -1}
-					data-active={activeTab === tab.id}
-					onClick={() => onChange(tab.id)}
-					onKeyDown={(event) => handleKeyDown(event, index)}
-					className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-				>
-					{tab.label}
-				</button>
-			))}
+			<MetricStat
+				label="Open Interest"
+				value={renderNullableNum(data.total_oi_usd, true)}
+				sub={<ChangeCell fraction={pctChange(data.total_oi_usd, data.total_oi_prev_usd)} />}
+			/>
+			<MetricStat label="Spot Markets" value={formattedNum(data.categories.spot?.market_count ?? 0)} />
+			<MetricStat label="Linear Perp Markets" value={formattedNum(data.categories.linear_perp?.market_count ?? 0)} />
+			<MetricStat label="Inverse Perp Markets" value={formattedNum(data.categories.inverse_perp?.market_count ?? 0)} />
 		</div>
 	)
 }
@@ -232,27 +99,49 @@ interface CexMarketsSectionProps {
 }
 
 export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
-	const [categoryTab, setCategoryTab] = useReducer(
-		(_: ExchangeMarketCategory, next: ExchangeMarketCategory) => next,
-		'spot'
-	)
+	const [categoryTab, setCategoryTab] = useReducer((_: Segment, next: Segment) => next, 'spot')
 
 	const { data, error, isLoading } = useQuery({
 		queryKey: ['exchange-markets', exchange],
 		queryFn: () => fetchExchangeMarkets(exchange),
-		staleTime: 60 * 60 * 1000,
+		staleTime: STALE_TIME,
 		refetchOnWindowFocus: false,
 		retry: false,
 		enabled: Boolean(exchange)
 	})
+	const seriesQuery = useQuery({
+		queryKey: ['markets-exchange-series'],
+		queryFn: fetchMarketsExchangeSeries,
+		staleTime: STALE_TIME,
+		refetchOnWindowFocus: false
+	})
 
 	const visibleCategoryTabs = useMemo(() => (data ? getAvailableCategories(data) : []), [data])
-	const selectedCategoryTab = visibleCategoryTabs.some((tab) => tab === categoryTab)
-		? categoryTab
-		: (visibleCategoryTabs[0] ?? categoryTab)
+	const selectedCategoryTab = data ? resolveSegment(categoryTab, visibleCategoryTabs) : categoryTab
+	const hasOi = segmentHasOi(selectedCategoryTab)
 	const rows = useMemo(() => (data ? getCategoryRows(data, selectedCategoryTab) : []), [data, selectedCategoryTab])
-	const isPerpCategory = selectedCategoryTab !== 'spot'
-	const columns = isPerpCategory ? PERP_COLUMNS : SPOT_COLUMNS
+	const columns = selectedCategoryTab === 'spot' ? SPOT_COLUMNS : PERP_COLUMNS
+
+	const exchangeName = data?.exchange ?? exchange
+	const seriesRows = useMemo(() => {
+		const allSeriesRows = seriesQuery.data ?? []
+		return filterExchangeSeriesBySegment(allSeriesRows, selectedCategoryTab, exchangeName)
+	}, [seriesQuery.data, exchangeName, selectedCategoryTab])
+	const volSeries = useMemo(() => pivotExchangeSeries(seriesRows, 'volume'), [seriesRows])
+	const oiSeries = useMemo(
+		() => (hasOi ? pivotExchangeSeries(seriesRows, 'oi') : EMPTY_PIVOTED_SERIES),
+		[seriesRows, hasOi]
+	)
+
+	const subtitleFor = useCallback(
+		(segment: Segment) => {
+			const cat = data?.categories?.[segment]
+			if (!cat) return null
+			return `${cat.market_count} pairs · ${formattedNum(cat.total_volume_24h ?? 0, true)}`
+		},
+		[data]
+	)
+
 	const lastUpdated = useMemo(() => {
 		if (!data?.last_updated) return null
 		const parsed = dayjs(data.last_updated)
@@ -291,30 +180,35 @@ export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
 		)
 	}
 
-	if (error || !data || visibleCategoryTabs.length === 0 || rows.length === 0) {
+	if (error || !data || visibleCategoryTabs.length === 0) {
 		return null
 	}
 
 	return (
 		<section className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			{sectionHeader}
-			<div className="flex flex-col gap-3 p-3">
+			<div className="flex flex-col gap-5 p-3">
 				<MarketsSummary data={data} />
-				<HeaderStrip data={data} category={selectedCategoryTab} showOi={isPerpCategory} />
 
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<MarketsSegmentTabs
+					activeSegment={selectedCategoryTab}
+					onChange={setCategoryTab}
+					subtitleFor={subtitleFor}
+					availableSegments={visibleCategoryTabs}
+				/>
+
+				<div className="flex flex-col gap-5">
+					<HeaderStrip data={data} category={selectedCategoryTab} showOi={hasOi} />
+
+					<div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+						<MarketsAreaChart title="Volume (30d)" series={volSeries} />
+						{hasOi ? <MarketsAreaChart title="Open interest (30d)" series={oiSeries} /> : null}
+					</div>
+
 					<TableWithSearch
 						key={`${exchange}-${selectedCategoryTab}`}
 						data={rows}
 						columns={columns}
-						leadingControls={
-							<Tabs
-								tabs={CATEGORY_TABS.filter((tab) => visibleCategoryTabs.includes(tab.id))}
-								activeTab={selectedCategoryTab}
-								onChange={(id) => setCategoryTab(id)}
-								ariaLabel="Market category"
-							/>
-						}
 						columnToSearch="symbol"
 						placeholder="Search pairs..."
 						csvFileName={`cex-markets-${name}-${selectedCategoryTab}`}

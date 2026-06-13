@@ -1,24 +1,27 @@
-import { fetchExchangeMarketsFromNetwork } from '~/containers/Cexs/api'
-import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
+import { MARKETS_SERVER_URL } from '~/constants'
 import { isHttpNotFoundMessage, MARKETS_CACHE_CONTROL } from '~/server/api/common'
 import { queryString } from '~/server/api/params'
+import { proxyJsonRoute } from '~/server/api/proxy'
 import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
+import { resolveMarketsExchangeByParam } from './dataset'
+import { fetchExchangeMarketsFromNetwork } from './upstream'
 
-function resolveMarketsExchangeParam(exchange: string, marketsList: ExchangeMarketsListResponse): string | null {
-	const normalizedExchange = exchange.toLowerCase()
-
-	for (const venue of [marketsList.cex, marketsList.dex]) {
-		for (const category in venue) {
-			for (const entry of venue[category as keyof typeof venue]) {
-				if (entry.exchange.toLowerCase() === normalizedExchange) return entry.exchange
-			}
+export const tokenMarkets = proxyJsonRoute({
+	route: '/api/public/markets/[token]',
+	cacheControl: MARKETS_CACHE_CONTROL,
+	upstreamUrl: (req) => {
+		const token = queryString(req.query, 'token')
+		if (!token) {
+			return badRequest('Missing token')
 		}
-	}
 
-	return null
-}
+		return `${MARKETS_SERVER_URL}/tokens/${encodeURIComponent(token.toLowerCase())}.json`
+	},
+	onError: (error) => (isHttpNotFoundMessage(error) ? notFound('Token not found') : null),
+	upstreamErrorMessage: 'Failed to load token markets'
+})
 
 export const exchangeMarkets = defineApiRoute({
 	route: '/api/public/markets/exchanges/[exchange]',
@@ -30,8 +33,7 @@ export const exchangeMarkets = defineApiRoute({
 		}
 
 		try {
-			const { fetchExchangeMarketsList } = await import('~/containers/Cexs/server/dataset.markets')
-			const marketsExchange = resolveMarketsExchangeParam(exchange, await fetchExchangeMarketsList())
+			const marketsExchange = await resolveMarketsExchangeByParam(exchange)
 			if (!marketsExchange) {
 				return notFound('Exchange not found')
 			}

@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { hasTokenLiquidationsData } from '~/containers/LiquidationsV2/server/dataset'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
-import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import type { TokenPageProps, TokenPageSection } from '~/containers/Token/types'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
@@ -15,7 +14,7 @@ import {
 } from '~/containers/TokenRights/server/dataset'
 import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { getTokenBorrowRoutes, getTokenYieldsRows } from '~/containers/Yields/server/dataset'
-import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import type { IYieldTableRow, IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
 import { DatasetCacheIntegrityError } from '~/server/datasetCache/core'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -229,6 +228,24 @@ function makeYieldRow(overrides: Partial<IYieldTableRow> = {}): IYieldTableRow {
 	}
 }
 
+function makeBorrowRouteRow(overrides: Partial<IYieldsOptimizerTableRow> = {}): IYieldsOptimizerTableRow {
+	const row: IYieldsOptimizerTableRow = {
+		...makeYieldRow(),
+		projectName: 'Aave',
+		symbol: 'ETH',
+		borrow: undefined as unknown as IYieldsOptimizerTableRow,
+		rewardTokensNames: [],
+		totalAvailableUsd: 500_000,
+		lendUSDAmount: 0,
+		borrowUSDAmount: 0,
+		lendAmount: 0,
+		borrowAmount: 0,
+		...overrides
+	}
+	row.borrow = row
+	return row
+}
+
 function makeTokenPageProps(sections: TokenPageSection[]): TokenPageProps {
 	return {
 		seoTitle: 'title',
@@ -245,6 +262,7 @@ function makeOverviewSection(overrides: Partial<Extract<TokenPageSection, { id: 
 		overview: overviewFixture,
 		geckoId: 'bitcoin',
 		logo: null,
+		issuer: null,
 		...overrides
 	} satisfies TokenPageSection
 }
@@ -316,18 +334,8 @@ vi.mock('~/containers/Token/TokenMarketsSection', () => ({
 	}
 }))
 
-vi.mock('~/containers/Token/server/dataset.markets', () => ({
-	fetchTokenMarketsList: vi.fn().mockResolvedValue({
-		tokens: [
-			{
-				exchange_count: 1,
-				market_count: 1,
-				symbol: 'BTC',
-				total_oi_usd: 1,
-				total_volume_24h: 1
-			}
-		]
-	})
+vi.mock('~/containers/Markets/server/dataset', () => ({
+	hasTokenMarkets: vi.fn((symbol: string) => Promise.resolve(symbol.toLowerCase() === 'btc'))
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
@@ -546,7 +554,7 @@ describe('token page', () => {
 				label: 'Yields',
 				tokenSymbol: 'BTC',
 				hydration: {
-					rows: [{ pool: 'pool-1' }] as IYieldTableRow[],
+					rows: [makeYieldRow({ pool: 'pool-1' })],
 					rowCount: 1,
 					chainList: [],
 					tokensList: [],
@@ -559,9 +567,9 @@ describe('token page', () => {
 				tokenSymbol: 'BTC',
 				hydration: {
 					data: {
-						borrowAsCollateral: [{ pool: 'borrow-1' }],
+						borrowAsCollateral: [makeBorrowRouteRow({ pool: 'borrow-1' })],
 						borrowAsDebt: []
-					} as TokenBorrowRoutesResponse,
+					},
 					counts: {
 						borrowAsCollateral: 1,
 						borrowAsDebt: 0
@@ -638,9 +646,9 @@ describe('token page', () => {
 						tokenSymbol: 'BTC',
 						hydration: {
 							data: {
-								borrowAsCollateral: [{ pool: 'borrow-1' }],
+								borrowAsCollateral: [makeBorrowRouteRow({ pool: 'borrow-1' })],
 								borrowAsDebt: []
-							} as TokenBorrowRoutesResponse,
+							},
 							counts: {
 								borrowAsCollateral: 1,
 								borrowAsDebt: 0

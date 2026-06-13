@@ -77,7 +77,7 @@ describe('dataset cache JSON reader', () => {
 			domains: {}
 		})
 
-		await expect(readDatasetManifestFrom(tempDir)).rejects.toThrow('expected 2, got 1')
+		await expect(readDatasetManifestFrom(tempDir)).rejects.toThrow('expected 4, got 1')
 	})
 
 	it('reports failed domains before reading domain files', async () => {

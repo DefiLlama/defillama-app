@@ -1,44 +1,18 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getStaticProps as getCexStaticProps } from '~/pages/cex/[cex]'
 import { getStaticProps as getCexMarketsStaticProps } from '~/pages/cex/markets/[cex]'
+
+const { resolveCexMarketsByDefillamaSlugMock } = vi.hoisted(() => ({
+	resolveCexMarketsByDefillamaSlugMock: vi.fn()
+}))
 
 const cexs = [
 	{ name: 'Crypto.com', slug: 'Crypto-com' },
 	{ name: 'No Markets', slug: 'no-markets' }
 ]
 
-vi.mock('~/containers/Cexs/server/dataset.markets', () => ({
-	fetchExchangeMarketsList: vi.fn().mockResolvedValue({
-		cex: {
-			spot: [
-				{
-					defillama_slug: 'Crypto-com',
-					exchange: 'cryptocom',
-					market_count: 1,
-					total_volume_24h: 1
-				}
-			],
-			linear_perp: [],
-			inverse_perp: []
-		},
-		dex: {
-			spot: [],
-			linear_perp: [],
-			inverse_perp: []
-		},
-		totals: {
-			cex: {
-				spot: { exchange_count: 1, total_oi_usd: null, total_volume_24h: 1 },
-				linear_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
-				inverse_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null }
-			},
-			dex: {
-				spot: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
-				linear_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
-				inverse_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null }
-			}
-		}
-	})
+vi.mock('~/containers/Markets/server/dataset', () => ({
+	resolveCexMarketsByDefillamaSlug: resolveCexMarketsByDefillamaSlugMock
 }))
 
 vi.mock('~/constants', async (importOriginal) => {
@@ -91,6 +65,15 @@ vi.mock('~/containers/ProtocolOverview/api', () => ({
 }))
 
 describe('CEX markets routes', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		resolveCexMarketsByDefillamaSlugMock.mockImplementation((defillamaSlug: string) =>
+			defillamaSlug === 'Crypto-com'
+				? Promise.resolve({ exchange: 'cryptocom', defillama_slug: 'Crypto-com' })
+				: Promise.resolve(null)
+		)
+	})
+
 	it('adds the markets exchange to the CEX overview props when the cached list matches', async () => {
 		await expect(getCexStaticProps({ params: { cex: 'crypto-com' } } as never)).resolves.toMatchObject({
 			props: {
@@ -110,6 +93,24 @@ describe('CEX markets routes', () => {
 			},
 			revalidate: 123
 		})
+	})
+
+	it('keeps the CEX overview page when the optional markets lookup fails', async () => {
+		resolveCexMarketsByDefillamaSlugMock.mockRejectedValueOnce(new Error('markets unavailable'))
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		try {
+			await expect(getCexStaticProps({ params: { cex: 'crypto-com' } } as never)).resolves.toMatchObject({
+				props: {
+					name: 'Crypto.com',
+					cexMarketsExchange: null,
+					cexMarketsSlug: null
+				},
+				revalidate: 123
+			})
+		} finally {
+			warnSpy.mockRestore()
+		}
 	})
 
 	it('returns props for the standalone markets tab when cached markets exist', async () => {

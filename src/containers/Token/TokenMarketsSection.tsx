@@ -17,16 +17,18 @@ import { LocalLoader } from '~/components/Loaders'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import type {
+	MarketCategoryTotals,
+	MarketPair,
+	MarketVenue,
+	TokenMarketsResponse
+} from '~/containers/Markets/api.types'
+import { ChangeCell, FundingCell, MetricStat, renderUsd } from '~/containers/Markets/marketMetrics'
+import type { Segment } from '~/containers/Markets/segments'
+import { pctChange } from '~/containers/Markets/utils'
 import { formattedNum } from '~/utils'
 import { fetchTokenMarkets } from './api'
 import { DEFAULT_TABLE_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
-import type {
-	TokenMarketCategory,
-	TokenMarketCategoryTotals,
-	TokenMarketPair,
-	TokenMarketsResponse,
-	TokenMarketVenue
-} from './tokenMarkets.types'
 
 const DEFAULT_SORTING: SortingState = [{ id: 'volume_24h', desc: true }]
 
@@ -40,29 +42,62 @@ const VENUE_TABS: ReadonlyArray<{ id: VenueTabId; label: string }> = [
 	{ id: 'all', label: 'All' }
 ]
 
-const CATEGORY_TABS: ReadonlyArray<{ id: TokenMarketCategory; label: string }> = [
+const CATEGORY_TABS: ReadonlyArray<{ id: Segment; label: string }> = [
 	{ id: 'spot', label: 'Spot' },
 	{ id: 'linear_perp', label: 'Linear Perp' },
 	{ id: 'inverse_perp', label: 'Inverse Perp' }
 ]
 
-const EMPTY_TOTALS: TokenMarketCategoryTotals = { pair_count: 0, total_volume_24h: 0, total_oi_usd: null }
+const EMPTY_TOTALS: MarketCategoryTotals = { pair_count: 0, total_volume_24h: 0, total_oi_usd: null }
 
-const columnHelper = createColumnHelper<TokenMarketPair>()
+const columnHelper = createColumnHelper<MarketPair>()
 
 function renderNullableNum(value: number | null | undefined, isUsd = false): string {
 	if (value == null) return '–'
 	return formattedNum(value, isUsd)
 }
 
-function NullableNum({ value, isUsd = false }: { value: number | null | undefined; isUsd?: boolean }) {
-	return <>{value == null ? '–' : formattedNum(value, isUsd)}</>
+function sumPairMetrics(rows: MarketPair[]) {
+	let volume = 0
+	let volumePrev = 0
+	let hasVolumePrev = false
+	let oi = 0
+	let oiPrev = 0
+	let hasOi = false
+	let hasOiPrev = false
+
+	for (const row of rows) {
+		if (row.volume_24h != null) volume += row.volume_24h
+		if (row.volume_prev_24h != null) {
+			volumePrev += row.volume_prev_24h
+			hasVolumePrev = true
+		}
+		if (row.oi_usd != null) {
+			oi += row.oi_usd
+			hasOi = true
+		}
+		if (row.oi_prev_usd != null) {
+			oiPrev += row.oi_prev_usd
+			hasOiPrev = true
+		}
+	}
+
+	return {
+		volume,
+		volumePrev: hasVolumePrev ? volumePrev : null,
+		oi: hasOi ? oi : null,
+		oiPrev: hasOiPrev ? oiPrev : null
+	}
 }
 
-function renderFundingRate(value: number | null | undefined): string {
+function renderFeeRate(value: number | null | undefined): string {
 	if (value == null) return '–'
-	const pct = value * 100
-	return `${pct.toFixed(4)}%`
+	return `${(value * 100).toFixed(3)}%`
+}
+
+function renderLeverage(value: number | null | undefined): string {
+	if (value == null) return '–'
+	return `${value}x`
 }
 
 const venueColumn = columnHelper.accessor('exchange', {
@@ -111,12 +146,32 @@ const priceColumn = columnHelper.accessor((row) => row.price ?? undefined, {
 	}
 })
 
+const priceChangeColumn = columnHelper.accessor((row) => row.price_change_24h ?? undefined, {
+	id: 'price_change_24h',
+	header: '24h',
+	cell: ({ row }) => <ChangeCell fraction={row.original.price_change_24h} />,
+	meta: {
+		headerClassName: 'w-[100px]',
+		align: 'end'
+	}
+})
+
 const volumeColumn = columnHelper.accessor((row) => row.volume_24h ?? undefined, {
 	id: 'volume_24h',
 	header: '24h Volume',
 	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
 	meta: {
 		headerClassName: 'w-[120px]',
+		align: 'end'
+	}
+})
+
+const volumeChangeColumn = columnHelper.accessor((row) => pctChange(row.volume_24h, row.volume_prev_24h) ?? undefined, {
+	id: 'volume_change_24h',
+	header: 'Vol Δ',
+	cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.volume_24h, row.original.volume_prev_24h)} />,
+	meta: {
+		headerClassName: 'w-[100px]',
 		align: 'end'
 	}
 })
@@ -131,31 +186,82 @@ const oiColumn = columnHelper.accessor((row) => row.oi_usd ?? undefined, {
 	}
 })
 
+const oiChangeColumn = columnHelper.accessor((row) => pctChange(row.oi_usd, row.oi_prev_usd) ?? undefined, {
+	id: 'oi_change_24h',
+	header: 'OI Δ',
+	cell: ({ row }) => <ChangeCell fraction={pctChange(row.original.oi_usd, row.original.oi_prev_usd)} />,
+	meta: {
+		headerClassName: 'w-[100px]',
+		align: 'end'
+	}
+})
+
 const fundingColumn = columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
 	id: 'funding_rate_8h',
 	header: 'Funding (8h)',
-	cell: ({ row }) => renderFundingRate(row.original.funding_rate_8h),
+	cell: ({ row }) => <FundingCell rate={row.original.funding_rate_8h} />,
 	meta: {
 		headerClassName: 'w-[130px]',
 		align: 'end'
 	}
 })
 
-const SPOT_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [venueColumn, pairColumn, priceColumn, volumeColumn]
-const PERP_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [
+const maxLeverageColumn = columnHelper.accessor((row) => row.max_leverage ?? undefined, {
+	id: 'max_leverage',
+	header: 'Max Leverage',
+	cell: ({ row }) => renderLeverage(row.original.max_leverage),
+	meta: {
+		headerClassName: 'w-[130px]',
+		align: 'end'
+	}
+})
+
+const makerFeeColumn = columnHelper.accessor((row) => row.maker_fee ?? undefined, {
+	id: 'maker_fee',
+	header: 'Maker Fee',
+	cell: ({ row }) => renderFeeRate(row.original.maker_fee),
+	meta: {
+		headerClassName: 'w-[110px]',
+		align: 'end'
+	}
+})
+
+const takerFeeColumn = columnHelper.accessor((row) => row.taker_fee ?? undefined, {
+	id: 'taker_fee',
+	header: 'Taker Fee',
+	cell: ({ row }) => renderFeeRate(row.original.taker_fee),
+	meta: {
+		headerClassName: 'w-[110px]',
+		align: 'end'
+	}
+})
+
+const SPOT_COLUMNS: ColumnDef<MarketPair, any>[] = [
 	venueColumn,
 	pairColumn,
 	priceColumn,
+	priceChangeColumn,
 	volumeColumn,
+	volumeChangeColumn,
+	makerFeeColumn,
+	takerFeeColumn
+]
+const PERP_COLUMNS: ColumnDef<MarketPair, any>[] = [
+	venueColumn,
+	pairColumn,
+	priceColumn,
+	priceChangeColumn,
+	volumeColumn,
+	volumeChangeColumn,
 	oiColumn,
-	fundingColumn
+	oiChangeColumn,
+	fundingColumn,
+	maxLeverageColumn,
+	makerFeeColumn,
+	takerFeeColumn
 ]
 
-function getCategoryRows(
-	data: TokenMarketsResponse,
-	venue: VenueTabId,
-	category: TokenMarketCategory
-): TokenMarketPair[] {
+function getCategoryRows(data: TokenMarketsResponse, venue: VenueTabId, category: Segment): MarketPair[] {
 	if (venue === 'dex') return data.dex[category] ?? []
 	if (venue === 'cex') return data.cex[category] ?? []
 	const dexRows = data.dex[category] ?? []
@@ -163,11 +269,7 @@ function getCategoryRows(
 	return [...dexRows, ...cexRows].sort((a, b) => (b.volume_24h ?? 0) - (a.volume_24h ?? 0))
 }
 
-function getCategoryTotals(
-	data: TokenMarketsResponse,
-	venue: VenueTabId,
-	category: TokenMarketCategory
-): TokenMarketCategoryTotals {
+function getCategoryTotals(data: TokenMarketsResponse, venue: VenueTabId, category: Segment): MarketCategoryTotals {
 	if (venue === 'all') {
 		const dex = data.totals.dex?.[category] ?? EMPTY_TOTALS
 		const cex = data.totals.cex?.[category] ?? EMPTY_TOTALS
@@ -178,37 +280,34 @@ function getCategoryTotals(
 				dex.total_oi_usd == null && cex.total_oi_usd == null ? null : (dex.total_oi_usd ?? 0) + (cex.total_oi_usd ?? 0)
 		}
 	}
-	return data.totals[venue as TokenMarketVenue]?.[category] ?? EMPTY_TOTALS
+	return data.totals[venue as MarketVenue]?.[category] ?? EMPTY_TOTALS
 }
 
-function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): TokenMarketCategory[] {
-	const categories: TokenMarketCategory[] = []
+function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): Segment[] {
+	const categories: Segment[] = []
 	for (const tab of CATEGORY_TABS) {
 		if (getCategoryRows(data, venue, tab.id).length > 0) categories.push(tab.id)
 	}
 	return categories
 }
 
-function HeaderStrip({ totals, showOi }: { totals: TokenMarketCategoryTotals; showOi: boolean }) {
+function HeaderStrip({ rows, totals, showOi }: { rows: MarketPair[]; totals: MarketCategoryTotals; showOi: boolean }) {
+	const metrics = sumPairMetrics(rows)
+
 	return (
-		<div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3.5 py-2.5">
-			<div className="flex items-baseline gap-1.5">
-				<span className="text-sm text-(--text-label)">Pairs</span>
-				<span className="text-sm font-medium">{formattedNum(totals.pair_count)}</span>
-			</div>
-			<div className="flex items-baseline gap-1.5">
-				<span className="text-sm text-(--text-label)">24h Volume</span>
-				<span className="text-sm font-medium">
-					<NullableNum value={totals.total_volume_24h} isUsd />
-				</span>
-			</div>
+		<div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+			<MetricStat label="Pairs" value={formattedNum(totals.pair_count)} />
+			<MetricStat
+				label="24h Volume"
+				value={renderUsd(totals.total_volume_24h)}
+				sub={<ChangeCell fraction={pctChange(metrics.volume, metrics.volumePrev)} />}
+			/>
 			{showOi ? (
-				<div className="flex items-baseline gap-1.5">
-					<span className="text-sm text-(--text-label)">Open Interest</span>
-					<span className="text-sm font-medium">
-						<NullableNum value={totals.total_oi_usd} isUsd />
-					</span>
-				</div>
+				<MetricStat
+					label="Open Interest"
+					value={renderUsd(totals.total_oi_usd)}
+					sub={<ChangeCell fraction={pctChange(metrics.oi, metrics.oiPrev)} />}
+				/>
 			) : null}
 		</div>
 	)
@@ -278,7 +377,7 @@ interface TokenMarketsSectionProps {
 
 export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 	const [venueTab, setVenueTab] = useReducer((_: VenueTabId, next: VenueTabId) => next, 'dex')
-	const [categoryTab, setCategoryTab] = useReducer((_: TokenMarketCategory, next: TokenMarketCategory) => next, 'spot')
+	const [categoryTab, setCategoryTab] = useReducer((_: Segment, next: Segment) => next, 'spot')
 
 	const { data, error, isLoading } = useQuery({
 		queryKey: ['token-markets', tokenSymbol],
@@ -291,13 +390,13 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 
 	const availableCategoriesByVenue = useMemo(() => {
 		if (!data) {
-			return { dex: [], cex: [], all: [] } as Record<VenueTabId, TokenMarketCategory[]>
+			return { dex: [], cex: [], all: [] } as Record<VenueTabId, Segment[]>
 		}
 		return {
 			dex: getAvailableCategories(data, 'dex'),
 			cex: getAvailableCategories(data, 'cex'),
 			all: getAvailableCategories(data, 'all')
-		} as Record<VenueTabId, TokenMarketCategory[]>
+		} as Record<VenueTabId, Segment[]>
 	}, [data])
 
 	const visibleVenueTabs = useMemo(
@@ -314,7 +413,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 		return CATEGORY_TABS.filter((tab) => available.has(tab.id))
 	}, [availableCategoriesByVenue, selectedVenueTab])
 
-	const selectedCategoryTab = useMemo<TokenMarketCategory>(() => {
+	const selectedCategoryTab = useMemo<Segment>(() => {
 		if (visibleCategoryTabs.some((tab) => tab.id === categoryTab)) return categoryTab
 		return visibleCategoryTabs[0]?.id ?? categoryTab
 	}, [visibleCategoryTabs, categoryTab])
@@ -416,7 +515,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 					ariaLabel="Market venue"
 				/>
 
-				<HeaderStrip totals={totals} showOi={isPerpCategory} />
+				<HeaderStrip rows={rows} totals={totals} showOi={isPerpCategory} />
 
 				<div className="flex w-full flex-wrap items-center justify-end gap-3">
 					<div className="mr-auto flex items-center overflow-x-auto">

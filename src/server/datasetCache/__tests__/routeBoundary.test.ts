@@ -114,10 +114,10 @@ describe('dataset cache route boundaries', () => {
 				export {
 					fetchRaisesFromCache
 				} from './dataset.cache'
-				export * from '~/containers/Cexs/server/dataset.markets.cache'
+				export * from '~/containers/Markets/server/dataset.cache'
 				export type { RawRaise } from '~/containers/Raises/api.types'
 			`)
-		).toEqual(['./dataset.cache', '~/containers/Cexs/server/dataset.markets.cache'])
+		).toEqual(['./dataset.cache', '~/containers/Markets/server/dataset.cache'])
 	})
 
 	it('keeps page and API handlers from importing raw domain cache readers', async () => {

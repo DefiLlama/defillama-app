@@ -83,7 +83,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			{ isDatasetCacheIntegrityError },
 			{ hasTokenLiquidationsData },
 			{ fetchLiquidityEntryByProtocolId },
-			{ fetchTokenMarketsList },
+			{ hasTokenMarkets },
 			{ fetchRaisesByDefillamaId },
 			{ getIndexedTokenRiskBorrowCapacity },
 			{ fetchTokenRightsEntryByDefillamaId, fetchTokenRightsEntryByName },
@@ -93,7 +93,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			import('~/server/datasetCache/core'),
 			import('~/containers/LiquidationsV2/server/dataset'),
 			import('~/containers/Token/server/dataset.liquidity'),
-			import('~/containers/Token/server/dataset.markets'),
+			import('~/containers/Markets/server/dataset'),
 			import('~/containers/Raises/server/dataset'),
 			import('~/containers/Token/server/dataset.risk'),
 			import('~/containers/TokenRights/server/dataset'),
@@ -102,17 +102,9 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		])
 		const downgradeTokenPageError = <T,>(error: unknown, message: string, fallback: T): T =>
 			downgradeTokenPageDataError(error, message, fallback, isDatasetCacheIntegrityError)
-		const normalizedMarketsSymbol = record.symbol.toLowerCase()
-		const marketsAvailablePromise = fetchTokenMarketsList()
-			.then((tokenMarketsList) => {
-				for (const tokenMarket of tokenMarketsList.tokens) {
-					if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
-						return true
-					}
-				}
-				return false
-			})
-			.catch((error) => downgradeTokenPageError(error, `Failed to load token markets list for ${record.symbol}`, false))
+		const marketsAvailablePromise = hasTokenMarkets(record.symbol).catch((error) =>
+			downgradeTokenPageError(error, `Failed to load token markets list for ${record.symbol}`, false)
+		)
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol
@@ -244,6 +236,9 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				: null
 		const yieldsSnapshot = buildInitialYieldsSnapshot(yieldsRows)
 		const borrowRoutesSnapshot = buildInitialBorrowRoutesSnapshot(tokenBorrowRoutesData)
+		const issuerDisplayName = protocolMetadata?.displayName ?? protocolMetadata?.name ?? null
+		const issuer =
+			record.protocolId && issuerDisplayName ? { name: issuerDisplayName, slug: slug(issuerDisplayName) } : null
 		const sections = getTokenPageSections({
 			record,
 			geckoId,
@@ -256,6 +251,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			resolvedUnlocksSlug,
 			yieldsSnapshot,
 			borrowRoutesSnapshot,
+			issuer,
 			overview
 		})
 
@@ -309,7 +305,12 @@ export const getStaticPaths = async () => {
 
 const TOKEN_SECTION_RENDERERS = {
 	'token-overview': ({ section }) => (
-		<TokenOverviewSection overview={section.overview} geckoId={section.geckoId} logo={section.logo} />
+		<TokenOverviewSection
+			overview={section.overview}
+			geckoId={section.geckoId}
+			logo={section.logo}
+			issuer={section.issuer}
+		/>
 	),
 	'token-markets': ({ section }) => <TokenMarketsSection tokenSymbol={section.tokenSymbol} />,
 	'token-income-statement': ({ section }) => (

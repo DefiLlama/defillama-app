@@ -5,12 +5,14 @@ const mocks = vi.hoisted(() => ({
 	fetchExchangeMarketsListFromNetwork: vi.fn()
 }))
 
-vi.mock('~/containers/Cexs/api', () => ({
+vi.mock('~/containers/Markets/server/upstream', () => ({
 	fetchExchangeMarketsListFromNetwork: mocks.fetchExchangeMarketsListFromNetwork
 }))
 
-vi.mock('~/containers/Cexs/server/dataset.markets.cache', () => ({
-	fetchExchangeMarketsListFromCache: mocks.fetchExchangeMarketsListFromCache
+vi.mock('~/containers/Markets/server/dataset.cache', () => ({
+	fetchCexMarketsSlugIndexFromCache: vi.fn(),
+	fetchExchangeMarketsListFromCache: mocks.fetchExchangeMarketsListFromCache,
+	fetchTokenMarketsSymbolIndexFromCache: vi.fn()
 }))
 
 beforeEach(() => {
@@ -23,8 +25,8 @@ afterEach(() => {
 	vi.unstubAllEnvs()
 })
 
-describe('cex markets runtime adapter', () => {
-	it('falls back to the network exchange list when the cex markets cache domain failed', async () => {
+describe('markets runtime adapter', () => {
+	it('falls back to the network exchange list when the markets cache domain failed', async () => {
 		const { DatasetDomainUnavailableError } = await import('~/server/datasetCache/core')
 		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		const networkMarkets = {
@@ -41,13 +43,13 @@ describe('cex markets runtime adapter', () => {
 			totals: {}
 		}
 		mocks.fetchExchangeMarketsListFromCache.mockRejectedValue(
-			new DatasetDomainUnavailableError('cex-markets', 'build failed')
+			new DatasetDomainUnavailableError('markets', 'build failed')
 		)
 		mocks.fetchExchangeMarketsListFromNetwork.mockResolvedValue(networkMarkets)
 
-		const { fetchExchangeMarketsList } = await import('~/containers/Cexs/server/dataset.markets')
+		const { resolveMarketsExchangeByParam } = await import('~/containers/Markets/server/dataset')
 
-		await expect(fetchExchangeMarketsList()).resolves.toBe(networkMarkets)
+		await expect(resolveMarketsExchangeByParam('Binance')).resolves.toBe('binance')
 		expect(mocks.fetchExchangeMarketsListFromNetwork).toHaveBeenCalledTimes(1)
 		warnSpy.mockRestore()
 	})

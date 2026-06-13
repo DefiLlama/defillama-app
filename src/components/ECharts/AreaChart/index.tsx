@@ -276,8 +276,11 @@ export default function AreaChart({
 			},
 			...(!hideLegend && {
 				legend: {
-					...legend,
-					data: chartsStack
+					// Default the legend order to the stacking order, but let a caller order the legend
+					// independently via `chartOptions.legend.data` (e.g. a stacked chart that stacks
+					// smallest-first yet wants the legend listed largest-first).
+					data: chartsStack,
+					...legend
 				}
 			}),
 			dataZoom: hideDataZoom ? [] : [...dataZoom],

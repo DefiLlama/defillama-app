@@ -13,7 +13,7 @@ export {
 	replaceDirectoryWithBackup
 } from '~/utils/cacheDirectory'
 
-export const DATASET_CACHE_ARTIFACT_VERSION = 2
+export const DATASET_CACHE_ARTIFACT_VERSION = 4
 
 export type DatasetDomainManifestEntry =
 	| {

@@ -11,16 +11,18 @@ import {
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
+import type { MarketTotalsBySegment, TokenMarketsResponse } from '~/containers/Markets/api.types'
+import type { Segment } from '~/containers/Markets/segments'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import { fetchTokenMarkets } from './api'
-import type { TokenMarketCategory, TokenMarketsResponse, TokenMarketsTotalsByCategory } from './tokenMarkets.types'
 import {
 	buildDisplayedTokenChartData,
 	TOKEN_OVERVIEW_DEFAULT_CHARTS,
@@ -52,12 +54,12 @@ const OPEN_INTEREST_TOOLTIP =
 	'Open Interest is the total notional USD value of outstanding perpetual contracts across tracked markets.'
 const TREASURY_TOOLTIP = 'Treasury is the value of assets held by the entity issuing or stewarding this token.'
 
-const MARKET_CATEGORY_LABELS: Record<TokenMarketCategory, string> = {
+const MARKET_CATEGORY_LABELS: Record<Segment, string> = {
 	spot: 'Spot',
 	linear_perp: 'Linear Perp',
 	inverse_perp: 'Inverse Perp'
 }
-const MARKET_CATEGORY_ORDER: TokenMarketCategory[] = ['spot', 'linear_perp', 'inverse_perp']
+const MARKET_CATEGORY_ORDER: Segment[] = ['spot', 'linear_perp', 'inverse_perp']
 const TOKEN_OVERVIEW_CHART_QUERY_KEY = 'chart'
 const TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY = 'chartGroup'
 
@@ -132,13 +134,20 @@ function areTokenOverviewChartsEqual(a: TokenOverviewChartLabel[], b: TokenOverv
 	return a.length === b.length && a.every((value, index) => value === b[index])
 }
 
+export type TokenIssuer = {
+	name: string
+	slug: string
+}
+
 export function TokenPageHero({
 	overview,
 	logo,
+	issuer,
 	headingAs: Heading = 'h1'
 }: {
 	overview: TokenOverviewData
 	logo?: string | null
+	issuer?: TokenIssuer | null
 	headingAs?: 'h1' | 'div'
 }) {
 	const percentChange = formatPercent(overview.marketData.percentChange24h)
@@ -161,6 +170,14 @@ export function TokenPageHero({
 					{overview.symbol ? <span className="font-normal">({overview.symbol})</span> : null}
 				</Heading>
 			</div>
+			{issuer ? (
+				<div className="-mt-3 flex flex-wrap items-baseline gap-1 text-sm text-(--text-label)">
+					<span>Issued by</span>
+					<BasicLink href={`/protocol/${issuer.slug}`} className="font-medium text-(--blue) hover:underline">
+						{issuer.name}
+					</BasicLink>
+				</div>
+			) : null}
 			{hasPriceBreakdown ? (
 				<details className="group/price">
 					<summary className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -231,17 +248,13 @@ export function TokenPageHero({
 	)
 }
 
-function getCategoryMetric(
-	totals: TokenMarketsTotalsByCategory,
-	category: TokenMarketCategory,
-	metric: 'volume' | 'oi'
-): number | null {
+function getCategoryMetric(totals: MarketTotalsBySegment, category: Segment, metric: 'volume' | 'oi'): number | null {
 	const entry = totals[category]
 	if (!entry) return null
 	return metric === 'volume' ? (entry.total_volume_24h ?? null) : (entry.total_oi_usd ?? null)
 }
 
-function sumVenueMetric(totals: TokenMarketsTotalsByCategory, metric: 'volume' | 'oi'): number | null {
+function sumVenueMetric(totals: MarketTotalsBySegment, metric: 'volume' | 'oi'): number | null {
 	let sum = 0
 	let hasValue = false
 	for (const category of MARKET_CATEGORY_ORDER) {
@@ -254,13 +267,7 @@ function sumVenueMetric(totals: TokenMarketsTotalsByCategory, metric: 'volume' |
 	return hasValue ? sum : null
 }
 
-function MarketsCategoryBreakdown({
-	totals,
-	metric
-}: {
-	totals: TokenMarketsTotalsByCategory
-	metric: 'volume' | 'oi'
-}) {
+function MarketsCategoryBreakdown({ totals, metric }: { totals: MarketTotalsBySegment; metric: 'volume' | 'oi' }) {
 	const visibleCategories = metric === 'oi' ? MARKET_CATEGORY_ORDER.filter((c) => c !== 'spot') : MARKET_CATEGORY_ORDER
 	return (
 		<>
@@ -665,18 +672,20 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 export function TokenOverviewSection({
 	overview,
 	geckoId,
-	logo
+	logo,
+	issuer
 }: {
 	overview: TokenOverviewData
 	geckoId: string | null
 	logo?: string | null
+	issuer?: TokenIssuer | null
 }) {
 	return (
 		<section className="scroll-mt-24" id="token-overview">
 			<h2 className="sr-only">Overview</h2>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
-					<TokenPageHero overview={overview} logo={logo} />
+					<TokenPageHero overview={overview} logo={logo} issuer={issuer} />
 					<TokenMetrics overview={overview} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
