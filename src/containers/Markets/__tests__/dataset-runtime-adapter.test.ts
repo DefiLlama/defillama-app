@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
 	fetchExchangeMarketsListFromNetwork: vi.fn()
 }))
 
-vi.mock('~/containers/Cexs/api', () => ({
+vi.mock('~/containers/Markets/server/upstream', () => ({
 	fetchExchangeMarketsListFromNetwork: mocks.fetchExchangeMarketsListFromNetwork
 }))
 

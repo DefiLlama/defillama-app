@@ -7,7 +7,7 @@ const { fetchExchangeMarketsFromNetworkMock, resolveMarketsExchangeByParamMock }
 	resolveMarketsExchangeByParamMock: vi.fn()
 }))
 
-vi.mock('~/containers/Cexs/api', () => ({
+vi.mock('~/containers/Markets/server/upstream', () => ({
 	fetchExchangeMarketsFromNetwork: fetchExchangeMarketsFromNetworkMock
 }))
 

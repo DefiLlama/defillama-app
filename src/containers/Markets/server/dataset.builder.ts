@@ -1,11 +1,10 @@
 import path from 'node:path'
-import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
-import { fetchTokenMarketsListFromNetwork } from '~/containers/Token/api'
 import { DATASET_DOMAIN_ARTIFACTS } from '~/server/datasetCache/artifacts'
 import type { DatasetDomainBuildResult } from '~/server/datasetCache/buildTypes'
 import { writeDatasetCacheJson as writeJsonFile } from '~/server/datasetCache/jsonCache'
 import { ensureDirectory } from '~/utils/cacheDirectory'
 import { buildCexMarketsSlugIndex, buildTokenMarketsSymbolIndex } from './dataset.index'
+import { fetchExchangeMarketsListFromNetwork, fetchTokenMarketsListFromNetwork } from './upstream'
 
 const MARKETS_DOMAIN = 'markets'
 

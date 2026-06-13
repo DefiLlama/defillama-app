@@ -1,5 +1,5 @@
-import { MARKETS_SERVER_URL, SERVER_URL } from '~/constants'
-import type { ExchangeMarketsListResponse, ExchangeMarketsResponse } from '~/containers/Markets/api.types'
+import { SERVER_URL } from '~/constants'
+import type { ExchangeMarketsResponse } from '~/containers/Markets/api.types'
 import { fetchJson } from '~/utils/async'
 import type { RawCexInflowsResponse, RawCexsResponse } from './api.types'
 
@@ -57,16 +57,6 @@ export async function fetchCexInflowsBatchProxy(
 		throw new Error(`Inflows batch API returned ${res?.status ?? 'no response'}`)
 	}
 	return res.json()
-}
-
-export async function fetchExchangeMarketsListFromNetwork(): Promise<ExchangeMarketsListResponse> {
-	return fetchJson<ExchangeMarketsListResponse>(`${MARKETS_SERVER_URL}/exchanges/list.json`)
-}
-
-export async function fetchExchangeMarketsFromNetwork(exchange: string): Promise<ExchangeMarketsResponse> {
-	return fetchJson<ExchangeMarketsResponse>(
-		`${MARKETS_SERVER_URL}/exchanges/${encodeURIComponent(exchange.toLowerCase())}/index.json`
-	)
 }
 
 export async function fetchExchangeMarkets(exchange: string): Promise<ExchangeMarketsResponse> {

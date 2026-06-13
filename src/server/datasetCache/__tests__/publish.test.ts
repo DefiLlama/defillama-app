@@ -35,7 +35,7 @@ describe('dataset cache publish', () => {
 		await publishDatasetCache()
 
 		const manifest = JSON.parse(await readFile(path.join(rootDir, 'manifest.json'), 'utf8'))
-		expect(manifest.artifactVersion).toBe(3)
+		expect(manifest.artifactVersion).toBe(4)
 		expect(manifest.domains.yields).toEqual({ status: 'ready', builtAt: 123 })
 		await expect(stat(`${rootDir}.tmp`)).rejects.toThrow()
 	})

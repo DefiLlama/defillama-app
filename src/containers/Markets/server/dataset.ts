@@ -1,5 +1,3 @@
-import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
-import { fetchTokenMarketsListFromNetwork } from '~/containers/Token/api'
 import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
 import { slug } from '~/utils'
 import {
@@ -15,6 +13,7 @@ import {
 	type CexMarketsSlugIndexEntry,
 	type TokenMarketsSymbolIndex
 } from './dataset.index'
+import { fetchExchangeMarketsListFromNetwork, fetchTokenMarketsListFromNetwork } from './upstream'
 
 function fetchExchangeMarketsList() {
 	return readThroughDatasetCache({

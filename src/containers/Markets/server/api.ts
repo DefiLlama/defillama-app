@@ -1,5 +1,4 @@
 import { MARKETS_SERVER_URL } from '~/constants'
-import { fetchExchangeMarketsFromNetwork } from '~/containers/Cexs/api'
 import { isHttpNotFoundMessage, MARKETS_CACHE_CONTROL } from '~/server/api/common'
 import { queryString } from '~/server/api/params'
 import { proxyJsonRoute } from '~/server/api/proxy'
@@ -7,6 +6,7 @@ import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { resolveMarketsExchangeByParam } from './dataset'
+import { fetchExchangeMarketsFromNetwork } from './upstream'
 
 export const tokenMarkets = proxyJsonRoute({
 	route: '/api/public/markets/[token]',
