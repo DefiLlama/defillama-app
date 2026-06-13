@@ -72,4 +72,13 @@ These indexes are derived from already-fetched `tokens-list.json` and `exchanges
 - `segments.ts`: segment constants and helpers.
 - `utils.ts`: pure table/chart helpers and fallback aggregations.
 
+## Server Files
+
+- `server/upstream.ts`: direct `MARKETS_SERVER_URL` fetchers.
+- `server/dataset.builder.ts`: writes the unified `markets` dataset-cache artifacts.
+- `server/dataset.cache.ts`: reads raw Markets artifacts from `.cache/datasets/markets`.
+- `server/dataset.index.ts`: builds pure token-symbol and CEX slug lookup indexes.
+- `server/dataset.ts`: runtime read-through adapter with network fallback for failed manifest domains.
+- `server/api.ts`: framework-neutral public Markets API route definitions.
+
 For source changes, follow the repo root verification instructions.

@@ -20,6 +20,20 @@ Prefer domain-local modules over shared catch-all folders:
   definitions should use names like `server/api.ts`, `server/*Routes.ts`, or a
   route-specific module.
 
+## Server Folder Naming
+
+Use these names consistently for new server modules:
+
+- `server/api.ts`: framework-neutral HTTP route definitions consumed by thin files under `src/pages/api/**`.
+- `server/routes.ts`: sitemap/static route param assembly only.
+- `server/routeData.ts`: cache-only data helpers used by `routes.ts`.
+- `server/upstream.ts`: direct upstream server fetchers for the domain.
+- `server/dataset.builder.ts`: build-time writer for a dataset cache domain.
+- `server/dataset.cache.ts`: raw artifact readers only.
+- `server/dataset.index.ts`: pure index-building helpers for dataset artifacts.
+- `server/dataset.ts`: runtime read-through adapter used by pages and API handlers.
+- `server/charts.ts` or `server/breakdowns.ts`: domain-specific chart or breakdown assembly when it is not just an HTTP handler.
+
 Dataset/cache modules under `server/` must only be imported from server-only call sites:
 `getStaticProps`, `getServerSideProps`, `getStaticPaths`, `pages/api` handlers,
 route-cache code, dataset cache build commands, or tests for those paths. Use dynamic
