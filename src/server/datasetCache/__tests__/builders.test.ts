@@ -106,7 +106,7 @@ describe('dataset cache builders', () => {
 			getYieldConfigFromCache,
 			getYieldPageDataFromCache,
 			getYieldPoolRowFromCache
-		} = await import('../yields')
+		} = await import('~/containers/Yields/server/dataset.cache')
 		const { buildEmptyDatasetManifest, writeDatasetManifest } = await import('../core')
 
 		await buildDatasetDomain('yields', tempDir)

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { DIMENSION_DATASET_SPECS, fetchDimensionDataset } from '~/containers/AdapterMetrics/server/datasets'
+import { fetchChainsDatasetRows } from '~/containers/ChainsByCategory/server/dataset'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -12,17 +13,12 @@ import {
 	withTimeout
 } from '~/containers/ProDashboard/queries.server'
 import {
-	DIMENSION_DATASET_SPECS,
-	fetchChainsDatasetRows,
-	fetchDimensionDataset
-} from '~/containers/ProDashboard/server/datasetFetchers'
-import {
 	fetchStablecoinAssetChartCacheValue,
 	fetchStablecoinsTableData
 } from '~/containers/ProDashboard/server/stablecoinFetchers'
 import { fetchTableServerData } from '~/containers/ProDashboard/server/tableQueries'
+import ProtocolChartBuilderData from '~/containers/ProDashboard/services/ProtocolChartBuilderData'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
-import ProtocolSplitCharts from '~/containers/ProDashboard/services/ProtocolSplitCharts'
 import type {
 	AdvancedTvlChartConfig,
 	ChartBuilderConfig,
@@ -44,8 +40,10 @@ import {
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
+import { STREAM_PROTOCOL_SERIES_SKIP_METRICS } from '~/utils/breakdownMetrics'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -667,7 +665,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 				phase2Promises.push(
 					(async () => {
 						const { getCexAnalyticsMarketShare, getCexAnalyticsSnapshot, getCexAnalyticsTotals } =
-							await import('~/server/cexAnalytics/queries')
+							await import('~/containers/Cexs/server/analytics')
 						const tasks: Promise<void>[] = []
 						if (needsSnapshot) {
 							tasks.push(
@@ -738,7 +736,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			seenYieldsTableKeys.add(cacheKey)
 			phase2Promises.push(
 				(async () => {
-					const { getTokenYieldsRows } = await import('~/server/datasetCache/runtime/yields')
+					const { getTokenYieldsRows } = await import('~/containers/Yields/server/dataset')
 					const data = await withTimeout(getTokenYieldsRows('', itemChains.length ? itemChains : undefined), 15_000)
 					if (data) writeLine({ type: 'yieldsDatasetData', key: cacheKey, data })
 				})().catch(() => {})
@@ -807,7 +805,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 		// Chart builder items
 		const chartBuilderItems = items.filter((item): item is ChartBuilderConfig => item.kind === 'builder')
-		const CHAIN_ONLY_METRICS = new Set(['chain-fees', 'chain-revenue', 'tvl', 'stablecoins'])
 		const resolveChartBuilderFilterMode = (value?: string, fallback?: string) => {
 			if (value === 'include' || value === 'exclude') return value
 			if (fallback === 'include' || fallback === 'exclude') return fallback
@@ -848,7 +845,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 						let result: { series: any[] } = { series: [] }
 						if (cfg.mode === 'protocol') {
 							const data = await withTimeout(
-								ProtocolSplitCharts.getProtocolChainData(
+								ProtocolChartBuilderData.getProtocolChainData(
 									cfg.protocol,
 									cfg.metric,
 									cfg.chains?.length > 0 ? cfg.chains : undefined,
@@ -866,9 +863,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 								series = series.filter((s: any) => !s.name.startsWith('Others'))
 							}
 							result = { series }
-						} else if (!CHAIN_ONLY_METRICS.has(cfg.metric)) {
+						} else if (!STREAM_PROTOCOL_SERIES_SKIP_METRICS.has(cfg.metric)) {
 							const data = await withTimeout(
-								ProtocolSplitCharts.getProtocolSplitData(
+								ProtocolChartBuilderData.getProtocolBreakdownData(
 									cfg.metric,
 									cfg.chains,
 									cfg.limit,

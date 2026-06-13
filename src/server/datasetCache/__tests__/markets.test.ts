@@ -4,7 +4,11 @@ import type {
 	MarketsExchangeListEntry,
 	TokenMarketsListResponse
 } from '~/containers/Markets/api.types'
-import { buildCexMarketsSlugIndex, buildTokenMarketsSymbolIndex, resolveMarketsExchangeFromList } from '../markets'
+import {
+	buildCexMarketsSlugIndex,
+	buildTokenMarketsSymbolIndex,
+	resolveMarketsExchangeFromList
+} from '~/containers/Markets/server/dataset.index'
 
 function exchangeEntry(overrides: Partial<MarketsExchangeListEntry> = {}): MarketsExchangeListEntry {
 	return {

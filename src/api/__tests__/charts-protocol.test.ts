@@ -72,11 +72,11 @@ vi.mock('~/containers/Unlocks/queries', () => ({
 	getProtocolEmissionsCharts: getProtocolEmissionsChartsMock
 }))
 
-vi.mock('~/server/routeCache/assets', () => ({
+vi.mock('~/containers/Cexs/server/routes', () => ({
 	resolveCexParam: resolveCexParamMock
 }))
 
-vi.mock('~/server/routeCache/protocols', () => ({
+vi.mock('~/containers/ProtocolOverview/server/routes', () => ({
 	resolveProtocolParam: resolveProtocolParamMock
 }))
 
@@ -93,7 +93,7 @@ vi.mock('~/utils/telemetry', () => ({
 	withApiRouteTelemetry: (_route: string, handler: unknown) => handler
 }))
 
-import handler from '~/pages/api/public/charts/protocol'
+import handler from '~/pages/api/public/protocols/charts'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -103,7 +103,7 @@ beforeEach(() => {
 	resolveCexParamMock.mockResolvedValue(null)
 })
 
-describe('/api/public/charts/protocol', () => {
+describe('/api/public/protocols/charts', () => {
 	it.each([
 		{
 			label: 'TVL value chart',

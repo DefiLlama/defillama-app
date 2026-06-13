@@ -6,11 +6,11 @@ const { getBorrowAdvancedPageRowsMock } = vi.hoisted(() => ({
 	getBorrowAdvancedPageRowsMock: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/runtime/yields', () => ({
+vi.mock('~/containers/Yields/server/dataset', () => ({
 	getBorrowAdvancedPageRows: getBorrowAdvancedPageRowsMock
 }))
 
-import handler from '~/pages/api/public/datasets/borrow-advanced'
+import handler from '~/pages/api/public/yields/borrow-advanced'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -26,7 +26,7 @@ describe('borrow advanced api route', () => {
 	it('serves filtered borrow optimizer rows with CDN cache headers', async () => {
 		const req = {
 			method: 'GET',
-			url: '/api/public/datasets/borrow-advanced?lend=ETH&borrow=USDC',
+			url: '/api/public/yields/borrow-advanced?lend=ETH&borrow=USDC',
 			query: { lend: 'ETH', borrow: 'USDC' }
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { YIELD_STRATEGY_DATASET_API } from '~/constants'
+import { YIELD_STRATEGY_DATASET_API } from '../constants'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
 import { PaginatedYieldsStrategyTable } from '../Tables/Strategy'

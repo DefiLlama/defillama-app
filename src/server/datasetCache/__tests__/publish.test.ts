@@ -81,14 +81,13 @@ describe('dataset cache publish', () => {
 		const { buildEmptyDatasetManifest, writeDatasetManifest } = await import('../core')
 		const currentManifest = buildEmptyDatasetManifest(111)
 		await mkdir(path.join(rootDir, 'markets'), { recursive: true })
-		await writeFile(path.join(rootDir, 'markets', 'tokens-list.json'), '{"version":"old"}')
 		await writeFile(path.join(rootDir, 'markets', 'exchanges-list.json'), '{"version":"old"}')
 		await writeDatasetManifest(currentManifest, rootDir)
 		const refreshedManifest = buildEmptyDatasetManifest(222)
 		refreshedManifest.domains.markets = { status: 'failed', builtAt: 0, error: 'markets unavailable' }
 		buildAllDatasetDomainsMock.mockImplementation(async (buildDir: string) => {
 			await mkdir(path.join(buildDir, 'markets'), { recursive: true })
-			await writeFile(path.join(buildDir, 'markets', 'tokens-list.json'), '{"version":"failed-refresh"}')
+			await writeFile(path.join(buildDir, 'markets', 'exchanges-list.json'), '{"version":"failed-refresh"}')
 			return refreshedManifest
 		})
 		const { publishDatasetCache } = await import('../publish')
@@ -97,7 +96,9 @@ describe('dataset cache publish', () => {
 
 		const manifest = JSON.parse(await readFile(path.join(rootDir, 'manifest.json'), 'utf8'))
 		expect(manifest.domains.markets).toEqual({ status: 'ready', builtAt: 111 })
-		await expect(readFile(path.join(rootDir, 'markets', 'tokens-list.json'), 'utf8')).resolves.toBe('{"version":"old"}')
+		await expect(readFile(path.join(rootDir, 'markets', 'exchanges-list.json'), 'utf8')).resolves.toBe(
+			'{"version":"old"}'
+		)
 		expect(error).toHaveBeenCalledWith(
 			expect.stringContaining('markets: markets unavailable (kept previous artifacts)')
 		)

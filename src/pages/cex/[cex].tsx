@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 		const exchangeName = params.cex
 		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata'),
-			import('~/server/routeCache/assets')
+			import('~/containers/Cexs/server/routes')
 		])
 		const cexRoute = resolveCexParamFromMetadata(exchangeName, metadataCache)
 
@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 		const exchangeData = cexRoute.metadata
 
-		const { resolveCexMarketsByDefillamaSlug } = await import('~/server/datasetCache/runtime/markets')
+		const { resolveCexMarketsByDefillamaSlug } = await import('~/containers/Markets/server/dataset')
 		const [cexMarkets, data] = await Promise.all([
 			resolveCexMarketsByDefillamaSlug(exchangeData.slug ?? '').catch((error) => {
 				console.warn(`[cex/[cex]] Failed to resolve markets exchange for ${exchangeName}`, error)
@@ -74,7 +74,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getCexStaticPaths } = await import('~/server/routeCache/assets')
+	const { getCexStaticPaths } = await import('~/containers/Cexs/server/routes')
 	const paths = await getCexStaticPaths()
 
 	return { paths, fallback: 'blocking' }

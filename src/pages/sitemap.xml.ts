@@ -7,7 +7,7 @@ function SiteMapIndex() {
 }
 
 export async function getServerSideProps({ res }: GetServerSidePropsContext) {
-	const { buildAppSitemapSections, getSitemapSectionPath } = await import('~/server/routeCache/sitemap')
+	const { buildAppSitemapSections, getSitemapSectionPath } = await import('~/server/routeRegistry/sitemap')
 	const sections = await buildAppSitemapSections()
 
 	const sitemap = buildSitemapIndexXml(

@@ -2,30 +2,29 @@ import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
-const { getLiquidationsProtocolsResponseFromCacheMock, getLiquidationsProtocolChainIdsFromCacheMock } = vi.hoisted(
-	() => ({
-		getLiquidationsProtocolsResponseFromCacheMock: vi.fn(),
-		getLiquidationsProtocolChainIdsFromCacheMock: vi.fn()
-	})
-)
-
 const {
 	getLiquidationsOverviewPageDataMock,
 	getLiquidationsProtocolPageDataMock,
 	getLiquidationsChainPageDataMock,
-	getTokenLiquidationsSectionDataMock
+	getTokenLiquidationsSectionDataMock,
+	getLiquidationsProtocolsListMock,
+	getLiquidationsProtocolChainIdsMock
 } = vi.hoisted(() => ({
 	getLiquidationsOverviewPageDataMock: vi.fn(),
 	getLiquidationsProtocolPageDataMock: vi.fn(),
 	getLiquidationsChainPageDataMock: vi.fn(),
-	getTokenLiquidationsSectionDataMock: vi.fn()
+	getTokenLiquidationsSectionDataMock: vi.fn(),
+	getLiquidationsProtocolsListMock: vi.fn(),
+	getLiquidationsProtocolChainIdsMock: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset', () => ({
 	getLiquidationsOverviewPageData: getLiquidationsOverviewPageDataMock,
 	getLiquidationsProtocolPageData: getLiquidationsProtocolPageDataMock,
 	getLiquidationsChainPageData: getLiquidationsChainPageDataMock,
-	getTokenLiquidationsSectionData: getTokenLiquidationsSectionDataMock
+	getTokenLiquidationsSectionData: getTokenLiquidationsSectionDataMock,
+	getLiquidationsProtocolsList: getLiquidationsProtocolsListMock,
+	getLiquidationsProtocolChainIds: getLiquidationsProtocolChainIdsMock
 }))
 
 vi.mock('~/utils/apiAuth', () => ({
@@ -40,11 +39,6 @@ vi.mock('~/utils/metadata', () => ({
 		liquidationsTokenSymbolsSet: new Set(['WSTETH'])
 	},
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
-}))
-
-vi.mock('~/server/datasetCache/liquidations', () => ({
-	getLiquidationsProtocolsResponseFromCache: getLiquidationsProtocolsResponseFromCacheMock,
-	getLiquidationsProtocolChainIdsFromCache: getLiquidationsProtocolChainIdsFromCacheMock
 }))
 
 import chainHandler from '~/pages/api/private/liquidations/[protocol]/[chain]'
@@ -62,8 +56,8 @@ const mockedGetTokenLiquidationsSectionData = vi.mocked(getTokenLiquidationsSect
 beforeEach(() => {
 	vi.clearAllMocks()
 	mockedValidateSubscription.mockResolvedValue({ valid: true, isTrial: false })
-	getLiquidationsProtocolsResponseFromCacheMock.mockResolvedValue({ protocols: ['sky'] })
-	getLiquidationsProtocolChainIdsFromCacheMock.mockResolvedValue(['arbitrum'])
+	getLiquidationsProtocolsListMock.mockResolvedValue({ protocols: ['sky'] })
+	getLiquidationsProtocolChainIdsMock.mockResolvedValue(['arbitrum'])
 })
 
 describe('liquidations api routes', () => {

@@ -11,12 +11,12 @@ const { runtimeMocks } = vi.hoisted(() => ({
 	}
 }))
 
-vi.mock('~/server/datasetCache/runtime/yields', () => runtimeMocks)
+vi.mock('~/containers/Yields/server/dataset', () => runtimeMocks)
 
-import halalHandler from '~/pages/api/public/datasets/yields/halal'
-import loopHandler from '~/pages/api/public/datasets/yields/loop'
-import strategyHandler from '~/pages/api/public/datasets/yields/strategy'
-import longShortHandler from '~/pages/api/public/datasets/yields/strategy-long-short'
+import halalHandler from '~/pages/api/public/yields/halal'
+import loopHandler from '~/pages/api/public/yields/loop'
+import strategyHandler from '~/pages/api/public/yields/strategy'
+import longShortHandler from '~/pages/api/public/yields/strategy-long-short'
 
 const response = {
 	rows: [{ pool: 'ETH-USDC' }],
@@ -42,25 +42,25 @@ describe('route-specific yield table api routes', () => {
 	it.each([
 		{
 			name: 'loop',
-			path: '/api/public/datasets/yields/loop',
+			path: '/api/public/yields/loop',
 			handler: loopHandler,
 			runtime: runtimeMocks.getYieldLoopPage
 		},
 		{
 			name: 'strategy',
-			path: '/api/public/datasets/yields/strategy',
+			path: '/api/public/yields/strategy',
 			handler: strategyHandler,
 			runtime: runtimeMocks.getYieldStrategyPage
 		},
 		{
 			name: 'strategy-long-short',
-			path: '/api/public/datasets/yields/strategy-long-short',
+			path: '/api/public/yields/strategy-long-short',
 			handler: longShortHandler,
 			runtime: runtimeMocks.getYieldLongShortPage
 		},
 		{
 			name: 'halal',
-			path: '/api/public/datasets/yields/halal',
+			path: '/api/public/yields/halal',
 			handler: halalHandler,
 			runtime: runtimeMocks.getYieldHalalPage
 		}
@@ -95,7 +95,7 @@ describe('route-specific yield table api routes', () => {
 	it('rejects non-GET halal requests before loading rows', async () => {
 		const req = {
 			method: 'POST',
-			url: '/api/public/datasets/yields/halal',
+			url: '/api/public/yields/halal',
 			query: {}
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

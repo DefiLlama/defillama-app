@@ -29,7 +29,7 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 
 		const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata'),
-			import('~/server/routeCache/chains')
+			import('~/containers/ChainOverview/server/routes')
 		])
 		const chainRoute = resolveChainParamFromMetadata(chain, metadataCache)
 
@@ -99,7 +99,7 @@ export const getStaticPaths: GetStaticPaths<StablecoinsByChainRouteParams> = asy
 		}
 	}
 
-	const { getStablecoinChainStaticPaths } = await import('~/server/routeCache/chains')
+	const { getStablecoinChainStaticPaths } = await import('~/containers/ChainOverview/server/routes')
 	const paths = await getStablecoinChainStaticPaths()
 
 	return { paths, fallback: 'blocking' }

@@ -82,7 +82,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getProtocolListingStaticPaths } = await import('~/server/routeCache/assets')
+	const { getProtocolListingStaticPaths } = await import('~/containers/ProtocolTaxonomy/server/routes')
 	const paths = await getProtocolListingStaticPaths()
 
 	return { paths, fallback: 'blocking' }

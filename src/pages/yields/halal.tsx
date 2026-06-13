@@ -1,6 +1,6 @@
 import { startTransition, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
-import { YIELD_HALAL_DATASET_API } from '~/constants'
+import { YIELD_HALAL_DATASET_API } from '~/containers/Yields/constants'
 import { disclaimer } from '~/containers/Yields/constants'
 import YieldPage from '~/containers/Yields/views/PoolsView'
 import Layout from '~/layout'
@@ -35,7 +35,7 @@ This leaves us with:
 `
 
 export const getStaticProps = withPerformanceLogging('yields/halal', async () => {
-	const { getYieldHalalPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const { getYieldHalalPageMetadata } = await import('~/containers/Yields/server/dataset')
 	const metadata = await getYieldHalalPageMetadata()
 
 	return {

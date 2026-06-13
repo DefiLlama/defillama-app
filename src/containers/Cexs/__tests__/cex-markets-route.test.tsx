@@ -11,7 +11,7 @@ const cexs = [
 	{ name: 'No Markets', slug: 'no-markets' }
 ]
 
-vi.mock('~/server/datasetCache/runtime/markets', () => ({
+vi.mock('~/containers/Markets/server/dataset', () => ({
 	resolveCexMarketsByDefillamaSlug: resolveCexMarketsByDefillamaSlugMock
 }))
 

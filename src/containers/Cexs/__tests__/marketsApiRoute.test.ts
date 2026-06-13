@@ -11,7 +11,7 @@ vi.mock('~/containers/Cexs/api', () => ({
 	fetchExchangeMarketsFromNetwork: fetchExchangeMarketsFromNetworkMock
 }))
 
-vi.mock('~/server/datasetCache/runtime/markets', () => ({
+vi.mock('~/containers/Markets/server/dataset', () => ({
 	resolveMarketsExchangeByParam: resolveMarketsExchangeByParamMock
 }))
 

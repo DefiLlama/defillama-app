@@ -53,8 +53,15 @@ export function cacheJitterOffsetSeconds(key: string, jitterWindowSeconds = cach
 	return bucket - Math.floor(windowSeconds / 2)
 }
 
+// Cap the jitter window at this fraction of the base lifetime so short TTLs
+// keep their intent: a fixed ±10-minute window would dominate a 60s s-maxage.
+const MAX_JITTER_FRACTION_OF_BASE = 0.4
+
 export function jitterCacheSeconds(baseSeconds: number, key: string): { seconds: number; offsetSeconds: number } {
-	const jitterWindowSeconds = cacheJitterWindowSeconds()
+	const jitterWindowSeconds = Math.min(
+		cacheJitterWindowSeconds(),
+		Math.floor(baseSeconds * MAX_JITTER_FRACTION_OF_BASE)
+	)
 	if (jitterWindowSeconds <= 0) {
 		return { seconds: Math.floor(baseSeconds), offsetSeconds: 0 }
 	}

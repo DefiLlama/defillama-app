@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getYieldPoolPageData } from '../runtime/yields'
+import { getYieldPoolPageData } from '~/containers/Yields/server/dataset'
 
 const { fetchJsonMock, mapPoolToYieldTableRowMock } = vi.hoisted(() => ({
 	fetchJsonMock: vi.fn(),

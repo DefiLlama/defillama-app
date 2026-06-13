@@ -29,20 +29,20 @@ import { useFetchChainChartData } from '../useFetchChainChartData'
 const feeRevenueChartRows: Array<{ label: ChainChartLabels; expectedUrl: string }> = [
 	{
 		label: 'Chain Fees',
-		expectedUrl: '/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base'
+		expectedUrl: '/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base'
 	},
 	{
 		label: 'Chain Revenue',
 		expectedUrl:
-			'/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyRevenue'
+			'/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyRevenue'
 	},
 	{
 		label: 'App Fees',
-		expectedUrl: '/api/public/charts/chain?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyAppFees'
+		expectedUrl: '/api/public/chains/charts?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyAppFees'
 	},
 	{
 		label: 'App Revenue',
-		expectedUrl: '/api/public/charts/chain?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyAppRevenue'
+		expectedUrl: '/api/public/chains/charts?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyAppRevenue'
 	}
 ]
 
@@ -96,13 +96,13 @@ describe('ChainOverview chart metric semantics', () => {
 		renderToStaticMarkup(<Probe toggledCharts={['Chain Fees']} feesSettings={{ bribes: true, tokentax: true }} />)
 
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base'
+			'/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base'
 		)
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyBribesRevenue'
+			'/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyBribesRevenue'
 		)
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyTokenTaxes'
+			'/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyTokenTaxes'
 		)
 		expect(mocks.fetchJson).toHaveBeenCalledTimes(3)
 	})
@@ -111,13 +111,13 @@ describe('ChainOverview chart metric semantics', () => {
 		renderToStaticMarkup(<Probe toggledCharts={['App Fees']} feesSettings={{ bribes: true, tokentax: true }} />)
 
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/chain?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyAppFees'
+			'/api/public/chains/charts?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyAppFees'
 		)
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/chain?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyBribesRevenue'
+			'/api/public/chains/charts?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyBribesRevenue'
 		)
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/chain?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyTokenTaxes'
+			'/api/public/chains/charts?kind=adapter-chain&adapterType=fees&chain=Base&dataType=dailyTokenTaxes'
 		)
 		expect(mocks.fetchJson).toHaveBeenCalledTimes(3)
 	})

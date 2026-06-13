@@ -44,7 +44,7 @@ export const buildProtocolValueChartApiUrl = ({
 	if (key != null) searchParams.set('key', key)
 	if (currency != null) searchParams.set('currency', currency)
 	if (breakdownType != null) searchParams.set('breakdownType', breakdownType)
-	return `/api/public/charts/protocol?${searchParams.toString()}`
+	return `/api/public/protocols/charts?${searchParams.toString()}`
 }
 
 export const buildProtocolValueChartQueryKey = ({

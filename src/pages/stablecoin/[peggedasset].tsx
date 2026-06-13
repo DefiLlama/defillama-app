@@ -52,7 +52,7 @@ export const getStaticPaths: GetStaticPaths<StablecoinAssetRouteParams> = async 
 		}
 	}
 
-	const { getStablecoinAssetStaticPaths } = await import('~/server/routeCache/assets')
+	const { getStablecoinAssetStaticPaths } = await import('~/containers/Stablecoins/server/routes')
 	const paths = await getStablecoinAssetStaticPaths()
 
 	return { paths, fallback: 'blocking' }

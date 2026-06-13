@@ -1,6 +1,6 @@
 import type { SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { YIELD_LONG_SHORT_STRATEGY_DATASET_API } from '~/constants'
+import { YIELD_LONG_SHORT_STRATEGY_DATASET_API } from '../constants'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
 import { PaginatedYieldsStrategyTableFR } from '../Tables/StrategyFR'

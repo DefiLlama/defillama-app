@@ -40,7 +40,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getNarrativeCategoryStaticPaths } = await import('~/server/routeCache/assets')
+	const { getNarrativeCategoryStaticPaths } = await import('~/containers/NarrativeTracker/server/routes')
 	const paths = await getNarrativeCategoryStaticPaths()
 
 	return { paths, fallback: 'blocking' }

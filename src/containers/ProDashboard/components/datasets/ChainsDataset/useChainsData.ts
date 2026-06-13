@@ -9,7 +9,7 @@ export function useChainsData(category?: string) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'chains-overview', category || 'all'],
-		queryFn: () => fetchJson(`/api/dynamic/datasets/chains${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/chains${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1

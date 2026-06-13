@@ -21,7 +21,7 @@ vi.mock('~/utils/telemetry', () => ({
 	withApiRouteTelemetry: (_route: string, handler: NextApiHandler) => handler
 }))
 
-import volatilityHandler from '~/pages/api/private/datasets/volatility'
+import volatilityHandler from '~/pages/api/private/yields/volatility'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -29,7 +29,7 @@ beforeEach(() => {
 	fetchWithPoolingOnServerMock.mockResolvedValue(new Response(JSON.stringify({ pool: [null, 4.4, 0.9, 0.2] })))
 })
 
-describe('/api/private/datasets/volatility', () => {
+describe('/api/private/yields/volatility', () => {
 	it('returns 405 with private no-store for non-GET requests', async () => {
 		const req = { method: 'POST', headers: {}, query: {} } as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

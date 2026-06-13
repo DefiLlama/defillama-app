@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { V2_SERVER_URL, YIELD_POOLS_API } from '~/constants'
+import { V2_SERVER_URL } from '~/constants'
 import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType,
 	fetchAdapterProtocolMetrics
 } from '~/containers/AdapterMetrics/api'
 import { fetchProtocolTvlChart } from '~/containers/ProtocolOverview/api'
+import { YIELD_POOLS_API } from '~/containers/Yields/constants'
 import { fetchJson } from '~/utils/async'
 
 const PROTOCOL_SLUG = 'sparklend'

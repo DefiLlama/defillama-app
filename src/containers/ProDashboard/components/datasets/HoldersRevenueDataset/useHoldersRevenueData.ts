@@ -13,7 +13,7 @@ export function useHoldersRevenueData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'holders-revenue-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/dynamic/datasets/holders-revenue${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/adapter-metrics/holders-revenue${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1

@@ -6,7 +6,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('borrow/advanced', async () => {
-	const { getBorrowAdvancedPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const { getBorrowAdvancedPageMetadata } = await import('~/containers/Yields/server/dataset')
 	const metadata = await getBorrowAdvancedPageMetadata()
 
 	return {

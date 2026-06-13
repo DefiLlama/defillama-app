@@ -25,13 +25,51 @@ vi.mock('~/utils/telemetry', () => ({
 	withApiRouteTelemetry: (_route: string, handler: unknown) => handler
 }))
 
-import handler from '~/pages/api/public/charts/coingecko/[geckoId]'
+import handler from '~/pages/api/public/tokens/charts/coingecko/[geckoId]'
 
 beforeEach(() => {
 	vi.clearAllMocks()
 })
 
-describe('/api/public/charts/coingecko/[geckoId]', () => {
+describe('/api/public/tokens/charts/coingecko/[geckoId]', () => {
+	it('returns cached chart data for valid CoinGecko ids with allowed punctuation', async () => {
+		fetchCoinGeckoChartByIdWithCacheFallbackMock.mockResolvedValueOnce({ data: { prices: [[1, 2]] } })
+		const res = createMockNextApiResponse()
+
+		await handler(
+			{
+				method: 'GET',
+				query: { geckoId: 'wrapped-bitcoin_2.test-token' },
+				url: '/api/public/tokens/charts/coingecko/wrapped-bitcoin_2.test-token'
+			} as unknown as NextApiRequest,
+			res
+		)
+
+		expect(fetchCoinGeckoChartByIdWithCacheFallbackMock).toHaveBeenCalledWith('wrapped-bitcoin_2.test-token', {
+			fullChart: true
+		})
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith({ data: { prices: [[1, 2]] } })
+	})
+
+	it('rejects invalid CoinGecko ids before fetching upstream data', async () => {
+		const res = createMockNextApiResponse()
+
+		await handler(
+			{
+				method: 'GET',
+				query: { geckoId: 'bad id' },
+				url: '/api/public/tokens/charts/coingecko/bad%20id'
+			} as unknown as NextApiRequest,
+			res
+		)
+
+		expect(fetchCoinGeckoChartByIdWithCacheFallbackMock).not.toHaveBeenCalled()
+		expect(fetchJsonMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Invalid geckoId parameter' })
+	})
+
 	it('normalizes finite supply values from the cache server', async () => {
 		fetchJsonMock.mockResolvedValueOnce({ data: { total_supply: 123 } })
 		const res = createMockNextApiResponse()
@@ -40,7 +78,7 @@ describe('/api/public/charts/coingecko/[geckoId]', () => {
 			{
 				method: 'GET',
 				query: { geckoId: 'aave', kind: 'supply' },
-				url: '/api/public/charts/coingecko/aave'
+				url: '/api/public/tokens/charts/coingecko/aave'
 			} as unknown as NextApiRequest,
 			res
 		)
@@ -59,7 +97,7 @@ describe('/api/public/charts/coingecko/[geckoId]', () => {
 			{
 				method: 'GET',
 				query: { geckoId: 'aave', kind: 'supply' },
-				url: '/api/public/charts/coingecko/aave'
+				url: '/api/public/tokens/charts/coingecko/aave'
 			} as unknown as NextApiRequest,
 			res
 		)
@@ -77,7 +115,7 @@ describe('/api/public/charts/coingecko/[geckoId]', () => {
 			{
 				method: 'GET',
 				query: { geckoId: 'aave', kind: 'supply' },
-				url: '/api/public/charts/coingecko/aave'
+				url: '/api/public/tokens/charts/coingecko/aave'
 			} as unknown as NextApiRequest,
 			res
 		)
@@ -95,7 +133,7 @@ describe('/api/public/charts/coingecko/[geckoId]', () => {
 			{
 				method: 'GET',
 				query: { geckoId: 'missing', kind: 'supply' },
-				url: '/api/public/charts/coingecko/missing'
+				url: '/api/public/tokens/charts/coingecko/missing'
 			} as unknown as NextApiRequest,
 			res
 		)
@@ -115,7 +153,7 @@ describe('/api/public/charts/coingecko/[geckoId]', () => {
 			{
 				method: 'GET',
 				query: { geckoId: 'aave', kind: 'supply' },
-				url: '/api/public/charts/coingecko/aave'
+				url: '/api/public/tokens/charts/coingecko/aave'
 			} as unknown as NextApiRequest,
 			res
 		)

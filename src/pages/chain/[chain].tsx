@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 	}
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const { resolveChainParamFromMetadata } = await import('~/server/routeCache/chains')
+	const { resolveChainParamFromMetadata } = await import('~/containers/ChainOverview/server/routes')
 	const isAllChain = chain.toLowerCase() === 'all'
 	const chainRoute = isAllChain ? null : resolveChainParamFromMetadata(chain, metadataCache)
 	const normalizedChain = isAllChain ? 'All' : chainRoute?.canonicalName
@@ -62,7 +62,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getChainStaticPaths } = await import('~/server/routeCache/chains')
+	const { getChainStaticPaths } = await import('~/containers/ChainOverview/server/routes')
 	const paths = await getChainStaticPaths()
 
 	return { paths, fallback: 'blocking' }

@@ -73,7 +73,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const { resolveCexMarketsByDefillamaSlug } = await import('~/server/datasetCache/runtime/markets')
+		const { resolveCexMarketsByDefillamaSlug } = await import('~/containers/Markets/server/dataset')
 		const cexMarkets = await resolveCexMarketsByDefillamaSlug(exchangeData.slug ?? '')
 
 		if (!cexMarkets) {

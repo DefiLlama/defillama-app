@@ -43,16 +43,6 @@ beforeEach(() => {
 })
 
 describe('/api/public/stablecoins/volume-chart', () => {
-	it('rejects non-GET requests', async () => {
-		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
-		const res = createMockNextApiResponse()
-
-		await handler(req, res)
-
-		expect(res.status).toHaveBeenCalledWith(405)
-		expect(res.json).toHaveBeenCalledWith({ error: 'Method Not Allowed' })
-	})
-
 	it('uses global volume fetchers', async () => {
 		const req = { method: 'GET', query: { scope: 'global', chart: 'token' } } as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

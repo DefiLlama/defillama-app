@@ -4,6 +4,7 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod, StreamDoneContext } from '~/containers/ProDashboard/queries'
+import { PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS } from '~/utils/breakdownMetrics'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
@@ -12,7 +13,7 @@ import {
 	useProDashboardPermissions,
 	useProDashboardTime
 } from '../ProDashboardAPIContext'
-import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
+import ProtocolChartBuilderData from '../services/ProtocolChartBuilderData'
 import type { DashboardGrouping } from '../types'
 import { getGroupedTimestampSec } from '../utils'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -25,7 +26,6 @@ const DEFAULT_SERIES_COLOR = '#3e61cc'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
 const EMPTY_SERIES_NAMES: string[] = []
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
-const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
 const CHART_TYPE_OPTIONS = [
 	{ name: 'Stacked Bar', key: 'stackedBar' },
 	{ name: 'Stacked Area', key: 'stackedArea' },
@@ -106,7 +106,7 @@ interface ChartBuilderCardProps {
 }
 
 type BuilderMetric = ChartBuilderCardProps['builder']['config']['metric']
-type ProtocolSplitMetric = Exclude<BuilderMetric, 'stablecoins' | 'chain-fees' | 'chain-revenue'>
+type ProtocolBreakdownMetric = Exclude<BuilderMetric, 'stablecoins' | 'chain-fees' | 'chain-revenue'>
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const {
@@ -179,7 +179,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
-				const data = await ProtocolSplitCharts.getProtocolChainData(
+				const data = await ProtocolChartBuilderData.getProtocolChainData(
 					config.protocol,
 					config.metric,
 					config.chains.length > 0 ? config.chains : undefined,
@@ -208,12 +208,12 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				return { series }
 			}
 
-			if (CHAIN_ONLY_METRICS.has(config.metric)) {
+			if (PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(config.metric)) {
 				return { series: [] }
 			}
 
-			const data = await ProtocolSplitCharts.getProtocolSplitData(
-				config.metric as ProtocolSplitMetric,
+			const data = await ProtocolChartBuilderData.getProtocolBreakdownData(
+				config.metric as ProtocolBreakdownMetric,
 				config.chains,
 				config.limit,
 				config.categories,
