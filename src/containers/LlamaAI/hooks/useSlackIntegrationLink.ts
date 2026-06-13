@@ -17,6 +17,18 @@ export const getSlackStatusQueryKey = (userId: string | null) => [...LLAMA_AI_SL
 
 const POLL_MS = 2000
 
+function getSafeSlackAuthorizeUrl(value: string): string | null {
+	try {
+		const url = new URL(value)
+		if (url.protocol !== 'https:') return null
+		if (url.hostname.toLowerCase() !== 'slack.com') return null
+		if (url.pathname !== '/oauth/v2/authorize') return null
+		return url.toString()
+	} catch {
+		return null
+	}
+}
+
 export type SlackIntegrationState =
 	| { status: 'idle' }
 	| { status: 'loading' }
@@ -83,7 +95,16 @@ export function useSlackIntegrationLink(opts: Options = {}) {
 				pending: { expiresAt: result.expiresAt }
 			})
 			if (typeof window !== 'undefined') {
-				window.location.href = result.authorizeUrl
+				const safeUrl = getSafeSlackAuthorizeUrl(result.authorizeUrl)
+				if (safeUrl) {
+					window.location.href = safeUrl
+				} else {
+					queryClient.setQueryData<SlackStatus>(statusQueryKey, {
+						links: previous?.links ?? [],
+						pending: null
+					})
+					throw new Error('Invalid Slack authorize URL returned from server')
+				}
 			}
 		}
 	})
