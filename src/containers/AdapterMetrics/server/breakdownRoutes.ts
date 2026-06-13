@@ -2,11 +2,11 @@ import { queryBoolean, queryFilterMode, queryIntClamped, queryList, queryString 
 import { badRequest, ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
-import { NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/utils/breakdowns'
+import { NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/server/breakdowns'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-import { getAdapterMetricProtocolChainBreakdownData } from './breakdowns/byChain'
-import { DIMENSIONS_METRIC_CONFIG } from './breakdowns/config'
-import { getDimensionsBreakdownData } from './breakdowns/dimensions'
+import { getAdapterMetricChainSeries } from './breakdowns/chainSeries'
+import { DIMENSIONS_API_METRIC_CONFIG } from './breakdowns/config'
+import { getAdapterMetricProtocolSeries } from './breakdowns/protocolSeries'
 
 const BREAKDOWN_RESULT_TTL_MS = 10 * 60 * 1000
 const BREAKDOWN_CACHE_CONTROL = 'public, s-maxage=600, stale-while-revalidate=1200'
@@ -22,7 +22,7 @@ export const adapterMetricBreakdown = defineApiRoute({
 		const chainMode = queryFilterMode(req.query, 'chainFilterMode', 'filterMode')
 		const categoryMode = queryFilterMode(req.query, 'categoryFilterMode', 'filterMode')
 
-		if (!DIMENSIONS_METRIC_CONFIG[metric]) {
+		if (!DIMENSIONS_API_METRIC_CONFIG[metric]) {
 			return badRequest(`Unsupported metric: ${metric}`)
 		}
 
@@ -36,7 +36,7 @@ export const adapterMetricBreakdown = defineApiRoute({
 				cacheKey,
 				{ ttlMs: BREAKDOWN_RESULT_TTL_MS, ttlJitter: 0.2 },
 				() =>
-					getDimensionsBreakdownData({
+					getAdapterMetricProtocolSeries({
 						metric,
 						chains: chainsOrAll,
 						categories,
@@ -67,7 +67,7 @@ export const adapterMetricByChainBreakdown = defineApiRoute({
 		const metric = queryString(req.query, 'metric') ?? ''
 		const protocol = queryString(req.query, 'protocol')
 
-		if (NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS.has(metric) || !DIMENSIONS_METRIC_CONFIG[metric]) {
+		if (NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS.has(metric) || !DIMENSIONS_API_METRIC_CONFIG[metric]) {
 			return badRequest(`Unsupported metric: ${metric}`)
 		}
 
@@ -97,7 +97,7 @@ export const adapterMetricByChainBreakdown = defineApiRoute({
 				cacheKey,
 				{ ttlMs: BREAKDOWN_RESULT_TTL_MS, ttlJitter: 0.2 },
 				() =>
-					getAdapterMetricProtocolChainBreakdownData({
+					getAdapterMetricChainSeries({
 						protocol,
 						metric,
 						chains,

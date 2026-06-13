@@ -125,6 +125,16 @@ describe('metadata artifact import boundary', () => {
 		expect(errors).toEqual([])
 	}, 15_000)
 
+	it('keeps shared breakdown chart utilities free of server and container imports', async () => {
+		const breakdownUtilsPath = path.join(process.cwd(), 'src/utils/breakdowns.ts')
+		const source = await fs.readFile(breakdownUtilsPath, 'utf8')
+		const forbiddenImports = getStaticRuntimeImportSpecifiers(source).filter(
+			(specifier) => specifier.startsWith('~/server/') || specifier.startsWith('~/containers/')
+		)
+
+		expect(forbiddenImports).toEqual([])
+	})
+
 	it('keeps server metadata and dataset readers out of page and client runtime imports', async () => {
 		const errors: string[] = []
 		const allSourceFiles = await collectSourceFiles('src')

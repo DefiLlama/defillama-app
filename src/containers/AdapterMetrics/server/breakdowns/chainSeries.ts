@@ -1,20 +1,19 @@
 import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import { displayChainName, resolveAllowedChainSlugsFromCategories } from '~/server/breakdowns'
 import { fetchJson } from '~/utils/async'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
-	displayChainName,
 	filterOutToday,
 	normalizeDailyPairs,
-	resolveAllowedChainSlugsFromCategories,
 	sumSeriesByTimestamp,
 	toSlug,
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'
 import { toDimensionsSlug, toDisplayName } from '~/utils/chainNormalizer'
-import { DIMENSIONS_METRIC_CONFIG } from './config'
+import { DIMENSIONS_API_METRIC_CONFIG } from './config'
 
 type ProtocolCategoryLookup = {
 	byName: Map<string, string>
@@ -114,7 +113,7 @@ async function getDimensionsProtocolChainData(
 	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
-	const config = DIMENSIONS_METRIC_CONFIG[metric]
+	const config = DIMENSIONS_API_METRIC_CONFIG[metric]
 	if (!config) {
 		throw new Error(`Unsupported metric: ${metric}`)
 	}
@@ -264,7 +263,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	chainCategories?: string[],
 	protocolCategories?: string[]
 ): Promise<ProtocolChainData> {
-	const config = DIMENSIONS_METRIC_CONFIG[metric]
+	const config = DIMENSIONS_API_METRIC_CONFIG[metric]
 	if (!config) throw new Error(`Unsupported metric: ${metric}`)
 
 	try {
@@ -448,7 +447,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			series: [],
 			metadata: {
 				protocol: 'All Protocols',
-				metric: DIMENSIONS_METRIC_CONFIG[metric]?.metricName || metric,
+				metric: DIMENSIONS_API_METRIC_CONFIG[metric]?.metricName || metric,
 				chains: [],
 				totalChains: 0
 			}
@@ -468,7 +467,7 @@ type AdapterMetricChainBreakdownParams = {
 	protocolCategories: string[]
 }
 
-export const getAdapterMetricProtocolChainBreakdownData = async ({
+export const getAdapterMetricChainSeries = async ({
 	protocol,
 	metric,
 	chains,

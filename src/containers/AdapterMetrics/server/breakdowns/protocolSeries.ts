@@ -4,7 +4,7 @@ import { BREAKDOWN_COLOR_PALETTE, toSlug, type ChartSeries, type ProtocolBreakdo
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRuntimeError } from '~/utils/telemetry'
-import { DIMENSIONS_METRIC_CONFIG } from './config'
+import { DIMENSIONS_API_METRIC_CONFIG } from './config'
 
 type DimensionsBreakdownParams = {
 	metric: string
@@ -40,7 +40,7 @@ const buildEmptyBreakdown = (
 })
 
 const fetchChainResults = async (chainsArray: string[], metric: string): Promise<ChainResult[]> => {
-	const config = DIMENSIONS_METRIC_CONFIG[metric]
+	const config = DIMENSIONS_API_METRIC_CONFIG[metric]
 	const chainDataPromises = chainsArray.map(async (singleChain) => {
 		let apiChain = toInternalSlug(singleChain)
 
@@ -93,7 +93,7 @@ const buildAggregatedBreakdown = async (
 	const hasRealChainsToExclude = chainFilterMode === 'exclude' && realChainsToExclude.length > 0
 
 	if (hasRealChainsToExclude) {
-		const config = DIMENSIONS_METRIC_CONFIG[metric]
+		const config = DIMENSIONS_API_METRIC_CONFIG[metric]
 		let allUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) allUrl += `&dataType=${config.dataType}`
 		const allResp = await fetchWithPoolingOnServer(allUrl)
@@ -160,7 +160,7 @@ const buildAggregatedBreakdown = async (
 	return aggregatedBreakdown
 }
 
-export const getDimensionsBreakdownData = async ({
+export const getAdapterMetricProtocolSeries = async ({
 	metric,
 	chains,
 	categories,
@@ -169,7 +169,7 @@ export const getDimensionsBreakdownData = async ({
 	chainFilterMode,
 	categoryFilterMode
 }: DimensionsBreakdownParams): Promise<ProtocolBreakdownData> => {
-	const config = DIMENSIONS_METRIC_CONFIG[metric]
+	const config = DIMENSIONS_API_METRIC_CONFIG[metric]
 	if (!config) {
 		throw new Error(`Unsupported metric: ${metric}`)
 	}

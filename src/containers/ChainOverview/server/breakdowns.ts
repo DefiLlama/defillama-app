@@ -3,15 +3,17 @@ import { queryFilterMode, queryIntClamped, queryList, queryString } from '~/serv
 import { badRequest, ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
+import {
+	CHAIN_NATIVE_BREAKDOWN_METRICS,
+	displayChainName,
+	resolveAllowedChainSlugsFromCategories
+} from '~/server/breakdowns'
 import { fetchJson } from '~/utils/async'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
-	CHAIN_NATIVE_BREAKDOWN_METRICS,
-	displayChainName,
 	filterOutToday,
 	normalizeDailyPairs,
-	resolveAllowedChainSlugsFromCategories,
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'

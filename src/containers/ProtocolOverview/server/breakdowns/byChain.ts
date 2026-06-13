@@ -1,11 +1,11 @@
 import { fetchChainChart, fetchChainsTvlOverview } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { resolveAllowedChainNamesFromCategories } from '~/server/breakdowns'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
 	filterOutToday,
 	normalizeDailyPairs,
-	resolveAllowedChainNamesFromCategories,
 	sumSeriesByTimestamp,
 	type ChartSeries,
 	type ProtocolChainData

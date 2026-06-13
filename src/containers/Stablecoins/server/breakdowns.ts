@@ -3,13 +3,12 @@ import { queryFilterMode, queryIntClamped, queryList } from '~/server/api/params
 import { ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
+import { displayChainName, resolveAllowedChainNamesFromCategories } from '~/server/breakdowns'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
-	displayChainName,
 	filterOutToday,
 	normalizeDailyPairs,
-	resolveAllowedChainNamesFromCategories,
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'

@@ -1,4 +1,4 @@
-import { getProtocolChainBreakdownRoute, NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/utils/breakdowns'
+import { getProtocolChainBreakdownRoute, NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/server/breakdowns'
 import type { ProtocolBreakdownData, ProtocolChainData } from '~/utils/breakdowns'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { recordRuntimeError } from '~/utils/telemetry'
