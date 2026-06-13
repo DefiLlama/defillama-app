@@ -41,7 +41,7 @@ export function toNextHandler(definition: ApiRouteDefinition): NextApiHandler {
 
 	const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 		if (!methods.includes(req.method ?? 'GET')) {
-			res.setHeader('Allow', methods)
+			res.setHeader('Allow', methods.join(', '))
 			res.setHeader('Cache-Control', NO_STORE)
 			return res.status(405).json({ error: 'Method not allowed' })
 		}

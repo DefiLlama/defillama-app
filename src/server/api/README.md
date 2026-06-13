@@ -11,10 +11,12 @@ import { rwaAssetBreakdown } from '~/server/api/routes/rwa'
 export default toNextHandler(rwaAssetBreakdown)
 ```
 
-Scope note: pro-dashboard (`api/private/**`, `api/dynamic/dashboard/**`),
-investor-relations (flare, berachain, near, sonic, spark, odyssey — anything on
-`IR_SERVER_URL`), and research routes are intentionally left on their original
-handlers; convert them only when their owners ask.
+Scope note: routes consumed only by `containers/Investors`,
+`containers/Research`, or `containers/ProDashboard` (plus `api/private/**` and
+`api/dynamic/dashboard/**`) are intentionally left on their original handlers —
+convert them only when their owners ask. Routes shared between those and normal
+pages (income-statement, yields datasets) are converted. To classify a route,
+grep its URL and look at which containers fetch it.
 
 Porting to another host (standalone service, TanStack Start) means rewriting
 `nextAdapter.ts` (~80 lines) and the thin files — nothing else.

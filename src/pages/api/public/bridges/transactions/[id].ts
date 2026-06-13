@@ -1,7 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchBridgeTransactions } from '~/containers/Bridges/api'
-import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
-import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+import { toNextHandler } from '~/server/api/nextAdapter'
+import { bridgeTransactions } from '~/server/api/routes/bridges'
 
 export const config = {
 	api: {
@@ -9,50 +7,4 @@ export const config = {
 	}
 }
 
-const getQueryParam = (value: string | string[] | undefined): string | undefined =>
-	Array.isArray(value) ? value[0] : value
-
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'GET') {
-		res.setHeader('Allow', ['GET'])
-		res.setHeader('Cache-Control', 'no-store')
-		return res.status(405).json({ error: 'Method Not Allowed' })
-	}
-
-	const idParam = getQueryParam(req.query.id)
-	const startParam = getQueryParam(req.query.starttimestamp)
-	const endParam = getQueryParam(req.query.endtimestamp)
-
-	if (!idParam) {
-		res.setHeader('Cache-Control', 'no-store')
-		return res.status(400).json({ error: 'id parameter is required' })
-	}
-
-	const startTimestamp = Number(startParam)
-	const endTimestamp = Number(endParam)
-
-	if (!Number.isFinite(startTimestamp) || !Number.isFinite(endTimestamp)) {
-		res.setHeader('Cache-Control', 'no-store')
-		return res.status(400).json({ error: 'starttimestamp and endtimestamp must be valid numbers' })
-	}
-
-	if (startTimestamp >= endTimestamp) {
-		res.setHeader('Cache-Control', 'no-store')
-		return res.status(400).json({ error: 'starttimestamp must be less than endtimestamp' })
-	}
-
-	try {
-		const data = await fetchBridgeTransactions(idParam, startTimestamp, endTimestamp)
-		res.setHeader(
-			'Cache-Control',
-			jitterCacheControlHeader('public, s-maxage=300, stale-while-revalidate=60', req.url ?? idParam)
-		)
-		return res.status(200).json(data)
-	} catch (error) {
-		res.setHeader('Cache-Control', 'no-store')
-		recordRouteRuntimeError(error, 'apiRoute')
-		return res.status(500).json({ error: 'Failed to fetch bridge transactions' })
-	}
-}
-
-export default withApiRouteTelemetry('/api/public/bridges/transactions/[id]', handler)
+export default toNextHandler(bridgeTransactions)

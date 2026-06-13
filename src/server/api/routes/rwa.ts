@@ -1,12 +1,27 @@
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_SERVER_URL } from '~/constants'
-import { toUnixMsTimestamp } from '~/containers/RWA/api'
+import {
+	fetchRWAAssetGroupBreakdownChartData,
+	fetchRWACategoryBreakdownChartData,
+	fetchRWAChainBreakdownChartData,
+	fetchRWAPlatformBreakdownChartData,
+	toUnixMsTimestamp
+} from '~/containers/RWA/api'
 import type {
 	IRWAChartDataByAsset,
 	IRWAChartMetricRows,
 	RWAChartMetricKey,
-	RWAAssetChartTarget
+	RWAAssetChartTarget,
+	RWAOverviewBreakdownRequest
 } from '~/containers/RWA/api.types'
+import { toOverviewBreakdownChartDataset } from '~/containers/RWA/breakdownDataset'
+import { fetchRWAPerpsContractBreakdownChartData, fetchRWAPerpsOverviewBreakdownChartData } from '~/containers/RWA/Perps/api'
+import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
+import {
+	parseChartMetricKey as parsePerpsChartMetricKey,
+	parseOptionalTarget
+} from '~/containers/RWA/Perps/requestParsers'
+import type { IRWAPerpsContractBreakdownRequest, IRWAPerpsOverviewBreakdownRequest } from '~/containers/RWA/Perps/types'
 import {
 	hasExactlyOneTarget,
 	parseBooleanQueryFlag,
@@ -138,6 +153,263 @@ function buildAssetBreakdownCacheKey(request: RWAAssetBreakdownRequest): string 
 	})
 	return `/api/public/rwa/asset-breakdown?${searchParams.toString()}`
 }
+
+const RWA_BREAKDOWN_RESULT_TTL_MS = 30 * 60 * 1000
+const RWA_BREAKDOWN_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=1800'
+
+const RWA_OVERVIEW_BREAKDOWNS = ['chain', 'category', 'platform', 'assetGroup'] as const
+
+export function parseRWAOverviewBreakdownRequest(req: { query: ApiQuery }): RWAOverviewBreakdownRequest | null {
+	const breakdown = parseEnumQueryValue(req.query.breakdown, RWA_OVERVIEW_BREAKDOWNS)
+	const key = parseChartMetricKey(req.query.key)
+	if (breakdown == null || key == null) return null
+
+	const includeStablecoin = parseBooleanQueryFlag(req.query.includeStablecoin, false)
+	const includeGovernance = parseBooleanQueryFlag(req.query.includeGovernance, false)
+	if (includeStablecoin == null || includeGovernance == null) return null
+
+	if (breakdown === 'chain') {
+		return { breakdown, key, includeStablecoin, includeGovernance }
+	}
+
+	if (breakdown === 'category') {
+		return { breakdown, key, includeStablecoin, includeGovernance }
+	}
+
+	if (breakdown === 'platform') {
+		return { breakdown, key, includeStablecoin, includeGovernance }
+	}
+
+	if (breakdown === 'assetGroup') {
+		return { breakdown, key, includeStablecoin, includeGovernance }
+	}
+
+	return null
+}
+
+function fetchOverviewBreakdownRows(request: RWAOverviewBreakdownRequest) {
+	switch (request.breakdown) {
+		case 'chain':
+			return fetchRWAChainBreakdownChartData(request)
+		case 'category':
+			return fetchRWACategoryBreakdownChartData(request)
+		case 'platform':
+			return fetchRWAPlatformBreakdownChartData(request)
+		case 'assetGroup':
+			return fetchRWAAssetGroupBreakdownChartData(request)
+		default:
+			return assertNever(request)
+	}
+}
+
+function buildOverviewBreakdownCacheKey(request: RWAOverviewBreakdownRequest): string {
+	const searchParams = new URLSearchParams({
+		breakdown: request.breakdown,
+		key: request.key,
+		includeStablecoin: String(request.includeStablecoin),
+		includeGovernance: String(request.includeGovernance)
+	})
+	return `/api/public/rwa/overview-breakdown?${searchParams.toString()}`
+}
+
+export const rwaOverviewBreakdown = defineApiRoute({
+	route: '/api/public/rwa/overview-breakdown',
+	cacheControl: RWA_BREAKDOWN_CACHE_CONTROL,
+	handle: async (req) => {
+		const request = parseRWAOverviewBreakdownRequest(req)
+
+		if (request == null) {
+			return badRequest('Invalid query parameters')
+		}
+
+		try {
+			const dataset = await cachedResult(
+				'rwa-overview-breakdown',
+				buildOverviewBreakdownCacheKey(request),
+				{ ttlMs: RWA_BREAKDOWN_RESULT_TTL_MS, ttlJitter: 0.2 },
+				async () => {
+					const rows = await fetchOverviewBreakdownRows(request)
+					if (rows == null) {
+						throw new Error('RWA overview breakdown upstream returned no data')
+					}
+					return toOverviewBreakdownChartDataset(rows, request)
+				}
+			)
+			return ok(dataset)
+		} catch (error) {
+			recordRouteRuntimeError(error, 'apiRoute')
+			return upstreamError('Failed to fetch upstream chart data')
+		}
+	}
+})
+
+async function hasKnownPerpsTarget(request: { venue?: string; assetGroup?: string }): Promise<boolean> {
+	if (!request.venue && !request.assetGroup) return true
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	if (request.venue) {
+		const requestSlug = rwaSlug(request.venue)
+		for (const venue of metadataCache.rwaPerpsList.venues) {
+			if (rwaSlug(venue) === requestSlug) return true
+		}
+		return false
+	}
+
+	if (request.assetGroup) {
+		const requestSlug = rwaSlug(request.assetGroup)
+		for (const assetGroup of metadataCache.rwaPerpsList.assetGroups) {
+			if (rwaSlug(assetGroup) === requestSlug) return true
+		}
+		return false
+	}
+
+	return true
+}
+
+type ParsedPerpsOverviewBreakdownRequest = IRWAPerpsOverviewBreakdownRequest & {
+	venue?: string
+	assetGroup?: string
+	assetClass?: string
+	excludeAssetClass?: string
+}
+
+const RWA_PERPS_OVERVIEW_BREAKDOWNS = ['venue', 'assetClass', 'assetGroup', 'baseAsset'] as const
+
+export function parsePerpsOverviewBreakdownRequest(req: {
+	query: ApiQuery
+}): ParsedPerpsOverviewBreakdownRequest | null {
+	const breakdown = parseEnumQueryValue(req.query.breakdown, RWA_PERPS_OVERVIEW_BREAKDOWNS)
+	const key = parsePerpsChartMetricKey(req.query.key)
+	if (breakdown == null || key == null) return null
+
+	const venue = parseOptionalTarget(req.query.venue)
+	const assetGroup = parseOptionalTarget(req.query.assetGroup)
+	const assetClass = parseOptionalTarget(req.query.assetClass)
+	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
+	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
+	if (!hasExactlyOneTarget([venue, assetGroup, assetClass, excludeAssetClass])) {
+		if (venue || assetGroup || assetClass || excludeAssetClass) return null
+	}
+
+	return {
+		breakdown,
+		key,
+		...(venue ? { venue } : {}),
+		...(assetGroup ? { assetGroup } : {}),
+		...(assetClass ? { assetClass } : {}),
+		...(excludeAssetClass ? { excludeAssetClass } : {})
+	}
+}
+
+function buildPerpsOverviewBreakdownCacheKey(request: ParsedPerpsOverviewBreakdownRequest): string {
+	const searchParams = new URLSearchParams({ breakdown: request.breakdown, key: request.key })
+	if (request.venue) searchParams.set('venue', request.venue)
+	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
+	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
+	return `/api/public/rwa/perps/overview-breakdown?${searchParams.toString()}`
+}
+
+export const rwaPerpsOverviewBreakdown = defineApiRoute({
+	route: '/api/public/rwa/perps/overview-breakdown',
+	cacheControl: RWA_BREAKDOWN_CACHE_CONTROL,
+	handle: async (req) => {
+		const request = parsePerpsOverviewBreakdownRequest(req)
+
+		if (request == null) {
+			return badRequest('Invalid query parameters')
+		}
+
+		try {
+			if (!(await hasKnownPerpsTarget(request))) {
+				return notFound('RWA perps target not found')
+			}
+
+			const dataset = await cachedResult(
+				'rwa-perps-overview-breakdown',
+				buildPerpsOverviewBreakdownCacheKey(request),
+				{ ttlMs: RWA_BREAKDOWN_RESULT_TTL_MS, ttlJitter: 0.2 },
+				async () => {
+					const rows = await fetchRWAPerpsOverviewBreakdownChartData(request)
+					if (rows == null) {
+						throw new Error('RWA perps overview breakdown upstream returned no data')
+					}
+					return toRWAPerpsBreakdownChartDataset(rows)
+				}
+			)
+			return ok(dataset)
+		} catch (error) {
+			recordRouteRuntimeError(error, 'apiRoute')
+			return upstreamError('Failed to fetch upstream chart data')
+		}
+	}
+})
+
+export function parsePerpsContractBreakdownRequest(req: { query: ApiQuery }): IRWAPerpsContractBreakdownRequest | null {
+	const key = parsePerpsChartMetricKey(req.query.key)
+	if (key == null) return null
+
+	const venue = parseOptionalTarget(req.query.venue)
+	const assetGroup = parseOptionalTarget(req.query.assetGroup)
+	const assetClass = parseOptionalTarget(req.query.assetClass)
+	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
+	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
+	if (!hasExactlyOneTarget([venue, assetGroup, assetClass, excludeAssetClass])) {
+		if (venue || assetGroup || assetClass || excludeAssetClass) return null
+	}
+
+	return {
+		key,
+		...(venue ? { venue } : {}),
+		...(assetGroup ? { assetGroup } : {}),
+		...(assetClass ? { assetClass } : {}),
+		...(excludeAssetClass ? { excludeAssetClass } : {})
+	}
+}
+
+function buildPerpsContractBreakdownCacheKey(request: IRWAPerpsContractBreakdownRequest): string {
+	const searchParams = new URLSearchParams({ key: request.key })
+	if (request.venue) searchParams.set('venue', request.venue)
+	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
+	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
+	return `/api/public/rwa/perps/contract-breakdown?${searchParams.toString()}`
+}
+
+export const rwaPerpsContractBreakdown = defineApiRoute({
+	route: '/api/public/rwa/perps/contract-breakdown',
+	cacheControl: RWA_BREAKDOWN_CACHE_CONTROL,
+	handle: async (req) => {
+		const request = parsePerpsContractBreakdownRequest(req)
+
+		if (request == null) {
+			return badRequest('Invalid query parameters')
+		}
+
+		try {
+			if (!(await hasKnownPerpsTarget(request))) {
+				return notFound('RWA perps target not found')
+			}
+
+			const dataset = await cachedResult(
+				'rwa-perps-contract-breakdown',
+				buildPerpsContractBreakdownCacheKey(request),
+				{ ttlMs: RWA_BREAKDOWN_RESULT_TTL_MS, ttlJitter: 0.2 },
+				async () => {
+					const rows = await fetchRWAPerpsContractBreakdownChartData(request)
+					if (rows == null) {
+						throw new Error('RWA perps contract breakdown upstream returned no data')
+					}
+					return toRWAPerpsBreakdownChartDataset(rows)
+				}
+			)
+			return ok(dataset)
+		} catch (error) {
+			recordRouteRuntimeError(error, 'apiRoute')
+			return upstreamError('Failed to fetch upstream chart data')
+		}
+	}
+})
 
 export const rwaAssetBreakdown = defineApiRoute({
 	route: '/api/public/rwa/asset-breakdown',

@@ -207,17 +207,19 @@ describe('page data chart api routes', () => {
 	it('does not cache failed dimension adapter chart responses', async () => {
 		getChainsByAdapterAllChainsMock.mockReturnValue(['Ethereum'])
 		getChainsByAdapterChartDataMock.mockRejectedValue(new Error('upstream failed'))
+		// Distinct params from the success case above so the in-process result
+		// cache cannot serve the previously computed value.
 		const req = {
 			method: 'GET',
-			query: { adapterType: ADAPTER_TYPES.DEXS, dataType: ADAPTER_DATA_TYPES.DAILY_VOLUME },
-			url: '/api/public/page-data/dimension-adapters/chains-chart?adapterType=dexs&dataType=dailyVolume'
+			query: { adapterType: ADAPTER_TYPES.FEES, dataType: ADAPTER_DATA_TYPES.DAILY_FEES },
+			url: '/api/public/page-data/dimension-adapters/chains-chart?adapterType=fees&dataType=dailyFees'
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()
 
 		await dimensionAdapterChainsChartHandler(req, res)
 
-		expect(res.setHeader).not.toHaveBeenCalledWith('Cache-Control', expect.any(String))
-		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store')
+		expect(res.status).toHaveBeenCalledWith(502)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch dimension adapter chart data' })
 	})
 })
