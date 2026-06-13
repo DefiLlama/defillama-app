@@ -24,19 +24,24 @@ async function collectSourceFiles(rootDir: string): Promise<string[]> {
 	return files
 }
 
-function getImportSpecifiers(source: string): string[] {
+function getModuleSpecifiers(source: string): string[] {
 	const specifiers: string[] = []
 	let statement: string | null = null
 
 	for (const line of source.split('\n')) {
 		const trimmed = line.trim()
-		if (!statement && !/^import\b/.test(trimmed)) continue
+		if (!statement && !/^(?:import\b|export\s+(?:\*|\{))/.test(trimmed)) continue
 
 		statement = statement ? `${statement}\n${line}` : line
 
 		if (/\sfrom\s+['"][^'"]+['"]/.test(statement) || /^import\s+['"][^'"]+['"]/.test(statement.trim())) {
-			const match = statement.match(/\sfrom\s+['"]([^'"]+)['"]/) ?? statement.match(/^\s*import\s+['"]([^'"]+)['"]/)
-			if (match?.[1]) specifiers.push(match[1])
+			const normalizedStatement = statement.trim()
+			const isTypeOnlyStatement =
+				/^import\s+type\b/.test(normalizedStatement) || /^export\s+type\b/.test(normalizedStatement)
+			const match =
+				normalizedStatement.match(/\sfrom\s+['"]([^'"]+)['"]/) ??
+				normalizedStatement.match(/^import\s+['"]([^'"]+)['"]/)
+			if (!isTypeOnlyStatement && match?.[1]) specifiers.push(match[1])
 			statement = null
 		}
 	}
@@ -103,6 +108,18 @@ function isApiHandlerFile(relativePath: string): boolean {
 }
 
 describe('dataset cache route boundaries', () => {
+	it('collects runtime re-export specifiers as boundary edges', () => {
+		expect(
+			getModuleSpecifiers(`
+				export {
+					fetchRaisesFromCache
+				} from './dataset.cache'
+				export * from '~/containers/Cexs/server/dataset.markets.cache'
+				export type { RawRaise } from '~/containers/Raises/api.types'
+			`)
+		).toEqual(['./dataset.cache', '~/containers/Cexs/server/dataset.markets.cache'])
+	})
+
 	it('keeps page and API handlers from importing raw domain cache readers', async () => {
 		const errors: string[] = []
 		const files = await collectSourceFiles('src')
@@ -112,7 +129,7 @@ describe('dataset cache route boundaries', () => {
 			if (!relativePath.startsWith('src/pages/') && !isApiHandlerFile(relativePath)) continue
 
 			const source = await fs.readFile(filePath, 'utf8')
-			for (const specifier of getImportSpecifiers(source)) {
+			for (const specifier of getModuleSpecifiers(source)) {
 				if (isContainerCacheSpecifier(filePath, specifier)) {
 					errors.push(`${relativePath}: ${specifier}`)
 				}
@@ -130,7 +147,7 @@ describe('dataset cache route boundaries', () => {
 
 		for (const filePath of files) {
 			const source = await fs.readFile(filePath, 'utf8')
-			for (const specifier of getImportSpecifiers(source)) {
+			for (const specifier of getModuleSpecifiers(source)) {
 				if (isDatasetCacheSpecifier(specifier)) {
 					errors.push(`${toRelativePath(filePath)}: ${specifier}`)
 				}
