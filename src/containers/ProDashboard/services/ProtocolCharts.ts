@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { fetchLiquidityTokensDataset, fetchProtocolTokenLiquidityChart } from '~/api'
 import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
-import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { YIELD_PROJECT_MEDIAN_API } from '~/containers/Yields/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/AdapterMetrics/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import {

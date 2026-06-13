@@ -1,4 +1,4 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { holdersDataset } from '~/server/api/routes/publicDatasets'
+import { holdersDataset } from '~/containers/Yields/server/api'
 
 export default toNextHandler(holdersDataset)

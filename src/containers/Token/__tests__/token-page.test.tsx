@@ -17,7 +17,7 @@ import {
 	fetchTokenRightsEntryByDefillamaId,
 	fetchTokenRightsEntryByName
 } from '~/server/datasetCache/runtime/tokenRights'
-import { getTokenBorrowRoutes, getTokenYieldsRows } from '~/server/datasetCache/runtime/yields'
+import { getTokenBorrowRoutes, getTokenYieldsRows } from '~/containers/Yields/server/dataset'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import type { TokenRiskResponse } from '../tokenRisk.types'
@@ -472,7 +472,7 @@ vi.mock('~/containers/Token/tokenRiskTimeline.server', () => ({
 	getTokenRiskTimelineData: vi.fn(() => Promise.resolve(state.tokenRiskTimelineData))
 }))
 
-vi.mock('~/server/datasetCache/runtime/yields', () => ({
+vi.mock('~/containers/Yields/server/dataset', () => ({
 	getTokenYieldsRows: vi.fn(() => Promise.resolve(state.initialYieldsRows)),
 	getTokenBorrowRoutes: vi.fn(() => Promise.resolve(state.initialTokenBorrowRoutesData)),
 	getYieldConfig: vi.fn(() => Promise.resolve(null))

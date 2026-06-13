@@ -25,10 +25,10 @@ import { getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
 import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-import { queryString } from '../params'
-import { badRequest, notFound, ok, upstreamError } from '../respond'
-import type { ApiResult } from '../types'
-import { defineApiRoute } from '../types'
+import { queryString } from '~/server/api/params'
+import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
+import type { ApiResult } from '~/server/api/types'
+import { defineApiRoute } from '~/server/api/types'
 
 type StablecoinMcapSeriesPoint = [number, number]
 

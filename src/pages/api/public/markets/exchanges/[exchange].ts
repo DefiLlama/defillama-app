@@ -1,4 +1,4 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { exchangeMarkets } from '~/server/api/routes/markets'
+import { exchangeMarkets } from '~/containers/Cexs/server/api'
 
 export default toNextHandler(exchangeMarkets)

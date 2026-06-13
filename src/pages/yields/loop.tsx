@@ -7,7 +7,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
-	const { getYieldLoopPageMetadata } = await import('~/server/datasetCache/runtime/yields')
+	const { getYieldLoopPageMetadata } = await import('~/containers/Yields/server/dataset')
 	const metadata = await getYieldLoopPageMetadata()
 
 	return {

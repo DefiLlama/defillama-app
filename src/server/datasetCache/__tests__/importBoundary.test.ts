@@ -13,7 +13,9 @@ async function collectSourceFiles(rootDir: string): Promise<string[]> {
 	for (const entry of entries) {
 		const filePath = path.join(rootDir, entry.name)
 		if (entry.isDirectory()) {
-			if (entry.name === '__tests__') continue
+			// Domain server modules (containers/*/server) are server-only code and may
+			// statically import dataset cache internals; the boundary guards UI/page code.
+			if (entry.name === '__tests__' || entry.name === 'server') continue
 			files.push(...(await collectSourceFiles(filePath)))
 			continue
 		}

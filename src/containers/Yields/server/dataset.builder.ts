@@ -8,8 +8,8 @@ import {
 } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { ensureDirectory } from '~/utils/cacheDirectory'
-import { getDatasetCacheFetchTimeoutMs } from './config'
-import { writeDatasetCacheJson as writeJsonFile } from './jsonCache'
+import { getDatasetCacheFetchTimeoutMs } from '~/server/datasetCache/config'
+import { writeDatasetCacheJson as writeJsonFile } from '~/server/datasetCache/jsonCache'
 import {
 	getYieldsByTokenDir,
 	getYieldsConfigPath,
@@ -19,7 +19,7 @@ import {
 	getYieldsRowsPath,
 	getYieldsTokenIndexPath,
 	getYieldRowCacheId
-} from './yields'
+} from './dataset.cache'
 
 type DomainBuildResult = {
 	builtAt: number

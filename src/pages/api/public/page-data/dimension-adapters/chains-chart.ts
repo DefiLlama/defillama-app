@@ -1,5 +1,5 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { dimensionAdapterChainsChart } from '~/server/api/routes/pageData'
+import { dimensionAdapterChainsChart } from '~/containers/AdapterMetrics/server/api'
 
 export const config = {
 	api: {

@@ -15,7 +15,7 @@ import { DATASET_DOMAIN_ARTIFACTS, type DatasetDomain } from './artifacts'
 import type { DatasetDomainBuildResult } from './buildTypes'
 import { writeDatasetCacheJson as writeJsonFile } from './jsonCache'
 import { buildTokenRightsIndexes } from './tokenRightsIndex'
-export { buildYieldsDomain } from './yields.builder'
+export { buildYieldsDomain } from '~/containers/Yields/server/dataset.builder'
 
 function getDomainDir(rootDir: string, domain: DatasetDomain): string {
 	return path.join(rootDir, domain)

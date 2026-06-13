@@ -53,7 +53,7 @@ export const emptyRwaYieldMatchResult = (): RWAYieldMatchResult => ({
 export async function fetchRwaYieldPoolData(): Promise<RWAYieldPoolData> {
 	const [{ fetchJson }, { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API }] = await Promise.all([
 		import('~/utils/async'),
-		import('~/constants')
+		import('~/containers/Yields/constants')
 	])
 
 	const [poolsRes, configRes, urlsRes] = await Promise.all([

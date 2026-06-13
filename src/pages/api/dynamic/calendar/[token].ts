@@ -1,6 +1,6 @@
 // port: framework-native adapter (text/calendar body, not JSON)
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { calendarIcs } from '~/server/api/routes/calendar'
+import { calendarIcs } from '~/containers/Unlocks/server/api'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {

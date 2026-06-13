@@ -1,9 +1,9 @@
 import { fetchChain } from '~/containers/CompareChains/chainFetcher'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
-import { queryString } from '../params'
-import { badRequest, notFound, ok } from '../respond'
-import { cachedResult } from '../resultCache'
-import { defineApiRoute } from '../types'
+import { queryString } from '~/server/api/params'
+import { badRequest, notFound, ok } from '~/server/api/respond'
+import { cachedResult } from '~/server/api/resultCache'
+import { defineApiRoute } from '~/server/api/types'
 
 // fetchChain fans out to many upstream calls and averages multiple seconds,
 // so on top of the shared object cache the assembled response is memoized in

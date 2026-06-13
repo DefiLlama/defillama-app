@@ -89,31 +89,6 @@ export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
 export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
 export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 
-// Yields APIs
-export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
-export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
-export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow`
-export const YIELD_CHART_LEND_BORROW_PROXY_API = '/api/public/datasets/chartLendBorrow'
-export const YIELD_BORROW_API = '/api/public/datasets/borrow'
-export const YIELD_BORROW_ADVANCED_API = '/api/public/datasets/borrow-advanced'
-export const YIELD_POOLS_DATASET_API = '/api/public/datasets/yields/pools'
-export const YIELD_LOOP_DATASET_API = '/api/public/datasets/yields/loop'
-export const YIELD_STRATEGY_DATASET_API = '/api/public/datasets/yields/strategy'
-export const YIELD_LONG_SHORT_STRATEGY_DATASET_API = '/api/public/datasets/yields/strategy-long-short'
-export const YIELD_HALAL_DATASET_API = '/api/public/datasets/yields/halal'
-export const YIELD_CONFIG_API = `${SERVER_URL}/config/yields`
-export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
-export const YIELD_LEND_BORROW_API = `${YIELDS_SERVER_URL}/lendBorrow`
-export const YIELD_MEDIAN_API = `${YIELDS_SERVER_URL}/median`
-export const YIELD_PERPS_API = `${YIELDS_SERVER_URL}/perps`
-export const YIELD_POOLS_API = `${YIELDS_SERVER_URL}/pools`
-export const YIELD_POOLS_LAMBDA_API = `${YIELDS_SERVER_URL}/poolsEnriched`
-export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
-export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
-export const YIELD_URL_API = `${YIELDS_SERVER_URL}/url`
-export const YIELD_VOLATILITY_API = '/api/private/datasets/volatility'
-export const YIELD_HOLDERS_API = '/api/public/datasets/holders'
-
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { fetchSingleChartData, withTimeout } from '~/containers/ProDashboard/queries.server'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'

@@ -6,7 +6,7 @@ const { getYieldPoolsPageMock } = vi.hoisted(() => ({
 	getYieldPoolsPageMock: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/runtime/yields', () => ({
+vi.mock('~/containers/Yields/server/dataset', () => ({
 	getYieldPoolsPage: getYieldPoolsPageMock
 }))
 

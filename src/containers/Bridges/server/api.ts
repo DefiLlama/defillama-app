@@ -1,8 +1,8 @@
 import { fetchBridgeTransactions } from '~/containers/Bridges/api'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-import { queryString } from '../params'
-import { badRequest, ok, upstreamError } from '../respond'
-import { defineApiRoute } from '../types'
+import { queryString } from '~/server/api/params'
+import { badRequest, ok, upstreamError } from '~/server/api/respond'
+import { defineApiRoute } from '~/server/api/types'
 
 export const bridgeTransactions = defineApiRoute({
 	route: '/api/public/bridges/transactions/[id]',

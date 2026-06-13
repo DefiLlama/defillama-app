@@ -1,5 +1,5 @@
 import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
-import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
+import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/containers/Yields/constants'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
@@ -27,7 +27,8 @@ import {
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { fetchJson } from '~/utils/async'
 import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
-import { isMissingDatasetArtifactError } from '../core'
+import { isMissingDatasetArtifactError } from '~/server/datasetCache/core'
+import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
 import {
 	getLendBorrowDataFromCache,
 	getProtocolYieldRowsFromCache,
@@ -37,9 +38,8 @@ import {
 	getYieldPageDataFromCache,
 	getYieldPoolRowFromCache,
 	getYieldProtocolConfigFromCache
-} from '../yields'
-import { readThroughDatasetCache } from './source'
-import type { YieldPoolPageData, YieldPoolPageDataResult } from './yields.types'
+} from './dataset.cache'
+import type { YieldPoolPageData, YieldPoolPageDataResult } from './dataset.types'
 
 async function getProtocolYieldRowsFromNetwork(protocolSlugs: string[]): Promise<IYieldTableRow[]> {
 	const yieldsData = await getYieldPageData()

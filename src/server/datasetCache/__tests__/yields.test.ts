@@ -10,7 +10,7 @@ import {
 	getYieldsLendBorrowPath,
 	getYieldsRowsPath,
 	getYieldsTokenIndexPath
-} from '../yields'
+} from '~/containers/Yields/server/dataset.cache'
 
 function createDatasetManifestDomains(): DatasetManifest['domains'] {
 	const domains = {} as DatasetManifest['domains']

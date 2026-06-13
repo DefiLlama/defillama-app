@@ -1,5 +1,5 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { categoriesCharts } from '~/server/api/routes/pageData'
+import { categoriesCharts } from '~/containers/ProtocolTaxonomy/server/api'
 
 export const config = {
 	api: {

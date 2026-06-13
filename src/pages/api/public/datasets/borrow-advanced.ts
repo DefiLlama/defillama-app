@@ -1,5 +1,5 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { borrowAdvancedDataset } from '~/server/api/routes/publicDatasets'
+import { borrowAdvancedDataset } from '~/containers/Yields/server/api'
 
 export const config = {
 	api: {

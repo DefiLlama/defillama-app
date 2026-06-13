@@ -1,4 +1,4 @@
-import { YIELD_LOOP_DATASET_API } from '~/constants'
+import { YIELD_LOOP_DATASET_API } from '../constants'
 import { YieldFiltersV2 } from '../Filters'
 import { useFormatYieldQueryParams } from '../hooks'
 import { PaginatedYieldsLoopTable } from '../Tables/Loop'

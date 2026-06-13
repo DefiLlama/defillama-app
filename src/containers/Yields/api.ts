@@ -7,7 +7,7 @@ import {
 	YIELD_PERPS_API,
 	YIELD_POOLS_API,
 	YIELD_URL_API
-} from '~/constants'
+} from './constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	YieldChainsResponse,

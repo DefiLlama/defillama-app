@@ -1,5 +1,5 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { chainsCharts } from '~/server/api/routes/pageData'
+import { chainsCharts } from '~/containers/ChainsByCategory/server/api'
 
 export const config = {
 	api: {

@@ -1,4 +1,4 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { chartLendBorrowDataset } from '~/server/api/routes/publicDatasets'
+import { chartLendBorrowDataset } from '~/containers/Yields/server/api'
 
 export default toNextHandler(chartLendBorrowDataset)

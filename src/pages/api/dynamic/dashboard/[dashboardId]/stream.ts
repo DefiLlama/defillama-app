@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -738,7 +738,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			seenYieldsTableKeys.add(cacheKey)
 			phase2Promises.push(
 				(async () => {
-					const { getTokenYieldsRows } = await import('~/server/datasetCache/runtime/yields')
+					const { getTokenYieldsRows } = await import('~/containers/Yields/server/dataset')
 					const data = await withTimeout(getTokenYieldsRows('', itemChains.length ? itemChains : undefined), 15_000)
 					if (data) writeLine({ type: 'yieldsDatasetData', key: cacheKey, data })
 				})().catch(() => {})

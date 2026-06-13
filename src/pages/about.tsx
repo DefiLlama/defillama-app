@@ -1,5 +1,5 @@
 import type { InferGetStaticPropsType } from 'next'
-import { YIELD_POOLS_API } from '~/constants'
+import { YIELD_POOLS_API } from '~/containers/Yields/constants'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'

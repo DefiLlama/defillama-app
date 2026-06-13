@@ -1,6 +1,6 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { rwaPerpsContractBreakdown } from '~/server/api/routes/rwa'
+import { rwaPerpsContractBreakdown } from '~/containers/RWA/server/api'
 
-export { parsePerpsContractBreakdownRequest as parseContractBreakdownRequest } from '~/server/api/routes/rwa'
+export { parsePerpsContractBreakdownRequest as parseContractBreakdownRequest } from '~/containers/RWA/server/api'
 
 export default toNextHandler(rwaPerpsContractBreakdown)

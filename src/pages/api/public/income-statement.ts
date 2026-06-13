@@ -1,4 +1,4 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { incomeStatement } from '~/server/api/routes/incomeStatement'
+import { incomeStatement } from '~/containers/ProtocolOverview/server/api'
 
 export default toNextHandler(incomeStatement)

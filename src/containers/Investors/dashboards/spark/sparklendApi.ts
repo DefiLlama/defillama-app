@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { V2_SERVER_URL, YIELD_POOLS_API } from '~/constants'
+import { V2_SERVER_URL } from '~/constants'
+import { YIELD_POOLS_API } from '~/containers/Yields/constants'
 import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType,

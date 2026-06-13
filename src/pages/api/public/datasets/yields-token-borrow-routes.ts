@@ -1,4 +1,4 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { yieldsTokenBorrowRoutes } from '~/server/api/routes/yieldsDatasets'
+import { yieldsTokenBorrowRoutes } from '~/containers/Yields/server/api'
 
 export default toNextHandler(yieldsTokenBorrowRoutes)

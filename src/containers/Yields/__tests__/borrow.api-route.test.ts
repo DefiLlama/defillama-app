@@ -6,7 +6,7 @@ const { getBorrowPageRowsMock } = vi.hoisted(() => ({
 	getBorrowPageRowsMock: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/runtime/yields', () => ({
+vi.mock('~/containers/Yields/server/dataset', () => ({
 	getBorrowPageRows: getBorrowPageRowsMock
 }))
 

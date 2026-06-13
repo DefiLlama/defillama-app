@@ -98,7 +98,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			import('~/server/datasetCache/runtime/risk'),
 			import('~/server/datasetCache/runtime/tokenRights'),
 			import('~/server/datasetCache/runtime/treasuries'),
-			import('~/server/datasetCache/runtime/yields')
+			import('~/containers/Yields/server/dataset')
 		])
 		const downgradeTokenPageError = <T,>(error: unknown, message: string, fallback: T): T =>
 			downgradeTokenPageDataError(error, message, fallback, isDatasetCacheIntegrityError)

@@ -1,5 +1,5 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { yieldsStrategyLongShortDataset } from '~/server/api/routes/yieldsDatasets'
+import { yieldsStrategyLongShortDataset } from '~/containers/Yields/server/api'
 
 export const config = {
 	api: {

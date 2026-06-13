@@ -1,6 +1,6 @@
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { rwaAssetBreakdown } from '~/server/api/routes/rwa'
+import { rwaAssetBreakdown } from '~/containers/RWA/server/api'
 
-export { buildAssetBreakdownUrl, normalizeAssetBreakdownRows, parseAssetBreakdownRequest } from '~/server/api/routes/rwa'
+export { buildAssetBreakdownUrl, normalizeAssetBreakdownRows, parseAssetBreakdownRequest } from '~/containers/RWA/server/api'
 
 export default toNextHandler(rwaAssetBreakdown)
