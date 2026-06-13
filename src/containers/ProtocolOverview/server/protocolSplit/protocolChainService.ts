@@ -1,6 +1,5 @@
 import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchChainChart, fetchChainsByCategory, fetchChainsTvlOverview } from '~/containers/Chains/api'
-import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
@@ -19,6 +18,7 @@ import {
 	toSlug
 } from '~/utils/protocolSplit'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
+import { PROTOCOL_SPLIT_COLOR_PALETTE } from './colors'
 import type { ChartSeries, ProtocolChainData } from './types'
 
 const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
@@ -249,7 +249,7 @@ async function getTvlProtocolChainData(
 				series.push({
 					name: chainKey,
 					data: adjustedForChain,
-					color: EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length]
+					color: PROTOCOL_SPLIT_COLOR_PALETTE[colorIndex % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 				})
 				availableChains.push(chainKey)
 				colorIndex++
@@ -398,7 +398,7 @@ async function getDimensionsProtocolChainData(
 			series.push({
 				name: chain,
 				data: filterOutToday(sortedData),
-				color: EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length]
+				color: PROTOCOL_SPLIT_COLOR_PALETTE[colorIndex % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 			})
 			colorIndex++
 		}
@@ -508,7 +508,7 @@ async function getAllProtocolsTopChainsTvlData(
 			topSeriesRaw.push({
 				name,
 				data: normalized,
-				color: EXTENDED_COLOR_PALETTE[colorIndex++ % EXTENDED_COLOR_PALETTE.length]
+				color: PROTOCOL_SPLIT_COLOR_PALETTE[colorIndex++ % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 			})
 		}
 
@@ -640,7 +640,7 @@ async function getAllProtocolsTopChainsStablecoinsData(
 		const pickedSeries: ChartSeries[] = picked.map((entry, idx) => ({
 			name: entry.name,
 			data: entry.data,
-			color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+			color: PROTOCOL_SPLIT_COLOR_PALETTE[idx % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 		}))
 
 		let totalPairs: [number, number][] = []
@@ -788,7 +788,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 			return {
 				name: entry.name,
 				data: normalized,
-				color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+				color: PROTOCOL_SPLIT_COLOR_PALETTE[idx % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 			} as ChartSeries
 		})
 
@@ -990,7 +990,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			return {
 				name: displayChainName(slug),
 				data: normalized,
-				color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+				color: PROTOCOL_SPLIT_COLOR_PALETTE[idx % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 			} as ChartSeries
 		})
 

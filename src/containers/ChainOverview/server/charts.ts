@@ -21,7 +21,7 @@ const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' }
 type StablecoinMcapSeriesPoint = [number, number]
 
 // ---------------------------------------------------------------------------
-// /api/public/charts/chain
+// /api/public/chains/charts
 // ---------------------------------------------------------------------------
 
 async function resolveCanonicalChainParam(
@@ -109,7 +109,7 @@ const buildChainStablecoinMcapSeries = async (chain: string): Promise<Stablecoin
 }
 
 export const chainCharts = defineApiRoute({
-	route: '/api/public/charts/chain',
+	route: '/api/public/chains/charts',
 	cacheControl: CHART_CACHE_CONTROL,
 	handle: async (req) => {
 		const kind = queryString(req.query, 'kind')

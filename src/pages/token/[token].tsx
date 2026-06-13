@@ -93,7 +93,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			import('~/server/datasetCache/core'),
 			import('~/containers/LiquidationsV2/server/dataset'),
 			import('~/containers/Token/server/dataset.liquidity'),
-			import('~/server/datasetCache/runtime/markets'),
+			import('~/containers/Token/server/dataset.markets'),
 			import('~/containers/Raises/server/dataset'),
 			import('~/containers/Token/server/dataset.risk'),
 			import('~/containers/TokenRights/server/dataset'),

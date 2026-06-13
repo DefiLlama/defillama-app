@@ -28,7 +28,7 @@ async function loadProxyWithInvestorsConfig(investorsSite: string, investorsPrev
 	return { proxy: proxyModule.proxy, investorsConfig }
 }
 
-function apiRequest(origin: string, method = 'POST', path = '/api/charts/protocol') {
+function apiRequest(origin: string, method = 'POST', path = '/api/private/token-usage/BTC') {
 	return new NextRequest(`https://defillama.com${path}`, {
 		method,
 		headers: { origin }
@@ -80,7 +80,7 @@ describe('api proxy CORS', () => {
 	it('allows any origin for canonical public API requests without varying by Origin', async () => {
 		const { proxy } = await loadProxy('https://integrator.example')
 
-		const response = proxy(apiRequest('https://unknown.example', 'GET', '/api/public/charts/protocol'))
+		const response = proxy(apiRequest('https://unknown.example', 'GET', '/api/public/protocols/charts'))
 
 		expect(response.status).not.toBe(403)
 		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
@@ -104,7 +104,7 @@ describe('api proxy CORS', () => {
 	it('handles preflight for public, private, and dynamic API groups', async () => {
 		const { proxy } = await loadProxy('https://integrator.example')
 
-		const publicResponse = proxy(apiRequest('https://unknown.example', 'OPTIONS', '/api/public/charts/protocol'))
+		const publicResponse = proxy(apiRequest('https://unknown.example', 'OPTIONS', '/api/public/protocols/charts'))
 		const privateResponse = proxy(apiRequest('https://integrator.example', 'OPTIONS', '/api/private/token-usage/BTC'))
 		const dynamicResponse = proxy(
 			apiRequest('https://integrator.example', 'OPTIONS', '/api/dynamic/dashboard/public-id/stream')

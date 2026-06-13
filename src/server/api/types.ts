@@ -12,7 +12,7 @@ export type ApiQuery = Record<string, string | string[] | undefined>
 
 export type ApiRequest = {
 	method: string
-	/** Path + query string as received, e.g. `/api/public/charts/chain?chain=base` */
+	/** Path + query string as received, e.g. `/api/public/chains/charts?chain=base` */
 	url: string
 	query: ApiQuery
 	headers: Record<string, string | string[] | undefined>
@@ -29,7 +29,7 @@ export type ApiResult = {
 export type ApiHandler = (req: ApiRequest) => Promise<ApiResult>
 
 export type ApiRouteDefinition = {
-	/** Telemetry route name, e.g. `/api/public/charts/chain`. */
+	/** Telemetry route name, e.g. `/api/public/chains/charts`. */
 	route: string
 	/** Allowed methods; requests with other methods get a 405. Default ['GET']. */
 	methods?: string[]

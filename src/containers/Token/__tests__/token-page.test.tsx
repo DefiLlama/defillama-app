@@ -316,7 +316,7 @@ vi.mock('~/containers/Token/TokenMarketsSection', () => ({
 	}
 }))
 
-vi.mock('~/server/datasetCache/runtime/markets', () => ({
+vi.mock('~/containers/Token/server/dataset.markets', () => ({
 	fetchTokenMarketsList: vi.fn().mockResolvedValue({
 		tokens: [
 			{

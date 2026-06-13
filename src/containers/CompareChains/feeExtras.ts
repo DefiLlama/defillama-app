@@ -34,7 +34,7 @@ const buildCompareChainsFeeExtraChartUrl = ({ chain, dataType }: { chain: string
 		dataType
 	})
 
-	return `/api/public/charts/chain?${searchParams.toString()}`
+	return `/api/public/chains/charts?${searchParams.toString()}`
 }
 
 export function hasSelectedCompareChainsFeeChart(selectedCharts: string[]) {

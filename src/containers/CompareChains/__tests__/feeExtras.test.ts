@@ -47,28 +47,28 @@ describe('CompareChains fee extras', () => {
 				dataType: 'dailyBribesRevenue',
 				label: 'Bribes Revenue',
 				queryKey: ['compare-chains', 'chain-native-fee-extra', 'dailyBribesRevenue', 'Base'],
-				url: '/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyBribesRevenue'
+				url: '/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyBribesRevenue'
 			},
 			{
 				chain: 'Base',
 				dataType: 'dailyTokenTaxes',
 				label: 'Token Tax',
 				queryKey: ['compare-chains', 'chain-native-fee-extra', 'dailyTokenTaxes', 'Base'],
-				url: '/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyTokenTaxes'
+				url: '/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyTokenTaxes'
 			},
 			{
 				chain: 'Ethereum',
 				dataType: 'dailyBribesRevenue',
 				label: 'Bribes Revenue',
 				queryKey: ['compare-chains', 'chain-native-fee-extra', 'dailyBribesRevenue', 'Ethereum'],
-				url: '/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Ethereum&dataType=dailyBribesRevenue'
+				url: '/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Ethereum&dataType=dailyBribesRevenue'
 			},
 			{
 				chain: 'Ethereum',
 				dataType: 'dailyTokenTaxes',
 				label: 'Token Tax',
 				queryKey: ['compare-chains', 'chain-native-fee-extra', 'dailyTokenTaxes', 'Ethereum'],
-				url: '/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Ethereum&dataType=dailyTokenTaxes'
+				url: '/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Ethereum&dataType=dailyTokenTaxes'
 			}
 		])
 
@@ -102,7 +102,7 @@ describe('CompareChains fee extras', () => {
 				dataType: 'dailyBribesRevenue',
 				label: 'Bribes Revenue',
 				queryKey: ['compare-chains', 'chain-native-fee-extra', 'dailyBribesRevenue', 'Base'],
-				url: '/api/public/charts/chain?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyBribesRevenue'
+				url: '/api/public/chains/charts?kind=adapter-protocol&entity=chain&adapterType=fees&protocol=Base&dataType=dailyBribesRevenue'
 			}
 		])
 	})

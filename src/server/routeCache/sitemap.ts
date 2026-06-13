@@ -225,7 +225,7 @@ async function buildCexRoutes(metadataCache: MetadataCache): Promise<string[]> {
 		routes.push(`cex/stablecoins/${cexSlug}`)
 	}
 
-	const { fetchExchangeMarketsListFromCache } = await import('~/server/datasetCache/markets')
+	const { fetchExchangeMarketsListFromCache } = await import('~/containers/Cexs/server/dataset.markets.cache')
 	const marketsList = await fetchExchangeMarketsListFromCache()
 	const marketCexSlugs = new Set<string>()
 

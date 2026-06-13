@@ -8,9 +8,10 @@ import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 const CHART_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600'
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' }
+const VALID_GECKO_ID = /^[A-Za-z0-9._-]{1,80}$/
 
 // ---------------------------------------------------------------------------
-// /api/public/charts/coingecko/[geckoId]
+// /api/public/tokens/charts/coingecko/[geckoId]
 // ---------------------------------------------------------------------------
 
 function isNotFoundError(error: unknown): boolean {
@@ -29,12 +30,15 @@ async function fetchTokenTotalSupply(geckoId: string): Promise<number | null> {
 }
 
 export const coingeckoChart = defineApiRoute({
-	route: '/api/public/charts/coingecko/[geckoId]',
+	route: '/api/public/tokens/charts/coingecko/[geckoId]',
 	cacheControl: CHART_CACHE_CONTROL,
 	handle: async (req) => {
 		const geckoId = queryString(req.query, 'geckoId')
 		if (!geckoId) {
 			return badRequest('geckoId parameter is required')
+		}
+		if (!VALID_GECKO_ID.test(geckoId)) {
+			return badRequest('Invalid geckoId parameter')
 		}
 
 		const kind = queryString(req.query, 'kind')

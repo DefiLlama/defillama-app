@@ -36,7 +36,7 @@ export const exchangeMarkets = defineApiRoute({
 		}
 
 		try {
-			const { fetchExchangeMarketsListFromCache } = await import('~/server/datasetCache/markets')
+			const { fetchExchangeMarketsListFromCache } = await import('~/containers/Cexs/server/dataset.markets.cache')
 			const marketsExchange = resolveMarketsExchangeParam(exchange, await fetchExchangeMarketsListFromCache())
 			if (!marketsExchange) {
 				return notFound('Exchange not found')

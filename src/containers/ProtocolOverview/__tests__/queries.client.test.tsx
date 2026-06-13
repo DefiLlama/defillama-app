@@ -131,18 +131,18 @@ describe('ProtocolOverview client chart queries', () => {
 			undefined
 		])
 		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'/api/public/charts/protocol?kind=tvl&protocol=curve-dex&key=pool2&currency=ETH'
+			'/api/public/protocols/charts?kind=tvl&protocol=curve-dex&key=pool2&currency=ETH'
 		)
 	})
 
 	it.each([
 		{
 			breakdownType: 'chain-breakdown' as const,
-			expectedUrl: '/api/public/charts/protocol?kind=tvl&protocol=curve-dex&key=borrowed&breakdownType=chain-breakdown'
+			expectedUrl: '/api/public/protocols/charts?kind=tvl&protocol=curve-dex&key=borrowed&breakdownType=chain-breakdown'
 		},
 		{
 			breakdownType: 'token-breakdown' as const,
-			expectedUrl: '/api/public/charts/protocol?kind=tvl&protocol=curve-dex&key=borrowed&breakdownType=token-breakdown'
+			expectedUrl: '/api/public/protocols/charts?kind=tvl&protocol=curve-dex&key=borrowed&breakdownType=token-breakdown'
 		}
 	])('builds the current protocol TVL $breakdownType query', ({ breakdownType, expectedUrl }) => {
 		renderToStaticMarkup(<TVLChartProbe protocol="curve-dex" chartKey="borrowed" breakdownType={breakdownType} />)
@@ -169,18 +169,18 @@ describe('ProtocolOverview client chart queries', () => {
 			['tvl-chart', 'tvl-chart', 'tvl-chart']
 		])
 		expect(mocks.fetchJson.mock.calls.map(([url]) => url)).toEqual([
-			'/api/public/charts/protocol?kind=tvl&protocol=aave',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=pool2',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=staking',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&breakdownType=chain-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=pool2&breakdownType=chain-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=staking&breakdownType=chain-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&breakdownType=token-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=pool2&breakdownType=token-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=staking&breakdownType=token-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&currency=token&breakdownType=token-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=pool2&currency=token&breakdownType=token-breakdown',
-			'/api/public/charts/protocol?kind=tvl&protocol=aave&key=staking&currency=token&breakdownType=token-breakdown'
+			'/api/public/protocols/charts?kind=tvl&protocol=aave',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=pool2',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=staking',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&breakdownType=chain-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=pool2&breakdownType=chain-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=staking&breakdownType=chain-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&breakdownType=token-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=pool2&breakdownType=token-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=staking&breakdownType=token-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&currency=token&breakdownType=token-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=pool2&currency=token&breakdownType=token-breakdown',
+			'/api/public/protocols/charts?kind=tvl&protocol=aave&key=staking&currency=token&breakdownType=token-breakdown'
 		])
 	})
 
@@ -194,8 +194,8 @@ describe('ProtocolOverview client chart queries', () => {
 			['protocol-overview', 'treasury-chart', 'makerdao', 'ownTokens', undefined, undefined]
 		])
 		expect(mocks.fetchJson.mock.calls.map(([url]) => url)).toEqual([
-			'/api/public/charts/protocol?kind=treasury&protocol=makerdao&key=ownTokens',
-			'/api/public/charts/protocol?kind=treasury&protocol=makerdao&key=ownTokens&breakdownType=chain-breakdown'
+			'/api/public/protocols/charts?kind=treasury&protocol=makerdao&key=ownTokens',
+			'/api/public/protocols/charts?kind=treasury&protocol=makerdao&key=ownTokens&breakdownType=chain-breakdown'
 		])
 	})
 

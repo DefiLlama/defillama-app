@@ -122,7 +122,7 @@ export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | n
 		queryKey: ['governance', 'protocol', JSON.stringify(governanceApis)],
 		queryFn: isEnabled
 			? () =>
-					fetchJson<GovernanceDataEntry[]>('/api/public/charts/protocol', {
+					fetchJson<GovernanceDataEntry[]>('/api/public/protocols/charts', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json'

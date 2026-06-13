@@ -49,10 +49,14 @@ export const DATASET_DOMAIN_ARTIFACTS = {
 			rawBlockExplorers: 'raw/block-explorers.json'
 		}
 	},
-	markets: {
+	'cex-markets': {
 		files: {
-			tokensList: 'tokens-list.json',
 			exchangesList: 'exchanges-list.json'
+		}
+	},
+	'token-markets': {
+		files: {
+			tokensList: 'tokens-list.json'
 		}
 	}
 } as const satisfies Record<string, DatasetDomainArtifactContract>

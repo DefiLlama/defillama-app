@@ -1,12 +1,13 @@
 # Framework-neutral API layer
 
-All JSON API route logic lives here, written against the neutral `ApiRequest`/`ApiResult`
-model in `types.ts` with **no Next.js imports**. Files under `src/pages/api/**` are
-thin adapters:
+Shared API route host utilities live here. Domain JSON route definitions use the neutral
+`ApiRequest`/`ApiResult` model in `types.ts`, live with their owning container under
+`containers/*/server`, and keep **no Next.js imports**. Files under `src/pages/api/**`
+are thin adapters:
 
 ```ts
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { rwaAssetBreakdown } from '~/server/api/routes/rwa'
+import { rwaAssetBreakdown } from '~/containers/RWA/server/api'
 
 export default toNextHandler(rwaAssetBreakdown)
 ```
@@ -29,7 +30,7 @@ Porting to another host (standalone service, TanStack Start) means rewriting
 - `proxy.ts` — `proxyJsonRoute` for plain JSON passthroughs
 - `resultCache.ts` — in-process TTL memoization with in-flight coalescing
 - `nextAdapter.ts` — the only Next.js-aware file: method guard, telemetry, Cache-Control policy, error fencing
-- `routes/*.ts` — route definitions grouped by domain
+- Domain route definitions live with their owning container under `containers/*/server`.
 
 ## Conventions
 

@@ -29,7 +29,7 @@ const COINGECKO_REQUEST_HEADERS = COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECK
 const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const COINGECKO_EXCHANGES_MAX_PAGE_SIZE = 250
 const CG_CHART_CACHE_TTL_SECONDS = 60 * 60
-const CG_CHART_LOCAL_API_PATH = '/api/public/charts/protocol'
+const CG_CHART_LOCAL_API_PATH = '/api/public/tokens/charts/coingecko'
 
 function createCoinGeckoUrl(pathname: string): URL {
 	return new URL(pathname.replace(/^\//, ''), `${COINGECKO_API_BASE_URL}/`)
@@ -313,12 +313,10 @@ export async function fetchCoinGeckoChartByIdWithCacheFallback(
 		return data ? { data } : null
 	}
 
-	const url = new URL(CG_CHART_LOCAL_API_PATH, window.location.origin)
-	url.searchParams.set('kind', 'coingecko')
-	url.searchParams.set('geckoId', geckoId)
-	if (fullChart) url.searchParams.set('fullChart', 'true')
-	const data = await fetchJson<CgChartResponse['data'] | null>(url.toString()).catch(() => null)
-	return data?.prices ? { data } : null
+	const url = new URL(`${CG_CHART_LOCAL_API_PATH}/${encodeURIComponent(geckoId)}`, window.location.origin)
+	url.searchParams.set('fullChart', String(fullChart))
+	const chart = await fetchJson<CgChartResponse | null>(url.toString()).catch(() => null)
+	return chart?.data?.prices ? chart : null
 }
 
 /**

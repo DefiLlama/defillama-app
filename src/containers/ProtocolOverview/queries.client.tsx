@@ -39,7 +39,7 @@ const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) =>
 			searchParams.set(key, value)
 		}
 	}
-	return `/api/public/charts/protocol?${searchParams.toString()}`
+	return `/api/public/protocols/charts?${searchParams.toString()}`
 }
 
 const getProtocolChartQueryOptions = ({

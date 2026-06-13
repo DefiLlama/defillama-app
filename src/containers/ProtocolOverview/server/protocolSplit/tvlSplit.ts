@@ -1,11 +1,11 @@
 import { fetchChainChart } from '~/containers/Chains/api'
-import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchCategoryChart } from '~/containers/ProtocolTaxonomy/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { alignSeries, filterOutToday, normalizeDailyPairs, sumSeriesByTimestamp, toSlug } from '~/utils/protocolSplit'
 import { processAdjustedProtocolTvl, processAdjustedTvl, type TvlChartData } from '~/utils/tvl'
+import { PROTOCOL_SPLIT_COLOR_PALETTE } from './colors'
 import type { ChartSeries, ProtocolSplitData } from './types'
 
 // Some protocol responses include synthetic keys that shouldn't be counted in TVL totals
@@ -402,7 +402,7 @@ export const getTvlSplitData = async (
 	const alignedProtocolSeries: ChartSeries[] = succeededSeries.map((s, idx) => ({
 		name: s.name,
 		data: alignSeries(allTimestamps, s.data),
-		color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+		color: PROTOCOL_SPLIT_COLOR_PALETTE[idx % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 	}))
 
 	const alignedTotal = alignSeries(allTimestamps, totalSeries)

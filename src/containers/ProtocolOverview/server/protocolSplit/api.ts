@@ -1,11 +1,11 @@
-import { DIMENSIONS_METRIC_CONFIG, getDimensionsSplitData } from '~/server/protocolSplit/dimensionsSplit'
-import { CHAIN_ONLY_METRICS, getProtocolChainSplitData } from '~/server/protocolSplit/protocolChainService'
-import { getTvlSplitData } from '~/server/protocolSplit/tvlSplit'
+import { queryBoolean, queryFilterMode, queryIntClamped, queryList, queryString } from '~/server/api/params'
+import { badRequest, ok } from '~/server/api/respond'
+import { cachedResult } from '~/server/api/resultCache'
+import { defineApiRoute } from '~/server/api/types'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-import { queryBoolean, queryFilterMode, queryIntClamped, queryList, queryString } from '../params'
-import { badRequest, ok } from '../respond'
-import { cachedResult } from '../resultCache'
-import { defineApiRoute } from '../types'
+import { DIMENSIONS_METRIC_CONFIG, getDimensionsSplitData } from './dimensionsSplit'
+import { CHAIN_ONLY_METRICS, getProtocolChainSplitData } from './protocolChainService'
+import { getTvlSplitData } from './tvlSplit'
 
 // These aggregations rebuild multi-chain chart breakdowns in JS and can hold
 // the event loop for seconds, so results are memoized and concurrent
@@ -14,7 +14,7 @@ const SPLIT_RESULT_TTL_MS = 10 * 60 * 1000
 const SPLIT_CACHE_CONTROL = 'public, s-maxage=600, stale-while-revalidate=1200'
 
 export const protocolsSplit = defineApiRoute({
-	route: '/api/dynamic/protocols/split/[dataType]',
+	route: '/api/public/protocols/split/[dataType]',
 	cacheControl: SPLIT_CACHE_CONTROL,
 	handle: async (req) => {
 		const metric = queryString(req.query, 'dataType') ?? ''
@@ -85,7 +85,7 @@ export const protocolsSplit = defineApiRoute({
 })
 
 export const protocolChainSplit = defineApiRoute({
-	route: '/api/dynamic/protocols/split/protocol-chain',
+	route: '/api/public/protocols/split/protocol-chain',
 	cacheControl: SPLIT_CACHE_CONTROL,
 	handle: async (req) => {
 		const metric = queryString(req.query, 'metric') ?? 'tvl'

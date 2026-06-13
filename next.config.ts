@@ -22,10 +22,10 @@ const nextConfig: NextConfig = {
 	generateBuildId: resolveBuildIdFromEnv,
 	outputFileTracingIncludes: {
 		'/*': ['./.cache/app-metadata/**/*'],
-		'/cex/*': datasetCacheIncludes('markets'),
-		'/cex/markets/*': datasetCacheIncludes('markets'),
+		'/cex/*': datasetCacheIncludes('cex-markets'),
+		'/cex/markets/*': datasetCacheIncludes('cex-markets'),
 		'/token/*': datasetCacheIncludes(
-			'markets',
+			'token-markets',
 			'liquidations',
 			'raises',
 			'treasuries',

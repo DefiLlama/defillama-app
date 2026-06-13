@@ -1,4 +1,4 @@
+import { protocolChainSplit } from '~/containers/ProtocolOverview/server/protocolSplit/api'
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { protocolChainSplit } from '~/server/api/routes/protocolSplit'
 
 export default toNextHandler(protocolChainSplit)

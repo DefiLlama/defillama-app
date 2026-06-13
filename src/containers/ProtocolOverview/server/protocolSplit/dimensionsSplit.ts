@@ -1,10 +1,10 @@
 import { DIMENSIONS_OVERVIEW_API } from '~/constants'
-import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { METRIC_CONFIG_BASE, toSlug } from '~/utils/protocolSplit'
 import { recordRuntimeError } from '~/utils/telemetry'
+import { PROTOCOL_SPLIT_COLOR_PALETTE } from './colors'
 import type { ChartSeries, ProtocolSplitData } from './types'
 
 export const DIMENSIONS_METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
@@ -382,7 +382,7 @@ export const getDimensionsSplitData = async ({
 		series.push({
 			name: protocol,
 			data: alignedData,
-			color: EXTENDED_COLOR_PALETTE[i % EXTENDED_COLOR_PALETTE.length]
+			color: PROTOCOL_SPLIT_COLOR_PALETTE[i % PROTOCOL_SPLIT_COLOR_PALETTE.length]
 		})
 	}
 

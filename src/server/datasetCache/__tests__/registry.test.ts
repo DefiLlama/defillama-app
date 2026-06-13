@@ -42,9 +42,9 @@ describe('dataset cache registry', () => {
 			DATASET_CACHE_MANIFEST_TRACE_INCLUDE,
 			'./.cache/datasets/yields/**/*'
 		])
-		expect(getDatasetCacheTraceIncludes('markets', 'markets')).toEqual([
+		expect(getDatasetCacheTraceIncludes('cex-markets', 'cex-markets')).toEqual([
 			DATASET_CACHE_MANIFEST_TRACE_INCLUDE,
-			'./.cache/datasets/markets/**/*'
+			'./.cache/datasets/cex-markets/**/*'
 		])
 	})
 
@@ -61,9 +61,18 @@ describe('dataset cache registry', () => {
 		const includes = nextConfig.outputFileTracingIncludes as Record<string, string[]>
 		expect(includes['/*']).toContain('./.cache/app-metadata/**/*')
 		const expectedRouteDomains: Record<string, DatasetDomain[]> = {
-			'/cex/*': ['markets'],
-			'/cex/markets/*': ['markets'],
-			'/token/*': ['markets', 'liquidations', 'raises', 'treasuries', 'yields', 'liquidity', 'token-rights', 'risk'],
+			'/cex/*': ['cex-markets'],
+			'/cex/markets/*': ['cex-markets'],
+			'/token/*': [
+				'token-markets',
+				'liquidations',
+				'raises',
+				'treasuries',
+				'yields',
+				'liquidity',
+				'token-rights',
+				'risk'
+			],
 			'/token-rights': ['token-rights'],
 			'/protocol/token-rights/*': ['token-rights'],
 			'/protocol/yields/*': ['yields'],

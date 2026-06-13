@@ -1,5 +1,4 @@
 import { fetchProtocolTokenLiquidityChart } from '~/api'
-import { getCachedCgChartData } from '~/api/coingecko'
 import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType
@@ -24,13 +23,12 @@ const CHART_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600'
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' }
 
 // ---------------------------------------------------------------------------
-// /api/public/charts/protocol
+// /api/public/protocols/charts
 // ---------------------------------------------------------------------------
 
 const VALID_ADAPTER_TYPES = new Set<string>(Object.values(ADAPTER_TYPES))
 const VALID_ADAPTER_DATA_TYPES = new Set<string>(Object.values(ADAPTER_DATA_TYPES))
 const VALID_ADAPTER_BREAKDOWN_TYPES = new Set<AdapterBreakdownType>(['chain', 'version'])
-const VALID_GECKO_ID = /^[A-Za-z0-9._-]{1,80}$/
 
 type AdapterBreakdownType = Parameters<typeof fetchAdapterProtocolChartDataByBreakdownType>[0]['type']
 type AdapterBreakdownRequest =
@@ -117,7 +115,7 @@ const parseAdapterBreakdownRequest = (params: {
 }
 
 export const protocolCharts = defineApiRoute({
-	route: '/api/public/charts/protocol',
+	route: '/api/public/protocols/charts',
 	methods: ['GET', 'POST'],
 	cacheControl: CHART_CACHE_CONTROL,
 	handle: async (req) => {
@@ -359,21 +357,6 @@ export const protocolCharts = defineApiRoute({
 					.catch((): null => null)
 
 				if (data === null) {
-					return ok(null, NO_STORE_HEADERS)
-				}
-
-				return ok(data)
-			}
-
-			if (kind === 'coingecko') {
-				const geckoId = queryString(req.query, 'geckoId')
-				if (!geckoId || !VALID_GECKO_ID.test(geckoId)) {
-					return badRequest('Invalid geckoId parameter')
-				}
-
-				const fullChart = queryString(req.query, 'fullChart') === 'true'
-				const data = await getCachedCgChartData(geckoId, fullChart)
-				if (!data) {
 					return ok(null, NO_STORE_HEADERS)
 				}
 
