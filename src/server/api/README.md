@@ -28,7 +28,7 @@ Porting to another host (standalone service, TanStack Start) means rewriting
 - `respond.ts` — `ok` / `badRequest` / `notFound` / `upstreamError` result constructors
 - `params.ts` — query param parsing (`queryString`, `queryList`, `queryEnum`, `queryBoolean`, `queryIntClamped`, `queryFilterMode`)
 - `proxy.ts` — `proxyJsonRoute` for plain JSON passthroughs
-- `resultCache.ts` — in-process TTL memoization with in-flight coalescing
+- `resultCache.ts` — in-process TTL memoization with in-flight coalescing; see `docs/server-cache-layers.md` for how it differs from dataset artifact caches
 - `nextAdapter.ts` — the only Next.js-aware file: method guard, telemetry, Cache-Control policy, error fencing
 - Domain route definitions live with their owning container under `containers/*/server`.
 

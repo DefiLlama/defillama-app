@@ -12,6 +12,8 @@ Raw artifact readers live in domain `server/*.cache.ts` modules. They should onl
 
 Runtime adapters live in `dataset.ts`, `datasetApi.ts`, or more specific `dataset.*.ts` modules. These modules call `readThroughDatasetCache`, which reads artifacts when the manifest says the domain is ready, falls back to network when a domain is explicitly failed or disabled, and fails loudly when a ready domain has corrupt or missing files.
 
+Artifact JSON reads go through `src/server/datasetCache/jsonCache.ts`, which memoizes parsed files in process. Do not add `src/server/api/resultCache.ts` to dataset-backed routes just because they read artifacts; add it only when there is still expensive per-query aggregation, fan-out, or response shaping after the artifact read. See `docs/server-cache-layers.md` for the full cache-layer map.
+
 Page, API, and proxy consumers should call runtime adapters or domain HTTP handlers. Next.js files under `src/pages/api` should stay thin and delegate to `src/containers/<Domain>/server/api.ts`, `*Routes.ts`, or shared route helpers through the API route catalog.
 
 ## Import Rules
