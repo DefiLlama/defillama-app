@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
 	CHAIN_NATIVE_BREAKDOWN_METRICS,
 	getProtocolChainBreakdownRoute,
-	NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS
+	NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS,
+	PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS,
+	STREAM_PROTOCOL_SERIES_SKIP_METRICS
 } from '~/server/breakdowns'
 
 describe('breakdown route partitioning', () => {
@@ -17,9 +19,20 @@ describe('breakdown route partitioning', () => {
 		)
 	})
 
-	it('keeps non-adapter metrics explicit', () => {
+	it('keeps by-chain metric sets explicit by purpose', () => {
 		expect(Array.from(CHAIN_NATIVE_BREAKDOWN_METRICS).toSorted()).toEqual(['chain-fees', 'chain-revenue'])
+		expect(Array.from(PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS).toSorted()).toEqual([
+			'chain-fees',
+			'chain-revenue',
+			'stablecoins'
+		])
 		expect(Array.from(NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS).toSorted()).toEqual([
+			'chain-fees',
+			'chain-revenue',
+			'stablecoins',
+			'tvl'
+		])
+		expect(Array.from(STREAM_PROTOCOL_SERIES_SKIP_METRICS).toSorted()).toEqual([
 			'chain-fees',
 			'chain-revenue',
 			'stablecoins',

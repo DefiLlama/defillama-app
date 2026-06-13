@@ -1,15 +1,12 @@
 import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { toDimensionsSlug, toDisplayName } from '~/utils/chainNormalizer'
-
-export const CHAIN_NATIVE_BREAKDOWN_METRICS = new Set(['chain-fees', 'chain-revenue'])
-export const NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS = new Set(['tvl', 'stablecoins', ...CHAIN_NATIVE_BREAKDOWN_METRICS])
-
-export const getProtocolChainBreakdownRoute = (metric: string): string => {
-	if (metric === 'tvl') return '/api/public/protocols/breakdowns/by-chain/tvl'
-	if (metric === 'stablecoins') return '/api/public/stablecoins/breakdowns/by-chain'
-	if (CHAIN_NATIVE_BREAKDOWN_METRICS.has(metric)) return `/api/public/chains/breakdowns/by-chain/${metric}`
-	return `/api/public/adapter-metrics/breakdowns/by-chain/${metric}`
-}
+export {
+	CHAIN_NATIVE_BREAKDOWN_METRICS,
+	getProtocolChainBreakdownRoute,
+	NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS,
+	PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS,
+	STREAM_PROTOCOL_SERIES_SKIP_METRICS
+} from '~/utils/breakdownMetrics'
 
 export const displayChainName = (slug: string): string => {
 	const display = toDisplayName(slug)

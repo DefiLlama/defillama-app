@@ -2,7 +2,7 @@ import { queryBoolean, queryFilterMode, queryIntClamped, queryList, queryString 
 import { badRequest, ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
-import { NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/server/breakdowns'
+import { NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/utils/breakdownMetrics'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { getAdapterMetricChainSeries } from './breakdowns/chainSeries'
 import { DIMENSIONS_API_METRIC_CONFIG } from './breakdowns/config'

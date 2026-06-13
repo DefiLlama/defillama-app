@@ -2,6 +2,7 @@ import { getMetadataCache, type StaticParamPath } from '~/server/routeRegistry/c
 import { slug } from '~/utils'
 import type { MetadataCache } from '~/utils/metadata/artifactContract'
 import type { ICexItem } from '~/utils/metadata/types'
+import { getCexMarketSlugsFromCache } from './routeData'
 
 export type CexRoute = {
 	metadata: ICexItem
@@ -54,18 +55,7 @@ export async function getCexSitemapRoutes(metadataCache: MetadataCache): Promise
 		routes.push(`cex/stablecoins/${cexSlug}`)
 	}
 
-	const { fetchExchangeMarketsListFromCache } = await import('~/containers/Cexs/server/dataset.markets.cache')
-	const marketsList = await fetchExchangeMarketsListFromCache()
-	const marketCexSlugs = new Set<string>()
-
-	for (const entries of Object.values(marketsList.cex)) {
-		for (const entry of entries) {
-			const cexSlug = slug(entry.defillama_slug ?? '')
-			if (cexSlug) marketCexSlugs.add(cexSlug)
-		}
-	}
-
-	for (const cexSlug of marketCexSlugs) {
+	for (const cexSlug of await getCexMarketSlugsFromCache()) {
 		routes.push(`cex/markets/${cexSlug}`)
 	}
 
