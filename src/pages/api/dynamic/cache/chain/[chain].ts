@@ -1,5 +1,5 @@
-import { toNextHandler } from '~/server/api/nextAdapter'
 import { chainCache } from '~/containers/CompareChains/server/api'
+import { toNextHandler } from '~/server/api/nextAdapter'
 
 const handler = toNextHandler(chainCache)
 

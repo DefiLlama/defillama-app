@@ -1,6 +1,5 @@
 import { getDirectUrlEnv } from '~/utils/directApi'
 
-// Base environment/config
 const API_KEY = process.env.API_KEY
 export const PRO_API_BASE_URL =
 	process.env.NODE_ENV === 'production' && process.env.PRO_API_URL
@@ -13,8 +12,9 @@ export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE
 
 // Base servers
 export const AUTH_SERVER = process.env.NEXT_PUBLIC_AUTH_SERVER_URL ?? 'https://auth.llama.fi'
-export const FEATURES_SERVER = process.env.NEXT_PUBLIC_FEATURES_SERVER_URL ?? 'https://features.llama.fi'
+export const AI_SERVER = 'https://ai.llama.fi'
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
+export const FEATURES_SERVER = process.env.NEXT_PUBLIC_FEATURES_SERVER_URL ?? 'https://features.llama.fi'
 export const DATASETS_SERVER_URL =
 	getDirectUrlEnv('DATASETS_SERVER_URL') ??
 	(API_KEY ? `${PRO_API_BASE_URL}/${API_KEY}/datasets` : 'https://defillama-datasets.llama.fi')
@@ -60,96 +60,19 @@ export const MARKETS_SERVER_URL = getDirectUrlEnv('MARKETS_SERVER_URL')
 export const CONFIG_API = `${SERVER_URL}/config`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
-// User metrics
-export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
-export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
-export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
-export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
-
-// Protocol/market data
-export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
-export const RAISES_API = `${SERVER_URL}/raises`
-export const CEXS_API = `${SERVER_URL}/cexs`
-export const HACKS_API = `${SERVER_URL}/hacks`
-// Icons
-export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
-
-// Social
-export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
-export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
 
 // Coins
-export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
 export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`
-export const COINS_MCAPS_API = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
 
-// FDV/Category
-export const CATEGORY_PERFORMANCE_API = `${FDV_SERVER_URL}/performance`
-export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
+// FDV/category metadata
 export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
-export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 
-// Dataset/static assets
+// Static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 // The pro token-directory cache can serve truncated JSON; keep this endpoint on the public API for now.
 export const TOKEN_DIRECTORY_API = 'https://api.llama.fi/config/smol/token.json'
 
 // External services
-export const AI_SERVER = 'https://ai.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
-
-const removedCategoriesFromChainTvl = [
-	'Chain',
-	'CEX',
-	'Infrastructure',
-	'Staking Pool',
-	'RWA',
-	'Basis Trading',
-	'CeDeFi',
-	'Bridge',
-	'Canonical Bridge',
-	'Farm',
-	'Yield Aggregator',
-	'Yield',
-	'Liquidity Manager',
-	'Onchain Capital Allocator',
-	'Risk Curators',
-	'Treasury Manager',
-	'Anchor BTC',
-	'CDP Manager',
-	'Restaked BTC',
-	'RWA Lending',
-	'RWA'
-]
-
-export const oracleProtocols = {
-	Chainlink: 'Chainlink',
-	Pyth: 'Pyth',
-	Api3: 'Api3',
-	'RedStone Oracles': 'RedStone'
-}
-
-export const removedCategoriesFromChainTvlSet = new Set(removedCategoriesFromChainTvl)
-
-export const REV_PROTOCOLS = {
-	ethereum: ['flashbots', 'eden-relay'],
-	solana: ['jito-mev-tips', 'bloxroute'],
-	arbitrum: ['arbitrum-timeboost'],
-	polygon: ['fastlane'],
-	bsc: ['bloxroute']
-} as const
-
-export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])
-
-export const categoryRoutesOutsideProtocols: Record<string, string> = {
-	rwa: '/rwa',
-	dexs: '/dexs',
-	derivatives: '/perps',
-	'dex-aggregator': '/dex-aggregators',
-	'bridge-aggregator': '/bridge-aggregators'
-}
-
-export const getCategoryRoute = (categorySlug: string) =>
-	categoryRoutesOutsideProtocols[categorySlug] ?? `/protocols/${categorySlug}`

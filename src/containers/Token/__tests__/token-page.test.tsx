@@ -1,23 +1,23 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { hasTokenLiquidationsData } from '~/containers/LiquidationsV2/server/dataset'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import type { TokenPageProps, TokenPageSection } from '~/containers/Token/types'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
-import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
-import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
-import { DatasetCacheIntegrityError } from '~/server/datasetCache/core'
-import { hasTokenLiquidationsData } from '~/server/datasetCache/runtime/liquidations'
 import {
 	fetchTokenRightsEntries,
 	fetchTokenRightsEntryByDefillamaId,
 	fetchTokenRightsEntryByName
-} from '~/server/datasetCache/runtime/tokenRights'
+} from '~/containers/TokenRights/server/dataset'
+import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { getTokenBorrowRoutes, getTokenYieldsRows } from '~/containers/Yields/server/dataset'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
+import { DatasetCacheIntegrityError } from '~/server/datasetCache/core'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import type { TokenRiskResponse } from '../tokenRisk.types'
@@ -400,7 +400,7 @@ vi.mock('~/utils/perf', () => ({
 	withPerformanceLogging: (_label: string, fn: any) => fn
 }))
 
-vi.mock('~/server/datasetCache/runtime/tokenRights', () => ({
+vi.mock('~/containers/TokenRights/server/dataset', () => ({
 	fetchTokenRightsEntries: vi.fn(() => Promise.resolve(state.tokenRightsEntries)),
 	fetchTokenRightsEntryByDefillamaId: vi.fn((defillamaId: string) =>
 		Promise.resolve(
@@ -478,24 +478,24 @@ vi.mock('~/containers/Yields/server/dataset', () => ({
 	getYieldConfig: vi.fn(() => Promise.resolve(null))
 }))
 
-vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset', () => ({
 	hasTokenLiquidationsData: vi.fn(() => Promise.resolve(state.hasTokenLiquidationsData)),
 	getTokenLiquidationsSectionData: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/runtime/raises', () => ({
+vi.mock('~/containers/Raises/server/dataset', () => ({
 	fetchRaisesByDefillamaId: vi.fn().mockResolvedValue([])
 }))
 
-vi.mock('~/server/datasetCache/runtime/treasuries', () => ({
+vi.mock('~/containers/Treasuries/server/dataset', () => ({
 	fetchTreasuryById: vi.fn().mockResolvedValue(null)
 }))
 
-vi.mock('~/server/datasetCache/runtime/liquidity', () => ({
+vi.mock('~/containers/Token/server/dataset.liquidity', () => ({
 	fetchLiquidityEntryByProtocolId: vi.fn().mockResolvedValue(null)
 }))
 
-vi.mock('~/server/datasetCache/runtime/risk', () => ({
+vi.mock('~/containers/Token/server/dataset.risk', () => ({
 	getIndexedTokenRiskBorrowCapacity: vi.fn().mockResolvedValue({})
 }))
 

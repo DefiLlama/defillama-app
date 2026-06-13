@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -44,6 +43,7 @@ import {
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'

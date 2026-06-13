@@ -1,13 +1,13 @@
 import { fetchTokenRightsDataFromNetwork } from '~/containers/TokenRights/api'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import { findProtocolEntry } from '~/containers/TokenRights/utils'
+import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
 import { slug } from '~/utils'
 import {
 	fetchTokenRightsEntriesFromCache,
 	fetchTokenRightsEntryByNameFromCache,
 	fetchTokenRightsEntryFromCache
-} from '../tokenRights'
-import { readThroughDatasetCache } from './source'
+} from './dataset.cache'
 
 export function fetchTokenRightsEntries(): Promise<IRawTokenRightsEntry[]> {
 	return readThroughDatasetCache({

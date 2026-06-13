@@ -151,3 +151,11 @@ export const BAR_CHARTS: ProtocolChartsLabels[] = [
 	'Bridge Aggregator Volume',
 	'Bridge Volume'
 ]
+
+// Oracle protocols with their own TVS entries (display name -> oracle name)
+export const oracleProtocols = {
+	Chainlink: 'Chainlink',
+	Pyth: 'Pyth',
+	Api3: 'Api3',
+	'RedStone Oracles': 'RedStone'
+}

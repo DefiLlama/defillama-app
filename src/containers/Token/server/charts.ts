@@ -1,10 +1,10 @@
 import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import { CACHE_SERVER } from '~/constants'
-import { fetchJson } from '~/utils/async'
-import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { queryString } from '~/server/api/params'
 import { badRequest, ok } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
+import { fetchJson } from '~/utils/async'
+import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 const CHART_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600'
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' }

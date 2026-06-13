@@ -1,9 +1,8 @@
-import { ZERO_FEE_PERPS } from '~/constants'
 import { FEE_EXTRA_PERIOD_TOTAL_KEYS } from '~/metrics/feeExtras'
 import { slug, getMarketCapToAnnualizedMetricRatio } from '~/utils'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IAdapterChainMetrics } from './api.types'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ZERO_FEE_PERPS } from './constants'
 import { mergeParentMetricPeriods } from './metricPeriods'
 import type { IAdapterByChainPageData, IAdapterChainOverview, IProtocol } from './types'
 import {

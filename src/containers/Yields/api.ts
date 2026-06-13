@@ -1,13 +1,3 @@
-import {
-	YIELD_TOKEN_CATEGORIES_API,
-	YIELD_CHAIN_API,
-	YIELD_CONFIG_API,
-	YIELD_LEND_BORROW_API,
-	YIELD_MEDIAN_API,
-	YIELD_PERPS_API,
-	YIELD_POOLS_API,
-	YIELD_URL_API
-} from './constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	YieldChainsResponse,
@@ -20,6 +10,16 @@ import type {
 	YieldTokenCategoriesResponse,
 	YieldUrlsResponse
 } from './api.types'
+import {
+	YIELD_TOKEN_CATEGORIES_API,
+	YIELD_CHAIN_API,
+	YIELD_CONFIG_API,
+	YIELD_LEND_BORROW_API,
+	YIELD_MEDIAN_API,
+	YIELD_PERPS_API,
+	YIELD_POOLS_API,
+	YIELD_URL_API
+} from './constants'
 
 const fetchYieldJson = <T>(url: string, options: YieldFetchOptions = {}) =>
 	fetchJson<T>(url, options.timeout != null ? { timeout: options.timeout } : undefined)

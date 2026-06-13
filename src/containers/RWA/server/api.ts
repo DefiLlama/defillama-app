@@ -15,7 +15,10 @@ import type {
 	RWAOverviewBreakdownRequest
 } from '~/containers/RWA/api.types'
 import { toOverviewBreakdownChartDataset } from '~/containers/RWA/breakdownDataset'
-import { fetchRWAPerpsContractBreakdownChartData, fetchRWAPerpsOverviewBreakdownChartData } from '~/containers/RWA/Perps/api'
+import {
+	fetchRWAPerpsContractBreakdownChartData,
+	fetchRWAPerpsOverviewBreakdownChartData
+} from '~/containers/RWA/Perps/api'
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
 import {
 	parseChartMetricKey as parsePerpsChartMetricKey,
@@ -29,12 +32,11 @@ import {
 	parseOptionalStringTarget
 } from '~/containers/RWA/requestParsers'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
-import { fetchJson } from '~/utils/async'
-import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { notFound, ok, badRequest, upstreamError } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
-import type { ApiQuery } from '~/server/api/types'
-import { defineApiRoute } from '~/server/api/types'
+import { defineApiRoute, type ApiQuery } from '~/server/api/types'
+import { fetchJson } from '~/utils/async'
+import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 type RWAAssetBreakdownRequest = {
 	target: RWAAssetChartTarget

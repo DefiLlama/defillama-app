@@ -21,13 +21,17 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
-import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
+import {
+	prepareTableCsv,
+	type ColumnOrdersByBreakpoint,
+	useSortColumnOrders,
+	useTableSearch
+} from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { getCategoryRoute } from '~/constants'
 import { chainCharts } from '~/containers/ChainOverview/constants'
 import { protocolCharts } from '~/containers/ProtocolOverview/constants'
+import { getCategoryRoute } from '~/containers/ProtocolTaxonomy/categoryRoutes'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
 import { addFeeExtrasToRowTotals, hasEnabledFeeExtras, isFeeExtraEligibleAdapterMetric } from '~/metrics/feeExtras'

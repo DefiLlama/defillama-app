@@ -1,9 +1,9 @@
 import { MARKETS_SERVER_URL } from '~/constants'
-import { fetchJson } from '~/utils/async'
-import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { queryString } from '~/server/api/params'
 import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
+import { fetchJson } from '~/utils/async'
+import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 const MARKETS_CACHE_CONTROL = 'public, max-age=60, s-maxage=300, stale-while-revalidate=300'
 

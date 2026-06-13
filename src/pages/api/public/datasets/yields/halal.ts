@@ -1,5 +1,5 @@
-import { toNextHandler } from '~/server/api/nextAdapter'
 import { yieldsHalalDataset } from '~/containers/Yields/server/api'
+import { toNextHandler } from '~/server/api/nextAdapter'
 
 export const config = {
 	api: {

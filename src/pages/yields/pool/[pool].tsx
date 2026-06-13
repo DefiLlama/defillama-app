@@ -29,13 +29,13 @@ import {
 	type HolderFlowSummary,
 	type HolderWithChange
 } from '~/containers/Yields/queries/holderUtils'
+import type { YieldPoolPageData } from '~/containers/Yields/server/dataset.types'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
-import type { YieldPoolPageData } from '~/containers/Yields/server/dataset.types'
 import { formattedNum } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { jitterCacheControlHeader, maxAgeForNext } from '~/utils/maxAgeForNext'

@@ -56,7 +56,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const defillamaId = metadata[0]
-		const { fetchTokenRightsEntryByDefillamaId } = await import('~/server/datasetCache/runtime/tokenRights')
+		const { fetchTokenRightsEntryByDefillamaId } = await import('~/containers/TokenRights/server/dataset')
 		const [rawEntry, protocolData] = await Promise.all([
 			fetchTokenRightsEntryByDefillamaId(defillamaId),
 			fetchProtocolOverviewMetrics(protocol)

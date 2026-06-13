@@ -11,7 +11,7 @@ export default withSubscriptionJsonRoute({
 	errorMessage: 'Failed to fetch liquidations overview data',
 	async handler(_req, res) {
 		const [{ getLiquidationsOverviewPageData }, { default: metadataCache }] = await Promise.all([
-			import('~/server/datasetCache/runtime/liquidations'),
+			import('~/containers/LiquidationsV2/server/dataset'),
 			import('~/utils/metadata')
 		])
 		const data = await getLiquidationsOverviewPageData({

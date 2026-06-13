@@ -1,10 +1,10 @@
 import { YIELDS_SERVER_URL } from '~/constants'
-import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { queryString } from '~/server/api/params'
 import { badRequest, ok, upstreamError } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 // All of these read through the dataset cache runtime
 // (containers/Yields/server/dataset.ts), which already memoizes the heavy
@@ -67,7 +67,10 @@ export const yieldsTokenBorrowRoutes = defineApiRoute({
 			recordRouteRuntimeError(error, 'apiRoute')
 			// Historical contract: token pages key off this exact header to skip
 			// client-side retry caching on loader failures.
-			return { ...upstreamError('Failed to fetch token borrow routes data'), headers: { 'Cache-Control': 'private, no-store' } }
+			return {
+				...upstreamError('Failed to fetch token borrow routes data'),
+				headers: { 'Cache-Control': 'private, no-store' }
+			}
 		}
 	}
 })

@@ -1,6 +1,5 @@
 import { fetchProtocolTokenLiquidityChart } from '~/api'
 import { getCachedCgChartData } from '~/api/coingecko'
-import { YIELD_PROJECT_MEDIAN_API } from '~/containers/Yields/constants'
 import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType
@@ -13,12 +12,13 @@ import { fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from '~/containers/ProtocolOverview/api'
 import { normalizeBridgeVolumeToChartMs } from '~/containers/ProtocolOverview/chartSeries.utils'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
-import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
-import { recordRouteRuntimeError } from '~/utils/telemetry'
+import { YIELD_PROJECT_MEDIAN_API } from '~/containers/Yields/constants'
 import { queryString } from '~/server/api/params'
 import { badRequest, notFound, ok } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
+import { slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
+import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 const CHART_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600'
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' }
@@ -199,7 +199,9 @@ export const protocolCharts = defineApiRoute({
 					...(currency ? { currency } : {}),
 					...(breakdownType
 						? {
-								breakdownType: breakdownType as NonNullable<Parameters<typeof fetchProtocolTvlChart>[0]['breakdownType']>
+								breakdownType: breakdownType as NonNullable<
+									Parameters<typeof fetchProtocolTvlChart>[0]['breakdownType']
+								>
 							}
 						: {})
 				}

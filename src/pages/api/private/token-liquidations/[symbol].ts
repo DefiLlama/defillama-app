@@ -30,7 +30,7 @@ export default withSubscriptionJsonRoute<{ symbol: string }>({
 			chainMetadata: metadataModule.default.chainMetadata,
 			protocolMetadata: metadataModule.default.protocolMetadata
 		}
-		const { getTokenLiquidationsSectionData } = await import('~/server/datasetCache/runtime/liquidations')
+		const { getTokenLiquidationsSectionData } = await import('~/containers/LiquidationsV2/server/dataset')
 		const data = await getTokenLiquidationsSectionData(normalizedSymbol, metadataCache)
 
 		if (!data) {

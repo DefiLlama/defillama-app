@@ -91,13 +91,13 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			{ getTokenBorrowRoutes, getTokenYieldsRows, getYieldConfig }
 		] = await Promise.all([
 			import('~/server/datasetCache/core'),
-			import('~/server/datasetCache/runtime/liquidations'),
-			import('~/server/datasetCache/runtime/liquidity'),
+			import('~/containers/LiquidationsV2/server/dataset'),
+			import('~/containers/Token/server/dataset.liquidity'),
 			import('~/server/datasetCache/runtime/markets'),
-			import('~/server/datasetCache/runtime/raises'),
-			import('~/server/datasetCache/runtime/risk'),
-			import('~/server/datasetCache/runtime/tokenRights'),
-			import('~/server/datasetCache/runtime/treasuries'),
+			import('~/containers/Raises/server/dataset'),
+			import('~/containers/Token/server/dataset.risk'),
+			import('~/containers/TokenRights/server/dataset'),
+			import('~/containers/Treasuries/server/dataset'),
 			import('~/containers/Yields/server/dataset')
 		])
 		const downgradeTokenPageError = <T,>(error: unknown, message: string, fallback: T): T =>

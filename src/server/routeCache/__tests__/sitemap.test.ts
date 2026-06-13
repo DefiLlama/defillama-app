@@ -64,7 +64,7 @@ vi.mock('~/utils/metadata', () => ({
 	default: metadataCache
 }))
 
-vi.mock('~/server/datasetCache/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset.cache', () => ({
 	getLiquidationsProtocolsResponseFromCache: vi.fn().mockResolvedValue({ protocols: ['aave'] }),
 	getLiquidationsProtocolChainIdsFromCache: vi.fn().mockResolvedValue(['ethereum'])
 }))
@@ -79,7 +79,7 @@ vi.mock('~/server/datasetCache/markets', () => ({
 	})
 }))
 
-vi.mock('~/server/datasetCache/raises', () => ({
+vi.mock('~/containers/Raises/server/dataset.cache', () => ({
 	fetchRaisesFromCache: vi.fn().mockResolvedValue([
 		{
 			leadInvestors: ['Paradigm'],

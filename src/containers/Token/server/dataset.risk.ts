@@ -1,8 +1,8 @@
 import { getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
 import type { TokenRiskBorrowCapacityResponse, TokenRiskBorrowCapacityTokenEntry } from '~/containers/Token/api.types'
 import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
-import { getIndexedTokenRiskBorrowCapacityFromCache } from '../risk'
-import { readThroughDatasetCache } from './source'
+import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
+import { getIndexedTokenRiskBorrowCapacityFromCache } from './dataset.risk.cache'
 
 type IndexedTokenRiskBorrowCapacity = {
 	data: TokenRiskBorrowCapacityResponse

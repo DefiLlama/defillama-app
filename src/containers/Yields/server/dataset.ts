@@ -1,10 +1,10 @@
 import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
-import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/containers/Yields/constants'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
 import { buildBorrowAdvancedPageMetadata, buildBorrowAdvancedPageRows } from '~/containers/Yields/borrowAdvanced.server'
 import { buildBorrowPageMetadata, buildBorrowPageRows } from '~/containers/Yields/borrowSimple.server'
+import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/containers/Yields/constants'
 import { buildYieldHalalPageMetadata, buildYieldHalalPageResponse } from '~/containers/Yields/halalTable.server'
 import {
 	buildYieldLongShortPageMetadata,
@@ -17,18 +17,18 @@ import {
 	fetchYieldConfigFromNetwork,
 	getLendBorrowData as getLendBorrowDataFromNetwork,
 	getPerpData,
-	getYieldPageData
+	getYieldPageData,
+	type YieldConfigResponse
 } from '~/containers/Yields/queries.server'
-import type { YieldConfigResponse } from '~/containers/Yields/queries.server'
 import {
 	buildYieldStrategyPageMetadata,
 	buildYieldStrategyPageResponse
 } from '~/containers/Yields/strategyTable.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { fetchJson } from '~/utils/async'
-import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
 import { isMissingDatasetArtifactError } from '~/server/datasetCache/core'
 import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
+import { fetchJson } from '~/utils/async'
+import { YIELD_POOL_CONFIG_ID_REGEX } from '~/utils/regex-constants'
 import {
 	getLendBorrowDataFromCache,
 	getProtocolYieldRowsFromCache,

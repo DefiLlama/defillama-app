@@ -276,7 +276,7 @@ function buildOracleRoutes(metadataCache: MetadataCache): string[] {
 async function buildLiquidationsRoutes(metadataCache: MetadataCache): Promise<string[]> {
 	const routes: string[] = []
 	const { getLiquidationsProtocolsResponseFromCache, getLiquidationsProtocolChainIdsFromCache } =
-		await import('~/server/datasetCache/liquidations')
+		await import('~/containers/LiquidationsV2/server/dataset.cache')
 	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
 	const protocolChainIds = await Promise.all(
 		protocolsResponse.protocols.map(async (protocolId) => ({

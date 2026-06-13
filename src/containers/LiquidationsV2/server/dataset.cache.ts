@@ -18,8 +18,8 @@ import {
 	resolveProtocolId,
 	type LiquidationsMetadataCache
 } from '~/containers/LiquidationsV2/queries'
-import { DATASET_DOMAIN_ARTIFACTS } from './artifacts'
-import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from '~/server/datasetCache/artifacts'
+import { readDatasetDomainJson } from '~/server/datasetCache/core'
 
 const LIQUIDATIONS_FILES = DATASET_DOMAIN_ARTIFACTS.liquidations.files
 

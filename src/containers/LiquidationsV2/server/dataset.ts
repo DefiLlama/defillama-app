@@ -3,9 +3,9 @@ import type {
 	LiquidationsChainPageProps,
 	LiquidationsOverviewPageProps,
 	LiquidationsProtocolPageProps,
+	RawProtocolsResponse,
 	TokenLiquidationsSectionData
 } from '~/containers/LiquidationsV2/api.types'
-import type { RawProtocolsResponse } from '~/containers/LiquidationsV2/api.types'
 import {
 	getLiquidationsChainPageDataFromNetwork,
 	getLiquidationsOverviewPageDataFromNetwork,
@@ -14,6 +14,7 @@ import {
 	hasTokenLiquidationsDataFromNetwork,
 	type LiquidationsMetadataCache
 } from '~/containers/LiquidationsV2/queries'
+import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
 import {
 	getLiquidationsChainFromCache,
 	getLiquidationsOverviewFromCache,
@@ -21,8 +22,7 @@ import {
 	getLiquidationsProtocolsResponseFromCache,
 	getTokenLiquidationsFromCache,
 	hasTokenLiquidationsInCache
-} from '../liquidations'
-import { readThroughDatasetCache } from './source'
+} from './dataset.cache'
 
 export function getLiquidationsProtocolsList(): Promise<RawProtocolsResponse> {
 	return readThroughDatasetCache({

@@ -21,7 +21,7 @@ const {
 	getTokenLiquidationsSectionDataMock: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset', () => ({
 	getLiquidationsOverviewPageData: getLiquidationsOverviewPageDataMock,
 	getLiquidationsProtocolPageData: getLiquidationsProtocolPageDataMock,
 	getLiquidationsChainPageData: getLiquidationsChainPageDataMock,
@@ -42,7 +42,7 @@ vi.mock('~/utils/metadata', () => ({
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))
 
-vi.mock('~/server/datasetCache/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset.cache', () => ({
 	getLiquidationsProtocolsResponseFromCache: getLiquidationsProtocolsResponseFromCacheMock,
 	getLiquidationsProtocolChainIdsFromCache: getLiquidationsProtocolChainIdsFromCacheMock
 }))

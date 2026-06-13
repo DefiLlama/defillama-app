@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { fetchSingleChartData, withTimeout } from '~/containers/ProDashboard/queries.server'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
@@ -11,6 +10,7 @@ import {
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { requireSubscription } from '~/server/api/requireSubscription'
 import { fetchJson } from '~/utils/async'
 import { addRouteTelemetryAttributes, recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'

@@ -15,11 +15,11 @@ vi.mock('~/containers/LiquidationsV2/RouteContent', () => ({
 	LiquidationsChainRouteContent: () => null
 }))
 
-vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset', () => ({
 	getLiquidationsProtocolsList: vi.fn()
 }))
 
-vi.mock('~/server/datasetCache/liquidations', () => ({
+vi.mock('~/containers/LiquidationsV2/server/dataset.cache', () => ({
 	getLiquidationsProtocolsResponseFromCache: vi.fn().mockResolvedValue({
 		protocols: ['sky']
 	}),
@@ -39,10 +39,10 @@ vi.mock('~/utils/metadata', () => ({
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))
 
+import { getLiquidationsProtocolsList } from '~/containers/LiquidationsV2/server/dataset'
 import * as chainPage from '~/pages/liquidations/[protocol]/[chain]'
 import * as protocolPage from '~/pages/liquidations/[protocol]/index'
 import * as overviewPage from '~/pages/liquidations/index'
-import { getLiquidationsProtocolsList } from '~/server/datasetCache/runtime/liquidations'
 
 const mockedGetLiquidationsProtocolsList = getLiquidationsProtocolsList as unknown as ReturnType<typeof vi.fn>
 

@@ -1,7 +1,7 @@
 import { fetchJson } from '~/utils/async'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-import { cachedResult } from './resultCache'
 import { badRequest, ok, upstreamError } from './respond'
+import { cachedResult } from './resultCache'
 import type { ApiRequest, ApiResult, ApiRouteDefinition } from './types'
 
 const DEFAULT_UPSTREAM_TIMEOUT_MS = 30_000
@@ -50,7 +50,12 @@ export function proxyJsonRoute(options: ProxyJsonRouteOptions): ApiRouteDefiniti
 
 			try {
 				const body = options.resultTtlMs
-					? await cachedResult(options.route, upstream, { ttlMs: options.resultTtlMs, ttlJitter: 0.2 }, fetchAndTransform)
+					? await cachedResult(
+							options.route,
+							upstream,
+							{ ttlMs: options.resultTtlMs, ttlJitter: 0.2 },
+							fetchAndTransform
+						)
 					: await fetchAndTransform()
 				return ok(body)
 			} catch (error) {

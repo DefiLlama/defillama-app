@@ -7,9 +7,9 @@ import {
 	getYieldPageDataFromNetwork
 } from '~/containers/Yields/queries.server'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { ensureDirectory } from '~/utils/cacheDirectory'
 import { getDatasetCacheFetchTimeoutMs } from '~/server/datasetCache/config'
 import { writeDatasetCacheJson as writeJsonFile } from '~/server/datasetCache/jsonCache'
+import { ensureDirectory } from '~/utils/cacheDirectory'
 import {
 	getYieldsByTokenDir,
 	getYieldsConfigPath,

@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchCoinPrices } from '~/api/pricing'
 import { CONFIG_API } from '~/constants'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { fetchJson } from '~/utils/async'
+import type { BorrowAdvancedRow } from './borrowAdvanced'
+import type { BorrowPageRowsResponse } from './borrowSimple'
 import {
 	YIELD_BORROW_ADVANCED_API,
 	YIELD_BORROW_API,
@@ -10,10 +14,6 @@ import {
 	YIELD_HOLDERS_API,
 	YIELD_VOLATILITY_API
 } from './constants'
-import { useAuthContext } from '~/containers/Subscription/auth'
-import { fetchJson } from '~/utils/async'
-import type { BorrowAdvancedRow } from './borrowAdvanced'
-import type { BorrowPageRowsResponse } from './borrowSimple'
 import type { HolderHistoryEntry, HolderStatsMap } from './queries/holderTypes'
 import type { YieldsPaginatedTableResponse } from './yieldsTableQuery'
 

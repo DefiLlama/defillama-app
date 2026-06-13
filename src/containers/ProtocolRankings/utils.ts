@@ -1,6 +1,6 @@
-import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { slug } from '~/utils'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
+import { removedCategoriesFromChainTvlSet } from './constants'
 import type { ILiteProtocol } from './types'
 
 const excludedCategoriesSet = new Set(['Canonical Bridge', 'Staking Pool', 'Foundation'])

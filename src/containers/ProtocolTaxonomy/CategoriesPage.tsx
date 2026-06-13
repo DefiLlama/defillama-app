@@ -8,12 +8,12 @@ import { LocalLoader } from '~/components/Loaders'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { getCategoryRoute } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
+import { getCategoryRoute } from './categoryRoutes'
 import {
 	applyProtocolsCategoriesTvlSettings,
 	buildProtocolsCategoriesTvlCharts,

@@ -4,7 +4,6 @@ import { useMemo } from 'react'
 import type { DenominationPriceHistory } from '~/api/coingecko.types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { oracleProtocols } from '~/constants'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import {
 	useFetchProtocolActivityChart,
@@ -17,7 +16,7 @@ import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ADAPTER_CHART_DESCRIPTORS, type AdapterChartDescriptorLabel } from './chartDescriptors'
 import { getGroupedTimestampSec, normalizeSeriesToMilliseconds, normalizeSeriesToSeconds } from './chartSeries.utils'
-import { protocolCharts, type ProtocolChartsLabels } from './constants'
+import { oracleProtocols, protocolCharts, type ProtocolChartsLabels } from './constants'
 import { buildProtocolFeeFamilyCharts } from './protocolFeeCharts'
 import {
 	buildExtraTvlCharts,

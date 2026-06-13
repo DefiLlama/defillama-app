@@ -1,7 +1,7 @@
 import { fetchLiquidityTokensDatasetFromNetwork } from '~/api'
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
-import { fetchLiquidityEntryByProtocolIdFromCache } from '../liquidity'
-import { readThroughDatasetCache } from './source'
+import { readThroughDatasetCache } from '~/server/datasetCache/runtime/source'
+import { fetchLiquidityEntryByProtocolIdFromCache } from './dataset.liquidity.cache'
 
 async function fetchLiquidityEntryByProtocolIdFromNetwork(
 	protocolId: string

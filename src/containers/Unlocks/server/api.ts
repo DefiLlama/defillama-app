@@ -1,8 +1,8 @@
-import { generateICSContent } from '~/utils/calendar'
 import { queryString } from '~/server/api/params'
 import { badRequest } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
+import { generateICSContent } from '~/utils/calendar'
 
 const CALENDAR_RESULT_TTL_MS = 10 * 60 * 1000
 

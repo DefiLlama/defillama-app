@@ -1,11 +1,11 @@
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
-import { slug } from '~/utils'
-import type { IProtocolMetadata } from '~/utils/metadata/types'
-import { recordRouteRuntimeError } from '~/utils/telemetry'
 import { queryString } from '~/server/api/params'
 import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
+import { slug } from '~/utils'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
+import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 // Income statements aggregate several dimension datasets per protocol, so the
 // result is memoized and concurrent identical requests share one computation.
