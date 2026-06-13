@@ -6,10 +6,15 @@ thin adapters:
 
 ```ts
 import { toNextHandler } from '~/server/api/nextAdapter'
-import { flareMetadata } from '~/server/api/routes/flare'
+import { rwaAssetBreakdown } from '~/server/api/routes/rwa'
 
-export default toNextHandler(flareMetadata)
+export default toNextHandler(rwaAssetBreakdown)
 ```
+
+Scope note: pro-dashboard (`api/private/**`, `api/dynamic/dashboard/**`),
+investor-relations (flare, berachain, near, sonic, spark, odyssey — anything on
+`IR_SERVER_URL`), and research routes are intentionally left on their original
+handlers; convert them only when their owners ask.
 
 Porting to another host (standalone service, TanStack Start) means rewriting
 `nextAdapter.ts` (~80 lines) and the thin files — nothing else.
