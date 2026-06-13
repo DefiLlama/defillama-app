@@ -1,9 +1,9 @@
-import { removedCategoriesFromChainTvlSet } from '~/constants'
 import type {
 	ChainMetricSnapshot,
 	IFormattedProtocol,
 	IParentProtocol
 } from '~/containers/ProtocolLists/protocol-table.types'
+import { removedCategoriesFromChainTvlSet } from '~/containers/ProtocolRankings/constants'
 import { getMarketCapToAnnualizedMetricRatio, getPercentChange } from '~/utils'
 import type { ProTableDimensionProtocol } from './proTable.types'
 

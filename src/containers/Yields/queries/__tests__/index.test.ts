@@ -6,7 +6,7 @@ import {
 	YIELD_POOLS_API,
 	YIELD_TOKEN_CATEGORIES_API,
 	YIELD_URL_API
-} from '~/constants'
+} from '~/containers/Yields/constants'
 
 const {
 	fetchJsonMock,

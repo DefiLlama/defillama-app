@@ -7,7 +7,7 @@ const cexs = [
 	{ name: 'No Markets', slug: 'no-markets' }
 ]
 
-vi.mock('~/server/datasetCache/runtime/markets', () => ({
+vi.mock('~/containers/Cexs/server/dataset.markets', () => ({
 	fetchExchangeMarketsList: vi.fn().mockResolvedValue({
 		cex: {
 			spot: [

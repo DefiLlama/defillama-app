@@ -1,5 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { REV_PROTOCOLS, V2_SERVER_URL } from '~/constants'
+import { V2_SERVER_URL } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ChainNativeFeeRevenueRankingDataType } from '~/metrics/definitions'
@@ -17,7 +17,13 @@ import {
 	fetchAdapterProtocolMetrics
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
-import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, getChainMetadataKey } from './constants'
+import {
+	ADAPTER_DATA_TYPE_KEYS,
+	ADAPTER_DATA_TYPES,
+	ADAPTER_TYPES,
+	getChainMetadataKey,
+	REV_PROTOCOLS
+} from './constants'
 import type {
 	IAdapterByChainPageData,
 	IAdapterChainOverview,

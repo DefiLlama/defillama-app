@@ -25,7 +25,7 @@ export default withSubscriptionJsonRoute<{ protocol: string }>({
 		}
 
 		const [{ getLiquidationsProtocolPageData }, { default: metadataCache }] = await Promise.all([
-			import('~/server/datasetCache/runtime/liquidations'),
+			import('~/containers/LiquidationsV2/server/dataset'),
 			import('~/utils/metadata')
 		])
 		const data = await getLiquidationsProtocolPageData(protocolId, {

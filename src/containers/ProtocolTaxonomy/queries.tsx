@@ -1,8 +1,12 @@
-import { ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '~/containers/AdapterMetrics/api'
 import type { IAdapterChainMetrics } from '~/containers/AdapterMetrics/api.types'
-import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
+import {
+	ADAPTER_DATA_TYPE_KEYS,
+	ADAPTER_DATA_TYPES,
+	ADAPTER_TYPES,
+	ZERO_FEE_PERPS
+} from '~/containers/AdapterMetrics/constants'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/ProtocolLists/api.types'
 import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'

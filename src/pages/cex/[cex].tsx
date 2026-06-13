@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 		const exchangeData = cexRoute.metadata
 
-		const { fetchExchangeMarketsList } = await import('~/server/datasetCache/runtime/markets')
+		const { fetchExchangeMarketsList } = await import('~/containers/Cexs/server/dataset.markets')
 		const exchangesList = await fetchExchangeMarketsList()
 		const normalizedCexSlug = slug(exchangeData.slug ?? '')
 		let cexMarketsExchange: string | null = null

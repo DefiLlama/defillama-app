@@ -105,3 +105,14 @@ export function getChainMetadataKey(
 // Dimensions rendered as lines instead of bars. Also checked against chartName in breakdown
 // mode, where individual series are protocol names that won't match these dimension names.
 export const LINE_DIMENSIONS = new Set(['Open Interest', 'Active Liquidity'])
+
+// MEV/REV adapters folded into chain REV aggregations
+export const REV_PROTOCOLS = {
+	ethereum: ['flashbots', 'eden-relay'],
+	solana: ['jito-mev-tips', 'bloxroute'],
+	arbitrum: ['arbitrum-timeboost'],
+	polygon: ['fastlane'],
+	bsc: ['bloxroute']
+} as const
+
+export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])

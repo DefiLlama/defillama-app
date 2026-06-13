@@ -11,7 +11,7 @@ const { runtimeMocks } = vi.hoisted(() => ({
 	}
 }))
 
-vi.mock('~/server/datasetCache/runtime/yields', () => runtimeMocks)
+vi.mock('~/containers/Yields/server/dataset', () => runtimeMocks)
 
 import halalHandler from '~/pages/api/public/datasets/yields/halal'
 import loopHandler from '~/pages/api/public/datasets/yields/loop'

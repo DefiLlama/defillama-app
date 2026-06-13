@@ -11,7 +11,7 @@ vi.mock('~/containers/Cexs/api', () => ({
 	fetchExchangeMarketsFromNetwork: fetchExchangeMarketsFromNetworkMock
 }))
 
-vi.mock('~/server/datasetCache/markets', () => ({
+vi.mock('~/containers/Cexs/server/dataset.markets.cache', () => ({
 	fetchExchangeMarketsListFromCache: fetchExchangeMarketsListFromCacheMock
 }))
 

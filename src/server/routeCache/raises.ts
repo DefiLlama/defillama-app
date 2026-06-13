@@ -1,7 +1,7 @@
 import { slug } from '~/utils'
 
 export async function getRaisesInvestorRoutes(): Promise<string[]> {
-	const { fetchRaisesFromCache } = await import('~/server/datasetCache/raises')
+	const { fetchRaisesFromCache } = await import('~/containers/Raises/server/dataset.cache')
 	const raises = await fetchRaisesFromCache()
 	const investorSlugs = new Set<string>()
 

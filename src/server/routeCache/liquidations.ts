@@ -4,14 +4,14 @@ import type { MetadataCache } from '~/utils/metadata/artifactContract'
 import { getMetadataCache, type StaticParamPath } from './common'
 
 export async function getLiquidationsProtocolStaticPaths(): Promise<Array<StaticParamPath<'protocol'>>> {
-	const { getLiquidationsProtocolsResponseFromCache } = await import('~/server/datasetCache/liquidations')
+	const { getLiquidationsProtocolsResponseFromCache } = await import('~/containers/LiquidationsV2/server/dataset.cache')
 	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
 	return protocolsResponse.protocols.map((protocol) => ({ params: { protocol } }))
 }
 
 export async function resolveLiquidationsProtocolParam(protocol: string): Promise<string | null> {
 	const metadataCache = await getMetadataCache()
-	const { getLiquidationsProtocolsResponseFromCache } = await import('~/server/datasetCache/liquidations')
+	const { getLiquidationsProtocolsResponseFromCache } = await import('~/containers/LiquidationsV2/server/dataset.cache')
 	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
 	const lookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 	return resolveProtocolId(protocol, protocolsResponse.protocols, lookup)
@@ -27,7 +27,7 @@ export async function resolveLiquidationsChainParams(
 } | null> {
 	const metadataCache = await getMetadataCache()
 	const { getLiquidationsProtocolsResponseFromCache, getLiquidationsProtocolChainIdsFromCache } =
-		await import('~/server/datasetCache/liquidations')
+		await import('~/containers/LiquidationsV2/server/dataset.cache')
 	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
 	const protocolId = resolveProtocolId(
 		protocol,

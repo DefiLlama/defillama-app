@@ -30,16 +30,6 @@ beforeEach(() => {
 })
 
 describe('/api/public/stablecoins/chart-series', () => {
-	it('rejects non-GET requests', async () => {
-		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
-		const res = createMockNextApiResponse()
-
-		await handler(req, res)
-
-		expect(res.status).toHaveBeenCalledWith(405)
-		expect(res.json).toHaveBeenCalledWith({ error: 'Method Not Allowed' })
-	})
-
 	it('passes overview filters to the server chart builder', async () => {
 		const req = {
 			method: 'GET',

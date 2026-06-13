@@ -58,7 +58,7 @@ describe('yields-token-borrow-routes api route', () => {
 		expect(getTokenBorrowRoutesDataMock).toHaveBeenCalledWith('ETH')
 		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'private, no-store')
 		expect(res.setHeader).not.toHaveBeenCalledWith('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
-		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.status).toHaveBeenCalledWith(502)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch token borrow routes data' })
 	})
 })

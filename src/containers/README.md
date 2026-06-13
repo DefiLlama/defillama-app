@@ -6,6 +6,37 @@ Use this map before moving metric code or deciding which folder owns a route fam
 `src/pages/` remains the source of truth for public route slugs. Container names are
 implementation ownership boundaries, not public API contracts.
 
+## Module Ownership
+
+Prefer domain-local modules over shared catch-all folders:
+
+- `api.ts`: raw upstream/API fetchers and URL construction for the domain.
+- `api.types.ts`: raw upstream response types for the domain.
+- `queries.tsx`: page-data/read-model builders that may be used by page components.
+- `queries.server.tsx`: page-data builders that are only intended for server data functions.
+- `server/`: server-oriented helpers; dataset cache readers/builders in this folder are
+  server-only.
+
+Dataset/cache modules under `server/` must only be imported from server-only call sites:
+`getStaticProps`, `getServerSideProps`, `getStaticPaths`, `pages/api` handlers,
+route-cache code, dataset cache build commands, or tests for those paths. Use dynamic
+imports inside those data functions when a page component also ships client code. Do not
+import `containers/*/server/dataset*` or `containers/*/server/*.cache` from React
+components, hooks, browser query modules, or shared utilities that can enter a client
+bundle.
+
+Dataset cache domains should live with their product owner when there is one. The usual
+shape is:
+
+- `server/dataset.cache.ts`: reads the generated `.cache/datasets/<domain>` files.
+- `server/dataset.builder.ts`: builds that domain's cache artifacts from network APIs.
+- `server/dataset.ts`: server-only runtime access for pages/API routes, including cache
+  selection and network fallback when the manifest marks the domain as failed.
+
+`src/server/datasetCache` owns the shared manifest, artifact layout, JSON cache helpers,
+and build orchestration. It should not accumulate domain-specific builders when a clear
+container owner exists.
+
 ## Route Family Map
 
 | Route family                                                                                                                                                                            | Primary container           | Notes                                                                                                                                                                                             |

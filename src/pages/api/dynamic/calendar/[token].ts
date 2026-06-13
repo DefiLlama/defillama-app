@@ -1,29 +1,24 @@
+// port: framework-native adapter (text/calendar body, not JSON)
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { generateICSContent } from '~/utils/calendar'
+import { calendarIcs } from '~/containers/Unlocks/server/api'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
-function handler(req: NextApiRequest, res: NextApiResponse) {
-	const { token } = req.query
-	const { timestamp, value, name } = req.query
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+	const result = await calendarIcs.handle({
+		method: req.method ?? 'GET',
+		url: req.url ?? '',
+		query: req.query,
+		headers: req.headers
+	})
 
-	if (!token || !timestamp || !name) {
-		return res.status(400).json({ error: 'Missing required parameters' })
+	for (const [name, value] of Object.entries(result.headers ?? {})) {
+		res.setHeader(name, value)
 	}
 
-	const event = {
-		timestamp: Number(timestamp),
-		noOfTokens: [Number(value || 0)],
-		symbol: String(token),
-		description: '',
-		name: String(name)
+	if (typeof result.body === 'string') {
+		return res.status(result.status).send(result.body)
 	}
-
-	const content = generateICSContent(event, String(name), String(value))
-	const filename = `${String(name)}-unlock.ics`
-
-	res.setHeader('Content-Type', 'text/calendar')
-	res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-	res.send(content)
+	return res.status(result.status).json(result.body)
 }
 
 export default withApiRouteTelemetry('/api/dynamic/calendar/[token]', handler)

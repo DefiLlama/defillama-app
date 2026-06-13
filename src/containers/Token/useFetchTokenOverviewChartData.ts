@@ -4,12 +4,14 @@ import { fetchJson } from '~/utils/async'
 import { buildTokenOverviewRawChartData, type TokenOverviewChartLabel, type TokenOverviewData } from './tokenOverview'
 
 async function fetchTokenOverviewChart(geckoId: string): Promise<CgChartResponse | null> {
-	return fetchJson<CgChartResponse | null>(`/api/public/charts/coingecko/${encodeURIComponent(geckoId)}?fullChart=true`)
+	return fetchJson<CgChartResponse | null>(
+		`/api/public/tokens/charts/coingecko/${encodeURIComponent(geckoId)}?fullChart=true`
+	)
 }
 
 async function fetchTokenOverviewTotalSupply(geckoId: string): Promise<number | null> {
 	return fetchJson<{ totalSupply: number | null }>(
-		`/api/public/charts/coingecko/${encodeURIComponent(geckoId)}?kind=supply`
+		`/api/public/tokens/charts/coingecko/${encodeURIComponent(geckoId)}?kind=supply`
 	).then((response) => response?.totalSupply ?? null)
 }
 

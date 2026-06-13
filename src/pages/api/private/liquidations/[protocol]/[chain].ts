@@ -27,7 +27,7 @@ export default withSubscriptionJsonRoute<{ protocol: string; chain: string }>({
 			return res.status(404).json({ error: 'Liquidations chain not found' })
 		}
 
-		const { getLiquidationsChainPageData } = await import('~/server/datasetCache/runtime/liquidations')
+		const { getLiquidationsChainPageData } = await import('~/containers/LiquidationsV2/server/dataset')
 		const data = await getLiquidationsChainPageData(route.protocolId, route.chainId, {
 			chainMetadata: route.metadataCache.chainMetadata,
 			protocolMetadata: route.metadataCache.protocolMetadata

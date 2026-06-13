@@ -129,6 +129,9 @@ describe('metadata artifact import boundary', () => {
 		const allSourceFiles = await collectSourceFiles('src')
 		const files = allSourceFiles.filter((filePath) => {
 			const relativePath = path.relative(process.cwd(), filePath).split(path.sep).join('/')
+			// Domain server modules (containers/*/server) are server-only code and may
+			// statically import dataset readers; the boundary guards page/client code.
+			if (/^src\/containers\/[^/]+\/server\//.test(relativePath)) return false
 			return (
 				(relativePath.startsWith('src/pages/') && !relativePath.startsWith('src/pages/api/')) ||
 				relativePath.startsWith('src/components/') ||

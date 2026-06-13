@@ -57,7 +57,7 @@ vi.mock('~/server/routeCache/chains', () => ({
 	resolveChainParam: resolveChainParamMock
 }))
 
-import handler from '~/pages/api/public/charts/chain'
+import handler from '~/pages/api/public/chains/charts'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -68,7 +68,7 @@ beforeEach(() => {
 	resolveProtocolParamMock.mockResolvedValue({ canonicalSlug: 'aave', id: '1', metadata: { displayName: 'Aave' } })
 })
 
-describe('/api/public/charts/chain', () => {
+describe('/api/public/chains/charts', () => {
 	it('canonicalizes adapter protocol chart requests before fetching', async () => {
 		const req = {
 			method: 'GET',

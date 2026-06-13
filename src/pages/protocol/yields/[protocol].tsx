@@ -82,7 +82,7 @@ export const getStaticProps = withPerformanceLogging(
 				}
 			}
 
-			const { getProtocolYieldRows } = await import('~/server/datasetCache/runtime/yields')
+			const { getProtocolYieldRows } = await import('~/containers/Yields/server/dataset')
 			poolsList = await getProtocolYieldRows(protocolSlugs)
 		} catch (err) {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')

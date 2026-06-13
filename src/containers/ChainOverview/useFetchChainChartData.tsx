@@ -28,7 +28,7 @@ const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
 			searchParams.set(key, value)
 		}
 	}
-	return `/api/public/charts/chain?${searchParams.toString()}`
+	return `/api/public/chains/charts?${searchParams.toString()}`
 }
 
 const chainFeesMetric = feeRevenueMetrics.chainFees
@@ -133,7 +133,7 @@ export const useFetchChainChartData = ({
 	}>({
 		queryKey: ['chain-overview', 'price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`/api/public/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
+			fetchJson(`/api/public/tokens/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
 				(res) => {
 					if (!res.data?.prices?.length) return null
 					return buildDenominationPriceHistory(res.data)

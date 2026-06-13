@@ -51,8 +51,6 @@ export const dynamicApiRoutePaths = [
 	'datasets/revenue',
 	'emission/[protocol]',
 	'maple/graphql',
-	'protocols/split/[dataType]',
-	'protocols/split/protocol-chain',
 	'roundupMarkdown',
 	'sonic/burn-stream',
 	'tokens/search'
@@ -68,9 +66,7 @@ export const allApiRoutePaths = [
 	'cex/inflows',
 	'cex/inflows/batch',
 	'chain-icon',
-	'charts/chain',
-	'charts/coingecko/[geckoId]',
-	'charts/protocol',
+	'chains/charts',
 	'dashboard/[dashboardId]/stream',
 	'dashboard/fetch',
 	'dashboard/pf-ps-chart',
@@ -135,6 +131,7 @@ export const allApiRoutePaths = [
 	'page-data/chains/charts',
 	'page-data/dimension-adapters/chains-chart',
 	'protocol-icon',
+	'protocols/charts',
 	'protocols/split/[dataType]',
 	'protocols/split/protocol-chain',
 	'research/articles/[id]/publish',
@@ -160,6 +157,7 @@ export const allApiRoutePaths = [
 	'stablecoins/chart-series',
 	'stablecoins/volume-chart',
 	'token-liquidations/[symbol]',
+	'tokens/charts/coingecko/[geckoId]',
 	'token-unlocks/[protocol]',
 	'token-usage/[symbol]',
 	'tokens/search',
@@ -172,8 +170,8 @@ const dynamicApiRoutePathSet = new Set<string>(dynamicApiRoutePaths)
 const routeMethodOverrides: Partial<Record<ApiRoutePath, readonly ApiRouteMethod[]>> = {
 	'aave/graphql': ['POST'],
 	'cex/inflows/batch': ['POST'],
-	'charts/protocol': ['GET', 'POST'],
 	'maple/graphql': ['POST'],
+	'protocols/charts': ['GET', 'POST'],
 	'revalidate-instances': ['POST']
 }
 
