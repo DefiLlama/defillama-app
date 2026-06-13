@@ -23,6 +23,8 @@ export type ProxyJsonRouteOptions = {
 	resultTtlMs?: number
 	/** Reshape the upstream payload before responding. Runs inside the result cache. */
 	transform?: (payload: unknown, req: ApiRequest) => unknown
+	onError?: (error: unknown) => ApiResult | null
+	upstreamErrorMessage?: string
 }
 
 function isApiResult(value: unknown): value is ApiResult {
@@ -59,8 +61,10 @@ export function proxyJsonRoute(options: ProxyJsonRouteOptions): ApiRouteDefiniti
 					: await fetchAndTransform()
 				return ok(body)
 			} catch (error) {
+				const errorResult = options.onError?.(error)
+				if (errorResult) return errorResult
 				recordRouteRuntimeError(error, 'apiRoute')
-				return upstreamError()
+				return upstreamError(options.upstreamErrorMessage)
 			}
 		}
 	}

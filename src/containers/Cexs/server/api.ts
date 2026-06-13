@@ -1,16 +1,10 @@
 import { fetchExchangeMarketsFromNetwork } from '~/containers/Cexs/api'
 import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
+import { isHttpNotFoundMessage, MARKETS_CACHE_CONTROL } from '~/server/api/common'
 import { queryString } from '~/server/api/params'
 import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-
-const MARKETS_CACHE_CONTROL = 'public, max-age=60, s-maxage=300, stale-while-revalidate=300'
-
-function isNotFoundMessage(error: unknown, fallback: string): boolean {
-	const message = error instanceof Error ? error.message : fallback
-	return /\b404\b/.test(message)
-}
 
 function resolveMarketsExchangeParam(exchange: string, marketsList: ExchangeMarketsListResponse): string | null {
 	const normalizedExchange = exchange.toLowerCase()
@@ -45,7 +39,7 @@ export const exchangeMarkets = defineApiRoute({
 			const data = await fetchExchangeMarketsFromNetwork(marketsExchange)
 			return ok(data)
 		} catch (error) {
-			if (isNotFoundMessage(error, 'Failed to load exchange markets')) {
+			if (isHttpNotFoundMessage(error)) {
 				return notFound('Exchange not found')
 			}
 			recordRouteRuntimeError(error, 'apiRoute')

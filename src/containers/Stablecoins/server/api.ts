@@ -25,19 +25,11 @@ import { getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
 import { queryString } from '~/server/api/params'
 import { badRequest, notFound, ok, upstreamError } from '~/server/api/respond'
-import { defineApiRoute, type ApiResult } from '~/server/api/types'
+import { defineApiRoute } from '~/server/api/types'
 import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
 
 type StablecoinMcapSeriesPoint = [number, number]
-
-// These two routes' legacy 405 body (`Method Not Allowed`) is pinned by their
-// route tests, so the guard lives in the handler instead of the adapter.
-const LEGACY_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
-
-function legacyMethodNotAllowed(): ApiResult {
-	return { status: 405, body: { error: 'Method Not Allowed' }, headers: { Allow: 'GET' } }
-}
 
 // ---------------------------------------------------------------------------
 // /api/public/stablecoins/chart
@@ -96,13 +88,8 @@ const ASSET_CHARTS = new Set<StablecoinAssetChartType>(['totalCirc', 'chainMcaps
 
 export const stablecoinChartSeries = defineApiRoute({
 	route: '/api/public/stablecoins/chart-series',
-	methods: LEGACY_METHODS,
 	cacheControl: STABLECOIN_CHART_CACHE_CONTROL,
 	handle: async (req) => {
-		if (req.method !== 'GET') {
-			return legacyMethodNotAllowed()
-		}
-
 		const scope = queryString(req.query, 'scope')
 		const rawChart = queryString(req.query, 'chart')
 		if (!scope || !rawChart) {
@@ -197,13 +184,8 @@ const parseLimit = (value: string | string[] | undefined): number | undefined =>
 
 export const stablecoinVolumeChart = defineApiRoute({
 	route: '/api/public/stablecoins/volume-chart',
-	methods: LEGACY_METHODS,
 	cacheControl: STABLECOIN_CHART_CACHE_CONTROL,
 	handle: async (req) => {
-		if (req.method !== 'GET') {
-			return legacyMethodNotAllowed()
-		}
-
 		const scope = queryString(req.query, 'scope') ?? 'global'
 		const rawChart = queryString(req.query, 'chart')
 		if (!rawChart) {

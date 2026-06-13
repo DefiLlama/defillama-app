@@ -41,7 +41,8 @@ Porting to another host (standalone service, TanStack Start) means rewriting
   `headers`.
 - **Errors**: invalid params → `badRequest` (400); upstream failure → `upstreamError`
   (502, after `recordRouteRuntimeError`); uncaught exceptions become a recorded 500 in
-  the adapter. Upstream failures must never surface as 500.
+  the adapter. Existing public routes may preserve legacy 500 responses when tests pin
+  that contract; document those exceptions near the handler.
 - **Heavy work**: anything that fans out to several upstream calls or runs multi-second
   JS aggregation must go through `cachedResult` so concurrent identical requests share
   one computation and the event loop is protected from repeat work. Key by the full

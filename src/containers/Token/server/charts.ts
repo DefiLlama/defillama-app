@@ -1,5 +1,6 @@
 import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import { CACHE_SERVER } from '~/constants'
+import { isHttpNotFoundMessage } from '~/server/api/common'
 import { queryString } from '~/server/api/params'
 import { badRequest, ok } from '~/server/api/respond'
 import { defineApiRoute } from '~/server/api/types'
@@ -14,17 +15,13 @@ const VALID_GECKO_ID = /^[A-Za-z0-9._-]{1,80}$/
 // /api/public/tokens/charts/coingecko/[geckoId]
 // ---------------------------------------------------------------------------
 
-function isNotFoundError(error: unknown): boolean {
-	return error instanceof Error && error.message.includes('[404]')
-}
-
 async function fetchTokenTotalSupply(geckoId: string): Promise<number | null> {
 	try {
 		const data = await fetchJson<{ data?: { total_supply?: number | null } }>(`${CACHE_SERVER}/supply/${geckoId}`)
 		const rawSupply = data?.data?.total_supply ?? null
 		return rawSupply != null && Number.isFinite(rawSupply) ? rawSupply : null
 	} catch (error) {
-		if (isNotFoundError(error)) return null
+		if (isHttpNotFoundMessage(error)) return null
 		throw error
 	}
 }

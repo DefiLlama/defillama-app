@@ -26,8 +26,9 @@ function evictIfNeeded<T>(store: Store<T>, maxEntries: number) {
 	for (const [key, entry] of store.entries) {
 		if (entry.expiresAt <= now) store.entries.delete(key)
 	}
-	while (store.entries.size >= maxEntries) {
-		// Map iterates in insertion order, so the first key is the oldest entry.
+	while (store.entries.size > maxEntries) {
+		// Map iterates in insertion order; reads refresh entries, so this evicts
+		// the least recently used key.
 		const oldest = store.entries.keys().next().value
 		if (oldest === undefined) break
 		store.entries.delete(oldest)
@@ -57,7 +58,12 @@ export async function cachedResult<T>(
 
 	const cached = store.entries.get(key)
 	if (cached && cached.expiresAt > Date.now()) {
+		store.entries.delete(key)
+		store.entries.set(key, cached)
 		return cached.value
+	}
+	if (cached) {
+		store.entries.delete(key)
 	}
 
 	const inFlight = store.inFlight.get(key)
@@ -69,8 +75,8 @@ export async function cachedResult<T>(
 		.then((value) => {
 			const jitterFraction = options.ttlJitter ?? 0
 			const jitter = jitterFraction > 0 ? (Math.random() * 2 - 1) * jitterFraction * options.ttlMs : 0
-			evictIfNeeded(store, options.maxEntries ?? DEFAULT_MAX_ENTRIES)
 			store.entries.set(key, { value, expiresAt: Date.now() + options.ttlMs + jitter })
+			evictIfNeeded(store, options.maxEntries ?? DEFAULT_MAX_ENTRIES)
 			return value
 		})
 		.finally(() => {

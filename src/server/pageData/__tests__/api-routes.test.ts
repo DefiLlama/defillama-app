@@ -76,29 +76,36 @@ describe('page data chart api routes', () => {
 		})
 	})
 
-	it('returns cacheable categories chart data from repeated extra tvl query params', async () => {
-		getProtocolsCategoriesChartDataMock.mockResolvedValue({
+	it('reuses categories chart cache entries for semantically identical extra tvl params', async () => {
+		const payload = {
 			chartSource: [{ timestamp: 1, Dexes: 100 }],
 			extraTvlCharts: {}
-		})
-		const req = {
+		}
+		getProtocolsCategoriesChartDataMock.mockResolvedValue(payload)
+		const commaReq = {
 			method: 'GET',
-			query: { extraTvlTypes: ['staking', 'borrowed'] },
-			url: '/api/public/page-data/categories/charts?extraTvlTypes=staking&extraTvlTypes=borrowed'
+			query: { extraTvlTypes: 'minted,unreleased' },
+			url: '/api/public/page-data/categories/charts?extraTvlTypes=minted,unreleased'
 		} as unknown as NextApiRequest
-		const res = createMockNextApiResponse()
+		const repeatedReq = {
+			method: 'GET',
+			query: { extraTvlTypes: ['minted', 'unreleased'] },
+			url: '/api/public/page-data/categories/charts?extraTvlTypes=minted&extraTvlTypes=unreleased'
+		} as unknown as NextApiRequest
+		const commaRes = createMockNextApiResponse()
+		const repeatedRes = createMockNextApiResponse()
 
-		await categoriesChartsHandler(req, res)
+		await categoriesChartsHandler(commaReq, commaRes)
+		await categoriesChartsHandler(repeatedReq, repeatedRes)
 
+		expect(getProtocolsCategoriesChartDataMock).toHaveBeenCalledTimes(1)
 		expect(getProtocolsCategoriesChartDataMock).toHaveBeenCalledWith({
-			extraTvlTypes: ['staking', 'borrowed']
+			extraTvlTypes: ['minted', 'unreleased']
 		})
-		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('public, s-maxage='))
-		expect(res.status).toHaveBeenCalledWith(200)
-		expect(res.json).toHaveBeenCalledWith({
-			chartSource: [{ timestamp: 1, Dexes: 100 }],
-			extraTvlCharts: {}
-		})
+		expect(commaRes.status).toHaveBeenCalledWith(200)
+		expect(repeatedRes.status).toHaveBeenCalledWith(200)
+		expect(commaRes.json).toHaveBeenCalledWith(payload)
+		expect(repeatedRes.json).toHaveBeenCalledWith(payload)
 	})
 
 	it('returns cacheable chains chart data', async () => {
@@ -128,28 +135,41 @@ describe('page data chart api routes', () => {
 		})
 	})
 
-	it('returns cacheable chains chart data from repeated extra tvl query params', async () => {
-		getChainsByCategoryChartDataMock.mockResolvedValue({
+	it('reuses chains chart cache entries for semantically identical extra tvl params', async () => {
+		const payload = {
+			tvlChartsByChain: { tvl: { Ethereum: { 1: 100 } } },
+			totalTvlByDate: { tvl: { 1: 100 } }
+		}
+		getChainsByCategoryChartDataMock.mockResolvedValue(payload)
+		const commaReq = {
+			method: 'GET',
+			query: { category: 'Normalized', sampledChart: 'true', extraTvlTypes: 'minted,unreleased' },
+			url: '/api/public/page-data/chains/charts?category=Normalized&sampledChart=true&extraTvlTypes=minted,unreleased'
+		} as unknown as NextApiRequest
+		const repeatedReq = {
+			method: 'GET',
+			query: { category: 'Normalized', sampledChart: 'true', extraTvlTypes: ['minted', 'unreleased'] },
+			url: '/api/public/page-data/chains/charts?category=Normalized&sampledChart=true&extraTvlTypes=minted&extraTvlTypes=unreleased'
+		} as unknown as NextApiRequest
+		const commaRes = createMockNextApiResponse()
+		const repeatedRes = createMockNextApiResponse()
+
+		await chainsChartsHandler(commaReq, commaRes)
+		await chainsChartsHandler(repeatedReq, repeatedRes)
+
+		expect(getChainsByCategoryChartDataMock).toHaveBeenCalledTimes(1)
+		expect(getChainsByCategoryChartDataMock).toHaveBeenCalledWith({
+			category: 'Normalized',
+			sampledChart: true,
+			extraTvlTypes: ['minted', 'unreleased']
+		})
+		expect(commaRes.status).toHaveBeenCalledWith(200)
+		expect(repeatedRes.status).toHaveBeenCalledWith(200)
+		expect(commaRes.json).toHaveBeenCalledWith({
 			tvlChartsByChain: { tvl: { Ethereum: { 1: 100 } } },
 			totalTvlByDate: { tvl: { 1: 100 } }
 		})
-		const req = {
-			method: 'GET',
-			query: { category: 'All', sampledChart: 'true', extraTvlTypes: ['staking', 'borrowed'] },
-			url: '/api/public/page-data/chains/charts?category=All&sampledChart=true&extraTvlTypes=staking&extraTvlTypes=borrowed'
-		} as unknown as NextApiRequest
-		const res = createMockNextApiResponse()
-
-		await chainsChartsHandler(req, res)
-
-		expect(getChainsByCategoryChartDataMock).toHaveBeenCalledWith({
-			category: 'All',
-			sampledChart: true,
-			extraTvlTypes: ['staking', 'borrowed']
-		})
-		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', expect.stringContaining('public, s-maxage='))
-		expect(res.status).toHaveBeenCalledWith(200)
-		expect(res.json).toHaveBeenCalledWith({
+		expect(repeatedRes.json).toHaveBeenCalledWith({
 			tvlChartsByChain: { tvl: { Ethereum: { 1: 100 } } },
 			totalTvlByDate: { tvl: { 1: 100 } }
 		})

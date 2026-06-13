@@ -1,17 +1,12 @@
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/AdapterMetrics/constants'
 import { getChainsByAdapterAllChains, getChainsByAdapterChartData } from '~/containers/AdapterMetrics/queries'
+import { PAGE_DATA_RESULT_TTL_MS } from '~/server/api/common'
 import { badRequest, ok, upstreamError } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
 import { PAGE_DATA_CACHE_CONTROL } from '~/server/pageData/cache'
 import { getFirstQueryParam } from '~/server/pageData/query'
 import { recordRouteRuntimeError } from '~/utils/telemetry'
-
-// These chart endpoints fan out to several upstream calls and rebuild
-// multi-series datasets in JS (chains/charts averages ~3s), so results are
-// memoized by the full raw param set and concurrent identical requests share
-// one computation.
-const PAGE_DATA_RESULT_TTL_MS = 10 * 60 * 1000
 
 const ADAPTER_TYPE_VALUES = new Set<string>(Object.values(ADAPTER_TYPES))
 const ADAPTER_DATA_TYPE_VALUES = new Set<string>(Object.values(ADAPTER_DATA_TYPES))
