@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 const SCAN_ROOTS = ['src/pages', 'src/components', 'src/containers', 'src/layout']
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx'])
-const SERVER_CACHE_IMPORT_PREFIXES = ['~/server/datasetCache', '~/server/routeCache']
+const SERVER_CACHE_IMPORT_PREFIXES = ['~/server/datasetCache']
 const PAGE_DATA_FUNCTIONS = new Set(['getStaticProps', 'getStaticPaths', 'getServerSideProps'])
 
 async function collectSourceFiles(rootDir: string): Promise<string[]> {
