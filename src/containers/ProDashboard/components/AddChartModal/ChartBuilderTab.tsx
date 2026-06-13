@@ -8,7 +8,7 @@ import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
+import ProtocolChartBuilderData from '../../services/ProtocolChartBuilderData'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
 import { AriakitSelect } from '../AriakitSelect'
@@ -215,7 +215,7 @@ export function ChartBuilderTab({
 		],
 		queryFn: async () => {
 			if (chartBuilder.mode === 'protocol') {
-				const data = await ProtocolSplitCharts.getProtocolChainData(
+				const data = await ProtocolChartBuilderData.getProtocolChainData(
 					chartBuilder.protocol,
 					chartBuilder.metric,
 					chartBuilder.chains.length > 0 ? chartBuilder.chains : undefined,
@@ -257,7 +257,7 @@ export function ChartBuilderTab({
 				}
 			}
 
-			const data = await ProtocolSplitCharts.getProtocolSplitData(
+			const data = await ProtocolChartBuilderData.getProtocolBreakdownData(
 				chartBuilder.metric as Exclude<ChartBuilderConfig['metric'], 'stablecoins' | 'chain-fees' | 'chain-revenue'>,
 				chartBuilder.chains,
 				chartBuilder.limit,

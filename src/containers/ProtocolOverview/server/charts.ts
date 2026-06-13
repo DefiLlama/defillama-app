@@ -51,13 +51,13 @@ const getArrayBodyParam = (value: unknown): string[] | null =>
 // Protocol chart pages can also render CEX-like asset pages. Resolve normal
 // protocol metadata first, then fall back to the asset route cache.
 async function resolveCanonicalProtocolOrCexParam(protocol: string): Promise<string | null> {
-	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
+	const { resolveProtocolParam } = await import('~/containers/ProtocolOverview/server/routes')
 	const protocolRoute = await resolveProtocolParam(protocol)
 	if (protocolRoute?.canonicalSlug) {
 		return protocolRoute.canonicalSlug
 	}
 
-	const { resolveCexParam } = await import('~/server/routeCache/assets')
+	const { resolveCexParam } = await import('~/containers/Cexs/server/routes')
 	const cexRoute = await resolveCexParam(protocol)
 	return cexRoute?.canonicalSlug ?? null
 }
@@ -256,7 +256,7 @@ export const protocolCharts = defineApiRoute({
 				}
 				const [{ default: metadataCache }, { resolveProtocolParam }] = await Promise.all([
 					import('~/utils/metadata'),
-					import('~/server/routeCache/protocols')
+					import('~/containers/ProtocolOverview/server/routes')
 				])
 				const protocolRoute = await resolveProtocolParam(protocol)
 				if (!protocolRoute || !metadataCache.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {
@@ -291,7 +291,7 @@ export const protocolCharts = defineApiRoute({
 				}
 				const [{ default: metadataCache }, { resolveBridgeProtocolParamFromMetadata }] = await Promise.all([
 					import('~/utils/metadata'),
-					import('~/server/routeCache/bridges')
+					import('~/containers/Bridges/server/routes')
 				])
 				const bridgeSlug = resolveBridgeProtocolParamFromMetadata(protocol, metadataCache)
 				if (!bridgeSlug) {

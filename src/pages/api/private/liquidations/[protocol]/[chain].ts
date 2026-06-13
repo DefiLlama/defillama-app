@@ -21,7 +21,7 @@ export default withSubscriptionJsonRoute<{ protocol: string; chain: string }>({
 		return { protocol, chain }
 	},
 	async handler(_req, res, { protocol, chain }) {
-		const { resolveLiquidationsChainParams } = await import('~/server/routeCache/liquidations')
+		const { resolveLiquidationsChainParams } = await import('~/containers/LiquidationsV2/server/routes')
 		const route = await resolveLiquidationsChainParams(protocol, chain)
 		if (!route) {
 			return res.status(404).json({ error: 'Liquidations chain not found' })

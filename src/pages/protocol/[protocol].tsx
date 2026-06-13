@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 		const [{ default: metadataCache }, { resolveProtocolParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata'),
-			import('~/server/routeCache/protocols')
+			import('~/containers/ProtocolOverview/server/routes')
 		])
 		const protocolRoute = resolveProtocolParamFromMetadata(protocol, metadataCache)
 
@@ -64,7 +64,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getProtocolOverviewStaticPaths } = await import('~/server/routeCache/protocols')
+	const { getProtocolOverviewStaticPaths } = await import('~/containers/ProtocolOverview/server/routes')
 	const paths = await getProtocolOverviewStaticPaths()
 
 	return { paths, fallback: 'blocking' }

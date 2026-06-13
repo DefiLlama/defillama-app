@@ -43,7 +43,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getDATAssetStaticPaths } = await import('~/server/routeCache/assets')
+	const { getDATAssetStaticPaths } = await import('~/containers/DAT/server/routes')
 	const paths = await getDATAssetStaticPaths()
 
 	return { paths, fallback: false }

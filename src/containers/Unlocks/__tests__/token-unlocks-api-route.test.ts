@@ -23,7 +23,7 @@ vi.mock('~/containers/Unlocks/queries', () => ({
 	isEmptyProtocolEmissionResult: isEmptyProtocolEmissionResultMock
 }))
 
-vi.mock('~/server/routeCache/protocols', () => ({
+vi.mock('~/containers/ProtocolOverview/server/routes', () => ({
 	resolveProtocolParamFromMetadata: resolveProtocolParamFromMetadataMock
 }))
 

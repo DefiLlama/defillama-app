@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 const SCAN_ROOTS = ['src', 'scripts']
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx'])
 const METADATA_ARTIFACT_IMPORT = '.cache/app-metadata'
-const SERVER_DATA_IMPORT_PREFIXES = ['~/server/datasetCache', '~/server/routeCache']
+const SERVER_DATA_IMPORT_PREFIXES = ['~/server/datasetCache', '~/server/routeRegistry']
 const CLIENT_ENTRY_ROOTS = ['src/pages', 'src/components', 'src/containers']
 
 async function collectSourceFiles(rootDir: string): Promise<string[]> {
@@ -61,6 +61,7 @@ function getStaticRuntimeImportSpecifiers(source: string): string[] {
 
 function isForbiddenServerDataImport(specifier: string): boolean {
 	if (specifier === '~/utils/metadata' || specifier === '~/utils/metadata/index') return true
+	if (/^~\/containers\/[^/]+\/server\/.*\.cache(?:$|[/.])/.test(specifier)) return true
 	return SERVER_DATA_IMPORT_PREFIXES.some((prefix) => specifier === prefix || specifier.startsWith(`${prefix}/`))
 }
 
@@ -177,7 +178,8 @@ describe('metadata artifact import boundary', () => {
 					relativeResolved === 'src/utils/metadata/index.ts' ||
 					relativeResolved === 'src/utils/metadata/index.tsx' ||
 					relativeResolved.startsWith('src/server/datasetCache/') ||
-					relativeResolved.startsWith('src/server/routeCache/')
+					relativeResolved.startsWith('src/server/routeRegistry/') ||
+					/^src\/containers\/[^/]+\/server\/.*\.cache\.(ts|tsx|js|jsx)$/.test(relativeResolved)
 				) {
 					errors.push(`${stack.join(' -> ')} -> ${relativeResolved}`)
 					continue

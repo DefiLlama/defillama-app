@@ -15,7 +15,7 @@ export const getStaticPaths = async () => {
 		}
 	}
 
-	const { getLiquidationsProtocolStaticPaths } = await import('~/server/routeCache/liquidations')
+	const { getLiquidationsProtocolStaticPaths } = await import('~/containers/LiquidationsV2/server/routes')
 	const paths = await getLiquidationsProtocolStaticPaths()
 
 	return {
@@ -35,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const { resolveLiquidationsProtocolParam } = await import('~/server/routeCache/liquidations')
+		const { resolveLiquidationsProtocolParam } = await import('~/containers/LiquidationsV2/server/routes')
 		const protocolParam = await resolveLiquidationsProtocolParam(params.protocol)
 		if (!protocolParam) {
 			return { notFound: true }

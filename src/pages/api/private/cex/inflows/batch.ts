@@ -34,7 +34,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
 		import('~/utils/metadata'),
-		import('~/server/routeCache/assets')
+		import('~/containers/Cexs/server/routes')
 	])
 	const protocols: Array<{ protocol: string; tokensToExclude: string[] }> = []
 	for (const cex of cexRequests) {

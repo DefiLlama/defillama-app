@@ -18,7 +18,7 @@ export default withSubscriptionJsonRoute<{ protocol: string }>({
 		return { protocol }
 	},
 	async handler(_req, res, { protocol }) {
-		const { resolveLiquidationsProtocolParam } = await import('~/server/routeCache/liquidations')
+		const { resolveLiquidationsProtocolParam } = await import('~/containers/LiquidationsV2/server/routes')
 		const protocolId = await resolveLiquidationsProtocolParam(protocol)
 		if (!protocolId) {
 			return res.status(404).json({ error: 'Liquidations protocol not found' })

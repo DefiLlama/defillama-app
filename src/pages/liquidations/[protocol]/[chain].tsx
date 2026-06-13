@@ -33,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const { resolveLiquidationsChainParams } = await import('~/server/routeCache/liquidations')
+		const { resolveLiquidationsChainParams } = await import('~/containers/LiquidationsV2/server/routes')
 		const route = await resolveLiquidationsChainParams(params.protocol, params.chain)
 		if (!route) {
 			return { notFound: true }

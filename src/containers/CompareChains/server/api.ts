@@ -21,7 +21,7 @@ export const chainCache = defineApiRoute({
 
 		const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata'),
-			import('~/server/routeCache/chains')
+			import('~/containers/ChainOverview/server/routes')
 		])
 		const chainRoute = resolveChainParamFromMetadata(chainParam, metadataCache)
 		if (!chainRoute) {

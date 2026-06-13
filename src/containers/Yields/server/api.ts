@@ -29,7 +29,7 @@ async function fetchYieldsServerJson(path: string): Promise<unknown> {
 }
 
 export const yieldsDataset = defineApiRoute({
-	route: '/api/public/datasets/yields',
+	route: '/api/public/yields',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -45,7 +45,7 @@ export const yieldsDataset = defineApiRoute({
 })
 
 export const yieldsTokenBorrowRoutes = defineApiRoute({
-	route: '/api/public/datasets/yields-token-borrow-routes',
+	route: '/api/public/yields/token-borrow-routes',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		const tokenQuery = req.query.token
@@ -76,7 +76,7 @@ export const yieldsTokenBorrowRoutes = defineApiRoute({
 })
 
 export const yieldsHalalDataset = defineApiRoute({
-	route: '/api/public/datasets/yields/halal',
+	route: '/api/public/yields/halal',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -90,7 +90,7 @@ export const yieldsHalalDataset = defineApiRoute({
 })
 
 export const yieldsLoopDataset = defineApiRoute({
-	route: '/api/public/datasets/yields/loop',
+	route: '/api/public/yields/loop',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -104,7 +104,7 @@ export const yieldsLoopDataset = defineApiRoute({
 })
 
 export const yieldsPoolsDataset = defineApiRoute({
-	route: '/api/public/datasets/yields/pools',
+	route: '/api/public/yields/pools',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -118,7 +118,7 @@ export const yieldsPoolsDataset = defineApiRoute({
 })
 
 export const yieldsStrategyLongShortDataset = defineApiRoute({
-	route: '/api/public/datasets/yields/strategy-long-short',
+	route: '/api/public/yields/strategy-long-short',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -132,7 +132,7 @@ export const yieldsStrategyLongShortDataset = defineApiRoute({
 })
 
 export const yieldsStrategyDataset = defineApiRoute({
-	route: '/api/public/datasets/yields/strategy',
+	route: '/api/public/yields/strategy',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -146,7 +146,7 @@ export const yieldsStrategyDataset = defineApiRoute({
 })
 
 export const borrowDataset = defineApiRoute({
-	route: '/api/public/datasets/borrow',
+	route: '/api/public/yields/borrow',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -160,7 +160,7 @@ export const borrowDataset = defineApiRoute({
 })
 
 export const borrowAdvancedDataset = defineApiRoute({
-	route: '/api/public/datasets/borrow-advanced',
+	route: '/api/public/yields/borrow-advanced',
 	cacheControl: YIELDS_DATASET_CACHE_CONTROL,
 	handle: async (req) => {
 		try {
@@ -174,7 +174,7 @@ export const borrowAdvancedDataset = defineApiRoute({
 })
 
 export const chartLendBorrowDataset = defineApiRoute({
-	route: '/api/public/datasets/chartLendBorrow/[configID]',
+	route: '/api/public/yields/lend-borrow/charts/[configID]',
 	cacheControl: YIELDS_SERVER_CACHE_CONTROL,
 	handle: async (req) => {
 		const configID = queryString(req.query, 'configID')
@@ -198,13 +198,13 @@ export const chartLendBorrowDataset = defineApiRoute({
 })
 
 export const holdersDataset = defineApiRoute({
-	route: '/api/public/datasets/holders',
+	route: '/api/public/yields/holders',
 	cacheControl: YIELDS_SERVER_CACHE_CONTROL,
 	handle: async () => {
 		try {
 			const data = await cachedResult(
 				'datasets-holders',
-				'/api/public/datasets/holders',
+				'/api/public/yields/holders',
 				{ ttlMs: YIELDS_SERVER_RESULT_TTL_MS, ttlJitter: 0.2 },
 				() => fetchYieldsServerJson('/holders')
 			)
@@ -217,7 +217,7 @@ export const holdersDataset = defineApiRoute({
 })
 
 export const holdersByConfigDataset = defineApiRoute({
-	route: '/api/public/datasets/holders/[configID]',
+	route: '/api/public/yields/holders/[configID]',
 	cacheControl: YIELDS_SERVER_CACHE_CONTROL,
 	handle: async (req) => {
 		const configID = queryString(req.query, 'configID')

@@ -105,7 +105,7 @@ export const stablecoinChartSeries = defineApiRoute({
 				if (!chain) return badRequest('chain parameter is required')
 				const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
 					import('~/utils/metadata'),
-					import('~/server/routeCache/chains')
+					import('~/containers/ChainOverview/server/routes')
 				])
 				const isAllChain = chain.toLowerCase() === 'all'
 				const chainRoute = isAllChain ? null : resolveChainParamFromMetadata(chain, metadataCache)
@@ -146,7 +146,7 @@ export const stablecoinChartSeries = defineApiRoute({
 				if (!stablecoin) return badRequest('stablecoin parameter is required')
 				const [{ default: metadataCache }, { resolveStablecoinAssetParamFromMetadata }] = await Promise.all([
 					import('~/utils/metadata'),
-					import('~/server/routeCache/assets')
+					import('~/containers/Stablecoins/server/routes')
 				])
 				const stablecoinSlug = resolveStablecoinAssetParamFromMetadata(stablecoin, metadataCache)
 				if (!stablecoinSlug) return notFound('stablecoin not found')
@@ -209,7 +209,7 @@ export const stablecoinVolumeChart = defineApiRoute({
 				if (!chain) return badRequest('chain parameter is required')
 				const [{ default: metadataCache }, { resolveChainParamFromMetadata }] = await Promise.all([
 					import('~/utils/metadata'),
-					import('~/server/routeCache/chains')
+					import('~/containers/ChainOverview/server/routes')
 				])
 				const chainRoute = resolveChainParamFromMetadata(chain, metadataCache)
 				if (!chainRoute) return notFound('chain not found')
