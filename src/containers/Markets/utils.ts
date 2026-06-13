@@ -324,6 +324,19 @@ export function pivotPairSeries(rows: PairSeriesRow[], metric: SeriesMetric): Pi
 	})
 }
 
+/**
+ * Reorder pivoted columns for a stacked-area chart: largest series last.
+ *
+ * `pivotSeries` ranks largest-first, but the shared AreaChart draws the first series at the bottom
+ * and — when a chart has more than 10 series — keeps only the last 10 in its tooltip, bucketing the
+ * rest into "Others". Feeding largest-first therefore buries the dominant series in "Others" and puts
+ * it at the bottom of the stack. Reversing puts the biggest series on top and first in the tooltip.
+ * `chartData` is keyed by series name, so only the `stacks` order needs to change.
+ */
+export function toStackedAreaSeries(series: PivotedSeries): PivotedSeries {
+	return { chartData: series.chartData, stacks: series.stacks.slice().reverse() }
+}
+
 // Line-series conversion (for non-stacked charts like market-count trends) --
 
 const SERIES_PALETTE_SIZE = 26

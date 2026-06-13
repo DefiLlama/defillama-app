@@ -14,7 +14,8 @@ import {
 	selectMovers,
 	sentiment,
 	toLineSeries,
-	topSymbols
+	topSymbols,
+	toStackedAreaSeries
 } from '../utils'
 
 function symbol(overrides: Partial<SymbolStat> = {}): SymbolStat {
@@ -302,6 +303,24 @@ describe('pivotSeries', () => {
 			chartData: [],
 			stacks: []
 		})
+	})
+})
+
+describe('toStackedAreaSeries', () => {
+	it('reverses stacks to largest-last while leaving keyed chartData untouched', () => {
+		const chartData = [
+			{ date: 1, a: 100, b: 50, c: 10 },
+			{ date: 2, a: 200, b: 40, c: 5 }
+		]
+		const reordered = toStackedAreaSeries({ stacks: ['a', 'b', 'c'], chartData })
+		expect(reordered.stacks).toEqual(['c', 'b', 'a'])
+		expect(reordered.chartData).toBe(chartData)
+	})
+
+	it('does not mutate the input stacks', () => {
+		const stacks = ['a', 'b']
+		toStackedAreaSeries({ stacks, chartData: [] })
+		expect(stacks).toEqual(['a', 'b'])
 	})
 })
 
