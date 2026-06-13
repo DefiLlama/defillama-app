@@ -12,7 +12,7 @@ import {
 	useProDashboardPermissions,
 	useProDashboardTime
 } from '../ProDashboardAPIContext'
-import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
+import ProtocolChartBuilderData from '../services/ProtocolChartBuilderData'
 import type { DashboardGrouping } from '../types'
 import { getGroupedTimestampSec } from '../utils'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -106,7 +106,7 @@ interface ChartBuilderCardProps {
 }
 
 type BuilderMetric = ChartBuilderCardProps['builder']['config']['metric']
-type ProtocolSplitMetric = Exclude<BuilderMetric, 'stablecoins' | 'chain-fees' | 'chain-revenue'>
+type ProtocolBreakdownMetric = Exclude<BuilderMetric, 'stablecoins' | 'chain-fees' | 'chain-revenue'>
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const {
@@ -179,7 +179,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
-				const data = await ProtocolSplitCharts.getProtocolChainData(
+				const data = await ProtocolChartBuilderData.getProtocolChainData(
 					config.protocol,
 					config.metric,
 					config.chains.length > 0 ? config.chains : undefined,
@@ -212,8 +212,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				return { series: [] }
 			}
 
-			const data = await ProtocolSplitCharts.getProtocolSplitData(
-				config.metric as ProtocolSplitMetric,
+			const data = await ProtocolChartBuilderData.getProtocolBreakdownData(
+				config.metric as ProtocolBreakdownMetric,
 				config.chains,
 				config.limit,
 				config.categories,

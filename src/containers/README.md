@@ -16,6 +16,9 @@ Prefer domain-local modules over shared catch-all folders:
 - `queries.server.tsx`: page-data builders that are only intended for server data functions.
 - `server/`: server-oriented helpers; dataset cache readers/builders in this folder are
   server-only.
+- `server/routes.ts`: sitemap/static route helpers, not API route handlers. API route
+  definitions should use names like `server/api.ts`, `server/*Routes.ts`, or a
+  route-specific module.
 
 Dataset/cache modules under `server/` must only be imported from server-only call sites:
 `getStaticProps`, `getServerSideProps`, `getStaticPaths`, `pages/api` handlers,

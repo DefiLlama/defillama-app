@@ -14,7 +14,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const [metadataCache, { resolveProtocolParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata').then((m) => m.default),
-			import('~/server/routeCache/protocols')
+			import('~/containers/ProtocolOverview/server/routes')
 		])
 		const protocolRoute = resolveProtocolParamFromMetadata(protocolName, metadataCache)
 		if (!protocolRoute || !metadataCache.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {

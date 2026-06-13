@@ -16,14 +16,8 @@ vi.mock('~/containers/LiquidationsV2/RouteContent', () => ({
 }))
 
 vi.mock('~/containers/LiquidationsV2/server/dataset', () => ({
-	getLiquidationsProtocolsList: vi.fn()
-}))
-
-vi.mock('~/containers/LiquidationsV2/server/dataset.cache', () => ({
-	getLiquidationsProtocolsResponseFromCache: vi.fn().mockResolvedValue({
-		protocols: ['sky']
-	}),
-	getLiquidationsProtocolChainIdsFromCache: vi.fn().mockResolvedValue(['Arbitrum One'])
+	getLiquidationsProtocolsList: vi.fn(),
+	getLiquidationsProtocolChainIds: vi.fn()
 }))
 
 vi.mock('~/utils/metadata', () => ({
@@ -39,18 +33,23 @@ vi.mock('~/utils/metadata', () => ({
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))
 
-import { getLiquidationsProtocolsList } from '~/containers/LiquidationsV2/server/dataset'
+import {
+	getLiquidationsProtocolChainIds,
+	getLiquidationsProtocolsList
+} from '~/containers/LiquidationsV2/server/dataset'
 import * as chainPage from '~/pages/liquidations/[protocol]/[chain]'
 import * as protocolPage from '~/pages/liquidations/[protocol]/index'
 import * as overviewPage from '~/pages/liquidations/index'
 
 const mockedGetLiquidationsProtocolsList = getLiquidationsProtocolsList as unknown as ReturnType<typeof vi.fn>
+const mockedGetLiquidationsProtocolChainIds = getLiquidationsProtocolChainIds as unknown as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
 	vi.clearAllMocks()
 	mockedGetLiquidationsProtocolsList.mockResolvedValue({
 		protocols: ['sky']
 	})
+	mockedGetLiquidationsProtocolChainIds.mockResolvedValue(['Arbitrum One'])
 })
 
 describe('liquidations SSG routes', () => {

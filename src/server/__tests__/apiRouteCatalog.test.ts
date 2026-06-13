@@ -6,6 +6,11 @@ import { apiRouteCatalog, type ApiRouteCatalogEntry } from '~/server/apiRouteCat
 const pagesApiDir = join(process.cwd(), 'src/pages/api')
 const srcDir = join(process.cwd(), 'src')
 const apiRouteCatalogFile = join(srcDir, 'server/apiRouteCatalog.ts')
+const apiRouteCatalogTestFile = join(srcDir, 'server/__tests__/apiRouteCatalog.test.ts')
+
+function staleReference(...parts: string[]) {
+	return parts.join('')
+}
 
 function walkFiles(dir: string, extensions = ['.ts']): string[] {
 	const files: string[] = []
@@ -118,5 +123,36 @@ describe('api route catalog', () => {
 		}
 
 		expect(legacyApiPaths).toEqual([])
+	})
+
+	it('keeps removed route buckets and imports from returning', () => {
+		const staleReferences: string[] = []
+		const stalePatterns = [
+			staleReference('/api/public/', 'datasets'),
+			staleReference('/api/private/', 'datasets'),
+			staleReference('/api/dynamic/', 'datasets'),
+			staleReference('/api/public/protocols/', 'split'),
+			staleReference('~/server/', 'routeCache'),
+			staleReference('server/', 'routeCache'),
+			staleReference('server/', 'cexAnalytics'),
+			staleReference('ProDashboard/server/', 'datasetFetchers'),
+			staleReference('protocol', 'Split')
+		]
+
+		for (const filePath of walkFiles(srcDir, ['.ts', '.tsx', '.md']).filter((filePath) => {
+			if (filePath === apiRouteCatalogFile) return false
+			if (filePath === apiRouteCatalogTestFile) return false
+			return !filePath.includes(`${sep}node_modules${sep}`)
+		})) {
+			const source = readFileSync(filePath, 'utf8')
+			const relativePath = relative(process.cwd(), filePath)
+			for (const pattern of stalePatterns) {
+				if (source.includes(pattern)) {
+					staleReferences.push(`${relativePath} contains ${pattern}`)
+				}
+			}
+		}
+
+		expect(staleReferences).toEqual([])
 	})
 })

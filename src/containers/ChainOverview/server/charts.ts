@@ -29,14 +29,14 @@ async function resolveCanonicalChainParam(
 	options: { allowAll?: boolean; requiredFlag?: 'chainAssets' } = {}
 ): Promise<string | null> {
 	if (chain.toLowerCase() === 'all') return options.allowAll === false ? null : 'All'
-	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const { resolveChainParam } = await import('~/containers/ChainOverview/server/routes')
 	const chainRoute = await resolveChainParam(chain)
 	if (options.requiredFlag && !chainRoute?.metadata[options.requiredFlag]) return null
 	return chainRoute?.canonicalName ?? null
 }
 
 async function resolveCanonicalChainProtocolParam(protocol: string): Promise<string | null> {
-	const { resolveProtocolParam } = await import('~/server/routeCache/protocols')
+	const { resolveProtocolParam } = await import('~/containers/ProtocolOverview/server/routes')
 	const protocolRoute = await resolveProtocolParam(protocol)
 	return protocolRoute?.canonicalSlug ?? null
 }
@@ -46,14 +46,14 @@ async function resolveCanonicalChainNativeFeeRevenueProtocolParam(
 	metric: ChainNativeFeeRevenueMetric
 ): Promise<string | null> {
 	if (chain.toLowerCase() === 'all') return null
-	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const { resolveChainParam } = await import('~/containers/ChainOverview/server/routes')
 	const chainRoute = await resolveChainParam(chain)
 	return chainRoute?.metadata[metric.metadataFlag] ? chainRoute.canonicalName : null
 }
 
 async function resolveCanonicalChainNativeFeeExtraProtocolParam(chain: string): Promise<string | null> {
 	if (chain.toLowerCase() === 'all') return null
-	const { resolveChainParam } = await import('~/server/routeCache/chains')
+	const { resolveChainParam } = await import('~/containers/ChainOverview/server/routes')
 	const chainRoute = await resolveChainParam(chain)
 	return chainRoute?.metadata.chainFees || chainRoute?.metadata.chainRevenue ? chainRoute.canonicalName : null
 }
@@ -267,7 +267,7 @@ export const chainCharts = defineApiRoute({
 				}
 				const [{ default: metadataCache }, { resolveProtocolParamFromMetadata }] = await Promise.all([
 					import('~/utils/metadata'),
-					import('~/server/routeCache/protocols')
+					import('~/containers/ProtocolOverview/server/routes')
 				])
 				const protocolRoute = resolveProtocolParamFromMetadata(protocol, metadataCache)
 				if (!protocolRoute || !metadataCache.emissionsProtocolsList.includes(protocolRoute.canonicalSlug)) {

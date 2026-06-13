@@ -72,11 +72,11 @@ vi.mock('~/containers/Unlocks/queries', () => ({
 	getProtocolEmissionsCharts: getProtocolEmissionsChartsMock
 }))
 
-vi.mock('~/server/routeCache/assets', () => ({
+vi.mock('~/containers/Cexs/server/routes', () => ({
 	resolveCexParam: resolveCexParamMock
 }))
 
-vi.mock('~/server/routeCache/protocols', () => ({
+vi.mock('~/containers/ProtocolOverview/server/routes', () => ({
 	resolveProtocolParam: resolveProtocolParamMock
 }))
 

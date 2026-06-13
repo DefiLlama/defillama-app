@@ -1,0 +1,251 @@
+import { getProtocolChainBreakdownRoute, NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS } from '~/server/breakdowns'
+import type { ProtocolBreakdownData, ProtocolChainData } from '~/utils/breakdowns'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRuntimeError } from '~/utils/telemetry'
+
+export default class ProtocolChartBuilderData {
+	private static cache: Map<string, { data: ProtocolBreakdownData; timestamp: number }> = new Map()
+	private static CACHE_DURATION = 60 * 60 * 1000
+
+	private static getCacheKey(
+		metric: string,
+		chains: string[],
+		limit: number,
+		categories: string[],
+		groupByParent?: boolean,
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		categoryFilterMode: 'include' | 'exclude' = 'include'
+	): string {
+		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}-${groupByParent || false}-${chainFilterMode}-${categoryFilterMode}`
+	}
+
+	private static async fetchBreakdownData(
+		metric: string,
+		chains: string[],
+		limit: number,
+		categories: string[],
+		groupByParent?: boolean,
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		categoryFilterMode: 'include' | 'exclude' = 'include'
+	): Promise<ProtocolBreakdownData> {
+		const params = new URLSearchParams()
+
+		if (chains.length > 0) {
+			params.append('chains', chains.join(','))
+		}
+
+		params.append('limit', limit.toString())
+
+		if (categories.length > 0) {
+			params.append('categories', categories.join(','))
+		}
+
+		if (groupByParent) {
+			params.append('groupByParent', 'true')
+		}
+
+		if (chainFilterMode) {
+			params.append('chainFilterMode', chainFilterMode)
+		}
+		if (categoryFilterMode) {
+			params.append('categoryFilterMode', categoryFilterMode)
+		}
+
+		const endpoint =
+			metric === 'tvl' ? '/api/public/protocols/breakdowns/tvl' : `/api/public/adapter-metrics/breakdowns/${metric}`
+		const response = await fetchWithPoolingOnServer(`${endpoint}?${params.toString()}`)
+
+		if (!response.ok) {
+			throw new Error(`Failed to fetch ${metric} breakdown data: ${response.statusText}`)
+		}
+
+		return response.json()
+	}
+
+	static async getProtocolBreakdownData(
+		metric:
+			| 'tvl'
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'earnings'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue'
+			| 'open-interest',
+		chains: string[],
+		limit: number = 10,
+		categories: string[] = [],
+		groupByParent?: boolean,
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		categoryFilterMode: 'include' | 'exclude' = 'include'
+	): Promise<ProtocolBreakdownData> {
+		const cacheKey = this.getCacheKey(
+			metric,
+			chains,
+			limit,
+			categories,
+			groupByParent,
+			chainFilterMode,
+			categoryFilterMode
+		)
+		const cached = this.cache.get(cacheKey)
+
+		if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+			return cached.data
+		}
+
+		try {
+			const data = await this.fetchBreakdownData(
+				metric,
+				chains,
+				limit,
+				categories,
+				groupByParent,
+				chainFilterMode,
+				categoryFilterMode
+			)
+
+			this.cache.set(cacheKey, {
+				data,
+				timestamp: Date.now()
+			})
+
+			this.cleanCache()
+
+			return data
+		} catch (error) {
+			recordRuntimeError(error, 'pageBuild')
+
+			return {
+				series: [],
+				metadata: {
+					chain: chains.join(','),
+					chains: chains,
+					categories: categories,
+					metric,
+					topN: limit,
+					totalProtocols: 0,
+					othersCount: 0,
+					marketSector: categories.join(',') || null
+				}
+			}
+		}
+	}
+
+	private static cleanCache() {
+		const now = Date.now()
+		for (const [key, value] of this.cache.entries()) {
+			if (now - value.timestamp > this.CACHE_DURATION) {
+				this.cache.delete(key)
+			}
+		}
+	}
+
+	static async getFeesBreakdown(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolBreakdownData('fees', chains, limit, categories, groupByParent)
+	}
+
+	static async getRevenueBreakdown(
+		chains: string[],
+		limit?: number,
+		categories: string[] = [],
+		groupByParent?: boolean
+	) {
+		return this.getProtocolBreakdownData('revenue', chains, limit, categories, groupByParent)
+	}
+
+	static async getVolumeBreakdown(
+		chains: string[],
+		limit?: number,
+		categories: string[] = [],
+		groupByParent?: boolean
+	) {
+		return this.getProtocolBreakdownData('volume', chains, limit, categories, groupByParent)
+	}
+
+	static async getTvlBreakdown(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolBreakdownData('tvl', chains, limit, categories, groupByParent)
+	}
+
+	static async getProtocolChainData(
+		protocol: string | undefined,
+		metric:
+			| 'tvl'
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'open-interest'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue',
+		chains?: string[],
+		limit: number = 5,
+		chainFilterMode: 'include' | 'exclude' = 'include',
+		chainCategories?: string[],
+		protocolCategories?: string[],
+		chainCategoryFilterMode: 'include' | 'exclude' = 'include',
+		protocolCategoryFilterMode: 'include' | 'exclude' = 'include'
+	): Promise<ProtocolChainData> {
+		const params = new URLSearchParams()
+		if (protocol) params.append('protocol', protocol)
+		if (chains && chains.length > 0) {
+			params.append('chains', chains.join(','))
+		}
+		if (limit) {
+			params.append('limit', String(limit))
+		}
+		if (chainFilterMode) {
+			params.append('chainFilterMode', chainFilterMode)
+		}
+		if (chainCategories && chainCategories.length > 0) {
+			params.append('chainCategories', chainCategories.join(','))
+			params.append('chainCategoryFilterMode', chainCategoryFilterMode)
+		}
+		const supportsProtocolCategoryFilter =
+			!NON_ADAPTER_BY_CHAIN_BREAKDOWN_METRICS.has(metric) && (!protocol || protocol.toLowerCase() === 'all')
+		if (supportsProtocolCategoryFilter && protocolCategories && protocolCategories.length > 0) {
+			params.append('protocolCategories', protocolCategories.join(','))
+			params.append('protocolCategoryFilterMode', protocolCategoryFilterMode)
+		}
+
+		try {
+			const endpoint = getProtocolChainBreakdownRoute(metric)
+			const response = await fetchWithPoolingOnServer(`${endpoint}?${params.toString()}`)
+
+			if (!response.ok) {
+				throw new Error(`Failed to fetch protocol chain data: ${response.statusText}`)
+			}
+
+			return response.json()
+		} catch (error) {
+			recordRuntimeError(error, 'pageBuild')
+			return {
+				series: [],
+				metadata: {
+					protocol,
+					metric,
+					chains: [],
+					totalChains: 0
+				}
+			}
+		}
+	}
+}

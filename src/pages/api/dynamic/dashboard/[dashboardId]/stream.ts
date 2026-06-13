@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { DIMENSION_DATASET_SPECS, fetchDimensionDataset } from '~/containers/AdapterMetrics/server/datasets'
+import { fetchChainsDatasetRows } from '~/containers/ChainsByCategory/server/dataset'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
@@ -11,17 +13,12 @@ import {
 	withTimeout
 } from '~/containers/ProDashboard/queries.server'
 import {
-	DIMENSION_DATASET_SPECS,
-	fetchChainsDatasetRows,
-	fetchDimensionDataset
-} from '~/containers/ProDashboard/server/datasetFetchers'
-import {
 	fetchStablecoinAssetChartCacheValue,
 	fetchStablecoinsTableData
 } from '~/containers/ProDashboard/server/stablecoinFetchers'
 import { fetchTableServerData } from '~/containers/ProDashboard/server/tableQueries'
+import ProtocolChartBuilderData from '~/containers/ProDashboard/services/ProtocolChartBuilderData'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
-import ProtocolSplitCharts from '~/containers/ProDashboard/services/ProtocolSplitCharts'
 import type {
 	AdvancedTvlChartConfig,
 	ChartBuilderConfig,
@@ -667,7 +664,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 				phase2Promises.push(
 					(async () => {
 						const { getCexAnalyticsMarketShare, getCexAnalyticsSnapshot, getCexAnalyticsTotals } =
-							await import('~/server/cexAnalytics/queries')
+							await import('~/containers/Cexs/server/analytics')
 						const tasks: Promise<void>[] = []
 						if (needsSnapshot) {
 							tasks.push(
@@ -848,7 +845,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 						let result: { series: any[] } = { series: [] }
 						if (cfg.mode === 'protocol') {
 							const data = await withTimeout(
-								ProtocolSplitCharts.getProtocolChainData(
+								ProtocolChartBuilderData.getProtocolChainData(
 									cfg.protocol,
 									cfg.metric,
 									cfg.chains?.length > 0 ? cfg.chains : undefined,
@@ -868,7 +865,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 							result = { series }
 						} else if (!CHAIN_ONLY_METRICS.has(cfg.metric)) {
 							const data = await withTimeout(
-								ProtocolSplitCharts.getProtocolSplitData(
+								ProtocolChartBuilderData.getProtocolBreakdownData(
 									cfg.metric,
 									cfg.chains,
 									cfg.limit,

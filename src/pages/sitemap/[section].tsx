@@ -8,7 +8,7 @@ function SiteMapSection() {
 
 export async function getServerSideProps({ params, res }: GetServerSidePropsContext<{ section: string }>) {
 	const sectionId = params?.section
-	const { getSitemapSection } = await import('~/server/routeCache/sitemap')
+	const { getSitemapSection } = await import('~/server/routeRegistry/sitemap')
 	const section = sectionId ? await getSitemapSection(sectionId) : null
 
 	if (!section) {

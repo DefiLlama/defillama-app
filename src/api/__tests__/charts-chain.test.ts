@@ -49,11 +49,11 @@ vi.mock('~/containers/Unlocks/queries', () => ({
 	getProtocolUnlockUsdChart: getProtocolUnlockUsdChartMock
 }))
 
-vi.mock('~/server/routeCache/protocols', () => ({
+vi.mock('~/containers/ProtocolOverview/server/routes', () => ({
 	resolveProtocolParam: resolveProtocolParamMock
 }))
 
-vi.mock('~/server/routeCache/chains', () => ({
+vi.mock('~/containers/ChainOverview/server/routes', () => ({
 	resolveChainParam: resolveChainParamMock
 }))
 

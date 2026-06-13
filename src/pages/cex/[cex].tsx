@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 		const exchangeName = params.cex
 		const [{ default: metadataCache }, { resolveCexParamFromMetadata }] = await Promise.all([
 			import('~/utils/metadata'),
-			import('~/server/routeCache/assets')
+			import('~/containers/Cexs/server/routes')
 		])
 		const cexRoute = resolveCexParamFromMetadata(exchangeName, metadataCache)
 
@@ -96,7 +96,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const { getCexStaticPaths } = await import('~/server/routeCache/assets')
+	const { getCexStaticPaths } = await import('~/containers/Cexs/server/routes')
 	const paths = await getCexStaticPaths()
 
 	return { paths, fallback: 'blocking' }

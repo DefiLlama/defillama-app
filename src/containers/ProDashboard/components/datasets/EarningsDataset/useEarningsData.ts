@@ -13,7 +13,7 @@ export function useEarningsData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'earnings-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/dynamic/datasets/earnings${queryParams}`),
+		queryFn: () => fetchJson(`/api/dynamic/adapter-metrics/earnings${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1

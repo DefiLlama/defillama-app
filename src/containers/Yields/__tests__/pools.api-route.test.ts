@@ -10,7 +10,7 @@ vi.mock('~/containers/Yields/server/dataset', () => ({
 	getYieldPoolsPage: getYieldPoolsPageMock
 }))
 
-import handler from '~/pages/api/public/datasets/yields/pools'
+import handler from '~/pages/api/public/yields/pools'
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -32,7 +32,7 @@ describe('yield pools api route', () => {
 	it('serves filtered pool table rows with CDN cache headers', async () => {
 		const req = {
 			method: 'GET',
-			url: '/api/public/datasets/yields/pools?view=main&page=1&pageSize=50',
+			url: '/api/public/yields/pools?view=main&page=1&pageSize=50',
 			query: { view: 'main', page: '1', pageSize: '50' }
 		} as unknown as NextApiRequest
 		const res = createMockNextApiResponse()

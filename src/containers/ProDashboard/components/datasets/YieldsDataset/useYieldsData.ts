@@ -11,7 +11,7 @@ export function useYieldsData(chains?: string[]) {
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'yields-overview', sortedChains.join(',')],
-		queryFn: () => fetchJson(`/api/public/datasets/yields${queryParams}`),
+		queryFn: () => fetchJson(`/api/public/yields${queryParams}`),
 		enabled: streamDone,
 		staleTime: Infinity,
 		retry: 1
