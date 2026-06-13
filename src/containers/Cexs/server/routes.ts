@@ -54,8 +54,8 @@ export async function getCexSitemapRoutes(metadataCache: MetadataCache): Promise
 		routes.push(`cex/stablecoins/${cexSlug}`)
 	}
 
-	const { fetchExchangeMarketsList } = await import('~/containers/Cexs/server/dataset.markets')
-	const marketsList = await fetchExchangeMarketsList()
+	const { fetchExchangeMarketsListFromCache } = await import('~/containers/Cexs/server/dataset.markets.cache')
+	const marketsList = await fetchExchangeMarketsListFromCache()
 	const marketCexSlugs = new Set<string>()
 
 	for (const entries of Object.values(marketsList.cex)) {

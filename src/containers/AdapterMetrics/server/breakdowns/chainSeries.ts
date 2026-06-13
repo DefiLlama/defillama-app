@@ -1,7 +1,6 @@
 import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
 import { displayChainName, resolveAllowedChainSlugsFromCategories } from '~/server/breakdowns'
-import { fetchJson } from '~/utils/async'
 import {
 	BREAKDOWN_COLOR_PALETTE,
 	buildAlignedTopAndOthers,
@@ -12,7 +11,8 @@ import {
 	type ChartSeries,
 	type ProtocolChainData
 } from '~/utils/breakdowns'
-import { toDimensionsSlug, toDisplayName } from '~/utils/chainNormalizer'
+import { buildChainMatchSet, toDimensionsSlug, toDisplayName } from '~/utils/chainNormalizer'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { DIMENSIONS_API_METRIC_CONFIG } from './config'
 
 type ProtocolCategoryLookup = {
@@ -23,6 +23,11 @@ type ProtocolCategoryLookup = {
 const createEmptyCategoryLookup = (): ProtocolCategoryLookup => ({
 	byName: new Map(),
 	bySlug: new Map()
+})
+
+const cloneCategoryLookup = (lookup: ProtocolCategoryLookup): ProtocolCategoryLookup => ({
+	byName: new Map(lookup.byName),
+	bySlug: new Map(lookup.bySlug)
 })
 
 let protocolCategoryCache: { data: ProtocolCategoryLookup; timestamp: number } | null = null
@@ -82,6 +87,14 @@ const sumNestedValues = (value: any): number => {
 	return 0
 }
 
+const fetchDimensionsJson = async <T>(url: string): Promise<T> => {
+	const response = await fetchWithPoolingOnServer(url)
+	if (!response.ok) {
+		throw new Error(`Dimensions API responded with ${response.status}`)
+	}
+	return response.json()
+}
+
 const getProtocolCategoryLookup = async (): Promise<ProtocolCategoryLookup | null> => {
 	if (protocolCategoryCache && Date.now() - protocolCategoryCache.timestamp < PROTOCOL_CATEGORY_CACHE_MS) {
 		return protocolCategoryCache.data
@@ -124,7 +137,7 @@ async function getDimensionsProtocolChainData(
 			apiUrl += `?dataType=${config.dataType}`
 		}
 
-		const data = await fetchJson<any>(apiUrl)
+		const data = await fetchDimensionsJson<any>(apiUrl)
 
 		const breakdown = data?.totalDataChartBreakdown || []
 		if (!Array.isArray(breakdown) || breakdown.length === 0) {
@@ -141,7 +154,7 @@ async function getDimensionsProtocolChainData(
 
 		const chainDataMap = new Map<string, [number, number][]>()
 
-		const excludeSet = new Set<string>((chains || []).map((c) => c))
+		const chainMatchSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
 		let allowSlugsFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
 			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
@@ -153,10 +166,14 @@ async function getDimensionsProtocolChainData(
 			for (const chain in chainData) {
 				const versions = (chainData as Record<string, any>)[chain]
 				if (chains && chains.length > 0) {
+					const matches =
+						chainMatchSet.has(chain) ||
+						chainMatchSet.has(chain.toLowerCase()) ||
+						chainMatchSet.has(toDimensionsSlug(chain))
 					if (chainFilterMode === 'include') {
-						if (!chains.includes(chain)) continue
+						if (!matches) continue
 					} else {
-						if (excludeSet.has(chain)) continue
+						if (matches) continue
 					}
 				}
 
@@ -269,7 +286,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	try {
 		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) overviewUrl += `&dataType=${config.dataType}`
-		const overview = await fetchJson<any>(overviewUrl)
+		const overview = await fetchDimensionsJson<any>(overviewUrl)
 
 		const protocolCategoryFilterSet = new Set<string>()
 		for (const cat of protocolCategories || []) {
@@ -280,7 +297,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		let protocolCategoryLookup: ProtocolCategoryLookup | null = null
 		if (hasProtocolCategoryFilter) {
-			protocolCategoryLookup = await getProtocolCategoryLookup()
+			const cachedLookup = await getProtocolCategoryLookup()
+			protocolCategoryLookup = cachedLookup ? cloneCategoryLookup(cachedLookup) : null
 		}
 
 		const chainTotals = new Map<string, number>()
@@ -380,7 +398,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			const endpointSlug = toDisplayName(slug)
 			let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
-			const j = await fetchJson<any>(url).catch(() => null)
+			const j = await fetchDimensionsJson<any>(url).catch(() => null)
 			if (!j) return null
 			const tdc: Array<[number, number]> = Array.isArray(j?.totalDataChart) ? j.totalDataChart : []
 			let normalized = filterOutToday(

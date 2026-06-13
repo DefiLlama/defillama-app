@@ -26,4 +26,36 @@ describe('breakdown route partitioning', () => {
 			'tvl'
 		])
 	})
+
+	it('rejects concrete protocols for chain-native by-chain breakdowns', async () => {
+		const { chainNativeByChainBreakdown } = await import('~/containers/ChainOverview/server/breakdowns')
+
+		await expect(
+			chainNativeByChainBreakdown.handle({
+				method: 'GET',
+				url: '',
+				headers: {},
+				query: { metric: 'chain-fees', protocol: 'aave' }
+			})
+		).resolves.toEqual({
+			status: 400,
+			body: { error: 'chain-fees metric is only available when protocol=All' }
+		})
+	})
+
+	it('rejects concrete protocols for stablecoin by-chain breakdowns', async () => {
+		const { stablecoinByChainBreakdown } = await import('~/containers/Stablecoins/server/breakdowns')
+
+		await expect(
+			stablecoinByChainBreakdown.handle({
+				method: 'GET',
+				url: '',
+				headers: {},
+				query: { protocol: 'aave' }
+			})
+		).resolves.toEqual({
+			status: 400,
+			body: { error: 'stablecoins metric is only available when protocol=All' }
+		})
+	})
 })

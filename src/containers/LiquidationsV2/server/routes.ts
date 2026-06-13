@@ -46,13 +46,13 @@ export async function resolveLiquidationsChainParams(
 
 export async function getLiquidationsSitemapRoutes(metadataCache: MetadataCache): Promise<string[]> {
 	const routes: string[] = []
-	const { getLiquidationsProtocolsList, getLiquidationsProtocolChainIds } =
-		await import('~/containers/LiquidationsV2/server/dataset')
-	const protocolsResponse = await getLiquidationsProtocolsList()
+	const { getLiquidationsProtocolsResponseFromCache, getLiquidationsProtocolChainIdsFromCache } =
+		await import('~/containers/LiquidationsV2/server/dataset.cache')
+	const protocolsResponse = await getLiquidationsProtocolsResponseFromCache()
 	const protocolChainIds = await Promise.all(
 		protocolsResponse.protocols.map(async (protocolId) => ({
 			protocolId,
-			chainIds: await getLiquidationsProtocolChainIds(protocolId)
+			chainIds: await getLiquidationsProtocolChainIdsFromCache(protocolId)
 		}))
 	)
 

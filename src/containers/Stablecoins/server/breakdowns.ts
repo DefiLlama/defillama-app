@@ -1,6 +1,6 @@
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
-import { queryFilterMode, queryIntClamped, queryList } from '~/server/api/params'
-import { ok } from '~/server/api/respond'
+import { queryFilterMode, queryIntClamped, queryList, queryString } from '~/server/api/params'
+import { badRequest, ok } from '~/server/api/respond'
 import { cachedResult } from '~/server/api/resultCache'
 import { defineApiRoute } from '~/server/api/types'
 import { displayChainName, resolveAllowedChainNamesFromCategories } from '~/server/breakdowns'
@@ -43,6 +43,10 @@ async function getStablecoinByChainBreakdownData({
 	chainCategories: string[]
 }): Promise<ProtocolChainData> {
 	try {
+		const aggregatedJsonPromise = fetchStablecoinChartAllApi().catch((err) => {
+			console.log('Failed to fetch aggregated stablecoin series for chains builder:', err)
+			return null
+		})
 		const dominanceJson = await fetchStablecoinDominanceAllApi()
 		const chainChartMap: Record<string, any[]> = dominanceJson?.chainChartMap ?? {}
 		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
@@ -137,8 +141,8 @@ async function getStablecoinByChainBreakdownData({
 		}))
 
 		let totalPairs: [number, number][] = []
-		try {
-			const aggregatedJson = await fetchStablecoinChartAllApi()
+		const aggregatedJson = await aggregatedJsonPromise
+		if (aggregatedJson) {
 			const aggregatedArray: any[] = Array.isArray(aggregatedJson?.aggregated) ? aggregatedJson.aggregated : []
 			totalPairs = filterOutToday(
 				normalizeDailyPairs(
@@ -156,8 +160,6 @@ async function getStablecoinByChainBreakdownData({
 						.filter(Boolean) as [number, number][]
 				)
 			)
-		} catch (err) {
-			console.log('Failed to fetch aggregated stablecoin series for chains builder:', err)
 		}
 
 		const { alignedTopSeries, othersData, allTimestamps } = buildAlignedTopAndOthers(pickedSeries, totalPairs)
@@ -206,6 +208,11 @@ export const stablecoinByChainBreakdown = defineApiRoute({
 	route: '/api/public/stablecoins/breakdowns/by-chain',
 	cacheControl: BREAKDOWN_CACHE_CONTROL,
 	handle: async (req) => {
+		const protocol = queryString(req.query, 'protocol')
+		if (protocol && protocol.toLowerCase() !== 'all') {
+			return badRequest('stablecoins metric is only available when protocol=All')
+		}
+
 		const rawChains = queryList(req.query, 'chains')
 		const chains = rawChains.includes('All') ? [] : rawChains
 		const chainCategories = queryList(req.query, 'chainCategories')

@@ -174,6 +174,10 @@ export const chainNativeByChainBreakdown = defineApiRoute({
 		if (!CHAIN_NATIVE_BREAKDOWN_METRICS.has(metric)) {
 			return badRequest(`Unsupported metric: ${metric}`)
 		}
+		const protocol = queryString(req.query, 'protocol')
+		if (protocol && protocol.toLowerCase() !== 'all') {
+			return badRequest(`${metric} metric is only available when protocol=All`)
+		}
 
 		const rawChains = queryList(req.query, 'chains')
 		const chains = rawChains.includes('All') ? [] : rawChains

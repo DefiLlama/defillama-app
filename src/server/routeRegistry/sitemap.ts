@@ -151,7 +151,14 @@ async function buildBaseSitemapSection(
 async function buildAppSitemapSectionsFromCacheArtifacts(): Promise<SitemapSection[]> {
 	const metadataCache = await getMetadataCache()
 	const sections = await Promise.all(
-		SITEMAP_SECTION_IDS.map((sectionId) => buildBaseSitemapSection(sectionId, metadataCache))
+		SITEMAP_SECTION_IDS.map(async (sectionId) => {
+			try {
+				return await buildBaseSitemapSection(sectionId, metadataCache)
+			} catch (error) {
+				console.warn(`[sitemap] failed to build ${sectionId} section`, error)
+				return { id: sectionId, entries: [] }
+			}
+		})
 	)
 
 	return sections.flatMap(splitLargeSection)
