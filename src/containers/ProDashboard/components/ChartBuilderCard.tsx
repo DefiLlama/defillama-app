@@ -4,6 +4,7 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod, StreamDoneContext } from '~/containers/ProDashboard/queries'
+import { PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS } from '~/utils/breakdownMetrics'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
@@ -25,7 +26,6 @@ const DEFAULT_SERIES_COLOR = '#3e61cc'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
 const EMPTY_SERIES_NAMES: string[] = []
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
-const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
 const CHART_TYPE_OPTIONS = [
 	{ name: 'Stacked Bar', key: 'stackedBar' },
 	{ name: 'Stacked Area', key: 'stackedArea' },
@@ -208,7 +208,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				return { series }
 			}
 
-			if (CHAIN_ONLY_METRICS.has(config.metric)) {
+			if (PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(config.metric)) {
 				return { series: [] }
 			}
 

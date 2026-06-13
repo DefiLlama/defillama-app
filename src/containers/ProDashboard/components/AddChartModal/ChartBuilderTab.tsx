@@ -6,6 +6,7 @@ import { fetchChainsCategories } from '~/containers/Chains/api'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { fetchProtocols } from '~/containers/ProtocolLists/api'
+import { PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS } from '~/utils/breakdownMetrics'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolChartBuilderData from '../../services/ProtocolChartBuilderData'
@@ -58,8 +59,6 @@ const METRIC_OPTIONS = [
 	{ value: 'chain-fees', label: 'Chain Fees (Chains only)' },
 	{ value: 'chain-revenue', label: 'Chain Revenue (Chains only)' }
 ]
-
-const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
 
 const CHART_TYPE_OPTIONS = [
 	{ value: 'stackedBar', label: 'Bar', icon: 'bar-chart-2' },
@@ -182,7 +181,7 @@ export function ChartBuilderTab({
 	const metricOptions = useMemo(() => {
 		return METRIC_OPTIONS.filter(
 			(option) =>
-				!CHAIN_ONLY_METRICS.has(option.value) ||
+				!PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(option.value) ||
 				chartBuilder.mode === 'protocol' ||
 				option.value === chartBuilder.metric
 		)
@@ -241,7 +240,7 @@ export function ChartBuilderTab({
 				return data
 			}
 
-			if (CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
+			if (PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(chartBuilder.metric)) {
 				return {
 					series: [],
 					metadata: {
@@ -324,7 +323,9 @@ export function ChartBuilderTab({
 		[seriesColors]
 	)
 
-	const isChainOnlyMetric = chartBuilder.metric ? CHAIN_ONLY_METRICS.has(chartBuilder.metric) : false
+	const isProtocolUnsupportedMetric = chartBuilder.metric
+		? PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(chartBuilder.metric)
+		: false
 	const isTvlMetric = chartBuilder.metric === 'tvl' || chartBuilder.metric === 'stablecoins'
 	const treemapValue = chartBuilder.treemapValue || 'latest'
 	const treemapMode = !isTvlMetric ? treemapValue : 'latest'
@@ -467,10 +468,10 @@ export function ChartBuilderTab({
 			metric: newMetric,
 			chartType: newChartType
 		}
-		if (CHAIN_ONLY_METRICS.has(newMetric)) {
+		if (PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(newMetric)) {
 			updates.protocol = undefined
 		}
-		if (newMetric === 'tvl' || CHAIN_ONLY_METRICS.has(newMetric)) {
+		if (newMetric === 'tvl' || PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(newMetric)) {
 			updates.protocolCategories = undefined
 		}
 		onChartBuilderChange(updates)
@@ -535,7 +536,7 @@ export function ChartBuilderTab({
 			chains: [],
 			protocol: undefined
 		}
-		if (mode === 'chains' && chartBuilder.metric && CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
+		if (mode === 'chains' && chartBuilder.metric && PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(chartBuilder.metric)) {
 			updates.metric = 'tvl'
 			updates.chartType = 'stackedArea'
 		}
@@ -569,16 +570,20 @@ export function ChartBuilderTab({
 	}
 
 	useEffect(() => {
-		if (chartBuilder.mode === 'chains' && chartBuilder.metric && CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
+		if (
+			chartBuilder.mode === 'chains' &&
+			chartBuilder.metric &&
+			PROTOCOL_UNSUPPORTED_BY_CHAIN_METRICS.has(chartBuilder.metric)
+		) {
 			onChartBuilderChange({ metric: 'tvl', chartType: 'stackedArea' })
 		}
 	}, [chartBuilder.mode, chartBuilder.metric, onChartBuilderChange])
 
 	useEffect(() => {
-		if (chartBuilder.mode === 'protocol' && isChainOnlyMetric && chartBuilder.protocol) {
+		if (chartBuilder.mode === 'protocol' && isProtocolUnsupportedMetric && chartBuilder.protocol) {
 			onChartBuilderChange({ protocol: undefined })
 		}
-	}, [chartBuilder.mode, isChainOnlyMetric, chartBuilder.protocol, onChartBuilderChange])
+	}, [chartBuilder.mode, isProtocolUnsupportedMetric, chartBuilder.protocol, onChartBuilderChange])
 
 	useEffect(() => {
 		if (chartBuilder.mode === 'protocol') {
@@ -745,7 +750,7 @@ export function ChartBuilderTab({
 							</>
 						) : (
 							<>
-								{isChainOnlyMetric ? (
+								{isProtocolUnsupportedMetric ? (
 									<div className="mb-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2 py-1.5">
 										<p className="text-[10px] pro-text3">This metric is available only for All Protocols.</p>
 									</div>
@@ -788,7 +793,7 @@ export function ChartBuilderTab({
 										}
 									/>
 								</div>
-								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol ? (
+								{!isProtocolUnsupportedMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol ? (
 									<div className="mb-1.5">
 										<div className="mb-1 flex items-center justify-between">
 											<span className="text-[10px] font-medium pro-text2">Protocol Categories Filter</span>

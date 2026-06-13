@@ -43,6 +43,7 @@ import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~
 import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/containers/Yields/constants'
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
+import { STREAM_PROTOCOL_SERIES_SKIP_METRICS } from '~/utils/breakdownMetrics'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -804,7 +805,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 		// Chart builder items
 		const chartBuilderItems = items.filter((item): item is ChartBuilderConfig => item.kind === 'builder')
-		const CHAIN_ONLY_METRICS = new Set(['chain-fees', 'chain-revenue', 'tvl', 'stablecoins'])
 		const resolveChartBuilderFilterMode = (value?: string, fallback?: string) => {
 			if (value === 'include' || value === 'exclude') return value
 			if (fallback === 'include' || fallback === 'exclude') return fallback
@@ -863,7 +863,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 								series = series.filter((s: any) => !s.name.startsWith('Others'))
 							}
 							result = { series }
-						} else if (!CHAIN_ONLY_METRICS.has(cfg.metric)) {
+						} else if (!STREAM_PROTOCOL_SERIES_SKIP_METRICS.has(cfg.metric)) {
 							const data = await withTimeout(
 								ProtocolChartBuilderData.getProtocolBreakdownData(
 									cfg.metric,
