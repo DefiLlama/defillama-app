@@ -1,7 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { DIMENSIONS_METRIC_CONFIG, getDimensionsSplitData } from '~/server/protocolSplit/dimensionsSplit'
 import { getTvlSplitData } from '~/server/protocolSplit/tvlSplit'
+import { cachedResult } from '~/server/resultCache'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+
+const SPLIT_RESULT_TTL_MS = 10 * 60 * 1000
+
+function setSplitCacheHeader(req: NextApiRequest, res: NextApiResponse, key: string) {
+	res.setHeader(
+		'Cache-Control',
+		jitterCacheControlHeader('public, s-maxage=600, stale-while-revalidate=1200', req.url ?? key)
+	)
+}
 
 async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -30,15 +41,15 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 		const chainMode = resolveMode(chainFilterMode as string | undefined, filterMode as string | undefined)
 		const categoryMode = resolveMode(categoryFilterMode as string | undefined, filterMode as string | undefined)
 
-		const result = await getTvlSplitData(
-			chainsArray,
-			categoriesArray,
-			topN,
-			shouldGroupByParent,
-			chainMode,
-			categoryMode
+		const cacheKey = JSON.stringify([chainsArray, categoriesArray, topN, shouldGroupByParent, chainMode, categoryMode])
+		const result = await cachedResult(
+			'protocols-split-tvl',
+			cacheKey,
+			{ ttlMs: SPLIT_RESULT_TTL_MS, ttlJitter: 0.2 },
+			() => getTvlSplitData(chainsArray, categoriesArray, topN, shouldGroupByParent, chainMode, categoryMode)
 		)
 
+		setSplitCacheHeader(req, res, cacheKey)
 		res.status(200).json(result)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')
@@ -89,16 +100,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(400).json({ error: `Unsupported metric: ${metric}` })
 		}
 
-		const result = await getDimensionsSplitData({
+		const cacheKey = JSON.stringify([
 			metric,
-			chains: chainsArray,
-			categories: categoriesArray,
+			chainsArray,
+			categoriesArray,
 			topN,
-			groupByParent: shouldGroupByParent,
-			chainFilterMode: chainMode,
-			categoryFilterMode: categoryMode
-		})
+			shouldGroupByParent,
+			chainMode,
+			categoryMode
+		])
+		const result = await cachedResult(
+			'protocols-split-dimensions',
+			cacheKey,
+			{ ttlMs: SPLIT_RESULT_TTL_MS, ttlJitter: 0.2 },
+			() =>
+				getDimensionsSplitData({
+					metric,
+					chains: chainsArray,
+					categories: categoriesArray,
+					topN,
+					groupByParent: shouldGroupByParent,
+					chainFilterMode: chainMode,
+					categoryFilterMode: categoryMode
+				})
+		)
 
+		setSplitCacheHeader(req, res, cacheKey)
 		res.status(200).json(result)
 	} catch (error) {
 		const metric = req.query.dataType as string

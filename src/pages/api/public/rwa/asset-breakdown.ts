@@ -15,6 +15,7 @@ import {
 	parseOptionalStringTarget
 } from '~/containers/RWA/requestParsers'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { cachedResult } from '~/server/resultCache'
 import { fetchJson } from '~/utils/async'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -152,11 +153,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(404).json({ error: 'RWA target not found' })
 		}
 
-		const raw = await fetchJson<IRWAChartDataByAsset>(buildAssetBreakdownUrl(request), {
-			timeout: 30_000
-		})
-		const rows = normalizeAssetBreakdownRows(raw[request.key] ?? [])
-		const cacheJitterKey = req.url ?? buildAssetBreakdownCacheJitterKey(request)
+		const cacheKey = buildAssetBreakdownCacheJitterKey(request)
+		const rows = await cachedResult(
+			'rwa-asset-breakdown',
+			cacheKey,
+			{ ttlMs: 30 * 60 * 1000, ttlJitter: 0.2 },
+			async () => {
+				const raw = await fetchJson<IRWAChartDataByAsset>(buildAssetBreakdownUrl(request), {
+					timeout: 30_000
+				})
+				return normalizeAssetBreakdownRows(raw[request.key] ?? [])
+			}
+		)
+		const cacheJitterKey = req.url ?? cacheKey
 
 		res.setHeader(
 			'Cache-Control',

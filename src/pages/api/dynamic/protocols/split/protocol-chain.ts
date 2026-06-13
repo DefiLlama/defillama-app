@@ -1,6 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { CHAIN_ONLY_METRICS, getProtocolChainSplitData } from '~/server/protocolSplit/protocolChainService'
+import { cachedResult } from '~/server/resultCache'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+
+const SPLIT_RESULT_TTL_MS = 10 * 60 * 1000
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -49,18 +53,39 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			}
 		}
 
-		const result = await getProtocolChainSplitData({
-			protocol: protocolStr,
-			metric: metricStr,
-			chains: chainsArray,
+		const cacheKey = JSON.stringify([
+			protocolStr ?? 'all',
+			metricStr,
+			chainsArray,
 			topN,
-			chainFilterMode: chainMode,
-			chainCategoryFilterMode: chainCategoryMode,
-			protocolCategoryFilterMode: protocolCategoryMode,
-			chainCategories: chainCategoriesArray,
-			protocolCategories: protocolCategoriesArray
-		})
+			chainMode,
+			chainCategoryMode,
+			protocolCategoryMode,
+			chainCategoriesArray,
+			protocolCategoriesArray
+		])
+		const result = await cachedResult(
+			'protocols-split-chain',
+			cacheKey,
+			{ ttlMs: SPLIT_RESULT_TTL_MS, ttlJitter: 0.2 },
+			() =>
+				getProtocolChainSplitData({
+					protocol: protocolStr,
+					metric: metricStr,
+					chains: chainsArray,
+					topN,
+					chainFilterMode: chainMode,
+					chainCategoryFilterMode: chainCategoryMode,
+					protocolCategoryFilterMode: protocolCategoryMode,
+					chainCategories: chainCategoriesArray,
+					protocolCategories: protocolCategoriesArray
+				})
+		)
 
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, s-maxage=600, stale-while-revalidate=1200', req.url ?? cacheKey)
+		)
 		res.status(200).json(result)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')
